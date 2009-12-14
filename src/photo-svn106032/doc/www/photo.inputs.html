@@ -1,0 +1,718 @@
+<HTML>
+<TITLE>Inputs to the Photometric Pipeline</TITLE>
+<BODY>
+
+<H1>Inputs to the Photometric Pipeline</H1>
+<h2>July 14, 1995 </h2>
+
+<P>Go back to 
+<A HREF=photo.home.html>Photo Home Page</A>
+
+<P>
+There are a number of files which must be present on your system
+for you to run the Postage-stamp and Frames pipelines.
+This document describes the files, their contents, and their
+structure.  For an example of the outputs of the pipelines,
+see 
+<a href="./photo.outputs.html">Outputs of the Photometric Pipeline</a>.
+
+<UL>
+<LI> <a href="#PSinputs">Postage-stamp pipeline inputs </a>
+<LI> <a href="#Finputs">Frames pipeline inputs </a>
+</ul>
+
+<h2> <a name="PSinputs">Postage-stamp pipeline inputs </a> </h2>
+
+<P>
+There are many different types of files that are required 
+to run the Postage-stamp pipeline.  You'll need at least
+one of each of the following types of files.
+
+<UL> 
+Data files:
+<LI> <a href="#ps_quartiles">Quartiles from raw frames </a>
+<LI> <a href="#ps_bias">Two-dimensional bias frame </a>
+<LI> <a href="#ps_stamps">Postage stamps </a>
+<LI> <a href="#ps_fieldinfo">Field information </a>
+<LI> <a href="#ps_mtstd">Standard-star photometry</a>
+<LI> <a href="#ps_mtext">Extinction measurements</a>
+<LI> <a href="#ps_rc2gc">Astrometry measurements</a>
+<P>
+Parameter files:
+<LI> <a href="#ps_plan">Postage-stamp data processing plan</a>
+<LI> <a href="#hard">Hardware parameters (shared with Frames Pipeline)</a>
+<LI> <a href="#ps_soft">Postage-stamp software parameters</a>
+</UL>
+
+<h3> <a name="ps_quartiles">Quartiles files</a> </h3>
+<P>
+These files contain the quartiles (25%, 50% and 75%), and an
+estimate of the mode, for each column of each raw data frame.
+They are created by ASTROLINE.  
+They are FITS binary tables, which can be read with
+<b>fits2Schema</b>.  The <b>TSHIFT</b> keyword in
+the header gives the amount by which each quartile
+value has been multiplied; if <b>TSHIFT</b>=100, then
+each quartile value in the file is 100 times larger
+than the true value.  This scaling allows us to calculate
+precise quartile values while maintaining pure integers.
+
+<P>
+File name has form
+<pre>
+
+         run000525-11-000237.quartile
+                ^  ^^     ^
+                |  ||     -- field sequence number
+                |  ||------- position of CCD in column of camera
+                |  --------- position of CCD in row of camera
+                ------------ run number
+  
+</pre>
+<P>
+The <i>field sequence number</i> is NOT the same as the field number;
+it varies with the row position of the CCD in the camera.
+The general formula is
+<pre>
+
+        sequence number = field + (row - 1)*2
+
+</pre>
+
+<h3> <a name="ps_bias">Two-dimensional bias frames</a> </h3>
+<P>
+These files, one per chip per run, provide an estimate of the 
+bias charge in each column of the chip.  
+One creates these files by taking a sequence of <b>N</b>
+dark frames, then finding the median along the column of
+each dark frame.  If the dark frames have <b>M</b> columns,
+then taking the median turns each one into a <b>1xM</b> image.
+This file has the form of an <b>NxM</b> FITS image, in 16-bit
+unsigned integers, and is simply <b>N</b> such rows 
+stuck together.
+
+
+<P>
+File name has form
+<pre>
+
+         run000525-11.bias
+                ^  ^^
+                |  ||
+                |  ||------- position of CCD in column of camera
+                |  --------- position of CCD in row of camera
+                ------------ run number
+  
+</pre>
+
+<h3> <a name="ps_stamps">Postage stamps</a> </h3>
+<P>
+The on-line system finds stars on each frame as it acquires
+the data from the chips.  It measures some simple parameters
+for each one, and cuts out a 29x29-pixel square around
+each star.   This file contains the cut-out areas for
+all the stars in a given frame.  The file is a FITS binary
+table; when the file is read by the postage-stamp pipeline
+(in the <i>new_ps_read</i> procedure), the data are
+converted to REGIONs.
+
+<p>
+Note that <b>every</b> postage-stamp file contains exactly 30
+rows in its binary table, but not every row contains real
+data around a star.  In the secondary FITS header, the
+keyword <b>BSCOUNT</b> reveals the actual number of postage
+stamps.  The rows after the <b>BSCOUNT</b> should be ignored.
+
+<P>
+File name has form
+<pre>
+
+         run000525-11-000234.stamp
+                ^  ^^    ^
+                |  ||    |   field sequence number
+                |  ||------- position of CCD in column of camera
+                |  --------- position of CCD in row of camera
+                ------------ run number
+  
+</pre>
+<P>
+The <i>field sequence number</i> is NOT the same as the field number;
+it varies with the row position of the CCD in the camera.
+The general formula is
+<pre>
+
+        sequence number = field + (row - 1)*2
+
+</pre>
+
+<h3> <a name="ps_fieldinfo">Field information</a> </h3>
+<P>
+This file, of which there is one per run, per column, 
+give information about the position and time of each
+field acquired during the run.
+The FITS binary table within the file contains
+the position of each field in survey coordinates (eta, lambda),
+and the time at which each frame was taken
+(it may be the case that the "dummy" file created
+for the frames_6 data set doesn't contain the correct
+number of rows).
+
+<P>
+File name has form
+<pre>
+
+         run000525-c1.fieldInfo
+                ^   ^
+                |   |
+                |   |------- position of CCD in column of camera
+                |            
+                ------------ run number
+  
+</pre>
+<P>
+Note that the "c" in the filename stands for "column", just to
+remind you that there's only one fieldInfo file for each 
+column of chips in the CCD camera.
+
+<h3> <a name="ps_mtstd">Standard-star photometry </a> </h3>
+<P>
+The Monitor Telescope pipeline reduces images of 
+secondary standard stars (those which will be observed
+by both the MT and the main telescope) and places
+the magnitudes of each secondary standard in a
+<b>patch</b> into this type of file.
+The FITS binary table contains one row 
+per star, and each row contains the position
+(eta, lambda) of a star, plus arrays with its
+magnitudes and estimated uncertainties in all filters.
+
+<p>
+The TCL procedure <i>new_read_mtstd</i> reads
+these files and converts the information into 
+a chain of STARC structures, which are used 
+by PHOTO to compare the stars' standard magnitudes
+with the instrumental magnitudes.
+The comparison allows us to compute the zero-point
+offset which converts instrumental magnitudes to
+the standard system.
+
+<P>
+File name has form
+<pre>
+
+         run010801-00-000001.mtstd
+                ^  ^^    ^
+                |  ||    --- MT patch number within its run
+                |  ||------- special code "00" for CCD position
+                |  ---------    indicates MT chip                
+                ------------ MT run number (not the same as 2.5-m run number)
+  
+</pre>
+
+<h3> <a name="ps_mtext">Extinction measurements</a> </h3>
+<P>
+The MT pipeline also computes the extinction, in each bandpass,
+about once per hour.  This information is used to 
+correct the instrumental magnitudes of stars in all the 
+frames taken during that time period.
+The FITS binary table contains one row per hour or
+so; each row contains the time, plus the 
+measured extinction per unit airmass in each of the
+passbands, plus uncertainty.
+There is just one such file produced per MT run.
+
+<P>
+The TCL procedure <i>new_read_mtext</i> converts the 
+information in this file into a chain of EXTINCTION 
+structures.
+
+<P>
+File name has form
+<pre>
+
+         run010801-00.mtext
+                ^  ^^
+                |  ||
+                |  ||------- special code "00" for CCD position
+                |  ---------    indicates MT chip                
+                ------------ MT run number (not the same as 2.5-m run number)
+  
+</pre>
+
+<h3> <a name="ps_rc2gc">Astrometry information</a> </h3>
+<P>
+The astrometric pipeline creates these FITS binary
+tables.  There is one row per frame, 
+containing the coefficients of the TRANS
+structure that convert a (row, col) position
+in the frame into Great Circle (mu, nu) 
+coordinates.  
+
+<P>
+The first row in the table contains the coefficients
+for the first field's first passband; the second row
+for the first field's second passband, and so on
+to the <b>N</b>th row (where <b>N</b> is the number
+of passbands used during the run).  The next row
+in the file contains the coefficients for the
+second field's first passband, etc.
+
+<P>
+File name has form
+<pre>
+
+         run000525-c1.rc2gc
+                ^   ^
+                |   |
+                |   |------- position of CCD in column of camera
+                |                                             
+                ------------ run number
+  
+</pre>
+<P>
+Note that the "c" in the filename stands for "column", just to
+remind you that there's only one fieldInfo file for each 
+column of chips in the CCD camera.
+
+<h3> <a name="ps_plan">Postage-stamp pipeline data processing plan</a> </h3>
+<P>
+This ASCII text file describes the amount of data
+you want to reduce with the Postage-stamp pipeline, 
+and its location.  There are several tricky items.
+
+<P>
+First, since there may be standards files
+from several different MT runs which are
+used to reduce data from a single 2.5-m run, it may be necessary 
+for form TCL lists for the MT-specific parameters in the file.
+For example, if you are using standard-stars from just one MT run,
+number 10801, then sections of the data processing plan
+might look like this:
+
+<pre>
+
+# the number of elements in all the "mt_" values below must match (except for
+#   the "mt_chip" keyword, above)
+mt_extinct_run 10801
+mt_standards_run 10801
+# these are the starting and ending patch numbers for each MT run
+#   and are inclusive (so number of files = 1 + endpatch - startpatch)
+mt_startpatch 0
+mt_endpatch 2
+
+extinctiondir $PHOTODATA_DIR/frames_6/input
+standardsdir $PHOTODATA_DIR/frames_6/input
+
+</pre>
+
+<P>
+On the other hand, if you have photometric data from two different MT runs, 
+number 10801 and 1080, each of which contains
+2 patches of stars, that you wish to use to reduce data
+from the same 2.5-m run, then the param file would have these
+lines:
+
+<pre>
+# the number of elements in all the "mt_" values below must match (except for
+#   the "mt_chip" keyword, above)
+mt_extinct_run 10801
+mt_standards_run {10801 10802}
+# these are the starting and ending patch numbers for each MT run
+#   and are inclusive (so number of files = 1 + endpatch - startpatch)
+mt_startpatch {0 0}
+mt_endpatch {2 2}
+
+extinctiondir $PHOTODATA_DIR/frames_6/input
+standardsdir {$PHOTODATA_DIR/frames_6/input $PHOTODATA_DIR/frames_6/input}
+
+</pre>
+Note how there are 2 elements to each parameter which deals with
+MT standard-star data.
+
+<P>
+Second, there are only a few of the parameters that you
+are likely to change very often.  Once you have set all
+the directories to point to the proper places, 
+you will probably change only the starting and
+ending field numbers.  These are, by default,
+<pre>
+
+startfield 0
+endfield 9
+
+</pre>
+If you wanted to reduce only a single field, you could change
+<b>endfield</b> from 9 to 0.  
+
+<P>
+File name has form
+<pre>
+
+         psp_data_processing_plan
+  
+</pre>
+
+<h3> <a name="hard">Hardware parameters file</a> </h3>
+<P>
+This file is shared by both the Postage-stamp and Frames 
+pipelines.  It is an ASCII text file full of 
+keyword-value pairs that describe the SDSS camera
+hardware.  
+For example, this section near the start of the file describes the
+layout of the filters in the focal array:
+<pre>
+
+# first, we have a translation table from filter color ('r') to 
+#   chip row position in the focal plane
+ccd_row_r              1               # first row is 'r' filter
+ccd_row_z              2               # second row is 'z' filter
+ccd_row_u              3               # third row is 'u' filter
+ccd_row_i              4               # fourth row is 'i' filter
+ccd_row_g              5               # first row is 'g' filter
+
+</pre>
+
+Most of the file is made up of stanzas, one per CCD chip,
+detailing the position of the bias and data areas of the
+chip, the number of amplifiers, the gain and readnoise of 
+each, etc.
+
+<P>
+File name has form
+<pre>
+
+         hardware_parameters
+  
+</pre>
+
+<h3> <a name="ps_soft">Postage-stamp pipeline software parameters</a> </h3>
+<P>
+This ASCII text file contains keyword-value pairs that
+set various parameters which control the calculations
+in the postage-stamp pipeline.  
+You may wish to change these quite a bit, to optomize the
+action of the postage-stamp pipeline on your own data.
+
+<P>
+File name has form
+<pre>
+
+         psp_software_parameters
+  
+</pre>
+
+<h2> <a name="Finputs">Frames pipeline inputs </a> </h2>
+
+<P>
+The following are the files needed to run the Frame pipeline:
+
+<UL> 
+Data files:
+<LI> <a href="#fp_frames">Raw frames </a>
+<LI> <a href="#fp_bias">One-dimensional bias vector</a>
+<LI> <a href="#fp_drift">Bias drift array</a>
+<LI> <a href="#fp_calib">Calibration, per frame</a>
+<LI> <a href="#fp_ff">Flatfield vector</a>
+<LI> <a href="#fp_oldcal">Old calibration data</a>
+<LI> <a href="#fp_tree">Classification tree</a>
+<P>
+Parameter files:
+<LI> <a href="#fp_plan">Frames data processing plan</a>
+<LI> <a href="#hard">Hardware parameters 
+             (shared with Postage-stamp Pipeline)</a>
+<LI> <a href="#fp_soft">Frames software parameters</a>
+</UL>
+
+<h3> <a name="fp_frames">Raw CCD frames</a> </h3>
+<P>
+These are the raw FITS images produced by the camera.
+Each one of the raw SDSS frames will have
+1354-rows by 2128-columns; note that there are
+40 bias columns on each side of the 2048 data columns.
+The images are 16-bit signed integer FITS, with a 
+<b>BZERO</b> value of 32768 subtrcted from each pixel
+to force the 16-bit unsigned data into the range of 16-bit signed
+data.
+
+<P>
+File name has form
+<pre>
+
+         run000525-11-000006.fits
+                ^  ^^    ^
+                |  ||    --- field sequence number
+                |  ||------- position of CCD in column of camera
+                |  --------- position of CCD in row of camera
+                ------------ run number
+  
+</pre>
+<P>
+The <i>field sequence number</i> is NOT the same as the field number;
+it varies with the row position of the CCD in the camera.
+The general formula is
+<pre>
+
+        sequence number = field + (row - 1)*2
+
+</pre>
+
+<h3> <a name="fp_bias">One-dimentional bias vectors</a> </h3>
+<P>
+There is one bias vector produced per passband, per
+column, per run; in other words, one per CCD chip
+per run.  Each FITS image contains a 
+1-row by 2048-column REGION, which represents
+an "average" bias vector that ought to be subtracted
+from each raw frame obtained from this particular chip.
+
+<P>
+As usual, it is a 16-bit signed integer FITS file
+with <b>BZERO</b> set to 32768 to convert
+unsigned 16-bit integers into the signed range.
+In addition, the data values have all been multiplied
+by a factor of <i>bias_scale</i>, one of the
+parameters in the <a href="#hard">hardware_parameters</a>
+file.
+At the moment, <i>bias_scale</i>=32 for the SDSS test data.
+
+<P>
+File name has form
+<pre>
+
+         B-0-1-g.fit       
+           ^ ^ ^     
+           | | ------------- passband to which we apply this vector
+           | --------------- position of CCD in column of camera
+           ----------------- run number
+</pre>
+
+<h3> <a name="fp_drift">Bias drift array</a> </h3>
+<P>
+This file contains measurement of the difference between the
+number of counts in the bias area of a data frame, and
+the number of counts in the bias area of a "dark frame"
+which was used to make the 1-D bias vector.  
+We assume that the bias vector doesn't change shape over
+the course of a run, but the DC level might change
+slightly.  
+This file allows one to correct for such a DC offset,
+for each data frame.
+The data is in the form of <i>signed</i> 16-bit
+integers, since negative values are possible.
+Each datum is scaled by the <i>bias_scale</i>
+parameter, which is currently <i>bias_scale</i>=32.
+
+<P>
+There is one file created per run, per column, per passband.
+The file is an <b>NxM</b> FITS image, where <b>N</b> is the number
+of consecutive frames being reduced, and <b>M</b> is the
+number of amplifiers used to read out the chip.  Usually,
+<b>M</b>=2.
+
+<P>
+For example, imagine reducing 5 frames, numbered 102 to 106.
+The (0, 0) element of this image will contain the number 
+which ought to be added to the bias level for the left-hand
+side of frame 102; the (0, 1) element holds the number to
+be added to the right-hand side.
+The (1, 0) element holds the number to be added to the
+bias subtracted from the left-hand side of image 103, and
+so on.
+
+<P>
+File name has form
+<pre>
+
+         BD-0-1-g.fit      
+            ^ ^ ^
+            | | ------------ passband to which we apply this correction
+            | -------------- position of CCD in column of camera
+            ---------------- run number
+
+</pre>
+
+<h3> <a name="fp_calib">Calibration per frame</a> </h3>
+<P>
+This file, one per field, holds information
+for a CALIB1BYFRAME structure. 
+It's a FITS binary table, containing data
+in each passband for one field on the sky.
+It holds the sky value and sky slope across the
+frame, the left- and right-hand bias values,  
+the number of counts for a mag=20 star, plus
+uncertainty, data on the PSF, 
+the offset of each passband relative to the 
+reference passband (in pixels),
+the node and inclination of the great circle passing
+through the frame, and the coefficients which
+transform (row, col) into (mu, nu) along that
+great circle.
+
+<P>
+File name has form
+<pre>
+
+         CB-0-1-4.fit      
+            ^ ^ ^
+            | | ------------ field number 
+            | -------------- position of CCD in column of camera
+            ---------------- run number
+
+  
+</pre>
+
+<h3> <a name="fp_flat">Flatfield vector </a> </h3>
+<P>
+This FITS image file, with 1 row by 2048 columns,
+holds the (inverse) flatfield vector for a frame.
+Data values from the bias-subtracted frame are
+multiplied by this vector to yield a corrected frame.
+
+<P>
+As usual, it is a 16-bit signed integer FITS file
+with <b>BZERO</b> set to 32768 to convert
+unsigned 16-bit integers into the signed range.
+In addition, the data values have all been multiplied
+by a factor of <b>FSHIFT</b>=2048, in order to
+allow fractional corrections while using purely 
+integer arithmetic.
+Therefore, an "average" column will have a value of
+2048; a column less sensitive to light than average
+will have a value > 2048, and one more sensitive to
+light will have a value < 2048.
+
+<P>
+File name has form
+<pre>
+
+         FF-0-1-r-4.fit      
+            ^ ^ ^ ^
+            | | | ---------- field number 
+            | | ------------ passband
+            | -------------- position of CCD in column of camera
+            ---------------- run number
+  
+</pre>
+
+<h3> <a name="fp_oldcal">Old calibration file</a> </h3>
+<P>
+This file provides some default photometric
+calibration data, in case there are no overlaps
+between data in some 2.5-m scan and the MT patches.
+It holds only a small subset of what is found
+in normal 
+<a href="#fp_calib">calibration</a> 
+files: it contains a time, and then, for 
+each passband, the number of counts in a mag=20
+star, plus uncertainty.  
+
+<P>
+This file is especially useful when you are 
+reducing some data for which there are no MT observations
+(for example, some simulationed data).  
+Using this file will allow the pipeline to reduce
+photometry without MT input --- although
+the resulting numbers probably won't mean very
+much in the standard magnitude system.
+
+<P>
+The <i>mkoldcal</i> TCL procedure in the file <b>dsc.tcl</b>
+can help you to create one of these "fake" files.
+
+<P>
+File name has form
+<pre>
+
+         oldcal.fit 
+  
+</pre>
+
+<h3> <a name="fp_tree">Classification tree</a> </h3>
+<P>
+This ASCII text file contains a blueprint for
+the creation of a decision tree which will be used
+for classifying detected objects as stars, galaxies,
+or other things.  See the file <i>treeDump.c</i> 
+for information on the structure of this data.
+
+<P>
+File name has form
+<pre>
+
+         tree.ascii
+  
+</pre>
+
+<h3> <a name="fp_plan">Frames pipeline data processing plan</a> </h3>
+<P>
+This ASCII text file describes the amount of data
+you want to reduce with the Frames pipeline,
+and its location. 
+
+<P>
+The parameters you are most likely to change are those which
+control the amount of data to be reduced:
+<pre>
+
+filterlist g r              # must include the 'reference' filter
+startfield 2                
+endfield 9
+
+</pre>
+By reducing the number of items in the <i>filterlist</i>
+line, you can speed up execution; it's often handy to 
+reduce only a single passband.  You must include the 
+'reference' filter in this list, however; it is
+defined as the <i>refcolor</i> entry in the 
+<a href="#ps_plan">postage-stamp data processing plan</a>, like this:
+<pre>
+
+refcolor r
+
+</pre>
+
+<p>
+Note that you must have data for the field just beyond <i>endfield</i>;
+in the example above, we need data for a field 10 to use for
+the overlap region for field 9.  If you don't have that 
+additional field, then you can simply make a second
+copy your last field and increment the file numbers.
+
+<P>
+File name has form
+<pre>
+
+         fp_data_processing_plan
+  
+</pre>
+
+<h3> <a name="fp_soft">Frames pipeline software parameters</a> </h3>
+<P>
+This ASCII text file contains keyword-value pairs that
+set various parameters which control the calculations
+in the Frames pipeline.  
+You may wish to change these quite a bit, to optomize the
+action of the Frames pipeline on your own data.
+
+<P>
+Some commonly-changed values are:
+
+<pre>
+ffo_median_size   50        # size of NxN median filter used to find background
+ffo_thresholds   2 6 10 20  # thresholds to look for objects, units sky-sigma
+                            #  only the first number is really significant
+mo_nrad          10         # number of circular apertures for photometry
+mo_radii         1_2_3_4_8_16_32_64_128_150    # aperture rad, in pixels
+
+</pre>
+
+<P>
+File name has form
+<pre>
+
+         fp_software_parameters
+  
+</pre>
+
+</body>
+</html>

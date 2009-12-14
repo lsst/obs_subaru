@@ -1,0 +1,168 @@
+#
+# Check that provided plan parameters appear in this file? Their value
+# may be `default'.
+#
+# A value of 1 prints a warning, Values >= 2 cause an error to be thrown.
+#
+check_planfile		2
+allow_params		0		# allow a non-empty psParam.par file
+include			default
+
+action			ps
+#
+# Parameters that are permitted, but are not set here
+#
+version			default
+run			nodefault
+rerun			default
+camCol			nodefault
+
+baseDir			/dev/null
+
+photomFile		/dev/null
+ccdConfig		nodefault
+ccdECalib		nodefault
+ccdBC			nodefault
+ccdCamera		nodefault
+
+startField		nodefault
+endField		nodefault
+#
+# Allowed but deprecated
+#
+startRun		default
+endRun			default
+#
+# Parameters that can usually be defaulted
+#
+parameters		psParam.par
+
+diagFile		psDiag
+
+filterlist		u g r i z
+nfilters		5
+#stampsize has been moved to psParams.par as ps_stampsize
+#stampsize		65
+refcolor		r
+
+ccdrow_r		1
+ccdrow_i		2
+ccdrow_u		3
+ccdrow_z		4
+ccdrow_g		5
+ccdrow_o		6
+ccdrow_l		7
+ccdrow_t		8
+ccdrow_s		9
+#
+# Directories
+#
+biasDir			$baseDir/$run/$rerun/photo/calib
+configDir		$baseDir/$run/$rerun/logs
+fangDir			$baseDir/$run/$rerun/fangs/$camCol
+ffDir			$biasDir
+idFFDir			$baseDir/idFFdir/iteration$idFFiter
+includeDir		$baseDir/$run/$rerun/photo
+mtPatchDir		$baseDir/secondary_patches
+outputDir		$baseDir/$run/$rerun/objcs/$camCol
+outputFangDir		$baseDir/$run/$rerun/psFangs/$camCol
+parametersDir		$baseDir/$run/$rerun/photo
+photomFileDir		$baseDir/$run/$rerun/photo
+transFileDir		$baseDir/$run/$rerun/astrom
+trueflatDir		""	    # directory with true flat field vectors
+#
+# Formats for filenames. Available arguments are "run filter camCol field"
+#
+asTrans_format		asTrans-%06d.fit	$run
+idB_format		idB-%06d-%s%d.fit       $run $filter $camCol
+mtPatchFormat		kaCalObj-%08d.fit
+psBB_format		psBB-%06d-%s%d-%04d.fit $run $filter $camCol $field
+idFF_format		idFF-%s-%s%d.fit        $iterSeason $filter $camCol
+psFF_format		psFF-%06d-%s%d.fit      $run $filter $camCol
+psField_format		psField-%06d-%d-%04d.fit $run $camCol $field
+runFlatfield            defaultFFseasons
+scFang_format		scFang-%06d-%d-%04d.fit $run $camCol $field
+psSL_format             psSL-%06d-%s%d.fit      $run $filter $camCol
+
+mtPatches		""
+psFieldOld		$baseDir/standards/psField-old.fit
+
+verbose			0	   # how chatty should I be?
+crc_nbyte_max		0	   # How many bytes of each file to use in CRC
+diagnostics		0	   # generate diagnostics file?
+trace_memory		1	   # Write a memory trace
+psp_memBlocksize	100k	   # minimum size of malloced blocks.
+				   # May end in nothing, k, kby, M, or Mby
+defragment_memory	1	   # Enable agressive memory defragmentation?
+#
+# File giving coefficients to calculate aperture corrections (see read_apCorrCoeffs)
+apCorrFile		apCorrCoeffs.par
+#
+# Control the running of the PSP
+#
+constantPSF		0		# if true, use a constant PSF per field
+fix_background		1               # are we fixing scattered light?
+test_SLprofile          0               # are we testing scatted light profile
+idFFiter                2               # take idFF files formatted according
+					# to idFF_format from idFFDir;
+                                        # if idFFiter<0, take psFF files
+					# from $trueflatDir
+SLDir                   ""              # directory with scattered light profiles
+ignore_calibration	0		# If true, ignore PT calibration
+ignore_FF		0		# If true, ignore flat field determin.
+ignore_plots		0		# If true, ignore all plots
+ignore_PSF		0		# If true, ignore PSF determination
+ignore_WC		0		# If true, ignore wing correction
+ignore_wing_stars	0		# If true, ignore wing stars
+ignore_comp_prof_test   0		# If true, do not assert that comp.profs are mostly good
+
+fakePSF   	        0		# If true, stuff fake PSFs to psField files
+keep_psPSF_files	0		# keep temporary psPSF files
+read_psBB_files		0
+write_psFang		1		# Write psFang files?
+forceDefaultPsf         0               # Force psp to use the default psFieldFile
+                                        # requires also psPlan param psFieldOld
+
+### display requests ###
+display		      0    # display on/off (-1 for w/o prompting)
+display_on            0    # allow "do-psp -display on"
+
+# the following flags control saoimage display 
+display_raw	      0    # show the raw PSF stamps
+display_corrected     0    # show the corrected PSF stamps
+display_psf	      0    # show the selected PSF stamps (2 for rejects)
+display_KLpsf	      0    # show the input stars to KL, and the reconstruction
+display_PSFstars      0    # show good and clipped PSF stars
+display_KLresiduals   0    # show residuals between stars and KL reconstruction
+                           # if > 1, also dump regions to psKlResiduals files
+display_average_psf   0    # display the average of PS stars
+display_wing          0    # display corrected wing stamps
+display_symmetry      0    # display residual after subtracting symmetric image
+display_quartiles     0    # display quartile images (>1 for raw quartile images too)
+display_flat	      0    # display flatfield (>1 for the smoothed flat-field vector)
+display_scFangs	      0    # display stars from scFang files; if > 1,
+			   # ignore SSC's statusFit; if > 2 show all stars
+display_psFangs	      0    # display stars destined for psFang files; if > 1,
+			   # ignore statusFit; if > 2 show all stars. The
+			   # difference between _fangs and _psFangs is that
+			   # the former uses status values at the start of
+			   # proc write_psFang, while the latter runs just
+			   # before writing the file
+
+# the following flags control pgplot display
+display_bias          0    # plot bias 
+display_clipping      0    # plots of (sigma1,sigma2) and (Q,U) for good stars 
+                           # for >1 produces hard copies in outdir (psPlotsQU*.ps)
+display_rejection     0    # display rejection statistics for all frames 
+                           # for >1 produces hard copies in outdir (psPlotsRejecStats*.ps)
+display_profiles      0    # display stars' CELL_PROFs 
+                           # for >1 produces hard copies in outdir (psPlotsCellProf*.ps)
+display_summary       0    # graphs at the end (also written to psPlots*.ps)
+
+ 
+# auxiliary files (needed by ZI during testing year) 
+dump_PSFstars   0    # dump some quantities for PSF stars to file PSFstars-run-column-filter.dat
+dump_ApCorr     0    # dump aperture corrections to file ApCorr-run-column-filter.dat
+dump_Sky        0    # dump sky values to file Sky-run-column-filter.dat
+dump_psFangQA   0    # dump astrometric corrections psFangCorr-run-column.dat
+

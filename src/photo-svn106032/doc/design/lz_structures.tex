@@ -1,0 +1,382 @@
+
+\medskip
+\centerline {\it author: Robert Lupton}
+\medskip
+
+%
+{\hfuzz=85pt			% the code is pretty wide
+
+These structures are basically those used in the prototype (level -1)
+photometric pipeline. This chapter is intended to be a rough guide to
+the structures referred to in other parts of this document, and is an
+edited reprint of the appropriate header (.h) files; in case of disagreement
+the header files are correct, and you should {\em never} use the information
+given here to write code. We envisage that the number, name, and type
+of fields in the level 0 photometric pipeline structures will be different
+from those presented here. Caveat Lector.
+
+\subsection{Enumerated Types}
+
+These types are needed in order to understand the structure definitions
+that follow.
+
+\begin{verbatim}
+typedef enum { ... } CAT_ID;          /* name of catalogue (e.g. SAO) */
+
+typedef enum { ... } OBJ1_TYPE;       /* type of object (e.g. star) */
+
+typedef enum { ... } pixDataType;     /* type of REGION */
+
+typedef enum { ... } PSF_TYPE;        /* representation of PSF */
+\end{verbatim}
+
+\subsection{Structs}
+
+The first two, {\tt MASK} and {\tt REGION}, are defined in the Dervish
+header file {\bf region.h}.
+
+\begin{itemize}
+\item[{\tt MASK}]
+These are used to store flags associated with each pixel.
+
+\begin{verbatim}
+typedef struct mask {
+   char *name;          /* identifying name */
+   int nrow;            /* number of rows in mask */
+   int ncol;            /* number of columns in mask */
+   MASK_PIX **rows;     /* pointer to pointers to rows */
+   struct mask *parent; /* parent == NULL if this isn't a child */
+   int    row0,col0;    /* location of LLH corner of child in parent */
+   struct mask_p *prvt; /* information private to Dervish */
+} MASK;
+\end{verbatim}
+The values used to set {\tt MASK} bits will be defined in some suitable
+enumerated type; the one in V1.3 looked like:
+\begin{verbatim}
+enum {
+   MASK_OBJ =      01,  /* pixel belongs to some sort of object */
+   MASK_CR =      010,  /* pixel hit by a cosmic-ray */
+   MASK_GHOST =   020,  /* contaminated by a ghost image */
+   MASK_BADCOL =  040,  /* part of a bad column */
+   MASK_SATUR =  0100,  /* pixel is saturated */
+   MASK_BADPIX = 0200   /* a bad pixel on the chip */
+  };
+#define IS_MASKOK(X) \
+  (!((X) & (MASK_CR | MASK_GHOST | MASK_BADCOL | MASK_SATUR | MASK_BADPIX)))
+\end{verbatim}
+{\em This enum is not part of the level 0 specification}, and
+is almost certain to change. The point is that mask bits are
+centrally allocated. You also should not rely on a {\tt MASK\_PIX} having
+8 bits; future versions may have more, although this will not impact
+you if you use the pre-defined values.
+
+\item[{\tt REGION}]
+These are the primary SDSS image type. They may own their
+own storage, or point back to some other {\tt REGION} that does. All
+image utilities are expected to work on {\tt REGION}s. Note that
+{\tt REGION}s may have data of a wide variety of types; we expect that
+there will be utility functions to convert between them.
+
+\begin{verbatim}
+typedef struct region{
+   char           *name;        /* a unique identifier */
+   pixDataType    type;         /* pixel data type */
+   int            nrow;         /* number of rows in image */
+   int            ncol;         /* number of columns in image */
+   u16            **rows;       /* pointer to pointers to rows */
+   u8             **rows_u8;
+   s8             **rows_s8;
+   s16            **rows_s16;
+   u32            **rows_u32;
+   s32            **rows_s32;
+   fl32           **rows_fl32;
+   MASK           *mask;    /* associated bad pixel mask */
+   struct region *parent;   /* parent == NULL if this isn't a child */
+   int            row0,col0; /* location of LLH corner of child in parent */
+   struct region_p *prvt;   /* information private to Dervish */
+} REGION;
+\end{verbatim}
+
+\end{itemize}
+
+
+The remaining types are photometric-pipeline specific. They are defined in the
+header file {\bf photo.h}.
+
+First a variety of object types; most have an associated list type.
+
+\begin{itemize}
+
+\item[{\tt STAR1}]
+Information for one star found in the photometric processing. Note that
+this is only in one band; if this type turns out to be useful we could
+add a struct {\tt STARC} that collects all bands together (similar to
+{\tt OBJC} and {\tt OBJ1}).
+
+\begin{verbatim}
+typedef struct star1{
+   struct star1 *next,*prev;
+   const int   id;        /* id number of this star (set by framework)*/
+   REGION *region;        /* sub region containing STAR */
+   MASK  *mask;           /* sub mask of which pixels are in this star */
+   float row_c;           /* row position of center of star*/
+   float col_c;           /* column position of center of star*/
+   float skyLevel;        /* local sky level near this star */
+   float psfCounts;       /* counts from profile fitting */
+   float apCounts;        /* counts within aperture */
+   float w_xx,w_xy,w_yy;  /* simple shape parameters */
+   float quality;         /* quality parameter for this star */
+   float psfMagError;     /* Error on psfCounts */
+   float apMagError;      /* Error on apCounts */
+} STAR1;
+
+typedef struct{
+   STAR1 *first,*last;
+} STAR1LIST;
+\end{verbatim}
+
+\item[{\tt OBJ1}]
+Parameters to describe an object found in one CCD during photometric
+processing.
+Note that row = X, and col = Y in this structure
+definition. This usage is {\em not} endorsed by this chapter.
+
+In this definition, uncertainties are propagated as separate fields. We
+have not yet decided how to deal with errors; it would be possible to
+make {\em all} parameters a struct type with a value and an error; this
+approach would be more appealing if the pipeline were in C++.
+
+Also, note that some apparently interesting parameters do not appear
+in this structure, for example the position of the brightest pixel,
+or its intensity. This is because they can be easily determined from
+the associated {\tt REGION}.
+
+The {\tt MASK} structure used in an {\tt OBJ1} is intended to be used
+to identify in which pixels the object has been detected; the pixel-status
+mask is contained within the {\tt REGION}. If a suitable bit allocation
+policy is identified, the object-location bits may actually be in this
+mask (i.e. {\tt OBJ1->region->mask}), so the {\tt MASK} in this structure
+may disappear in a future release.
+
+This structure is excessive for almost all of the objects that we expect
+to detect. In the interests of simplicity, in level 0, I propose using
+it for all objects. This is another problem that we should reconsider
+if we switch to a language supporting inheritance (e.g. C++).
+
+\begin{verbatim}
+struct obj1list;
+
+typedef struct obj1 {
+   struct obj1 *next, *prev;
+   const int id;
+   REGION *region;
+   MASK *mask;
+
+         /* position parameters */
+   float xc;              /* X (=row) position of centroid 
+                             or fitted center (for stars) */
+   float xcUncert;        /* uncertainty in X position */
+   float yc;              /* Y (=col) position of centroid
+                             or fitted center (for stars) */
+   float ycUncert;        /* uncertainty in Y position */
+
+           /* magnitude parameters */
+   float ap1Counts;       /* sky-subtracted counts w/in radius 1.5 arcsec */
+   float ap1Uncert;       /* uncertainty in ap1Counts */
+   float ap2Counts;       /* sky-subtracted counts w/in radius 4 arcsec
+                             (arbitrary larger number, from Okamura) */
+   float ap2Uncert;       /* uncertainty in ap2Counts */
+   float totalCounts;     /* sky-subtracted total counts, extrapolated
+                             via curve-of-growth to infinity */
+   float totalUncert;     /* uncertainty in totalCounts */
+   int nIsophotes;        /* number of isophotal "magnitudes" to follow
+                             (suggested value: 3 or 4) */
+   float *isoCounts;      /* array of sky-subtracted counts within a set
+                             of isophotes, near sky level */
+   float *isoUncert;      /* array of uncertainty in isophotal counts */
+   float *isoLevels;      /* array of surface-brightnesses for isophotes */
+
+           /* size and shape parameters */
+   int nEllipses;         /* number of elliptical fits to follow
+                             (Okamura suggests 3, chosen so that 
+                               one encloses 1/4 of the total light 
+                               one encloses 2/4 of the total light 
+                               one encloses 3/4 of the total light) */
+   float *ell_r;          /* array of "radii" of elliptical fits */
+   float *ell_a;          /* array of major axes of elliptical fits */
+   float *ell_b;          /* array of minor axes of elliptical fits */
+   float *ell_theta;      /* array of position angles of elliptical fits */
+   float *ell_mu;         /* array of sky-subtracted surface brightness
+                             at the edge of each elliptical fit */
+   float w_xx;            /* second moment of light in XX */
+   float w_xy;            /* second moment of light in XY */
+   float w_xx;            /* second moment of light in YY */
+
+           /* local sky parameters */
+   float skyAtCenter;     /* local sky value at centroid of object */
+   float skyGradX;        /* local sky gradient per pixel in X direction */
+   float skyGradY;        /* local sky gradient per pixel in Y direction */
+
+           /* parameters used mostly for classification */
+   float peakValue;       /* sky-subtracted intensity of peak pixel */
+   float concenIndex1;    /* a concentration index */
+   float concenIndex2;    /* another concentration index */
+   float textureIndex1;   /* a "texture" index */
+   float textureIndex2;   /* another "texture" index */
+   float psfAmplitude;    /* amplitude of best-fitting PSF */
+   float psfGoodness;     /* goodness-of-fit to stellar PSF */
+
+           /* classification */
+   OBJ1_TYPE type;        /* guess at type, based on THIS color only */
+   float typeCertainty;   /* 1.00 for certain ID, 0.00 for no idea */
+
+           /* status */
+   long status;           /* 32 bit-flags for information like
+                             "near edge of chip", "saturated",
+                             "catalogued object", "blended", etc. */
+   struct obj1 *parent;   /* pointer to blended object from which
+                             this one has been separated */
+   int nChildren;         /* number of objects into which this one
+                             has been split */
+   struct obj1list *children;  /* list of child objects */
+} OBJ1;
+
+typedef struct obj1list {
+   OBJ1 *first,*last;
+} OBJ1LIST;
+\end{verbatim}
+
+\item[{\tt OBJC}]
+Parameters to describe an object found in NCOLOR CCDs
+
+\begin{verbatim}
+struct objclist;                /* forward reference to OBJCLIST */
+typedef struct objc1{
+   struct objc1 *next,*prev;
+   int id;                      /* id number for this objc */
+   OBJ1 *color[NCOLOR];         /* obj1 information from each band */
+   struct objclist *children;   /* list of split objects from this object */
+} OBJC;
+
+typedef struct objclist{
+   OBJC *first,*last;
+   OFFSET *offset[NCOLOR];      /* offset information for each band */
+} OBJCLIST;
+\end{verbatim}
+
+\item[{\tt CAT\_OBJ}]
+A large object (or bright star), found in an object catalogue.
+Note that the colours will
+need to be converted to our magnitude system, or that further information will
+be needed to specify the system used; we can imagine a structure that looks
+like:
+\begin{verbatim}
+typedef enum { JOHNSON_U, ... , GUNN_U, ..., SDSS_U, ... } COLOR_SYSTEM;
+
+struct {
+   COLOR_SYSTEM type;
+   float mag;
+};
+\end{verbatim}
+but this is not currently part of the pipeline.
+
+The {\tt equinox} field also needs thought; it might be convenient to
+refer all coordinates to J2000,
+but this is insufficient for solar system objects. If we care about these,
+the pre-processor could create a {\tt CAT\_OBJLIST} for them at the current
+epoch at pipeline startup.
+
+The extent of the object is not well defined by a {\tt CAT\_OBJ} (only
+approximate sizes in $\alpha$ and $\delta$ are provided). The intent is
+more that when the (large?) object finder finds something Suspicious it
+can interrogate the catalogues, to see if the object found is familiar.
+It is entirely possible that we will end up using a more sophisticated
+data structure to support this catalogue lookup (e.g. quadtrees); this
+should not impact the science code.
+
+Note that this structure supercedes {\tt CSTAR} from version -1.
+
+\begin{verbatim}
+typedef struct cat_obj {
+   struct cat_obj *prev, *next;    /* pointers to prev, next structure */
+   char  **names;           /* one or more names, terminated by a NULL */
+   CAT_TYPE type;           /* object type, in some sort of code */
+   const float ra;          /* decimal degrees */
+   const float dec;         /* decimal degrees */
+   float ra_size[NCOLOR];   /* RA extent in each color, in arcsec */
+   float dec_size[NCOLOR];  /* Dec extent in each color, in arcsec */
+   float mag[NCOLOR];       /* integrated magnitude in each color */
+} CAT_OBJ;
+
+typedef struct {
+   const CAT_ID cat_id;     /* catalog ID, internal to SDSS */
+   const float equinox;     /* equinox of catalogued position */
+   CAT_OBJ  *first,*last;
+} CAT_OBJLIST;
+\end{verbatim}
+
+\end{itemize}
+
+and finally some structures that really don't fit anywhere very well.
+
+\begin{itemize}
+
+\item[{\tt PHOTPAR}]
+ Photometric parameters for flux calibration for one band.
+
+\begin{verbatim}
+typedef struct{
+   float magZero;         /* photometric zero points */
+   float extinction;      /* atmospheric extinction */
+   float magZeroError;    /* error in magZero */
+   float extinctionError; /* error in extinction */
+} PHOTPAR;
+\end{verbatim}
+
+\item[{\tt PSF}]
+We have not yet decided upon a representation of the PSF. This structure
+offers alternatives; the {\tt type} is identified by {\tt OR}ing together
+possible types (defined in the {\tt PSF\_TYPE} enum).
+
+The current alternatives are the sum of two Gaussians, or a single
+2-D bivariate gaussian plus a lookup table of residuals, similar
+to the representation used in DAOPHOT. 
+
+\begin{verbatim}
+typedef struct {
+   long type;           /* flags to identify the types of PSF model */
+   int nstars;          /* number of stars used to define PSF */
+   float weights;       /* sum of weights of stars added into PSF so far */
+   float sigmax;        /* sigma width (=FWHM/2.35) of gaussian in X(=row) */
+   float sigmay;        /* sigma width of gaussian in Y(=col) */
+                        /* Parameters if PSF is a double Gaussian */
+   float i0;            /* central intensity of wider component; other
+                           component has central intensity (1 - i0) */
+   float sigmax2;       /* sigma of wider gaussian in X(=row) */
+   float sigmay2;       /* sigma of wider gaussian in Y(=col) */
+                        /* Parameters if PSF is a Gaussian + residuals */
+   int nr, nc;          /* number of rows, cols in grid */
+   float dx;            /* size of a grid unit, in image pixels */
+   float **data;        /* normalized values of the empirical PSF */
+} PSF;
+\end{verbatim}
+
+\item[{\tt OFFSET}]
+contains the transformation matrix to convert any frame
+between coordinate systems. The {\tt alpha??} terms should all be very small,
+but probably not negligible for astrometric purposes.
+\begin{verbatim}
+typedef struct {
+   float drow;          /* centre of image needs shifting by this amount */
+   float dcol;          /* centre of image needs shifting by this amount */
+   float alphaxx;       /* matrix to transform to new coordinates */
+   float alphaxy;       /*   1+alphaxx          alphaxy         */ 
+   float alphayx;       /*    alphayx           1+alphayy       */
+   float alphayy;       /*      operate about CENTER of shifted image   */
+} OFFSET;
+\end{verbatim}
+\end{itemize}
+}				% end \hfuzz
+
+
+

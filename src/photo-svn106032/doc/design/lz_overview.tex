@@ -1,0 +1,704 @@
+\subsection{Pipelines}
+
+	The photometric pipeline has been divided into two sub-pipelines:
+a postage stamp pipeline and a frame pipeline.  The postage stamp pipeline
+will act on the postage stamps from the photometric camera, the quartile
+data, and the output of the astrometric and monitor telescope pipelines.
+it is responsible for rough photometric and astrometric calibrations,
+determining the point spread function(s), and creating the flatfields.
+After this sub-pipeline is run, the results will be evaluated to determine
+whether they are reasonable.  If they are (the zero points haven't changed
+tremendously, for example), then we start the frame pipeline process.
+The frame pipeline takes the output of the postage stamp pipeline and the
+five color images from a run and produces the catalog of found objects,
+among other things.  Both of these sub-pipelines operate on one scan line
+from one run at a time.  Each of these sub-pipelines has one preprocessor,
+one processor, and one postprocessor which run in series.
+
+\subsection{Preprocessor}
+
+	The photometric pipelines most naturally operate on units of
+complete scan lines (one continuous data stream (run) from one column
+of CCD's).  However, the data from the telescope will be written
+in sets consisting of an entire night of data.  These data will be
+archived into the survey data base.  The preprocessor
+will query the data base and generate all of the (ascii) input files
+for the processor, including the list of images in the complete
+scan line and the photometric parameters to be applied to that
+data set.
+
+\subsection{Processor}
+
+	The processor takes the output of the preprocessor plus the
+raw data from a night's observing.  In the case of the postage stamp
+pipeline, it generates rough astrometric calibrations, photometric
+calibrations, flatfields, and the point spread function.  The frame
+pipeline processor generates corrected image frames,
+object lists, object parameters, and quality assurance data.  The processor 
+should be capable of reading the raw data from tape or disk.  The frame
+processor, since it operates on each frame independently, should be 
+capable of starting and finishing in the middle of a run.
+
+\subsection{Postprocessor}
+
+	The level zero processor will output lists of objects and other output
+as flat files.  The postprocessor will take this data and load it into the
+database (after inspection of the quality assurance data from the processor).
+
+In the case of the frame pipeline, the flatfiles will be
+generated on a frame by frame basis, which will produce object
+duplication in the overlap regions. So, the frame pipeline postprocessor 
+will attempt to join 
+the output before adding it to the database.  The overlaps will be between
+scanlines as well as between frames in a scan line.
+
+\subsection{Data flow in the Postage Stamp Pipeline Processor}
+
+	The main program of the processor is a TCL script which accomplishes
+the tasks in the accompanying figure.  The diagram shows only the scientific
+steps performed; the frameworkk may opt to parallel process certain steps
+(for example double buffering during read in).
+
+\epsfxsize=0.98\textwidth
+\epsfbox{psflow.eps}
+
+\subsection{Input to the Postage Stamp Processor}
+
+The level zero photometric pipeline will read its input as a set of ascii
+files and a set of tapes.  The inputs are fully distinguished by the
+process and creation timestamps, the TAI date of the observations
+processed, the run number, and the ccd column number.  These quantities
+are included as the header of every input file.
+
+\subsubsection{Data Processing Plan}
+
+	The data processing plan identifies the other files to be used in
+the processing, a list of data tapes required, and a resource plan (tape
+devices, disk directories, etc.) as well as the mode of operation (this is
+where we can specify debugging, test overnight, use only two colors, or
+normal mode, for example).  The processing plan is identified by the date
+it was produced, the TAI date of the observations, the run number, and the 
+column number.
+The plan should contain:
+\begin{itemize}
+\item creationdate - date that this file is created
+\sitem DATE - TAI date at start of the observing run
+\sitem RUN - run number
+\sitem ccdcol - camera column number
+\sitem name of quartile tape(s)
+\sitem list of parameter files
+\sitem ncolor - number of colors to be processed
+\sitem color\# - color1 might be R, color2 might be I, etc.
+\sitem refcolor - which color is used for the astrometric calibration
+\end{itemize}
+
+\subsubsection{Software Parameters - as many files as necessary}
+
+The science modules are allowed access files of parameters, templates, etc.
+These files can be private to the module in the sense that no other piece
+of the pipeline depends on them, and the module writer is responsible for
+opening and closing the file in the init/finiModule code.  The necessity
+of these files, however, must be above-board, since changes to these files
+affect the scientific results, so the input files must be archived.  The
+names of these files must be listed in the Data Processing Plan.  The format
+of these files will be:
+
+\begin{itemize}
+\item timestamp - the date and time the file was created
+\sitem process-stamp - the date and time the process was begun
+\sitem DATE - TAI date at start of the observing run
+\sitem RUN - run number
+\sitem ccdcol - camera column number
+\sitem {\it put your stuff here}
+\end{itemize}
+
+\subsubsection{Output from the MT pipeline}
+
+Along with the standard header, this includes the extinction as a function
+of time as well as any secondary photometric standards that have been
+observed.
+
+\subsubsection{Output from the astrometric pipeline}
+
+This is a list of secondary astrometric standard stars.
+
+\subsubsection{Input tape characteristics} 
+\begin{itemize}
+\item timestamp - date and time file was created
+\sitem process-stamp - the date and time the process was begun
+\sitem DATE - TAI date at start of the observing run
+\sitem RUN - run number
+\sitem ccdcol - camera column number
+\sitem rawnrow - number of rows in the raw frames
+\sitem rawncol - number of columns in the raw frames
+\sitem nquart - number of sets of quartiles per frame
+\sitem ndarks - number of dark quartile frames
+\sitem nframes - number of frames in the complete scan line
+\sitem run number, tape name or disk path of dark quartile  data, tape
+ position of dark quartile data, one per line
+\sitem run number, tape name or disk path of raw image, tape position of
+ raw image,tape name or disk path of quartile data, tape position of
+ quartile data, one per line
+\end{itemize}
+
+\subsubsection{Postage Stamp Data Tape}
+
+	The online system will produce one extra data tape per run.  The
+tape will contain the quartile data used in flatfielding and the postage
+stamps of bright stars used to find the point spread function.  If we
+decide we want to use it, it will also contain the list of stars from their
+postage stamps and their characteristics.  The overall
+format of the tape is as follows:
+\begin{enumerate}
+\item a header file which says how many quartile files follow it.  This 
+header will be repeated as the second file.
+\item the quartiles written as FITS files.
+\item a double header which says how many files of dark quartiles follow it
+\item the dark quartiles (if any) written as FITS files
+\item a double header which says how many files of postage stamps follow it 
+\item the files containing the postage stamps, one file per frame from the online.
+\end{enumerate}
+There will be 30 such sets of data on the tape, one from each
+of the imaging CCD's.  The beginning and end of runs will be signaled
+as with the imaging data, as a set of 3 blank frames with unusual headers.
+
+	The online system at the telescope will produce a set of quartiles
+every $n$ rows, where $n \sim 1000$.  The data will be stored as FITS files, 
+one for each quartile data point.  The reason the online will not concatenate
+the quartiles together is so that the files can be made available for
+monitoring purposes during the night without interfering with the online
+operations.  The file will be 3 rows long and 2128
+columns wide.  The zeroth, first, and second rows will contain the
+25th, 50th, and 75th percentiles, respectively.  This will produce (2128)(3) 
+scaled, 4-byte integers each $n$ rows of raw data.  The header of each 
+region will contain at least:
+\begin{itemize}
+\item SIMPLE
+\sitem BITPIX - bits per pixel, must be 32
+\sitem NAXIS - number of axes, must be 2
+\sitem NAXIS1 - number of columns
+\sitem NAXIS2 - number of columns
+\sitem BITSHIFT - scale factor
+\sitem DATE - TAI date at start of the observing run
+\sitem TAI - TAI time at which the frame was taken
+\sitem RUN - unique number assigned to one continuous uninterupted drift scan
+\sitem CCDROW - CCD camera row, 0-4
+\sitem CCDCOL - CCD camera column, 0-5
+\sitem CCDIDENT - serial number of the specific CCD chip used
+\sitem If we are generating one quartile per frame, then:
+\begin{itemize}
+\sitem FRAME - number of the frame with which the quartile is associated
+\end{itemize}
+\sitem otherwise:
+\begin{itemize}
+\sitem ROWNUM - row number within the run
+\end{itemize}
+\sitem DATATYPE - IMAGEQUARTILE
+\end{itemize}
+
+	If we generated data from a dark readout of the CCD's, this
+data will be written similarly to the imaging
+quartile data.  These dark quartiles can be used to calculate the baseline
+(dark) vector.  The headers will be the same as the imaging quartile data
+except the DATATYPE is DARKQUARTILE.
+
+	The files of postage stamps will be written in a FITS-ish format.
+The data type of the pixels will be unsigned short integer.  The file
+will be organized as a header, which is a copy of the header used for the
+image frame with the following exceptions:
+\begin{itemize}
+\item SIMPLE = F
+\sitem NAXIS = 3
+\sitem NAXIS1 = number of columns in each postage stamp
+\sitem NAXIS2 = number of rows in each postage stamp (usually NAXIS1+1)
+\sitem NAXIS3 = number of postage stamps in the file
+\end{itemize}
+The first ``row" of each postage stamp will contain two 2-byte pixels 
+containing the column and
+row indices of the center of each postage stamp followed by a string of
+zeros to complete the row.  NAXIS1 should
+be odd an odd number so that there is a will-defined central pixel.
+
+	If we put in the star lists, they will go here at the end.
+
+\subsection{Scientific output from the Postage Stamp Pipeline Processor}
+
+\subsubsection{Corrected mode array}
+
+Since the flatfield vector is calculated separately for each row, we will
+store only the corrected mode array from which the flatfield vector can be
+calculated.  This will be output as regions 2048 (or 2046?) columns by
+about 1000 rows,
+depending on the length of the night, as scaled long integers.  The header
+will be the same as the quartile images, except that the DATATYPE is
+CORRECTEDMODEARRAY.  There will be one corrected mode array for every color.
+
+\subsubsection{Photometric parameters}
+
+One number per frame that converts counts to Janskys.
+
+\subsubsection{Astrometric parameters}
+
+Six linear coefficients per frame per color.  All but the R coefficients
+translate row,col in the color into R.  The R coefficients take row,col
+in the run and translate it to great circle coordinates.
+
+\subsubsection{Point Spread Function}
+
+A set of parameters which describe the psf, one set per frame
+
+\subsubsection{One Sky value per frame}
+
+\subsection{Quality assurance output}
+
+\subsubsection{Processing Report}
+
+The processing report must include at least the following information:
+\begin{itemize}
+\item timestamp - date and time file was created
+\sitem process-stamp - the date and time the process was begun
+\sitem DATE - TAI date at start of the observing run
+\sitem RUN - run number
+\sitem ccdcol - camera column number
+\sitem any errors or warnings that occurred
+\sitem number and designation of images processed
+\sitem input files used
+\sitem output files generated
+\end{itemize}
+
+\subsection{Data flow in the Frame Pipeline Processor}
+
+	The main program of the processor is a TCL script which accomplishes
+the tasks in the accompanying figure.  This main TCL script will control
+which tasks are performed on which CPU, and in general can only be restarted 
+at a new five color frame.  The diagram shows only the scientific steps
+performed; the framework may opt to parallel process certain steps (for
+example double buffering during read in).
+
+\epsfxsize=0.98\textwidth
+\vspace{-1.5cm}
+\epsfbox{ppflow.eps}
+
+\subsection{Input to the Frame Pipeline Processor}
+
+	The level zero photometric pipeline will read its input as a
+set of ascii files and a set of tapes.  The input includes the data
+processing plan, the software parameters, the hardware parameters,
+the list of input images and quartiles, the raw data tapes, the quartile
+tape, and the catalog of bright stars and galaxies.  The inputs are fully
+distinguished by the process and creation timestamps, the TAI date of 
+the observations to be processed, the run number, and the ccd column 
+number.  These quantities are included as the header of every input file.
+
+\subsubsection{Data Processing Plan}
+
+	The data processing plan identifies the other files to be used in
+the processing, a list of data tapes required, and a resource plan (tape
+devices, disk directories, etc.) as well as the mode of operation (this is
+where we can specify debugging, test overnight, use only two colors, or
+normal mode, for example).  The processing plan is identified by the date
+it was produced, the TAI date of the observations, the run number, and the 
+column number.
+The plan should contain:
+\begin{itemize}
+\item creationdate - date that this file is created
+\sitem DATE - TAI date at start of the observing run
+\sitem RUN - run number
+\sitem ccdcol - camera column number
+\sitem list of raw tapes
+\sitem list of parameter files
+\sitem rawdevtype - tape or disk
+\sitem rawdev - disk name or tape name for reading raw frames
+\sitem quartdevtype - tape or disk
+\sitem quartdev - disk name or tape name for reading quartiles
+\sitem corrdev - disk name or tape name for writing corrected frames
+\sitem stampdev - disk namePostage Stamp or tape name for writing postage stamps
+\sitem listdev - disk name or tape name for writing catalogs
+\sitem brightstarfile - name of file into which to write bright star list
+\sitem catalogfile - name of file into which to write catalog of objects
+\sitem ncolor - number of colors to be processed
+\sitem color\# - color1 might be R, color2 might be I, etc.
+\sitem refcolor - which color is used for the astrometric calibration
+\sitem startframe - frame to start processing
+\sitem endframe - frame to end processing, frames will repeat if endframe is greater than nframe
+\sitem verbose - gives verbose output if set to true
+\end{itemize}
+
+\subsubsection{Software Parameters - as many files as necessary}
+
+The science modules are allowed access files of parameters, templates, etc.
+These files can be private to the module in the sense that no other piece
+of the pipeline depends on them, and the module writer is responsible for
+opening and closing the file in the init/finiModule code.  The necessity
+of these files, however, must be above-board, since changes to these files
+affect the scientific results, so the input files must be archived.  The
+names of these files must be listed in the Data Processing Plan.  The format
+of these files will be:
+
+\begin{itemize}
+\item timestamp - the date and time the file was created
+\sitem process-stamp - the date and time the process was begun
+\sitem DATE - TAI date at start of the observing run
+\sitem RUN - run number
+\sitem ccdcol - camera column number
+\sitem {\it put your stuff here}
+\end{itemize}
+
+\subsubsection{Hardware Parameters}
+
+\begin{itemize}
+\item timestamp - date and time file was created
+\sitem process-stamp - the date and time the process was begun
+\sitem DATE - TAI date at start of the observing run
+\sitem RUN - run number
+\sitem ccdcol - camera column number
+\sitem Parameters for each CCD:
+\begin{itemize}
+\item ccdrow - camera row
+\mitem ccdident - CCD serial number
+\mitem overscanleft - the number of overscan columns on the left side
+\mitem overscanright - the number of overscan columns on the right side
+\mitem x offset relative to instrument center
+\mitem y offset relative to instrument center
+\mitem CCD rotation relative to instrument center
+\mitem x scale factor correction to nominal (should be 1 forever)
+\mitem x distortion constant (should be 0)
+\mitem y distortion constant (should be 0 but may not be)
+\mitem readout noise
+\mitem gain (photons/count)
+\mitem pixel scale, arcseconds
+\mitem nominal photometric calibration constant
+\mitem catalog of column defects with  types for each CCD in the column
+\end{itemize}
+\end{itemize}
+
+\subsubsection{Calibration Parameters}
+
+The output of the postage stamp pipeline: photmetric parameters, astrometric
+parameters, psf, sky value.  All quantities are one per frame.
+
+\subsubsection{Input Image Files} 
+\begin{itemize}
+\item timestamp - date and time file was created
+\sitem process-stamp - the date and time the process was begun
+\sitem DATE - TAI date at start of the observing run
+\sitem RUN - run number
+\sitem ccdcol - camera column number
+\sitem rawnrow - number of rows in the raw frames
+\sitem rawncol - number of columns in the raw frames
+\sitem nframes - number of frames in the complete scan line
+\sitem run number, tape name or disk path of raw image, tape position of
+ raw image, one per line
+\end{itemize}
+
+\subsubsection{Raw Image Tapes}
+
+	There are six columns of photometric CCD's.  Each of the CCD's
+in the column scans the same piece of the sky.  There are five CCD's in
+each column (U, G, R, I, and Z).  Each tape will contain data from one 
+column of CCDs, square root encoded, and written in (almost)
+FITS format.  (FITS does not support 16 bit unsigned integers or square
+root encoding.)  There is one physical record per frame.
+A single run can span many tapes, but a tape can contain only one run.
+The first ncolor frames on tape $N+1$ must be a copy of the last
+ncolor frames from tape $N$.
+Any information written as ``beginning of run' or ``end of run' records
+must be written as frames, using the header for the information.  There
+must be ncolor such records (the ReadNextFrame modules will not recognize
+these records as being special).  Two consecutive EOF marks indicates
+the end of the data tape.
+
+	The CCD chip is read out into a serial register which is 40 columns
+larger than the CCD array, sticking out 20 columns on each side of the chip.
+The charge is transferred into the register one row and a time and read
+out through two amplifiers, one at each end of the register.  Each row
+read out of each amplifier consists of 20 extended pixels (from the serial
+register), 1024 pixels of real data, and then N overscan pixels (Jim
+Gunn suggests N=20).  These pixels will be rearranged by the DA system
+so that each FITS file has columns:
+\begin{itemize}
+\item 0..19 left extended pixels
+\sitem 20..29 left overscan
+\sitem 30..1063 pixel data from left side of chip
+\sitem 1064..2087 pixels from right side of chip
+\sitem 2088..2107 right overscan
+\sitem 2108..2127 right extended pixels
+\end{itemize}
+Pixels 1064-2087, 2088-2107, and 2100-2127 will be ordered in reverse from 
+the order they are read out so that the
+position on the sky is continuous across the center of the frame.  The
+reponse of the pixels in columns 30 and 2127 is nonlinear, so they should
+be ignored during processing.  However, the modules should not make assumptions
+about the frame size, pixel scale, sky level, or photometric calibration.  This
+information should be passed to it from the framework.
+
+	The distance between centers of the CCD chips is 65mm, which
+corresponds to 2708.3 rows.  To write out frames that line up in
+the many colors, we must write the frames in units of 2708/n rows, where
+n is a small integer.  We have chosen n=2, which gives us
+2107x1354 pixel frames written to tape.  These frames will be written
+to tape so that the five colors of a given patch of sky will be
+I, R, G, and U.  The first and second frames form the Z chip (2107x1354)
+will not have corresponding data from the other frames.  The tape will
+be padded by writing blank frames for the other four chips.  The third
+and fourth frames from the Z chip will have corresponding data from only
+the I frame.  The ninth frame from the Z chip is the first one with
+corresponding data in all chips: the seventh frame from the I chip,
+fifth from R, third from G, and first from U.  The tape will contain
+the frames in the following order:
+\begin{verbatim}
+{beginning of tape/beginning of run records written as five frames}
+{Z1, Ib, Rb, Gb, Ub}, {Z2, Ib, Rb, Gb, Ub},
+{Z3, I1, Rb, Gb, Ub}, {Z4, I2, Rb, Gb, Ub},
+{Z5, I3, R1, Gb, Ub}, {Z6, I4, R2, Gb, Ub},
+{Z7, I5, R3, G1, Ub}, {Z8, I6, R4, G2, Ub},
+{Z9, I7, R5, G3, U1}, {Z10,I8, R6, G4, U2},
+{Z11,I9, R7, G5, U3}, {Z12,I10,R8, G6, U4}, ...,
+\end{verbatim}
+where Z1 means the first frame from the Z chip, Z2 the second, and so on.
+I1 is the first frame from the I chip.  Ib, Fb, Gb, and Ub are the blank
+frames written to pad the beginning and ending of the tape.  The five
+frames withing the curly brackets arer read as a corressponding group
+of frames.
+
+
+	The FITS header must contain at least the following items, other
+necessities will be added later:
+\begin{itemize}
+\item SIMPLE - F
+\sitem FILETYPE - \#		/* Square root encoded
+\sitem BITPIX - bits per pixel, must be 16
+\sitem NAXIS - number of axes, must be 2
+\sitem NAXIS1 - number of columns
+\sitem NAXIS2 - number of rows
+\sitem DATE - TAI date at start of the observing run
+\sitem TAI - TAI time at which the frame was taken
+\sitem RUN - unique number assigned to one continuous uninterupted drift scan
+\sitem FRAME - number of the frame within the run, CCD row, and CCD column
+\sitem CCDROW - CCD camera row, 0-4
+\sitem CCDCOL - CCD camera col, 0-5 
+\sitem CCDIDENT - serial number of the specific CCD chip used
+\sitem DRIFTRAT - microsecs per row (linestart rate)
+\sitem LINENO - frame starting line number within the run
+\sitem RA - HH:MM:SS.SS right ascention of center of instrument rotator at begin
+\sitem DEC - DD:MM:SS.S declination of center of instrument rotator at begin
+\sitem EQUINOX - equinox of the RA and DEC
+\sitem ROT - position of the instrument rotator at begin
+\sitem RAEND - HH:MM:SS.SS right ascention of center of instrument rotator at end
+\sitem DECEND - DD:MM:SS.S declination of center of instrument rotator at end
+\sitem ROTEND - position of the instrument rotator at end
+\sitem DATATYPE - IMAGE
+\sitem ARCHTAPE - archive tape name
+\sitem ARCHFILE - archive tape file number
+\end{itemize}
+
+\subsubsection{Catalog of Bright Stars and Galaxies}
+
+	This is a catalog of all of the bright objects we will skip over
+during processing.  The preprocessor chooses only those stars relevant to the 
+current scan line.  For each object, we identify the part of the sky subtended
+by an ellipse.  Stars will have major and minor axes of zero size.  We will
+calculate the radius to exclude around stars from the magnitude of the star.
+\begin{itemize} 
+\item timestamp - date and time catalog was created
+\sitem process-stamp - the date and time the process was begun
+\sitem For each object in the catalog:
+\begin{itemize}
+\mitem object - object name
+\mitem classification - classification of the object (we should have a limited number of possibilities)
+\mitem RA - right ascention of center of object
+\mitem DEC - declination of center of object
+\mitem position error - the accuracy to which the position is known (arcseconds)
+\mitem equinox - equinox or the RA and DEC
+\mitem PA - position angle of object
+\mitem majoraxis - size, in arcseconds of the major axis of the elipse
+\mitem minoraxis - size, in arcseconds of the minor axis of the elipse
+\mitem B - blue magnitude
+\mitem other magnitudes if available
+\end{itemize}
+\end{itemize}
+The format of the catalog will be the same as the catalogs used for the
+astrometric pipeline.
+
+\subsection{Scientific output from the Frame Pipeline Processor}
+
+	The output from the pipeline is fully identified by the date and
+time it was created, the date on which the run started (TAI), the run
+number, and the ccd column number.  The output described here should be
+sufficient to select galaxy targets for the spectroscopic survey, and to
+achieve the primary science outlined in the Principles of Operation of
+the Sky Survey Project.  Extras such as producing and object-subtracted
+sky frame are not essential to the operation of the survey, and therefore
+will not be implemented in level zero.
+
+\subsubsection{Corrected frames}
+
+	The corrected frames will be 1500 rows by 2048 columns (including
+the overlaps), and will be written to tape with very few
+defects removed.  The frames will be bias subtracted and divided by
+the flatfield vector.  In addition, bad columns will be interpolated and
+chip defects removed as well as possible.  Defects such as aircraft,
+meteors, and satellites will not be removed in the level zero data system.
+If it is deemed advantageous by the collaboration, these corrections
+can be included in future versions.  If such corrections are included in
+subsequent versions, we will have to supply an additional description 
+of the corrected pixels, either as a bit mask or as a list.
+
+	The corrected frames will use nearly identical headers to the
+raw data.  The exceptions are that the number of columns will be smaller,
+since the overscan has been clipped off, and the two keywords:
+\begin{itemize}
+\item CORRDATE - date the corrected frame was written to disk
+\sitem STATUS - flatfielded
+\end{itemize}
+will be added.
+
+\subsubsection{Bright Objects}
+\begin{itemize}
+\item timestamp - date and time file was created
+\sitem process-stamp - the date and time the process was begun
+\sitem DATE - date at start of observations for the current run (TAI) 
+\sitem RUN - run number
+\sitem ccdcol - camera column number
+\end{itemize}
+
+\subsubsection{Catalog of objects}
+
+The catalog of objects will be calculated for each frame.  The results
+will be concatenated to the end of a flat file after each frame.  This
+catalog is the merged list including the inforation from all colors.
+The file must contain at least the following information:
+\begin{itemize}
+\item timestamp - date and time file was created
+\sitem process-stamp - the date and time the process was begun
+\sitem DATE - date at start of observations for the current run (TAI) 
+\sitem RUN - run number
+\sitem ccdcol - camera column number
+\sitem merged object lists, one per frame
+\end{itemize}
+This is practically the only output of the pipeline that can be made
+available on disk.  All other significant outputs will have to be made
+available on a slower medium.
+
+\subsubsection{Postage Stamps}
+
+The rasters of all of the objects found in the survey will be stored in 
+all colors as ``postage stamps" (subject to the constraint that they
+must cover less than 2\% of the image).  These will probably eventually be 
+stored on something like a tape robot as FITS-ish files, one per frame.  
+The form of these files should be identical to the form of the bright 
+star files generated by the online and input to this pipeline on 
+the ``additional data tape."  The plan is to
+store postage stamps for all galaxies found in the survey, with the stipulation
+that the total area in postage stamps cannot exceed two percent of the area
+of the sky.  If the size exceeds two percent, then we don't gain much by
+storing the postage stamps rather than the original images.  It is yet to
+be determined how large the postage stamps should be.  They could be just
+large enough to cover the sky-limited extent of the object.  This would not
+allow one to determine the sky background from the postage stamp itself -
+the local sky background would have to be stored in the header.
+
+\subsubsection{Rough Sky Map}
+
+In addition to the postage stamps of the interesting objects in the image,
+we would like to store a crude reproduction of the whole image, which will
+be useful for quality assurance, and as a tool for finding charts, etc.
+This should be one file for each frame for each color, and should be less
+than one percent the size of the original image, the smaller the better.
+This could be done be binning the image in 10x10 pixel chunks.  These could
+then be compressed in a lossy fashion such as square root compression.
+The tools to do this will be readily available in DERVISH, so the framework
+can write these out after flatfielding.
+
+\subsection{Quality Assurance Data}
+
+The processor must produce quality assurance data so that we can flag
+substandars data before it is loaded into the database.  We list here some
+obvious quality assurance data that should be generated for each run of
+the photometric pipeline, and we expect that as we gain more experience with
+the failure modes of the pipeline, the specification of the output will
+change.
+
+\subsubsection{Processing Report}
+
+The processing report must include at least the following information:
+\begin{itemize}
+\item timestamp - date and time file was created
+\sitem process-stamp - the date and time the process was begun
+\sitem DATE - TAI date at start of the observing run
+\sitem RUN - run number
+\sitem ccdcol - camera column number
+\sitem any errors or warnings that occurred
+\sitem number and designation of images processed
+\sitem input files used
+\sitem output files generated
+\end{itemize}
+
+\subsubsection{Basic image characteristics}
+
+	There are several obvious plots we can make to analyse the
+results on a frame by frame basis.  For each frame, we will determine
+the:
+\begin{enumerate}
+\item number of stars, galaxies, and others (three numbers)
+\sitem image minimum, maximum, median, and sky in each color
+\sitem psf parameters, probably $\sigma_{xx}$, $\sigma_{xy}$, and $\sigma_{yy}$
+\sitem number of pixels flagged as bad.
+\end{enumerate}
+From this information which is written out as flat files, we can generate
+a plot versus frame number for each item.
+
+In addition, we should update three histograms after each frame.  The final
+histograms will give the numbers of stars, galaxies, and ``other" as a
+function of magnitude.
+
+\subsubsection{Positions of objects detected}
+
+	It is impossible to display the positions of the detected objects
+in 10 workstation screens or less, since to do that each frame would have
+an allocation of 1" tall by 1.33" wide, and displaying many hundreds of 
+objects in this space would serve little purpose.
+Therefore, I suggest that we calculate number counts densities for each
+hundred frames in regions about 20 pixels by 20 pixels.  This would produce
+ten greyscale maps that are 75x100 that will show large scale biases based
+on position on the chip.
+
+\subsection{Verbose Output from the Processor}
+
+	If verbose mode is requested, we will get extra information
+in addition to the output obtained from normal operation.
+We allow ourselves here to write out more output, since it does not
+have to be archived.  However, it should not be so  verbose that
+it becomes useless as a debugging tool.  It is expected that each module
+takes this as an argument so it can be changed at run time rather than
+at compile time.  This is expected to be determined
+primarily during fabrication of the pipeline, but should include things
+like:
+
+\subsubsection{Intermediate object lists}
+
+	The object lists after FindObjects and FindBrightObjects would
+be output for inspection.
+
+\subsubsection{Masks}
+
+	The masks are a set of 8 bits for every pixel of data.  The
+designation of the bits is still under discussion, but will include
+at least the following information:
+\begin{itemize}
+\item two bits which signify: good pixel/fixed but okay/bad pixel, don't use
+\sitem one bit that says whether the pixel is part of an object
+\end{itemize}
+
+\subsubsection{Images to the screen}
+
+	The corrected mode array, raw frames, and corrected frames could
+be send to a display, and the objects as they are found could be indicated
+on the corrected image.  One might want to overlay the mask of bad pixels.
+The type of object found could be coded as a different shape glyph for each
+object type.
+
+\subsection{Memory/CPU Requirements}
+
+This section will be completed when the science modules are better specified.
+

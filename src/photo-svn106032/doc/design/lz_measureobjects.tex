@@ -1,0 +1,910 @@
+
+\subsection {Introduction}
+
+  The Measure Objects module has three functions:
+
+\begin {description}
+\item [A] de-blend objects which overlap each other
+\item [B] measure a set of parameters (size, brightness, position, etc.)
+             for every object in a field, in all colors
+\item [C] using some subset of those parameters, classify the object as
+   \begin {description}
+   \item [1] star, galaxy or other
+   \item [2] for galaxies, classify type of galaxy as far as possible
+   \end {description}
+\end {description}
+
+Now, for the Level Zero implementation, function C.2 is not required.
+However, future versions of the pipeline will be required to perform
+galaxy classification to some extent.  Therefore, we should try to 
+make sure that the parameters which we WILL need for more detailed 
+classification are included in the set we measure for each object.
+
+  I have collected a set of important ``action items'' discussed in
+this document in the following list:
+
+\begin {itemize}
+  \item Should we degrade all images to a common mediocre standard before
+           measuring galaxy properties, in order to make a maximally
+           uniform catalog?  The Galaxies Working Group may be
+           interested in this question.
+  \item I suggest that the Level Zero implementation of this module
+           may include a simple, far-from-optimal deblending
+           algorithm, but some method {\it must} be present.
+  \item I suggest that the Level Zero implementation of this module
+           have the option of using a simple set of measurements
+           for objects larger than some fixed size, {\bf if} the pipeline
+           is limited by memory usage.  This set would produce
+           parameters similar to the normal ones, but fewer and/or
+           slightly less accurate.
+  \item Should we store large amounts of information for big, bright
+           objects, and a smaller amount for the much more numerous
+           small, faint objects?
+  \item This module {\bf requires} a tool for comparing lists of 
+           numerical values in a ``fuzzy'' or approximate manner
+           for regression testing purposes.
+\end {itemize}
+
+  I realize that some of these items seem to compromise the module's
+integrity, but I want to make clear the limitations that time and
+computation resources {\it may} impose upon us during the Level Zero phase.
+
+\subsection {InitModule}
+
+\subsubsection {Description}
+
+  The main task for the initialization function is to read in the
+information needed to create the classifiers.  It is likely that
+there will be several classifiers, perhaps one per color; there might
+be several per color in the final Version, but not in Level Zero.
+The classifiers, whatever their form, will require some amount of
+knowledge - rules for determining the type of an object given its
+parameters.  I envision this knowledge being stored in a set of 
+ASCII files on disk, which would be read by the pipeline framework
+at startup time.  The {\bf InitModule} function must 
+negotiate with the framework to read their contents, 
+then create the classifiers.
+
+\subsubsection {Input}
+
+  The {\bf InitModule} function must be given
+
+\begin {itemize}
+    \item a set of NCOLOR file pointers (or framework equivalents)
+          which contain the classifier knowledge databases
+\end {itemize}
+
+\subsubsection {Output}
+
+  The {\bf InitModule} function produces no output if all 
+goes well; instead, it allocates space for the classifier
+data structures and initializes them with data from the 
+classifier knowledge databases.  These data structures are
+private to the {\bf Measure Objects} module and so do not appear
+in the list of pipeline structures.
+
+  It should also allocate memory for private variables in 
+which to keep a running total of interesting/debugging 
+statistics on object classification.
+
+\subsubsection {Modules}
+
+  The {\bf InitModule} function must
+
+\begin {itemize}
+   \item read knowledge from files
+   \item allocate all needed static private memory 
+   \item construct classifiers
+\end {itemize}
+
+\subsubsection {Algorithms}
+
+  Reading information through the framework into private
+structures can be done simply - the amount of information will
+be no larger than 1 Kilobyte per classifier.  No complicated
+algorithms are needed.  Constructing the classifiers will 
+require similarly simple code (once we decide on the exact
+form of the classifiers).
+
+\subsubsection {Quality Assurance, Debugging, Resources}
+
+  I recommend that the {\bf InitModule} function read not
+only the knowledge required to construct the classifiers
+from disk files, but also one or two ``test cases'': 
+sets of parameters which, when given to a classifier, 
+should be labelled with a known type.  After having 
+constructed the classifier, the {\bf InitModule}
+function can make sure that it will run correctly.
+
+  The function can simply print text messages to a log
+file stating that it did or did not classify the test
+cases correctly.
+
+  For debugging purposes (and regression testing -
+see below), it would be useful to 
+have private utility routines that could read and write
+the classifier structures to and from disk files.
+
+  The {\bf InitModule} function will require no more
+than 100 Kilobytes of memory, and very little CPU time.
+
+\subsubsection {Test Data Required}
+
+  We must create a means to test that the classifiers are
+constructed correctly from the knowledge data base.  One
+or two ``test cases'' should be devised, simple sets of
+parameters which should lead to a know object type.
+It will be a simple task to create these few test cases
+in the course of developing the classification software.
+
+\subsubsection {Regression Testing}
+
+  To verify that a change in code has not affected the
+{\bf InitModule's} actions, one could use utility routines
+to dump the classifier structures onto disk into a file,
+and store the files in a safe place.  After changing the code,
+one could 
+run the module with the same input values and dump
+the resulting structures to another disk file.  
+Comparing the disk files would show whether the changes
+affect the module's function.
+  
+\subsection {Measure Objects Module}
+
+\subsubsection {Description}
+
+  The three main functions of the {\bf Measure Objects} module
+are to separate any overlapping objects,
+measure a set of parameters describing each object
+detected in an image, and then to classify each object, based
+on a subset of those parameters.  
+It is likely that the three are intertwined closely,
+since the result of the classification stage may be to
+attempt deblending, re-measurement and re-classification.
+The main module will probably
+consist of a large loop, through which complicated structures
+may circulate several times.
+
+  One issue that came up at the Workshop and was not resolved
+was whether we should degrade all images to a common, mediocre
+value of seeing before measuring object parameters.  
+We would lose some of the information, but bring all images
+to a uniform standard, which might help the target selection process
+to avoid subtle biases.  
+{\bf This question should be passed to the group in charge of galaxy 
+selection criteria for a decision.}
+I will assume in the rest of the document that we will not
+blur the images, but note paranthetically the steps we would 
+need to take if we later change our minds.
+
+\subsubsection {Input}
+
+  I suggest that we give as input to the module
+
+\begin {itemize}
+  \item a set of NCOLOR corrected {\it regions}
+  \item a set of NCOLOR sky and sky-sigma values
+  \item a set of NCOLOR read-noise and gain values
+  \item a set of NCOLOR photometric calibration structures ({\it photpar})
+  \item a set of NCOLOR {\it PSF} structures
+  \item a complete list of all objects in the frames, for all colors 
+            ({\it objclist})
+\end {itemize}
+
+Note that this set of inputs is slightly different than that used in the
+prototype.
+Also, the module will need a small set of 
+values describing the {\it PSF} structures (fitting and total
+radius, etc.) which will be stored in the ``parameters file,''
+and made available to the module through the framework.
+
+(If we decide to blur all images to a common scale, we will
+need one additional input value: the standard seeing size to 
+which all images should be brought.  In addition, a function 
+to perform this task must be written.)
+
+\subsubsection {Output}
+
+  The output {\bf must} answer the following two questions
+accurately:
+
+\begin {itemize}
+   \item is this object a galaxy (or quasar)?
+   \item if so, where should we place the fiber to get its spectrum?
+\end {itemize}
+
+and, at a slightly lower level of importance, determine several
+properties of each object to reasonably high precision: size,
+position and brightness in each color.  Additional information,
+such as galaxy classification,
+is desirable but not required for the Level Zero
+Pipeline.
+
+  In concrete terms, the output of this module is 
+entirely contained in the 
+
+\begin {itemize}
+  \item complete list of all objects in the frames, for all colors
+\end {itemize}
+
+``hidden'' inside the {\it OBJC} structures themselves.  Each {\it OBJ1}
+structure within an {\it OBJC} will contain the values of
+the parameters measured in one color,
+and the {\it OBJC} will contain the object's overall classification (star,
+defect, galaxy (perhaps E/Sab/Scd etc.)), and, ideally,
+a value for the certainty of the classification.
+It is possible that this module may modify the {\it mask}
+bits of an object slightly, for objects that are not
+blended, in order to clarify the identification of image
+pixels that ``belong'' to the object, but I doubt that
+we will implement such code in Level Zero.
+
+Note that whenever the {\bf Measure Objects} module 
+splits a single object into several, via whatever deblending 
+algorithm is chosen, it will add new objects onto the list;
+thus, the output list from the module will undoubtedly be larger
+than the input list.  It is at this point unclear whether we
+will retain the original, blended object, or remove it from
+the list and replace it with the unblended versions.  I believe
+the latter to be the correct procedure, but there are arguments
+for the former as well (especially if the deblending algorithm
+has known flaws).
+
+  Steve Kent has pointed out that the object parameters
+calculated for each color and stored in 
+each {\it OBJ1} structure will often be very similar for all colors.  
+It might be preferable, in such cases, to store only one copy
+of some parameters --- the fitted elliptical isophotes, for example.
+Likewise, faint and/or compact objects will contain very
+little information, so that many of the fields in the {\it OBJ1}
+structure would be empty.
+Our options are
+
+\begin{description}
+  \item always store the full parameter set for {\bf all} colors
+  \item always store the full parameter set for {\bf one} color only ($r'$),
+            and store a smaller amount of information for all other colors
+  \item {\it sometimes} store the full parameter set for all colors,
+            but, under some conditions, only keep it all for one color
+\end{description}
+
+In the final case, we must devise a set of conditions under which
+the more abbreviated parameters suffice.  Furthermore, we must 
+modify the {\it OBJ1} and/or {\it OBJC} structures to include
+a full or partial set of parameters.
+Although we would certainly save a large amount of space in the
+database, I recommend that we maintain the full set of parameters,
+in all colors, in the Level Zero pipeline; it will simplify the 
+tasks of those who must write the framework code and those who
+will write the {\bf Measure Objects} module.
+Furthermore, during the Level Zero code development phase,
+we will not be working with such large amounts of image data that
+the full parameter set becomes unwieldy.  
+{\bf However, I agree that the Level One pipeline should be able
+to adapt the amount of information sent to the database to the
+amount of unique information present in each object.}
+
+\subsubsection {Modules}
+
+  There are really three distinct jobs in the {\bf Measure Objects}
+module, which may be separated at a later date:
+
+\begin {itemize}
+   \item deblend objects
+   \item measure object parameters
+   \item classify objects
+\end {itemize}
+
+\subsubsection {Algorithms}
+
+  I will first discuss the issue of deblending, 
+the the question of which parameters we 
+should measure, and then the algorithms we might use to measure
+those parameters. After that, I'll talk about classification methods.
+
+\medskip
+
+  First, {\it what to do about blended objects?}
+
+  The task of deblending objects which overlap each other is
+a very difficult one.  It is not even clear where we should place
+the job in relation to other ``MeasureObject'' functions.
+We probably can't notice blended objects until after we've
+tried to classify them, but the {\bf deblend} function will
+have to send its list of de-blended objects back to the 
+classification procedure.  So the de-blending code actually
+acts in a loop, which may run more than once on the same 
+region if three or four objects are overlapped.
+
+  My search of the literature produced the following list of
+ideas for deblending objects, in loose order of increasing
+complication:
+
+\begin {itemize}
+    \item  chopping objects up along the major axis (old FOCAS)
+    \item  creeping up isophotes to look for isolated peaks (new
+           FOCAS, several others)
+    \begin {itemize}
+           \item allocate flux assuming symmetry around center
+                 (as described by Mamoru Doi at the April workshop)
+           \item allocate flux assuming gaussian shapes (Szapudi)
+    \end {itemize}
+    \item  deconvolution, using stellar PSF only (DAOPHOT)
+    \item  deconvolution, using stellar PSF for stellar things
+           and galactic profiles for non-stellar things
+\end  {itemize}
+             
+  The {\it best} way of doing things seems to be the last, but it 
+requires the largest amount of computation and also the
+largest amount of {\it a priori} information.  Assuming that
+we take this route, the {\tt deblend} function will need,
+in addition to the inputs listed at the beginning of this section:
+
+\begin {itemize}
+  \item a library of known object profile shapes
+\end {itemize}
+
+  Note that this library will take a significant amount
+of effort (I would guess at least several man-months) to create, if 
+we want to use REAL profiles.  However, a simple library consisting
+of combinations of deVaucouleurs bulges and exponential disks would
+take much less work, and might perform just as well.
+
+  I suggest that the Level Zero module attempt to implement
+one of the following options, or some combination thereof:
+
+\begin {itemize}
+   \item deconvolution of stellar objects with stellar PSF
+   \item deblending by assuming symmetry around object center
+\end {itemize}
+
+  Note that this does {\it not} require the library of 
+known object profile shapes.
+
+  When an object is de-blended, we have two options:
+
+\begin{itemize}
+  \item keep original in list, with pointers to child objects (and pointers
+        in children back to parent)
+  \item discard original, keep only children
+\end{itemize}
+
+  I {\it strongly} recommend the former plan, although it may
+lead to occasional confusion if we aren't careful.
+
+\medskip
+
+  Second, {\it which parameters should we measure?}
+
+We have a limited amount of storage space available in the database for
+the information stored with each object, so we must make sure that the
+values we choose will suffice for the project's needs.  The primary goal,
+again, is to pick out all the bright galaxies for spectroscopic measurement.
+Therefore, we must make sure that the parameter set
+
+\begin {itemize}
+    \item allows us to distinguish bright galaxies from stars
+    \item permits us to position fibers accurately enough to the
+            galaxy nucleus (or object ``center'') to get a spectrum
+\end {itemize}
+
+Additional information on the
+object is a bonus - but if it allows us to classify galaxies well, it's
+a big bonus that will pay off in the future.
+
+  Jon Loveday suggested (at our last Workshop, in Fermilab) a set of
+parameters that would comprise 164 bytes per color per object.
+His list of possible parameters included a series of fits to
+elliptical isophotes,
+which have been used in some of the plate-scanning surveys to classify
+objects.  My own feeling is that we may discover that the fits to 
+elliptical isophotes are not the {\it optimal} means of distinguishing
+stars from galaxies, or classifying galaxies; however, I do think that
+they provide a very useful set of information for users of the DSS
+Database, who may wish to select objects from the Database according
+to "industry-standard" rules.  
+ 
+  I had a fruitful discussion with Professor Okamura, who has worked on
+object classification for some time, and we decided on the following 
+set of parameters --- note that the heart of the scheme is again
+a series of elliptical fits:
+
+\begin {itemize}
+   \item a set of flags to mark problems or special properties of the
+            object (``close to edge of chip'', ``has been deblended'', etc.)
+   \item object centroid (of some kind) in X and Y (plus uncertainties)
+   \item position of peak pixel value, and its value
+   \item integrated counts within apertures of radius 1.5 arcsec (same
+            size as fibers) and radius 4 arcsec (gets most of the light
+            in faint galaxies, Okamura suggests), plus uncertainties
+   \item integrated counts within 3 (or more?) faint isophotes (for later
+            interpolation to magnitude within some standard
+            isophotal surface brightness), plus uncertainties
+   \item a ``total'' integrated counts, defined as ``magnitude inside
+            a radius such that the mean surface brightness is some
+            constant value'' (Steve Kent suggests from experience that
+            this is a reasonable way to define ``total'' magntiude),
+            plus uncertainty
+   \item a series of 3 fits to ellipses at various levels
+            of brightness (enclosing 1/4, 1/2 and 3/4 total light); 
+            each fit consists of five values:
+            axis lengths {\bf a} and {\bf b}, ``effective radius'' {\bf r}
+            (radius out to which a circle encloses same amount of light),
+            position angle {\bf $\theta$}
+            and isophote surface brightness {\bf $\mu$}.
+   \item local sky at object centroid, plus gradients in the local 
+            sky in both directions
+   \item goodness-of-fit to stellar PSF, and fitted amplitude
+   \item two measures of ``concentration'' 
+   \item two measures of ``texture.'' Michael Edwards' fractal experiments
+            at Princeton promise to yield nice spiral/elliptical diagnostics
+            in a compact form
+\end {itemize}
+
+  The final three items mentioned above are those which we think
+will prove most useful for object classification, but are at present
+unknown; we will spend a lot of time figuring out the right answers.
+
+  It is unclear at this point how many isophotal measurements 
+we will need to 
+satisfy the needs of classification and of eventual scientific 
+studies, and how many we can afford to keep inside the database.
+The total amount of space occupied by a single {\it OBJ1} 
+structure, given the above parameter set and a small amount of
+additional information, is about 250 bytes per color; thus,
+an object would require about 1,250 bytes for storage in all
+five colors.  This is substantially more (about twice) than that estimated
+by Jon Loveday in the Workshop at Fermilab in February, 1993.
+We may have to discard a number of the parameters if we can't
+afford the space, or, as mentioned above, store the full set of
+parameters only for one color and include an abbreviated set of 
+values for all other colors.
+
+\medskip
+
+  Third, {\it with what algorithms might we measure objects?}
+ 
+The first task of the module is simply to go through the list of all
+objects and calculate some list of quantities for each instance of that
+object.  Thus is a relatively easy operation.  There are two
+tricky parts:
+
+\begin {itemize}
+  \item 1. First, what do we do when an object is detected in some colors,
+           but not in others.  The simplest option is to calculate a simple
+           upper bound on the brightness of any object at the non-object's 
+           position, using an aperture matched roughly to the object's 
+           size in other colors, and leave it at that.  However, we can 
+           get much more sophisticated: we can convolve the area with 
+           one profile shape after another, hoping to bring the object
+           up out of the noise and above our thresholds.  
+
+           If the primary goal of the Level Zero pipeline is to find
+           the positions of all galaxies brighter than eighteenth magnitude
+           accurately enough to measure their redshifts, then we don't have
+           to worry TOO much about this problem, because such galaxies
+           will very rarely not be detected.  The obvious exceptions are
+           galaxies with very low surface brightnesses, but I don't know
+           how important they are.
+
+  \item 2. What should we use as the ``sky'' value?  The module is given a 
+           ``typical'' sky value for the entire frame; for some purposes,
+           that global value may be adequate.  In other cases, we will 
+           have to measure a local sky value because the object in question
+           is close to a bright star, or on top of a large galaxy, or
+           immersed in nebulosity, etc.  
+
+           For the Level Zero pipeline, I think that we can usually use
+           the ``typical'' sky value.  The major problem, I think, will be 
+           overlapping galaxies, and stars close to galaxies; in such
+           cases, we must revert to a local sky value.  Note that the 
+           suggested set of parameters includes a local sky (and its 
+           derivatives), so we will be able to tell, {\it post facto},
+           whether a global or local sky value was used.
+\end {itemize}
+
+Another subtle problem, but one that occurs very infrequently,
+is dealing with very large objects - galaxies larger than
+two or three arcminutes in diameter, for example.  Occasionally,
+such large objects will straddle two strips, and so disappear
+off the edge of each chip.  I think that we simply must do
+the best we can with each portion, and mark the object somehow
+with a tag that indicates that it (probably) extends beyond
+the edge of the frame.  
+The postprocessor can then try to add together the information
+from each piece of such an object.
+I suggest that we have one field in the
+{\it OBJ1} and {\it OBJC} structures that contains useful bits
+of information on the object, and that one of these bits 
+be used to indicate overlap.  In C-speak,
+
+
+\begin {verbatim}
+       #define OBJ_ONEDGE    1    /* object falls near edge of chip */
+       #define OBJ_NOTSEEN   2    /* object doesn't appear in this color */
+           etc.
+
+       typedef struct {
+            .
+            .
+            long status;       /* bits indicating object properties */
+            .
+       } OBJ1;
+\end{verbatim}
+
+Very large objects present an additional difficulty: it is not a trivial
+matter to locate their centers accurately enough to place a fiber
+for spectroscopy.  Jim Gunn has developed a method that may work
+in most cases; divide a large object into many small square sections
+(each about ten or twenty times the seeing disk in size), measure 
+the median inside each square, then fit a low-order polynomial
+to the medians and use the position of maximum as the fiber position.
+
+Despite our best efforts, we will undoubtedly have to mark some objects
+as ``too confusing'' and request human intervention --- figuring
+out what to do with M51 is probably just too hard.  However, 
+the Level Zero module must resort to such desperate measures
+only $0.01\%$ of the time, according to the Blue Book.
+
+It is clear that we will need to find an efficient algorithm for 
+fitting ellipses to isophotes, but, fortunately, we aren't the first
+group to need such an algorithm.   There are a number of references
+to such functions in the literature.
+
+The algorithms we use to derive the ``texture'' and ``concentration''
+parameters are not yet known, since the parameters themselves are
+to be determined (although we have good leads for the ``texture''
+values).
+In any case, the methods used to derive these
+few values must not require more computation resources than are used
+in making the series of elliptical fits.
+  
+\medskip
+
+  Fourth, {\it what methods should we use to classify objects?}
+
+  There are a number of approaches to the problem:
+
+\begin {itemize}
+   \item rule-based systems
+   \item binary decision trees
+   \item neural networks
+   \item matched filters
+\end {itemize}
+
+Again, there is no unique solution; all we have to do is find some 
+system that will work sufficiently well and fit within our computational
+budget.  After thinking about the problem for a while, reading the
+literature, 
+talking with some people who have designed object classifiers,
+and even playing with a model or two, I have tentatively
+decided that the Level Zero pipeline should use binary decision trees.
+Let me first explain what they are, and then discuss my reasons for 
+choosing them.
+
+  Binary decision trees are simply structures similar to Pachinko 
+machines, into which one ``drops'' an object at the top.  The object
+encounters a set of nodes (``pins'') each of which asks a yes/no 
+question, like ``Is the FWMH less than 4.0 pixels?''.  Depending on
+the object's properties, it goes either left or right from the 
+node and ``drops down'' to another node, which asks another 
+question.  Eventually, the object reaches a node which declares
+``All objects reaching this node are type X,'' and stops.
+Here's an ASCII rendering of a simple binary tree.
+
+\vbox {
+\begin {verbatim}
+                      TOP
+
+                  Is FWHM > 4.0?
+                    /      \
+                   /        \
+                 yes        no
+                 /            \
+                /              \ 
+         Is peak > 10000?  Is FWHM < 1.0?
+           /     \            /    \
+          /       \          /      \
+        star    galaxy    cosmic  Is peak > 50?
+                                    /   \ 
+                                   /     \
+                                 star   cosmic
+\end{verbatim}
+}
+                 
+
+Here are my reasons for choosing decision trees:
+
+\begin {itemize}
+    \item  They ``train themselves'', given a sufficient amount
+           of pre-classified information.  It will take the 
+           test year to get that information, and a lot of work
+           by someone looking at image after image and saying
+           ``star, star, Sb, star, star, star, E5, star, cosmic ray'',
+           but we can train it with images from each color separately.
+
+    \item  Trees can be created which provide an estimate of the
+           accuracy of each classification (a very large and diverse
+           set of test images are required, however, complete with
+           catalogs of all the objects within).
+
+    \item  Although creating takes a lot of computer time,
+           using a tree to classify an object is VERY quick.
+           Just a few comparisons and it's done.  The matched-
+           filter idea, for example, can take orders of magnitude
+           more time.
+
+    \item  Decision trees, unlike neural networks, are reasonably
+           easy to understand and interpret.  We may discover
+           interesting features in our data by examining the rules
+           used for classification (``Gosh, spirals and ellipticals
+           are split really well by fractal dimensions'').
+
+    \item  I think that I can implement decision trees within a
+           short amount of time, either as part of the pipeline,
+           or as a stand-alone program that interacts with the 
+           database.  
+\end {itemize}
+
+  Note that decision trees split up a multi-dimensional parameter
+space into volumes separated by planes which are parallel to the
+coordinate axes.  They are thus more limited than neural networks,
+which can separate volumes by walls of arbitrary curvature.
+However, if we choose meaningful parameters, this limitation
+should not make much difference.
+
+  Having said all this about decision trees, let me indicate that
+I am not wedded to them exclusively.  If we find that some other
+method will work, or is better for some reason, I'm all for it.
+I believe that, in practice, we may want to have {\it two independent methods}
+of classification, perhaps one ``quick 'n easy'' and one ``slow but
+more accurate'', and use the two as checks against each other, and to
+give us an idea of the accuracy of the classification.  
+
+  The current classification method, for example, which is part of 
+the current Prototype Pipeline, creates a histogram of FWHM for all
+objects in a frame, finds the peak of the histogram and calls
+objects with similar FWHM ``stars'', calls smaller objects ``cosmic rays''
+and larger ones ``galaxies.''  It's very quick, it's very simple, and
+it might work well with well-sampled data.  It's just a sanity check,
+in essence, that might alert the Survey workers if something very
+strange happens (``100\% of all objects are galaxies ... wait a minute!'').
+
+
+\subsubsection {Quality, Debugging, Resources }
+
+  I would guess that a relatively small amount of simple information
+will suffice to tell the pipeline overseers that things are 
+going well.  Histograms of object size and object class 
+as a function of brightness will probably indicate when something
+has gone horribly wrong, and, most tersely,
+a list of the number of objects of
+each class (star/galaxy/defect, perhaps) per frame might suffice.
+
+  While debugging the {\bf Measure Objects} module, 
+it will be necessary for a user to be able to display the region 
+around an object in an image while simultaneously examining both
+the measured parameters, and the classification.  In fact, she
+might want to see pictures in all five colors at once!  If that proves
+impractical, a list of the parameters actually used in the 
+classification, together with a trace of the classifying process,
+might be good enough to find a bug in the decision process.
+It's clear that this module will ask for large amounts of
+debugging resources IF it turns out to break for some reason;
+there are many different functions hidden within it.
+
+  The amount of extra memory needed for ``working space''
+will be set by the size of the largest objects.
+I would guess that we'll need 8 bytes times the number of
+pixels in such an object for temporary storage and 
+computations; if the largest object is as big as an entire
+frame, then we would need roughly 
+$8 {\rm \ bytes} \times 1500 \times 2000 = 24$ Megabytes. 
+However, if we get into fancy deblending schemes, as I
+would guess we will, the total might rise to N times larger,
+where N is the number of distinct objects blended together
+(or, really, the number of object our algorithm THINKS
+are really there).  Conservatively, if N is three, then
+this is about 100 Megabytes of memory.  This could become
+{\it very } expensive.
+
+  We can limit the amount of memory required by limiting the
+size of the largest object for which we follow the ``normal''
+procedures; for example, we might have a special, simple set of
+functions which don't include deblending which we use for 
+very, very large objects.  I suggest that the Level Zero
+{\bf Measure Objects} module have the option of following
+a simpler set of functions for all objects with more than some
+reasonable number of pixels --- say, $500 \times 500 = 25,000$.
+This would set an upper limit to the memory use that
+might be necessary.  
+However, the module writers may exercise this option only if
+memory limitations force it upon them.
+
+  Computationally, this module will be expensive.
+I suspect that the methods we choose will be those that
+just fit within the computational budget.  We do have
+a range of options, so the amount of CPU time could
+vary quite a bit.  As a rough guess, the current prototype
+module, which calculates only about ten parameters
+(a few of which involve lots of calculations), and performs
+extremely quick and simple classification, takes roughly
+one-third the time as that the ``findObjects'' or 
+``findBrightStars'' does.  However, I suspect that this
+fraction will approach, or exceed, unity, in the Level
+Zero Pipeline.
+
+  My proposed set of parameters we must store in the database 
+for each object comprises about 1250 bytes per object.  If we 
+assume 500 objects per frame, then the total amount of information
+this module produces as output is about 625 Kilobytes per frame.
+Of course, it is possible that this memory will already have been
+allocated when objects are first detected, so that this output
+wouldn't require any substantial extra memory of its own.
+
+\subsubsection {Test Data Required }
+
+  In order to test the classification procedures, we will need
+a large set of images, with properties similar to those we will
+take in the survey, for which we have complete catalogs of 
+all objects: stars, galaxies, defects, etc.  I estimate that we
+should have about twenty to forty images, in order to have some
+variety in the star/galaxy ratio, amount of clustering, 
+degree of crowding, and so forth.  These may be either synthetic
+images created by the Simulation team, or images for which
+some other group has made a complete analysis.  
+
+  During the code development phase, we can use images
+without catalogs for debugging and simple testing; but it is
+absolutely necessary to have catalogues in order to test the
+measurement and classification routines rigorously.  
+
+\subsubsection {Regression Testing}
+
+  The {\bf Measure Objects} module produces two
+different kinds of output: large lists of numerical parameters
+for each object, and a set of only one or two items describing
+its classification.  
+
+  The first type, long lists of numbers, will be very 
+difficult to compare the output of previous runs because
+even a very minor change in calculations may produce
+differences in the final results via roundoff error.
+Thus, the magnitude of a star, for example, might be listed
+as ``18.829'' in one run, and ``18.830'' after a tiny change
+in the code.  Such a small change probably is insignificant
+and ought to be regarded as no change - but a simple 
+byte-by-byte comparison of the output will lead to a verdict
+of ``very different --- 2 out of 6 characters have changed.''
+
+  Therefore, we will need to have some kind of ``fuzzy''
+comparison programs that can examine numerical results and
+determine whether differences are truly significant.  Such tools
+are notoriously difficult to create.
+
+  I suggest that the {\bf Measure Objects} module should have
+the ability to produce output values which have been rounded
+to any desired degree of precision.  
+The output routines could check the state of the ``debug mode''
+and call round-off functions if appropriate.  
+The amount of extra computation involved in such procedures 
+will be completely negligible compared with all the other
+calculations in the module.
+
+  The second type of output, object classifications, will 
+involve primarily a single, integer value per object.
+To first order, testing that the output of the module is identical
+to that of a previous run will be simple.  If we add a
+probability or certainty to the type classification, then again
+we will require some kind of ``fuzzy'' comparator in order
+to compare output.
+
+\subsubsection {Proposal for Level Zero Module}
+
+  I propose to continue my work with binary decision trees and
+test them with some of the Drift-scan data that Mark Postman has
+made available.  We can run tests to discover
+ 
+\begin {itemize}
+     \item will decision trees work?
+     \item which parameters are best for classification?
+     \item how do deblending methods compare?
+     \item how seriously do very large objects strain
+              our computational resources?
+\end {itemize}
+
+  I have already determined, to my own satisfaction, that if it
+is not computationally too expensive, we can use ``goodness-of-fit-
+to-PSF'' as a star/galaxy discriminator for the Production Pipeline.
+Discussions with other astronomers involved in automatic
+classification projects elsewhere suggest that I am correct.
+
+\subsection {FiniModule}
+
+\subsubsection {Description}
+
+  When the pipeline has finished with all its data and is about to
+terminate execution, the {\bf FiniModule} for the {\bf Measure Objects}
+module must be executed.  This function frees up all memory that
+the {\bf Measure Objects} module required, and also may print a
+summary of meaurements and classification for the entire run.
+
+\subsubsection {Input}
+
+  There is no input to the {\bf FiniModule}, except possibly
+a set of debugging flags.  The ``debug mode''
+of the pipeline is set via function calls, not through
+explicit flag variables, however, so there need be no
+arguments to the function. 
+
+  However, the main {\bf Measure Objects} module must
+keep track of interesting statistics in private memory
+structures as it calculates them, so that the entire
+object list need not be passed to the {\bf FiniModule}
+as an argument.
+
+\subsubsection {Output}
+
+  The only output produced is the optional statistics
+listing, which is in the form of ASCII text that should
+be sent to the framework.  This output may not appear
+if the debugging flags are not set.
+
+\subsubsection {Modules}
+
+  There are two distinct actions which the {\bf FiniModule}
+must perform:
+
+\begin {itemize}
+    \item free up all allocated memory inside the private
+          {\bf Measure Objects} structures
+    \item if desired, print out a list of statistics on the
+          number of objects measured, extreme values, 
+          number of objects found in each class, etc.
+\end {itemize}
+
+\subsubsection {Algorithms}
+
+  Freeing allocated memory is a simple task; it will require
+nothing more complicated than traversing lists and tree
+structures.
+
+  The optional statistic summary is also not a complicated
+task; in order not to need a list of objects as an argument,
+however, the main {\bf Measure Objects} module should
+keep track of the appropriate statistics as they are
+accumulated, and store them in private static memory
+for the {\bf FiniModule} to access.
+
+\subsubsection {Quality Assurance, Debugging, Resources}
+
+  It is virtually impossible to verify that memory has
+been deallocated properly.  The statistics summary, 
+simple ASCII text, should reveal any disasterous
+errors.
+
+  If the pipeline ``debug mode'' is turned on, the
+statistic summary will be put into a disk file and
+perhaps some display device.  Various levels of
+verbosity may be set.
+
+  The debugging output MIGHT be very large, if a very
+large amount of information is desired and/or a very verbose
+debug mode set.  In normal operation, it would probably 
+come to less than 20 Kilobytes.
+
+\subsubsection {Test Data Required}
+
+  The only test data required is a summary of the 
+statistics for a known set of input objects, so that
+one can check that the statistics are calculated correctly.
+
+\subsubsection {Regression Testing}
+
+  Simply doing a binary or ASCII comparison of the 
+summary statistics output file produced by a previous
+version of the {\bf FiniModule} on the same 
+input data will reveal any differences.
+
+
+

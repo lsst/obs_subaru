@@ -1,0 +1,189 @@
+
+\input epsf
+
+\documentstyle[11pt,module,regular-margins,rotate]{article}
+
+\newcommand{\sitem}{\vspace{-0.3cm}\item}
+\newcommand{\mitem}{\vspace{-0.1cm}\item}
+\def\cfrm{{\bf correct-frames\ }}
+
+\def\epsfigure#1#2#3%
+{%
+\epsfxsize=0.98\textwidth%
+\vskip 0.25in%
+\goodbreak%
+{%
+\samepage%
+\epsfbox{#1}%
+\vskip -1.6ex%                 % Prevent \caption ending up on a page of floats
+\nopagebreak%
+\begin{figure}[h]
+\caption{#2}%
+\label{#3}%
+\end{figure}%
+}%
+}
+
+\begin{document}
+\title{Level 0 Photometric Pipeline}
+\author{Heidi Newberg\and J. Frederick Bartlett\and Andy Connolly\and Mamoru Doi
+	\and Nan Ellman\and Robert Lupton\and Marc Postman
+	\and Michael Richmond\and Naoki Yasuda}
+\maketitle
+
+\tableofcontents
+
+\newpage
+\part{Photometric Pipeline}
+
+\section{Executive Summary}
+
+\input{lzd_goals}
+
+\section{Pipeline Overview}
+%\label{sec: }
+
+\input{lzd_overview}
+
+%\label{sec: }
+
+\part{Test Data}
+
+\input{lzd_testdata}
+
+\part{Postage Stamp pipeline}
+
+The postage stamp pipeline produces the flatfielding vectors and a
+CALIB1BYFRAME struct per frame.  The CALIB1BYFRAME struct contains any
+information that is calculated from more than one frame, like the
+astrometry, photometry, PSFs, sky, etc.
+
+The TCL script that runs the pipeline is ps\_pipeline.tcl, and it calls
+routines in ps\_pipeline\_procs.tcl.  The ps\_pipeline.tcl script has the
+following sections:
+
+\begin{itemize}
+\item[(1)] Get the parameters out of the parameter files into TCL variables
+\item[(2)] Make the CHAIN of CALIB1BYFRAME structs
+\item[(3)] Calculate the flatfield vectors, bias vectors, skylevels 
+(and slope), and bias corrections (flatfield vectors are written out here)
+\item[(4)] Make the "starlist" of all objects in the postage stamps - this 
+involves flatfielding the postagestamps, finding the objects, and measuring the
+parameters in the STAR1 struct for each object
+\item[(5)] Fill in the astrometric parameters in the CALIB1BYFRAME (these
+were calculated in the astrometric pipeline).
+\item[(6)] Fill in the PSF for each frame (currently a double Gaussian).  
+This is currently done by looking at three frames centered on the current 
+frame, throwing out stars with weird psfs, and averaging them.
+\item[(7)] Calculate the photometric calibration per frame (one number).
+\item[(8)] Write out the CALIB1BYFRAMES and the patch calibrations.
+\end{itemize}
+
+The following sections describe the algorithm for creating flatfields,
+making the starlist, calculating the PSF, and making the photometric
+calibration.
+
+\section{Calculate Flatfields}
+\input{lzd_correctframes}
+
+\section{Make Starlist}
+\input{lzd_makestarlist}
+
+\section{Find PSF}
+\input{lzd_findpsf}
+
+\section{Photometric Parameters}
+\input{lzd_photoparams}
+
+\part{Frames Pipeline}
+
+The frames pipeline processes one frame at a time.  Its primary purpose
+is to produce the list of objects and parameters in the data from the
+photometric camera array.  The parameters will be instrumental parameters,
+since we imagine the final calibration will be done with the data of more
+than one run.
+
+The TCL script that runs the pipeline is frames\_pipeline.tcl, and it calls
+routines in frames\_pipeline\_procs.tcl.  The frames\_pipeline.tcl script 
+has the following sections:
+
+\begin{itemize}
+\item[(1)] Read in parameters from the parameter files and allocate some
+of the structures which will be used, and run the Init for each module
+\item[(2)] Loop over each frame
+\begin{itemize}
+\item[(3)] Read in next frame
+\item[(4)] Flatfield the frame
+\item[(5)] Find Bright Objects
+\item[(6)] Merge the bright object lists in each color into one list
+\item[(7)] Measure paramters of the bright object lists
+\item[(8)] Classify objects in bright object lists
+\item[(9)] Remove bright stars from frames
+\item[(10)] Find faint objects
+\item[(11)] Merge the faint object lists in each color into one list
+\item[(12)] Combine bright and faint lists into one list
+\item[(13)] Set sky values for each object based on "background" frames
+\item[(14)] Measure parameters/Classify the objects on the list
+\item[(15)] Write out the results
+\item[(16)] Restore variables to state they were in befor entering loop
+\end{itemize}
+\item[(17)] End loop for each frame
+\item[(18)] Delete any structs still lying around, and run Fini for each
+module
+\end{itemize}
+
+In a departure from the original design, we run each module on each filter
+before going on to the next module.  This is because there are several places
+where merging is done.  The only functions in the level zero design that
+were not implemented are those that read in the known objects' positions and 
+pull them out as special cases.
+
+\section{Init Modules}
+
+The Init sections of each module will be called in order of occurrence in
+the pipeline.  For readability, these sections are included with the
+corresponding module.  They primarily read in module-specific information
+and malloc structs.
+
+\section{Read Frames}
+\input{lzd_readframes}
+
+\section{Correct Frames}
+
+See postage stamp pipeline description.
+
+\section{Find Bright Objects}
+\input{lzd_findbrightobjects}
+
+\section{Merge Colors}
+\input{lzd_mergefilters}
+
+\section{Measure Bright Objects}
+\input{lzd_measurebrightobjects}
+
+\section{Classify Bright Objects}
+\input{lzd_classifybrightobjects}
+
+\section{Remove Bright Stars}
+\input{lzd_cleanupframe}
+
+\section{Find Faint Objects}
+\input{lzd_findobjects}
+
+\section{Set Sky Background}
+\input{lzd_setskybackground}
+
+\section{Measure Objects}
+\input{lzd_measureobjects}
+
+\section{Fini Modules}
+
+The Fini sections of each module will be called in order of occurrence in
+the pipeline.  For readability, these sections are included with the
+corresponding module.  In level zero, there are no functional fini sections
+to any module, so none are called.
+
+\section{Structures}
+\input{lzd_structures}
+
+\end{document}

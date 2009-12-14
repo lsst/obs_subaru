@@ -1,0 +1,184 @@
+#
+# Software parameters for postage stamp pipeline
+#
+scan_overlap		128	# size of overlap region in scan direction
+				# (also set in getDefaultparams_photo)
+
+ps_stampsize		65	# size of SSC postage stamps
+ps_wingsize		200	# size of stellar-wing patches
+psFang_minCounts	1000	# min. counts to write a star to psFang file
+
+nFieldDefrag 10                         # how frequently to defragment memory
+                                        # triggered by defragment_memory 1
+					# in plan file
+
+cellprofile_file $PHOTO_DIR/lib/cellprof.dat	# file of cell-array profiles
+
+# Clip SSC's quartiles?
+clip_ssc_quartiles	1               # clip SSC's quartile computation?
+NsigmaSSCQuart		3		# reject quartiles that are deviant by
+					# more than this many typical sigmas
+badQfracMax            0.30             # max frac. of bad Qs:
+					#        badQfracMax + 10/(20+nfields) 
+
+ignore_ssc_statusFit	0		# ignore SSC's statusFit when writing
+					# psFang files. Use STAR1 flags instead
+
+# parameters used by flatfields modules
+ps_smooth_length	0		# how to smooth the bias vectors
+                                        # must set to 0, currently not used
+ff_ninterp              2               # controls the number of adjacent
+					# frames, nadj, to smooth over
+					# (nadj == 2 * ff_ninterp + 1)
+ff_sigrej               2               # Rejection limit in sigmas
+ff_beta                 0               # index specifying interpolation
+					# (filtering) method:
+                                        #    0 = median, 1 = mean,
+					#    > 1 a weighting function which
+					#  -> delta function for ff_beta -> inf
+left_buffer             0               # do not include last left_buffer
+					# pixels in left overscan region when
+					# determining bias drift 
+right_buffer            0               # do not include first right_buffer
+					# pixels in right overscan region when
+					# determining bias drift 
+SLsmoothNfield         -1               # smoothing length for scattered light,
+					# if -1 whole run
+SLsmoothNfield         15               # smoothing length to get around bad
+					# quartiles
+correct_trueFF          1               # correct for gain jump in the middle
+					# of 2-amp chips?
+                                       
+# parameters used by the findCR function
+cr_min_sigma            6.0             # CRs must be > this many sky-sig
+					# above sky
+cr_min_e                150             # CRs must have > this many electrons
+					# in peak pixel
+cr_cond3                3.0             # used in condition 3 for CR; see CR.c
+cr_cond32               0.6             # used in condition 3 for CR; see CR.c
+
+linearity_correction	1		# Linearise CCD response
+
+# parameters used by makeStarlist  
+star1_aperature         5               # this should be the same as
+					# nann_ap_frame(filter) and thus should
+					# be specified for each filter. however
+					# it is used only for estimating
+					# aperture correction error, and not
+					# for the aperture correction. This
+					# should be changed eventually
+					# (PR is submitted -- Number ???) 
+psf_def_rad             14              # radius out to which to use data for
+					# PS stars 
+wing_def_rad            60              # radius out to which to use data for
+					# wing stars 
+psf_threshold		 -1		# % of peak to trigger asymmetry filter
+sigma_multi             5.0             # number of sigma sky to trigger
+					# multiple flag
+sigma_badsky            3.0             # number of sigma for bad sky
+second_peak             0.0001          # minimum required strength for the
+					# 2nd peak to set MULTIPLE flag  
+ 
+# parameters used for selecting good PSF stars 
+min_starnum             2               # min. number of good stars needed for
+					# PSF determination
+psf_niter		2		# number of times to iterate sigma clip
+soft_err_min            0.01            # minimal error for composite profile
+					# used for softening before fitting
+					# the PSF
+soft_err_max            0.02            # maximal error for composite profile
+					# used for softening before fitting
+					# the PSF
+nowing_option           2               # what to do w/o wing stars:
+                                        # 1 = give up
+                                        # 2 = assume some canonical values
+psf_critical_amplitude	5000		# if bad width and dgpsf->a > this,
+   					# the stamp's bad in all bands
+
+# cliping parameters
+# cell by cell clip
+ncellclip              20.0             # how many sigma to clip cells at
+nbadcell                 15             # how many bad cells to condemn a star
+maxdev                15000             # max allowed deviation from the median
+
+# size and shape clip 
+psf_nsigma_QU		2.0		# number of sigma at which to clip QU 
+psf_nsigma_sigma	3.0		# nsigma at which to clip sigma 
+psf_nsigma_RMS_rad	3.0		# nsigma at which to clip RMS radius
+
+# parameters used by PSF KL module
+psfKLbasis_nframe         5		# window width for KL basis
+					# determination 
+psfKLbasis_Nmax         100             # maximum number of stars to use
+					# for KL decomposition
+psfKLcoeffs_nframe        2		# window width for KL coefficient
+					# determination
+psfKLcoeffs_nextra	  0.1		# Increase psfKLcoeffs_nframe by
+					# +- psfKLcoeffs_nextra frames if
+					# the initial expansion fails
+ncomp                     4             # number of KL components to keep
+nrow_b                    3             # number of terms for row dependence
+ncol_b                    3             # number of terms for col dependence
+border                   10             # dummy edge width around sinc region
+maxNSR                  0.1             # maximum noise-to-signal ratio for
+					# a PSF star
+                                        # this is used in phQAforPsfStars
+clip_apCrat               0             # for != 0 clip on apC ratio
+apCrat_qmin             0.1             # clip all stars with psfC/apC ratio
+					# below this quartile
+apCrat_qmax             0.9             # clip all stars with psfC/apC ratio
+					# above this quartile
+                                        # this is used in check_psfBasis
+apCorr_min              0.7             # reject KL solution if found a PSF
+					# with this small an apCorr
+apCorr_max              1.3             # reject KL solution if found a PSF
+					# with this larg an apCorr
+
+# parameters used by photometricParameters module
+fpp_refcolor_u          g               # Band used with color terms in the u
+fpp_refcolor_g          r               # Band used with color terms in the g
+fpp_refcolor_r          g               # Band used with color terms in the r
+fpp_refcolor_i          r               # Band used with color terms in the i
+fpp_refcolor_z          i               # Band used with color terms in the z
+fpp_color_term_u       .01              # log(flux20) = a + color_term * color
+fpp_color_term_g       .01              # log(flux20) = a + color_term * color
+fpp_color_term_r       .01              # log(flux20) = a + color_term * color
+fpp_color_term_i       .01              # log(flux20) = a + color_term * color
+fpp_color_term_z       .01              # log(flux20) = a + color_term * color
+fpp_color_term_err_u       .001         # Error in color term for u
+fpp_color_term_err_g       .001         # Error in color term for g
+fpp_color_term_err_r       .001         # Error in color term for r
+fpp_color_term_err_i       .001         # Error in color term for i
+fpp_color_term_err_z       .001         # Error in color term for z
+fpp_starsep                   8         # Max sep (") for match to mt stars
+fpp_sys_ph_err          0.01            # systematic (fractional) photometric
+					# error
+fpp_max_err             0.05            # max. allowed photometric error (in
+					# mag) for stars used for calibration
+					# (both MT and PS)
+fpp_n_max               0               # max polyn. for flux20(t) fit 
+ 
+
+### parameters used to define the aperture corrections
+# nann_ap_frame is the number of annuli in the aperture magnitude used to
+# allow for PSF variations within a frame, i.e. this is how far Frames
+# integrates flux these values are inclusive and assume zero-index radial
+# array such that r(0)=0
+nann_ap_frame_u		default	# default =? use default without error msg
+nann_ap_frame_g		default
+nann_ap_frame_r		default
+nann_ap_frame_i		default
+nann_ap_frame_z		default
+nann_ap_frame_default	5	# default for unknown bands
+
+# nann_ap_run is the number of annuli in the aperture magnitude used to allow 
+# for PSF variations within a run, i.e. this is how far PSP integrates flux
+# of course, nann_ap_run >= nann_ap_frame (PSP asserts this)     
+nann_ap_run_u		default	# default => use default without error msg
+nann_ap_run_g		default
+nann_ap_run_r		default
+nann_ap_run_i		default
+nann_ap_run_z		default
+nann_ap_run_default	7	# default for unknown bands
+
+use_calculated_ap_corr_run	0	# Calculate aperture correction, based on seeing?

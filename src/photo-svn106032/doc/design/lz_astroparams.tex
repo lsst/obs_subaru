@@ -1,0 +1,48 @@
+
+\subsection{Introduction}
+
+The goal of this module is to match (row,column) positions on the red strip
+to the sky.  The output will be six linear transformation coefficients per
+red frame.  The transformation is accomplished by matching stars found in
+Make Star List to calibrated astrometric stars produced in the astrometric
+pipeline and input to this one.
+
+\subsection{Input}
+
+\subsubsection{Astrometric standard stars}
+Astrometric standards in great circle coordinates
+\subsubsection{List of stars from the photometric postage stamps}
+Stars from the photometric postage stamps in (row,col) coordinates.
+\subsubsection{Frame Description}
+We need the number of rows per frame (and maybe the starting row).
+In addition, we need the approximate great circle coordinates of the
+first and last frame.
+\subsection{Output}
+\subsubsection{Astrometric calibration}
+Six linear coefficients per red frame that translate row,col in the run
+to great circle coordinates.
+\subsubsection{List of stars from the photometric postage stamps}
+We will add great circle coordinate fields to this list.
+\subsection{Modules}
+The required modules are:
+\begin{enumerate}
+\item Find Approximate Transformation - take the great circle coordinates
+of the first and last frames and a row number, and compute the
+approximate great circle latitude.
+\sitem Extract List - extract a list between two latitudes or between
+two rows.
+\sitem Find Transformation - takes two star lists and the approximate
+translation and computes a set of linear transformation coefficients
+\sitem Interpolate - takes a set of coefficients and their positions on
+the scan line, and interpolates (extrapolates) to the coefficients for
+each frame.  Experience will show us the most appropriate function to
+fit, and whether we need to smooth the results in any way, or throw out
+some of the data points.
+\sitem Update Star List - uses interpolated transformation parameters
+to add the great circle coordinates to the list of stars from the postage
+stamps.
+\end{enumerate}
+\subsection{Algorithms}
+The same algorithm will be used to match star list as are used in calc
+offsets and the astrometric pipeline.
+\subsection{Quality, Debugging, Resources}

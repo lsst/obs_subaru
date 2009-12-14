@@ -1,0 +1,272 @@
+\newcommand{\mcm}{{\bf Calc Offsets} module}
+\newcommand{\mc}{{\bf Calc Offsets}}
+\newcommand{\refcolor}{{\it R}}
+\renewcommand{\labelitemii}{$\circ$}
+\setcounter{footnote}{0}
+
+\subsection{Introduction}
+
+The \mcm\ must establish a common coordinate scale for the color frames which
+correspond to the same region of the sky.
+This module determines a coordinate transformation
+which, if applied, would map the separate color frames to a common
+grid.\footnote{While this module does not actually perform an image ``warp''
+with rebinning of the frame pixels, the coordinate transformation which is
+determined for each color frame except \refcolor, when combined with an
+interpolation kernel, is sufficient to completely specify that process.}
+
+A scale calibration to an absolute set of astronomical
+coordinates is not required at this stage.  This function is performed in
+``Calculate Astrometric Parameters."
+                                                             
+\subsection{InitModule}
+
+\subsubsection{Description}
+
+The {\bf InitModule} process allocates and loads all frame-independent data
+structures which are required by \mc.
+For the most part, the contents of these structures are stored on disk
+files.\footnote{Although there has been no discussion of how the parameters
+which control the operation of the various algorithms are to be stored, I
+suggest that they be in textual form -- and, therefore, editable and readable
+-- and that the initialization sections accomplish the conversion to their
+internal form, {\it i.e.} binary integers, binary reals, or whatever}
+%An exception is the temperature and pressure environmental data which require
+%computation to convert from the time sequence on the disk to an interpolation
+%table structure.
+
+\subsubsection{Input}
+
+The input items from the disk, via the framework, are:
+\begin{itemize}
+  \item parameters which control the selection of bright, point-like objects as
+        candidate fiducial points for the fitting procedure (see the {\bf
+        Module} section for details).
+%  \item the latitude and longitude of the observatory	
+  \item for each color except the \refcolor\/ color, an array of transformation
+        parameters which map the pixels of that CCD to the \refcolor\/ CCD
+%  \item for the \refcolor\/ CCD, an array of transformation parameters which
+%        map the pixels of that CCD to a uniform, equatorial coordinate system
+%        with the frame centered at [0,0]
+%  \item environmental data (temperature and pressure) taken during the
+%        observation period
+\end{itemize}
+
+\subsubsection{Output}
+
+Data structures containing:
+\begin{itemize}
+  \item all the items from the {\bf Input} section 
+%except the environmental data
+%  \item tables of environmental data (temperature and pressure) taken during
+%        the observation run, structured for interpolation
+  \item initialized statistical structures	 
+\end{itemize} 
+
+\subsubsection{Modules}
+
+There are two identifiable modules in the level 0 design:
+\begin{itemize}
+  \item a main procedure which contains all of the photometric-specific code
+  \item a general procedure which converts a sequence of independent/dependent
+  value pairs to an interpolation table. The arguments are:
+  \begin{description}
+    \item[Inputs] \
+    \begin{itemize}
+      \item arrays of the independent and dependent variables
+%\\ (time/pressure and time/temperature)
+    \end{itemize}
+    \item[Outputs] \
+    \begin{itemize}                                                                                            
+      \item arrays of interpolation coefficients 
+%(temperature and pressure)
+      \item status code
+    \end{itemize}
+  \end{description}
+\end{itemize}
+\subsubsection{Algorithms}
+
+There are no unusual algorithms in the {\bf InitModule } section.
+%The conversion of the environmental data to tabular form for interpolation uses
+%standard methods.
+\subsubsection{Quality, Debugging, Resources}
+
+Debugging of this section is straightforward and involves confirming that the
+disk file contents have been correctly transferred to the appropriate data
+structures.
+% and that the interpolation table correctly reproduces the run of
+%temperature and pressure for the observation period.
+There are no significant quality tests which can be performed on the output
+structures.
+The resources used by this section consist of the memory required for the
+output data structures, which is small.
+
+\subsubsection{Test Data Required}
+
+%Test data are appropriate only for the environmental readings; and, since the
+%generation of interpolation tables is performed by a general procedure, it is
+%sufficient to test with data having non-uniform sample intervals.
+                    
+\subsubsection{Regression Testing}          
+
+Regression testing consists of confirming that, following a coding change, the
+contents of the output data structures have not changed.
+
+\subsection{Module}
+\subsubsection{Description}
+
+The coordinate transformation function for a given frame has both static and
+time-varying contributions.
+The static component is determined by the mechanical placement of the CCD and
+by the the possible distortions introduced by elements of the optical system.
+The time-varying component is determined by to the effects of differential
+refraction across the CCD and by tracking errors which accumulate between the
+capture times of the individual color frames.
+%At this stage, it is assumed that the gravitational distortion of the telescope
+%structure as a function of zenith angle will not be significant.
+
+There seems no reason, at this stage, to expect that the mechanical corrections
+will not be adequately represented by linear equations in the two coordinates.
+A linear polynomial covers the effects of translation, rotation, scaling, and
+shear.
+While a shearing effect seems unlikely, a rotational one could be serious since
+a misalignment of the CCD pixel columns relative to the tracking trajectory
+will lead to a loss of resolution transverse to the columns when a pixel-sized
+element of the sky moves across one or more columns as it traverses the
+CCD.\footnote{The best indication of the presence of such an effect will be an
+asymmetric point spread function with the major axis perpendicular to the
+tracking coordinate}
+The distortions introduced by the optical system, if significant, will require
+second-order terms in the
+polynomial.\footnote{A pincushion effect, for example, is removed by the
+quadratic terms}
+Level zero will have only linear terms.
+
+The time-dependent effects are both likely to be removed by a linear
+correction.
+Tracking corrections appear as a translation, in both the column and row
+coordinates, between color frames of the same sky region.
+The differential refraction effect, which is a function of the zenith angle,
+barometic pressure, and temperature, should be removed by the linear terms as
+well.
+
+The major contribution to the transformation polynomial coefficients is
+predictable and can be derived from static CCD parameters, static optical
+parameters, and the time-varying zenith angle, barometric pressure, and
+temperature.
+The remaining corrections, which should be small, are determined by a
+procedure which determines the best-fit set of coefficients which map a set
+of bright, point-like, fiducial objects from all of the other frames to their
+corresponding coordinates (row and column) in the \refcolor\/ frame.
+\subsubsection{Input}
+
+The input to the \mcm\ consists of:
+\begin{itemize}
+  \item parameters which control the selection of bright, point-like objects as
+        candidate fiducial points for the fitting procedure.
+% \item the latitude and longitude of the observatory	
+  \item for each color except the \refcolor\/ color, an array of static
+        transformation parameters which map the pixels of that CCD to the
+        \refcolor\/ CCD
+% \item for the \refcolor\/ CCD, an array of transformation parameters which
+%        map the pixels of that CCD to a uniform, equatorial coordinate system
+%       centered at the position [0,0]
+  \item a list from the Make Star Lists module of the
+        pixel coordinates of bright objects which lie within frame
+% \item the approximate right ascension and declination of the center of the
+%       \refcolor\/ frame
+% \item for each color, the median Universal Time at which that frame was
+%       acquired
+% \item arrays of environmental data (temperature and pressure) taken during
+%       the observation run, arranged for interpolation
+\end{itemize}                                        
+
+\subsubsection{Output}
+
+The output from the \mcm\ consists of:
+\begin{itemize}
+  \item a list of point-like objects which were used in
+        fitting the corrected transformation parameters
+%  \item ch color frame, the zenith angle at which the frame was
+%        taken\footnote{The zenith angle might be computed by the framework}
+  \item a set of
+        coordinate transformation parameters which maps the pixels of a given
+        color to the \refcolor\/ strip
+  \item for each color except the \refcolor\/ frame, goodness-of-fit
+        measures for the coordinate transformation
+%  \item for the \refcolor\/ frame, an array an array of coordinate
+%        transformation parameters which maps the pixels of that frame to right
+%        ascension and declination at some epoch\footnote{These parameters can
+%        only be determined if some of the bright objects have been identified
+%        with objects of known position}
+%  \item for the \refcolor\/ frame, goodness-of-fit measures for the coordinate
+%        transformation	 
+  \item statistical measures which track the performance of the fitting
+        algorithm
+\end{itemize}
+
+\subsubsection{Modules}
+\subsubsection{Algorithms}
+The algorithm consists of several steps:
+\begin{enumerate}
+  \item Compute the predictable, varying component of the transformation
+        coefficients for each color frame and, for each frame except the
+        \refcolor\/ frame, compute the coefficients which map these frames to
+        the \refcolor\/ frame pixel coordinate system
+  \item For each bright object within a non-\refcolor\/ frame, transform the
+        pixel coordinates of that object to the \refcolor\/ pixel system using
+	the coefficients from the previous step
+  \item For each bright object within a non-\refcolor\/ frame and using input
+        parameters from the {\bf InitModule} to control the search, find a
+        matching object in the \refcolor\/ frame or reject the object
+  \item Using the matched objects in each non-\refcolor\/ frame, compute a set
+        of correction coefficients which minimize the position residuals when
+        the objects are transformed to the \refcolor\/ frame, compute
+        goodness-of-fit measures, and combine the fitted coefficients with the
+        predicted coefficients
+\end{enumerate}
+
+Although it is possible, by Gram-Schmidt orthogonalization, to determine a set
+of polynomials which are orthogonal on the set of fiducial objects, it is much
+simpler and less time consuming to use a set of polynomials to first or
+second-order\footnote{Only if observations during the engineering run indicate
+that a second-order correction is necessary}
+which are orthogonal within the rectangular frame.\footnote{Legendre
+polynomials}
+\subsubsection{Quality, Debugging, Resources}
+
+Debugging of the {\bf Modules} section is accomplished by introducing
+frame-to-frame coordinate distortions, via polynomials of the expected form
+with a small random error, to several distributions of objects within the
+nominal frame and confirming that the selection process correctly matches
+objects from the non-\refcolor\/ frames to the \refcolor\/ frame and that the
+fitting procedure correctly recovers the original distortion polynomial
+coefficients within the expected errors.
+The object distributions used in the debug test data should include a few
+pathological cases to insure that the algorithms correctly recognize when the
+fitting stage should be discarded and the predicted corrections used instead.
+
+Both the memory and computational resources used by the \mcm\ are expected to
+be small.
+Most of the working memory will be from the run-time stack and only the
+matching lists, which are of unpredictable (although, small) length, require
+heap allocation.
+
+\subsubsection{Regression Testing}
+
+Regression testing consists of repeating the tests summarized in the {\bf
+Debugging} section above and confirming that the results are a reasonable match
+to the original test results.
+Of course, if a procedure is changed, one might hope that the residuals from
+the fitting procedure and the length of the list of matched objects would
+improve rather than remain the same.
+
+\subsection{FiniModule}
+
+\subsubsection{Description}
+
+There is very little in the {\bf FiniModule} procedure other than recording the
+statistical measures to disk, via the framework, and releasing the memory
+resources which were allocated in the {\bf InitModule} procedure.
+\renewcommand{\labelitemii}{\pbf--}
+

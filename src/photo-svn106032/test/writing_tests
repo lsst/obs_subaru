@@ -1,0 +1,60 @@
+There are a few facts and guidelines that test writers should be aware of:
+ 
+0/ TCL test scripts should be called
+	tst_????.tcl
+
+
+1/ It's often convenient to run tests while developing a new piece of the
+pipeline. I'd like to encourage this --- not only is it faster to debug
+the new code that way, but when it _is_ debugged the test remains to ensure
+that new bugs don't sneak in.  New tests can be added to photo's default
+set by adding them to the SCRIPTS macro in test/Makefile.
+
+
+2/ When tests are run as part of building photo (i.e. via
+	sdssmake all
+or
+	sdssmake tests
+in the main photo directory, or
+	sdssmake all
+in the test directory), the only output that's printed to the terminal
+will be strings that start "TEST-ERR: ". In the case that tests pass,
+there must be _no_ such output; if at least one test fails, feel free
+to print as much as seems helpful, and return an error at the end of
+the script. (Little known fact: you can control this filtering by
+using the environment variable SED_FLAGS. In particular, if it's set to "-p"
+no filtering will take place.)
+
+
+3/ When you have a variety of tests that can be run from one script, say
+tests 0, 1, and 2, please do it like:
+
+	if {![info exists tests]} {
+	   set tests [list 0 1 2]
+	}
+	foreach test $tests {
+		...
+	}
+
+This enables you to say
+	set tests "1"
+	source tst_mine.tcl
+and only run test "1"
+
+
+4/ If the test fails, and the variable abort_on_error exists and is
+non-zero, you abort immediately, giving the user a chance to have a
+look at the failed case.  For example, tst_mo.tcl has a phrase:
+
+      if {[info exists abort_on_error] && $abort_on_error} {
+	 set objc $objc; set reg $reg
+	 error "Set \$objc and \$reg"
+      }
+
+which prints a message such as
+	Set $objc and $reg
+on the terminal, and exist. You can then say things like
+	saoDisplay $reg
+and
+	exprPrint $objc.colc
+and proceed to diagnose (and fix) the problem.

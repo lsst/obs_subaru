@@ -1,0 +1,119 @@
+ 
+\subsection{Introduction}
+ 
+This module sets up the frame for faint object finding.  It must 
+mask and/or subtract the stars, and extract postage stamps.
+{\bf Note that the defects introduced by bright objects will
+remain uncertain until the optics of the telescope system are well
+understood (i.e.\ the test year). Fitting of PSF's and subtraction of
+bright stars (including the extended wings of the PSF for very bright
+stars) from the corrected frames will need
+careful regression testing.
+It is likely, therefore, that this module and {\bf Bright Objects}
+will require substantial
+man-power and computational resources during the
+Level One and test year phases.}
+ 
+\subsection {InitModule}
+ 
+\subsubsection {Description}
+ 
+The initialization module sets the parameters required by the main
+module for subtracting model images from a frame.
+ 
+\subsubsection {Input}
+ 
+The {\bf InitModule} reads parameters from the ``parameters file''
+into memory which is private to the module.  
+ 
+\begin{itemize}
+ 
+  \item {\bf cf\_noisecut} : the noise level per pixel (in terms of
+the standard deviation of the sky) at which we cannot usefully
+subtract a model.
+ 
+  \item {\bf cf\_subsig} : the threshold per pixel (in terms of the
+standard deviation of the sky) out to which an object is subtracted.
+ 
+\end{itemize}
+ 
+\subsubsection {Output}
+ 
+  There is no output under normal operation.
+ 
+\subsubsection {Modules and Algorithms}
+ 
+  {\bf InitModule} simply reads parameter values into memory.
+ 
+  Parameters are read in by calling the ftcl GetPar routines.
+ 
+\subsubsection {Quality, Debugging, Resources}
+ 
+  The {\bf InitModule} calls the standard DERVISH error routines if a
+parameter cannot be read.
+ 
+  In ``debug mode,'' the function prints out the value of
+each parameter as it succeeds in reading it from the parameters file.
+ 
+  This routine consumes negligible resources.
+ 
+\subsubsection {Test Data Required}
+ 
+  There is no test data required.
+ 
+\subsubsection {Regression Testing}
+ 
+  The ``debug mode'' output should suffice for regression testing.
+ 
+\subsection{Input}
+ 
+\begin{itemize}
+ 
+\item An array of corrected frames of all colors.
+ 
+\item An array of noise frames for all colors.
+ 
+\item A list of classified OBJC structures.
+ 
+\end{itemize}
+ 
+\subsection{Output}
+ 
+\begin{itemize}
+ 
+\item An array of corrected frames with bright objects subtracted or masked.
+ 
+\item An array of noise frames with regions of high noise 
+({\bf cf\_noisecut}) set to infinite.
+ 
+\item A list of OBJC structures. Objects subtracted from a frame have their
+atlas images extracted before subtraction.
+ 
+\end{itemize}
+ 
+\subsection{Modules and Algorithms}
+ 
+Objects classified as stars by bright objects classify are subtracted
+from a frame. All other objects are masked on a frame. The modules 
+called are :
+ 
+\begin{itemize}
+ 
+\item subObject : Subtracts the fitted PSF (for objects classified as a 
+star). Objects are subtracted to {\bf cf\_sigmacut} times the standard 
+deviation on the sky. For regions with noise values (determined from
+the array of noise regions) greater than {\bf cf\_noisecut} the array
+is masked as MASK\_NOTCHECKED to avoid being identified by the faint
+object finder.
+ 
+\item maskObject : All objects that are not classified as an isolated star
+are masked. Each pixel identified as an object (MASK\_BRIGHTOBJECT) is
+set to (MASK\_NOTCHECKED) to avoid detection by the faint object finder.
+ 
+\end{itemize}
+ 
+ 
+\subsection{Quality, Debugging, Resources}
+ 
+This module requires substantial quality, debugging and regression tests.
+ 

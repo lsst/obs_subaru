@@ -1,0 +1,55 @@
+
+\def \fpsf{{\bf Find PSF\ }}
+\def \fbs{{\bf Find Bright Stars\ }}
+
+\subsection{Introduction}
+
+  This module takes the list of stars created by the Make Starlist
+module, examines them all, throws out the bad ones, and uses
+the rest to create a PSF representative of the stars in the list.
+We currently use stars from three consecutive frames to determine
+the PSF for the middle frame (we cannot be sure that each frame
+will have enough stars to guarantee a fair sample).
+The Level Zero PSF is a sum of two gaussians, each allowed to have
+different widths in the row and column directions.
+We do not allow the PSF to vary as a function of position on the chip.
+
+  Note that the Level Zero pipeline does {\it not} attempt to 
+model the extended wings of bright stars.
+
+\subsection{Algorithms}
+
+  This module makes no use of {\it a priori} information about the
+expected PSF; it uses the properties of the stars which are given 
+to it.  Therefore, a pathological set of postage stamps will 
+result in a pathological PSF.
+
+  For each star, the code first attempts to find a double
+gaussian that best fits it.  The initial guesses use the
+second moment of the star: the ``inner'' gaussian has FWHM 
+roughly half that of a single gaussian fitted to the star, 
+and the ``outer'' gaussian roughly twice.  The amplitude of
+``inner'' gaussian is given an initial value ten times larger
+than the ``outer'' one.  A non-linear least-squares fit is
+then allowed to find the best values for the parameters of the
+two gaussians.  
+{\it (note in proof: these initial guesses are currently
+hard-wired into the code; we ought to make them tunable parameters). }
+
+  Once each star has had a fit made to it individually, the
+entire list of stars is passed to a second routine that attempts
+to find a ``mean'' value for each of the five DGPSF parameters
+(inner width in row and col, outer width in row and col, and ratio
+of amplitudes).  We use a simple iterative method in which 
+outliers are discarded after each iteration.
+
+   The final PSF is returned and set in one of the CALIB1BYFRAME
+structures.
+
+   We find that the PSF determined in this fashion is 
+consistent and robust, but always wider than the input PSF 
+used in creating the simulations.  We suspect that this is due
+in part to the extended power-law wings in the simulations
+(which we do not model), and in part due to using too large 
+a fitting radius.
+

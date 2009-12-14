@@ -1,0 +1,47 @@
+<HTML>
+<TITLE>Merge Colors </TITLE>
+<H1>The Merge Colors Module</H1>
+
+Merge Colors combines
+<CODE><A HREF="datatypes.html#OBJECT1">OBJECT1</A></CODE>s (detections of 
+objects in a single passband) into
+<CODE><A HREF="datatypes.html#OBJC">OBJC</A></CODE>s, which contain
+information from all colors.
+<P>
+
+The basic idea is to align the different colors with each
+other properly, then consider the OBJECT1s from all colors
+simultaneously; any objects which overlap -- contain the same
+area on the sky -- are combined into a single OBJC.  
+<P>
+
+We create
+an OBJC for each OBJECT1 in the first color, and create
+a <CODE>master_mask</CODE> for the new OBJC.  This mask is marked 
+to indicate all the pixels which belong to the OBJC.
+Then, we consider each of the other colors in turn.
+For each OBJECT1, we check to see if it overlaps any
+of the existing master masks; if so, we then <EM>grow</EM>
+the master mask so that it contains the union of itself
+and the OBJECT1.  
+<P>
+
+After iterating through all the colors, we are left with
+a set of OBJCs whose master masks indicate their total
+extent. Each OBJECT1 has its centre set to the brightest
+<CODE><A HREF="datatypes.html#PEAK">PEAK</A></CODE> in
+any of the OBJECT1s that were merged to create it, and the centre of
+the OBJC is set (in the canonical band's coordinate system) to the
+centre of the whichever of the merged OBJCs had the highest peak in
+the canonical band.
+<P>
+
+After merging, each OBJECT1 carries with it all the peaks detected in
+any of its constituents, with the proviso that peaks that are
+<A HREF="objects.html#merging_peaks">too close</A> to each other
+are merged together.
+Furthermore, the OBJC is given a list
+of all peaks in <EM>any</EM> of its OBJECT1s, properly transformed to the
+canonical frame and tagged with the band in which they were detected.
+
+</HTML>

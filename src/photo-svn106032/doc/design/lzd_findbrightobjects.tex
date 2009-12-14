@@ -1,0 +1,117 @@
+\def \bom{{\bf Find Bright Objects\ }}  
+ 
+\subsection {Introduction}
+ 
+The goal of the \bom module is to identify all objects on a given
+frame (one color) above a certain threshold. Examples of bright
+objects are bright stars, ghosts, bleed trails and satellite
+tracks. Identified objects are grown to a second threshold (defined in
+terms of the standard deviation of the background sky). After
+completion of the identification of the bright objects bleed trails
+from the saturated objects are identified and masked.
+ 
+\subsection {InitModule}
+ 
+The initialization module sets the parameters required by the main
+module for identifying and growing bright objects. It also sets the
+parameters used for identifying bleed trails.
+ 
+The {\bf InitModule} reads parameters from the ``parameters file''
+into memory which is private to the module.  
+ 
+\begin{itemize}
+ 
+  \item {\bf fbo\_peakval} : the threshold (in terms of the standard
+deviation of the sky) above which an object must have a pixel value for
+it to be described as bright.
+ 
+  \item {\bf fbo\_threshold} : the threshold per pixel (in terms of the
+standard deviation of the sky) to which an object is grown after detection.
+ 
+  \item {\bf fbo\_bleed} : the level above the sky (in sky sigma) at
+to which a bleed trail from a bright object is detected.
+ 
+\end{itemize}
+ 
+\subsection{Input}
+ 
+The \bom module requires the following inputs,
+ 
+\begin{itemize}
+ 
+\item A flatfielded, bias corrected image frame (currently 2048 by
+1460 pixels).
+ 
+\item A noise image frame giving the Poisson noise for each pixel in
+the corrected frame.
+ 
+\item An estimate of the sky background across the frame. 
+ 
+\item An estimate of the standard deviation of the sky background
+across the frame.  
+ 
+\item A list of OBJECT1 structures (NULL on input).
+ 
+\item A FRSTAT structure describing the statistics of the frame.
+ 
+\end{itemize}
+ 
+\subsection{Output}
+ 
+On completion the \bom module outputs for each color frame,
+ 
+\begin{itemize}
+ 
+\item An image frame with the mask pixels identifying the positions of
+the bright objects and saturation trails.
+ 
+\item A noise frame with all saturated pixels and bleed trails
+identified by setting the noise value to its maximum.
+ 
+\item A list of OBJECT1 structures comprising the bright objects
+identified across the frame.
+ 
+\item A FRSTAT structure identifying the number of bright objects and
+bad pixels found.
+ 
+\end{itemize}
+ 
+\subsection{Modules and Algorithms}
+ 
+The \bom module comprises two parts, identifying the peaks of the
+bright objects and growing the objects to a second threshold and
+identifying bleed trails across a frame.
+ 
+Each image frame is scanned. All pixels with values above the
+{\bf fbo\_peakval} are marked as the position of a bright object.
+Each of the marked pixels is passed to the {\bf build\_bright}
+module. This uses a connected pixel algorithm to grow the bright
+objects to second threshold ({\bf fbo\_threshold}) above the sky. The
+current default setting is 1 $\sigma$ per pixel above the sky. The {\bf
+build\_bright} module returns an OBJECT1 structure on completion.
+ 
+Each pixel that has been identified as belonging to a bright object is
+flagged in the image and OBJECT1 masks (as MASK\_BRIGHTOBJECT and
+MASK\_OBJECT).
+ 
+Bleed trails are identified by searching the input frame for saturated
+pixels (the saturation level is defined globally). When found the algorithm
+sets a variable thesehold and begins to step down a column. If the pixel
+values decrease then the threshold decreases. When the threshold reaches
+a level {\bf fbo\_bleed} above the sky the process stops and is repeated    
+in the opposite direction. Identified bleed trails are flagged as having 
+infinite noise (in the noise mask) and as MASK\_NOTCHECKED in the region mask.
+ 
+\subsection{Quality, Debugging, Resources}
+ 
+Quality Assurance is a very difficult task for this module, because
+the number, relative frequency and severity of bright stuff varies
+greatly from one frame to the next. The module returns in the FRSTAT
+structure the number of bright objects and bad pixels found. This can
+be compared with the expected number of bright sources and cosmic ray
+event rates in order to access whether 
+ 
+For debugging and QA, it is possible to
+display an image and blink on/off all those pixels
+belonging to identified Bright Objects, saturated pixels and bleed
+trails.

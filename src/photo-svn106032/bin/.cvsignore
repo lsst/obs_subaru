@@ -1,0 +1,5 @@
+photo photo.p
+find_iso_bias
+make_interp
+make_photom_coeffs
+read_atlas

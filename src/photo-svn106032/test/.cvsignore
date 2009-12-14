@@ -1,0 +1,5 @@
+mon.out *.Counts *.Addrs *.pixie
+*.fts
+tmp
+tst_mathUtils tst_LM_minimise
+rgalprof.dat cellprof.dat errors.out

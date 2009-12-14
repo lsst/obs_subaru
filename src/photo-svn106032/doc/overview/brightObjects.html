@@ -1,0 +1,41 @@
+<HTML>
+<TITLE>Bright Objects</TITLE>
+
+<H1>Bright Objects</H1>
+
+<H2><A NAME="find_bright_objects">Find Bright Objects</A></H2>
+
+There is no fundamental difference between the Find Bright and Find
+Faint Objects modules; indeed the same
+<A HREF="objects.html#find_objects">object finder</A> is used by both. The
+only difference is that Find Bright Objects:
+
+<UL>
+<LI> Works on an <EM>un</EM>-smoothed image, with the single global sky value
+determined by <A HREF="correctFrames.html#frames_outputs">correct frames</A>.
+<LI> Uses a brighter threshold, namely <CODE>fbo_thresholds*(sky sigma)</CODE>
+where <CODE>sky sigma</CODE> is again determined by
+<A HREF="correctFrames.html#frames_outputs">correct frames</A>.
+<LI> Runs before we've made a
+<A HREF="findFaintObjects.html#find_sky">local determination</A>
+of the sky level. This means that we haven't subtracted (much) power from
+the wings of extended objects.
+<LI> Runs before the wings of bright stars have been subtracted
+</UL>
+
+Once the bright objects have been found, the list of peaks in each object
+is <A HREF="objects.html#cull">culled</A>,
+removing all peaks that are less significant than 3 <CODE>sigma</CODE>
+(<CODE>sigma</CODE>, the pixel standard deviation, is determined locally).
+
+<H2><A NAME="subtract_stars">Subtract Star Wings</A></H2>
+
+Here are a few notes for when I write this section:
+<UL>
+<LI> Only saturated objects are currently subtracted
+<LI> Objects with centres off the frame are <EM>not</EM> handled
+<LI> We should discuss how to find centre/psfCounts for saturated objects
+<LI> Ghost removal belongs here
+</UL>
+
+</HTML>

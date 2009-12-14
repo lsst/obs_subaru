@@ -1,0 +1,101 @@
+#!/usr/local/bin/perl
+# -*- perl -*-
+#
+# Analyse the memory profile generated using malloc_trace() in photo_main.c
+#
+require "getopts.pl";
+
+if(!&Getopts('hf:L:l:n:sv')) {
+   &syntax;
+   exit 1;
+}
+
+if($opt_h) {
+   &syntax;
+   exit 1;
+}
+if($opt_f) {
+   $file = $opt_f;
+} else {
+   $file = "shMalloc.dat";
+}
+if($opt_l) {			# starting line number
+   $l0 = $opt_l;
+} else {
+   $l0 = 1;
+}
+if($opt_L) {			# ending line number
+   $l1 = $opt_L;
+} else {
+   $l1 = 0;
+}
+if($opt_n) {			# number of lines to process
+   $nline = $opt_n;
+}
+if($opt_s) {			# sort output
+   $sort = 1;
+}
+if($opt_v) {			# be chatty
+   $verbose = 1;
+}
+
+if($nline) {
+   if($l1) {
+      warn "You cannot specify -n with -S\n";
+   } else {
+      $l1 = $l0 + $nline - 1;
+   }
+}
+
+open(FD, $file) || die("cannot open $file\n");
+
+$l = 1;
+while (<FD>) {
+   if($l >= $l0) {
+      ($foo, $id, $use, $pool, $file, $line, $nbyte, $nalloc) = split;
+      $nalloc{"$file:$line"}++;
+      $alloc{"$file:$line"} += $nbyte;
+   }
+   if($l++ == $l1) {
+      last;
+   }
+}
+close(FD);
+
+$fmt = "%-30s %-4s :  %-10s %s\n";
+printf($fmt, "file", "line", "nbyte", "nalloc"); print "\n";
+@keys = keys(%alloc);
+if($sort) {
+   @keys = sort by_nbyte @keys;
+}
+foreach $name (@keys) {
+   ($file, $line) = split(":", $name);
+   printf($fmt, $file, $line, $alloc{$name}, $nalloc{$name});
+}
+
+
+###############################################################################
+
+sub by_nbyte
+{
+   return $alloc{$b} <=> $alloc{$a};
+}
+
+###############################################################################
+
+sub syntax
+{
+   print <<"EOT";
+Analyse the shMalloc.dat file generated using malloc_trace() in photo_main.c
+Usage:
+    shMallocDump [options]
+Options:
+    -h		Print this message
+    -f file     File to analyse
+    -L ##       End at this line
+    -l ##       Start at this line
+    -n ##       Analyse this many lines
+    -s          Sort output by amount allocated
+    -v		Be chatty
+EOT
+}

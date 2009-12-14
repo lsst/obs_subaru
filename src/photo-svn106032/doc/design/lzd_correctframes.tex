@@ -1,0 +1,192 @@
+\def\cfrm{{\bf correctFrames\ }}
+\def\cff{{\bf flatfieldsCalc\ }}
+\def\iff{{\bf flatfieldsInterp\ }}
+\subsection{Introduction}
+
+There are three modules which perform the steps necessary to
+remove the CCD signature from raw image data generated
+by the SDSS imaging camera. The first is the \cff module which generates
+the 2D flat-field correction array from the input quartile array.
+The quartile array is produced by the DAQ system and will contain the
+25th, 50th, and 75th percentile values in each column of a raw CCD frame
+(including the overscan columns). 
+This module also produces a 1D bias vector, a bias drift correction array,
+and a sky level array. The latter is used to correct for sky level variations
+on timescales which are significantly longer than the CCD transit time (55 s).
+
+The second is the \iff module which produces the 1D flat field vector 
+appropriate for any given frame (the 2D flat field array is composed of
+the flat field vectors generated from each row of quartile data). The \iff
+module also computes the appropriate bias drift and sky level
+corrections for a given frame. 
+
+The third is the \cfrm module which does
+the ``work" --- raw data are trimmed, debiased, and
+flat-fielded.  Pixels effected by CCD defects are appropriately flagged and are
+either ``repaired" or left as is but with their IGNORE
+flag set. Lastly, large scale gradients in sky level as a function of
+CCD row are removed using the global sky level data provided by the
+quartile array.
+
+\subsection{The \cff Algorithm}
+
+The \cff module begins by creating the 1D bias vector from an input
+2D bias array. This input bias array is a clipped mean or median of several
+(at least 8) 2D bias images acquired during the daytime. Code to 
+construct the 2D bias array still needs to be written but would be
+similar to the imcombine routine in IRAF. The value in
+each column of the 1D bias vector is just the median value in all rows
+at the same column in the 2D bias array. 
+
+The bias drift corrections are computed by taking the mean difference
+between the overscan regions in the quartile array and the overscan
+region in the 1D bias vector. Two drift corrections, one for each
+CCD amplifier, are computed for every quartile row (and, hence, for
+every frame as there is one quartile row per frame) and are stored
+in an output REGION to be used by the \iff module.
+
+The first step in the construction of the 2D flat field array 
+is the computation of  the bias-subtracted 
+mode as a function of CCD column for each row of the quartile array. 
+The level zero mode computation is based on a linear combination
+of the three quartile values, {\it i.e.},
+$$\hbox{Mode} = 3Q_{50} - Q_{25} - Q_{75} $$
+where $Q_{25}, Q_{50},$ and $Q_{75}$ are the 25th, 50th, and 75th percentile
+values, respectively. The final multiplicative flat field correction array
+is produced by taking the inverse of each row of mode data after
+it has been normalized to a mean of unity.
+The sky level estimate is just the mean of each row of mode data
+(prior to normalization and inversion). The sky levels are used
+to track and correct for large scale sky variations.
+
+\subsection{The \iff Algorithm}
+
+The \iff module performs three functions --- 1) it generates the
+1D flat field vector for a given raw image, 2) it determines the
+precise bias drift corrections appropriate for this raw image,
+and 3) it computes the frame specific parameters needed to correct
+for large scale sky level variations.
+ 
+The 1D flat field vector can be computed in one of two ways, depending
+on the user's preference. The first method generates the flat field vector
+by finding the median in each column of the 2D flat field array 
+over a given range of rows, centered on the row corresponding to the frame
+about to be reduced. The range of rows is a user specified parameter.
+
+Alternatively, the flat field vector can be computed using a sigma-clipped
+average over the same row range. In this option, the mean and standard
+deviation in each column is computed over the row range specified.
+The value in each column of the output 1D flat field vector is then
+derived by taking a weighted mean of the values over the same row range.
+If a value deviates from the mean by more then $N$ standard deviations
+it is given zero weight ($N$ is a user specified parameter). If the
+value lies with $N\sigma$ of the mean it is given a weight equal to 
+$$ W(\Delta r) = (\Delta r + 1)^{-(m-1)} $$
+where $\Delta r$ is the offset between the row corresponding
+to the frame being processed and any arbitrary row in the 2D flat field
+array and $m$ is a user specified exponent. For equal weighting, $m$ should
+be set to unity. 
+
+The bias drift corrections are just the values in the row of the
+bias drift array (produced by the \cff module) which corresponds to
+the frame being reduced.
+
+The parameters required to correct for large scale sky level
+variations are the slope of the sky vs time relation 
+and the interpolated sky value at the first row of the
+frame being reduced. These values are computed using a parabolic
+fit to the sky level as a function of row in the sky level
+array produced by the \cff module. Since there is one row per
+frame, the row number is linearly related to the time since the
+start of a scan. 
+
+\subsection{The \cfrm Algorithm}
+
+The \cfrm module performs the actual reduction of the raw
+CCD data. It begins by determining whether the
+input raw image array is a full data frame or a ``postage
+stamp" image. This is determined by the value of the
+stamp flag keyword on the command line. Both full data frames
+and postage stamps are processed identically. 
+The stamp flag is needed, however, because the internal array indexing 
+differs for the two cases.
+
+The raw array is first searched for saturated pixels. 
+The nominal saturation level is 65535 ADC. The locations of saturated
+pixels are flagged in the pixel MASK and the noise value for those
+pixels is set to the maximum value. The noise value for a given pixel
+is 
+$$ \hbox{Noise} = \sqrt{(C/G) + (RN/G)^2} $$
+where $C$ is the number of raw ADC units (prior to bias subtraction or
+flat field correction), $G$ is the gain
+of the CCD amplifier in units of electrons/ADC, and $RN$ is
+the readnoise in units of electrons. Since each CCD has
+two amplifiers, there are two sets of gain/readnoise parameters
+for each CCD. These parameters are read from the CCD Parameter
+data structure which is provided as input to the \cfrm module.
+
+The raw data are then debiased and flatfielded in a single loop.
+Note that the bias vector data are scaled by a factor of 20
+and the flatfield vector data are scaled by a factor of 2048
+to preserve precision. 
+Debiasing consists of subtracting the bias vector column by
+column from every row of raw data. As the bias vector is derived
+from a bias frame which is created during the daytime, bias drift
+corrections are also applied to compensate for DC shifts in the
+bias levels which may occur during the night. 
+Debiased pixel values are then multiplied by their corresponding
+flatfield corrections and divided by a scaling factor to assure
+that the final array values are scaled such that the output data values
+are in units of ADC.
+ 
+The next step is to attempt repair of CCD defects.
+There are basically two different kinds of CCD
+defects, multiplicative ones and (always approximately) additive ones.
+
+Multiplicative defects (partially blocked columns) are not defects
+from the point of view of the flat-field procedure at all, unless they are
+sufficiently bad that they need to be interpolated over; a partial
+interpolation may be preferable; i.e., leave what is there and fill in the
+rest.  In TDI mode, the relative response is just the fraction of active
+pixels in the column.  These defects are common in other devices, but
+do not appear to be so for TEK devices, so the problem
+may be moot.  Instead, the TEK chips tend to have deep traps (probably
+the same physical phenomenon) but they are eventually sated
+and the response returns to normal.  Since at each vertical transfer, a
+certain amount of charge decays from the trap (which can be thought of
+as a metastable repository for a certain number of electrons) and is
+replenished by the charge going by, in the steady state the trap has NO
+effect, not even one on the charge transfer efficiency.  Whether this
+will be realized in practice with the low charge levels we will
+encounter with the SDSS is not clear; we may have to interpolate over
+columns with really bad traps.
+ 
+Additive defects are either removed during debiasing
+or by interpolation. Examples of additive defects include
+depressed columns, transfer gate trap column pairs, and
+low-level dark current columns. 
+ 
+Lastly there are simply BAD columns. These include intermittent dark
+current columns, persistent bad CTE columns,
+and steady dark current columns so hot
+that the shot noise in the dark current is unacceptable.
+These are fixed via interpolation.
+ 
+Upon each defect repair action, the pixel MASK
+is updated so subsequent routines will know which data
+values have been altered and how. 
+ 
+Lastly, each row is additively corrected for a large-scale sky gradient
+using the intercept and slope provided by the \iff 
+module. A frame-wide sky level is computed and output
+by taking a median of the fully corrected image. 
+
+\subsection{Calling Sequence}
+
+The \cff module needs only to be called once per CCD per scan. 
+The \iff and \cfrm modules must be called once per frame.
+Test year data will be needed to study the time dependence of the
+pixel to pixel response variations. Such information will allow
+optimal values for the width and shape of the flat field weighting
+function to be determined.
+

@@ -1,0 +1,42 @@
+<HTML>
+<HEAD>
+
+<TITLE>Photo Home Page</TITLE>
+<BODY>
+
+<H1>Photo Home Page</H1>
+
+<P>
+Photo (The SDSS Photometric Pipeline) is built on top of the Dervish product.
+It contains code that will process data from the photometric chips
+of the 2.5 meter telescope, and produce object lists with the parameters
+necessary to select targets.
+
+<P>
+The pipeline has been subdivided into two smaller pipelines: the Postage 
+Stamp Pipeline and the Frames Pipeline.  The Postage Stamp Pipeline uses 
+small parts of the original images (which were recorded separately in 
+the data acquisition system) to calculate all quanities that require
+information from more than one frame.  The Frames Pipeline processes the
+whole images, one frame (in five colors) at a time.
+
+<P>
+The product includes C code which manipulates data and data products,
+and the TCL scripts that bind them together into a pipeline.
+
+<UL>
+<LI><A HREF="../overview/overview.html">Basic Overview</A>
+<LI><A HREF="photo.howto.html">How to Use the Photometric Pipeline</A>
+<LI><A HREF="http://www-sdss.fnal.gov:8000/dm/flatFiles/files.html">Data interfaces to the ps and frames pipelines</A>
+<LI><A HREF="mktestdata.html">Making your images run under PHOTO (out of date)</A>
+<LI><a href="photo.catalogs.html">Using Simulation Catalogs and 
+                              Decision Trees </a>
+<LI><A HREF="photo.structs.html">Structs in PHOTO</A>
+<LI><A HREF="photo.tcl.html">TCL Interface</A>
+<LI><A HREF="photo.c.html">C Programmer's Interface & Algorithms</A>
+<LI><A HREF="photo.documents.html">Documents</A>
+<LI><A HREF="photo.authors.html">Authors</A>
+</UL>
+<ISINDEX>
+
+</HTML>

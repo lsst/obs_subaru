@@ -1,0 +1,17 @@
+#
+# A list of files shared with photo proper whose CRC should be checked
+#
+../include/phConsts.h
+../include/phDataIo.h
+../include/prvt/phObjc_p.h
+../include/phObjc.h
+../include/phRice.h
+../include/phSpanUtil.h
+../include/phVariablePsf.h
+../include/phRandom.h
+../src/dataIo.c
+../src/phSpanUtil.c
+../src/rice.c
+../src/variablePsf.c
+../src/measureObj/atlasImages.c
+../src/random.c

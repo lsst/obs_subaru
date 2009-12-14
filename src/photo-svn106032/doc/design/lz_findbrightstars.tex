@@ -1,0 +1,440 @@
+
+\def \fbs{{\bf Find Bright Stars\ }}
+
+\medskip
+\centerline {\it authors: Andy Connolly and Michael Richmond}
+
+\subsection{Introduction}
+
+The \fbs module identifies, measures and either 
+subtracts or masks all
+bright stars on a frame, including mildly saturated and unsaturated ones.
+The main goal is to identify isolated, unsaturated stars with which
+to perform both astrometric and, more importantly, photometric calibration.
+In the Level Zero design there is a substantial overlap between the goals
+of the \fbs module and {\bf Bright Objects}. It is
+envisaged that these two modules may be combined at Level One. For
+clarity of programming, however, the modules will remain separate for the
+current version of the pipeline, with \fbs focusing
+on working correctly and accurately with ``good'' bright stars
+in preference to dealing with those rare, heavily saturated objects.
+
+{\bf Note that the defects introduced by bright objects will
+remain uncertain until the optics of the telescope system are well
+understood (i.e.\ the test year). Fitting of PSF's and subtraction of 
+bright stars (including the extended wings of the PSF for very bright
+stars) from the corrected frames will need 
+careful regression testing.
+It is likely, therefore, that this module and {\bf Bright Objects}
+will require substantial 
+man-power and computational resources during the Level Zero
+and Level One phases.}
+
+\subsection {Module}
+
+\subsubsection {Description}
+
+  The main \fbs module has four main goals, plus one that may or may
+not be required in the Level Zero Pipeline:
+
+\begin{itemize}
+  \item locating and measuring all the ``bright'' stars in the main 
+        photometric images (where ``bright'' is defined by the
+        input parameters to the module)
+  \item creating {\it STAR1} structures for each star, filling in
+        the appropriate information and adding the structure to 
+        a linked list 
+  \item marking the {\it MASK} values for each pixel which belongs
+        to a star
+  \item attempting to match each star with the Known Objects list
+  \item (optional) writing postage stamps around each star out to
+        the framework and then subtracting a model fit to each
+        star individually.  This task may require extra work to deal
+        with saturated stars, and with the outer wings of very bright
+        stars.  It must also set {\it MASK} values appropriately in
+        the star-subtracted regions.
+        
+\end{itemize}
+
+  The final item may be sub-divided into several pieces, some of which
+(dealing with the extended wings of very bright stars) may not be
+implemented in Level Zero.
+
+The central question regarding the \fbs module is the number and
+magnitude of stars expected per frame. If we assume the Gilmore and Wyse
+Galaxy model, the number of stars per 2048$\times$1500 (0.038 deg$^2$) CCD
+frame can be calculated as a function of Galactic latitude. 
+The current frame size of the CCD presents no problems for 
+the low latitude regions ($<45^\circ$) 
+with $\sim 11$ per frame (assuming we 
+measure bright stars between 14th and 16th --- extending to 17th mag 
+gives $\sim 22$).
+At the NGP this drops to $\sim$ 6 and 11 respectively. The situation is worse
+in the {\it u'} band (current models do not extend into the 
+{\it u'} but numbers can be
+estimated for a solar metallicity star with U-V = 0.8), 
+where the numbers at the
+NGP are $\sim$ 3 and 6. The problems this introduces in the image alignment
+are addressed later.
+
+\subsubsection{Input}
+
+  \fbs requires
+
+\begin{itemize}
+  \item a corrected frame (including header information such as the
+        time of the exposure)
+  \item a catalog list of known bright objects in the frame (created by the
+        {\bf Research Known Objects} module), or those close enough
+        to produce visible effects (diffraction spikes, bright wings)
+  \item the {\it PSF} structure (determined by the {\bf InitModule}
+        section)
+  \item a small set of parameters defining the limits of ``bright''
+        stars.  For example, the minimum peak value a star may have,
+        the greatest deviation from the PSF allowed, the distance
+        by which it must be separated from all other objects, etc.
+  \item a set of parameters describing the data value or number of
+        sigma above the sky above which pixels are regarded as BAD (even after
+        subtraction of the PSF) due to the Poisson noise being too great to
+        efficiently detect underlying data.
+\end{itemize}
+
+\subsubsection {Output}
+
+  The output of the main \fbs module consists of
+
+\begin{itemize}
+  \item a linked list of {\it STAR1} structures, with position and
+        magnitude fields filled appropriately and a pointer to bright
+        stars identified by Research Known Objects. 
+  \item a modified {\it MASK} structure for the current frame:
+        the modifications are of two types
+  \begin{itemize}
+    \item the module sets a bit for each pixel belonging to a star
+          which indicates ``this pixel belongs to some object''
+    \item it also sets a pair of bits to indicate the state of
+          pixels belonging to stars as BAD if they are saturated
+          or have values so high that the shot noise precludes
+          any further searching
+  \end{itemize}
+\end{itemize}
+
+This list includes all ``bright'' unsaturated stars
+and possibly including slightly saturated stars whose 
+wings can be fit to the required precision.
+
+  If the module also subtracts a fitted model of each star from 
+the image, it must produce in addition
+
+\begin{itemize}
+  \item a postage stamp around each star, for the framework to
+        store away somewhere
+  \item a modified {\it REGION} structure for the current frame,
+        in which the model has been subtracted
+  \item a further modified {\it MASK} structure, in which
+        all pixels from which a model has been subtracted are
+        marked as either FIXED or BAD, depending on the 
+        amount of noise contributed by the star at that point
+\end{itemize}
+
+\subsubsection {Modules}
+
+  This module sub-divides nicely into several smaller tasks:
+
+\begin{itemize}
+  \item identifying possible bright-star candidates in a frame (and 
+        possibly cutting out smaller regions around each for further
+        operations)
+  \item calculating some parameters for the candidate (aperture
+        photometry needs to be coordinated with the Monitor Telescope Pipeline)
+  \item deciding if it is a star or not
+  \item if it {\it is} a star, then the module must
+  \begin{itemize}
+    \item modify the {\it MASK} values for pixels belonging to the star
+    \item create a {\it STAR1} structure and fill with the
+          appropriate information
+    \item if we decide to subtract bright stars,
+    \begin{itemize}
+      \item write a postage stamp out to the pipeline framework
+      \item subtract a fitted PSF away from the frame (recording the
+            parameters of the PSF model used in the subtraction)
+      \item modify the frame {\it MASK} values accordingly
+    \end{itemize}
+  \end{itemize}
+\end{itemize}
+
+\subsubsection {Algorithms}
+
+First, {\it finding the bright stars}.
+The routine we require for finding bright objects 
+needs to be simple and fast, to maximize the
+time available for object finding. The processing might be as follows:
+
+\begin{verbatim}
+     Scan array for pixels 100 sigma above the sky noise
+                        |
+        Tag these pixels in a temporary mask
+                        |
+     For each tagged pixel find all connected pixels
+     down to 0.5 sigma of the sky and write to a structure
+                        |
+  Identify saturated pixels and calculate the moments Wxx Wxy Wyy
+               of the connected pixels
+                        |
+  For star-like objects, fit the model PSF to the object to 
+    determine whether it's really a star, and also to
+    measure its position and brightness most accurately
+\end{verbatim}
+
+where the values ``100'' and ``0.5'' are examples of the
+parameters given as input to this module (see {\bf Input} section).
+
+
+Second, {\it fitting candidates to a stellar PSF}.
+We certainly will need to use a more accurate representation 
+for the PSF than a simple Gaussian.  It is unclear at the present
+time whether a double Gaussian, a Gaussian plus a table of
+residuals (as in DAOPHOT), or some other form will be required.  Note that 
+the Level Zero {\it PSF} structure is relatively flexible, so
+that we can make extensive tests without having to change
+the pipeline framework.
+
+Third, {\it classifying candidates as bright stars or non-stellar objects}.
+Isolated stars are derived from the list of unsaturated stars by calculating
+the ellipticity of each star. Stars with ellipticity $<0.25$ 
+(again, this is an example of the ``parameters'' mentioned above)
+are defined to
+be isolated. The PSF is fitted for each star and 
+the $\chi^2$ derived for each fit. 
+Candidate stars are then accepted or rejected depending on
+the quality of fit. For those stars identified by Research Known
+Objects a pointer or id is stored to allow comparison photometry and 
+astrometry.
+
+Fourth, {\it subtracting bright stars}. The PSF determined by {\bf
+Find PSF}
+must be scaled and subtracted from each star on the corrected frame
+(including partially blended stars -- though this will be left until
+Level One). The model of the PSF and scaling must be recorded 
+by outputting it to the frame work as header information for each
+stellar postage stamp and/or as an additional structure in STAR1. 
+\subsubsection {Additional problem areas}
+
+{\it Saturated Stars:}
+Saturation of stars (m$<$14) introduces two problems, fitting of the PSF to
+determine the extent of a star and ghosting due to internal reflections.
+
+\begin{itemize}
+  \item Saturation : The number of saturated pixels in a star will be
+kept in a temporary structure. The log area of these pixels gives
+a rough estimate of the magnitude of the star and, therefore, the
+probability that diffraction spikes and ghosts will require removing
+(this can be tuned 
+during the test year). Fitting the PSF to the unsaturated region of
+the star (e.g.\ from 5 $\sigma$ above the sky to 90\% of the
+saturation level) the extent of the star can be determined. The scaled
+PSF can then be masked or subtracted from the corrected frame. For
+heavily saturated stars we require a model of the extended wings of
+the PSF (this may not be implemented in the Level Zero Pipeline).
+
+Fitting of a PSF that extends above the saturation level is simplest if
+performed in floating point,
+so we may need to make a temporary copy of the {\it REGION} in question
+with floating-point, rather than integer, values.
+As we expect $<1$  such star every 10 
+CCD frames (at 45$^\circ$)
+this will not add significantly to the memory or overhead in the processing.
+
+For saturated stars off the frame the diffraction spikes may still extend over
+more than one frame. We will need to be able to quantify what
+magnitude range this will occur for and, from the bright star catalog,
+identify which frames will be affected. There will be a color
+dependence in this (and all) defects where saturation/diffraction
+spikes may occur in only one passband. As it is unlikely that we will
+have multi--color information for all bright sources in the survey
+(i.e.\ the HST Guide Star Catalog contains only b and v passbands) 
+it may be possible to use the Known Objects lists 
+only to warn of potential defects on a frame. 
+
+
+  \item Ghosting: In direct imaging ghosts arise from bright stars producing
+internal reflections in the camera. In principle the ghosts can be mapped
+during the test year as a function of position on the chip. In drift scanning
+it is not clear in what form ghosting will arise. It may only be possible to
+flag the presence of stars capable of inducing ghosting so the module
+calculating the sky distribution can search for gradients.
+
+The {\bf Research Known Objects} module may be able to calculate 
+ahead of time areas in which ghosts from bright stars are likely 
+to occur, which will make the task of this module lighter.  
+However,
+it is unlikely that we will know enough about the optics of the 
+telescope to do this in Level Zero.
+
+
+  \item Image Alignment:
+The number of stars per frame will vary as a function of galactic latitude,
+from a few to a few tens. All stars used in defining the PSF
+(isolated and unsaturated) are 
+defined in the output linked list of
+stars. The
+centroid of these stars is accurately determined ($\sim 0.05$ arcsec from the
+Gaussian fitting of the PSF). A problem occurs for high Galactic Latitude
+(particularly in the {\it u'} band). 
+To a magnitude limit of m$<$17, frames will exist
+with less than the required 6 stars needed to derive a solution for the image
+transformation. Decreasing the peak level at which the \fbs module
+identifies stars is feasible but time consuming,
+and in effect it is simply repeating the work of the 
+{\bf Find Objects} module. 
+Therefore, if there are less than 6 stars per frame an
+error will be flagged 
+and noted via standard pipeline error-logging functions.
+The {\bf Offset Frames} module must be capable of either deriving
+transformations dependent on the number of bright stars or using the
+input from {\bf Find Objects}.
+
+\end{itemize}
+
+\subsubsection{Quality, Debugging and Resources}
+
+The module should be able to print out a verbose description of
+its actions (finding candidates, fitting them, discarding some)
+as it executes, if desired.
+Additionally, it should print a summary of the total number of candidates,
+and number of actual stars, in the current frame.
+This simple summary should suffice for Quality Assurance during runtime.
+
+In debugging or verbose mode the frame must be displayable in 
+real time, with
+stars identified on screen and masked pixels marked (including saturated
+pixels). The PSF profile needs to be displayed with the residuals of each star
+(as a radial profile) together with the input PSF. Regions masked 
+for saturated stars and and as tails of diffraction spikes need outlining.
+
+During debugging in Level Zero (and probably through the test year) 
+the \fbs module will retain the option
+to derive a PSF from identified stars on a given frame. The number of
+bright stars 
+output by the online telescope system will be limited (to $\sim 10$
+per frame). Typically at intermediate latitudes ($\sim 45^\circ$) more
+than double this number will be available from which to derive the
+PSF. A comparison between the time and spatial dependence of the PSF
+for individual frames will provide a powerful tool for quality assurance. 
+
+The \fbs module requires a mask array (2045$\times$1500) to
+identify peaks and workspace to build connected pixels. Assuming stars will
+occupy 30$\times$30 boxes and typically 10--20 per frame will be identified
+leads to a requirement of 3 KiloBytes 
+per object or 60 KiloBytes per frame. Comparisons of the CPU
+required to calculate boxes as opposed to deriving linked lists of all
+connected pixels is in progress.
+
+Fitting a PSF to each good stellar candidate will require an
+amount of CPU time large compared to other tasks, but, considering
+the very small numbers of candidates on most frames (fewer than 20),
+negligible on the scale of the entire pipeline.  
+
+{\it If} we decide to subtract a fitted model for each star
+from the frame, then the \fbs module must send a large amount of
+data to the framework for each frame.  It must cut out a postage
+stamp around each star before subtracting it, and give the stamp
+to the framework for storage in the database.  Assuming that
+all the bright stars fit within the boxsize mentioned above,
+this comes to only about 60 KiloBytes per frame.  However,
+if we try to model and subtract the extended wings of very
+bright stars, then we may need to extract much larger
+regions;  fortunately, such very bright stars will occur
+very infrequently.
+
+\subsubsection {Test Data Required}
+
+The most important set of test data is that which allows us to
+verify that the candidate-selection and PSF-fitting sections of
+the module are working correctly.  Thus, we need
+
+\begin{itemize}
+  \item a set of frames with a number of bright stellar objects {\it and}
+  \item a catalog of the precise positions and magnitudes of those stars
+\end{itemize}
+
+This data set must be produced by simulations.
+
+A secondary consideration is a set of images with bright non-stellar
+objects as well as bright stellar objects, so that we can verify that
+the discrimination techniques are satisfactory.  
+
+Finally, we ought to have a set of images with ``problematic'' 
+objects --- very strongly saturated stars, which show bleed trails
+and diffraction spikes, and ghost images --- so that we can test 
+the code that deals with them.  
+
+\subsubsection {Regression Testing}
+
+In order to check that a new version of \fbs accurately reproduces
+the output of some older, presumably correct version, 
+we will need some kind of tool for comparing lists of numerical
+data in a ``fuzzy'' fashion; this tool will be required for
+Regression Testing of many modules.  
+
+It would be good to have a standard set of test
+images, or even a single one, with a variety of bright stars
+and other objects mixed together.  We could then run the
+module on that image(s) alone to check that it produces the
+correct positions and magnitudes.  Note that we would also 
+need a standard {\it PSF} structure and all the other inputs
+for that particular frame to run the tests.
+
+In the worst case, we may be able to use the summary of stars
+found on a frame as a very quick and dirty measure of its
+accuracy.
+
+\subsection {FiniModule}
+
+\subsubsection {Description}
+
+The only task of the {\bf FiniModule} for \fbs is to de-allocate
+any ``private'' memory that has been been used during the entire
+course of pipeline execution.
+
+\subsubsection {Input}
+
+  There is no input (aside from the knowledge of the memory
+which was allocated).
+
+\subsubsection {Output}
+
+  Under normal operation, there will be no output if all goes well.
+Errors, of course, will be flagged by the usual pipeline
+error-handling routines, which will print some kind of
+error message.
+
+  See the note on ``Debugging'' below, however.
+
+\subsubsection {Modules}
+
+  There's only one task to perform.
+
+\subsubsection {Algorithms}
+
+  Nothing fancy needed.
+
+\subsubsection {Quality, Debugging, Resources}
+
+  For debugging purposes, it might be useful for the {\it FiniModule}
+to produce a summary of the complete activity of \fbs over the
+entire run.  This would require the \fbs module to keep track
+of various statistics in private memory and update them constantly
+as it worked.
+
+  No significant memory or CPU will be needed.
+
+\subsubsection {Regression Testing}
+
+  This {\bf FiniModule} is so minimal that no real Regression
+Tests are required.  One could use a simple ASCII comparison
+program to compare the summary statistics list produced
+in ``debugging mode'' with similar lists from previous runs.
+
+% end of Find Bright Stars section
+

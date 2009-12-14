@@ -1,0 +1,36 @@
+
+\subsection{Introduction}
+
+  The job of the Make Starlist module is to turn the set of all
+postage stamps created by the on-line system into a list of 
+stars with measured properties.  The Find PSF module will 
+extract an appropriate PSF from this set of measured stars.
+
+  The flow in this module is:
+\begin{itemize}
+\item {\it For each color:}
+\begin{itemize}
+\item {\it For each frame:}
+\begin{itemize}
+\item {\it For each postage stamp:}
+\begin{itemize}
+\item {\it Read in a postage stamp}
+\item {\it Flatfield the postage stamp}
+\item {\it Create a STAR1 structure which includes the postage stamp}
+\item {\it Calculate simple position, shape and photometry information}
+\item {\it Add STAR1 to list}
+\end{itemize}
+\item {\it End of stamp loop}
+\end{itemize}
+\item {\it End of frame loop}
+\end{itemize}
+\item {\it End of color loop}
+\end{itemize}
+
+The measured parameters are: 
+intensity-weighted first moments are used to calculate the position, 
+intensity-weighted second moments used for the shape,
+and sky-subtracted counts in a circular aperture used for photometry.
+The sky is determined via the {\tt shRegSkyFind} function,
+which fits a gaussian to the histogram of all pixel values
+inside the postage stamp.

@@ -1,0 +1,604 @@
+
+\subsection{Introduction}
+
+\subsubsection{Initialization}
+
+This module works the same whether
+the data are coming from a tape, a disk file of temporary data, a disk
+file of spooled data, the frame pool, a socket, or whatever.  So there
+needs to be an initialization stage that sorts out all of the 
+possibilities, and returns an identifier that can be used to access the
+channel.  We want to be able to have more than one input
+stream in an executable.
+This work is in the module {\bf InitReadNextFrame}.
+For the level zero design, we should support only input from an
+exabyte tape drive or from disk.  Make this modular enough that 
+more options, such as reading from the frame pool of the online
+system, can be added without redesign.
+
+\subsubsection{Getting On and Off the Tape}
+
+Because of square root encoding, we need to be a bit careful
+about how we handle the data before writing and after reading.
+The data acquisition system does the following to each frame:
+\begin{enumerate}
+        \item get the data from the camera electronics
+        \item calculate the quartile array
+        \item square root encode the data
+        \item nibble encode the data
+        \item (write to disk buffer and retrieve)
+        \item write to tape, with hardware compression
+\end{enumerate}
+We invert in this part of the photometric pipeline as follows:
+\begin{enumerate}
+        \item read from tape, with hardware decompression
+        \item nibble decode the data (unsigned short)
+        \item square root decode the data and dither to unsigned short
+\end{enumerate}
+
+\subsection{Overlap Regions}
+
+Adjacent frames in the pipeline need to have an overlap.
+
+Figure 1 shows a series of contiguous frames from one CCD.  The
+scale is in pixels.  On the left, the frames A, B, C, D, and E
+are the raw frames, and have no overlap.  When we send these frames
+to be processed, we need to pad them so that objects that are on or
+near the boundary between frames will be found as efficiently as
+objects near the middle of a frame.
+The first frame, called ``A'' here, 
+is simply the size of the first frame read from tape.
+Once frame ``A'' has been processed, the last few lines of it are
+tagged onto frame B, making its frame sent for processing slightly larger.
+This is the size of all successive frames sent for processing.
+
+The camera design has a 42.00 mm gap between adjacent columns of CCDs,
+with each CCD being 49.152 mm wide.  The overlap between the two strips
+that make up a stripe is then 3.576 mm or 149 pixels.  We need to make
+sure that the edge overlap between {\em strips} is at least this much.
+
+The raw frame B on the left of Figure 1 has the last 149 lines of
+the raw A frame tagged onto it before it is sent for processing
+as the B frame.  All objects found in these extended frames are 
+reported.
+
+When we merge the object lists from consecutive frames at a later stage,
+the object in the overlap regions that were found twice will be purged.
+The dotted lines show the fiducial area for the
+frame.  Objects found with a position between the two dotted lines
+of the A frame are reported from the A frame, and so on for the B, C,
+D, and following frames.   We need to think a little bit about an object
+that is exactly on the dotted line.  It will be found in both the A and B
+processed frame.  If there is some difference in the processing that
+makes even a small change in the position, we could make a mistake by
+reporting that object not exactly one time.
+
+This overlap region also defines the largest object (in pixels) that we will
+detect and measure on one frame.  
+149 is actually the {\em maximum} overlap possible.
+Depending on the final alignment of the frames this number will be a few
+pixels smaller in the scan direction in some cases.  Depending on the
+telescope tracking, the number of overlap pixels will be smaller than
+149, by some (small) amount.  We should set the maximum object size to
+be comfortably smaller than this number, say 135 pixels in x and y.
+Note that a highly elliptical object that is at 45 degrees can be longer
+than this along the major axis, but will still be detected and measured
+if it is smaller than 135 pixels in x and 135 pixels in y.
+
+\epsfxsize=0.98\textwidth
+\vskip 0.25in
+\epsfbox{dist.eps}
+
+Figure 1:  Overlap between successive frames from one CCD
+
+\subsection{The Modules}
+
+These are the basic modules we need for the ReadNextFrame task.
+
+\begin{description}
+\item[ReadNextFrame] gets the next set of ncolor frames, with overlaps added
+\item[InitReadNextFrame] opens the channel
+\item[RawRead] gets exactly one frame from the channel
+\item[Uncompress] decodes the frame (if it needs to be uncompressed)
+\item[FiniReadNextFrame] closes the channel
+\item[ReadStatus] gets information about how the channel is doing.
+Note that there is a {\em state} associated with this set of 
+functions, such as where we are in the tape and how many soft errors
+have occured so far.  This gets at whatever state information we keep.
+\item[LoadTape] loads a tape in a tape drive
+\item[UnloadTape] unloads a tape from a tape drive
+\end{description}
+
+
+
+
+I use the following two modules in the pseudo-code in the Algorithms
+chapter.  I assume that utility functions will do these jobs.  I 
+list them here for completeness, but expect that they will
+be replaced with general purpose modules.
+
+\begin{description}
+
+\item[CopyFrame] copies a subregion to another region.  This is used
+to hang onto the last lines of the previous frame.
+
+\item[JoinFrame] attaches a subregion to another region.  This is used
+to attach the last lines of the previous frame to this frame.
+
+\end{description}
+
+
+\subsubsection{ReadNextFrame}
+
+\begin{descrip}
+This module gets the frame in each of the NCOLOR colors.  Any compressed
+data is uncompressed.  Overlap regions are added on the frames.
+\end{descrip}
+
+\begin{returnval}
+\item{SDSS\_OK} is returned after a successful read of a frame.
+\item{SDSS\_END\_OF\_DATA} is returned when the channel is out of data.
+\item{SDSS\_ERROR} is returned when there is a catastrophic failure of the 
+device.
+\end{returnval}
+
+\begin{arguments}
+\item{InChan}(channel)(I) The input channel.
+\item{ncolor}(int)(I) the number of colors to read.
+\item{noverlap}(int)(I) the number of lines to overlap consecutive frames.
+\item{InChanStat}(chanstat)(M) position information for this channel.
+\item{InRegions}(regionlist)(O) the list of regions to fill.
+\end{arguments}
+
+\begin{verbatim}
+__________________________________________________________________________
+\end{verbatim}
+
+\subsubsection{InitReadNextFrame}
+
+\begin{descrip}
+This initializes a channel for subsequent reads.  It uses information in 
+the parameter files to decide what kind of device to open, and what 
+address to use.
+\end{descrip}
+
+\begin{returnval}
+\item{SDSS\_OK} is returned after a successful open
+\item{SDSS\_NO\_PARAM} is returned if there are not enough parameters to
+	specified to open the channel
+\item{SDSS\_ERROR} is returned on catastrophic error when opening the channel
+\end{returnval}
+
+\begin{arguments}
+\item{ChanID}(int)(I) Denotes the parameter to use for this channel.
+For example, if ChanID = 1, then use the parameter TapeAddress1 for this
+channel.
+\item{ncolor}(int)(O) the number of colors
+\item{noverlap}(int)(O) the number of lines to overlap consecutive frames.
+\item{InRegions}(* regionlist)(O) list of regions, initialialized here.
+\item{InChannel}(channel)(O) Contains the information for the channel
+\item{InChanStat}(chanstat)(O) position information for this channel,
+	initialized here.
+\end{arguments}
+
+\begin{params}
+\item{rnf\_ncolor} is the number of colors per channel.
+\item{rnf\_noverlap} is the number of columns to overlap consecutive frames.
+\item{rnf\_flavorXX} is the flavor of the XX channel.  XX can be from 00 to 99.
+\item{rnf\_TapeAddressXX} is the driver for the tape drive for channel XX.
+\item{rnf\_DiskCWDXX} is where the disk files are located.
+\item{rnf\_DiskPrefaceXX} is the preface to the disk file names.
+\end{params}
+
+
+%------------------------------------------------------------------------------
+\begin{verbatim}
+__________________________________________________________________________
+\end{verbatim}
+
+\subsubsection{RawRead}
+
+\begin{descrip}
+This reads exactly one frame from the channel.
+\end{descrip}
+
+\begin{returnval}
+\item{SDSS\_OK} is returned after a successful read of a frame.
+\item{SDSS\_1EOF} is returned after one EOF mark is read.
+\item{SDSS\_END\_OF\_DATA} is returned after two consecutive EOF marks.
+\item{SDSS\_ERROR} is returned when there is a catastrophic failure of the 
+device.
+\end{returnval}
+
+\begin{arguments}
+\item{InChan}(channel)(I) The input channel.
+\item{InChanStat}(chanstat)(M) position information for this channel.
+\item{InRegion}(region)(O) The region that is read.
+\end{arguments}
+
+\begin{verbatim}
+__________________________________________________________________________
+\end{verbatim}
+
+\subsubsection{Uncompress}
+
+\begin{descrip}
+This takes a region and looks at the header information.  If the frame is
+marked as compressed in the header, it uncompresss it.
+\end{descrip}
+
+\begin{returnval}
+\item{SDSS\_OK} is returned 
+\item{SDSS\_ERROR} is returned 
+\end{returnval}
+
+\begin{arguments}
+\item{CompRegion}(region)(M) The region to be uncompressed, and written to 
+itself
+\end{arguments}
+
+\begin{verbatim}
+__________________________________________________________________________
+\end{verbatim}
+
+\subsubsection{FiniReadNextFrame}
+
+\begin{descrip}
+Closes the channel.  
+\end{descrip}
+
+\begin{returnval}
+\item{SDSS\_OK} is returned on a successful close
+\item{SDSS\_ERROR} is returned on a catastrophic close
+\end{returnval}
+
+\begin{arguments}
+\item{InChannel}(channel)(I) Contains the information for the channel
+\item{InChanStat}(chanstat)(M) position information for this channel.
+\end{arguments}
+%------------------------------------------------------------------------------
+\begin{verbatim}
+__________________________________________________________________________
+\end{verbatim}
+\subsubsection{ReadStatus}
+
+\begin{descrip}
+Find out the state of reading on a channel.  Probably just looks
+at what is recorded in the InChanStat structure.  
+\end{descrip}
+
+\begin{returnval}
+\item{SDSS\_OK} is returned when the information is valid
+\item{SDSS\_ERROR} is returned when the information can not be found
+\end{returnval}
+
+\begin{arguments}
+\item{TheChannel}(channel)(I) is the channel to check
+\item{InChanStat}(chanstat)(M) position information for this channel.
+\end{arguments}
+
+\begin{verbatim}
+__________________________________________________________________________
+\end{verbatim}
+
+\subsubsection{LoadTape}
+
+\begin{descrip}
+Loads a tape into a drive, either using a robot or operator.
+\end{descrip}
+
+\begin{returnval}
+\item{SDSS\_OK} is returned if the tape was successfully loaded
+\item{SDSS\_ERROR} is returned if the tape was not loaded
+\end{returnval}
+
+\begin{arguments}
+\item{TapeToLoad}(tapeid)(I) Specifies the tape to load
+\item{DriveToLoad}(driveid)(I) Specifies where to load the tape
+\end{arguments}
+%------------------------------------------------------------------------------
+\begin{verbatim}
+__________________________________________________________________________
+\end{verbatim}
+\subsubsection{UnloadTape}
+
+\begin{descrip}
+Unloads a tape from a drive, either using a robot or operator.
+\end{descrip}
+
+\begin{returnval}
+\item{SDSS\_OK} is returned if the tape was successfully unloaded
+\item{SDSS\_ERROR} is returned if the tape was not unloaded
+\end{returnval}
+
+\begin{arguments}
+\item{DriveToUnload}(driveid)(I) specifies which drive to unload.
+\end{arguments}
+%------------------------------------------------------------------------------
+
+
+%------------------------------------------------------------------------------
+\subsection{Data Structures}
+
+\subsubsection{channel}
+\begin{description}
+  \item[ChanFlavor] is the flavor of the channel. (DISK or TAPE)
+  \item[ncolor] is the number of colors on this channel.
+  \item[noverlap] is the number of lines to overlap frames for this channel.
+  \item[DiskCWD] is the current working directory for the disk files.
+  \item[DiskPreface] is the preface for the file names.
+  \item[TapeAddress] is the driver for the tape drive for this channel.
+  \item[UNIXChanNum] is the channel ID returned from the open statement
+\end{description}
+
+The value of {\bf ChanFlavor} indicates whether the {\bf Disk...} or the
+{\bf Tape...} information is used for the channel.
+
+The {\bf TapeAddress} is the actual driver, such as /dev/rmt/tps0d2nrnsv
+for SGI machines.  To make the code compatible on different machines,
+use  generic names (such as tape02) with logical
+links set up once and for all on each machine to point to the correct device.
+
+For data on disk, we write each frame in an individual disk file, in the
+area named in {\bf DiskCWD} with the preface named in {\bf DiskPreface}
+and appended with a sequence number, such as 000001, 000002, and so on.
+Each file on disk corresponds to one physical record on tape.  The end
+of the numbered sequence, when file n+1 does not exist, corresponds to 
+the double end of file on tape.  Note that this numbering scheme is
+different from the scheme used in the frame pool buffer in the online
+system.  This scheme assumes that we do not know anything about the
+orientation of the chips in the focal plane.  It keeps the frames in
+the same order, whether they are coming from disk or tape.
+
+Disk files should be opened for reading in shared mode, so that more than
+one program can access them.  
+We do not need read access when the files are being written.
+
+\subsubsection{chanstat}
+\begin{description}
+	\item[Opened] is 1 if this channel is open; 0 otherwise.
+	\item[ByteCount] is number of bytes already read
+	\item[ReadCount] is the number of frames already read
+	\item[EOFCount] is the number of counsecutive EOF marks 
+	\item[SoftErrors] is the number of soft errors encountered
+	\item[HardErrors] is the number of hard errors encountered
+\end{description}
+
+\subsubsection{regionlist}
+This is some clever way to transport a list of regions around.  
+I would use an array, but there {\em must} be a better way.
+
+
+\subsection{Algorithms}
+
+The actual fetching of the next set of frames repeats the four steps
+({\bf CopyFrame, RawRead, Uncompress, JoinFrame})
+ncolor  times. 
+
+\subsubsection{Uncompressing}
+
+This is the text of the 7-May-93 message from Steve Kent:
+\begin{verbatim}
+Jim and Mamoru found a problem with my square root
+dithering algorithm that introduced biases in the output images.
+The problem arose from my cavalier disregard for biases
+introduced by integer truncation in going from the linear to the
+square root domain and back.  The problem is not difficult to
+rectify, as JEG has pointed out.
+Briefly, the essence of the square root algorithm (without
+dithering) has the form
+
+		O = INT [M * sqrt (I) + 0.5]
+		I'= INT [(O/M)^2 + 0.5]
+
+where INT is the trucate to next lowest integer function,
+I is the original signal, O is the output signal, I' is the
+restored signal, and M is a constant that determines the precision of
+the process.  The constants 0.5 are included to eliminate the bias introduced
+by the integer truncation function.  However, this does not cure all
+problems.  To illustrate the problem with
+this algorithm, consider the case M=10. Then the input signals I = 102 and 103
+are both converted to the value O = 101 by the first equation. Upon reversion,
+we get I' = 102 always.  Hence, if we have equal numbers of pixels with
+values I = 102 and 103 on input, then the reverted pixels
+will have the wrong mean, being low by 0.5.
+
+
+My solution to this problem (which is a variant of JEG's method)
+is as follows.  The conversion from I to O
+remains unchanged.  For each value of O, we know what the
+range of possible input values is.  So my first stage of processing
+during the reversion is to compute
+		O'= O + [ran(seed) - 0.5]
+where ran is a random number uniformly distributed between 0 and 1.
+The next step is to shift and rescale O' to a value O'' so that it
+corresponds exactly to the range of
+possible input values.  At this point I do things a little differently
+from JEG.  I actually rescale O' so it extends
+the input range by 0.5 ADU on each end.  Thus, in my example above, if I
+have a value O = 102, then I dither and rescale so it covers the
+range O'' = 101.25 to 102.23 which, upon reversion to I', would give
+I' = 101.5 to 103.5 (everthing is floating point at this stage).
+If I were to revert to integers at this point, then I would preserve
+input pixel distributions that are uniform, but I would still not
+preserve ramps.  So instead I dither O'' once more and then revert to I'
+and truncate back to integers.  This does preserve ramps.
+
+Some subtle points are:
+1. In order to preserve histogram shapes properly, it is
+   simpler to dither in the square-root domain rather than in the I' domain.
+2. A uniform distribution in the I domain is not a uniform distribution
+   in the O domain. Hence some of my statements above about the shapes
+   of pixel distributions are not strictly correct.  However, the effect
+   on computing means, etc. is negligible in practice.
+
+I have rewritten my sqrt.c routines to incorporate the above improvements.
+Mamoru is checking it out.  So far it seems to work every well, even
+for coarse quantization (M=2).  For a range of gains, read noises, and
+sky values, I find that the mean and median sky intensity are preverved
+properly and the amount of noise introduced is quite small.
+Because I perform two ditherings
+(as opposed to JEG's one dithering in his previous post on this subject),
+I get smoother histograms at the expense of a slight increase in noise.
+
+Many people feel uncomfortable with the concept of dithering and that we
+are throwing away valuable information.  I would argue that we actually
+want to do more.  The reason is that A/D converters are not perfect
+and often have odd/even quantization problems.  The sky computation routines
+that I have used in all my published galaxy photometry compute histograms
+of pixel distributions and then smooth them to overcome the odd/even effect.
+Such smoothing is equivalent to introducing noise from dithering.
+The amount of smoothing that I use is much greater than what the
+square-root dithering would introduce.
+
+\end{verbatim}
+
+The seed for the random number generator needs to be hashed from 
+unique information in the frame.  
+For example, information that is stored in the header could be used
+to generate the seed, or we could use a combination of low-order bits.
+The important requirement is that
+when the same frame
+is uncompressed at different times, and even on different machines,
+the results must be bitwise identical.  We also need to have the identical
+sequence of random numbers returned from the generator on different 
+machines.
+
+\pagebreak
+
+\subsubsection{Pseudocode for InitReadNextFrame}
+\begin{verbatim}
+1) Store the value of parameter rnf_ncolor into 
+InChanStat.ncolor and the value of 
+parameter rnf_noverlap into InChanStat.noverlap.
+
+2) Get the parameter rnf_flavorXX, where XX is 01, 02, ..., 99.  The value of 
+this parameter defines whether the input for this channel is from DISK or TAPE.
+
+3) IF (TAPE) THEN
+        get the parameter rnf_TapeAddressXX
+        open the tape drive
+        store the UNIX channel number
+      ELSE IF (DISK) THEN
+        get the parameter rnf_DiskCWDXX
+        get the parameter rnf_DiskPrefaceXX
+        see if CWD exists
+        see if the first file exists and is readable
+    END IF
+
+4) Position information: InChanStat.ReadCount and InChanStat.EOFCount to zero.
+
+5) Initialize the regions in the list InRegions.
+
+6) return with SDSS_OK
+\end{verbatim}
+
+\subsubsection{Pseudocode for ReadNextFrame}
+\begin{verbatim}
+
+1)  LOOP over Icolor from 1 to Ncolor.InChanStat
+        copy the last Noverlap lines from InRegion(Icolor) to temporary region
+        RawRead into InRegion(Icolor)
+        IF (SDSS_OK) THEN
+                Uncompress InRegion(Icolor)
+                Append the Noverlap lines from temporary region
+           ELSE 
+                return with the same return status
+        END IF
+    END LOOP
+
+2)  return with SDSS_OK
+
+\end{verbatim}
+The notation \begin{verbatim} InRegion(Icolor) \end{verbatim} above means
+to work on the region for the color Icolor.  I do not know how that will
+be actually done; with an array, a linked list, pointers.  Whatever works
+best for tcl/dervish.
+
+\pagebreak
+
+\subsubsection{Pseudocode for RawRead}
+\begin{verbatim}
+
+Note: this transparently skips over a single EOF mark and returns
+data as if the EOF mark were not there.  
+
+``read the region from tape'' has three return values:  SDSS_OK,
+                                      SDSS_EOF, SDSS_ERROR.
+1) IF (TAPE) THEN
+        read the region from tape
+        IF (SDSS_OK) THEN
+                increment the InChanStat.ReadCount pointer
+                set InChanStat.EOFCount to zero
+           ELSE IF (SDSS_ERROR) THEN
+                return with SDSS_ERROR
+           ELSE
+                increment InChanStat.EOFCount
+                if (InChanStat.EOFCount is 2) THEN return with 
+                                                   SDSS_END_OF_DATA
+                read the region from the tape
+                IF (SDSS_OK) THEN
+                    increment the InChanStat.ReadCount pointer
+                    set InChanStat.EOFCount to zero
+                    return with SDSS_OK
+                  ELSE IF (SDSS_ERROR) THEN
+                    return with SDSS_ERROR
+                  ELSE
+                    return with SDSS_END_OF_DATA
+                END IF
+        END IF
+     ELSE IF (DISK) THEN
+        increment the InChanStat.ReadCount pointer
+        IF (the file exists) then
+                open, read, close the file
+           ELSE
+                decrement the InChanStat.ReadCount pointer
+                return with status SDSS_END_OF_DATA
+        END IF
+   END IF
+
+2) return with SDSS_OK
+
+\end{verbatim}
+
+\subsection{Quality, Debugging, Resources}
+
+\subsubsection{Quality Assurance Output}
+
+The most basic quality assurance is the return value from ReadNextFrame.
+If it returns the standard SDSS error value, then a catastrophic failure 
+has occured and the data from this channel are not available.  The pipeline
+should terminate, with some amount of grace, at this point.
+
+Information more refined than ``Is the channel dead or alive?'' is 
+in the InChanStat structure.
+
+\subsubsection{Debugging Output}
+
+I can think of three kinds of debugging output that could be dumped.
+The status information from ReadStatus could be dumped to the screen.
+Header information for any region could be dumped to the screen.
+A region or subregion could be dumped to the screen or, more conveniently,
+to disk.  
+
+\subsubsection{Computer Resources}
+
+Memory is the biggest issue.  At a bare minimum, each channel needs
+to have enough memory to hold:
+\vskip 0.5in
+\begin{tabular}{|c|c|}
+\hline
+\hline
+{\bf Use}			& {\bf Size in MBytes}	\\
+\hline
+one frame uncompressed		& 16.96		\\
+160 overlap rows uncompressed	& 1.32		\\
+working space for decompression & 16.96		\\
+\hline
+size per color			& 35.25		\\
+\hline
+{\bf TOTAL for 5 colors}	& 176.23	\\
+\hline
+\hline
+\end{tabular}
+

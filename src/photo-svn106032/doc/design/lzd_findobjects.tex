@@ -1,0 +1,247 @@
+\subsection{Introduction}
+
+This module performs faint object finding on cleaned frames.
+We assume that all kind of necessary corrections were done
+for the cleaned frames in {\bf Correct Frames} and that
+bright stars were already subtracted from them in 
+{\bf Clean up Frames}. 
+From the mask information contained in the region we will know which
+pixels to ignore.
+
+The main task of this module is to detect significant pixels,
+to merge the detected pixels into groups which correspond to
+objects, and to determine the position and the extent of each 
+object. Extraction of detailed photometric parameters is
+the responsibility of {\bf Measure Objects}.
+Each color is processed separately.  At a later stage the information from
+the five colors is merged together in {\bf Merge Colors}.
+Objects are not deblended here, but in {\bf Measure Objects}.
+
+\subsection{init\_find\_objects}
+
+The initialization module {\bf init\_find\_objects} needs to get the values 
+of parameters that control the object finding:
+
+\subsubsection {Input}
+
+\begin{description}
+ \item[\qquad ffo\_medsize] a window size of median filter to create
+the local sky frames (in units of pixels)
+ \item[\qquad ffo\_peakthresh] a number to be multiplied with rms of
+background to determine threshold ADU counts for peak finding
+ \item[\qquad ffo\_growthresh] a number to be multiplied with rms of
+background to determine threshold ADU counts for growing objects
+ \item[\qquad ffo\_mode] method of determining sky background (0 = use 
+rolling median; 1 = use interpolation between medians in boxes)
+\end{description}
+
+We create new regions to store the background image for each
+color. These region are used for determining sky value of each objects. 
+We also need to set up a temporary region to be used when convolving
+an input region with Gaussian. 
+
+\subsubsection{Output}           
+
+Regions for background images will be the output. Of course these
+don't have significant values. 
+
+\subsection {find\_objects}
+
+This function will find objects by searching for peaks in the PSF
+convolved region. The extent of each object will be determined by
+connected pixel method. Linked list of OBJECT1 structure will be
+returned.
+
+\begin{arguments}
+\item{\quad region}(REGION)(I/O) contains the frame of interest.
+\item{\quad noise}(REGION)(I) contains the noise frames.
+\item{\quad back}(REGION)(O) holds background image.
+\item{\quad template\_sigma}(double)(I) is a sigma of Gaussian which 
+models PSF template
+\item{\quad ffo\_medsize}(int)(I) is a window size of median
+filter to create the local sky frames.
+\item{\quad ffo\_peakthresh}(double)(I) a number to be multiplied
+with rms of background to determine threshold ADU counts for peak
+finding
+\item{\quad ffo\_growthresh}(double)(I) is an isophotal threshold for
+expanding object
+\item{\quad frstat}(FRSTAT)(I/O) is a FRSTAT structure.
+%\item{\quad -fact}(double)(I) is a factor of f-sigma rejection when
+%calculating statistics on frames
+%\item{\quad -ncycle}(int)(I) is a number of cycles for f-sigma
+%rejection when calculating statistics on frames
+%\item{\quad -thres\_obj}(double)(I) is an isophotal threshold for
+%expanding object
+%\item{\quad -thres\_sky}(double)(I) is an isophotal threshold for sky
+%calculations
+\item{\quad ffo\_mode}(int)(I) indicates a method of determining the
+sky background
+\item{\quad objectlists}(OBJECT1*)(O) is the list of objects found.
+\end{arguments}
+
+This function will set following values:
+
+\begin{itemize}
+\item For each object
+\begin{description}
+ \item[\qquad xc](float) the peak position in row (calculated by
+fitting parabola).
+ \item[\qquad yc](float) the peak position in col (calculated by
+fitting parabola).
+ \item[\qquad xmin](int) the minimum row value of connected pixels.
+ \item[\qquad xmax](int) the maximum row value of connected pixels.
+ \item[\qquad ymin](int) the minimum col value of connected pixels.
+ \item[\qquad ymax](int) the maximum col value of connected pixels.
+ \item[\qquad peak](float) the peak value.
+ \item[\qquad skyLevel](float) the local background level near the object.
+ \item[\qquad skySig](float) the rms of the local background level.
+ \item[\qquad npix](int) the number of connected pixels of objects
+above a threshold.
+ \item[\qquad fiso](float) the sum of counts of pixels in objects above a threshold.
+ \item[\qquad region](REGION) the extracted subregion from the
+original region. The mask is copied from the mask of the original frame.
+ \item[\qquad mask](MASK) set MASK\_OBJECT to the pixel which is the
+part of each object. The difference of region->mask above is that mask 
+for neighbor objects will not be set in this mask.
+\end{description}
+
+\item For original region
+\begin{description}
+ \item[\qquad mask](MASK) set MASK\_OBJECT for the pixels
+corresponding found objects.
+\end{description}
+
+\item For FRSTAT structure
+\begin{description}
+ \item[\qquad nfaintobj](int) the number of found objects
+ \item[\qquad nbadpix](int) the number of bad pixels whose mask value
+is MASK\_NOTCHECKED
+\end{description}
+\end{itemize}
+
+\subsubsection{Algorithms}
+
+This module uses a hybrid scheme based on the matched filter method
+and the connected pixel method. The program consists of two parts. One
+is to find objects based on the matched filter method and the other is
+to determine their extents based on the connected pixel method.
+
+\paragraph{Object Finding}
+
+The matched filter method finds the peak of the correlation between a
+given image and a template. When the template has the same shape as
+the object to be found, it produces the highest peak.
+
+Stars have the same shape, at least for the first-order approximation,
+and the best template for stars is the point spread function (PSF).
+On the other hand, galaxies have a variety of shapes. Although there
+is similarity in the profile shape for galaxies of the same
+morphological type, apparent size varies according to the
+distance. This means that we need a number of templates for a single
+type even if we assume a common profile shape for the type.
+
+We will use the Gaussian, which is a simplest model of the PSF, as a
+template for galaxies as well as stars for the time being. The use of
+different templates will be considered at a later stage. A Gaussian
+profile with a standard deviation of $\sigma$ corresponding to the
+seeing size is a reasonably good template for (unsaturated) stars and
+very faint galaxies. Instead of having a variety of templates, we use
+Gaussians with $2\sigma$, $4\sigma$, and so on as the templates for
+bright galaxies. Gaussians with larger standard deviations will enable
+us to find more extended objects.
+
+In the actual application, the size of the PSF is kept unchanged while
+the frame size is successively reduced by 2-by-2 binning so that the
+{\it effective} size of the template gets bigger and bigger. Object
+finding by this algorithm is a multi-pass process. Those objects that
+are found in a pass are scissored out from the frame and put into the
+catalog before the frame is binned for the next pass.  The area that
+is scissored out is filled with the artificial sky background.
+
+\paragraph{Determination of the Extent of the Object}
+
+The peak of the correlation, that is, the position of an object can be
+found by the matched filter algorithm. However, the algorithm cannot
+tell us the extent of the object because we are not using a proper
+template for extended objects.  It is critical to know the extent
+of an object in order to scissor out the '{\it Atlas Image}', to
+measure various photometric parameters, and to set mask for downstream
+modules. We define the extent of an object by means of the usual
+connected pixel method.  The connected pixels are searched from the
+peak outward until a threshold is reached.
+
+\subsection{Processing Flow}
+
+Actual data processing in the find\_objects module proceeds as follows;
+
+\begin{enumerate}
+\item Take an original cleaned frame, named {\bf Original}.
+
+\item Create a median filtered frame from {\bf Original}, which is
+      named {\bf Background}.
+    The size of the median window ($W_{\rm med}$, in units of pixels)
+    is a tunable parameter.
+
+\item Subtract {\bf Background} from {\bf Original}. The resulting
+    frame is named {\bf Subtracted}.
+
+\item Convolve {\bf Subtracted} with a template (currently Gaussian).
+    The resulting
+    frame is named {\bf Target}. The standard deviation of the Gaussian
+     ($\sigma$) is a tunable parameter, but in principle $\sigma$
+     should roughly correspond to the seeing size.
+
+\item Find one-pixel peaks above a threshold in {\bf Target}. A pixel is
+    regarded as a peak when its value is highest among the values of 
+    eight pixels that surround the pixel.
+    The threshold is $I_{peak}=f_{peak}\times\sigma_{bgd}(Target)$,
+    and $f_{peak}$ is a tunable parameter.
+
+\item Identify connected pixels associated with a peak in {\bf Target} in 
+    order to obtain an initial guess of the extent of the object.
+    The search is made from the peak outward until the pixel values
+    reach a threshold. The threshold  is
+    $I_{th1}=f_{th1}\times\sigma_{bgd}(Target)$, and
+    $f_{th1}$ is a tunable parameter. 
+  
+\item Determine the local background level for each object. The local
+    background level is the median of the values of pixels that encircle
+    the object. Pixels that belong to the object are not included
+    in the computation of the median. Pixel values are taken from
+    {\bf Original} while the judgment whether or not a pixel belongs
+    to the object is made using {\bf Target} based on  the results of
+    step 6 above.
+    Two parameters ($R_1$ and $R_2$) are used to define the region
+    where the median is computed. The range of $X$ and $Y$ for the
+    region is, $X_{min}-R_2<X<X_{min}-R_1$, 
+    $X_{max}+R_1<X<X_{max}+R_2$, $Y_{min}-R_2<Y<Y_{min}-R_1$,
+    $Y_{max}+R_1<Y<Y_{max}+R_2$.
+
+
+\item Identify connected pixels associated with a peak in {\bf Original}.
+    The search is made from the peak outward until the pixel values
+    reach a threshold. The threshold is
+    $I_{th2}=I_{bgd}+f_{th2}\times\sigma_{bgd}(Original)$, and
+     $f_{th2}$  is a tunable parameter.
+
+\item Patch objects in {\bf Original} by replacing the 
+    value of pixels which belong to
+    an object with artificial background, that is, the value of
+     the local background level for each object.
+
+\item Apply 2-by-2 binning to {\bf Original}. Then repeat from step 2
+    regarding the binned frame as {\bf Original}. We run 3 cycles at
+    present.
+
+\item Merge object lists. Object lists created in cycles 
+      1, 2, and 3 are 
+      merged into a single object list after converting the data to 
+      those with respect to the original frame. For example,
+      $X$ and $Y$ must be multiplied by the binning factor.
+
+\end{enumerate}
+
+\subsection{fini\_find\_objects}
+
+This function frees up all memory that {\bf find\_objects} module
+required.

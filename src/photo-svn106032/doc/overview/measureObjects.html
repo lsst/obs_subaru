@@ -1,0 +1,226 @@
+<HTML>
+<TITLE>Measure Objects</TITLE>
+<H1>The Measure Objects Module</H1>
+
+<H2><A NAME="measure_objects">Measure Object Properties</A></H2>
+
+The Measure Objects module calculates
+<A HREF="measured_outputs.html#">parameters for objects</A>,
+and classifies them based on their values.
+<P>
+
+Each OBJC is passed to the Measure Objects module individually, so all
+passbands can be measured simultaneously.
+<P>
+
+Actually measuring the object's properties is simple enough to describe,
+although some of the algorithms are rather complex.
+<P>
+
+The first thing to check is if the object's had its
+<A HREF="brightObjects.html#subtract_stars">wings subtracted</A>; if so
+we assert that it's already been measured (presumably as a bright
+object) and return. <EM>We should not remeasure</EM> any <EM>bright objects,
+as they have had power subtracted from their wings</EM>
+<P>
+
+Then we find a <A HREF="objects.html#centering">good centre</A> for each
+band, a step that's only important if the object being measured is the product
+of the deblender. Then a <DFN>canonical centre</DFN> is found. If the object
+is detected in the band denoted <CODE>mo_fiber_color</CODE> in the
+frames parameter file (usually r'), the centre in that band is the
+canonical centre. If it <EM>isn't</EM> detected in that band, the band
+with the largest peak counts is used. It would be better to use e.g.
+a fibre magnitude, but one is not available at this point.
+<P>
+
+Once the canonical centre's in hand, we process the object in that band,
+followed by the other bands in no particular order. For each band, we:
+
+<UL>
+<LI> Transform the canonical centre to that band's coordinate system
+<LI> Interpolate the sky and sky error to the centre of the object
+<LI> Extract a radial profile about the canonical centre; see
+<A HREF="http://www.astro.princeton.edu/~rhl/photomisc/profiles.ps">SDSS Profile Extraction</A> and
+<A HREF="http://www.astro.princeton.edu/~rhl/photomisc/aperture.ps">Aperture Photometry in Band Limited Data</A> for details.
+The radial profile is constructed from the values in cells
+by using a slightly clipped mean of the mean/median values; the errors
+are calculated using a local fit around the annulus as descibed in the
+referenced documents. (<EM> the clipping is currently set to 0. XXX</EM>).
+<P>
+
+The object can be too large for the method we use, in
+which case the <CODE>OBJECT1_TOO_LARGE</CODE> bit is set (the condition
+is that no cell may contain more than 65535 pixels, giving an outer
+radius of 657 pixels); if the extracted
+profile reaches the edge of the frame in any sector, <CODE>OBJECT1_EDGE</CODE>
+is set.
+<P>
+
+During the extraction, if the sky level were sufficiently badly estimated,
+the central intensity of the object could be negative. If this is so,
+set the <CODE>OBJECT1_BADSKY</CODE> and  <CODE>OBJECT1_NOPETRO</CODE> bits,
+and give up on this band.
+
+<LI> Calculate the fibre magnitude, centred on the canonical position. This
+is done using the same technique as the inner parts of the radial profile.
+<EM>This magnitude is supposed to be corrected to canonical seeing, but
+this is not yet done</EM>.
+
+<LI> Calculate the PSF magnitude, and apply an
+<A HREF="psp.html#aperture_correction">aperture correction</A> calculated by the PSP. You don't
+usually need to use an aperture correction with PSF magnitudes --- it
+all comes out in the wash when analysing the standards --- but drift
+scan data is a little <A HREF="http://www.astro.princeton.edu/~rhl/photomisc/calib.ps">different</A>.
+<P>
+
+This is done as a sum over the cells in
+the radial profile, rather than as an integral over image. This sacrifices
+a little statistical efficiency, but makes the PSP's task of estimating the
+aperture corrections easier (more precisely, it greatly eases the PSP's
+memory requirements).
+
+<LI> Next comes the calculation of Petrosian quantities. The basic
+equations are given <A HREF="measured_outputs.html#petro">elsewhere</A>.
+<P>
+The procedure is:
+<UL>
+
+<LI> If there's only one measured point in the profile, set
+<CODE>OBJECT1_NOPROFILE</CODE> and give up
+
+<LI> Calculate a cumulative profile from the radial profile extracted above.
+If desired (which, by default, it is not) the resulting profile can be
+spline-smoothed, allowing for the errors in the points. This cumulative
+profile is then fitted by a <A HREF="misc.html#taut_spline">taut spline</A>.
+To reduce the profile's dynamic range, what is actually splined is
+the <CODE><A HREF="misc.html#asinh">asinh</A></CODE> of the radius against
+the <CODE>asinh</CODE> of the cumulative brightness (a cumulative light
+profile is, of course, employed so that these radii are well defined).
+
+<LI> Convert this splined cumulative profile to a surface brightness
+profile by differentiation (not too scary, as we are differentiating
+a function we just integrated so the noise is OK).
+
+<LI> Find the Petrosian ratio, and solve for the Petrosian radius. Reject any
+of these radii that are at too low a surface brightness (setting the
+<CODE>OBJECT1_PETROFAINT</CODE> bit), and keep the
+<EM>largest</EM> of the remainder. If there are none, set
+<CODE>OBJECT1_NOPETRO</CODE>; if there are many, set
+<CODE>OBJECT1_MANYPETRO</CODE>.
+
+<LI> If we found a Petrosian radius, 
+estimate the error in the Petrosian radius, as discussed in
+<A HREF="http://www.astro.princeton.edu/~rhl/photomisc/petrosian.ps">Errors in Petrosian Quantities</A>.
+If we failed, set 
+<CODE>OBJECT1_NOPETRO_SMALL</CODE> and set the Petrosian radius to it's
+fallback value.
+
+<LI> Now find the flux within some multiple of the <EM>canonical</EM>
+Petrosian radius; note
+that we processed the canonical band first, so this is known at this point
+in the processing.
+
+<LI> Calculate the radii containing 50% and 90% of this Petrosian flux,
+setting <CODE>OBJECT1_MANYPETRO50</CODE> and <CODE>OBJECT1_MANYPETRO90</CODE>
+as appropriate.
+
+<LI> Finally, if the edge of the frame lies within one Petrosian radius of
+the object's centre, set the <CODE>OBJECT1_INCOMPLETE_PROFILE</CODE> bit.
+</UL>
+
+<LI> If <CODE>OBJECT1_NOPROFILE</CODE> isn't set, calculate the objects
+<CODE>Q</CODE> and <CODE>U</CODE> parameters; see
+<A HREF="http://www.astro.princeton.edu/~rhl/photomisc/ellipticity.ps">
+The Estimation of Objects' Ellipticities</A> for details on algorithms. The
+integrals over the object are carried out as described in
+<A HREF="http://www.astro.princeton.edu/~rhl/photomisc/aperture.ps">Aperture Photometry in Band Limited Data</A>.
+
+<LI> Next, measure the shape of a certain isophote. <EM>The algorithm
+described here needs some work, but I think that the basic idea is sound</EM>.
+<P>
+
+In each sector of the extracted cell profile, estimate the <EM>first</EM>
+radius at which the desired surface brightness is reached; this is done
+using the cumulative spline technique described above.
+If the object's centre is fainter than the desired isophote, set the
+<CODE>OBJECT1_ELLIPFAINT</CODE> bit and give up.
+<P>
+
+Next fit a five-Fourier series (i.e. up to the cos(2 theta) and sin(2 theta)
+terms) to these radii, and convert
+the resulting coefficients into a centre, a major and minor axis length,
+and a position angle. This is currently done by finding the centre of area
+of the curve defined by the Fourier series, and calling it the centre. The
+second moments of the curve about this point are then used to determine
+the axes and orientation of a best-fit ellipse. Finally, adjust the axes
+so that the area of the ellipse equals the area of the sectors within the
+isophote.
+<EM>It is not clear that this is a satisfactory procedure; TBD</EM>
+<LI>
+
+The gradient terms are easily found by applying the same procedure at
+slightly brighter and fainter isophotes; the error terms are TBD.
+
+<LI> Next we fit a PSF, an exponential disk, and a deVaucouleurs model
+to the cell profiles. Details to be written up when RHL gets a chance. XXX.
+
+<LI> The texture is calculated, but the algorithm is not final. Details
+to be provided when the code is finished.
+
+<LI> A crude classification is then applied; this is probably not good
+enough even for level 0. <EM>This is scary. I think that the parameters
+being measured are good, and suitable for the task of both star-galaxy
+separation and (maybe) galaxy classification. It'll probably take the
+application of some brute-force technique such as neural nets, decision
+trees, or a Bayesian classifier [all of which are equivalent]
+to decide which combination of parameters is most effective.</EM>
+
+<LI> Finally, some flag bits are copied to the OBJC, namely:
+<CODE>OBJECT1_EDGE</CODE>,
+<CODE>OBJECT1_BLENDED</CODE>,
+<CODE>OBJECT1_CHILD</CODE>,
+<CODE>OBJECT1_NOPETRO</CODE>,
+<CODE>OBJECT1_MANYPETRO</CODE>,
+<CODE>OBJECT1_INTERP</CODE>,
+<CODE>OBJECT1_CR</CODE>,
+<CODE>OBJECT1_SATUR</CODE>,
+<CODE>OBJECT1_NOTCHECKED</CODE>,
+and
+<CODE>OBJECT1_BINNED</CODE>. If the <CODE>OBJC</CODE> is blended, the
+<CODE>OBJECT1_BLENDED</CODE> bit is set in the <CODE>OBJECT1</CODE> that
+we've just processed.
+
+</UL>
+
+
+If the object is <A HREF="deblend.html#">blended</A>, the deblender is
+run and this entire procedure is repeated for each child.
+
+<H2><A NAME="tree_classify">Classification using a Decision Tree</A></H2>
+
+Having finished measurement, we are now ready to classify.
+Classification
+is performed using a decision tree, which is stored
+internally to PHOTO as a TREENODE structure 
+(with branches connecting it to other 
+TREENODEs).  Some human must have created
+a decision tree appropriate for the data,
+and placed it (currently, in the form
+of an ASCII file) into the PHOTODATA
+directory, before the pipeline is run.
+It will not be possible to modify the
+tree for each frame, or even for each
+run --- we will probably end up using a 
+single tree for at least an entire season,
+if not for the entire survey.
+<P>
+
+As of May, 1995, we have the ability
+to create decision trees relatively
+quickly.  However, we have <EM>not</EM>
+spent time to try to create trees which
+yield high accuracy; that will be done
+later, when we have real test data.
+
+</HTML>

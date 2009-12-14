@@ -1,0 +1,50 @@
+######################################################################
+# parameter file for getting dsc data to run under photo
+######################################################################
+
+offset_fields 0
+
+# Templatedir must contain software_parameter files, data_processing_plans,
+# and sample ps input files.
+templatedir /u/nan/photodata/templates
+fieldinfofile example.fieldInfo
+rc2gcfile example.rc2gc
+
+
+# Old dir for frames stuff
+framesdir /peyton/scr/lucifer0/photodata/frames_4/input
+# Old dir for ps stuff
+psdir /peyton/scr/lucifer0/photodata/ps_2/input
+
+# parameters affecting filenames only
+ccdcol 1
+run 0
+
+mt_run 10801
+mt_night 0
+startpatch 0
+endpatch 2
+
+pstype 1 	# 1 for photo pstamps, 2 for astro pstamps
+
+bias_scale 32
+nbias 40
+rawncols 2128
+filterlist u g r i z
+refcolor r
+nrows 1354
+overlap 128
+
+# Outdir is the the name of subdir of $PHOTODATA_DIR containing /input /output
+outdir frames_6
+startfield 0
+endfield 9	 
+
+
+# parameters affecting which inputs to create
+do_parfiles 0  	 # make parfiles and data_processing_plans
+link_frames 0    # make links to raw frames
+copy_frames 0    # copy the frames, possibly subtracting a fixed bias level
+make_ps_inputs 1 # redo ps inputs
+make_bias 0	 # make the 2d bias frame
+

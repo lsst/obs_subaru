@@ -1,0 +1,211 @@
+
+\def \kom{{\bf Known Objects\ }}
+\def \catobj{CAT\_OBJ }
+
+\subsection {Introduction}
+
+  The \kom module runs once per strip.
+It tries to find any objects that are listed
+in a set of catalogs which might fall entirely
+or partially within any frame in the current strip.
+It creates a linked
+list of all such objects, which is be passed by the 
+framework to other modules
+in the pipeline as necessary.
+
+  Note that the task of compiling a set of catalogs of known 
+objects across the entire Survey Area, reducing them all
+to a common format, and sorting them all into a standard
+order is a formidable one. 
+However, it may certainly be done in an incremental 
+fashion --- there is no need for the Level Zero catalogs to
+be completely comprehensive in every way.
+Keep in mind that this module can do a job only as good as
+the information in the catalogs; the {\it Garbage In, Garbage
+Out} precept applies strongly in this module.
+
+\subsection{InitModule}
+
+This opens all the necessary files.
+
+\subsection {Module}
+
+\subsubsection {Description}
+
+  The \kom module searches through a set of catalogs, looking
+for objects that might fall into the current strip.  It creates
+a structure containing catalog information for each such object
+and links all the structures together in a list.
+
+\subsubsection {Input}
+
+  This module requires
+
+\begin{itemize}
+  \item the RA, Dec, equinox and time (date + UT) of start of the current 
+        strip
+  \item the RA, Dec, equinox and time (date + UT) of end of the current 
+        strip
+  \item the width of the strip
+  \item the ratio of arcseconds to pixels
+  \item a set of file pointers, one per catalog (or the equivalent
+        framework structure(s))
+\end{itemize}
+
+  The information in each catalog {\it must} be arranged
+in the same fashion, which will allow quick access to those
+objects which lie within a small portion of the sky.
+I suggest that each catalog be sorted primarily by RA,
+and secondarily by Dec.  Further, it would increase
+this module's efficiency if the information in 
+each catalog was in the same form, and if that form 
+contained fields similar to the fields of the 
+{\it \catobj} structure.
+
+  Steve Kent has recommended a format for the catalogs that
+contains a FITS (or FITS-like) header, followed by entries
+for each object.  A full description of the format is
+given in the Astrometric Pipeline document.  
+
+  Of course, we could combine all the catalog information 
+into a single file and simplify the pipeline code, but I
+suspect that it will require extra effort to compile and
+update.
+
+  Note that we will have to spend extra effort making 
+a catalog of asteroid and planet positions, since they change
+rapidly with time.  The format of the catalog might have to be
+different, and/or we'd need a special function to update
+all positions to the time of exposure.
+
+\subsubsection {Output}
+
+  The module produces a linked list of {\it \catobj} structures,
+one for each object in the strip.  If no objects are found,
+the module produces a NULL pointer.
+
+\subsubsection {Modules}
+
+  The main part of the \kom module will perform the following
+tasks, for each of the catalog file pointers in turn:
+
+\begin{itemize}
+  \item read items from the catalog sequentially (which may
+        take place through the pipeline framework); for each one
+  \begin{itemize}
+     \item convert item's position to equinox of frame
+           (and calculate position at time of observation, for
+           asteroids, planets, etc.)
+     \item check to see if item falls at least partially within
+           strip.  If not, skip to next item; otherwise
+     \item create a new {\it \catobj} structure and fill it with
+           the appropriate information
+     \item add the new structure to the linked list
+  \end{itemize}
+\end{itemize}
+
+After all catalogs have been read and the list is complete,
+the module must sort the list by $\lambda$-coordinate
+(the coordinate along the great circle of the strip which
+increases from start to end of the strip)
+to speed up access for future users of the list.
+
+After finishing all reads, the module should tell the framework
+to close all the file pointers.  
+
+\subsubsection {Algorithms}
+
+  We will need functions to precess the coordinates
+of objects to the equinox of exposure, and also functions
+to calculate the positions of bodies in the solar system.
+Fortunately, there are many sources for such routines
+in the literature (for example, Jan Meeus' {\it Astronomical
+Algorithms}).
+
+\subsubsection {Quality, Debugging, Resources}
+
+  We can ensure that the \kom module is working correctly by
+making a list of all the known objects that ought to be selected
+for several different specific image coordinates.
+Running the module with those coordinates, we can check to make
+sure that the list of objects found by the module matches the
+correct, pre-arranged list.
+
+  During the debugging phase, it may be useful to print out
+a line for each catalog searched, giving the number of objects
+listed in the catalog and the number which fall within the
+field of view.  In the most verbose ``debug mode,'' the code
+might print out a line per item in each catalog, giving its
+name and distance from the center of the field or from the 
+closest edge of the field.
+
+  If the catalogs contain many thousands or tens of thousands
+of objects, we may have to work hard to optimize catalog look-up.
+This module should take only a negligible fraction of the total
+pipeline memory and CPU time in the Level Zero implementation
+(and all subsequent ones).
+
+  The amount of memory required to store the output linked list
+of objects in the strip will be roughly eighty bytes per object
+(the number varies with the length and number of object names)
+times the number of objects in the strip.  Assuming that the 
+catalogs we choose as input contain one million objects over the 
+entire sky, a single strip will contain around ten thousand 
+objects; thus, each strip's list will contain less than one Megabyte
+of memory.
+
+\subsubsection {Test Data Required}
+
+  We must create accurate lists of known objects that fall within
+several different fields of view, so that we can check the performance
+of the \kom module against them.  Once a set of catalogs has been
+created, this additional task will require a minimal amount of time.
+
+\subsubsection {Regression Testing}
+
+  The same accurate lists of known objects needed for Test Data
+(see preceeding section) can be used for Regression Testing. 
+Note that, whenever a change is made to one or more of the
+catalogs, the accurate lists must be remade and checked.
+A set of five to ten fields with accurate lists should be
+sufficient for testing purposes.
+
+\subsection {FiniModule}
+
+\subsubsection {Description}
+
+  The {\bf FiniModule} routine de-allocates the memory used by
+the main module for the linked list of objects in the strip.
+
+\subsubsection {Input}
+
+  A pointer to the list of {\it CAT\_OBJ} structures.
+
+\subsubsection {Output}
+
+  There is no output.
+
+\subsubsection {Modules}
+
+  A single function can deallocate the memory.
+
+\subsubsection {Algorithms}
+
+  No fancy algorithms are required.
+
+\subsubsection {Quality, Debugging, Resources}
+
+  Nothing required, unless we want to check each {\it CAT\_OBJ}
+structure before deleting it.
+
+\subsubsection {Test Data Required}
+
+  No test data is required.
+
+\subsubsection {Regression Testing}
+
+  None required.
+
+% end of section
+
+

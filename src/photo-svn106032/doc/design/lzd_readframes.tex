@@ -1,0 +1,50 @@
+The level zero design called for data decompression and reading from tape.
+The level zero pipeline simply uses the DERVISH regReadAsFits verb to read
+a FITS file from disk.  This same verb can be used to read from tape, but
+this has not been put into the pipeline.  There is some question of whether
+the data will in fact be compressed, so that operation is put off to level
+one.
+
+The only complication is that adjacent frames in the pipeline need to have 
+an overlap.
+
+Figure 1 shows a series of contiguous frames from one CCD.  The
+scale is in pixels.  On the left, the frames A, B, C, D, and E
+are the raw frames, and have no overlap.  When we send these frames
+to be processed, we need to pad them so that objects that are on or
+near the boundary between frames will be found as efficiently as
+objects near the middle of a frame.
+The first frame, called ``A'' here, 
+is simply the size of the first frame read from tape.
+Once frame ``A'' has been processed, the last few lines of it are
+tagged onto frame B, making its frame sent for processing slightly larger.
+This is the size of all successive frames sent for processing.
+
+The camera design has a 42.00 mm gap between adjacent columns of CCDs,
+with each CCD being 49.152 mm wide.  The overlap between the two strips
+that make up a stripe is then 3.576 mm or 149 pixels.  We need to make
+sure that the edge overlap between {\em strips} is at least this much.
+
+The raw frame B on the left of Figure 1 has the last 149 lines of
+the raw A frame tagged onto it before it is sent for processing
+as the B frame.  All objects found in these extended frames are 
+reported.
+
+This overlap region defines the largest object (in pixels) that we will
+detect and measure on one frame.  
+149 is actually the {\em maximum} overlap possible.
+Depending on the final alignment of the frames this number will be a few
+pixels smaller in the scan direction in some cases.  Depending on the
+telescope tracking, the number of overlap pixels will be smaller than
+149, by some (small) amount.  We should set the maximum object size to
+be comfortably smaller than this number, say 135 pixels in x and y.
+Note that a highly elliptical object that is at 45 degrees can be longer
+than this along the major axis, but will still be detected and measured
+if it is smaller than 135 pixels in x and 135 pixels in y.
+
+\epsfxsize=0.98\textwidth
+\vskip 0.25in
+\epsfbox{dist.eps}
+
+Figure 1:  Overlap between successive frames from one CCD
+

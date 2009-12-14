@@ -1,0 +1,304 @@
+\subsection{Pipelines}
+
+	The photometric pipeline has been divided into two sub-pipelines:
+a postage stamp pipeline and a frame pipeline.  The postage stamp pipeline
+will act on the postage stamps from the photometric camera, the quartile
+data, and the output of the astrometric and monitor telescope pipelines.
+it is responsible for rough photometric calibration,
+determining the point spread function(s), and creating the flatfields.
+After this sub-pipeline is run, the results will be evaluated to determine
+whether they are reasonable.  If they are (the zero points haven't changed
+tremendously, for example), then we start the frame pipeline process.
+The frame pipeline takes the output of the postage stamp pipeline and the
+five color images from a run and produces the catalog of found objects,
+among other things.  Both of these sub-pipelines operate on one scan line
+from one run at a time.  Each of these sub-pipelines should have one 
+preprocessor, one processor, and one postprocessor which run in series.
+At the present time, the pre- and post- processors are not implemented.
+
+	The postage stamp and frames pipelines most naturally operate 
+on units of complete scan lines (one continuous data stream (run) from one 
+column of CCD's).  However, the data from the telescope will be written
+in sets consisting of an entire night of data.  These data will be
+archived into the survey data base.  The preprocessor
+will query the data base and generate all of the (ascii) input files
+for the processor, including the list of images in the complete
+scan line and the photometric parameters to be applied to that
+data set.
+
+	The processor takes the output of the preprocessor plus the
+raw data from a night's observing.  In the case of the postage stamp
+pipeline, it generates rough astrometric calibrations, photometric
+calibrations, flatfields, and the point spread function.  The frame
+pipeline processor generates corrected image frames,
+object lists, object parameters, and quality assurance data.  The processor 
+should be capable of reading the raw data from tape or disk.  The frame
+processor, since it operates on each frame independently, should be 
+capable of starting and finishing in the middle of a run.
+
+	The level zero processor outputs lists of objects and other output
+as flat files.  The postprocessor will take this data and load it into the
+database (after inspection of the quality assurance data from the processor).
+In the case of the frames pipeline, the flatfiles are
+generated on a frame by frame basis, which will produce object
+duplication in the overlap regions.  It is possible that the postprocessor
+for the photometric pipeline could merge the frame to frame overlap objects.
+
+\subsection{Data flow in the Postage Stamp Pipeline Processor}
+
+	The main program of the processor is a TCL script which accomplishes
+the tasks in the accompanying figure.  The main scientific tasks are C
+subroutines that are interfaced to TCL.
+
+%\epsfxsize=0.98\textwidth
+%\vspace{-1.5cm}
+%\epsfbox{ps_pipeline.eps}
+\epsfigure{ps_pipeline.eps}{}{}
+
+\subsection{Input to the Postage Stamp Processor}
+
+The level zero photometric pipeline reads its input as a set of FITS and 
+ASCII files.  The ASCII files all have the form of one parameter and its
+value per line of the file.  This format is used for plans and parameters.
+The FITS files are either FITS images, or tables.  Currently, all of the
+tables are binary tables.
+
+\subsubsection{Data Processing Plan}
+
+	The data processing plan identifies the other files to be used in
+the processing, a list of data tapes required, and a resource plan (tape
+devices, disk directories, etc.) as well as the mode of operation (this is
+where we can specify debugging, use only two colors, or
+normal mode, for example).
+
+\subsubsection{Software Parameters}
+
+The science modules are allowed to access files of parameters,
+templates, etc.  These files can be private to the module in the sense
+that no other piece of the pipeline depends on them, and the module
+writer is responsible for opening and closing the file in the
+init/finiModule code.  The name of this
+file is listed in the Data Processing Plan.
+This file is an ASCII file with the variable and its value on one line.
+
+\subsubsection{Output from the MT pipeline}
+
+From the MT pipeline, we need a FITS file containing the secondary
+photometric standard stars, including their position in the sky, in some
+coordinates.  We also need a FITS file containing the atmospheric
+extinction in each band and the time at which that atmospheric extinction
+was determined.
+
+\subsubsection{Output from the astrometric pipeline}
+
+We require a FITS table giving the linear transformation from row and column to
+the coordinates in the MT secondary standards catalog for each color.
+
+\subsubsection{Input from database}
+
+We need information about the CCDs used, and all of the other information
+that is typically found in an image header.  We have made a decision not
+to use the actual image headers since they are notoriously incorrect and
+since any test data will not necessarily contain the right keywords.
+The CCD parameters file is currently a flat ASCII file, but could easily
+be converted to a FITS file.  The other file is a binary FITS table of
+FRAMEINFO structs which contain the frame number in the run, the airmass,
+and the UT observation time of the image.
+
+We also need the most recent photometric calibration to use in case we
+cannot match any of the secondary calibration stars.
+
+\subsubsection{Input from the DA system} 
+
+We currently read in postage stamp and quartile disk files, one of each
+from each frame in the run.  Both are binary FITS tables.  We also read
+in two-dimensional fits images (one for each color) that are bias runs
+on the telescope.  The postage stamp pipeline will reduce these into
+bias vectors to be used with the imaging data.
+
+\subsection{Scientific output from the Postage Stamp Pipeline Processor}
+
+\subsubsection{Flat field vectors}
+
+One flatfield vector is output for each frame in the run (where each frame
+is 1354 rows long) and output as a separate FITS image.
+
+\subsubsection{Bias vectors}
+
+One bias vector is produced for each CCD, and this bias vector is
+used for the whole run.
+
+\subsubsection{Calibration parameters}
+
+One set of calibration parameters per frame is output.  The calibration
+parameters include (for each color):
+
+\begin {itemize}
+\item sky - the sky value as determined from the quartiles
+\sitem skyslope - the first derivative of the sky in the row direction
+\sitem lbias - the difference between the bias level in the bias vector and the
+  bias level in the left overscan portion of the image
+\sitem rbias - the difference between the bias level in the bias vector and the
+  bias level in the right overscan portion of the image
+\sitem mag20 - the number of ADU a 20th magnitude star would have accumulated
+  in the image
+\sitem mag20Err - the error in mag20
+\sitem psf - the double Gaussian paramters that best fit the PSF in the image
+\sitem toRefcolor - the six linear coefficients that transform row and column
+  in each color to row and column in the reference color (probably red)
+\sitem toGCC - the six linear coefficients that transform row and column
+  in the image into sky coordinates (from astrometric pipeline)
+\end {itemize}
+
+\subsubsection{Last calibration}
+
+This gives
+the photometric calibration to be used if no photometric calibration
+stars are available in the next run.  
+
+\subsection{Data flow in the Frames Pipeline Processor}
+
+	The main program of the processor is a TCL script which accomplishes
+the tasks in the accompanying figure.  This main TCL script will control
+which tasks are performed on which CPU, and in general can only be restarted 
+at a new five color frame.  The diagram shows only the scientific steps
+performed.
+
+%\epsfxsize=0.98\textwidth
+%\vspace{-1.5cm}
+%\epsfbox{ppflow.eps}
+\epsfigure{frames_pipeline.eps}{}{}
+
+\subsection{Input to the Frames Pipeline Processor}
+
+	The level zero photometric pipeline reads its input as a
+set of FITS and ascii files on disk.  The input includes the data
+processing plan, the software parameters, the CCD parameters, the bias
+vectors, the calibration parameters, the flatfield vectors, and the
+raw images.
+
+\subsubsection{Data Processing Plan}
+
+	The data processing plan identifies the other files to be used in
+the processing, a resource plan (tape
+devices, disk directories, etc.) as well as the mode of operation (this is
+where we can specify debugging, use only two colors, or
+normal mode, for example).
+
+\subsubsection{Software Parameters}
+
+The science modules access this file of parameters.  These parameters are
+tunable thresholds, radii, etc.  The file is ASCII with one parameter name
+and value per line.
+
+\subsubsection{CCD Parameters}
+
+This is currently an ASCII file of parameters, but one could easily
+convert it to a FITS file if necessary.  It gives the size and location
+of the data regions, the size and location of the bias regions, the
+readout noise(s) and gain(s), the defects, etc.
+
+\subsubsection{Calibration Parameters}
+
+The postage stamp pipeline outputs one set of calibration parameters per
+frame.  The parameters include: photmetric parameters, astrometric
+parameters, psf, sky value and slope, and left and right bias level correction.
+
+\subsubsection{Flatfielding vectors}
+
+From the postage stamp pipeline, we get one bias vector per CCD, and one
+flatfield vector for each frame and color.  These are read in as separate
+FITS files.
+
+\subsubsection{Raw Images}
+
+The raw images are read in as FITS disk files of frames that are 2128 columns
+(including 80 overscan columns) and 1358 rows.
+
+\subsection{Scientific output from the Frames Pipeline Processor}
+
+The output described here should be
+sufficient to select galaxy targets for the spectroscopic survey, and to
+achieve the primary science outlined in the Principles of Operation of
+the Sky Survey Project.  Each of the following is output for each
+(five-color) frame.
+
+\subsubsection{Corrected frames}
+
+	The corrected frames are 1489 rows by 2048 columns (including
+the 10\% overlaps).  They are currenly written to disk, but one would imagine
+that the level one system would have to write them directly to tape.
+The frames are bias subtracted and divided by
+the flatfield vector (all scaled appropriately).  These files are 6.1
+megabytes per color.
+
+\subsubsection{Noise frames}
+
+	The noise frames are one byte of data per pixel in the corrected
+frames, giving the error in the pixel value.  This is in general the
+Poisson noise, but could be larger due to interpolation, object subtraction,
+etc.  The noise is 3.1 megabytes per color.
+
+\subsubsection{Mask}
+
+	The mask is one byte of bit information per pixel in the corrected
+frames.  The bits are:
+
+\begin{itemize}
+\item MASK\_INTERP - the pixel's value has been interpolated
+\item MASK\_SATUR - the pixel is/was saturated
+\item MASK\_NOTCHECKED - the pixel was NOT examined for an object
+\item MASK\_OBJECT - the pixel is part of some object
+\item MASK\_BRIGHTOBJECT - the pixel is part of bright object
+\item MASK\_CATOBJECT - the pixel is part of a catalogued object
+\item MASK\_SUBTRACTED - the model has been subtracted from pixel
+\item MASK\_GHOST - the pixel is part of a ghost
+\end {itemize}
+
+The mask is 3.1 megabytes per color.
+
+\subsubsection{Catalog of objects and atlas images}
+
+The catalog of objects is a FITS file containing all of the merged objects.
+The list contains all of the objects found by both the bright object and
+the faint object finder, and all are classified by the faint object finder
+so all of the parameters are comparable.  The FITS file also contains the
+atlas images for the objects.  In the nine frames we processed, the
+output lists were 119, 3, 10, 12, 13, 13, 11, 31, and 14 megabytes (including
+all five colors).  The largest output file was from an image that contained
+two crossing satellite trails.
+
+\subsubsection{Binned images}
+
+In addition to the atlas images of the interesting objects in the image,
+we store a crude reproduction of the whole image, which will
+be useful for quality assurance, and as a tool for finding charts, etc.
+We bin the image in 4x4 pixel chunks, and write out the resulting FITS
+file.  This output is 0.4 megabytes per color.
+
+\subsubsection{Frame statistics}
+
+	There are several obvious plots we can make to analyse the
+results on a frame by frame basis.  To this end, we output a for each frame
+the:
+\begin{enumerate}
+\item number of stars, galaxies, and others (three numbers)
+\sitem image minimum, maximum, median, sky, and sigma in each color
+\sitem number of bright and faint objects found in each color
+\sitem number of pixels flagged as bad in each color.
+\end{enumerate}
+From this information which is written out as flat files, we can generate
+a plot versus frame number for each item.  This is a very small amount of
+data.
+
+\subsection{Verbose Output from the Processor}
+
+	If verbose mode is requested, we will get extra information
+in addition to the output obtained from normal operation.
+
+\subsection{Images to the screen}
+
+	If display is chosen, raw frames, and corrected frames, 
+noise regions, and (overlaid) 
+masks are sent to a display, and the objects as they are found are indicated
+on the corrected image.

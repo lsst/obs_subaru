@@ -1,0 +1,166 @@
+#!/usr/local/bin/perl
+# -*- perl -*-
+#
+# Process photo's .config file
+#
+require "complete.pl";
+require "getopts.pl";
+
+if(!&Getopts('fhnop:rPv')) {
+   &syntax;
+   exit 1;
+}
+
+if($opt_h) {
+   &syntax;
+   exit 1;
+}
+
+if($opt_f) {
+   $fullpath = 1;
+}
+if($opt_n) {
+   $not = 1;
+}
+if($opt_o) {
+   $objectfile = 1;
+}
+if($opt_P) {
+   $prune = 1;
+}
+if($opt_p) {
+   $pattern = $opt_p;
+}
+if($opt_r) {
+   $objectfile = $remove = 1;
+}
+if($opt_v) {
+   $verbose = 1;
+}
+
+if($objectfile) {		# remove using full pathname
+   $fullpath = 1;
+}
+
+$dir = $ARGV[0];
+$config = ($dir eq "") ? ".config" : "$dir/.config";
+
+if(!open(CONF,$config)) {
+   if($dir ne "") {
+      die "Cannot open $config\n";
+   } else {			# try src
+      open(CONF,"src/$config") || die "Cannot open $config or src/config\n";
+      $config = "src/$config";
+   }
+}
+
+while (<CONF>) {
+   chop;
+   if(/^g?cc/) {
+      if($prune) {
+	 if(/\.o\s*$/) {
+	    next;		# prune all .o files that have leaked in
+	 }
+      } else {
+	 s/^cc\s+//;
+	 s/-c\s+//;
+	 s/-I\S+\s+//g;
+	 s/-(x?ansi(posix)?|DCHECK_LEAKS|fullwarn|wlint,-fp)\s+//g;
+	 s/\s+/ /g;
+      }
+      ($opts,$file) = m/(.*)\s+(\S+)$/;
+      if($fullpath) {
+	 $file = "$dir/$file";
+      }
+      if($objectfile) {
+	 $file =~ s|\.[cf]$|.o|;
+      }
+      $options{$file} = $opts;
+   }
+}
+close(CONF);
+
+if($prune) {
+   open(CONF,">$config") || die "Cannot open $config for write\n";
+
+   foreach $name (sort keys(%options)) {
+      printf CONF "%s %s\n",$options{$name},$name;
+   }
+   exit 0;
+}
+
+foreach $name (sort keys(%options)) {
+   $opts = $options{$name};
+   if($pattern) {
+      $match = ("$name $opts" =~ m/$pattern/o);
+      if($not) { $match = !$match; }
+      if(!$match) {
+	 next;
+      }
+
+      if($objectfile && !$remove) {
+	 print "$name\n";
+	 next;
+      }
+   }
+   if($remove) {
+      $file = (-f $name) ? "$name" : "src$name";
+      if(-f $file) {
+	 if(!$force_remove) {
+	    $in = &Complete("remove $file? ", ("", "!", "n", "q", "y"));
+	    
+	    if($in eq "q") {
+	       exit;
+	    }
+	    if($in eq "!") {
+	       $in = "y";
+	       $force_remove = 1;
+	    }
+	    if(!($in eq "" || $in eq "y")) {
+	       next;
+	    }
+	 }
+	 unlink($file) || warn("Cannot remove $file\n");
+      }
+   } else {
+      $file = "$name";
+      if(!-f $name) {
+	 if($file !~ m|^/|) {
+	    $file = "/" . $file;
+	 }
+	 $file = "src" . $file;
+      }
+
+      if(-f $file) {
+	 printf("%-30s%s\n",$name,$options{$name});
+      }
+   }
+}
+
+###############################################################################
+
+sub syntax
+{
+   print <<"EOT";
+Process a .config file in directory dir (default: .). With no options,
+print all the files and the options used to compile them.
+
+For example, to remove all object files that aren't optimised, say
+    rm `config -o -n -p "-O" src`
+
+Usage:
+    config [options] [dir]
+Options:
+    -h		Print this message
+    -f          Report files by their full path name
+    -n          Only print filenames whose options don't match -p
+    -o		Replace filenames with the corresponding object file names;
+		also prepend directory names as appropriate
+    -p regexp	Only print filenames whose options match regexp
+    -P		Prune the .config file
+    -r          Remove matching objectfiles (like rm `config ... -o`).
+    -v		Be chatty
+Usually -r will ask you if you want to remove each file; if you answer "!",
+the question will be ommited for all further files.
+EOT
+}

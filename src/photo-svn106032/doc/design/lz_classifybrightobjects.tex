@@ -1,0 +1,134 @@
+
+\subsection{Introduction}
+
+This module classifies each object on the object list and adds the
+classifications as a field in the list.  The first step is to classify
+as star/ not star - future versions will differentiate satellites, airplanes,
+etc.
+
+\subsection{Input}
+
+\subsubsection{Object list}
+\subsubsection{Five color frame masks}
+\subsubsection{Parameters}
+A small set of parameters defining the limits of stars.  For
+example, the greatest deviation from the PSF allowed.  This will be
+extended for other objects in later versions.
+
+\subsection{Output}
+
+\subsubsection{Updated object list}
+
+\subsection{Modules}
+
+\subsection{Algorithms}
+
+It is thought that from several levels of connected pixel mask, one can
+compute the area in each object as a function of height.  Stars should
+have a characteristic profile.
+
+\subsection{Quality, Debugging, Resources}
+
+The module should be able to print out a verbose description of
+its actions (finding candidates, fitting them, discarding some)
+as it executes, if desired.
+Additionally, it should print a summary of the total number of candidates,
+and number of actual stars, in the current frame.
+This simple summary should suffice for Quality Assurance during runtime.
+
+In debugging or verbose mode the frame must be displayable in
+real time, with
+stars identified on screen and masked pixels marked (including saturated
+pixels). The PSF profile needs to be displayed with the residuals of each star
+(as a radial profile) together with the input PSF. Regions masked
+for saturated stars and and as tails of diffraction spikes need outlining.
+
+\subsubsection {Test Data Required}
+
+The most important set of test data is that which allows us to
+verify that the candidate-selection and PSF-fitting sections of
+the module are working correctly.  Thus, we need
+
+\begin{itemize}
+  \item a set of frames with a number of bright stellar objects {\it and}
+  \item a catalog of the precise positions and magnitudes of those stars
+\end{itemize}
+
+This data set must be produced by simulations.
+
+A secondary consideration is a set of images with bright non-stellar
+objects as well as bright stellar objects, so that we can verify that
+the discrimination techniques are satisfactory.
+
+Finally, we ought to have a set of images with ``problematic''
+objects --- very strongly saturated stars, which show bleed trails
+and diffraction spikes, and ghost images --- so that we can test
+the code that deals with them.
+
+\subsubsection {Regression Testing}
+
+In order to check that a new version of \fbs accurately reproduces
+the output of some older, presumably correct version,
+we will need some kind of tool for comparing lists of numerical
+data in a ``fuzzy'' fashion; this tool will be required for
+Regression Testing of many modules.
+
+It would be good to have a standard set of test
+images, or even a single one, with a variety of bright stars
+and other objects mixed together.  We could then run the
+module on that image(s) alone to check that it produces the
+correct positions and magnitudes.  Note that we would also
+need a standard {\it PSF} structure and all the other inputs
+for that particular frame to run the tests.
+
+In the worst case, we may be able to use the summary of stars
+found on a frame as a very quick and dirty measure of its
+accuracy.
+
+\subsection {FiniModule}
+
+\subsubsection {Description}
+
+The only task of the {\bf FiniModule} for \fbs is to de-allocate
+any ``private'' memory that has been been used during the entire
+course of pipeline execution.
+
+\subsubsection {Input}
+
+  There is no input (aside from the knowledge of the memory
+which was allocated).
+
+\subsubsection {Output}
+
+  Under normal operation, there will be no output if all goes well.
+Errors, of course, will be flagged by the usual pipeline
+error-handling routines, which will print some kind of
+error message.
+
+  See the note on ``Debugging'' below, however.
+
+\subsubsection {Modules}
+
+  There's only one task to perform.
+
+\subsubsection {Algorithms}
+
+  Nothing fancy needed.
+
+\subsubsection {Quality, Debugging, Resources}
+
+  For debugging purposes, it might be useful for the {\it FiniModule}
+to produce a summary of the complete activity of \fbs over the
+entire run.  This would require the \fbs module to keep track
+of various statistics in private memory and update them constantly
+as it worked.
+
+  No significant memory or CPU will be needed.
+
+\subsubsection {Regression Testing}
+
+  This {\bf FiniModule} is so minimal that no real Regression
+Tests are required.  One could use a simple ASCII comparison
+program to compare the summary statistics list produced
+in ``debugging mode'' with similar lists from previous runs.
+

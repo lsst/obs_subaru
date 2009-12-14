@@ -1,0 +1,59 @@
+
+\subsection{Introduction}
+
+The postage stamps from a run need to be flatfielded and then have their
+positions, brightnesses, and profiles measured (if they are of stars), or
+they need to be discarded.  The flow in this module will be something like:
+\begin{itemize}
+\item {\it For each color}
+\begin{itemize}
+\item {\it For each postage stamp:}
+\begin{itemize}
+\item {\it Read in a postage stamp}
+\item {\it Flatfield the postage stamp}
+\item {\it Find position, add to list}
+\item {\it Find parameters in PSF function, add to list}
+\item {\it Calculate total integrated counts, add to list}
+\end{itemize}
+\item {\it End of stamp loop}
+\end{itemize}
+\item {\it End of color loop}
+\end{itemize}
+
+\subsection{Inputs}
+
+\subsubsection{Postage Stamps}
+
+We will need a complete set of postage stamps in all colors for the current
+run.
+
+\subsubsection{Flatfield Array}
+\subsubsection{Parameters}
+
+We will pass in parameters like how big the aperture should be for
+photometry and at what radius the sky should be calculated.
+
+\subsection{Outputs}
+
+\subsubsection{Star Lists}
+
+We will generate one star list for every color.
+The star list will contain all of the parameters for every object in the
+postage stamps, regardless of whether it is a star or not.  For each object,
+we will know the row and column in the stripe, the parameters that give
+us a best fit to our PSF functional form, and the integrated DN for the
+object.  The great circle coordinates will be added to the list in the
+Astrometric Parameters module.
+
+\subsection{Algorithms}
+
+The algorithms for this section are straighforward.  The only module
+with decisions to be made is the point spread function functional form,
+so that we can fit that function's parameters.  The way this pipeline
+has been constructed, it will be difficult (but possible) to find residuals 
+from a function, since that would mean we have to have the postage stamps
+available during the Find PSF module, or we would have to know ahead
+of time which "stars" to include in building up a residual map as we
+go along.
+
+\subsection{Quality, Debugging, Resources}

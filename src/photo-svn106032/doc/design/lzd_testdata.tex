@@ -1,0 +1,635 @@
+\def\bigskip{\vspace{20pt}}
+\def\smallstep{vspace{10pt}}
+\def\ltsima{$\; \buildrel < \over \sim \;$}
+\def\gtsima{$\; \buildrel > \over \sim \;$}
+
+\bigskip
+\begin{center}
+\section{OVERVIEW}
+\smallskip
+\end{center}
+
+This section provides a guide for users of the SDSS simulated test data.
+A catalog contains galaxies (of various types) and stars.
+The numbers in a catalog file are supposed to represent intrinsic
+parameters of these objects, the sort of quantities that we might imagine
+storing in the final archive.  The image code turns a catalog into a
+set of images (in different bands), representing each
+object by a combination of exponential disk, de Vaucouleurs-law bulge, 
+and point source.  Atmospheric and instrumental effects --- 
+seeing, extinction, noise, cosmic rays, etc.\ --- are added at this
+stage; they do not influence the catalog itself.
+
+\bigskip
+\begin{center}
+\section{CATALOGS}
+\end{center}
+\smallskip
+
+A catalog is a binary data file with one header structure that describes
+global properties of the catalog followed by $N$ object structures,
+where $N$ is the total number of objects in the catalog.
+The catalog header is a structure of the following form:
+\begin{verbatim}
+struct dsscath_ty{       /* catalog header quantities */
+    int   hd_nobj;      /* number of objects */
+    int   hd_rev_g;     /* software revision, galaxy code */
+    int   hd_rev_s;     /* software revision, star code */
+    int   hd_rev_q;     /* software revision, quasar code */
+    int   hd_mdver;     /* morphology-density relation version */
+    int   hd_redver;    /* reddening map version */
+    int   hd_seed_g;    /* random number seed used for galaxy simulation */
+    int   hd_seed_s;    /* random number seed used for star simulation */
+    int   hd_seed_q;    /* random number seed used for quasar simulation */
+    int   hd_xsize;
+    int   hd_ysize;     /* pic x and y sizes, in pixels */
+    float hd_scale;     /* scale in arcsec/pixel */
+    float hd_phi;       /* phi of field in galaxy simulation, degrees */
+    float hd_theta;     /* theta of field in galaxy simulation, degrees */
+    float hd_gal_l;     /* galactic longitude of field used in stars 
+                           simulation, decimal degrees */
+    float hd_gal_b;     /* galactic latitude of field used in stars 
+                           simulation, decimal degrees */
+    float hd_maglim[NFILTER];   /* catalog magnitude limits */
+    int   hd_ispare[64];
+    float hd_fspare[64];
+}
+\end{verbatim}
+
+Different codes are used to add galaxies, stars, and quasars to the catalog;
+revision numbers and random seeds are listed for each of these codes.
+(NB: the quasar code does not exist yet.)  There are also entries for
+the version of the morphology-density relation used to assign galaxy
+types and for the galactic reddening map used to create the catalog.  
+Because reddening happens above the atmosphere, it goes into the catalog,
+not into the transition from catalog to images.
+(NB: reddening
+is not implemented yet.)  The {\tt hd\_theta} and {\tt hd\_phi} entries
+specify the line-of-sight used to select galaxies from the N-body simulation;
+the {\tt hd\_gal\_l} and {\tt hd\_gal\_b} entries specify the galactic
+coordinates assumed for adding stars.  These quantities are presently
+independent, but in the future we will probably adopt a coordinate system
+that ties both to survey coordinates.  There are magnitude limits for
+each filter; an object makes it into the catalog if it lies above the
+magnitude limit in at least one filter.
+
+For each object, there is a data structure of the following form:
+\begin{verbatim}
+struct dsssim_ty{	    	    /* catalog object quantities */
+    float s_x;                  /* position in pixels */
+    float s_y;
+    float s_tflux;              /* total r-band flux density, in Jy */
+    float s_z;                  /* redshift */
+    float s_tanthet;            /* tangent of P. A. */
+    float s_pfrac;              /* fraction of light in psf */
+    float s_bfrac;              /* fraction of light in DeV bulge */
+    float s_color_p[NFILTER];   /* colors (ratio to r-band flux density) 
+                                                         of psf component*/
+    float s_color_b[NFILTER];   /* ditto for bulge component */
+    float s_color_d[NFILTER];   /* ditto for exponential disk component */
+    float s_axrat_b;            /* proj. bulge axis ratio (btwn 0 and 1) */
+    float s_axrat_d;            /* ditto for exp disk */
+    float s_reff_b;             /* half-light major axis of bulge in pix */
+    float s_reff_d;             /* ditto for disk (1.678 x scale length ) */
+    int   s_class;              /* int class (0=star 1=quasar 2=E 3=S0 4=Sa,
+                                 * 5=Sb 6=Sc 7=Sd/Irr)
+                                 */    
+    /* following 4 variables for use with scaled real images */
+    int   s_catindex ;          /* index in real image catalog */
+    float s_multiplier ;        /* flux multiplier */
+    float s_scale ;             /* length rescaling */
+    char  s_objname[7] ;        /* name of galaxy used for image */
+    float s_fspare;             /* float spare */
+    int   s_ispare;             /* int spare */
+}
+\end{verbatim}
+
+An object may have a point source component, a de Vaucouleurs-law 
+bulge component, and an exponential disk component.  
+The fraction of the $r$-band light in the point source and bulge components
+is specified by the quantities {\tt s\_pfrac} and {\tt s\_bfrac}, 
+with any remaining light assigned to the disk component.  Each component
+may have a different color.  At present, stars and quasars are represented
+by point sources, elliptical galaxies by pure bulges, and later type 
+galaxies (including S0's)
+by pure disks.  However, we plan to model intermediate Hubble
+types with combinations of bulge and disk, and perhaps even include
+`Seyfert' galaxies with a point source component at the nucleus.
+The last four variables will be used with versions of the simulation code
+that use scaled images of real galaxies to represent the brighter 
+simulated galaxies.  These variables will allow the user to 
+determine which real object corresponds to a simulated object, and to 
+find out how the image of that object was scaled.
+
+Two C programs that deal with catalog files will be provided along with
+the simulated catalogs themselves.  The first, called `cat2ascii',
+translates a binary catalog file into ascii format.  Users who want to
+write their own code to compare the output of their pipeline modules
+to the catalog file may find `cat2ascii' a useful template from which
+to start.  The second program, called `ascii2cat', translates an ascii
+file (of the sort produced by `cat2ascii') into binary catalog format.
+One can create a `template' ascii file by running `cat2ascii' on an
+existing catalog, then edit the ascii file with one's favorite editor
+and run `ascii2cat' to create a new catalog.  This allows a user to
+change the properties of an object in a catalog, to delete objects from
+a catalog, to add objects to a catalog, or to create a specialized catalog
+with complex or extreme objects  of particular interest, 
+e.g.\ a star in the middle of a binary galaxy.  Note that {\tt nobj} in
+the header must be changed to correspond to the number of objects in
+the revised catalog.
+
+\begin{center}
+\bigskip
+\section{IMAGES}
+\smallskip
+\end{center}
+
+This section describes the methods used to create simulated images
+corresponding to a given catalog.  In the current version of the image-making
+code, a catalog object is represented by a sum of up to three profiles:
+a point spread function (PSF), an inclined exponential disk convolved with
+a PSF, and a de Vaucoleurs-law bulge convolved with a PSF.
+We first describe these profiles, then summarize our procedures for
+adding noise and defects to the images and list some of the parameters
+that are used to define the images.
+  
+\vspace{10pt}
+\subsection{ PSF }
+
+For the form of the point spread function we adopt a
+double-Gaussian with an $r^{-3}$ power-law tail.
+Thus, the intensity pattern produced by a point source of total flux $F_0$ is
+\begin{equation}
+I(r) = {F_0 \over K}
+       \left[ \alpha e^{-{r^2}/2{\sigma_1}^2}
+       + (1 - \alpha - f) e^{-{r^2}/2{\sigma_2}^2}
+       + f\left(1 + \frac{r^2}{\beta {{\sigma}_2}^2}\right)^{-\beta/2}\right] ~,
+\end{equation}
+with 
+$\alpha = 0.9, \beta = 3, \sigma_1 = 0.94$ (pixel), 
+$\sigma_2$ = 2.7 (pixel), and
+\begin{equation}
+f = \frac{\omega (\beta - 2)(\alpha \frac{{\sigma_1}^2}{{\sigma_2}^2} +
+    (1 - \alpha))}{\beta - 2 \omega}
+\end{equation}
+where $\omega$ = 0.075 is the fraction of the total
+light in the power-law component.
+The normalization constant is
+\begin{equation}
+K = 2\pi\left[\alpha\sigma_1^2 + (1-\alpha-f)\sigma_2^2 +
+        f\beta\sigma_2^2/(\beta-2)\right] ~.
+\end{equation}
+With these parameters,
+the PSF corresponds approximately to 1 arcsec seeing.
+
+We add diffraction spikes to all the stars.
+The intensity pattern produced by a diffraction spike is:
+\begin{equation}
+I_{\rm spider}(r,j) = spk_{\rm amp}(r) * spk_{\rm cross}(j) ~,
+\end{equation}
+where
+\begin{equation}
+spk_{\rm amp}(r) = \frac{I_0 \gamma \delta }{\gamma^2 + r^2} ~,
+\end{equation}
+$\gamma$ = 10 (pixel), $\delta$ = 0.01, $I_0$ is the central intensity 
+of the star, and
+\begin{equation}
+spk_{\rm cross}(j) = \frac{1}{\sqrt{2 \pi}}
+      \left[\alpha \sigma_1 e^{-j^2/2{\sigma_1}^2}
+      + (1 - \alpha) \sigma_2 e^{-j^2/2{\sigma_2}^2}\right] ~.
+\end{equation}
+Here $r$ represents a distance from the central star along an arm of the
+diffraction cross, and $j$ represents a distance transverse to the arm.
+Thus $spk_{\rm amp}(r)$ represents the ``raw'' intensity pattern of the
+diffraction spike, and the convolution with $spk_{\rm cross}(j)$
+incorporates the effect of seeing (note that we do not include the
+power-law tail of the seeing in the diffraction spikes).
+ 
+Saturation tracks are made in the central peak of very bright stars, along 
+the direction of the charge transfer (the scanning direction = $y$-axis).
+We set the full-well saturation level at 300,000 electrons.
+(In u and g band, the cutoff produced by 16-bit truncation of the 
+analog-to-digital converter takes effect before CCD full-well saturation).
+
+\vspace{10pt}
+\subsection{ Galaxy Profiles }
+
+For galaxies, we use two kinds of profile, exponential law and de Vaucouleurs
+law.  
+
+The exponential profiles of observed disk galaxies tend to cut off sharply
+at about four scale lengths.  Therefore, we represent disks by a 
+truncated exponential:
+\begin{equation}
+I(r) = I_0 (e^{-{r}/{\epsilon r_e}} - e^{-{4}/{\epsilon r_e}})  
+\end{equation}
+for ($r \leq 4 \epsilon r_e$), and
+\begin{equation}
+I(r) = 0  
+\end{equation}
+for ($r > 4 \epsilon r_e$).
+Here $\epsilon = 1.6783^{-1}$ is the conversion factor between the 
+exponential scale length and the effective radius $r_e$ containing half
+the total light: $r_s=\epsilon r_e$.
+
+The spheroidal component is represented by a de Vaucouleurs law,
+\begin{equation}
+I(r) = I_0 e^{-({r}/{\zeta r_e})^{1/4}} ~,
+\end{equation}
+where $\zeta = 7.6692^{-1}$ is the conversion factor between the scale
+length of the de Vaucoleurs law and the effective radius $r_e$.
+At present, these profiles are truncated when $r$ exceeds 192 pixels,
+or at smaller radii if the intensity becomes insignificant.
+
+The profiles described above are convolved with the PSF of equation (1).
+For reasons of computational efficiency, we calculate the intensity
+pattern of a given object by interpolation within a grid of 276 template
+patterns, which represent profiles with different axis ratios and sizes.
+For exponential disks, we use seven template axis ratios
+(1.0, 0.8, 0.6, 0.4, 0.25, 0.16, 0.10) and compute the inclined profiles
+assuming that the disks are optically thin.
+For de Vaucoleurs-law spheroids, we use five template axis ratios
+(1.0, 0.8, 0.6, 0.4, 0.28).  We make 23 templates for each axis ratio,
+with effective radius increasing by factors of $10^{0.1}$ from
+0.25 (0.4) to 39.6 (15.9) pixels for exponential (de Vaucoleurs-law) profiles.
+In the unusual circumstance that a galaxy lies outside this range of radius,
+we extrapolate.
+
+\vspace{10pt}
+\subsection{Dithering}
+
+When the signal produced by a profile in a single pixel falls below 1 DN,
+we extend the profile further by dithering. 
+When the value is 0.7, for example,
+we input the value 1 DN with a probability of 70\% and 0 DN 
+with probability of 30\%.  Objects thus have dithered tails even when 
+they are in noiseless images.   
+
+\vspace{10pt}
+\subsection{Noise and Defects}
+
+For each catalog and filter, we make images with varying degrees of noise
+and other defects:
+
+\begin{quote}
+    (1)  noiseless images
+
+    (2) images with readout noise and photon noise
+
+    (3) images with photon noise and a background taken directly from 
+	a test CCD (including cosmic rays)
+
+    (4) everything in (3), plus satellite tracks.
+
+    (5) everything in (4), plus sky background fluctuation,
+        band-dependent positional shifts of objects due to atmospheric 
+        differential refraction and rotation of the diffraction spikes.
+
+    (6) everything in (5), plus real CCD background, four "real"
+        galaxy images, and GSC stars.
+\end{quote}
+
+In (2), we assume that the sum of the readout and photon noise is Gaussian.
+In (3) we take the readout noise directly from one of the test CCD's.
+Most of (4) is not yet implemented, but we plan to 
+add these effects and others in the future.  
+
+\vspace{10pt}
+\subsection{Un-flattened Images}
+
+The images described so far are flat and unbiased.  This is fine for
+testing most of the pipeline modules, which operate after {\tt CorrectFrames}
+has done its thing.  However, for some tests we also need un-flattened
+images, with intensity
+\begin{equation}
+I_{unflat} = \frac{I_{flat}}{FF} + bias ~.
+\end{equation}
+Here $FF$ and $bias$ are flat-field and bias vectors, which are obtained
+directly from test CCD data and provided together with the simulated images.
+\footnote{We are using a set of flat-field vectors and bias vectors provided by
+Marc Postman.  Please ask him if you have any questions about these vectors.}
+To separate Postage Stamp Pipeline from Frames Pipeline, we also
+provided flattened images with unflatened format.
+The unflatenned images are stored in frames\_6 of photodata input, and
+flatenned images with unflatened format are stored in frames\_(please ask Naoki).
+
+\vspace{10pt}
+\subsection{Parameters}
+The image scale is 0.400 arcsec/pixel.
+Readout noise is 5 electrons rms.
+The AD unit is determined so that 1 DN corresponds to 2, 4, 6, 6, and
+6 electrons from u to z band.
+
+All magnitudes are on the AB system (where 0 mag represents a
+flux-density of 3630 Jy).
+A 1 Jy flux density gives $qfactor \times qtdll$ electrons, where 
+$qfactor$ = 3.02e9 and $qtdll$ = 0.047, 0.121, 0.120, 0.082, and 0.021
+for u, g, r, i, and z band respectively.  This value of $qfactor$
+assumes an exposure time of 55 seconds and secondary obscuration of 26\%.
+
+The assumed sky brightness is 23.25, 22.31, 21.32, 20.46, and 18.97 mag 
+${\rm arcsec}^{-2}$ for u', g', r', i', and z' band (These sky surface
+brightness levels are recently re-calculated by T.Ichikawa et al. with
+higher wavelength resolution). 
+Atmospheric extinction is 0.675, 0.223, 0.111, 0.097, and 0.135 from u to z 
+at 1.0 airmass.
+Please note that sky brightness is defined at the ground.
+So you should not use it to convert DNs to magnitudes of stars and galaxies. 
+
+We assume atmospheric differential refraction as 2.0, 0.93, 0.39, 0.16, 0.0 
+(arcsec) for u',g',r',i', and z' band for noise level $\geq$5. 
+(Eventually we will change these values as a function of secz).
+
+For levelzero test images, we prepared 2x10x5 frames.
+We have separated this original catalog
+into 2x10 catalogs using the code written by Kazu Shimasaku.  
+Filename conventios are described later of this section.
+
+We input sky background variation as a function of time for noise level $\geq$5.
+We have neglected spatial variation for the moment.
+The functional form is made by a combination of a few sinusoidal
+functions with realistic amplitude and period based on the
+real data taken at Mt. Hopkins (by S.Kent) and at Palomar
+(by M.Postman). The postscript file "skyvar.ps" shows
+the functional form within the current strip.  We use the same function
+for all five color bands, though we take into account the time delay of
+different color bands due to the camera geometry
+( r',z',u',i',g' toward the scanning direction).
+
+The background frames are added for noise level $\geq$ 6.
+The images are provided by Tim McKay from FNAL DSC.
+CCD420.fits - CCD429.fits corresponding to 0th to 9th exposure number
+(explained later).
+Though each FITS file has 2128x2048 pixels, we use only first
+2128x1354 pixels. The same background was used in all
+five colors for the convenience.
+
+Four "real" galaxies are included for noise level $\geq$ 6.
+The original images made by Heidi are stored in the same directory
+as in the simulated images.
+
+\begin{verbatim}
+    m51_conv.fit      :   high_1_0_0,
+    m51_med_conv.fit  :   high_1_1_0,
+    m51_ang_conv.fit  :   high_1_2_0,
+    m51_flat_conv.fit :   high_1_3_0.
+\end{verbatim}
+
+We multiply 0.1, 0.2, 0.3, 0.4, and 0.5 to the original
+values for u',g',r',i', and z' band.
+The position of the image (center of the original image) is
+(512.5,439.5) [(512.5, 512.5) for flattened images] for z-band
+images. Note that these four galaxies are not included in the table.
+
+Real star positions (GSC stars) are included in the images with
+noise level $\geq$ 6. 
+Since the original catalog doesn't include the color of the stars,
+we assumed that the magnitude in the catalog is in r' band,
+and multiplied the linear factors 0.1, 0.5, 1.0, 1.5, and 2.0
+for u', g', r', i', and z' band respectively. (This is not the 
+color but linear factor. If you want to get color, take $-2.5 log_{10}$
+of these factors.) 
+HOWEVER it turns out that there is a
+serious bug in the astrometric conversion of GSC stars, so please do not
+use the positions of GSC stars for the moment.
+
+All of these parameters are listed in the parameter file ({\tt *.par}) that
+accompanies a simulated image.
+
+\begin{center}
+\bigskip
+\section{ FILENAME CONVENTIONS AND FILE FORMATS}
+\smallskip
+\end{center}
+
+\vspace{10pt}
+\subsection{Filename Conventions}
+
+Suppose that we have a simulation of a high-galactic latitude field
+named {\tt high}.  (We do in fact have such a 
+simulation, and a low-galactic latitude simulation called {\tt low}.
+In later versions of the simulations, the filenames will indicate the
+position of the field in survey coordinates.)  
+The complete set of simulated data for one field will include the following 
+files:
+\begin{verbatim}
+    high_0_9_1.cat, high_0_9_1.log,
+    high_0_9_1_u6_unflat.fit, 
+    high_0_9_1_u6_unflat.par, high_0_9_1_u6_unflat.lst,
+    high_0_9_1_g6_unflat.fit,
+    high_0_9_1_g6_unflat.par, high_0_9_1_g6_unflat.lst,
+    high_0_9_1_r6_unflat.fit,
+    high_0_9_1_r6_unflat.par, high_0_9_1_r6_unflat.lst,
+    high_0_9_1_i6_unflat.fit,
+    high_0_9_1_i6_unflat.par, high_0_9_1_i6_unflat.lst,
+    high_0_9_1_z6_unflat.fit,
+    high_0_9_1_z6_unflat.par, high_0_9_1_z6_unflat.lst,
+\end{verbatim}
+
+Suppose taht the file {\tt high.cat} is the original catalog file, 
+in the binary format described above.
+For level zero test images, we have separated this original catalog 
+into 2x10 catalogs high\_(a)\_(b)\_(c).cat.
+Here (a) indicates strip No. (0 and 1 makes one stripe), 
+(b) indicates the number of the exposure, and (c) indicates the 
+position of the dewar (or column of the CCD). 
+There are simple observational log files which include
+the survey coordinate (eta,lambda), Date, sec(z), Galactic coordinate (l,b)
+high\_(a)\_(b)\_(c).log.
+The letter following {\tt \_(a)\_(b)\_(c)} indicates the filter, i.e.\ u, g,
+r, i, z (omitting the $^\prime$s).
+The number $6$ following the filter
+name indicates the noise/defect category of the image.
+Unflattened images have {\tt \_unflat} after the filter/noise
+entry, e.g.\ {\tt high\_0\_9\_1\_u1\_unflat.fit}, and we provide 1-d fits
+files containing the flat-field and bias vectors with names 
+{\tt high\_u\_ff.fit}, {\tt high\_bias.fit}, etc. 
+
+Files ending in {\tt .fit} are the images, in FITS U16 format.
+The image size of unflattened images is 2128 $\times$
+1354 with 20 extended and 20 overscanning pixels in each side.
+Files ending in {\tt .par} are ASCII files listing
+parameters used to create the images.  Files ending in {\tt .lst} 
+are ASCII files listing properties of the objects in the image
+(and are therefore partly redundant with the catalog file).
+
+
+\vspace{10pt}
+\subsection{File Formats}
+
+The format of the catalog file has already been described.
+The format of the remaining files is as follows.
+
+\noindent
+i) {\tt *.fit} (FITS file)
+
+The image files are in FITS U16 format, with size 2048 $\times$ 1354 pixels.
+The fits header of the test images is based on the document
+``TEST DATA PREPROCESSOR SPECIFICATIONS''
+by S. Kent et al.
+Some of the header entries carry ``real'' meaning,
+but most of them are still dummy parameters. We will assign realistic
+values to these parameters when we create a succession of
+test frames along a stripe.
+
+\noindent
+ii) {\tt *.par} (ASCII file)
+
+\noindent
+This file lists the parameters adopted when creating the image, e.g.\
+
+\begin{quote}
+Double gaussian psf, sig1,2 = 0.94 2.70, amp1=0.900
+
+e- per Jy = 3.62e+08, e- per DN =  6.00
+
+filter r'  lameff  6279  sig 0.071
+
+noise : photon
+
+atmospheric extinction (mag) = 0.130647
+
+sky background (mag)         = 21.320000
+
+background level (DN)        = 104
+
+saturation level  = 50000
+
+software revision = 7
+
+\end{quote}
+The last entry represents the revision number of the image-making code,
+not the code used to make the catalog itself.  Catalog software versions
+are listed in the catalog header.
+Since we already experimented with a few test images using an older version of 
+the image code, we list the software revision as 2 for these first
+archive images.
+
+When we make an image, we remove extremely bright or faint objects.
+The range of magnitudes used for different object classes is listed in 
+the {\tt .par} file like this:
+
+\begin{tabular}{lrrrrrrrr} 
+flux range (class)  &   0 &    1 &    2 &    3 &    4 &    5 &    6  &   7 \\
+
+ max (mag)        = &  0.0&   0.0&   0.0&   0.0&   0.0&   0.0&   0.0 &  0.0 \\
+
+ min (mag)        = & 30.0&  30.0&  30.0&  30.0&  30.0&  30.0&  30.0 & 30.0 \\
+\end{tabular} 
+\begin{quote} 
+number of objects used =   1075 /   1075  
+\end{quote} 
+The last line tells what fraction of the objects in the catalog file
+actually went into the image.  Note that this number may vary from band 
+to band, since an object may be within the flux limits in one band
+but outside them in another.
+
+The {\tt .par} file ends with a table that
+shows the number of objects contained in the frame 
+by 1-mag bin and by class.
+
+\begin{tabular} {rlrcrrrrrrrrr}
+ class & mag &$<$  10.0& ...&  16.0&  17.0&  18.0&  19.0&  20.0&  21.0  &22.0&  23.0&  24.0$<$ \\
+
+    0& star   & 0 &...&  9 &   7  & 12  & 13  & 31  & 34 &  31  & 53  &171\\
+
+    1& quasar & 0 &...&  0 &   0  &  0  &  0  &  0  &  0 &   0  &  0  &  0\\
+
+    2& E      & 0 &...&  0 &   0  &  1  &  1  &  7  &  8 &  27  & 34  & 64\\
+
+    3& S0     & 0 &...&  0 &   0  &  1  &  2  &  9  & 26 &  55  & 76  &131\\
+
+    4& Sa     & 0 &...&  0 &   1  &  0  &  4  &  6  & 20 &  52  & 76  &118\\
+
+    5& Sb     & 0 &...&  0 &   1  &  4  &  7  &  9  & 35 &  68  & 83  &113\\
+
+    6& Sc     & 0 &...&  0 &   1  &  2  &  8  & 17  & 53 &  96  &123  &155\\
+
+    7& Sd/Irr & 0 &...&  0 &   0  &  0  &  0  &  0  &  0 &   0  &  0  &  0\\
+
+\end{tabular} 
+
+\noindent
+iii) {\tt *.lst} (ASCII file)
+
+Because of the limitations of the image creation process, we expect 
+differences of order one percent
+between the flux in the catalog and the flux in the image itself.
+We also make approximations and interpolations for the shapes of the galaxies.
+This file lists properties of the objects as they appear in the image.
+
+The first 17 lines of this file are exactly the same as those in 
+an ASCII translation of the catalog file {\tt *.cat}.
+We add one line which shows the color and the units used in the image,
+angle toward the zenith and sec z for the user's convenience,
+e.g., 
+
+\begin{quote}
+filter = r'  1 Jy =  3.213e+08 electrons, 1 Jy =  5.355e+07 DN, 1 DN =    28.22 mag           
+
+angle(deg)=-0.551173   sec z=1.177000
+
+\end{quote}
+
+\noindent
+Then there is a table of objects in the frame.
+One line corresponds to one object. 
+
+\begin{tabular}{ll}
+{\bf No}  & sequential number of the object in the image \\
+
+{\bf r}   &    position (pixel) in row  \\
+
+{\bf c}   &    position (pixel) in column  \\
+
+{\bf f\_c(DN)} &flux (DN) in the catalog \\
+
+{\bf r\_b} &  effective radius (pixel) for deV component in the catalog \\
+
+{\bf r\_d} &   effective radius (pixel) for exp component in the catalog \\
+
+{\bf ar\_b}&   axis ratio for deV component in the catalog \\
+
+{\bf ar\_d}&   axis ratio for exp component in the catalog  \\
+
+{\bf tanth}&   tangent of position angle in the catalog  \\
+
+{\bf f\_in(DN)}& flux (DN) input in the image \\
+
+{\bf aj}  &   template index in the image  \\
+
+{\bf f\_cat(Jy)}& flux (Jy) in the catalog \\
+
+{\bf color\_p} & flux ratio of PSF component in this band with respect to r-band flux \\
+
+{\bf color\_b} &  flux ratio of deV component in this band with respect to r-band flux \\
+
+{\bf color\_d} &  flux ratio of exp component in this band with respect to r-band flux \\
+
+{\bf cl}     &  class (0=star 1=quasar 2=E 3=S0 4=Sa, 5=Sb 6=Sc 7=Sd/Irr) \\
+
+{\bf redshift}     &  redshift of the object \\
+\end{tabular}
+
+Most of this information is redundant with that in the catalog file.
+The important new piece of information is the flux that actually appears
+in the image.  The index $aj$ indicates, in a rather obscure way,
+which template was used to create the object image.  We don't expect
+that end-users will need this information; those who do should contact
+MD or JG.
+
+\begin{center}
+\bigskip
+\section{ Other  Simulated Images}
+\smallskip
+\end{center}
+
+We are mainly providing noise level 6 (according to module writers'
+request). M.D. personally feels that we should use noise level 2 
+as a first step. M.D. is glad to provide special purpose images such as 
+with different noise levels, the images without diffraction spikes, the 
+images without galaxies, etc. The images for the Monitor telescopes are 
+also created with the observational parameters for MT.
+If you need special purpose test data, please contact with M.D. or D.H.W.
+
+

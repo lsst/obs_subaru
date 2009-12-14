@@ -1,0 +1,169 @@
+#
+# Check that provided plan parameters appear in this file? Their value
+# may be `default'.
+#
+# A value of 1 prints a warning, Values >= 2 cause an error to be thrown.
+#
+check_planfile		2
+allow_params		0		# allow a non-empty fpParam.par file?
+include			default
+
+action			frames
+#
+# Parameters that are permitted, but are not set here
+#
+version			default
+run			nodefault
+camCol			nodefault
+rerun			nodefault
+startField		nodefault
+endField		nodefault
+skipFieldList		default		# fields to skip (e.g. 21 22-30)
+fieldList		default
+fieldList1		default
+fieldList2		default
+fieldList3		default
+fieldList4		default
+fieldList5		default
+fieldList6		default
+
+baseDir			nodefault
+
+ccdBC			nodefault
+ccdCamera		/dev/null
+ccdConfig		nodefault
+ccdECalib		nodefault
+
+idCoadds		/dev/null
+#
+# Formats for filenames.
+#
+asTrans_format		asTrans-%06d.fit        $run
+fpC_format		fpC-%06d-%s%d-%04d.fit  $run $filter $camCol $field
+fpM_format		fpM-%06d-%s%d-%04d.fit  $run $filter $camCol $field
+idB_format		idB-%06d-%s%d.fit       $run $filter $camCol
+idR_format		idR-%06d-%s%d-%04d.fit  $run $filter $camCol $field
+psBB_format		psBB-%06d-%s%d-%04d.fit $run $filter $camCol $field
+psFF_format		psFF-%06d-%s%d.fit      $run $filter $camCol
+psField_format		psField-%06d-%d-%04d.fit $run $camCol $field
+#
+# Values for which reasonable default values exist
+#
+# First directories/files
+#
+biasDir			$baseDir/$run/$rerun/photo/calib
+configDir		$baseDir/$run/$rerun/logs
+ffDir			$psDir
+fpCDir			$outputDir
+imageDir		$baseDir/$run/$rerun/fields/$camCol
+includeDir		$baseDir/$run/$rerun/photo
+outputDir		$baseDir/$run/$rerun/objcs/$camCol
+parametersDir		$baseDir/$run/$rerun/photo
+psDir			$baseDir/$run/$rerun/objcs/$camCol
+psBBDir			$psDir
+transFileDir		$baseDir/$run/$rerun/astrom
+koDir			/dev/null
+#
+# Then parameters
+#
+ccdrow_r		1		# order of filters
+ccdrow_i		2
+ccdrow_u		3
+ccdrow_z		4
+ccdrow_g		5
+
+filterlist		u g r i z	# filters to process
+
+parameters		fpParam.par	# name of parameter file
+
+time_limit		0		# Max number of seconds per field;
+					# 0 means unlimited
+memory_limit		0		# Maximum memory permitted (0 => unlimited)
+					# May end in nothing, k, M, or G
+memory_reserve		10M		# Memory to reserve for emergencies; 
+					# if it's used, the field will be aborted as TOO_LARGE
+					# May end in nothing, k, M, or G
+fp_memBlocksize		0		# minimum size of malloced blocks.
+					# May end in nothing, k, kby, M, or Mby
+
+allow_id_mismatch	0		# if true, only print a warning if
+					# e.g. PS_ID differs between files
+trace_memory		0		# Write a memory trace
+crc_nbyte_max		0		# number of bytes to include in CRCs
+
+allow_old_psField	0		# read at least some old psField files
+					# correctly.
+no_overlap		0		# Don't read next frame for overlap
+
+write_test_info		0		# if 1 write the TEST_INFO output files
+verbose			0		# verbose > 0 means print a lot
+
+diagnostics		1
+diagFile		fpDiag
+
+koFile_format				# format for known object files, if provided
+read_psBB_files		1		# use psBB per-field biases?
+read_fpC_files		0		# should I read fpC, not idR, files?
+idR_zero		0		# Add this to all input idR files
+fpC_scale		1		# Scale all input fpC files by this
+					# (before adding fpC_zero)
+fpC_zero		0		# Add this to all input fpC files
+write_fpC_files		1		# should I write fpC files?
+write_fpAtlas_files	1		# write fpAtlas image file?
+write_bright_atlas_images 0		# write atlas images for BRIGHT objects?
+compress_image_files	0		# compress output fpC/fpBIN files?
+					# May be 0/1/R/gz (1 == "R")
+#
+# Flags to control whether certain parts of the pipeline are run
+#
+# Do not fiddle with these! With the exception of no_CR_removal (used by FSC)
+# these are only supposed to be used in timing experiments
+#
+no_CR_removal		0		# Suppress CR removal; used by FSC
+no_measure_objects	0		# Suppress measure_objects modules
+no_search_binned	0		# Suppress binning/finding objects
+
+plot_summary		1		# make PS summary plots?
+display			0  		# |display| > 0 means show various
+                                        #  images as the pipeline progresses,
+                                        #  waiting for user input after 
+                                        #  displaying each one if display > 0
+					#  If |display| > 10, use a large image
+# The other display_* params only apply if $display is true
+display_filterlist	all		# names of filters to display
+display_zoom		1		# how much to zoom after displaying
+display_row		-1		# where to zoom about
+display_col		-1
+#
+display_raw		0		# display raw and corrected frames
+display_measure_bright	0		# Show frame just after measuring bright objects
+display_smooth 		0		# show frame after smoothing with PSF
+display_sky_model	0		# show image of model of bright objects removed before sky subtraction
+display_sky_subtracted  0               # show frame after sky subtraction
+display_binned 		0		# show binned objects as they are found
+display_ko		0		# show known objects (with catID's if > 1)
+
+display_objs		0		# display objects as they are measured
+					# if > 1, show IDs too.
+					# If display_objs is true, obey:
+display_isoEllipse	0		# show isophotal fit
+display_peaks		0		# show all peaks within objects
+display_petroRad	0		# show object's Petrosian radius
+display_petroRadUQ	0		# show object's Petrosian radius, with
+					# shape given by U/Q
+display_children	0		# show children as we write objects
+display_merged		0		# show merged object lists
+
+display_summary		0		# display summary graphs at end of run
+#
+# Optional truth table stuff
+#
+truth_file		/dev/null
+truth_format		%*g %*s %g %*g %*g %*s %g %g %g %*s
+truth_cols 		2 3 1 4
+truth_dist		2
+#
+# Optional extra peaks stuff
+#
+extra_peaks_file	/dev/null
+

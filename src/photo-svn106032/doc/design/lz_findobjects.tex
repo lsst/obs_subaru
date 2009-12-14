@@ -1,0 +1,401 @@
+
+\subsection{Introduction}
+
+We assume that the difficult job of cleaning up the frame has been
+accomplished before this module.  We concentrate here on finding
+interesting objects.  From the mask information contained in the
+region we will know which pixels to ignore.
+
+The level zero goal is to have an object finder that works at
+least as well as FOCAS. 
+The general approach is to identify
+significant pixels, group significant pixels together, and
+report basic parameters.  Detailed characterization of each
+found object is accomplished in {\bf Measure Objects}.
+Each color is processed separately.  At a later stage the information from
+the five colors is merged together.
+Objects are not deblended here, but in {\bf Measure Objects}.
+ 
+\subsection{InitFindObjects}
+
+The initialization module {\bf InitFindObjects} needs to get the values 
+of parameters that control the object finding:
+
+\subsubsection {Input}
+
+\begin{description}
+ \item[\qquad fo\_min\_flux] the minimum flux (in units of the sky sigma)
+         to be called an object
+ \item[\qquad fo\_min\_npixel] the minimum number of pixels to be called 
+         an object
+ \item[\qquad fo\_max\_npixel] the maximum number of pixels allowed in an 
+         object.
+ \item[\qquad fo\_threshold] the threshold (in units of sky sigma) 
+         for marking a pixel as significant
+\end{description}
+
+We also need to set up a temporary array or mask to mark significant
+pixels.  This information later needs to be put in the final mask.
+%maybe there is room in the mask that comes with the image to do this.
+%If not, we need to allocate memory for this purpose.
+The current method also uses memory space to store information of adjacent 
+significant pixels before determining which groups of pixels satisfy 
+the conditions for objects ($\sim$ 25 byte/group, $<$ 50k groups).  
+If we smooth the images to detect low surface brightness objects,
+we need another one-frame-size working memory (about 6 Mbytes, assuming
+16-bit integers) to store the smoothed image. 
+In total, about 15 - 20 Mbyte working space (in addition to memory for 5
+original images) will be needed for effective codes.
+
+\subsubsection{Output}           
+
+A smoothed image in memory (one frame size) will be the output when 
+we use the smoothed image for finding objects.  
+Otherwise, there will be no output of {\bf InitFindObjects} except for 
+error messages.
+
+\subsection {Modules}
+
+These are the basic modules we need for the {\bf Find Objects} task.
+
+\begin{description}
+  \item[\quad measureSky] returns a typical sky value and the variation in
+          that value for a frame.  This may occur in {\bf Correct Frames}, 
+          but it is also described here. 
+  \item[\quad findObjects] returns a list of the objects found in this frame.
+          This subroutine uses the following four subroutines.
+  \begin{description}
+     \item[\quad groupSignificanPixels] builds up objects out of adjacent 
+             significant pixels.
+     \item[\quad measureSimpleParameters] calculates basic parameters for each 
+             group of significant pixels.
+     \item[\quad addObj1] adds an object to the list. 
+             This is a utility function.
+     \item[\quad markSignificantPixels] marks the pixels that are above 
+             the sky level by more than a threshold amount and 
+             connected to objects found in {\bf findObjects}. 
+  \end{description}
+\end{description}
+
+\subsubsection{Input}           
+
+The {\bf Find Objects} module requires the following as input:
+
+\begin{description}
+  \item a cleaned frame {\it or}
+  \item {\it if we search in a smoothed frame} a smoothed version of
+          the clean frame
+  \item the parameters described in the {\bf InitFindObjects} section,
+          which affect the object-finding algorithms
+\end{description}
+
+\subsubsection{Output}           
+
+The output are number of objects found in each frame and other information 
+which summarizes the measurements.
+This information will be logged in a disk file. If the 
+debug flags are set, details will be printed out. 
+
+\begin{verbatim}
+__________________________________________________________________________
+\end{verbatim}
+
+
+\subsection {measureSky}
+
+The sky background level and the typical background noise (sigma) are 
+determined before {\bf findObjects}. 
+
+There are several reasons to determine the sky value 
+again. First, we can avoid the effect of bright objects,
+since we have the mask information of bright objects here (after
+the {\bf Find Bright Stars} and {\bf Find Bright Objects}
+modules have run). 
+Second, 
+if the sky background is not constant within one frame, we can
+determine local sky here. 
+Third, if we smooth the image, we
+had better measure background noise again.
+
+At level zero, one constant value 
+per frame ({\it skyTypical}) will be used as the sky background level.
+If the sky background level turns out to be not constant, this
+module will be modified to determine the local sky values. 
+
+%\begin{returnval}
+\begin{description}
+  \item{\quad SDSS\_OK} is usually returned.
+  \item{\quad SDSS\_ERROR} is returned on catastrophic error.
+\end{description}
+%\end{returnval}
+
+\begin{arguments}
+\item{\quad regionIn}(region)(I) contains the frame of interest.
+\item{\quad readNoise}(float)(I) is the read noise for the frame, in electrons.
+\item{\quad gain}(float)(I) is the gain in electrons per ADU
+\item{\quad skyTypical}(float)(O) is a single number describing the typical 
+             value of the sky in this frame, in ADU.
+\item{\quad skySigma}(float)(O) is the statistical sigma for skyTypical, in ADU.
+\end{arguments}
+
+\subsubsection {Algorithms}
+
+The sky background is determined by taking statistics within
+several regions in a frame. Output values skyTypical and skySigma 
+are determined by taking a suitable average of values obtained
+in those regions. 
+Calculating the mean (median) and sigma within each region after rejecting 
+high sigma pixels may work to obtain skyTypical and skySigma. 
+It is probably better to fit a peak of the intensity histogram with
+a suitable function.  The fitting function is to be determined and 
+will be Gaussian, third-order polynomial, or any other suitable function. 
+This fitting also gives a typical background noise.
+The size and number of regions and types of the fitting function 
+must be tuned using test data.
+
+\subsubsection {Quality, Debugging, Resources}
+
+Values determined by this module should not be affected by
+the contamination of objects.
+The region which includes mask information of Bright Objects
+must be rejected from the final average. 
+%Using photon statistics we can check the consistency between
+%skyTypical and skySigma.
+
+\subsubsection {Test Data Required}
+
+\begin{description}
+\item{\quad} (1) a set of frames with a Gaussian background noise.
+\item{\quad} (2) a set of frames with a realistic background noise.
+\item{\quad} (3) a set of frames of simulated images with a 
+                    Gaussian background noise.
+\item{\quad} (4) a set of frames of simulated images with a 
+                    realistic background noise.
+\item{\quad} (5) a set of frames of simulated images with a 
+                    realistic background noise and bright objects.
+\end{description}
+
+\subsubsection {Regression Testing}
+
+This module should return skyTypical and skySigma 
+accurate enough to allow us to find faint and low surface brightness objects,
+even if a bright object is located within or near the frame. 
+ 
+\begin{verbatim}
+__________________________________________________________________________
+\end{verbatim}
+
+\subsection{findObjects}
+
+\begin{description}
+\item[findObjects] calls markSignificantPixels, groupSignificanPixels,
+measureSimpleParameters, and addObj1.
+\end{description}
+
+%\begin{returnval}
+\begin{description}
+\item{\quad SDSS\_OK} is usually returned.
+\item{\quad SDSS\_ERROR} is returned on catastrophic error.
+\end{description}
+%\end{returnval}
+
+\begin{arguments}
+\item{\quad regionIn}(region)(I) contains the frame of interest.
+\item{\quad skyTypical}(float)(I) is a single number describing the 
+             typical value of the sky in this frame, in ADU.
+\item{\quad skySigma}(float)(I) is the statistical sigma for 
+             skyTypical, in ADU.
+\item{\quad readNoise}(float)(I) is the read noise for the frame, in electrons.
+\item{\quad gain}(float)(I) is the gain in electrons per ADU.
+\item{\quad fo\_min\_flux}(float)(I) the minimum flux (in units of sky-sigma) 
+             of pixels to be called an object.
+\item{\quad fo\_min\_npixel}(int)(I) the minimum number of pixels to be 
+             called an object.
+\item{\quad fo\_max\_npixel}(int)(I) the maximum number of pixels allowed 
+             in an object.
+\item{\quad fo\_threshold}(float)(I) the threshold (in sky-sigma)  
+             for saying a pixel is significant
+\item{\quad outList}(obj1list)(O) is the list of objects found. 
+\end{arguments}
+The parameters measured for each object are: 
+\begin{description}
+  \item[\qquad npixel](int) the number of connected pixels in this object.
+  \item[\qquad ncount](float) the total number of ADU counts within 
+                  the isophote.
+  \item[\qquad avx](float) the weighted average of x pixel positions.
+  \item[\qquad avy](float) the weighted average of y pixel positions.
+  \item[\qquad edgeflag](1bit) if the object touches the edge of the frame.
+  \item[\qquad brightflag](1bit) if the object touches pixels masked out 
+                  in previous modules.
+  \item[\qquad minx](ushort) the minimum x value of connected pixels.
+  \item[\qquad miny](ushort) the minimum y value of connected pixels.
+  \item[\qquad maxx](ushort) the maximum x value of connected pixels.
+  \item[\qquad maxy](ushort) the maximum y value of connected pixels.
+\end{description}
+
+\subsubsection {Algorithms}
+The ``connected pixel'' method which is used for 
+APM, COSMOS, FOCAS, AIMS, etc. will be used in level zero. 
+This method returns (regions of) object candidates; 
+a final determination of significant objects will be done in 
+{\bf MeasureObjects}.  
+A more sophisticated algorithm may be added to this module in
+Level One if it is needed.
+
+There are two possibilities to choose a processing unit.
+\begin{description}
+\item[\quad (1) a whole frame processing]:  processing a whole 
+       frame at the same time using a binary 0/1 map 
+\item[\quad (2) line by line processing]: a classical line-by-line 
+        method for real time processing
+\end{description}
+
+Though method (2) has been popular in automatic programs so far, 
+we will try to use method (1) because 
+a more simple (and hopefully vectorized) coding is possible and also 
+because we should mark significant pixels anyway. If we do not have 
+enough memory space, we will use the method (1). 
+
+First a one-bit map of a whole frame is made by comparing the value 
+of each pixel and fo\_threshold.
+Second, each pixel is examined whether it is connected to others
+(up, down, right, left) or not. 
+If it is connected, the information of the pixel
+is input into a group information. 
+Necessary parameters to get the luminosity weighted center, isophotal
+flux, the maximum extended pixel positions are stored when each 
+pixel information is merged into the group information. 
+(Other parameters such as moment parameters, the peak intensity and 
+the peak position can be calculated here. But since we can measure those
+parameters later ({\bf Measure Objects}), we do not include those parameters
+in the Level Zero version of this module).  
+When two groups are merged together, one group inherits all information
+of two groups and ``nonefflag'' (non effective flag) 
+of the other group is marked. 
+When a connected pixel is found at the frame edges, 
+we turned on ``edgeflag''. When a connected pixel is found at a
+masked regions of {\bf Find Bright Objects}, we turn on ``brightflag''. 
+This procedure ({\bf groupSignificantPixels}) finishes at the final row.
+Then all the groups which satisfy the conditions for a valid object 
+(number of pixels, flux levels) are selected. 
+Simple calculations are done and parameters are input into
+the object catalog ({\bf measureSimpleParameters}).
+Finally significant pixels are marked using information of groups of pixels
+obtained above ({\bf markSignificantPixels}).
+
+\subsubsection {Quality, Debugging, Resources}
+
+This method gives object candidates with surrounding regions.
+This method works best if the image is smoothed first,
+even if we choose not to smooth images for some other reason.
+
+It is useful to be generous in the conditions under which ``valid''
+objects are selected, so that some spurious defects are included
+together with all true objects of interest.  
+More sophisticated measurements and a more severe 
+distinction between real objects and defects can be made by
+later modules --- specifically, the {\bf Measure Objects} modules.
+It will also handle any deblending of overlapping objects.
+
+At the debugging stage, this module will output lists of all the objects and 
+regions in ASCII file, which are used to check the results using the display
+etc. 
+
+\subsubsection {Test Data Required}
+
+The data described in {\bf measureSky} are also used here.
+Additional data required are 
+
+\begin{description}
+\item{\quad } (6) a set of frames of simulated images including low
+surface brightness galaxies with realistic background noise.
+\end{description}
+
+\subsubsection {Regression Testing}
+
+Completeness must be checked for various test images 
+(under various conditions of seeing, non-uniform sky background, etc).
+Objects with a signal-to-noise of five or 
+better must be included in the output catalog.
+Bright large objects and extremely low surface brightness galaxies may be 
+exceptions, but testing should give the limits.
+
+
+\begin{verbatim}
+__________________________________________________________________________
+\end{verbatim}
+
+\subsubsection{groupSignificantPixels}
+
+\begin{descrip}
+%Look at the temporary mask generated in markSignificantPixels.
+Group adjacent significant pixels together to form the objects.
+Add each group to the object list, including:
+\begin{description}
+\item[\quad npixel](ushort) the number of pixels in this group.
+\item[\quad ncount](float) the total number of ADU counts in this object.
+\item[\quad momentx](int) the first order moment of x to calculate the 
+    weighted average of x pixel positions.
+\item[\quad momenty](int) the first order moment of y to calculate the 
+    weighted average of y pixel positions.
+\item[\quad minx](ushort) the minimum x value
+\item[\quad miny](ushort) the minimum y value
+\item[\quad maxx](ushort) the maximum x value
+\item[\quad maxy](ushort) the maximum y value
+\item[\quad nonefflag](1bit) if the group is included in a 
+    larger group, this flag is marked in order to ``disqualify'' this group. 
+\item[\quad edgeflag](1bit) if the group touches the edge of the frame.
+\item[\quad brightflag](1bit) if the group touches pixels masked 
+    out in previous modules.
+\end{description}
+\end{descrip}
+
+%------------------------------------------------------------------------------
+
+\begin{verbatim}
+__________________________________________________________________________
+\end{verbatim}
+
+\subsubsection{measureSimpleParameters}
+For each object found in {\bf groupSignificantPixels},
+measure simple parameters.
+The weight for each pixel is the number of ADUs above sky.  Include only
+significant pixels in the averages.  Calculate the following:
+\begin{description}
+\item[\quad npixel] the number of pixels in this object.
+\item[\quad ncount] the total number of ADU counts in this object.
+\item[\quad avgx] the weighted average of x pixel positions.
+\item[\quad avgy] the weighted average of y pixel positions.
+\item[\quad edgeflag] if the object touches the edge of the frame
+\item[\quad brightflag] if the object touches pixels masked out in 
+    previous modules.
+\end{description}
+
+\begin{verbatim}
+__________________________________________________________________________
+\end{verbatim}
+
+\subsubsection{markSignificantPixels}
+
+\begin{descrip}
+This subroutine marks the pixels with intensities
+which are above the threshold 
+level and which are connected to one of objects selected by {\bf findObject}.
+We can use the same threshold level as the one used for {\bf findObject}, or 
+we may set this level another arbitrary value. This mask will be used for 
+{\bf Measure Objects}, and {\bf Merge Colors}.
+%A parameter defines the threshold above sky for each pixel, in number
+%of sigma.  Given the typical sky value, its sigma, and the read noise,
+%calculate the threshold value in ADUs.  Then loop through the pixels
+%and mark in a temporary mask which pixels are above this threshold.
+\end{descrip}
+
+\subsection{FiniFindObject}
+
+\subsubsection{Description}
+
+This function frees
+up all memory that {\bf Find Objects} module required, and also may print
+a summary of objects found here. If {\bf Measure Objects } module uses
+the smoothed image, we will keep the smoothed images in memory.
+

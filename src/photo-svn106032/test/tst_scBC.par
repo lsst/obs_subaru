@@ -1,0 +1,33 @@
+FLAVOR     1
+
+typedef enum { 
+  DRKCUR =0,                 # low level dark current 
+  BLKCOL,                    # blocked column - fix with flatfield 
+  BADBLK,                    # badly blocked col - just fill in 
+  DEPCOL,                    # Depressed column 
+  TGPAIR,                    # Transfer gate trap column pair 
+  HOTCOL,                    # Hot column - bad dark current 
+  CTECOL,                    # Bad charge transfer efficiency 
+  INTRMD                     # Intermittent dark column 
+} DFTYPE;
+
+typedef enum { 
+  BADCOL =0,                 # Interpolate over column 
+  ADDCOL,                    # Additive correction - fix with debias vector 
+  FILCOL                     # Fill in column 
+} DFACTION
+
+typedef struct {
+  int iRow;                  # camRow
+  int iCol;                  # camCol
+  int dfcol0;                # starting column of this defect
+  int dfncol;                # number of columns in this defect
+  DFTYPE dftype;             # defect type
+  DFACTION dfaction;         # repair action for defect
+} BC;
+
+
+BC 1 1    0 1 BLKCOL BADCOL
+BC 1 1  100 1 BLKCOL BADCOL
+BC 1 1 1000 1 BLKCOL BADCOL
+BC 1 1 1001 1 BLKCOL BADCOL

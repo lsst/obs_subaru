@@ -1,0 +1,595 @@
+<pre>
+
+               How to Use the Photometric Pipeline
+                         Michael Richmond
+                           June 23, 1994
+
+                       Modified by Nan Ellman
+                         February 27, 1996
+
+  Table of Contents: 
+           Introduction
+           Getting the pipeline
+           Running the pipeline
+           Real-time display          
+           Changing the Input Data
+           Changing Input Parameters
+           Timing Information
+           Examining Pipeline Output  
+
+     -----------------------------------------------------
+
+                   Introduction
+            =====================================
+
+  This document is intended to explain how a user may run the
+photometric pipeline, modify its actions to suit their needs, change the
+tunable software parameters, and examine the pipeline's output.  It
+assumes the user is familiar with the Unix operating system and the
+Fermilab DERVISH environment, cvs, and other software packages used in
+the DSS collaboration.
+
+
+
+                   Getting the pipeline
+            =====================================
+
+  To get a copy of the photometric pipeline, and the data you'll
+need to use for input, you must follow two steps.  First, make sure
+that you have "setup sdssrcvs"; then, get the pipeline code by typing
+
+          cvs co photo
+
+This should create a new directory called "photo" which should
+look something like this:
+
+[jpgindy1:photo] /bin/ls -asCF 
+total 28
+   1 ./                    1 doc/                  2 photodata.README
+   1 ../                   2 etc/                  9 src/
+   1 CVS/                  1 examples/             1 test/
+   3 Makefile              3 include/              1 ups/
+   1 bin/                  1 lib/
+
+
+Photo depends on the astrootools product, so you will to setup
+astrotools before building an executable version of photo. You should
+also have two environment variables set:
+
+        setenv PHOTO_DIR /pathname/photo
+        setenv PHOTO_STARTUP $PHOTO_DIR/etc/photoStartup.tcl
+
+where you replace "pathname" with the full pathname of the 
+directory into which you've placed all the PHOTO source code.
+
+  You will then have to compile the source code and link it to create
+the executable file "bin/photo".  Use the "sdssmake" command
+to perform the compile/link task.
+
+  Next, you'll need input data, data processing plans, and software
+parameters files. See "Data interface" on the photo home page for a
+description of this data." At Princeton, test data is currently
+located in /peyton/scr/photodata/frames_7. You can check out the
+product photodata/frames_7 to get a set of data processing plans and
+parameter files to use with this data. 
+
+At Fermilab, you will have to find a local copy of the test data,
+which may have parameter files with it. You could also modify the
+processing plans in photodata/frames_7 to use test data in another
+location. Do this by modifying the pathnames all of the *Dir parameter
+values in the psPlan.par and fpPlan.par files so that they point to
+the location of you version of the testdata. You can use environment
+variables in the pathnames.
+
+
+                   Running the Pipeline
+            =====================================
+
+If you have a correct set of processing plans, as well as a complete
+set of test data, running the pipelines is as simple as typing
+
+    run_ps_pipeline psPlan.par
+
+and 
+
+    run_frames_pipeline fpPlan.par
+
+inside photo when you are in the directory containing the processing plans. 
+You can also run the pipelines from another directory, so long as you
+include the full pathname of the processing plan.
+
+For those of you using photodata/frames_7 (or frames_anything) to hold
+your processing plans there is a shortcut: if the environment variable
+PHOTODATA_DIR is set to point to your photodata directory, the
+pipelines will default to looking in frames_7 for the processing
+plans. If PHOTODATA_DIR is set and you have set the tcl variable
+frameno to some number (eg 4), the pipelines will use the processing
+plans in frames_4 by default.
+
+If you set the verbose paramter in your planfile to something larger
+than 0, photo will print messages on your screen telling you what it
+is doing. The larger verbose is, the more messages you get (3 is a
+good default number). 
+
+If you want to run the pipeline in the background, so that you can
+use your window for other work while the pipeline is running, you
+must create a file from which the pipeline can read a few commands.
+My example file is called "photo.in" and looks like this:
+
+	run_ps_pipeline /peyton/scr/lucifer0/nan/integ/photo_input/psPlan.par
+
+I place this simple file in my PHOTO_DIR directory.  Then, 
+to run in the background, I "cd $PHOTO_DIR" and type
+
+       bin/photo < photo.in >& photo.out &
+
+This sends all output, including error messages, to the file
+"photo.out" in the PHOTO_DIR directory.  Photo will also create a
+diagnostics file with a name determined by the diagFile parameter in
+the processing plan. The diagnostics parameter determines how much
+verbiage is written to this file.
+
+
+
+               Real-time Display
+             =====================
+
+  You can ask the pipeline to display images as it proceeds by modifying
+the data processing plan file, which is in the PHOTODATA_DIR/frames_4/input
+directory.  Near the top of the file is a line that looks like this
+
+       display  0
+
+  If you change it so that it reads
+
+       display  1
+
+then the pipeline will spawn saoDisplay processes at a number of points
+along its execution.   It should do the following (for the zero'th
+color image in the set, i.e. for the g image if "filterlist" is "g r i"):
+
+    1. display the "raw" image
+    2. display the "noise mask"
+    3. display a corrected image
+    4. display the image with bright objects marked in blue, 
+          saturated pixels in orange, and bleed trails/diffraction spikes
+          in yellow
+    5. display the image after bright stars have been subtracted
+          (since bright stars are not subtracted in the current
+          version of the pipeline, this will look the same)
+    6. display the image after faint objects are found; they will
+          be marked in red
+    7. display the image after measure_objects has finished; this
+          should look the same as number 5.
+
+After steps 4, 5, 6, and 7 you will be prompted to hit the "Return"
+key in order to continue; this will give you time to examine each
+image before the next appears, if you like.
+
+  If you don't want to see the images, set display to 0. Setting
+display to -1 will cause the images to be displayed in a single
+saoDisplay window with out a pause for keyboard input.             
+ 
+
+                      Changing Input Parameters
+                ====================================
+
+  It is very easy to change the tunable parameters that are used to
+control the pipeline algorithms.  All you have to do is go into
+the PHOTODATA_DIR input directory and modify the ASCII text file
+called "software_parameters".  Each line of this file consists 
+of a parameter name, followed by the parameter value.  Lines 
+starting with the "#" character are ignored, as is any text on a
+line after a "#" character.  
+
+  Thus, for example, if you want to change the maximum radius out
+to which "total magnitude" calculations are performed, simply change
+the line that looks like this:
+
+  mo_tot_rad_max    150        # max radius for use in 'total' mag calcs
+
+so that it looks like this:
+
+  mo_tot_rad_max    300        # max radius for use in 'total' mag calcs
+
+  You do not have to recompile or relink the pipeline itself after
+making such a change.
+
+As development and testing of photo continues, new software parameters
+may be necessary. $PHOTO_DIR/etc contains the default parameter files
+for the two pipelines (called psParam.par and fpParam.par). If a new
+paramter is added to the pipeline, it will be put in one of these
+files. If your version of the software parameters file is missing the
+new parameter, the pipeline will use the default one (and print a
+warning message telling you it is doing so). If you want to use a
+default value you can set the value of the parameter in your file to
+say "default". 
+
+
+ 
+                      Timing Information
+                ================================
+
+  The pipeline produces information on the time it takes each step
+to execute in a simple fashion.  The TCL verb
+
+         timerLap
+
+will produce a TCL list of elements that describe the amount of
+time used so far since the start of the pipeline.  The list
+looks something like this:
+
+{ELAPSED 194.850} {CPU {{OVERALL 52.260} {UTIME 45.550} {STIME 6.710} 
+       {CUTIME 0.000} {CSTIME 0.000}}}
+
+All numbers are seconds of time.  Note that the CPU time is divided
+into user time, system time and, um, two other categories.  The 
+ELAPSED value will depend on the load average of the machine on 
+which the pipeline is running, but the CPU values will not be 
+affected much by the load.  
+
+  In order to measure how long one step of the pipeline takes,
+simply subtract the value of ELAPSED or CPU before the step from
+the corresponding value after the step.  
+
+  Messages with the information are printed to the standard
+output as the pipeline progresses.  
+
+  It is possible to get more precise information on the time
+taken by each subroutine in the pipeline by using the "pixie"
+command on SGI machines.  See the man pages for "pixie" and
+"prof".  
+
+
+
+ 
+                   Examining Pipeline Output
+                ================================
+
+
+  When the pipeline has finished running, it produces a number
+of output files in the outDir directory specified in the processing plan.
+Included among these files are a diagnostics file psDiag* or psDaig*
+which contains logging information about how the pipelines ran. The
+wordiness of this output is determined by the "diagnostics" parameter
+in the processing plan. 
+
+There should also be several postscript files: psPlots*.ps and
+fpPlots*.ps. psPlots displays the calibration for each frame and
+filter as well as for each monitor telescope patch. This information
+is also stored in the psCB and psCT FITS tables. fpPlots displays the
+information in the fpFieldstat table and includes information about
+the number of objects detected in each color. The tcl procedures that
+create these plots are located in $PHOTO_DIR/etc/sanityCheck.tcl.
+
+There is also a tcl procedure that will make postscript images of
+selected corrected frames with boxes drawn around detected
+objects. The command is
+
+    print_picture fieldlist filterlist outputDir run camCol {scale}
+
+The optional argument scale allows you to make the boxes larger than
+the actual regions saved for each object. This can sometimes make it
+easier to see the objects on the prints.
+
+
+
+            a. frames_results
+            b. readCatalog
+            c. match_objclist
+            d. AF (Array of Float) tools
+	    e. compPlot
+
+
+                   a. viewing results interactively
+                 ------------------------------------
+
+There are several tools available for viewing the results fo the
+frames pipeline. They are located in the file
+$PHOTO_DIR/etc/read_objc.tcl, which should be sourced automatically
+when you start up photo. The easiest way to begin is to make a
+composite frame from all the atlas images:
+
+     set reg [reconstruct_frame fpObjc-000581-1-0020.fit \
+            fpAtlas-000581-1-0020.fit] rmins cmins
+
+rmins and cmins are optional arguments. If present they will be passed
+a list of positions indexed by object id. You can then use
+
+    saoDisplay $reg
+    show_id rmins cmins
+
+to label each object in the image. 
+
+To look at individual objects, first read in the objc table and atlas images:
+
+    set table [objfileOpen fpObjc-000581-1-0020.fit fpAtlas-000581-1-0020.fit]
+
+To look at all of the atlas images of a particular object you can use
+    
+    mtv_objc table 15
+
+To print a subset of its measured parameters:
+    
+    p_objc table 15 {elems} 
+
+The optional argument "elems" is a list of elements of the OBJC_IO
+struct to print. If it is omitted, a default list is printed.
+
+To look at the corrected frames, simply read them in with
+regReadAsFits and display them with saoDisplay. To show the mask, read
+it in and display it with
+
+    set mask [get_mask $file]
+    display_mask $mask
+
+
+                   b. Looking at object parameters
+                 -----------------------------------
+    
+Suppose you want to plot up some of the measured parameters of the
+objects in a frame. You can easily do this using the pgplot routines
+in DERVISH that use the AF structures. First get the object information
+into a CHAIN with the command 
+
+    set objcs [objtable2chain table]
+
+where "table" was read as in the previous section. You can make and AF
+structure from any element of the OBJC_IO structure with the
+command
+
+    afFromObjChain chain element {error_element}
+
+The optional error_element sets the error value in the AF.
+Note that error values < 0 indicate a bad measurement.
+
+                   c. AF (Array of Float) tools
+                 -------------------------------
+
+  There are several sets of DERVISH tools designed for the manipulation and
+examination of sets of numerical data.  One of them is a group of 
+commands referred to as the "AF" tools.  "AF" stands for "Array of
+Float", since the basic data structure is arranged around an array
+of floating-point numbers.  You can read about these commands in the
+DERVISH documentation: from the Home Page, choose "TCL Interface" and
+then "Histograms and arrays of floats".  I will describe only a few
+of the available commands (which worked as of June 23 1994).
+
+What can you do with an AF once you've created it?  The following are
+useful commands:
+
+     afSize $rowc           prints the number of elements of the array
+     afExtreme $rowc min    prints the minimum value
+     afExtreme $rowc max    prints the maximum value
+
+  One can also perform arithmetic operations on a pair of AFs.  
+The four basic operations are allowed (note "m" instead of "-"):
+            
+             afOper $af1 + $af2              sum of two values
+             afOper $af1 m $af2              difference of two values
+             afOper $af1 * $af2              product of two values
+             afOper $af1 / $af2              ratio of two values
+
+  There is also a very means to take the logarithm (base 10) of
+every element of an AF:
+
+             log_af $af                      set elems to log10(elem)
+
+(at the moment, this is very slow, since it is implemented in TCL
+instead of at the C level).
+
+  It is possible to plot the values of the elements of an AF using
+the PGPLOT interface of DERVISH.  The first step is to initialize PGPLOT:
+
+      photo> pgInit
+
+This should create a PGPLOT window on your display.  Next, you must
+create a special TCL variable that contains the status of the PGPLOT
+device:
+
+      photo> set pg [pgstateNew]
+
+You will use this returned handle, "$pg", in many other plotting 
+commands in the future.
+
+  Okay, now you are ready to make a plot.  To plot two AFs against
+each other 
+
+      photo> afPlot $pg $af1 $af2
+
+Here the first argument is the PGPLOT-status variable, the second is
+the AF to be plotted on the Y-axis, and the third is the AF to be plotted
+on the X-axis.  All values will be included in the plot, and the
+graph will be scaled so that all points are included.  The axes will be 
+labeled with the names of the members of the OBJECT1 structures
+used to create the AFs.  It is not yet possible to change the labels
+printed on the graph.
+
+  By default, the graph is auto-scaled.  However, you can change the
+limits on the plot with optional arguments:
+
+      photo> afPlot $pg $af1 $af2 -xmin=500 -xmax=600 \
+                      -ymin=50 -ymax=200
+
+Note that PGPLOT always tries to add a little extra to the size of the
+plot; thus, the example above will create a graph that probably starts
+around x=480 and goes to x=620, etc.
+
+  If you wish to select only a subset of the elements of an AF for
+further use -- as you might for considering only stars with 
+magnitudes less than 20, say -- you can use the 'select_af' task
+to create a new AF, consisting of elements from an existing AF
+which satisfy a numerical test:
+
+      photo> set subset [select_af $af < 20.0]
+
+will produce a new AF, all of whose elements will pass the 
+given test.  Other tests include '>' and '=='.  This function is similar 
+to the 'afMaskSet' function, but 'afMaskSet' doesn't seem to work 
+at the moment.  When it is fixed, you should switch to using it.
+
+
+----------------------------------------------------------------------
+The following sections may be of some use if adjustments are made for
+the new form of the photo outputs:
+
+
+                   d. read_catalog
+                 ---------------------
+  It is handy to be able to compare the pipeline output with pipeline
+input.  If you use a simulation frame as input, you may want to compare
+the measured parameters with the cataloged parameters used in the
+simulations.  The "readCatalog" command allows you to convert a
+Doi/Gunn/Weinberg ASCII catalog file into a LIST of OBJC structures,
+which may be compared directly with the LIST of OBJC structures created
+by the pipeline.
+
+  Suppose that the catalog file corresponding to the images you use
+is called "high_0_1_1_r1.lst".  To create a new list, "catlist", of OBJCs from
+this file, simply type
+
+     photo> set catlist [read_catalog high_0_1_1_r1.lst]
+
+We can specify numerical arguments to fix a small problem in the catalogs.  
+In some cases, there will be a fixed offset in row and/or column values 
+between the catalog and pipeline output, due to a misunderstanding during 
+the creation of the catalogs.  
+The 'readCatalog' command therefore contains options for offsets in each
+direction (row, col) which will applied to the catalog objects as they are 
+read into memory.  I have found that sometimes a difference of about 73 rows 
+occurs in the catalog, and to account for this, I can type
+
+     photo> set catlist [read_catalog high_0_1_1_r1.lst -x=-73.0]
+
+'-x' and '-y' will be used for row and col, respectively.
+
+  Note that the 'readCatalog' command can only read in one catalog file
+at a time; therefore, it will create a LIST of OBJCs in which each 
+OBJC has only a single OBJECT1.  This OBJECT1 will be stored as the
+zero'th index entry in the OBJC's "color" array.  When you compare
+the catalog LIST to a pipeline output LIST, make sure that you
+use the correct index for the pipeline's OBJECT1 color which 
+matches the catalog color.
+
+  See the PHOTO on-line documentation for the 'readCatalog' command
+(starting at the PHOTO Home Page, choose "TCL Interface" and then
+"Handy TCL scripts for examining PHOTO output", though in fact
+readCatalog is no longer TCL script but pure C code) for the way in
+which catalog variables (flux, class, etc.) are translated into
+OBJECT1 members (totalCounts, profRatio, etc.).  Note that in some
+cases, there is no exact correspondence between a catalog variable and
+any measured parameter.
+
+                   c. match_objclist
+                 ---------------------
+  Once you have a catalog LIST and a LIST created by the pipeline, you
+may wish to match them up.  The "match_objclist" TCL command will do this
+job in the following fashion.  Given two lists -- call them A and B ---
+and a matching radius (in pixels), it will attempt to create four output LISTs:
+
+        - the first output LIST contains OBJCs from list A which have a
+              match in list B
+        - the second output LIST contains OBJCs from list B which have
+              a match in list A
+        - the third output LIST contains OBJCs from list A which have
+              no match
+        - the fourth output LIST contains OBJCs from list B which have
+              no match
+
+One might call it like so:
+
+       photo> match_objclist $pipelist $catlist 2.0 listJ listK listL listM
+
+In this case, the two output lists "listJ" and "listK" will contain the
+same number of objects, with the first OBJC in "listJ" matching the
+first OBJC in "listK", the second in "listJ" matching the second in 
+"listK", and so on.  The last two output lists, "listL" and "listM",
+contain the OBJCs that didn't have a match.  Note that the following
+must hold (using the names given above):
+
+            size of $pipeline = size of listJ + size of listL
+            size of $catlist  = size of listK + size of listM
+
+  It is possible, of course, for objects found by the pipeline not
+to match any entry in the catalog for several reasons: they might 
+simply be 'junk' objects caused by noise peaks, cosmic rays, etc.,
+or they might be a blend of two catalog objects, with a center too far
+from the centers of each catalog object for a match, or the matching
+radius supplied by the user might be too small.  
+
+  These output lists are actually not precisely the same format as
+the input lists.  Instead of being LISTs of OBJCs, they are LISTs
+of LINKs.  Each LINK structure points to an OBJC, so that we avoid
+having to make a copy of all OBJC structures (which would be very
+memory-expensive).  Fortunately, a number of DERVISH tools are
+designed to work with LINKs transparently, so that the output LISTs
+will "look" as though they are really LISTs of OBJCs.  The one 
+drawback to LINKs is that they cannot be "dumped" into an output
+file.  This may change if/when we switch to using FITS binary
+tables.
+
+  The next section explains how to use the matched lists created by
+this command.
+
+                      e. compPlot
+                 ---------------------
+  Once you get lists created by match_objclist, we'd like to compare
+the value given in the catalog and the value measured by
+pipeline. There is a simple plotting TCL command which will draw a
+scatter plot for the members of matched OBJC lists. Parameters and
+options for this command is as following, 
+
+    cat     matched OBJC list from catalog.
+    obj     matched OBJC list from objclist.
+    xexp    member of $cat to be plotted (color<0> will be added).
+    yexp    member of $obj to be plotted (color<0> will be added).
+    -mag    value converted to magnitude will be plotted.
+    -diff   difference of $xexp and $yexp will be plotted.
+    -Xlist  list specified here will be used for X-axis.
+    -Xexp   member specified here will be used for X-axis
+            (color<0> will be added).
+    -Xmag   value converted to magnitude will be plotted for $Xlist->$Xmag.
+    -xmin   specify minimum x value
+            (only changes bounding box, do not select data).
+    -xmax   specify maximum x value (same as xmin).
+    -ymin   specify minimum y value (same as xmin).
+    -ymax   specify maximum y value (same as xmin).
+
+Simplest example is comparing rowc(catalog) and rowc(measured):
+
+      photo> compPlot $cat $obj rowc rowc
+
+Here $cat is the handle for LIST of OBJC from catalog matched with
+objlist, and $obj is the handle for LIST of OBJC from objlist matched
+with catalog. First 'rowc' and second 'rowc' is the member of $cat and
+$obj to be plotted for x-axis and y-axis, respectively. This command
+assumes the color to be plotted is always the first one, that is
+color<0>. So the member to be plotted is OBJC.color<0>->rowc actually.
+
+ CompPlot assumes that the first handle is come from catalog and
+change symbols for stars and galaxies. Filled circle represents galaxy
+and open circle+plus represents star.
+
+ To plot the difference of two values as y-axis, add -diff option. 
+
+      photo> compPlot $cat $obj rowc rowc -diff
+
+ If the value to be plotted is ADU counts, it is convenient to plot them as 
+magnitude. In that case, add -mag option.
+
+      photo> compPlot $cat $obj totalCounts totalCounts -mag
+
+ Of course you can used -diff and -mag option at the same time.
+
+ If you want to use different value for x-axis other than the third
+argument, use -X series options. For example, to plot the difference of
+rowc in catalog and measured vs catalog magnitude, type the following:
+
+      photo> compPlot $cat $obj rowc rowc -Xlist=$cat -Xexp=totalCounts -Xmag
+
+The option -Xmag has the same effect as -mag, but only acts for the
+expression specified by -Xexp.
+
+ To change the range to plot, use -xmin, -xmax, -ymin, -ymax.
+
+</pre>

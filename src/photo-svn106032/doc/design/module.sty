@@ -1,0 +1,76 @@
+%
+% This style file is to be used for documenting SDSS modules.
+%
+% It is designed to be used in conjunction with article or report.
+% Apart from new environments (args arguments cleanup comments descrip
+% functions initialize params returnval), it adds a field (\version)
+% to the titlepage, and defines \code{...} to set source code; note
+% that this does not turn off special meanings of TeX characters, so
+% you'll have to type things like \code{help\_me}.
+%
+% It uses subsections to seperate subparts; they are not numbered.
+%
+\setcounter{secnumdepth}{1}
+%
+\newenvironment{args}%
+	{\begin{description}
+	\let\olditem=\item
+	\def\item##1(##2)(##3){%
+		\olditem{\code{##1}}\quad({\tt ##2}) \hfil {\bf ##3}\break}
+	}%
+	{\end{description}}
+\newenvironment{arguments}{
+
+	\vspace{.25 in}{\bf Arguments}
+
+	\begin{args}}{\end{args}}
+\newenvironment{cleanup}{\subsection{Cleanup Routine}}{}
+\newenvironment{comments}{\subsection{Comments}}{}
+\newenvironment{descrip}{
+
+	\vspace{.25 in}{\bf Description}
+
+	}{}
+\newenvironment{functions}%
+	{\subsection{Functions Called}
+	\begin{description}
+	\let\olditem=\item
+	\def\item##1{\olditem{\code{##1}}}}%
+	{\end{description}}
+\newenvironment{initialize}{\subsection{Initialization Routine}}{}
+\newenvironment{params}%
+	{
+
+	\vspace{.25 in}{\bf Parameters Used}
+
+	\begin{description}
+	\let\olditem=\item
+	\def\item##1{\olditem{\code{##1}}}}%
+	{\end{description}}
+\newenvironment{returnval}%
+	{
+
+	\vspace{.25 in}{\bf Return values}
+
+	\begin{description}}%
+	{\end{description}}
+%
+\def\code#1{\tt #1}
+% add a version to the title stuff, using \version
+\let\oldd@te=\date
+\newtoks\versi@nstring \versi@nstring={}
+\def\date#1{\oldd@te{\the\versi@nstring#1}}
+\def\version#1{\versi@nstring={Version #1\\}}
+% add psfigure utils (multiple figures and rotating figures)
+
+\def\plottwo#1#2{\centering \leavevmode
+    \epsfysize=.45\textwidth \rotate[r]{\epsfbox{#1}} \hfil
+    \epsfysize=.45\textwidth \rotate[r]{\epsfbox{#2}}}
+
+\def\plottwoNR#1#2{
+    \centerline{%
+    \epsfysize=.45\textwidth\epsfbox{#1} \hfil
+    \epsfysize=.45\textwidth\epsfbox{#2}}}
+
+\def\plotone#1#2{\centering \leavevmode
+    \epsfysize=.45\textwidth \rotate[r]{\epsfbox{#1}} \hfil }

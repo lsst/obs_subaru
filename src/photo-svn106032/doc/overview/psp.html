@@ -1,0 +1,1253 @@
+
+<TITLE>                The Postage Stamp Pipeline         </TITLE>
+
+<BODY bgcolor="EEEEFF">
+<hr>
+<A name=psp><H1>The Postage Stamp Pipeline</H1></A>
+<hr>
+
+<H3>                      Table of Contents                 </H3>
+<MENU>
+<LI><A href=#psp_intro>       Introduction           </A>
+<LI><A href=#psp_inputs>      Inputs                 </A>
+<LI><A href=#psp_outputs>     Outputs                </A>
+<LI><A href=#psp_algorithms>  Algorithms             </A>
+<LI><A href=#psp_exe>         Running the PSP        </A>
+<LI><A href=#psp_flowcharts>  Flow charts            </A>
+<LI><A href=#psp_appendix1>   Samples of *.par files </A>
+<LI><A href=#psp_appendix2>   Examining PSF          </A>
+
+</MENU>
+ 
+
+<hr>
+<H3><A name=psp_intro>Introduction to the Postage Stamp Pipeline</A></H3>
+ 
+As described in <A HREF="overview.html#"> Photo Introduction,</A>
+Photo operates on a frame by frame basis (the photometric data stream from 
+each CCD in the photometric array is cut into frames of 2048 x 1362 pixels). 
+However, the processing needs information for
+the entire run: quantities such as the point spread function, the sky
+brightness, and the flat field and bias vectors are not local
+quantities, but are determined as a function of time, smoothed where
+appropriate, and interpolated to each frame. This part of the data analysis
+is performed by the Postage Stamp Pipeline (PSP). 
+
+<P> 
+<A name=stamps></A>
+The name of this pipeline comes from "stamps", small regions cut
+out from large, 2048 x 1362 pixels, frames. The stamps can have three
+"flavors". The smallest (65x65 pixels) stamps contain a bright
+object detected by both leading and trailing astrometric chips. There are 
+about 10-100 such stamps per frame. "Wing" stamps are somewhat larger
+(200x200 pixels) and contain very bright stars (those that saturate CCDs,
+about 8-14 mag) whose list is provided separately. These stars are used to 
+constrain the outer "wing" part of the PSF. The third type of stamps, "frame" stars, 
+are indeed full frames and contain extremely bright stars (brighter than ~8 mag)
+which are used to characterize the ghost structures. There are typically
+several "wing" stars and about one "frame" star per run. Magnitude ranges for 
+the "wing" and "frame" stars (in whatever passband is in the catalog) are 
+specified in <A HREF=http://www.astro.princeton.edu/~ivezic/scParam.html> scParam.par 
+</A>, an input file for the <A HREF=http://www.astro.princeton.edu/~ivezic/ssc.html> 
+Serial Stamp Collecting Pipeline </A> (SSC). 
+
+<P>
+The PSP tasks include:
+
+<UL>
+<LI> calculation of the bias, sky and flat field vectors for each frame
+<LI> analysis of postage stamps cut out by 
+     <A HREF=http://www.astro.princeton.edu/~ivezic/ssc.html> SSC </A>,
+     and characterization of the point spread function (PSF) for each frame  
+<LI> calculation of preliminary photometric solutions for each
+     frame from the data provided by the astrometric and monitor telescope pipelines
+</UL>
+
+<A href=#psp_inputs>Input</A> to PSP is provided through a set a files which
+contain the description of each CCD (information on bad columns etc.), bias vector
+and data quartiles produced by the DA system, and postage stamps cut out by
+<A HREF="ssc.html"> SSC</A>. Performance of PSP 
+<A href=#psp_algorithms> algorithms</A> is controlled by the 
+<A href=#psp_inputs_pp>processing plan and tunable parameters files.</A> 
+<A href=#psp_outputs>Outputs</A> from PSP include
+bias and flatfield vectors for each frame, as well as bias drift values, sky level,
+PSF characterization, and preliminary photometric calibration, and are written to a 
+directory specified by user in <A HREF=#psp_plan>psPlan.par</A> file. In 
+addition, user can choose to produce several PostScript plots which can be used as 
+quick QA tests. The PSP outputs are used exclusively by the Frames Pipeline. 
+
+
+<hr>
+<H3><A name=psp_inputs>Postage Stamp Pipeline Inputs</A></H3>
+
+The relevant inputs to the PSP are:
+<UL>
+<LI> <A href=#psp_inputs_pp>Processing plan and tunable parameters</A>
+<LI> <A href=#psp_inputs_ccd>Information on CCD chips</A> 
+<LI> <A href=#psp_inputs_bias>Bias vector</A>
+<LI> <A href=#psp_inputs_fangs>scFang* and other files from SSC</A>
+<LI> <A href=#psp_inputs_calib>Photometric and astrometric calibration files</A>
+</UL>
+
+PSP finds the location of all input files by reading 
+<A HREF=#psp_plan>psPlan.par</A> file. This file may and may not list
+keywords <I>parameters</I> and <I>QAparameters</I>  which specify the
+names of files with tunable software parameters. If these keywords are
+not listed, PSP automatically defaults to files distributed with Photo
+product: <I>/etc/psParam.par</I> and <I>/etc/psQApar.par</I>. If any
+of input files is missing, PSP prints out the following message before
+it aborts with the return value of -1:
+<par> 
+*** File_type file_name doesn't exist!? ***
+</par> 
+
+<P>
+A detailed description of all input files is given as a part of 
+<A HREF=http://www-sdss.fnal.gov:8000/dm/flatFiles/FILES.html>
+Survey Interface File Formats</A> Web page.  These files include (an *
+stands for a string describing run, filter, camera row and frame
+sequence number):
+
+<UL> <P>
+  <LI> <A name=psp_inputs_pp><b>Processing plan and tunable parameters</b></A>
+      <UL> 
+        <LI> <A HREF=#psp_plan><I>psPlan.par</I></A>: Processing plan to control 
+             the postage stamp pipeline. Each plan targets the data for one imaging run
+             and from one column in the imaging array. 
+        <LI> <A HREF=#psp_param><I>psParam.par</I></A>: Tunable software parameters for the postage stamp 
+             pipeline. 
+        <LI> <A HREF=#psp_QApar><I>psQApar.par</I></A>: Tunable parameters for the 
+              quality assurance (QA) processor. 
+      </UL>
+<P>
+  <LI> <A name=psp_inputs_ccd><b>Information on CCD chips</b>
+       These files are produced by the DA system, and are changed seldom. Each observing 
+       report is accompanied by each of these files, specifying which CCD 
+       configurations, calibrations and bad pixels apply for that night's observing.
+      <UL> 
+        <LI> <I>opConfig*.par</I>: CCD configuration file which specifies the readout 
+             characteristics (number of amplifiers and location of overscan columns)
+             for all chips. 
+        <LI> <I>opECalib*.par</I>: CCD calibration file which specifies the electronic 
+             characteristics (read noise, gain, full-well, and bias level).
+        <LI> <I>opBC*.par</I>: CCD bad pixel file which specifies the location of
+             bad pixels. 
+      </UL>
+<P>
+  <LI> <A name=psp_inputs_bias><b>Bias vector</b>
+      <UL>
+	<LI> <I>idB*.fit</I>:  There is one bias vector per chip determined from a 
+             calibration run (a normal drift scan with the "shutter" closed). The 
+             bias vector is the median over all rows in the run; i.e., each value 
+             in the bias vector is the median value of all pixel values along its 
+             associated column. Overscan columns are included, and medianed the same
+             way as the data columns. No other processing is done (produced by 
+             <I>DA</I>).
+      </UL>
+<P>
+  <LI> <A name=psp_inputs_fangs><b>scFang* and other files from SSC</b> 
+      <UL> 
+        <LI> <I>scFang*.fit</I>: These files contain data  quartiles and 65x65 
+             stamps cut out by SSC for each frame separately. These are the only
+             files produced by SSC that are necessary to run PSP (if the files 
+             listed below are not available, the PSP will make some reasonable
+             assumptions about the behavior of the outer parts of the point spread 
+             function).
+        <LI> <I>scWingList*.par</I>: A list of 200x200 stamps (bright stars). 
+        <LI> <I>scWing*.fit</I>: 200x200 postage stamps (several per camera column and
+             run) used to determine extended PSF wings. PSP can run without 200x200
+             stamps.   
+        <LI> <I>scFrameList*.par</I>: A list of whole frames, cut out by SSC,
+             which contain at least one very bright star. 
+        <LI> <I>scFrame*.fit</I>: One or two raw frames per camera column and run 
+             containing  at least one very bright star. PSP can run without these
+             "jumbo stamps".   
+      </UL>
+Note that PSP does not yet handle the scFrame* files.
+<P>
+  <LI> <A name=psp_inputs_calib><b>Photometric and astrometric calibration files</b> 
+      <UL> 
+        <LI> <I>exPhotom*.par</I>: A set of extinction coefficients for a single night
+             produced by MT calibration system (produced by <I>excal</I>) 
+        <LI> <I>kaCalObj*.fit</I>: Calibrated objects (positions and magnitudes in each
+             band) detected in the MT pipeline. Each file contains the object list for one 
+             MT sequence (produced by <I>kali</I>). 
+        <LI> <I>asTrans*.fit</I>: Astrometric transformations for every field in a 
+             single imaging run. It transforms frame (row,col) coordinates to great 
+             circle (mu,nu) coordinates for a given inclination (produced by 
+             <I>astrom</I>).  
+        <LI> <I>psCT  </I>: Photometric calibrations as a function of time. This file
+             is actually produced by PSP (during an earlier run), and is used when no 
+             calibrated MT patches exist as input (produced by <I>psp</I>).  
+      </UL>
+
+</UL>
+There is another input file, so called <I>cellprofile file </I>, which is internal to 
+Photo. Its full path has to specified in <A HREF=#psp_param><I>psParam.par</I></A> file
+by using keyword <CODE>cellprofile_file</CODE>. This file contains precalculated 
+PSF models to be used in the PSF characterization, and can be produced 
+by running <CODE>sdssmake</CODE>.
+
+<hr>
+<H3><A name=psp_outputs>Postage Stamp Pipeline Outputs</A></H3>
+
+Tha main output from PSP includes the flat-field vector, the point-spread 
+function parameters and preliminary photometric and astrometric calibrations.
+A detailed description of all output files is provided as a part of 
+<A HREF=http://www-sdss.fnal.gov:8000/dm/flatFiles/FILES.html>
+Survey Interface File Formats</A> Web page.  The output files are (an *
+stands for a string describing run, filter, camera row and frame
+sequence number): 
+
+<UL>
+<P>
+     <LI> <I>psFF*.fit</I>: Flat-field vector for a single frame (actually, 
+          an inverse flat-field vector, meaning that the raw frame must be 
+          multiplied, instead of divided by this vector). The values are stored
+          as unsigned integers. The TSHIFT keyword gives the amount by which each
+          value has been multiplied (this scaling allows precise values while 
+          maintaining pure integers). 
+<P>
+     <LI> <I>psCB*.fit</I>: Preliminary photometric and astrometric calibrations,  
+          sky value and slope, bias drift, point-spread function parameters, gain, 
+          and dark variance for all frames in a single camera column of an imaging run. 
+ <P>
+     <LI> <I>psCT*.fit</I>: Photometric calibrations as a function of time (counts for
+          a 20th magnitude object, in each band, as a function of time). There 
+          is one time-stamped photometric calibration for every calibration patch 
+          intersected by the run for which processed MT data exists. The time-stamp 
+          indicates the time at which the calibration patch was observed by the 
+          imaging camera during this run. This file is sometimes used as an input 
+          file to PSP (when no calibrated MT patches exist).
+ 
+</UL>
+
+<P>
+In addition to the above <I>FITS</I> files which contain data to be used by downstream
+pipelines, there are several additional diagnostics files (mostly in PostScript format)
+which help in assessing the reliability of PSP outputs:
+
+<UL>
+<P>
+     <LI> <I>psDiag*.par</I>: A text file containing PSP messages showing the code  
+          progress through its all major parts. In its present form does not mean
+          much.
+<P>
+<P>
+     <LI> <I>psPlots*.ps</I>: A plot with numerous panels showing the frame dependence 
+          of various relevant quantities.
+<P>
+<P>
+     <LI> <I>psPlotsQU*.ps</I>: A plot with 2 panels showing the distribution of the  
+          parameters describing the size and shape of stars which are used for the PSF  
+          determination for this frame. Also shows the rejection boundaries for these
+          parameters. 
+<P>
+<P>
+     <LI> <I>psPlotsRejecStats*.ps</I>: A plot with 2 panels showing the number and 
+          percentage of stars rejected for various reasons.
+<P>
+<P>
+     <LI> <I>psPlotsCellProf*.ps</I>: A plot with 2 panels showing the radial profiles
+          of all stars, and of stars selected for the PSF determination for this frame.
+
+</UL>
+ 
+Production of the above PostScript files is controlled by a set of flags defined in 
+<A HREF=#psp_plan><I>psPlan.par</I></A>.
+
+
+
+
+<hr> <H3><A name=psp_algorithms>Postage Stamp Pipeline Algorithms</A></H3> 
+<P> 
+
+PSP tasks can be divided into 3 parts:
+<UL>
+<LI> <A href=#psp_algorithms_1> Determination of bias, sky and flat field </A>
+<LI> <A href=#psp_algorithms_2> Characterization of the point spread function </A> 
+<LI> <A href=#psp_algorithms_3> Preliminary photometric calibration </A>
+</UL>
+
+Each part is independent of the other two, and their <A href=psp_flowcharts.html>
+flow charts </A> are presented separately.
+The aim of this document is to list what happens to the data on its way through
+those 3 PSP segments, and to describe the algorithms for determining the output 
+quantities. However, note that this document does not describe source code
+which can be studied directly by (per)using C (*.c) and Tcl (*.tcl) files
+which can be found in Photo's directories /src and /etc, respectively.
+
+<H4><A name=psp_algorithms_1></A>
+            Determination of bias, sky and flat field</H4>
+
+Within the usual operating range CCD detectors respond linearly to the
+incoming light. Nevertheless, this response varies from pixel to pixel,
+which requires a correction. Also, some signal is detected even in the
+absence of incoming light and has to be subtracted from the raw data.
+In addition to these two corrections, flat-fielding and bias, sky
+brightness (i.e. the background level) has to be known before the
+properties of detected objects can be measured.
+<P> 
+When the drift scanning technique is employed, pixels along the
+scanning direction (rows) are integrated together, and all three above
+quantities depend only on the chip columns (at a given time).
+The bias, flat-field and sky are determined on a frame by
+frame basis (corresponding to intervals of about 37 sec;
+note that the these values are mean filtered over 55 sec exposure time
+and over a 14 arcmin long strip on the sky). Another simplification is
+that the overall bias shape as a function of column is rather stable
+and it is sufficient to continuosly monitor only its overall shift
+called the bias drift. For this purpose each chip has an overclock
+region, a 40 columns wide strip not exposed to the incoming light.
+<P> 
+Two kinds of <A href=#psp_inputs>input data</A> are used for the bias, 
+flat-field and sky determination:  
+<UL>
+  <LI> Bias vector 
+  <LI> Data quartiles 
+</UL>
+The bias vector is determined in a <I>bias run</I> (a normal drift scan
+with the "shutter" closed); each value in the bias vector is the median
+value of all pixel values along its associated column. This vector
+provides the overall bias shape as a function of column, and comes from
+idB*.fit files (one file per chip).
+<P>
+Data quartiles are determined for an <I>imaging run</I>. They include
+25%, 50% (median), and 75% quartiles of the pixel values in each
+column, and are evaluated by the DA system on a frame by frame basis.
+These values are copied by SSC pipeline from the DA output files to
+scFang*.fit files which are part of the PSP input.
+<P> 
+Bias drift for each frame is evaluated as the difference between the mean
+50% quartile value in the overclock region (mean over 40 columns)
+determined for the imaging run, and that determined from the bias vector.
+Overclock region columns with negative 50% quartile values (DA system's
+signal that the value is unreliable) are not taken into account. If a
+chip has two amplifiers, the bias drift is evaluated for each one
+separately (`left' and `right' bias drifts).
+<P> 
+Flat-field and sky level determination assumes that only a minority of
+pixels are covered by objects, so that most of them are representative
+of the sky level.  In addition, it is assumed that the sky level does
+not vary significantly across the frame (about 14 arcmin) and during
+the exposure time (about 55 sec). With these assumptions, the
+flat-field correction (vector) for a given frame is determined from the
+variation of median pixel values for each column. The final flat-field 
+correction for each column is determined as the median of the values for 
+all frames, with a proper normalization. 
+The mean value of medians for all columns is taken to be the sky level
+for a given chip and frame. Sky level error is determined from the mean
+difference of the 25% and 75% quartiles.  
+
+<P> 
+Large objects comparable in size to the whole frame can affect the
+pixel values distribution.  For this reason, the flat-field and bias
+vectors, and sky values are smoothed and interpolated over a sequence
+of frames. Details of this procedure and parameters from psParam.par
+which control its performance are described <A
+href="ff_interp.ps">elsewhere</A>. Currently used method is a median
+filter about 10 frames wide, but a mean filter and a Lorentzian
+weighting function are also available.  <P> This part of PSP also
+calculates the dark current variance from read noise and gain (the
+ratio of photon to electron counts) values, and the mean gain in case
+of 2 amplifiers. The dark current variance might eventually be
+determined directly from bias frames.
+
+<H4><A name=psp_algorithms_2></A>
+         Characterization of the point spread function</H4>
+
+The star/galaxy separation (and object recognition in general) cannot
+be done without the detailed knowledge of the point spread function (a
+finite size image of a point source due to the atmospheric turbulence,
+telescope optics, and pixel response effects). The point spread
+function (PSF) in general varies with time and is currently determined
+on a frame by frame basis (it is assumed that the PSF does not vary
+accros a frame).  
+<P> 
+There are two PSF descriptions used in Photo. The first one is used for
+object classification in <A href="frames.html#">Frames</A> and utilizes
+a pre-calculated catalog of models based on a sum of circularly
+symmetric Gaussians. In this representation, the PSF is described by
+the weights of these components, and indices indicating their
+widths, in a model which provides the best-fit to a profile
+characteristic of the PSF. The fitting is done on a cell by cell basis,
+where a <A name=cell> cell</A> is a union of pixels which traces both the
+angular and radial structure of an object's image (an object is divided
+into 12 angular sectors, and each sector is further divided radially
+into cells, with the number of pixels in each cell increasing with the
+radial distance; for details see the document SDSS Profile
+Extraction).  The second representation describes the PSF in terms of
+best-fit model parameters determined by fitting a sum of two Gaussians
+and a power-law wing to the PSF profile, and is used for subtraction of
+bright objects (this representation handles much larger dynamic range
+than the first one).   
+<P> 
+As it can happen that some frames do not have enough bright stars
+for the PSF determination (especially in u band), several frames are
+combined together. The number of frames to be considered is a free
+parameter specified, as well as all other free input parameters which
+control the PSF determination, in file psParam.par.  <P> Images of
+objects whose profiles are used for the PSF determination are supplied
+by the SSC pipeline in <A href=#psp_inputs>input files</A>  as three
+types of stamps.  65x65 pixel stamps are the basic type which is
+necessary to run the PSP. They contain moderately bright objects,
+usually from several to about a hundred per frame. Bright objects
+needed to characterize the outer part of the PSF (i.e. the power-law
+wing) are supplied as 200x200 pixel stamps, usually several per camera
+column and run. Images of extremely bright objects are supplied as
+whole frames. The PSP can run without the latter two types of stamps,
+in which case it assumes that the index of the power-law wing is -3
+(after <A HREF="refs.html#"> Racine 1996</A>), and fits only its scale.
+<P> The most complex task in determining the PSF is to select objects
+whose profile is representative of the PSF, from all objects provided
+in stamps. In essence, the algorithm is based on successive clippings
+of `odd' profiles until a uniform sample is obtained. Such clippings
+can be divided into 2 groups:  <UL>
+  <LI>rejections based on the properties of an individual profile
+  <LI>rejections based on the statistical properties of the whole
+  sample </UL>
+
+<P> 
+<U><A name=ind_rej></A>Individual rejection</U>  
+<P>
+As the objects are extracted from the postage stamps (i.e. counts for
+each <A href=#cell> cell</A> are determined), a set of flags is set,
+each indicating that something is not right with that particular object. 
+Objects that have any of the following flags set are excluded from the 
+subsequent consideration for the PSF determination:
+<UL>
+  <LI> OFFCHIP: part of object is off the chip 
+  <LI> SATURATED: object contains saturated pixels 
+  <LI> NOPROFILE: object is too small (faint) to estimate a profile 
+  <LI> NOAPMAG: profile is too small (to calculate aperture magnitude)
+  <LI> BADWIDTH: a fit of 2 Gaussians results in too much power in the 
+       wide Gaussian 
+  <LI> BADCENTER: the object's center cannot be found
+  <LI> BADPSF: cannot fit a Gaussian to the profile
+  <LI> NOSTOKES: Stokes parameters cannot be calculated 
+  <LI> ASYMMETRIC: found to be asymmetric on rotation 
+  <LI> MULTIPLE: object is multiple (second brightest peak found is too
+       strong) 
+  <LI> BADSKY: bad sky level (e.g. the wings of a bright star) 
+</UL>
+While the remaining objects have well determined profiles/properties,
+not all of them are representative of the PSF for a given frame.
+<P> 
+<U>Statistical rejection</U>  
+<P>
+From the pool of objects which survived the initial rejection, a smaller
+sample is defined on a frame by frame basis. It contains all the objects
+recorded on a number of frames preceeding and succeeding the 
+current frame. For such a sample a list of statistical clippings
+is performed. Performance and turning on/off each of these steps is 
+controlled by parameters specified in psParam.par. Here they have the same
+names as in that file and are printed in <CODE>typewriter</CODE> font. The
+clipping algorithms include and are executed in the following order:
+<UL>
+  <LI> deviation from a median in each cell: for each cell, objects that 
+       deviate more than <CODE>ncellclip</CODE>*sigma from a median value, 
+       where sigma is their 
+       quoted error for that cell, are marked. All objects that are marked in 
+       this way in at least <CODE>nbadcell</CODE> cells are rejected. In addition,
+       objects that deviate more than <CODE>maxdev</CODE>*sigma from a median 
+       in <STRONG>any</STRONG>
+       cell are rejected, too. The purpose of this step is to reject obviously
+       deviant objects.       
+  <LI> shape of the extracted profile: shape is described by the Stokes 
+       parameters Q and U, whose values range from 0 to 1 (0,0 is a 
+       circularly symmetric profile). First the median position in the 
+       Q-U plane is found, and then the distribution of distances from
+       that position is clipped above median+<CODE>psf_nsigma2</CODE>*sigma, where   
+       sigma is the distribution width. Note that this step does not assume 
+       circularly symmetric PSF (although the model forms used to describe
+       PSF are circularly symmetric) to allow for errors in tracking and
+       temporal changes of the PSF.
+  <LI> size of the extracted profile: the distributions of the model 
+       parameters for a 2 Gaussian best-fit model, sigma1, b (relative strength
+       of the second component), and sigma2 are clipped for objects that 
+       deviate more than <CODE>psf_nsigma1</CODE>*sigma from a distribution
+       median, where sigma is a distribution width.    
+  <LI> clipping on best-fit model PSF: a pre-calculated model is fitted to
+       each object and the most populated model is found. All objects whose
+       best-fit model differs from that one are rejected. 
+  <LI> clipping until the sample is uniform: for the remaining objects the 
+       mean profile is found, and then for each object its mean deviation
+       (in units of quoted error) from the mean profile is found. All 
+       objects whose deviation is larger than <CODE>chisq_cutoff</CODE> are rejected.
+       If the mean deviation of the remaining objects is larger than 
+       <CODE>chisq_max</CODE>, object with the largest deviation is also rejected.
+       This process is repeated until none of the objects deviates from the 
+       mean more than <CODE>chisq_cutoff</CODE>, and until the average deviation is
+       less than <CODE>chisq_max</CODE> (presumably <CODE>chisq_max</CODE> &lt;
+       <CODE>chisq_cutoff</CODE>), or until only <CODE>min_starnum</CODE>  objects are 
+       left.
+</UL>
+Note that objects which are rejected for some frames can be used on other 
+frames.
+<P>
+Once a sample of 'good' objects for a given frame is formed, the best-fit
+pre-calculated model is determined from their mean profile. This profile
+is also used to calculate several photometric corrections
+(e.g. the <A NAME="aperture_correction">aperture correction</A> used to
+convert psfCounts to the counts within some aperture, currently
+aperture 3, with radius 4.41 pixels XXX).
+<P>
+The same sample of stars is used to find a
+<A HREF="http://www.astro.princeton.edu/~rhl/photomisc/composite.ps">composite profile</A>. 
+The composite profile is formed from a sample of stars which greatly vary
+is brightness, and has increased dynamic range.   
+If 'wing' and 'frame' stars are available, their profiles are added to the
+composite profile, and a sum of 2 Gaussians and a power-law wing is fitted
+to it. In the case that a composite profile does not extend far enough (i.e.
+'wing' and 'frame' stars are not bright enough), it is assumed that the index 
+of power-law wing is -3 (after <A HREF="refs.html#"> Racine 1996</A>), and only 
+its scale is fitted. In extreme cases (corresponding to the ratio of the 
+intensity of the last point in the profile to the central intensity greater 
+than 0.001) the power-law wing is ignored completely, and only 2 Gaussians are
+fitted to the composite profile.
+ 
+
+
+
+<H4><A name=psp_algorithms_3></A>
+            Preliminary astrometric and photometric calibration    </H4>
+ 
+Astrometric part is trivial. Six coefficients which transform frame coordinates  
+(row, col) to great circle coordinates (mu,nu) for a given inclination are
+read from <A href=#psp_inputs_calib>asTrans*.fit</A> file and simply 
+copied to <A href=#psp_outputs>psCB*.fit</A> file. 
+Note that these transformations are given for the photometric CCDs only (not 
+the astrometric CCDs).
+<P>
+Photometric calibration is somewhat more involved. Its task is to determine,
+for each frame and color, flux20, the number of counts corresponding to a 
+20th magnitude object at zero airmass whose color index is <CODE>refcolor</CODE> 
+(<CODE>refcolor</CODE> is currently hard-coded as 0). This is done by matching 
+the postage stamps (after they passed <A href=#ind_rej>individual rejection</A>) 
+to a list of objects provided by the MT calibration system (which are observed 
+nearly simultaneously with the main survey, more details can be found in
+chapter <A HREF=http://www.astro.princeton.edu/BBOOK/PHOTCAL/photcal.html>
+Photometric Calibration and the Monitor Telescope</A>
+of the SDSS NASA Proposal, aka <A HREF=http://www.astro.princeton.edu/BBOOK>
+Black Book</A>). Postage stamps provide counts, and the MT list provides magnitudes 
+and colors for the objects used in calibration.  
+
+
+
+Assuming that log(flux20) varies linearly with the color index
+<P> 
+<CODE> log(flux20) = log(flux) + 0.4*(m-20) - b*color + b*refcolor + k*z, </CODE>
+<P>
+where 
+<UL>
+  <LI> flux: aperture counts for an object from postage stamps. 
+  <LI> m, color: magnitude and color index for this object supplied by MT
+       in <A href=#psp_inputs_calib>kaCalObj*.fit</A> files.         
+  <LI> refcolor: reference color for which flux20 is evaluated, set to 0.
+  <LI> b: color term supplied by MT in <A href=#psp_inputs_calib>exPhotom*.fit</A> 
+       files. b will be determined for each color during the test year and, 
+       presumably, will be checked and updated as needed as part of the post-Photo 
+       calibration.
+  <LI> k: extinction coefficients supplied by MT in 
+       <A href=#psp_inputs_calib>exPhotom*.fit</A> files.  
+  <LI> z: airmass, calculated by using information from <A href=#psp_inputs_fangs>
+       scFang*.fit</A> files headers
+</UL>
+
+The first three terms in the above equation are evaluated as a weighted mean
+for a list of matched objects, with the weights equal to quoted inverse variances.   
+
+
+<hr> <H3><A name=psp_exe>Running the Postage Stamp Pipeline</A></H3>
+<P> 
+This document assumes that Photo and all other required SDSS products 
+have been properly installed. For details of this procedure please refer to
+other <A HREF=http://www-sdss.fnal.gov:8000> SDSS documentation</A>. The aim
+of this document is to lead a user step-by-step through an execution with a lot
+of diagnostic output. 
+<P>
+Assuming that Photo's home directory is $PHOTO (in the following example
+$PHOTO = /u/ivezic/photo), Photo is executed by  
+<P><CODE> $PHOTO/bin/photo</CODE> 
+<P>which produces the following response ('>' is the Unix shell prompt): 
+<pre>
+>$PHOTO/bin/photo
+Executing commands in /u/products/IRIX/astrotools/v3_0/etc/astrotoolsStartup.tcl
+
+Executing commands in /u/products/IRIX/dervish/v6_6/etc/dervishStartup.tcl: 
+Executing commands in /u/ivezic/photo/startup.shiva: 
+Executing commands in /u/ivezic/photo/startup.photo: 
+Executing commands in /u/ivezic/photo/startup.ZI: 
+photo>              
+</pre>
+
+In the case of using 'display' output (SAO Image), 
+<P><CODE>photo> set_mtv </CODE> 
+<P>should be used for launching an SAO Image Display window.
+
+<P>
+Now, one can either change directories to a directory containing the 
+psPlan.par file (e.g. $PHOTODATA_DIR), and then run the pipeline: 
+<pre>
+photo> cd $PHOTODATA_DIR
+photo> run_psp_pipeline
+</pre>
+or, supply the name of the file (including a relative or absolute path) 
+as an argument to the pipeline script:
+<pre>
+photo> run_psp_pipeline $PHOTODATA_DIR/psPlan.par
+</pre>
+
+The following example is based on observations of the Hubble Deep Field by using 
+the 3.5 m Apache Point Observatory reflector and SPICAM camera. All 
+<CODE>display_*</CODE> keywords in <A HREF=#psp_plan><I>psPlan.par</I></A> file 
+have been set to 1 (except <CODE>display_psf=2</CODE> and <CODE>display_flat=2</CODE>),
+and <CODE>verbose</CODE> to 0. For <CODE>verbose > 0</CODE> more text output is 
+produced, with the text amount proportional to the selected value of <CODE>verbose</CODE>
+(on a scale 1-10). All plots described below are displayed on a monitor. However, a few
+of them can be also obtained in PostScript version as a part of the PSP <A href=#psp_outputs> output
+</A>.
+
+
+<P> The following plots are shown (click on the name for an example): 
+<UL>
+
+<LI>       Flat_field, bias and sky:
+<UL>
+  <LI> <A HREF="psp_fig1.gif"> (scaled) median quartile image:</A> 
+       Ncolumns x Nframes image of medians for each column (horizontal axis) and frame  
+       (vertical axis). Includes overscan columns. 
+  <LI> <A HREF="psp_fig2.gif">2D flat region:</A> Ncolumns x Nframes image of flat-field values, before smoothing
+       and interpolation, for each column (horizontal axis) and frame (vertical axis).
+       It does not include overscan columns. 
+  <LI> <A HREF="psp_fig3.gif">bias</A> as a function of column (includes overscan columns). 
+  <LI> <A HREF="psp_fig4.gif">sky</A> as a function of frame (before and after interpolation).
+  <LI> <A HREF="psp_fig5.gif">left bias drift</A> as a function of frame.
+  <LI> <A HREF="psp_fig5.gif">right bias drift</A> as a function of frame (plotted only when there is
+       more than one amplifier per chip).
+  <LI> <A HREF="psp_fig6.gif">smoothed flat vector:</A> flat-field values as a function column for each frame
+       after smoothing and interpolation.
+</UL>
+
+<LI>       PSF determination:
+<UL>
+  <LI> <A HREF="psp_fig7.gif">raw postage stamps</A> for each frame and filter
+  <LI> <A HREF="psp_fig8.gif">corrected stamps</A> which passed <A href=#ind_rej>
+        individual rejection</A>. Only the data inside the red circles is considered 
+        in the PSF determination. The circle radius is equal to <CODE>psf_def_rad</CODE>,
+        defined in <A HREF=#psp_param><I>psParam.par</I></A> file. The lower left
+        corner of each stamp contains two numbers: the first number is the stamp's 
+        index in the list of all stamps, and the second one is the frame number from
+        which that stamp was taken. 
+  <LI>  <A HREF="psp_fig9.gif">stamps rejected for the PSF determination</A>. The lower
+        left corner of each stamp contains two numbers: the first number is the stamp's 
+        index in the list of all stamps, and the second one is a hexadecimal code 
+        explaining why was that stamp rejected (it shows which of the flags used for 
+        <A href=#ind_rej>individual rejection</A> are set). Decoding can be done by 
+        using Photo command print_flags_info. For example, <CODE>print_flags_info 
+        0x802</CODE> produces: <CODE> The following flags are set: BADSKY, CR</CODE>. 
+        Note that stamps are never rejected because of CR (cosmic ray) flag alone.
+  <LI>  <A HREF="psp_fig10.gif">stars + asymmetry</A> For each rejected star (provided
+        that it has determined profile and is not saturated) two panels are shown:
+        the left one is the original stamp, and the right one is the residual
+        left after the image rotation for 180 degrees and subtracting it from itself. 
+        The four numbers are the stamp's index in the list of all stamps, row and column 
+        offset of its peak from the pixel center, and the rejection flag (the same one
+        as in the preceeding figure).
+  <LI>  <A HREF="psp_fig11.gif">average PSF</A> obtained by adding all selected stamps 
+        for a frame indicated in the lower left corner. 
+  <LI>  <A HREF="psp_fig12.gif">stamps used for PSF determination</A>. Accepted stamps
+        are framed in yellow, while the clipped stamps are framed in red octagons. The
+        three numbers in the lower left corner are the stamp's index in the list of all 
+        stamps, the frame number from which that stamp was taken, and the clipping 
+        rejection code. Accepted stamps have the rejection code set to 0, while the 
+        rejected stamps can be clipped because of: 1 - sigma1 from a double Gaussian best fit, 2 - sigma2 
+        from a double Gaussian best fit, 4 - b (the amplitude ratio) from a double Gaussian
+        best fit (these flags are cummulative in sense that they can produce any value
+        between 1 and 7); 8 - clipping on shape (the Stokes parameters Q and U);
+        9 - clipping on the deviation from a median in each cell; 10 - clipping on
+        best-fit model PSF (not belonging to the best-fit model), 11  - clipping on
+        best-fit model PSF (the best-fit model produces large chi2); 16+i - rejected
+        in the i-th iteration of chi2 clipping because of large chi2.   
+  <LI>  <A HREF="psp_fig13.gif">shape and size rejection statistics</A>. The left panel 
+        shows the distribution of Q and U values (points) and the rejection boundaries
+        (white circle). The data corresponding to the rejected stamps are shown as red 
+        circles. The right panel shows an analogous plot for b and sigma2 values from a  
+        double Gaussian best fit. 
+  <LI>  <A HREF="psp_fig14.gif">radial profiles</A> for all stamps (left panel) and only 
+        for the selected stamps (right panel). The white/red points are data for each 
+        stamp, and the red/green lines are the mean profile corresponding to that frame. 
+        The blue lines show the mean profile +- 1 sigma
+  <LI>  <A HREF="psp_fig15.gif">rejection statistics</A>. For each frame, the left panel 
+        shows the numbers of stamps, good stars, those rejected on cell clipping and
+        those rejected on chi2 clipping. The right panel shows the latter three quantities 
+        as the percentages of the numbers of stamps.    
+
+</UL>
+<P>
+       <A HREF="psp_fig16.gif">The main diagnostics plot</A>: there are 12 panels which
+       show the behavior of various relevant quantities on a frame by frame basis. The
+       name of each plotted quantity is given on top of the corresponding panel, as well 
+       as the units (if applicable). These quantities include (moving row by row from 
+       left to right, starting in the upper left corner and ending in the lower right corner):
+<UL>
+  <LI> the number of counts corresponding to a 20th magnitude object at zero airmass, 
+       for each patch, as a function of time when the patch was observed. A message 
+       ``No mtPatch available'' on top of the panel is printed when there are no available
+       patches.
+  <LI> the sky background level (in counts).
+  <LI> left and right bias drift (they are the same if there is only one amplifier per chip)
+  <LI> the number of selected PSF stars per frame (points are connected by line), and the 
+       number of points in the resulting PSF profile.
+  <LI> the widths of 2 Gaussian components in a best-fit model PSF: triangles - sigma1,
+       dots (sigma2). The solid line shows the width for a single Gaussian fit. 
+  <LI> the amplitude ratio of 2 Gaussian components in a best-fit model PSF.  
+  <LI> the strength of the power-law wing part in a best-fit model PSF, scaled by the
+       amplitude of the first Gaussian component, and multiplied by 1000. 
+  <LI> the index of the power-law wing part in a best-fit model PSF.
+  <LI> the aperture correction defined as the ratio of counts in an aperture whose
+       size is given by <CODE>star1_aperature</CODE> specified in 
+       <A HREF=#psp_param><I>psParam.par</I></A> file, and counts in the adopted
+       PSF profile.
+  <LI> the third and fifth radial values of adopted PSF profile, the latter multiplied 
+       by 100.        
+  <LI> mean cell deviation from the adopted PSF profile, evaluated and averaged for
+       each selected star.  
+  <LI> the number of counts corresponding to a 20th magnitude object at zero airmass, 
+       for each frame. 
+</UL>
+</UL>
+
+
+<hr>
+<A name=psp_flowcharts><H3>The Postage Stamp Pipeline Flow Charts</H3></A>
+ 
+<MENU>
+<LI><A href=#psp_fc_1> Determination of bias, sky and flat field            </A>
+<LI><A href=#psp_fc_2> Characterization of the point spread function        </A>
+<LI><A href=#psp_fc_3> Preliminary astrometric and photometric calibration  </A>
+</MENU>
+
+
+
+
+<HR>  <H4><A name=psp_fc_1></A> 
+         Determination of bias, sky and flat field             </H4> 
+
+<pre>
+ 
+Initialise Modules, Read Plan/Parameter Files
+
+Foreach filter {
+
+    Read bias vector for this run from idB*.fit file 
+ 
+    Read data quartiles for all frames from scFang*.fit files
+
+    Foreach frame {    
+      
+           /* bias drift: median over rows, mean over overscan columns */
+           Bias drift = mean(median(imaging run) - median(bias run))
+           /* flat-field: median over rows */
+           Foreach column {    
+              Flat-field = median(imaging run)    /* normalized */
+           }
+           /* sky: mean over data columns */
+           Sky = mean(flat_field)       
+    }
+
+    Foreach frame {    
+        Smooth and interpolate bias drift, flat-field and sky  
+        Write flat-field to file psFF*.fit
+        Write bias drift and sky to file psCB*.fit
+    }
+}
+
+
+</pre>
+ 
+
+<HR>  <H4><A name=psp_fc_2></A>
+         Characterization of the point spread function         </H4>
+<pre>
+ 
+Initialise Modules, Read Plan/Parameter Files
+
+Foreach filter {
+   
+    Determine mean (over all frames) gains and dark variances
+  
+}
+
+Retrieve information on 200x200 stamps
+
+Foreach filter {
+
+    Foreach frame {
+
+        Read the flat-field vector (from a psFF*.fit file)
+
+        Read 65x65 stamps (from a scFang*.fit file) 
+
+        Extract profiles for 65x65 stamps 
+
+        If available { Read 200x200 stamps
+
+                       Extract profiles for 200x200 stamps
+        }
+         
+    }
+
+    Reject objects with any of individual flags set on
+ 
+}
+
+/* these two loops over filters are separated because the above is
+coded at Tcl level, and the following one in C */
+
+Foreach filter {
+
+    Foreach frame {
+
+        Form a subsample of objects 
+     
+        Clip the subsample on the deviation from a median in each cell
+
+        Clip the subsample on the extracted profile shape (QU)  
+ 
+        Clip the subsample on the extracted profile size (2 Gaussians fit)    
+
+        Clip the subsample by using a best-fit model PSF 
+
+        Clip the subsample until it is uniform (measured by chi2) 
+ 
+        Determine the mean PSF profile and the best-fit model PSF
+
+        Determine composite profile
+
+        Add bright objects' profiles to the composite profile 
+
+        Calculate photometric corrections (aperture correction etc.)
+
+    }       
+          
+}
+ 
+
+
+</pre>
+
+
+<HR>  <H4><A name=psp_fc_3></A>
+         Preliminary astrometric and photometric calibration   </H4>
+
+<pre>
+ 
+Read astrometric transformation coefficients for each frame and filter
+  (from asTrans*.fit file) 
+
+Calculate time and airmass for each frame and filter 
+  (by using information from scFang*.fit files headers) 
+
+Read zero points, extinction coefficients and color terms for each filter 
+  (from exPhotom*.par file) 
+
+Read positions and magnitudes in each filter of objects detected in the 
+  MT pipeline (from kaCalObj*.fit files, aka patch files) 
+
+Read color terms for each filter from psParam.par file
+  (to be used in log(flux20) = a + color_term * color_index)
+
+Read counts in each filter for a 20th mag object 
+  (from an old calibration file, psCT*.fit)
+ 
+Setup extinction arrays for interpolation 
+  (extinction coefficient for each filter as a function of time) 
+
+Foreach frame {
+
+    If No MT patches 
+
+        Use old calibration(time) from psCT*.fit  
+
+    Else {
+
+        Foreach patch file {
+            
+            Match PS stars with MT stars
+                
+            Determine time and calibration(filter) for this patch file
+
+        }
+         
+    }
+
+    Interpolate calibration(time,filter) to each frame       
+
+}
+</pre>
+ 
+
+<hr>
+<A name=psp_appendix1><H1>Appendix 1 </H1> 
+
+<hr>
+<A name=psp_plan><H3>psPlan.par: plan file for Postage Stamp Pipeline</H3> 
+ 
+This is an example of psPlan.par file which is used to supply
+all logistical information to PSP (numerical parameters which control PSP
+algorithms are supplied in <A href=#psp_param><I>psParam.par</I></A>).
+All data is entered in form keyword - value. In case of multiple entries
+the last one counts.
+This example assumes that the data is stored in directory $PHOTODATA_DIR.
+<pre>
+
+
+################################################################# 
+# This is the Plan file for the Postage Stamp Pipeline
+
+#
+# Required Generic Plan Fields
+action              ps                    # Plan type
+version             v1.0                  # Software version to use
+parameters          psParam.par           # Tunable parameters file
+
+#
+# Optional Generic Plan Fields
+priority            1                     # Execution priority
+oid                 "23.45.34.23"         # Database object identifier
+targetDate          "1999/04/18"          # Target date (local time zone)
+created             "1965/04/18 05:40:00" # Creation time (UT)
+authors             "User Abuser"  	  # Authors
+comment             "example"             # Comment
+diagnostics         1                     # if > 0, do create a file with
+                                          # diagnostic output from each field
+diagFile            psDiag                # prefix of the file into which 
+                                          # diagnostic output will be placed.
+                                          # Name will include run and camCol. 
+
+#
+# additional info 
+nfilters            5                     # number of filters with data in scFang files
+stampsize           65                    # size on a side of postage stamps
+refcolor            r                     # to which the chip to chip trans transforms
+# filters order
+ccdrow_r            1
+ccdrow_i            2
+ccdrow_u            3
+ccdrow_z            4
+ccdrow_g            5
+ccdrow_o            6
+ccdrow_l            7
+ccdrow_t            8
+ccdrow_s            9
+
+#################################################################
+# List of paths to various required files
+
+# the param file given above as 'parameters' may be found here
+parametersDir 	    $PHOTODATA_DIR/input
+
+# directory with bias data (idB*.fit files)
+biasDir             $PHOTODATA_DIR/idB
+
+# directory with the CCD parameters file ...
+configDir           $PHOTODATA_DIR/input
+# and file names
+ccdConfig           opConfig-51259.par    # amplif. config
+ccdBC      	    opBC-51259.par	  # bad column file
+ccdECalib 	    opECalib-51259.par	  # readnoise/gain file 
+
+# the fangs, output of SSC pipeline may be found here
+fangDir             $PHOTODATA_DIR/fangs
+
+# astrometric transformations for this run
+transFileDir        $PHOTODATA_DIR/input
+transFile	    asTrans-000581.fit
+
+# monitor telescope photoms 
+photomFileDir	    $PHOTODATA_DIR/input
+photomFile 	    exPhotom-51261.fit
+
+# monitor telescope secondary patches are here
+mtPatchFormat       mtPatch-%08d.fit
+mtPatches           {95-25-1 $PHOTODATA_DIR/input}\ 
+                    {90-25-1 $PHOTODATA_DIR/input}\ 
+                    {95-25-2 $PHOTODATA_DIR/input}\
+                    {90-25-2 $PHOTODATA_DIR/input}  
+
+# default calibration is here (last good output from psp)
+ctFileDir           $PHOTODATA_DIR/output
+ctFile              psCT-000581-3.fit
+
+# put the output here:
+outputDir 	    $PHOTODATA_DIR/output
+
+
+#################################################################
+# Processing Parameters
+
+# the important stuff
+run                 581                 # Imaging run number. 
+camCol   	      1		        # Camera column
+startField           10                 # start pipeline with this field
+endField             66                 # stop with this (inclusive)
+filterlist    u g r i z                 # filters to include when processing
+  
+# aux stuff
+verbose               1                 # verbose > 0 means print a lot
+trace_memory	      1
+crc_nbyte_max     20000
+
+### display requests (0: off) ###
+display		      0    # display on/off (-1 for w/o prompting)
+
+# the following flags control saoimage display 
+display_raw	      0    # show the raw PSF stamps
+display_psf	      0    # show the corrected PSF stamps (2 for rejects)
+display_PSFstars      0    # show good and clipped PSF stars
+display_average_psf   0    # display the average of PS stars
+display_wing          0    # display corrected wing stamps
+display_symmetry      0    # display residual after subtracting symmetric image
+
+# the following flags control pgplot display
+display_bias          0    # plot bias vector
+display_flat	      0    # display flatfield (>1 for the smoothed flat-field vector)
+display_clipping      0    # plots of (sigma1,sigma2) and (Q,U) for good stars 
+                           # for >1 produces hard copies in outdir (psPlotsQU*.ps)
+display_rejection     0    # display rejection statistics for all frames 
+                           # for >1 produces hard copies in outdir (psPlotsRejecStats*.ps)
+display_profiles      0    # display stars' CELL_PROFs 
+                           # for >1 produces hard copies in outdir (psPlotsCellProf*.ps)
+display_summary       0    # graphs at the end (also written to psPlots*.ps)    
+ 
+  
+</pre>
+
+
+<hr>
+<A name=psp_param><H3>psParam.par: parameter file for Postage Stamp Pipeline</H3> 
+
+This is an example of psParam.par file which specifies all
+parameters for controlling PSP algorithms. All data is entered in form 
+keyword - value.
+
+
+<pre>
+
+#
+# Software parameters for postage stamp pipeline
+#
+
+ps_wingsize 200 			# size of stellar-wing patches
+
+# value at which a pixel is considered saturated
+ps_saturation_level        64000
+
+# software bias to prevent negative pix values after bias subtraction
+ps_soft_bias            1000
+
+# file of cell-array profiles (precalculated PSF models)
+cellprofile_file $PHOTO_DIR/lib/cellprof.dat	
+
+# parameters used by flatfields modules
+ps_smooth_length	0		# how to smooth the bias vectors
+                                        # must set to 0, currently not used
+ff_ninterp              5               # controls the number of adjecent frames, nadj,
+                                        # to smooth over (nadj = 2 * ff_ninterp + 1)
+ff_sigrej               3               # Rejection limit in sigmas
+ff_beta                 0               # index specifying interpolation (filtering) method
+                                        # 0 = median, 1 = mean, > 1 a weighting function 
+                                        # which -> delta function for ff_beta -> inf.
+left_buffer             0               # do not include last left_buffer pixels in left 
+                                        # overscan region when determining bias drift 
+right_buffer            0               # do not include first right_buffer pixels in right 
+                                        # overscan region when determining bias drift 
+
+# parameters used by the findCR function
+cr_min_sigma            6.0             # CRs must be > this many sky-sig above sky
+cr_min_e                150             # CRs must have > this many electrons in peak pixel
+cr_cond3                3.0             # used in condition 3 for CR; see CR.c code
+cr_cond32               0.6             # used in condition 3 for CR; see CR.c code
+
+# parameters used by makeStarlist  
+star1_aperature          5              # Index of radial profile aperature
+                                        # to use for photometric calibration
+psf_def_rad             27              # rad out to which to use data for PS stars 
+wing_def_rad            60              # rad out to which to use data for wing stars                                    
+psf_threshold		 5		# % of peak to trigger asymmetry filter 
+sigma_multi             2.5             # number of sigma sky to trigger multiple flag
+sigma_badsky            3.0             # number of sigma for bad sky, 3.0
+second_peak             0.0001          # minimum required strength for the 2nd peak to
+                                        # set MULTIPLE flag  
+ 
+# parameters used for selecting good PSF stars 
+min_starnum             2               # min. number of good stars needed for PSF
+                                        # determination
+psf_nframe              3		# interpolate psfs over nframes frames (odd number)
+psf_niter		2		# number of times to iterate sigma clip
+soft_err_min            0.01            # minimal error for composite profile used
+                                        # for softening before fitting the PSF
+soft_err_max            0.02            # maximal error for composite profile used
+                                        # for softening before fitting the PSF
+nowing_option           2               # what to do w/o wing stars:
+                                        # 1 = give up
+                                        # 2 = assume some canonical values
+psf_critical_amplitude	5000		# if bad width and dgpsf->a > this,
+   					# the stamp's bad in all bands
+# cliping parameters
+ # cell by cell clip
+ncellclip               3.0             # how many sigma to clip cells at
+nbadcell                6               # how many bad cells to condemn a star  
+maxdev                  5.0             # maximal allowed deviation from the median
+ # size and shape clip 
+psf_nsigma1		4.0		# number of sigma at which to clip sigma 
+psf_nsigma2		2.0		# number of sigma at which to clip QU 
+ # clip on best_fit model PSF
+clip_mod                 0              # if < 1 do not clip on best-fit model
+ # chi2 clip
+chisq_max               1.0             # max chi2 for all stars         
+chisq_cutoff            3.0             # max chi2 for a single star  
+
+# parameters used by photometricParameters module
+fpp_refcolor_u          g               # Band used with color terms in the u
+fpp_refcolor_g          r               # Band used with color terms in the g
+fpp_refcolor_r          g               # Band used with color terms in the r
+fpp_refcolor_i          r               # Band used with color terms in the i
+fpp_refcolor_z          i               # Band used with color terms in the z
+fpp_color_term_u       .01              # log(flux20) = a + color_term * color
+fpp_color_term_g       .01              # log(flux20) = a + color_term * color
+fpp_color_term_r       .01              # log(flux20) = a + color_term * color
+fpp_color_term_i       .01              # log(flux20) = a + color_term * color
+fpp_color_term_z       .01              # log(flux20) = a + color_term * color
+fpp_color_term_err_u       .001         # Error in color term for u
+fpp_color_term_err_g       .001         # Error in color term for g
+fpp_color_term_err_r       .001         # Error in color term for r
+fpp_color_term_err_i       .001         # Error in color term for i
+fpp_color_term_err_z       .001         # Error in color term for z
+fpp_starsep                   8         # Max sep (") for match to mt stars
+fpp_sys_ph_err          0.01            # systematic (fractional) photometric error
+fpp_max_err             0.05            # max. allowed photometric error (in mag) for 
+                                        # stars used for calibration (both MT and PS)
+fpp_n_max               0               # max polyn. for flux20(t) fit 
+ 
+
+</pre>
+
+<hr>
+<A name=psp_QApar><H3>psQApar.par: parameter file for Postage Stamp Pipeline</H3> 
+
+This is an example of psQApar.par file which specifies all parameters for 
+controlling QA processor. All data is entered in form keyword - value. 
+The warning range for a given quantity is controlled by w1 and w2: if it is
+outside the range defined by w1 and w2, the warnings counter is increased by
+one. This cummulative counter is the return value for procedure 
+run_ps_pipeline.  If the quantity is outside the fatal error range defined by f1 
+and f2, then run_ps_pipeline returns -1.
+
+
+<pre>
+
+#
+# QA software parameters for postage stamp pipeline
+#
+
+# parameters used by QA processor
+ # sky
+qa_sky_w1                1.0            # lower values trigger warning             
+qa_sky_w2            10000.0            # higher values trigger warning            
+qa_sky_f1                0.0            # lower values cause fatal error            
+qa_sky_f2            66000.0            # higher values cause fatal error          
+ # drift
+qa_drift_w1           -100.0            # lower values trigger warning             
+qa_drift_w2            100.0            # higher values trigger warning            
+qa_drift_f1          -1000.0            # lower values cause fatal error            
+qa_drift_f2           1000.0            # higher values cause fatal error 
+ # PSF paramters        
+   # sigma1
+qa_sigma1_w1             0.1            # lower values trigger warning             
+qa_sigma1_w2            10.0            # higher values trigger warning            
+qa_sigma1_f1             0.0            # lower values cause fatal error            
+qa_sigma1_f2            20.0            # higher values cause fatal error          
+   # sigma2
+qa_sigma2_w1             1.0            # lower values trigger warning             
+qa_sigma2_w2            20.0            # higher values trigger warning            
+qa_sigma2_f1             0.0            # lower values cause fatal error            
+qa_sigma2_f2            50.0            # higher values cause fatal error  
+   # b
+qa_b_w1                  0.0            # lower values trigger warning             
+qa_b_w2                100.0            # higher values trigger warning            
+qa_b_f1                  0.0            # lower values cause fatal error            
+qa_b_f2                100.0            # higher values cause fatal error 
+   # sigmap
+qa_sigmap_w1             0.0            # lower values trigger warning             
+qa_sigmap_w2            50.0            # higher values trigger warning            
+qa_sigmap_f1             0.0            # lower values cause fatal error            
+qa_sigmap_f2           100.0            # higher values cause fatal error  
+   # p0
+qa_p0_w1                -0.00001        # lower values trigger warning             
+qa_p0_w2                10.0            # higher values trigger warning            
+qa_p0_f1                -0.1            # lower values cause fatal error            
+qa_p0_f2              1000.0            # higher values cause fatal error 
+   # b
+qa_b_w1                  0.0            # lower values trigger warning             
+qa_b_w2                100.0            # higher values trigger warning            
+qa_b_f1                  0.0            # lower values cause fatal error            
+qa_b_f2                100.0            # higher values cause fatal error 
+   # beta
+qa_beta_w1               2.0            # lower values trigger warning             
+qa_beta_w2              10.0            # higher values trigger warning            
+qa_beta_f1               0.0            # lower values cause fatal error            
+qa_beta_f2             100.0            # higher values cause fatal error  
+   # chi2
+qa_chi2_w1               0.1            # lower values trigger warning             
+qa_chi2_w2               2.0            # higher values trigger warning            
+qa_chi2_f1              -0.1            # lower values cause fatal error            
+qa_chi2_f2              10.0            # higher values cause fatal error        
+ # app_corr
+qa_app_corr_w1           0.75           # lower values trigger warning             
+qa_app_corr_w2           1.25           # higher values trigger warning            
+qa_app_corr_f1           0.5            # lower values cause fatal error            
+qa_app_corr_f2           2.0            # higher values cause fatal error          
+ # MTchi2  (chi2 obtained for a fit to data for flux20(t) given by MT)
+qa_MTchi2_w1            -0.01           # lower values trigger warning             
+qa_MTchi2_w2             2.0            # higher values trigger warning            
+qa_MTchi2_f1            -0.01           # lower values cause fatal error            
+qa_MTchi2_f2            10.0            # higher values cause fatal error        
+ # flux20
+qa_flux20_w1             1.0            # lower values trigger warning             
+qa_flux20_w2         10000.0            # higher values trigger warning            
+qa_flux20_f1             0.0            # lower values cause fatal error            
+qa_flux20_f2         65000.0            # higher values cause fatal error  
+  
+
+</pre>
+
+
+
+<hr>
+<A name=psp_appendix2><H1> Appendix 2: Examining PSF </H1> 
+
+<P>
+
+
+
+
+
+
+
+
+
+
+<hr>
+<A HREF="psp.html#"> Top</A> of this file<BR>
+Back to <A HREF="overview.html#"> Photo Overview</A>
+<P>
+Please send any comments or suggestions to
+<A HREF="mailto:ivezic@astro.princeton.edu">Zeljko Ivezic</A>
+<hr>
+
+<P><ADDRESS>
+<I>ZI, February 1998</I>
+</ADDRESS>
+</BODY>

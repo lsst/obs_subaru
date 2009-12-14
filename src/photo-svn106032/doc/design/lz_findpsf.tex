@@ -1,0 +1,189 @@
+
+\def \fpsf{{\bf Find PSF\ }}
+\def \fbs{{\bf Find Bright Stars\ }}
+
+\subsection {Description}
+
+We will use the photometric chip postage stamps to determine the
+point spread function(s) for the entire run.  We cannot use the stars in one
+frame to define a PSF for that frame, because there will be
+regions of the survey in which too few stars appear.
+We will use photometric chip postage stamps {\it from the entire strip}
+to compile a large set of stellar images, from which a good PSF
+may be determined.  The PSF may vary as a function of time, and 
+also as a function of position perpendicular to the readout direction.
+All the work needed to create this model of the PSF is the job of
+\fpsf .
+
+  {\bf Note that the postage stamps will not allow us to 
+model the extended wings of stars; nor can we calculate
+the expected shape of the wings until the optical design is
+completed.  I therefore suggest that we leave the problem of
+extended wings for the Level One pipeline.}
+
+  In addition, the \fpsf will read in the values of 
+several parameters needed for the task of finding stars in the
+photometric images, and perhaps information describing the 
+extended wings of stars (if we decide simply to guess for
+the Level Zero implementation),
+and possibly allocate some memory for 
+use within the module.
+
+\subsection {Input}
+
+  In order to compute a PSF, the module needs
+
+\begin{itemize}
+  \item the entire set of postage stamps cut out around bright objects
+        in the photometric chips by the on-line Data Acquisition system.
+  \item a rough model for the PSF (either a set of several parameters,
+        or possibly a complete 2-D example)
+  \item a set of parameters describing the acceptable limits
+        for stellar candidates
+\end{itemize}
+
+Note that we {\it must} give the module some idea
+for the appearance of stars, so that it will choose only actual
+stellar images to define the PSF.
+
+\subsection {Output}
+
+  The main product of the {\bf FindPSF} is 
+
+\begin{itemize}
+  \item a model PSF, which may be dependent and position - the parameters
+will be output as one complete set per frame
+\end{itemize}
+
+As by-products, we could also produce
+
+\begin{itemize}
+  \item a set of corrected postage stamps from the photometric array
+  \item a list of {\it STAR1} structures containing the 
+        measured properties for all the
+        stars in the photometric dataset used to construct the PSF
+\end{itemize}
+
+\subsection {Modules}
+
+  The \fpsf consists of several large, non-trivial
+sub-modules, namely ones to
+
+\begin{itemize}
+  \item identify the subset of objects which are unsaturated, 
+        isolated stars 
+  \item build a model PSF, which may vary with position and/or time
+\end{itemize}
+
+  In addition, there is the much simpler task of
+
+\begin{itemize}
+  \item read parameter values
+\end{itemize}
+
+\subsection {Algorithms}
+
+Identifying stars as ``good'' ones for the PSF is not
+easy.  Comparing each object to the rough input PSF may not
+be sufficient --- the module may have to make extra checks
+to be sure that fainter objects or image defects do not occur
+within some critical distance of the star.
+
+  There are a set of utility routines in the Prototype Pipeline
+for building up a model {\it PSF} structure from a set of 
+regions including stars.  The model consists of a 2-D bivariate
+Gaussian plus a table of residuals, identical to that used
+by DAOPhot.  However, adding time and/or location dependence
+will require some additional work.  We have decided that for level
+zero we will only fit to a function, and not put in the residuals.
+One possibility is to create a series of {\it PSF} structures
+from stars which have been grouped together by time of
+exposure, and then fit the Gaussian parameters with a low-order
+polynomial as a function of time.  However, we will have to
+experiment and see what works best.
+
+  The {\it PSF} structure will have another additional member or two,
+which describe the form of the extended wings of very bright stars
+out to distances comparable to the size of an entire frame.
+However, this module will not calculate that form from the
+postage stamps; it will be calculated and stored in a parameter
+file.
+
+  The parameter-reading task does not
+require any special algorithms.
+
+\subsection {Quality, Debugging, Resources}
+
+  Developing the \fpsf will require the ability
+to display a postage stamp together with the model PSF
+based upon it (and, if possible, the analytic approximation
+and residuals separately).  Tools to graph the fitted
+PSF to an actual stellar profile will be very useful.
+
+  During pipeline operation, the \fpsf should
+produce a small amount of ASCII text describing 
+
+\begin{itemize}
+  \item its progress in correcting the photometry postage stamps
+  \item a list of those bright objects chosen to define the PSF
+        (and those {\it not} chosen)
+  \item a brief description of the PSF
+\end{itemize}
+
+  For debugging purposes, the module should produce a more verbose
+text based upon the ``debug mode.''  Also, when debugging, 
+it should print out values of the parameters as it reads them 
+and the status of its memory-allocation attempts.
+
+  The \fpsf module will not require much
+memory.
+
+{\it Note that this will not allow us to characterize the extended
+wings of very bright stars, since the original postage stamps are
+29x29 pixels.}
+In order to model the wings, we have two options:
+we can wait until the optical design is completed, 
+attempt to calculate the form of the wings and 
+make an analytic approximation;
+or we can wait until the Test Year, look at actual
+stellar images, and make the approximation at that time.
+I suggest that we use some very simple analytic formula
+for Level Zero, and substitute more accurate models into
+later versions of the pipeline.
+
+\subsection {Test Data Required}
+
+  We will need to know what the derived PSF
+{\it ought} to be, in order to verify that the module has 
+done its job.  Therefore, all these products must be the result
+of a simulation, rather than actual data from some telescope.
+{\bf Creating this complete set of photometric data is a major
+task that has not previously been identified.}
+
+  As mentioned above, we cannot model the form of the extended
+wings to stars until the entire optical system is finished,
+and probably not until the Test Year.  However, we can make
+a ``best guess'' for the Level Zero pipeline.
+
+\subsection {Regression Testing}
+
+  The simulated data set mentioned in the previous subsection 
+will serve as a verification testbed for new versions of the
+\fpsf .  We should save the module output from a
+``correct'' version of the pipeline, and then compare that
+output with results from new versions.  The comparison will 
+require 
+
+\begin{itemize}
+  \item a set of ``fuzzy'' comparison tools for lists of numerical
+        information (the same tools that are needed by many other
+        pipeline modules, such as {\bf Measure Objects})
+  \item a special set of tools for displaying and comparing
+        {\it PSF} structures
+\end{itemize}
+
+If we run out of time and/or manpower, it is {\it possible} that
+comparing the ASCII output which describes the PSF would suffice,
+especially if the code which creates the output can be directed
+to produce numbers which have been rounded to some standard precision.
+

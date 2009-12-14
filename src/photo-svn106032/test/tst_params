@@ -1,0 +1,92 @@
+#
+# This file consists of parameters used to run the PS-pipeline in test mode
+#
+fp_random_seed  819396102 # seed for random numbers
+fp_pixscale	0.4	# scale in arcsec/pixel
+fp_soft_bias	1000	# value added to all frames after bias subtraction
+gain		3	# gain of amplifiers (e/DN)
+dark_variance	10	# variance of a dark pixel (DN^2)
+saturation_level 64000  # value at which a pixel is considered saturated
+cellprofile_file $PHOTO_DIR/lib/cellprof.dat	# file of cell-array profiles
+fix_bias		0
+psf_dev_sig             3.0             # Maximum tolerance in standard
+                                        # deviations of fits parameters from
+                                        # mean for an acceptable PSF star
+
+psf_nframe              1		# interpolate psfs over nframes frames
+
+
+# values pertaining to the flatfield interpolation
+ffninterp       5
+ffsigrej        3
+ffmode          1
+
+# size of boxcar used to smooth row-by-row variations in the bias level
+#   (size 0 means "do no smoothing")
+corf_smooth_length 0
+
+# parameters used by the findCR routine (called by correct_frames proc)
+cr_min_sigma       6.0   # CRs must be > this many sky-sig above sky
+cr_min_e           150   # CRs must have > this many electrons in peak pixel
+cr_cond3           3.0   # used in condition 3 for CR; see CR.c code
+cr_cond32          0.6   # used in condition 3 for CR; see CR.c code
+
+# Factor by which the 2-D bias images are scaled up
+bias_scale	10
+
+# Parameters used in finding psfs
+psf_def_rad 25
+wing_def_rad 80
+psf_min_val 500          # min peak pix value for star used in PSF creation
+psf_max_val 25000        # max peak pix value for star used in PSF creation
+psf_nsigma1		2.0		# number of sigma to clip sigma at
+psf_nsigma2		2.5		# number of sigma to clip QU at
+psf_niter		2		# number of times to iterate sigma clip
+chisq_max               1.0             # max chi2 for all stars         
+chisq_cutoff            2.0             # max chi2 for a single star  
+psf_critical_amplitude	1000		# if bad width and dgpsf->a > this,
+   					# the stamp's bad in all bands
+min_starnum   3               # num of good stars needed for width rejection
+stampsize  65		      # size of postage stamps
+wingsize 200                  # size of wing star stamps
+star1_aperature 5             # index of radial profile aperature for photometry
+psf_threshold 2	              # % of peak to trigger asymmetry filter
+sigma_multi   5.0             # number of sigma sky to trigger multiple flag
+sigma_badsky  3.0             # number of sigma for bad sky 
+second_peak   0.05            # max. allowed strength for 2nd peak when
+                              # setting MULTIPLE flag
+nowing_option  1              # what to do w/o wing stars:
+                                    # 1 = give up
+                                    # 2 = assume some canonic values
+soft_err_min   0.01           # minimal error for composite profile used
+                              # for softening before fitting the PSF
+soft_err_max   0.05           # maximal error for composite profile used
+                              # for softening before fitting the PSF
+ncellclip      3.0            # how many sigma to clip cells at
+nbadcell       4              # how many bad cells to condemn a star  
+maxdev         5.0            # maximal allowed deviation from the median
+clip_mod        0             # if < 1 do not clip on best-fit model
+
+# Measure Objects Parameters
+mo_smooth_profs         0               # smooth radial profiles?
+mo_sbellip_r        23.0 
+petro_f1	    0.125    # value of Petrosian value at Petrosian radius
+petro_f2	    26.7     # minimum acceptable surface brightness at
+                             # the Petrosian radius
+petro_f4	    2        # Multiple of Petrosian radius defining P. flux
+petro_f5	    3.0      # `Petrosian' radius if all else fails (arcsec)
+mo_fiber_dia        3.0  
+mo_fiber_color      r
+
+# CCD parameters
+ccdrow_r            1
+ccdrow_i            2
+ccdrow_u            3
+ccdrow_z            4
+ccdrow_g            5
+ccdrow_o            6
+ccdrow_l            7
+ccdrow_t            8
+ccdrow_s            9
+
+ 

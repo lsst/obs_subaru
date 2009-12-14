@@ -1,0 +1,107 @@
+#!/bin/sh
+exec perl -x $0 ${1+"$@"}
+#!perl -w
+#
+# -*- perl -*-
+#
+$vers = 320;			# byte offset of VERSION
+$heap = 3760;			# byte offset of heap format
+
+$ok_version = "v5_2";		# required version in file
+
+while(@ARGV) {
+    $_ = shift;
+
+    if(/-[h?]/) {
+       &syntax;
+       exit 1;
+    } elsif(/-V/) {
+       $ok_version = shift;
+    } elsif(/-v/) {
+       $verbose = 1;
+    } else {
+       unshift @argv, $_;
+    }
+}
+
+foreach $file (@argv) {
+   if(!sysopen(FD, "$file", 2)) {
+      warn "I Cannot open $file for read/append\n";
+      next;
+   }
+   #
+   # Check version
+   #
+   if(!seek(FD, $vers, 0)) {
+      warn "I cannot seek to character $vers in $file\n";
+      close(FD);
+      next;
+   }
+   
+   if(sysread(FD, $line, 80) != 80) {
+      warn "I cannot read 80 characters from $file\n";
+      close(FD);
+      next;
+   }
+
+   if($line =~ /VERSION = '([^']+)/) {
+      ($version = $1) =~ s/\s*$//;
+      if($ok_version ne "" && $version !~ /^$ok_version/o) {
+         warn "$file is version $version, not $ok_version\n";
+         close(FD);
+	 next;
+      }
+   }				
+   #
+   # Fix heap header
+   # 
+   if(!seek(FD, $heap, 0)) {
+      warn "I cannot seek to character $heap in $file\n";
+      close(FD);
+      next;
+   }
+   
+   if(sysread(FD, $line, 80) != 80) {
+      warn "I cannot read 80 characters from $file\n";
+      close(FD);
+      next;
+   }
+
+   if($line =~ m|TFORM2  = '1PJ\(0\)  ' /INT|) {
+      if($verbose) {
+	 print "$file ($version)\n";
+      }
+
+      $line =~ s/1PJ/1PB/;
+
+      if(!seek(FD, $heap, 0)) {
+	 warn "I cannot seek back to character $heap in $file\n";
+	 close(FD);
+	 next;
+      }
+
+      if(syswrite(FD, $line, 80) != 80) {
+	 warn "I cannot write 80 characters to $file\n";
+	 close(FD);
+	 next;
+      }
+   }
+   
+   close(FD);
+}
+
+###############################################################################
+
+sub syntax
+{
+   print <<"EOT";
+Fix incorrect heap header cards in fpAtlas image files produced by photo v5_2
+
+Usage:
+    fix-fpAtlas [options] file [file ...]
+Options:
+    -h		Print this message
+    -V str	Version number to fix (default: $ok_version)
+    -v		Be chatty
+EOT
+}

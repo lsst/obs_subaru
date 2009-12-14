@@ -1,0 +1,91 @@
+
+	The goal of the level zero implementation of the photometric
+pipeline is to produce a system that could reduce the data from the
+2.5 meter photometric camera and allow completion of all northern hemisphere
+core projects outlined in the Principles of Operation of the Sky Survey 
+Project.  These include ``a full set of data of all of the pixels on the sky, 
+... rasters of all of the galaxies brighter than some limit, image 
+parameters for all galaxies to the imaging survey limit, and [the 
+photometric information necessary to produce] catalogs of the positions, 
+redshifts, and properties of observed quasars."  It will not be a 
+priority for the level zero data system to produce any other results 
+or data products.
+
+	The level zero interpretation of these tasks is that we must
+identify sources down to the 5 $\sigma$ level, and we must perform star/galaxy
+separations down to at least 20th (B) magnitude.  The APM survey achieved
+5\% contamination and 90\% completeness for 19th (B) magnitude
+galaxies.  Our goal in level zero is to achieve no more than 5\%
+contamination and at least 95\% completeness for 20th (B) magnitude galaxies. 
+This means that of the things classified as galaxies, at least 95\% of 
+them must be galaxies.  Also, we must identify as galaxies 95\% of the 20th 
+(B) magnitude galaxies.  If we cannot achieve these goals, then we should
+err on the side of finding all of the galaxies and having additional
+false detections.  It is expected that the algorithms will eventually
+be refined to allow fainter detections.
+
+We will not guarantee accurate
+analysis of galaxies brighter than 14th (B) magnitude, or complete coverage
+of galaxies whose sky-limited extent is larger than one arcminute.  However,
+postage stamps will be cut out and flagged for bright galaxies, regardless
+of size.  If possible, we will run code to analyze these
+bright, non-stellar objects.  Otherwise, this will be defered to a later
+release.  Some of the larger, brighter objects will be identified from
+catalogs of known objects.  To do this we will need astrometric parameters 
+that are good to several arcseconds.  We will get these
+either from the astrometric pipeline if it is run or from the image
+headers and monitoring data.
+
+We must provide enough information to find stellar magnitudes to 2\% at 19.7, 
+20.6, 20.3, and 19.7 mag. for filters $u\prime$, $g\prime$, $r\prime$, and 
+$i\prime$, respectively.  In order to do this, we must have as input
+photometric paramters good enough to determine magnitudes to 5\% (20\%
+including unknown galactic extinction).
+If the monitor telescope pipeline has been run, we should use its output
+as input.  Otherwise, we will run with the monitoring information from the
+online system.
+
+On the average, no more than 5\% of the image may 
+be excluded from the catalog area due to defects or bright objects of any 
+kind (at magnitude 20 detection).  Rasters of all objects identified by 
+the software will be obtained in all colors, subject to the condition that
+the rasters contain less than 2\% of the pixels in the original image.  
+If the rasters are more than this, if would seem more efficient to store
+and access the image as a whole.  The highest priority for saving postage
+stamps is for galaxies brighter than 19th magnitude.  Shape parameters will be 
+obtained that meet the minimal requirements for galaxy selection by Survey 
+Strategy.
+
+	The level zero development computer will process at a speed
+comparable to at least 150 MIPS (on more than one processor) and will 
+contain memory of at least 330 Mbytes.  Since we need about 6000 
+MIPS-seconds per frame (from the blue book), we will need 1500 MIP-hours 
+to process a 2.75 hour data tape (which contains about 900 frames in 
+five colors).  To allow for less than 100\% efficiency of the system 
+and allow ourselves some contingency room, the level zero system must 
+run in less than 12 hours on the development computer.  It is a goal of the
+level zero system to understand how to scale it to process an entire nights
+photometric data in 24 hours.  The total size of the products to be written 
+to the database must be no larger than 5\% of the size of the inputs.  The 
+corrected frames are not included in this since they are to be written 
+directly to tape.  For comparison, the blue book accounts for just 
+over 2\% of the inputs in the galaxy atlas and catalog.  This output must 
+include all quality assurance data as well as all permanent science data 
+produced.  We should be able to show that the results from one nights
+observations (10 hours) can be archived in 24 hours or less.  The level 
+zero photometric pipeline must run without crashing over a timescale of 
+24 hours.  No more than 0.1\% of the data must require human intervention 
+to process.
+
+	In order to meet these goals, it is expected that we must have an
+adequate development/debugging environment, code management system, 
+and test platform.  There must be an adequate system for code acceptance 
+and testing, as well as a well-understood set of test data to provide 
+benchmark results and to prove the robustness of new code as it is added.  
+We must be able to distribute new code and test results to the 
+collaboration in a workable and timely fashion.  We must be able to
+show that the code performs within the specifications of the level zero
+system.
+
+
+

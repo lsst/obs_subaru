@@ -1,0 +1,1428 @@
+<HTML>
+<TITLE>How the Frames Pipeline Sets its Flags</TITLE>
+<AUTHOR>Robert Lupton</AUTHOR>
+
+<H1><A NAME="intro">How the Frames Pipeline Sets its Flags</A></H1>
+<H3>Photo version $Name$</H3>
+
+<P>
+
+The frames pipeline uses a set of flags for each object to call
+attention to possible problems and to record decisions made during
+processing.  These flags apply both to the object as a whole (including
+data from each band), and to each band separately.
+<P>
+
+An <CODE>OBJC</CODE> is the entire object in its polychromatic glory, while
+an <CODE>OBJECT1</CODE> is the measured object in just one of the bands.
+<P>
+
+Reading the following description will be easier if you have a nodding
+acquaintance with the frames pipeline, but it should be useful to all.
+
+<DL>
+<DT><A HREF="#descrip">The Flags that Frames Uses</A>
+<DD>A description of each flag
+
+<DT><A HREF="#flow">When and Where Flags are Set as Frames Runs</A>
+<DD>Pseudo-code describing how the flags are set
+
+<DT><A HREF="#objc_type">Meaning of Photo's Object Classification</A>
+<DD>A description of the categories that photo uses to classify objects
+
+<DT><A HREF="#fpM_bits">Meaning of Photo's mask (`fpM') files</A>
+<DD>A description of mask bits that photo sets.
+</DL>
+
+
+<H2><A NAME="descrip">The Flags that Frames Uses</A></H2>
+
+As of version V4_8, photo has two sets of flags, <CODE>flags</CODE>
+and <CODE>flags2</CODE>. There is no essential difference between the
+two; the first 32 bits if information are set in <CODE>flags</CODE>
+and the remainder in <CODE>flags2</CODE>. Flags in the former have
+names beginning <CODE><A HREF="#flag1_0">OBJECT1_</A></CODE>,
+in the latter they begin
+<CODE><A HREF="#flag2_0">OBJECT2_</A></CODE>.
+<P>
+
+The numerical values given in the following tables are the offsets of the
+named bits; for example, <CODE>OBJECT1_EDGE</CODE> (<CODE>2</CODE>)
+corresponds to an integer value of <CODE>(1 &lt;&lt; 2) == 0x4</CODE>.
+
+<DL>
+<DT> <A NAME="flag1_0">0</A>  OBJECT1_CANONICAL_CENTER
+<DD> The quantities (psf counts, model fits and likelihoods) that are
+usually determined at an object's center as determined band-by-band
+were in fact determined at the canonical center (suitably transformed).
+
+<P>
+This is due to the object being to close to the edge to extract a profile
+at the local center, and OBJECT1_EDGE is also set.
+
+
+<DT> <A NAME="flag1_1">1</A>  OBJECT1_BRIGHT
+<DD>
+<UL>
+<LI> For OBJECT1s, indicates that the object was detected as a bright object
+<LI> For OBJCs, indicates that the object was measured as a bright object;
+it'll have been remeasured later as a faint object, and these measurements
+are recorded as a sibling of the original, bright, OBJC.
+<P>
+Internally to the frames pipeline, more objects are detected as bright objects
+than are measured as such (the balance are used to tweak the astrometry);
+only those objects measured will have OBJECT1_BRIGHT set.
+</UL>
+
+<DT> <A NAME="flag1_2">2</A>  OBJECT1_EDGE
+<DD> Object is too close to edge of frame in this band.
+Specifically, at least one of the following is true:
+<UL>
+<LI> At least one pixel above the detection threshold touched the edge of the
+frame
+<LI> The object was too close to the edge of the frame to be centroided
+satisfactorily. OBJECT1_PEAKCENTER will also be set.
+<LI> Object was too close to edge of frame to be able to measure a radial
+profile. In this case, OBJECT1_NOPETRO and OBJECT1_NOPROFILE will also be set,
+and no further attempt will be made to measure the object.
+<LI> When running the deblender, at least one child in at least one band
+extends beyond the field.
+<LI>
+The center determined in OBJECT1's own band was too close to the edge of the
+frame, although the canonical center was not. OBJECT1_CANONICAL_CENTER
+is also set, and the (transformed) canonical center is used.
+</UL>
+
+<P>
+OBJECT1_EDGE objects will have OBJECT1_NODEBLEND set, and
+the object will not be deblended.
+
+<P>
+If OBJECT1_EDGE is set in any band, it will be set for the OBJC. Children
+inherit this flag.
+
+
+<DT> <A NAME="flag1_3">3</A>  OBJECT1_BLENDED
+<DD> Object was determined to be a blend. The flag is set if:
+<UL>
+<LI> More than one peak is detected within an object in a single band
+together
+<LI> Distinct peaks are found when merging different colours of one object
+together
+<LI> Distinct peaks result when merging different objects together
+</UL>
+
+<P>
+If OBJECT1_EDGE is set in any band, it will be set for all
+bands, and for the OBJC itself.
+
+<P>
+If, while running the deblender, it so happens that only one child remains,
+this flag is turned <EM>off</EM>.
+
+
+<DT> <A NAME="flag1_4">4</A>  OBJECT1_CHILD
+<DD> Object is a child, created by the deblender. This flag is set in all
+bands, and also in the OBJC.
+
+
+<DT> <A NAME="flag1_5">5</A>  OBJECT1_PEAKCENTER
+<DD> Given center is position of peak pixel, as attempts to determine a
+better centroid failed.
+
+<P>
+This flag is inherited by children. (XXX can it ever be set for an OBJC?)
+
+
+<DT> <A NAME="flag1_6">6</A>  OBJECT1_NODEBLEND
+<DD> Although this object was marked as a blend, no deblending was attempted.
+This can happen because:
+<UL>
+<LI> The object had <A HREF="flag1_2">OBJECT1_EDGE</A> set, and there appeared to be no
+need for heroics; see <A HREF="#flag2_13">OBJECT2_DEBLENDED_AT_EDGE</A>
+
+<LI> The object was too large (larger than half a frame); in this case
+<A HREF="flag1_24">OBJECT1_TOO_LARGE</A> will be set.
+
+<LI> While attempting to deblend the object, at least one child overlapped the
+edge of the frame in at least one band. <A HREF="flag1_2">OBJECT1_EDGE</A>
+will be set.
+</UL>
+
+
+<DT> <A NAME="flag1_7">7</A>  OBJECT1_NOPROFILE
+<DD> Frames couldn't extract a radial profile. This can be caused by:
+<UL>
+<LI> Object being too close to edge of frame. In this case,
+OBJECT1_EDGE and OBJECT1_NOPETRO are also set, and the object's properties
+are not measured
+<LI> There are less than two points in the radial profile. The flags
+OBJECT1_NOPETRO, OBJECT1_ELLIPFAINT, and OBJECT1_NOSTOKES are set, and
+Petrosian quantities, Stokes parameters, fiber magnitudes, and isophotal
+properties are not measured.
+</UL>
+
+<DT> <A NAME="flag1_8">8</A>  OBJECT1_NOPETRO
+<DD> No Petrosian radius or other Petrosian quanties could be measured.
+This can be caused by:
+<UL>
+<LI> Failing to measure at least two points of the radial profile;
+OBJECT1_NOPROFILE is also set.
+<LI> The central value of the object being impossibly negative; OBJECT1_BADSKY
+is set
+<LI> The Petrosian ratio never equals the value at which the Petrosian radius
+is defined, or the surface
+brightness when it <EM>does</EM> reach that value is too low; in the
+latter case OBJECT1_PETROFAINT is set.
+</UL>
+<P>
+
+If this bit is set, the error in the Petrosian radius is set to -1000, and
+if it's set in the canonical band the uncertainty in the Petrosian radius
+is not included in the Petrosian counts error.
+<P>
+
+This flag is inherited by the OBJC.
+
+
+<DT> <A NAME="flag1_9">9</A>  OBJECT1_MANYPETRO
+<DD> Object has more than one possible Petrosian radius.
+
+<P>
+This flag is inherited by the OBJC.
+
+
+<DT> <A NAME="flag1_10">10</A>  OBJECT1_NOPETRO_BIG
+<DD> The Petrosian ratio has not fallen to the value at which the Petrosian
+radius is defined at the outermost point of the extracted radial profile.
+OBJECT1_NOPETRO is set, and the "Petrosian radius" is set to the outermost
+point in the profile.
+
+
+<DT> <A NAME="flag1_11">11</A>  OBJECT1_DEBLEND_TOO_MANY_PEAKS
+<DD> The object had the OBJECT1_DEBLEND flag set, but it contained too many
+candidate children to be fully deblended. This flag is only set in the
+parent, i.e. the object with too many peaks.
+Only the brightest <CODE>nchild_max</CODE> peaks are considered; the
+value of <CODE>nchild_max</CODE> is an input parameter to the frames pipeline.
+
+
+<DT> <A NAME="flag1_12">12</A>  OBJECT1_CR
+<DD> Object contains at least one pixel which was contaminated by a cosmic
+ray. The OBJECT1_INTERP flag is also set.
+
+N.b. This flag does <EMPH>not</EMPH> mean that this object is a cosmic
+ray; rather it means that a cosmic ray has been removed.  The flag
+<A NAME="flag2_24">OBJECT2_MAYBE_CR</A> does mean that
+this object may be a cosmic ray but should be taken with a pinch
+of salt --- it's main use is for cleaning up samples of objects
+detected in only a single band.
+
+
+<DT> <A NAME="flag1_13">13</A>  OBJECT1_MANYR50
+<DD> More than one radius was found to contain 50% of the Petrosian flux.
+(For this to happen part of the radial profile must be <EM>negative</EM>)
+
+
+<DT> <A NAME="flag1_14">14</A>  OBJECT1_MANYR90
+<DD> More than one radius was found to contain 90% of the Petrosian flux.
+(For this to happen part of the radial profile must be <EM>negative</EM>)
+
+
+<DT> <A NAME="flag1_15">15</A>  OBJECT1_BAD_RADIAL
+<DD> Measured profile includes points with a S/N &lt= 0.  In practice
+this flag is essentially meaningless, and it may be withdrawn in the future.
+
+
+<DT> <A NAME="flag1_16">16</A>  OBJECT1_INCOMPLETE_PROFILE
+<DD> A circle, centerd on the object, of radius the
+"canonical" Petrosian radius extends beyond the edge of the frame.
+The radial profile is still measured from those parts of the object
+that <EM>do</EM> lie on the frame.
+
+
+<DT> <A NAME="flag1_17">17</A>  OBJECT1_INTERP
+<DD> The object contains interpolated pixels (e.g. cosmic rays or bad columns).
+See also <A HREF="#flag2_12">OBJECT2_INTERP_CENTER</A>.
+
+
+<DT> <A NAME="flag1_18">18</A>  OBJECT1_SATUR
+<DD> The object contains saturated pixels; OBJECT1_INTERP is also set.
+See also <A HREF="#flag2_11">OBJECT2_SATUR_CENTER</A>.
+                                    
+
+<DT> <A NAME="flag1_19">19</A> OBJECT1_NOTCHECKED
+<DD>
+Object includes pixels that were not checked for peaks, for example
+the unsmoothed edges of frames, and the cores of subtracted or
+saturated stars (specifically, regions where mask bit <A
+HREF="#MASK_NOTCHECKED">NOTCHECKED</A> is set in the fpM file).  If no
+peaks are found in the <EM>checked</EM> part of the object it is
+rejected. Note that bright stars are detected before the wings are
+subtracted.
+
+
+<DT> <A NAME="flag1_20">20</A>  OBJECT1_SUBTRACTED
+<DD> Object (presumably a star) had wings subtracted
+
+
+<DT> <A NAME="flag1_21">21</A>  OBJECT1_NOSTOKES
+<DD> Object has no measured Stokes params. This can happen because:
+<UL>
+<LI> The object had fewer than two points in its radial profile
+<LI> There were numerical difficulties in calculating either U or Q
+</UL>
+
+<DT> <A NAME="flag1_22">22</A>  OBJECT1_BADSKY
+<DD> The estimated sky level is so bad that the central value of the
+radial profile is crazily negative; this is usually the result of
+the subtraction of the wings of bright stars failing.
+
+
+<DT> <A NAME="flag1_23">23</A>  OBJECT1_PETROFAINT
+<DD> At least one candidate Petrosian radius occured at an unacceptably
+low surface brightness; this can lead to OBJECT1_NOPETRO being set.
+
+<DT> <A NAME="flag1_24">24</A>  OBJECT1_TOO_LARGE
+<DD> The object is (as it says) too large. The two ways that this can
+be set are:
+<UL>
+<LI> The object is still detectable at the outermost point of the
+extracted radial profile (a radius of approximately 260 arcsec)
+<LI> When attempting to deblend an object, at least one child is larger
+than half a frame (in either row or column). In this case, OBJECT1_NODEBLEND
+is set, and the attempt to deblend is abandoned.
+</UL>
+
+
+<DT> <A NAME="flag1_25">25</A>  OBJECT1_DEBLENDED_AS_PSF
+<DD> When deblending an object, in this band this child was treated as a PSF.
+The two ways that this can happen are:
+<UL>
+<LI> The child is consistent with being a star
+<LI> The child is not detected; in this case the OBJECT1_BINNED1 
+flags will not be set. Note that this can happen if an object is
+superimposed on the wings of a brighter object.
+</UL>
+
+
+<DT> <A NAME="flag1_26">26</A>  OBJECT1_DEBLEND_PRUNED
+<DD> When solving for the weights to be assigned to each child the deblender
+encountered a nearly singular matrix, and therefore deleted at least one
+of them.
+
+<P>
+This flag is propagated to the OBJC.
+
+
+<DT> <A NAME="flag1_27">27</A>  OBJECT1_ELLIPFAINT
+<DD> No isophotal fits were performed. Possible reasons are:
+<UL>
+<LI> There are less than two points in the radial profile
+<LI> The object's center is fainter than desired isophote
+<LI> We were unable to fit an ellipse to the desired isophote, or to the
+ones a little brighter and fainter used in estimating sensitivity to
+photometric calibration
+</UL>
+
+
+<DT> <A NAME="flag1_28">28</A>  OBJECT1_BINNED1
+<DD> The object was detected in an unbinned image
+
+
+<DT> <A NAME="flag1_29">29</A>  OBJECT1_BINNED2
+<DD> The object was detected in a 2x2 binned image after all unbinned
+detections have been replaced by the background level
+
+
+<DT> <A NAME="flag1_30">30</A>  OBJECT1_BINNED4
+<DD> The object was detected in a 4x4 binned image. The objects detected
+in the 2x2 binned image are <EM>not</EM> removed before doing this.
+
+
+<DT> <A NAME="flag1_31">31</A>  OBJECT1_MOVED
+<DD> The object appears to have moved during the exposure. Such objects are
+candidates to be deblended as moving objects; see
+<A HREF="#flag2_0">OBJECT2_DEBLENDED_AS_MOVING</A>.
+
+
+<DT> <A NAME="flag1_32">32</A> OBJECT1_DETECTED
+<DD> A meta-flag, defined as:
+<PRE>
+(OBJECT1_BINNED1 | OBJECT1_BINNED2 | OBJECT1_BINNED4)                      [<A HREF="#flag1_28">28</A>,<A HREF="#flag1_29">29</A>,<A HREF="#flag1_30">30</A>]
+</PRE>
+</DL>
+
+Now for the <CODE>OBJECT2</CODE> flags:
+
+<DL>
+<DT> <A NAME="flag2_0">0</A> OBJECT2_DEBLENDED_AS_MOVING
+<DD>
+The object has the <A HREF="#flag1_31">OBJECT1_MOVED</A>
+flag set, and was deblended on the assumption that it was moving.
+
+<DT> <A NAME="flag2_1">1</A> OBJECT2_NODEBLEND_MOVING
+<DD>
+A blend labelled <A HREF="#flag1_31">OBJECT1_MOVED</A> was not deblended as
+a moving object.
+
+<P>
+This flag is inherited by the OBJC.
+
+<DT> <A NAME="flag2_2">2</A> OBJECT2_TOO_FEW_DETECTIONS
+<DD>
+The object has the <A HREF="#flag1_31">OBJECT1_MOVED</A>
+flag set, but was detected in too few bands to be reliably deblended
+as moving; <A HREF="#flag1_6">OBJECT1_NODEBLEND</A> will also be set.
+
+<DT> <A NAME="flag2_3">3</A> OBJECT2_BAD_MOVING_FIT
+<DD>
+Fit to moving object was too poor to be believable.
+If a candidate moving object, is wasn't deblended as moving.
+
+<P>
+This flag is inherited by the OBJC.
+
+<DT> <A NAME="flag2_4">4</A> OBJECT2_STATIONARY
+<DD>
+A "moving" object's velocity is consistent with zero
+
+<P>
+This flag is inherited by the OBJC.
+
+<DT> <A NAME="flag2_5">5</A> OBJECT2_PEAKS_TOO_CLOSE
+<DD>
+Peaks in object were too close XXX; this flag is set only in the parent.
+
+<P>
+This flag is inherited by the OBJC.
+
+<DT> <A NAME="flag2_6">6</A> OBJECT2_BINNED_CENTER
+<DD>
+When centroiding the object the object's size is larger than the (PSF)
+filter used to smooth the image.  Photo bins the image by a factor of
+2 in row and/or column, tries again, and sets this flag.
+
+<DT> <A NAME="flag2_7">7</A> OBJECT2_LOCAL_EDGE
+The object's center in some band was too close to the edge of the frame
+to extract a profile. For extended objects, this may only be the case
+after binning; see the quoted errors in rowc and colc.
+
+This flag is also set if an object touches the edge of the region
+being searched for objects; this is almost the same as the prescription
+for setting OBJECT1_EDGE except in the case where part or all of a CCD
+is misbehaving when the `notchecked' area may be large.
+
+This flag is inherited by children.
+
+<DT> <A NAME="flag2_8">8</A> OBJECT2_BAD_COUNTS_ERROR
+<DD> An object containing interpolated pixels had too few good pixels to form
+a reliable estimate of its error; the quoted error may be
+<EM>under</EM>estimated
+
+<DT> <A NAME="flag2_9">9</A> OBJECT2_BAD_MOVING_FIT_CHILD
+<DD> A putative moving child's velocity fit was too poor,
+so it was discarded and the parent <EM>wasn't</EM> deblended as moving.
+
+<P>
+This flag is inherited by the OBJC.
+
+<DT> <A NAME="flag2_10">10</A> OBJECT2_DEBLEND_UNASSIGNED_FLUX
+<DD> After deblending, the fraction of flux assigned to none of the
+children was too large (this flux is then shared out as described
+elsewhere).
+
+<P>
+This flag is inherited by the OBJC.
+
+<DT> <A NAME="flag2_11">11</A> OBJECT2_SATUR_CENTER
+<DD> An object's center is very close to at least one saturated pixel;
+the object may well be causing the saturation.
+
+<P>
+This flag is inherited by the OBJC.
+
+<DT> <A NAME="flag2_12">12</A> OBJECT2_INTERP_CENTER
+<DD> An object's center is very close to at least one interpolated pixel.
+
+<P>
+This flag is inherited by the OBJC.
+
+<DT> <A NAME="flag2_13">13</A> OBJECT2_DEBLENDED_AT_EDGE
+<DD> An object so close to the edge of the frame that it would not
+ordinarily be deblended has been deblended anyway.  Only set for
+objects large enough to be <A HREF="#flag1_2">EDGE</A> in all fields/strips.
+
+<P>
+This flag is inherited by the OBJC.
+
+<DT> <A NAME="flag2_14">14</A> OBJECT2_DEBLEND_NOPEAK
+<DD> A child had no detected peak in a given band, but we centroided it
+anyway and set the <A HREF="#flag1_28">BINNED1</A>
+
+<P>
+This flag is inherited by the OBJC.
+
+<DT> <A NAME="flag2_15">15</A> OBJECT2_PSF_FLUX_INTERP
+<DD> The fraction of light actually detected (as opposed to guessed at
+by the interpolator) was less than some number (currently 80%) of
+the total.
+<P>
+This flag is inherited by the OBJC.
+
+<DT> <A NAME="flag2_16">16</A> OBJECT2_TOO_FEW_GOOD_DETECTIONS
+<DD> A child of this object had too few good detections to be
+deblended as moving.
+
+<P>
+This flag is inherited by the OBJC.
+
+<DT> <A NAME="flag2_17">17</A> OBJECT2_CENTER_OFF_AIMAGE
+<DD> At least one peak's center lay off the atlas image in some band.
+This can happen when the object's being deblended as moving, or
+if the astrometry is badly confused.
+
+<P>
+This flag is inherited by the OBJC.
+
+<DT> <A NAME="flag2_18">18</A> OBJECT2_DEBLEND_DEGENERATE
+<DD> At least one potential child has been pruned
+because its template was too similar to some other child's
+template.
+
+<P>
+This flag is inherited by the OBJC.
+
+<DT> <A NAME="flag2_19">19</A> OBJECT2_BRIGHTEST_GALAXY_CHILD
+<DD> This is the brightest child galaxy in a blend.
+
+<DT> <A NAME="flag2_20">20</A> OBJECT2_CANONICAL_BAND
+<DD> This band was the <EM>canonical</EM> band (usually r'). This is
+the band used to measure the Petrosian radius used to calculate the
+Petrosian counts in each band, and to define the model used to calculate
+model colours; it has no effect upon the coordinate system used for the
+OBJC center.
+
+<DT> <A NAME="flag2_21">21</A> OBJECT2_AMOMENT_UNWEIGHTED
+<DD> `Adaptive' moments are actually unweighted
+<EMPH>XXX Update all the AMOMENT flags</EMPH>. N.b. there is no flag for
+failed to measure (look at the errors).
+
+<DT> <A NAME="flag2_22">22</A> OBJECT2_AMOMENT_SHIFT
+Object's center moved too far while determining adaptive moments XXX
+In this case, the M_e1 and M_e2 give the (row, column) shift, <EMPH>not</EMPH>
+the object's shape. Caveat Astronomor.
+
+<DT> <A NAME="flag2_23">23</A>  OBJECT2_AMOMENT_MAXITER
+Too many iterations while determining adaptive moments XXX
+
+<DT> <A NAME="flag2_24">24</A> OBJECT2_MAYBE_CR
+<DD> 
+This object may be a cosmic ray.  This bit can get
+set in the cores of bright stars, and is quite likely
+to be set for the cores of saturated stars (so you
+may want to ignore it if OBJECT2_SATUR_CENTER is set).                     [<A HREF="#flag2_11">11</A>]
+
+<P>
+This flag is inherited by the OBJC.
+
+<DT> <A NAME="flag2_25">25</A> OBJECT2_MAYBE_EGHOST
+<DD> 
+Object appears in the right place to be an electronics ghost.
+
+<DT> <A NAME="flag2_26">26</A> OBJECT2_NOTCHECKED_CENTER
+<DD> 
+Centre of object lies in a <A HREF="#MASK_NOTCHECKED">NOTCHECKED</A> region.
+The object is almost certainly bogus.
+
+<DT> <A NAME="flag2_27">27</A> OBJECT2_HAS_SATUR_DN
+<DD>
+
+This object is saturated in this band and the bleed trail doesn't
+touch the edge of the frame, we we've made an attempt to add up all
+the flux in the bleed trails, and to include it in the object's
+photometry. <EMPH>Note: some of the CCDs saturate at over 65535 DN;
+for these chips, the bled flux will be underestimated</EMPH>.
+
+<DT> <A NAME="flag2_28">28</A> OBJECT2_DEBLEND_PEEPHOLE
+<DD>
+After the regular deblender had completed, photo took another pass
+looking for some special cases, and the deblend was modified based
+on this analysis.  The special cases covered are currently:
+<UL>
+<LI> A number of objects were found that, when merged together,
+were consistent with a moving object that the deblender had missed.
+</UL>
+
+</DL>
+
+The following bits are in an internal-only flag word called flags3 which
+is never written to output files, but they
+are used internally and are therefore included in this document. Photo
+defines aliases for them (<CODE>OBJECT2_USR1</CODE> ... <CODE>OBJECT2_USR4</CODE>)
+which are used while analysing home-made fpObjc files.
+<DL>
+                                    
+<DT> <A NAME="flag3_28">28</A> OBJECT3_MEASURED
+<DD> This object's properties have been measured.
+
+<DT> <A NAME="flag3_29">29</A> OBJECT3_GROWN_MERGED
+<DD> Growing this object after it had been detected (maybe as
+a single pixel over threshold) led to a merger.
+
+<DT> <A NAME="flag3_30">30</A> OBJECT3_HAS_CENTER
+<DD> This OBJC has a canonical center.
+
+<DT> <A NAME="flag3_31">31</A> OBJECT3_MEASURE_BRIGHT
+<DD> This BRIGHT object should be measured, not just treasured for
+its astrometric properties.
+</DL>
+                                    
+
+
+<H2><A NAME="flow">When and Where Flags are Set as Frames Runs</A></H2>
+
+The variable objc refers to an <CODE><A HREF="#intro">OBJC</A></CODE>,
+while object1 refers to an <CODE><A HREF="#intro">OBJECT1</A></CODE>.
+You are expected to imagine a loop over all filters, setting flags
+as appropriate.
+
+<P>
+The following pseudo-code roughly corresponds to the organisation of the
+frames pipeline, and bears some resemblence to C. The following idioms
+are used:
+<DL>
+<DT> var |= FLAG;
+<DD> Set the FLAG bit in the variable var
+
+<DT> if(var & FLAG)
+<DD> Is var's FLAG bit set?
+
+<DT> var &= ~FLAG;
+<DD> Clear the FLAG bit in the variable var
+</DL>
+
+<P>
+The numbers in the right hand margin refer to the previous section, where
+the individual flags are described.
+
+<PRE>
+find_objects
+{
+   if(pixels over threshold touch edge of frame) {
+      object1->flags |= OBJECT1_EDGE;                                      [<A HREF="#flag1_2">2</A>]
+   }
+   if(pixels over threshold touch notchecked part of frame) {
+      object2->flags |= OBJECT2_LOCAL_EDGE;                                [<A HREF="#flag2_7">7</A>]
+   }
+   if(object includes unsearched pixels (e.g. unsmoothed edges of frames)) {
+      object1->flags |= OBJECT1_NOTCHECKED;                                [<A HREF="#flag1_19">19</A>]
+      reject all peaks in <A HREF="#MASK_NOTCHECKED"> parts of frame;
+   }
+/*
+ * information about which mode object was detected in
+ */
+   if(bright objects) {
+      object1->flags |= OBJECT1_BRIGHT;                                    [<A HREF="#flag1_1">1</A>]
+   }
+
+   if(not binned) {
+      object1->flags |= OBJECT1_BINNED1;                                   [<A HREF="#flag1_28">28</A>]
+   } else if(binned 2x2) {
+      object1->flags |= OBJECT1_BINNED2;                                   [<A HREF="#flag1_29">29</A>]
+   } else if(binned 4x4) {
+      object1->flags |= OBJECT1_BINNED4;                                   [<A HREF="#flag1_30">30</A>]
+   }
+/*
+ * information about pixels contained in object
+ */
+   if(object contains interpolated pixels) {
+      object1->flags |= OBJECT1_INTERP;                                    [<A HREF="#flag1_17">17</A>]
+
+      if(object contains cosmic ray contaminated pixels) {
+         object1->flags |= OBJECT1_CR;                                     [<A HREF="#flag1_12">12</A>]
+      }
+
+      if(object contains saturated pixels after centering on peak) {
+         object1->flags |= OBJECT1_SATUR;                                  [<A HREF="#flag1_18">18</A>]
+         if(only one object intersects a bleed trail &&
+             the bleed trail doesn't touch the edge of the frame) {
+            object1->flags2 |= OBJECT2_HAS_SATUR_DN;                       [<A HREF="#flag2_27">27</A>]
+         }
+      }
+   }
+}
+</PRE>
+
+<PRE>
+find_center
+{
+   if((object1->flags & OBJECT1_SATUR) && saturated star centroider fails) { [<A HREF="#flag1_18">18</A>]
+      object1->flags |= OBJECT1_PEAKCENTER;                                [<A HREF="#flag1_5">5</A>]
+   }
+   
+   for(;;) {
+      find_peak_center;
+
+      if(center is OK && width estimate is consistent with size of object) {
+         break;
+      }
+
+      object2->flags |= OBJECT2_BINNED_CENTER;                             [<A HREF="#flag2_6">6</A>]
+
+      if(too close to edge while searching for peak) {
+         object1->flags |= OBJECT1_EDGE | OBJECT1_PEAKCENTER;              [<A HREF="#flag1_2">2</A>,<A HREF="#flag1_5">5</A>]
+         break;
+      }
+   
+      if(object has vanishing second derviative || centroider fails otherwise) {
+         object1->flags |= OBJECT1_PEAKCENTER;                             [<A HREF="#flag1_5">5</A>]
+         break;
+      }
+
+      bin image in row/and or column;
+   }
+
+   if(object1->flags & OBJECT1_PEAKCENTER) {                               [<A HREF="#flag1_5">5</A>]
+      take center of brightest pixel as peak position;
+   }
+}
+</PRE>
+
+<PRE>
+merge_colors
+{
+   merge together peaks in saturated cores;
+
+   if(more than one peaks is detected within an object in one band) {
+      objc->flags |= OBJECT1_BLENDED;                                      [<A HREF="#flag1_3">3</A>]
+   }
+
+   if(distinct peaks found in different bands of same object) {
+      objc->flags |= OBJECT1_BLENDED;                                      [<A HREF="#flag1_3">3</A>]
+   }
+
+   if(multiple distinct peaks in merged objects) {
+      objc->flags |= OBJECT1_BLENDED;                                      [<A HREF="#flag1_3">3</A>]
+   }
+
+   if(obj1 and obj2 are to be merged) {
+      if((!(obj1->flags & OBJECT1_DETECTED) &&
+           (obj2->flags & OBJECT1_DETECTED)) ||                            [<A HREF="#flag1_32">32</A>]
+          (obj1->flags & OBJECT1_CANONICAL_CENTER)) {                      [<A HREF="#flag1_0">0</A>]
+         use obj2;
+      } else if(((obj1->flags & OBJECT1_DETECTED) &&
+                !(obj2->flags & OBJECT1_DETECTED)) ||                      [<A HREF="#flag1_32">32</A>]
+                (obj2->flags & OBJECT1_CANONICAL_CENTER)) {                [<A HREF="#flag1_0">0</A>]
+         use obj1;
+      } else {
+         use the one with the brighter peak;
+      }
+   }
+}
+</PRE>
+
+<PRE>
+subtract_bright_stars
+{
+   if(object1->flags & OBJECT1_EDGE) {                                     [<A HREF="#flag1_2">2</A>]
+      don't subtract wings;
+      return;
+   }
+
+   if(object1->flags & OBJECT1_SATUR) {                                    [<A HREF="#flag1_18">18</A>]
+      estimate psfCounts from profile;
+      if(more than 20% of counts are interpolated) {
+         object1->flags2 |= OBJECT2_PSF_FLUX_INTERP;                       [<A HREF="#flag2_15">15</A>]
+      }
+   }
+
+   if(object contains pixels from which star wings were subtracted) {
+      object1->flags |= OBJECT1_SUBTRACTED;                                [<A HREF="#flag1_20">20</A>]
+   }
+   if(object is in part of frame where bright star wings exceeded 10 sky sigma,
+                           or star wings increased variance by more than 50%) {
+      object1->flags |= OBJECT1_NOTCHECKED;                                [<A HREF="#flag1_19">19</A>]
+      
+   }
+}
+</PRE>
+
+<PRE>
+peak_up_astrometry
+{
+   if(!(object1->flags & OBJECT1_DETECTED) ||                              [<A HREF="#flag1_32">32</A>]
+      (object1->flags & (OBJECT1_SATUR | OBJECT1_PEAKCENTER))) {           [<A HREF="#flag1_18">18</A>,<A HREF="#flag1_5">5</A>]
+      Don't use star in matchup
+   }
+}
+</PRE>
+
+<PRE>
+measure_objects
+{
+/*
+ * book keeping
+ */
+   if(detected as a bright object) {
+      if(measuring bright objects &&
+         !(objc->flags2 & OBJECT2_MEASURE_BRIGHT)) {                       [<A HREF="#flag2_31">1</A>]
+         don't measure object;
+         return;
+      }
+      if(being remeasured after faint object detection) {
+         make new object which is sibling of bright object,
+         and prepare to measure this new creation;
+         unset OBJECT1_BRIGHT in objc and object1;                         [<A HREF="#flag1_1">1</A>]
+      }
+   }
+
+   recentroid_and_find_canonical_center {
+      foreach object1 in objc {
+         if(objc->flags2 & OBJECT2_DEBLENDED_AS_MOVING) {                  [<A HREF="#flag2_0">0</A>]
+            we already have a good center;
+            continue;
+         }
+
+         if(!(detected in this band)) {
+            if(!child) {
+               continue;
+            }
+
+            set center from objc;
+            object1->flags |= OBJECT1_CANONICAL_CENTER | OBJECT1_BINNED1;  [<A HREF="#flag1_0">0</A>,<A HREF="#flag1_28">28</A>]
+
+            object1->flags2 |= OBJECT2_DEBLEND_NOPEAK;                     [<A HREF="#flag2_14">14</A>]
+         }
+      }
+
+      find_canonical_center {
+         object1 = object1 in canonical band;
+         if(object1->flags & OBJECT1_DETECTED &&                           [<A HREF="#flag1_32">32</A>]
+            !(object1->flags) & OBJECT1_SATUR) {                           [<A HREF="#flag1_18">18</A>]
+            use this object1's center;
+         } else if(at least one peak is non-saturated) {
+            use brightest non-saturated peak;
+         } else {
+            use brightest peak;
+         }
+
+         convert to canonical band's coordinate system;
+
+         clear all OBJECT2_CANONICAL_BAND bits;                            [<A HREF="#flag2_20">20</A>]
+         if(detected in canonical band) {
+            object1 = object1 in canonical band;
+         } else {
+            use object1 as above;
+         }
+         object1->flags2 |= OBJECT2_CANONICAL_BAND;                        [<A HREF="#flag2_20">20</A>]
+      }
+   }
+
+   create_object1s {
+      foreach (missing OBJECT1) {
+         make object1;
+         if(bright) {
+            object1->flags |= OBJECT1_BRIGHT;                              [<A HREF="#flag1_1">1</A>]
+         }
+         set center from OBJC;
+         object1->flags |= OBJECT1_CANONICAL_CENTER;                       [<A HREF="#flag1_0">0</A>]
+      }
+
+      if(blended) {
+         objc->flags |= object1->flags & OBJECT1_BLENDED;                  [<A HREF="#flag1_3">3</A>]
+      }
+   }
+
+   if(!(objc->flags & OBJECT1_BRIGHT)) {                                   [<A HREF="#flag1_1">1</A>]
+      save atlas images;
+   }
+/*
+ * set sky level
+ */
+   if(object1->flags & OBJECT1_CHILD) {                                    [<A HREF="#flag1_4">4</A>]
+      sky += contribution from siblings;
+      if(sky summation failed &&
+         child->flags2 & (OBJECT2_DEBLENDED_AT_EDGE |                      [<A HREF="#flag2_13">13</A>]
+                          OBJECT2_DEBLENDED_AS_MOVING)) {                  [<A HREF="#flag2_0">0</A>]
+         sky = sky level at child's center;
+      } else {
+         This cannot happen, so die;
+      }
+   }
+/*
+ * Was this object "found" in an area we weren't checking for objects?
+ */
+   if(center near a <A HREF="#MASK_NOTCHECKED"> part of the frame) {
+      object1->flags2 |= OBJECT2_NOTCHECKED_CENTER;                        [<A HREF="#flag2_26">26</A>]
+      if((object1->flags & OBJECT1_DETECTED) &&                            [<A HREF="#flag1_32">32</A>]
+         (object1->flags2 & OBJECT2_DEBLEND_NOPEAK)) {                     [<A HREF="#flag2_14">14</A>]
+            object1->flags &= ~OBJECT1_DETECTED;                           [<A HREF="#flag1_32">32</A>]
+         }
+      }
+   }
+/*
+ * extract profile;
+ */
+   if(failed to extract radial profile) {
+      object1->flags |= OBJECT1_EDGE | OBJECT1_NOPETRO | OBJECT1_NOPROFILE;
+                                                                           [<A HREF="#flag1_2">2</A>,<A HREF="#flag1_7">7</A>,<A HREF="#flag1_8">8</A>]
+      object1->flags2 |= OBJECT2_LOCAL_EDGE;                               [<A HREF="#flag2_7">7</A>]
+      give up measuring object in this band;
+   }
+
+   if(pixel overflow while extracting radial profile) {
+      object1->flags |= OBJECT1_SATUR;                                     [<A HREF="#flag1_18">18</A>]
+   }
+   
+   if(object is still detected at edge of extracted profile (about 260arcsec)){
+      object1->flags |= OBJECT1_TOO_LARGE;                                 [<A HREF="#flag1_24">24</A>]
+   }
+
+   if(measured profile includes points with a S/N <= 0) {
+      object1->flags |= OBJECT1_BAD_RADIAL;                                [<A HREF="#flag1_15">15</A>]
+   }
+   
+   if(central value of object more than <A HREF="#flag1_100">100</A> sigma below sky level) {
+      object1->flags |= OBJECT1_BADSKY | OBJECT1_NOPETRO;                  [<A HREF="#flag1_8">8</A>,<A HREF="#flag1_22">22</A>]
+      use fallback value for "Petrosian" radius;
+      give up measuring object in this band; something is horribly wrong.
+   }
+
+   if(radial profile has fewer than two points) {
+      object1->flags |= OBJECT1_NOPROFILE;                                 [<A HREF="#flag1_7">7</A>]
+      object1->flags |=
+                       OBJECT1_NOPETRO | OBJECT1_ELLIPFAINT | OBJECT1_NOSTOKES;
+      give up measuring Petrosian quantities, Stokes parameters, and
+        isophotal quantities;                                              [<A HREF="#flag1_8">8</A>,<A HREF="#flag1_21">21</A>,<A HREF="#flag1_27">27</A>]
+   }
+/*
+ * measure a few misc quantities
+ */
+   if(central surface brightness is below threshold for isophotal shape ||
+      failed to fit ellipse at threshold +- delta) {
+      object1->flags |= OBJECT1_ELLIPFAINT;                                [<A HREF="#flag1_27">27</A>]
+      give up fitting ellipse;
+   }
+
+   if(failed to measure U or Q due to numerical difficulties) {
+      object1->flags |= OBJECT1_NOSTOKES;                                  [<A HREF="#flag1_21">21</A>]
+   }
+/*
+ * measure Petrosian quantities
+ */
+   while(surface brightness at innermost candidate for Petrosian radius
+         is too low) {
+      reject candidate;
+      object1->flags |= OBJECT1_PETROFAINT;                                [<A HREF="#flag1_23">23</A>]
+   }
+   
+   if(there are no Petrosian radii) {
+      object1->flags |= OBJECT1_NOPETRO;                                   [<A HREF="#flag1_8">8</A>]
+      if(we didn't reject any candidates for the Petrosian radius) {
+         object1->flags |= OBJECT1_NOPETRO_BIG;                            [<A HREF="#flag1_10">10</A>]
+         use outermost point in radial profile as "Petrosian" radius;
+      } else {
+         use fallback value for "Petrosian" radius;
+      }
+   } else {
+      if(there is more than one Petrosian radius) {
+         object1->flags |= OBJECT1_MANYPETRO;                              [<A HREF="#flag1_9">9</A>]
+      }
+   }
+   
+   if(more than one value of Petrosian 50% light radius) {
+      object1->flags |= OBJECT1_MANYR50; /* how can this happen? */        [<A HREF="#flag1_13">13</A>]
+   }
+   if(more than one value of Petrosian 90% light radius) {
+      object1->flags |= OBJECT1_MANYR90; /* how can this happen? */        [<A HREF="#flag1_14">14</A>]
+   }
+   if(object1->flags & OBJECT1_NOPETRO) {                                  [<A HREF="#flag1_8">8</A>]
+      give up on errors for Petrosian quantities in this band;
+   }
+
+   if(canonical_object1->flags & OBJECT1_NOPETRO) {                        [<A HREF="#flag1_8">8</A>]
+      don't propagate error in Petrosian radius into Petrosian counts;
+   }
+
+   if(object is less than one (r') Petrosian radius from edge of frame) {
+      object1->flags |= OBJECT1_INCOMPLETE_PROFILE;                        [<A HREF="#flag1_16">16</A>]
+   }
+/*
+ * Measure fibre and psf counts
+ */
+   foreach type (fibre psf) {
+      if(counts were contaminated by INTERP pixels) {                      [<A HREF="#flag1_17">17</A>]
+         estimate errors from "real" pixels
+         if(contamination exceeded 50% ||
+            (object1->flags2 & OBJECT2_BAD_COUNTS_ERROR)) {                [<A HREF="#flag2_8">8</A>]
+            object1->flags2 |= OBJECT2_BAD_COUNTS_ERROR;                   [<A HREF="#flag2_8">8</A>]
+         }
+      }
+   }
+/*
+ * Measure quantities about the center determined in this band
+ */
+   if(local band is to close to the edge of the frame) {
+      object1->flags |= OBJECT1_CANONICAL_CENTER | OBJECT1_EDGE;           [<A HREF="#flag1_0">0</A>,<A HREF="#flag1_1">2</A>]
+      object1->flags2 |= OBJECT2_LOCAL_EDGE;                               [<A HREF="#flag2_7">7</A>]
+      use (transformed) canonical center;
+   }
+/*
+ * mark measured as a bright object
+ */
+   if(measuring bright objects) {
+      objc->flags |= OBJECT1_BRIGHT;                                       [<A HREF="#flag1_1">1</A>]
+   }
+/*
+ * If object is a child and a blend, note that we don't (yet) run
+ * deblender recursively. Moving objects appear blended, but they
+ * aren't, so handle that case too
+ */
+   if((objc->flags & OBJECT1_CHILD) & (objc->flags & OBJECT1_BLENDED)) {   [<A HREF="#flag1_4">4</A><A HREF="#flag1_3">3</A>]
+      if(objc->flags2 & OBJECT2_DEBLENDED_AS_MOVING) {                     [<A HREF="#flag2_0">0</A>]
+         objc->flags &= ~OBJECT1_BLENDED;                                  [<A HREF="#flag1_3">3</A>]
+      } else {
+         objc->flags |= OBJECT1_NODEBLEND;                                 [<A HREF="#flag1_6">6</A>]
+      }
+   }
+/*
+ * Flag problems near the object's center
+ */
+   if(center of object is within 3 pixels of an interpolated pixel) {
+      objc->flags2 &= OBJECT2_INTERP_CENTER;                               [<A HREF="#flag2_12">12</A>]
+   }
+   if(center of object is within 3 pixels of a saturated pixel) {
+      objc->flags2 &= OBJECT2_SATUR_CENTER;                                [<A HREF="#flag2_11">11</A>]
+   }
+/*
+ * Classify object as e.g. star/galaxy
+ */
+   if(object1->flags2 & OBJECT2_INTERP_CENTER) {                           [<A HREF="#flag2_12">12</A>]
+      object1->type = unknown;
+   }
+
+   if(!(object1->flags & OBJECT1_DETECTED) ||                              [<A HREF="#flag1_32">32</A>]
+      object1->flags2 & (OBJECT2_DEBLEND_NOPEAK | OBJECT2_INTERP_CENTER)) { [<A HREF="#flag2_14">14</A>,<A HREF="#flag2_12">12</A>]
+      don't consider this band in objc's classification;
+   }
+
+   if(object1 looks like a cosmic ray) {
+      object1->flags2 |= OBJECT2_MAYBE_CR;                                 [<A HREF="#flag2_24">24</A>]
+   }
+
+   if(object1 is in right place to be an electronics ghost) {
+      object1->flags2 |= OBJECT2_MAYBE_EGHOST;                             [<A HREF="#flag2_25">25</A>]
+   }
+/*
+ * Handle flux in bleed trails
+ */
+   if(object1->flags2 & OBJECT2_HAS_SATUR_DN) {                            [<A HREF="#flag2_27">27</A>]
+      fiberCounts += counts_from_bleed_trail;
+      petroCounts += counts_from_bleed_trail;
+      counts_model += counts_from_bleed_trail;
+      profMean[0] += counts_from_bleed_trail;
+      fiberCounts += counts_from_bleed_trail;
+      psfCounts = flux_within_aperture(nann_ap_run) + counts_from_bleed_trail;
+   }
+/*
+ * In each band label the brightest child that's classified as a galaxy;
+ * this is needed to avoid artificial restrictions in target selection
+ */
+   object1->flags2 |= OBJECT2_BRIGHTEST_GALAXY_CHILD                       [<A HREF="#flag2_19">19</A>]
+/*
+ * propagate flags to and from OBJC
+ */
+   if(objc->flags & OBJECT1_BLENDED) {                                     [<A HREF="#flag1_3">3</A>]
+      object1->flags |= (OBJECT1_BLENDED | OBJECT1_NODEBLEND);             [<A HREF="#flag1_3">3</A>,<A HREF="#flag1_6">6</A>]
+   }
+
+   objc->flags |= object1->flags & (OBJECT1_EDGE |                         [<A HREF="#flag1_2">2</A>]
+                                    OBJECT1_BLENDED |                      [<A HREF="#flag1_3">3</A>]
+                                    OBJECT1_CHILD |                        [<A HREF="#flag1_4">4</A>]
+                                    OBJECT1_NOPETRO |                      [<A HREF="#flag1_8">8</A>]
+                                    OBJECT1_MANYPETRO |                    [<A HREF="#flag1_9">9</A>]
+                                    OBJECT1_INTERP |                       [<A HREF="#flag1_17">17</A>]
+                                    OBJECT1_CR |                           [<A HREF="#flag1_12">12</A>]
+                                    OBJECT1_SATUR |                        [<A HREF="#flag1_18">18</A>]
+                                    OBJECT1_NOTCHECKED |                   [<A HREF="#flag1_19">19</A>]
+                                    OBJECT1_BINNED1 |                      [<A HREF="#flag1_28">28</A>]
+                                    OBJECT1_BINNED2 |                      [<A HREF="#flag1_29">29</A>]
+                                    OBJECT1_BINNED4);                      [<A HREF="#flag1_30">30</A>]
+   objc->flags2 &= object1->flags2 & (OBJECT2_DEBLENDED_AS_MOVING |        [<A HREF="#flag2_0">1</A>]
+                                      OBJECT2_NODEBLEND_MOVING |           [<A HREF="#flag2_1">1</A>]
+                                      OBJECT2_TOO_FEW_DETECTIONS |         [<A HREF="#flag2_2">2</A>]
+                                      OBJECT2_BAD_MOVING_FIT |             [<A HREF="#flag2_3">3</A>]
+                                      OBJECT2_STATIONARY |                 [<A HREF="#flag2_4">4</A>]
+                                      OBJECT2_PEAKS_TOO_CLOSE |            [<A HREF="#flag2_5">5</A>]
+                                      OBJECT2_BAD_MOVING_FIT_CHILD |       [<A HREF="#flag2_9">9</A>]
+                                      OBJECT2_DEBLEND_UNASSIGNED_FLUX |    [<A HREF="#flag2_10">10</A>]
+                                      OBJECT2_SATUR_CENTER |               [<A HREF="#flag2_12">12</A>]
+                                      OBJECT2_INTERP_CENTER |              [<A HREF="#flag2_11">11</A>]
+                                      OBJECT2_DEBLENDED_AT_EDGE |          [<A HREF="#flag2_13">13</A>]
+                                      OBJECT2_DEBLEND_NOPEAK |             [<A HREF="#flag2_14">14</A>]
+                                      OBJECT2_PSF_FLUX_INTERP |            [<A HREF="#flag2_15">15</A>]
+                                      OBJECT2_TOO_FEW_GOOD_DETECTIONS |    [<A HREF="#flag2_16">16</A>]
+                                      OBJECT2_CENTER_OFF_AIMAGE |          [<A HREF="#flag2_17">17</A>]
+                                      OBJECT2_DEBLEND_DEGENERATE |         [<A HREF="#flag2_18">18</A>]
+                                      OBJECT2_MAYBE_CR);                   [<A HREF="#flag2_24">24</A>]
+}
+</PRE>
+
+<PRE>
+find_velocity
+{
+   if(((object1->flags & OBJECT1_DETECTED) &&                              [<A HREF="#flag1_32">32</A>]
+      !(object1->flags2 & (OBJECT2_DEBLEND_NOPEAK |                        [<A HREF="#flag2_14">14</A>]
+                           OBJECT2_INTERP_CENTER)) &&                      [<A HREF="#flag2_12">12</A>]
+      !(object1->flags & (OBJECT1_CANONICAL_CENTER |                       [<A HREF="#flag1_0">0</A>]
+                          OBJECT1_PEAKCENTER |                             [<A HREF="#flag1_5">5</A>]
+                          OBJECT2_INTERP_CENTER)) {                        [<A HREF="#flag2_12">12</A>]
+      use center in this band in velocity fit
+   }
+
+   if(object has good detections in <= 2 bands) {
+      objc->flags2 |= OBJECT2_TOO_FEW_GOOD_DETECTIONS;                     [<A HREF="#flag2_16">16</A>]
+   }
+
+   if(chi^2 was too large) {
+      objc->flags2 |= OBJECT2_BAD_MOVING_FIT;                               [<A HREF="#flag2_3">3</A>]
+   }
+}
+</PRE>
+
+<PRE>
+deblender
+{
+   if(measuring bright objects && OBJECT1_BLENDED) {                       [<A HREF="#flag1_3">3</A>]
+      objc->flags |= OBJECT1_NODEBLEND;                                    [<A HREF="#flag1_6">6</A>]
+      give up on the object as it'll be reprocessed !BRIGHT;
+   }
+
+   if(there are too many peaks in object) {
+      objc->flags |= OBJECT1_DEBLEND_TOO_MANY_PEAKS;                       [<A HREF="#flag1_11">11</A>]
+      only use the n brightest peaks;
+   }
+
+   if(peaks are too close together) {
+      forget the fainter peak;
+      objc->flags |= OBJECT2_PEAKS_TOO_CLOSE;                              [<A HREF="#flag2_5">5</A>]
+   }
+
+   if(there's an "object" found at a different place in each band) {
+      if(enough peaks in significantly different places) {
+         objc->flags |= OBJECT1_MOVED;                                     [<A HREF="#flag1_31">31</A>]
+      }
+   }
+
+   if(objc->flags & OBJECT1_MOVED) {                                       [<A HREF="#flag1_31">31</A>]
+      objc->flags2 |= OBJECT2_DEBLENDED_AS_MOVING;                         [<A HREF="#flag2_0">0</A>]
+      create extra MOVED child;
+      child->flags |= OBJECT1_MOVED;                                       [<A HREF="#flag1_31">31</A>]
+      child->flags2 |= OBJECT2_DEBLENDED_AS_MOVING;                        [<A HREF="#flag2_0">0</A>]
+   }
+
+   foreach(merged peak found in parent) {
+      make_new_child_from_objc {
+         if(child is detected in <= deblend_min_detect bands) {
+            objc->parent->flags2 |= OBJECT2_TOO_FEW_DETECTIONS;            [<A HREF="#flag2_2">2</A>]
+            don't create child;
+            continue;
+         }
+
+         if(peak is labelled as MOVED) {
+            child->flags |= OBJECT1_MOVED;                                 [<A HREF="#flag1_31">31</A>]
+         }
+         if(peak is labelled as PEAKCENTER) {
+            child->flags |= OBJECT1_PEAKCENTER;                            [<A HREF="#flag1_5">5</A>]
+            child_object1->flags |= OBJECT1_PEAKCENTER;                    [<A HREF="#flag1_5">5</A>]
+         }
+
+         child->flags = objc->flags & (OBJECT1_EDGE |                      [<A HREF="#flag1_2">2</A>]
+                                       OBJECT1_INTERP |                    [<A HREF="#flag1_17">17</A>]
+                                       OBJECT1_NOTCHECKED |                [<A HREF="#flag1_19">19</A>]
+                                       OBJECT1_SUBTRACTED);                [<A HREF="#flag1_20">20</A>]
+         child->flags |= OBJECT1_CHILD;                                    [<A HREF="#flag1_4">4</A>]
+
+         child_object1->flags = object1->flags & (OBJECT1_CANONICAL_CENTER | [<A HREF="#flag1_0">0</A>]
+                                                  OBJECT1_EDGE |           [<A HREF="#flag1_2">2</A>]
+                                                  OBJECT1_PEAKCENTER |     [<A HREF="#flag1_5">5</A>]
+                                                  OBJECT1_NOTCHECKED |     [<A HREF="#flag1_19">19</A>]
+                                                  OBJECT1_SUBTRACTED);     [<A HREF="#flag1_20">20</A>]
+         child_object1->flags |= OBJECT1_CHILD;                            [<A HREF="#flag1_4">4</A>]
+
+         if(a peak was found in this band) {
+            set center from peak;
+            child_object1->flags |= OBJECT1_BINNED1;                       [<A HREF="#flag1_28">28</A>]
+         } else {
+            set center from OBJC;
+            child_object1->flags |= OBJECT1_CANONICAL_CENTER;              [<A HREF="#flag1_0">0</A>]
+         }
+      }
+   }
+
+   phObjcDeblend {
+      if(objc will be OBJECT1_EDGE in next strip/field too) {              [<A HREF="#flag1_2">2</A>]
+         objc->flags2 |= OBJECT2_DEBLENDED_AT_EDGE;                        [<A HREF="#flag2_13">13</A>]
+         child->flags2 |= OBJECT2_DEBLENDED_AT_EDGE;                       [<A HREF="#flag2_13">13</A>]
+         trim the part of objc's atlas image that's too close to edge of field;
+         if(no pixels survive trimming) {
+            objc->flags |= OBJECT1_NODEBLEND;                              [<A HREF="#flag1_6">6</A>]
+            give up
+         }
+      } else {
+         if(objc->flags & OBJECT1_EDGE) {                                  [<A HREF="#flag1_2">2</A>]
+            objc->flags |= OBJECT1_NODEBLEND;                              [<A HREF="#flag1_6">6</A>]
+            give up, as edge objects invalidate assumptions made by deblender,
+            and will be deblended in next strip/field anywayl
+         }
+      }
+
+      if(objc->flags & OBJECT1_MOVED) {                                    [<A HREF="#flag1_31">31</A>]
+         find child with (child->flags2 & OBJECT2_DEBLENDED_AS_MOVING);    [<A HREF="#flag2_0">0</A>]
+         if(phObjcDeblendMovingChild(moving_child) succeeds) {
+            delete all children with OBJECT1_MOVED set, as we have decided [<A HREF="#flag1_31">31</A>]
+            to treat them as part of their own moving object;
+         }
+      }
+
+      deblend_template_find {
+         if(!(objc->flags & OBJECT1_SATUR) &&                              [<A HREF="#flag1_18">18</A>]
+            child is consistent with PSF) {
+            Subtract PSF from parent and use PSF as template in this band;
+            objc_object1->flags |= OBJECT1_DEBLENDED_AS_PSF;               [<A HREF="#flag1_25">25</A>]
+         }
+      
+         if(template for this child is too large (more than half a frame)) {
+            objc->parent->flags |= OBJECT1_TOO_LARGE | OBJECT1_NODEBLEND;  [<A HREF="#flag1_6">6</A>,<A HREF="#flag1_24">24</A>]
+            give up on deblending parent;
+         }
+         
+         if(template + (smoothing length)/2 hangs over edge of frame in any band) {
+            objc->parent->flags |= OBJECT1_EDGE | OBJECT1_NODEBLEND;       [<A HREF="#flag1_2">2</A>,<A HREF="#flag1_6">6</A>]
+            give up on deblending parent;
+         }
+
+         if(center of child lies off the atlas image in some band) {
+            parent->flags2 |= OBJECT2_CENTER_OFF_AIMAGE;                   [<A HREF="#flag2_17">17</A>] 
+            parent_object1->flags2 |= OBJECT2_CENTER_OFF_AIMAGE;           [<A HREF="#flag2_17">17</A>] 
+            delete child;
+         }
+
+         find templates for child;
+
+         if(we wouldn't have detected this child in any band) {
+            delete child;
+         }
+
+         if(failed to find a template in this band) {
+            object1->flags &= ~OBJECT1_DETECTED;                           [<A HREF="#flag1_32">32</A>]
+            object1->flags |= OBJECT1_DEBLENDED_AS_PSF;                    [<A HREF="#flag1_25">25</A>]
+            use PSF template;
+         }
+         
+         objc->flags |= object1->flags & OBJECT1_DETECTED;                 [<A HREF="#flag1_32">32</A>]
+      }
+      
+      setup Normal Equations, and solve for weights for each child;
+
+      if(at least one possible child is rejected due to singular matrix) {
+         objc->flags |= OBJECT1_DEBLEND_PRUNED;                            [<A HREF="#flag1_26">26</A>]
+         object1->flags |= OBJECT1_DEBLEND_PRUNED;                         [<A HREF="#flag1_26">26</A>]
+      }
+      
+      if(two templates are too similar) {
+         reject template corresponding to brighter child;
+         objc->flags2 |= OBJECT1_DEBLEND_DEGENERATE;                       [<A HREF="#flag2_18">18</A>]
+         child->flags2 |= OBJECT1_DEBLEND_DEGENERATE;                      [<A HREF="#flag2_18">18</A>]
+
+         child->flags |= (reject->flags & OBJECT1_DETECTED);               [<A HREF="#flag1_32">32</A>]
+         cobject1->flags |= (robject1->flags & OBJECT1_DETECTED);          [<A HREF="#flag1_32">32</A>]
+      }
+      
+      if(only one child remains) {
+         objc->flags &= ~OBJECT1_BLENDED;                                  [<A HREF="#flag1_3">3</A>]
+         ensure that object's peaks correspond to those in the child,
+         with OBJECT1_CANONICAL_CENTER and OBJECT1_DETECTED set correctly; [<A HREF="#flag1_0">0</A>,<A HREF="#flag1_32">32</A>]
+         no need to deblend;
+      }
+
+      if(object is detectable in this band, but wasn't seen due (usually) to the
+         vaguaries of peak matching) {
+         object1->flags |= OBJECT1_BINNED1;                                [<A HREF="#flag1_28">28</A>]
+      }
+
+      if(Petrosian flux in children> deblend_allowed_unassigned*(parent's petroCounts)) {
+         objc->color[c]->flags2 |= OBJECT2_DEBLEND_UNASSIGNED_FLUX;        [<A HREF="#flag2_10">10</A>]
+      }
+      
+      if(child includes CR pixels) {
+         object1->flags |= OBJECT1_CR;                                     [<A HREF="#flag1_12">12</A>]
+      }
+      if(child includes interpolated pixels) {
+         object1->flags |= OBJECT1_INTERP;                                 [<A HREF="#flag1_17">17</A>]
+      }
+      if(child includes saturated pixels) {
+         object1->flags |= OBJECT1_SATUR;                                  [<A HREF="#flag1_18">18</A>]
+      }
+   }
+/*
+ * Run peephole optimiser
+ */
+/*
+ * Moving objects
+ */
+   if(any pair of children has no peak in the same band in common &&
+      the set of peaks define a straight line in the order riuzg) {
+      parent->flags2 &= ~(OBJECT2_NODEBLEND_MOVING |                       [<A HREF="#flag2_1">1</A>]
+                          OBJECT2_BAD_MOVING_FIT |                         [<A HREF="#flag2_9">9</A>]
+                          OBJECT2_BAD_MOVING_FIT_CHILD |                   [<A HREF="#flag2_9">9</A>]
+                          OBJECT2_TOO_FEW_DETECTIONS);                     [<A HREF="#flag2_2">2</A>]
+
+      child->flags2 &= ~(OBJECT2_NODEBLEND_MOVING |                        [<A HREF="#flag2_1">1</A>]
+                         OBJECT2_BAD_MOVING_FIT |                          [<A HREF="#flag2_9">9</A>]
+                         OBJECT2_BAD_MOVING_FIT_CHILD |                    [<A HREF="#flag2_9">9</A>]
+                         OBJECT2_TOO_FEW_DETECTIONS);                      [<A HREF="#flag2_2">2</A>]
+
+      parent->flags2 |=
+            OBJECT2_DEBLENDED_AS_MOVING | OBJECT2_DEBLEND_PEEPHOLE;        [<A HREF="#flag2_0">0</A>,<A HREF="#flag2_28">28</A>]
+      child->flags2 |=
+            OBJECT2_DEBLENDED_AS_MOVING | OBJECT2_DEBLEND_PEEPHOLE;        [<A HREF="#flag2_0">0</A>,<A HREF="#flag2_28">28</A>]
+      Set positions based on velocity vector;
+      child->object1->flags |= OBJECT1_CANONICAL_CENTER;                   [<A HREF="#flag1_0">0</A>]
+
+      repeat process, looking for other detections of the moving object
+      in other children at the correct calculated position;
+   }
+}
+
+phObjcDeblendMovingChild
+{
+   if(object is detected in <= 2 bands) {
+      objc->parent->flags2 |= (OBJECT2_TOO_FEW_DETECTIONS |                [<A HREF="#flag2_2">2</A>]
+                               OBJECT2_NODEBLEND_MOVING);                  [<A HREF="#flag2_1">1</A>]
+      objc->parent->flags2 &= ~OBJECT2_DEBLENDED_AS_MOVING;                [<A HREF="#flag2_0">0</A>]
+   }
+
+   if(object has good detections in <= 2 bands) {
+      objc->parent->flags2 |= (OBJECT2_TOO_FEW_GOOD_DETECTIONS |           [<A HREF="#flag2_16">16</A>]
+                               OBJECT2_NODEBLEND_MOVING);                  [<A HREF="#flag2_1">1</A>]
+      objc->parent->flags2 &= ~OBJECT2_DEBLENDED_AS_MOVING;                [<A HREF="#flag2_0">0</A>]
+   }
+
+   if(chi^2 for velocity fit is too large) {
+      objc->parent->flags2 |= (OBJECT2_BAD_MOVING_FIT_CHILD |              [<A HREF="#flag2_9">9</A>]
+                               OBJECT2_NODEBLEND_MOVING);                  [<A HREF="#flag2_1">1</A>]
+      objc->parent->flags2 &= ~OBJECT2_DEBLENDED_AS_MOVING;                [<A HREF="#flag2_0">0</A>]
+   }
+
+   if(velocity is consistent with 0) {
+      objc->parent->flags2 |= (OBJECT2_STATIONARY |                        [<A HREF="#flag2_4">4</A>]
+                               OBJECT2_NODEBLEND_MOVING);                  [<A HREF="#flag2_1">1</A>]
+      objc->parent->flags2 &= ~OBJECT2_DEBLENDED_AS_MOVING;                [<A HREF="#flag2_0">0</A>]
+   }
+
+   if(deblended as moving) {
+      set centers for all OBJECT1_CANONICAL_CENTER objects                 [<A HREF="#flag1_0">0</A>]
+      from the fit to the object's motion;
+   }
+}
+</PRE>
+
+<H2><A NAME="objc_type">Meaning of Photo's Object Classification</A></H2>
+
+Photo classifies all objects, separately in each band, and also the
+entire object, into one of the following classes (the photo enum
+<CODE>OBJ_TYPE</CODE>):
+
+<DL>
+<DT> OBJ_UNK
+<DD> An object of unknown type.
+
+<DT> OBJ_CR
+<DD> Object is a cosmic ray.
+<BR>
+<EM>Not used</EM>; instead the
+<A HREF="#flag2_24"><CODE>OBJECT2_MAYBE_CR</CODE></A> bit is set.
+
+<DT> OBJ_DEFECT
+<DD> <EM>Not Used</EM>
+
+<DT> OBJ_GALAXY
+<DD> Object is classified as a galaxy
+
+<DT> OBJ_GHOST
+<DD> Object is a ghost, either produced by the optics or the
+electronics.
+<BR>
+<EM>Not Used</EM>; instead the
+<A HREF="#flag2_25"><CODE>OBJECT2_MAYBE_EGHOST</CODE></A>
+bit is set for electronics bits;
+optical ghosts are not recognised at this time.
+
+<DT> OBJ_KNOWNOBJ
+<DD> Object came from a known objects catalog, e.g. a FIRST source.
+<BR>
+Note: these are not currently created; see <A HREF="http://www.astro.princeton.edu:81/cgi-bin/gnatsweb.pl?cmd=view&pr=42&database=SDSS">PR 42</A>.
+
+<DT> OBJ_STAR
+<DD> Object is classified as a star
+
+<DT> OBJ_TRAIL
+<DD> Object is a satellite/asteroid trail.
+<BR>
+<EM>Not (yet?) used</EM>.
+
+<DT> OBJ_SKY
+<DD> Object was chosen not to overlap with any detected objects; used
+for positioning sky fibres for spectroscopy (and potentially for
+studies of the statistical properties of `blank' sky)
+
+</DL>
+
+<H2><A NAME="fpM_bits">Meaning of Photo's mask (`fpM') files</A></H2>
+
+The `bitplanes' in photo's fpM files have the following meanings. The
+fpM files are not in fact stored as as bitplanes; see the description
+<A HREF="http://www.astro.princeton.edu/~rhl/readAtlasImages/README">
+readAtlasImages code</A> of stand-alone code to convert these files
+to FITS files; here's the
+<A HREF="http://www.astro.princeton.edu/~rhl/readAtlasImages/">
+code</A>.
+
+<P>
+
+<DL>
+<DT> INTERP
+<DD> pixel's value has been interpolated
+
+<DT> SATUR
+<DD> pixel is/was saturated
+
+<DT> <A NAME="MASK_NOTCHECKED">NOTCHECKED</A>
+<DD> pixel was NOT examined for an object
+
+<DT> OBJECT
+<DD> pixel is part of some object
+
+<DT> BRIGHTOBJECT
+<DD> pixel is part of bright object
+
+<DT> BINOBJECT
+<DD> pixel is part of binned object
+
+<DT> CATOBJECT
+<DD> pixel is part of a catalogued object
+
+<DT> SUBTRACTED
+<DD> model has been subtracted from pixel
+
+<DT> GHOST
+<DD> pixel is part of a ghost
+
+<DT> CR
+<DD> pixel is part of a cosmic ray
+
+</DL>
+
+</HTML>

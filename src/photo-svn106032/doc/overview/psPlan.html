@@ -1,0 +1,148 @@
+<TITLE> PSP: psPlan.par file        </TITLE>
+
+<BODY bgcolor="EEEEFF">
+<hr>
+<A name=psp><H1>psPlan.par</H1></A>
+ <H1>Plan File for Postage Stamp Pipeline</H1> 
+
+<hr>
+
+This is an example of psPlan.par file which is used to supply
+all logistical information to PSP (parameters which control PSP
+algorithms are supplied in <A HREF="psParam.html"><I>psParam.par</I></A>.
+All data is entered in form keyword - value. In case of multiple entries
+the last one counts.
+This example assumes that the data is stored in directory $PHOTODATA_DIR.
+<pre>
+
+
+################################################################# 
+# This is the Plan file for the Postage Stamp Pipeline
+
+#
+# Required Generic Plan Fields
+action              ps                    # Plan type
+version             v1.0                  # Software version to use
+parameters          psParam.par           # Tunable parameters file
+
+#
+# Optional Generic Plan Fields
+priority            1                     # Execution priority
+oid                 "23.45.34.23"         # Database object identifier
+targetDate          "1999/04/18"          # Target date (local time zone)
+created             "1965/04/18 05:40:00" # Creation time (UT)
+authors             "User Abuser"  	  # Authors
+comment             "example"             # Comment
+diagnostics         1                     # if > 0, do create a file with
+                                          # diagnostic output from each field
+diagFile            psDiag                # prefix of the file into which 
+                                          # diagnostic output will be placed.
+                                          # Name will include run and camCol. 
+
+#
+# additional info 
+nfilters            5                     # number of filters with data in scFang files
+stampsize           65                    # size on a side of postage stamps
+refcolor            r                     # to which the chip to chip trans transforms
+# filters order
+ccdrow_r            1
+ccdrow_i            2
+ccdrow_u            3
+ccdrow_z            4
+ccdrow_g            5
+ccdrow_o            6
+ccdrow_l            7
+ccdrow_t            8
+ccdrow_s            9
+
+#################################################################
+# List of paths to various required files
+
+# the param file given above as 'parameters' may be found here
+parametersDir 	    $PHOTODATA_DIR/input
+
+# directory with bias data (idB*.fit files)
+biasDir             $PHOTODATA_DIR/idB
+
+# directory with the CCD parameters file ...
+configDir           $PHOTODATA_DIR/input
+# and file names
+ccdConfig           opConfig-51259.par    # amplif. config
+ccdBC      	    opBC-51259.par	  # bad column file
+ccdECalib 	    opECalib-51259.par	  # readnoise/gain file 
+
+# the fangs, output of SSC pipeline may be found here
+fangDir             $PHOTODATA_DIR/fangs
+
+# astrometric transformations for this run
+transFileDir        $PHOTODATA_DIR/input
+transFile	    asTrans-000581.fit
+
+# monitor telescope photoms 
+photomFileDir	    $PHOTODATA_DIR/input
+photomFile 	    exPhotom-51261.fit
+
+# monitor telescope secondary patches are here
+mtPatchFormat       mtPatch-%08d.fit
+mtPatches           {95-25-1 $PHOTODATA_DIR/input}\ 
+                    {90-25-1 $PHOTODATA_DIR/input}\ 
+                    {95-25-2 $PHOTODATA_DIR/input}\
+                    {90-25-2 $PHOTODATA_DIR/input}  
+
+# default calibration is here (last good output from psp)
+ctFileDir           $PHOTODATA_DIR/output
+ctFile              psCT-000581-3.fit
+
+# put the output here:
+outputDir 	    $PHOTODATA_DIR/output
+
+
+#################################################################
+# Processing Parameters
+
+# the important stuff
+run                 581                 # Imaging run number. 
+camCol   	      1		        # Camera column
+startField           10                 # start pipeline with this field
+endField             66                 # stop with this (inclusive)
+filterlist    u g r i z                 # filters to include when processing
+  
+# aux stuff
+verbose               1                 # verbose > 0 means print a lot
+trace_memory	      1
+crc_nbyte_max     20000
+
+### display requests (0: off) ###
+display		      0    # display on/off (-1 for w/o prompting)
+
+# the following flags control saoimage display 
+display_raw	      0    # show the raw PSF stamps
+display_psf	      0    # show the corrected PSF stamps (2 for rejects)
+display_PSFstars      0    # show good and clipped PSF stars
+display_average_psf   0    # display the average of PS stars
+display_wing          0    # display corrected wing stamps
+display_symmetry      0    # display residual after subtracting symmetric image
+display_flat	      0    # display flatfield (>1 for the smoothed flat-field vector)
+
+# the following flags control pgplot display
+display_bias          0    # plot bias 
+display_clipping      0    # plots of (sigma1,sigma2) and (Q,U) for good stars 
+                           # for >1 produces hard copies in outdir (psPlotsQU*.ps)
+display_rejection     0    # display rejection statistics for all frames 
+                           # for >1 produces hard copies in outdir (psPlotsRejecStats*.ps)
+display_profiles      0    # display stars' CELL_PROFs 
+                           # for >1 produces hard copies in outdir (psPlotsCellProf*.ps)
+display_summary       0    # graphs at the end (also written to psPlots*.ps)    
+ 
+  
+</pre>
+
+
+<hr>
+Back to <A HREF="psp.html"> PSP</A><BR>
+Back to <A HREF="overview.html"> Photo Overview</A>
+<hr>
+<P><ADDRESS>
+<I>ZI, December 1997</I>
+</ADDRESS>
+</BODY>

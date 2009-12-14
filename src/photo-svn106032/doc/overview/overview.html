@@ -1,0 +1,91 @@
+<HTML>
+<TITLE>Overview of the Photometric Pipeline: PSP and Frames</TITLE>
+
+<H1>Overview of the Photometric Pipeline: PSP and Frames</H1>
+<ADDRESS>December 1996. Photo version: $Name$</ADDRESS>
+<hr>
+
+This document gives a quick view of the overall operation of the
+Photometric Pipeline.  It should be the equivalent of a short talk,
+one in which the speaker mentions the structure of a complex
+problem and briefly touches on a number of issues.  It will
+not describe exactly how the Pipeline operates --- for that,
+you should try looking at the documentation for specific
+routines or at the source code.
+<P>
+
+<!--
+latex This document was converted from
+\$(PHOTO\_DIR)/doc/overview/overview.html using html2latex. It is available
+as\hfil\break
+\qquad{\tt http://www.astro.princeton.edu/\~rhl/overview/overview.html}.
+\par
+-->
+
+We have a number of
+<A HREF="http://www.astro.princeton.edu/~rhl/photomisc">technical papers</A>
+on photo. These should probably be integrated with this document at some
+point.
+<P>
+
+This is a first draft, not a finished product.  We intend to
+modify it as desired by readers (especially the JPG) who require
+more information on specific topics.  Please send any comments
+or suggestions to
+<A HREF="mailto:ivezic@astro.princeton.edu">Zeljko Ivezic</A>,
+<A HREF="mailto:rhl@astro.princeton.edu">Robert Lupton</A>, or
+<A HREF="mailto:gk@astro.princeton.edu">Jill Knapp</A>
+at Princeton.  With your help, we can improve this document.
+
+<MENU>
+<LI> <A HREF="#getting_started">How to Find Things in Photo</A>
+<LI> <A HREF="psp.html">The Postage Stamp Pipeline (`PSP')</A>
+<LI> <A HREF="frames.html">The Frames Pipeline (`Frames')</A>
+<LI> <A HREF="datatypes.html">Photo's Fundamental Datatypes</A>
+<LI> <A HREF="measured_outputs.html">Saved Outputs Of Photo's Measure Objects</A>
+<LI><A HREF="misc.html">Miscellaneous Algorithms</A>
+<LI><A HREF="bugs.html">Known Bugs</A>
+<LI> <A HREF="refs.html">References</A>
+</MENU>
+
+<H2><A NAME="getting_started">How to Find Things in Photo</H2>
+
+This document is not a precis of the photo code; if you want
+to find out exactly how things are done, you'll want to read the
+source.
+<P>
+
+To run photo, you'll first have to acquire a standard SDSS environment,
+and install all products required to run <CODE>astrotools</CODE> (or
+<CODE>photo</CODE> if you don't want to build it yourself). You can
+then say <CODE>setup photo</CODE> and proceed to the next paragraph.
+<P>
+
+The TCL top-level routines to run the PSP is in
+<PRE>
+    $PHOTO_DIR/etc/ps_pipeline.tcl
+</PRE>
+you may want to use cvs to check out your own copy of photo. There's more code
+in
+<CODE>$PHOTO_DIR/etc/ps_pipeline_procs.tcl</CODE>
+and <CODE>$PHOTO_DIR/etc/photo_procs.tcl</CODE>.
+<P>
+
+The frames pipeline routines are in the same place, but called
+<CODE>frames_pipeline.tcl</CODE> and <CODE>frames_pipeline_procs.tcl</CODE>
+<P>
+
+The main routines are called <CODE>run_ps_pipeline</CODE> and
+<CODE>run_frames_pipeline</CODE>, and each
+expects one argument, the name of the file
+that gives the desired order of business, and the location of all
+files required to run the <A HREF="planfiles.html#psPlan">postage stamp</A>
+or <A HREF="planfiles.html#fpPlan">frames</A> pipeline.
+<P>
+
+If you are familiar with emacs' TAGS files, you can profitably say
+<CODE>sdssmake tags</CODE> in <CODE>$PHOTO_DIR</CODE> to make browsing
+the source easier; tags are built for both C and TCL symbols.
+
+</HTML>
+

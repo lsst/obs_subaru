@@ -1,0 +1,6 @@
+#if !defined(PHSYSTEM_H)
+#define PHSYSTEM_H
+
+typedef enum {SYSTEM_UNKNOWN=-1, SYSTEM_J2000, SYSTEM_GC, SYSTEM_EP1950} SYSTEM;
+
+#endif

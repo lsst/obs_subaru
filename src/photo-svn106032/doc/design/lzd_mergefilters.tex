@@ -1,0 +1,45 @@
+\subsection{Introduction}
+
+The objects are found separately in each color.  This module merges the
+lists together into a single list of merged objects.  Using the transformations
+calculated from the postage stamps, the objects' masks are compared.
+Any masks that overlap in space are merged together into one object.  If
+one object, for example, in r', overlaps with two objects in g', they will
+all come out as part of one merged object.  The object masks are grown to
+be the union of all of the pixels in which the object was detected in
+object finding.  If, for example, the object was not detected in u', it
+will still have an OBJECT1 created for it.  The atlas images in all colors
+are grown to contain all of the pixels in the object mask (the atlas images
+are rectangular).  All information about the original OBJECT1 structures
+is lost.
+
+\subsection{Input}
+
+\subsubsection{Corrected frames}
+
+Since the process will go back to the original region and grow the atlas
+image, it needs the original regions.  The name of the tcl array containing
+the regions and a tcl list of the indices are passed.
+
+\subsubsection{Noise regions}
+
+Since the process will go back to the original region and grow the atlas
+image, it also needs to grow the noise regions.  The name of the tcl array 
+containing the noise regions and a tcl list of the indices are passed.
+
+\subsubsection{Star lists in each color}
+
+This is the output of object finding, one list per color.  The list is
+a CHAIN of type OBJECT1.  Again, it is
+passed as the name of the tcl array containing the lists.
+
+\subsubsection{Offsets}
+
+This is the offsets calculated in Calculate Offsets
+
+\subsection{Output}
+
+\subsubsection{Merged object list}
+
+The merged list (a CHAIN of type OBJC) is returned.  Every OBJC contains
+an OBJECT1 in each color.
