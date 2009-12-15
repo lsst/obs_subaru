@@ -13,7 +13,7 @@
 #include "dervish.h"
 #include "phObjects.h"
 #include "phObjc.h"
-#include "atConversions.h"
+//#include "atConversions.h"
 
 /***************************************************************************
  * <AUTO EXTRACT>
@@ -284,8 +284,10 @@ phObject1PrintPretty(
    fprintf(fp, "  sky %4.0f +- %4.1f   npix %8d\n", obj->sky, 
       obj->skyErr, obj->npix);
    fprintf(fp, "  <ab/r^2> %6.1f %6.1f %6.1f ", obj->Q, obj->U, 1-obj->Q);
-   fprintf(fp, "  a/b %6.1f  Position Angle %6.4f", obj->aratio,
-	   obj->majaxis*at_rad2Deg);
+   /*
+	fprintf(fp, "  a/b %6.1f  Position Angle %6.4f", obj->aratio,
+	obj->majaxis*at_rad2Deg);
+	*/
    fprintf(fp, "  types 0x%4x\n", obj->type);
    fprintf(fp, "  fiber %9.0f   Petrosian %9.0f in rad %6.0f\n",
       obj->fiberCounts, obj->petroCounts, obj->petroRad);
