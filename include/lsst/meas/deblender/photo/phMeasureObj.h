@@ -1,17 +1,20 @@
 #if !defined(PHMEASUREOBJ_H)
 #define PHMEASUREOBJ_H
 
+/*
 #include "dervish.h"
 #include "phCalib1.h"
-#include "phFramestat.h"
-#include "phObjc.h"
 #include "phSpanUtil.h"
 #include "phRandom.h"
 #include "p_phMeasureObj.h"
+ */
+#include "phFramestat.h"
+#include "phObjc.h"
+
 /*
  * The current best estimate of the PSF
  */
-extern const PSF_REG *KLPsf[NCOLOR];
+//extern const PSF_REG *KLPsf[NCOLOR];
 
 /*
  * Here's the `science code':
@@ -61,6 +64,7 @@ void phFieldstatSetFromMO(FIELDSTAT *fieldstat);
  * public, but they are not strictly private either; so I'll put them
  * in the public .h file with some misgivings
  */
+#if 0
 void phObjcCenterCalc(OBJC *objc, const FIELDPARAMS *fparams, int use_color);
 
 float
@@ -168,43 +172,6 @@ void
 phSaturSetInObject1Chain(const REGION *reg, /* region containing objects */
 			 CHAIN *objs);	/* chain of objects */
 
-/*****************************************************************************/
-/*
- * Callable from TCL; not for use in real pipeline
- */
-int
-phTclCalcPetrosian(const REGION *data,	/* region containing object */
-		   float rowc, float colc, /* object's centre */
-		   float bkgd,		/* non-subtracted background */
-		   float gain,		/* gain of amplifier */
-		   float dark_variance, /* variance of dark background */
-		   float petro_f1,	/* desired Petrosian ratio */
-		   float petro_f2,	/* Minimum SB (_counts/pixel!) */
-		   float petro_f4,	/* Measure flux within f4*petroRad */
-		   float petro_f5,	/* `Petrosian' rad. if all else fails*/
-		   float *petroRad,	/* measured Petrosian radius */
-		   float *petroRadErr,	/* measured Petrosian radius error */
-		   float *petroR50,	/* measured Petrosian 50% radius */
-		   float *petroR50Err,	/* measured Petrosian 50% error */
-		   float *petroR90,	/* measured Petrosian 90% radius */
-		   float *petroR90Err,	/* measured Petrosian 90% error */
-		   float *petroCounts,	/* measured Petrosian counts */
-		   float *petroCountsErr); /* measured Petrosian counts error*/
+#endif
 
-int
-phAdaptiveMomentsGet(const REGION *data, /* region wherein lies the object */
-		     float rowc, float colc, /* position of centre */
-		     float rad,		/* initial radius for moments */
-		     float bkgd,	/* non-subtracted background level */
-		     float bkgd_var,	/* background per-pixel variance */
-		     float shiftmax,	/* max allowed centroid shift */
-		     float *M_e1,	/* desired moments */
-		     float *M_e2,
-		     float *M_rr_cc,
-		     float *M_cr4,	/* 4-th order moment */
-		     float *M_e1e1Err,	/* errors in desired moments */
-		     float *M_e1e2Err,
-		     float *M_e2e2Err,
-		     float *M_rr_ccErr,
-		     float *amp_w);	/* amplitude of Gaussian */
 #endif
