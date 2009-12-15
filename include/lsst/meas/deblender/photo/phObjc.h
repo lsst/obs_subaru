@@ -1,11 +1,14 @@
 #if !defined(PHOBJC_H)
 #define PHOBJC_H
+
 #include "dervish.h"
+/*
 #include "phExtract.h"
 #include "phSpanUtil.h"
 #include "phFramestat.h"
-#include "phPeaks.h"
 #include "phConsts.h"
+ */
+#include "phPeaks.h"
 
 /*
  * An enum for types of object
@@ -422,7 +425,7 @@ void phAtlasImageCut(OBJC *objc, int color, const FIELDPARAMS *fparams,
 		     int val, float sigma, RANDOM *rand);
 void phRegionSetFromAtlasImage(const ATLAS_IMAGE *ai,
 			       int c, REGION *reg, int row0, int col0,
-			       float sky, int operator, int clip);
+			       float sky, int op, int clip);
 void phRegionSetValFromAtlasImage(const ATLAS_IMAGE *ai, int c, int use_master_mask,
 				  REGION *reg, int val, float sigma, RANDOM *rand,
 				  int row0, int col0);

@@ -2,7 +2,9 @@
 #define PHDGPSF_H
 
 #include "dervish.h"
-#include "atConversions.h"
+/*
+ #include "atConversions.h"
+ */
 #include "phExtract.h"
 
 /*****************************************************************************/

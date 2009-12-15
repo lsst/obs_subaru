@@ -1,14 +1,18 @@
 #if !defined(PHFRAMESTAT_H)
 #define PHFRAMESTAT_H
 
-#include "dervish.h"
+/*
 #include "atTrans.h"
 #include "phFilter.h"
-#include "phDgpsf.h"
-#include "phSkyUtils.h"
 #include "phSpanUtil.h"
-#include "phVariablePsf.h"
+ */
+#include "dervish.h"
+#include "phDgpsf.h"
 #include "phConsts.h"
+#include "phSkyUtils.h"
+#include "phVariablePsf.h"
+
+
 
 /*
  * values for status:
