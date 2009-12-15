@@ -22,18 +22,41 @@
 #include <alloca.h>
 #include <unistd.h>
 #include <errno.h>
+
 #include "dervish.h"
 #include "phConsts.h"
-#include "phDervishUtils.h"		/* utilities which will one day be
-					   in dervish */
-#include "phChainDiff.h"
+//#include "phDervishUtils.h"		/* utilities which will one day be
+//in dervish */
+//#include "phChainDiff.h"
 #include "phRandom.h"
 #include "phExtract.h"
 #include "phSkyUtils.h"
-#include "prvt/region_p.h"
+//#include "prvt/region_p.h"
 #include "phVariablePsf.h"		/* for ACOEFF */
 #include "phMeschach.h"
 #include "phUtils.h"
+
+/*****************************************************************************/
+/*
+ * Allocate some memory that can be made available in extremis.  This is
+ * achieved via a shMemEmptyCB callback
+ */
+static void *strategic_memory_reserve = NULL; /* reserved memory, to be released when we run out */
+static int allocated_reserve = 0;	/* did we allocate a reserve? */
+
+
+/*
+ * Do we have memory saved for later use?
+ */
+int
+phStrategicMemoryReserveIsEmpty(void)
+{
+    return (allocated_reserve && strategic_memory_reserve == NULL) ? 1 : 0;
+}
+
+
+
+#if 0
    /* 
     * these are private, faster functions called by the general-purpose
     * (and global) phRegStatsSigmaClip function.
@@ -3764,14 +3787,6 @@ phTypenameToType(const char *typeStr)
    return type;
 }
 
-/*****************************************************************************/
-/*
- * Allocate some memory that can be made available in extremis.  This is
- * achieved via a shMemEmptyCB callback
- */
-static void *strategic_memory_reserve = NULL; /* reserved memory, to be released when we run out */
-static int allocated_reserve = 0;	/* did we allocate a reserve? */
-
 static void *
 photoMemEmptyFunc(size_t nbyte)
 {
@@ -3811,11 +3826,4 @@ phStrategicMemoryReserveSet(const size_t size)
     return (strategic_memory_reserve == NULL) ? 0 : 1;
 }
 
-/*
- * Do we have memory saved for later use?
- */
-int
-phStrategicMemoryReserveIsEmpty(void)
-{
-    return (allocated_reserve && strategic_memory_reserve == NULL) ? 1 : 0;
-}
+#endif
