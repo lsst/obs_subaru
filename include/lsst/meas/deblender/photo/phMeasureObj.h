@@ -14,6 +14,18 @@
 
 int phObjcDeblend(OBJC *objc, const FIELDPARAMS *fparams);
 
+void phRemoveAtlasImage(const OBJC *objc, const FIELDPARAMS *fiparams);
+void phInsertAtlasImage(const OBJC *objc, const FIELDPARAMS *fiparams);
+
+int
+phVelocityFind(OBJC *objc,		/* OBJC whose velocity is desired */
+	       const FIELDPARAMS *fiparams, /* info about the frame */
+	       float *row,		/* fitted row positions, or NULL */
+	       float *rowErr,		/* errors in row, or NULL */
+	       float *col,		/* fitted column positions, or NULL */
+	       float *colErr,		/* errors in col, or NULL */
+	       float *rchisq);		/* reduced chi^2, or NULL */
+
 
 #if 0
 /*
@@ -129,15 +141,6 @@ phStokesParamEval(const REGION *reg,	/* input data */
 		  int which,		/* 'Q' or 'U' */
 		  int normalise,	/* if true, normalise the answer */
 		  float *val);		/* the answer */
-int
-phVelocityFind(OBJC *objc,		/* OBJC whose velocity is desired */
-	       const FIELDPARAMS *fiparams, /* info about the frame */
-	       float *row,		/* fitted row positions, or NULL */
-	       float *rowErr,		/* errors in row, or NULL */
-	       float *col,		/* fitted column positions, or NULL */
-	       float *colErr,		/* errors in col, or NULL */
-	       float *rchisq);		/* reduced chi^2, or NULL */
-
 OBJC *phObjcChildNew(OBJC *objc,	/* the parent */
 		     const PEAK *peak,	/* which peak? */
 		     const FIELDPARAMS *fparams, /* gain, soft_bias, etc. */
@@ -152,8 +155,6 @@ int phObjcDeblendMovingChild(OBJC *objc, const FIELDPARAMS *fparams);
 
 void phDeblendedObjcRecenter(OBJC *objc, const FIELDPARAMS *fparams);
 
-void phRemoveAtlasImage(const OBJC *objc, const FIELDPARAMS *fiparams);
-void phInsertAtlasImage(const OBJC *objc, const FIELDPARAMS *fiparams);
 
 #if defined(PH_MATH_UTILS)
    void p_phInitEllipseFit(void);

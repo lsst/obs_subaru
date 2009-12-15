@@ -100,6 +100,7 @@ void shMaskClear(MASK *mask);
 #define BEFORE 1
 #define TAIL 1
 #define NEXT 2
+#define HEAD 3
 
 typedef struct chain_elem {
    struct chain_elem *pNext;
@@ -129,5 +130,11 @@ typedef struct cursor {
 CURSOR_T shChainCursorNew(CHAIN* ch);
 void* shChainWalk(CHAIN* ch, CURSOR_T crsr, int where);
 void shChainCursorDel(CHAIN* ch, CURSOR_T crsr);
+
+REGION* shSubRegNew(const char* name, const REGION* r, int a, int b, int c, int d, 
+					int flags);
+#define NO_FLAGS 0
+MASK* shSubMaskNew(const char* name, const MASK* m, int a, int b, int c, int d, int flags);
+
 
 #endif
