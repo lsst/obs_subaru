@@ -9,14 +9,17 @@ const char *phPhotoName(void);
 int phStrategicMemoryReserveSet(const size_t size);
 int phStrategicMemoryReserveIsEmpty(void);
 
-int get_FtclOpts(Tcl_Interp *interp, int *ac, char **av, ftclArgvInfo *opts);
+//int get_FtclOpts(Tcl_Interp *interp, int *ac, char **av, ftclArgvInfo *opts);
 
 RET_CODE shMasksMerge(MASK *mask1, MASK *mask2, int value);
 int shChainDestroy(CHAIN *pChain, void (*pDelFunc)(void *));
 
 int shMasksOverlap(MASK *mask1, MASK *mask2, int dcol, int drow);
-REGION *shRegGetEnlarged(char *name, REGION *region, int row, int col,
-           int nrow, int ncol, REGION_FLAGS flags);
+
+/*
+ REGION *shRegGetEnlarged(char *name, REGION *region, int row, int col,
+ int nrow, int ncol, REGION_FLAGS flags);
+ */
 int shRegIntCopy(REGION *out, const REGION *in);
 int shRegIntSetVal(REGION *reg, const float val);
 #if defined(PHSPANUTIL_H)
@@ -46,25 +49,6 @@ shRegIntLogand(REGION *reg,		/* The region ... */
 REGION *phRegS32ToU16Convert(REGION *reg_s32, const REGION *reg_u16);
 int phRegStatsSigmaClip(REGION *reg, char mask_flag, int iter, float clipsig,
                            float *mean, float *stdev);
-
-int phPtrArrayGetFromTclArrayOfHandles(Tcl_Interp *interp,
-				       char *arrayName,
-				       char *list,
-				       char *strtype,
-				       void ***array,
-				       int *nele);
-int
-phFltArrayGetFromTclList(Tcl_Interp *interp, char *list, float **vals, int nel);
-int
-phFltArrayGetFromTclArray(Tcl_Interp *interp,
-			  char *arrayName, /* name of tcl array */
-			  char *indices, /* indices of tcl array */
-			  float **vals); /* array to allocate and return */
-
-int
-phTclArrayOfHandlesGetFromCArray(Tcl_Interp *interp, void **Carray,
-				 int nele, const char *type,
-				 const char *TCLarray, const char **indices);
 
 int phRegStatsFromQuartiles(const REGION *reg, int coarse, float clip,
 			    float *mean, float *med, float *sigma,
@@ -126,6 +110,7 @@ void
 phRegFloor(REGION *reg,			/* the region */
 	   float min);			/* desired minimum value */
 
+/*
 void
 phTchebyfit(const VECTOR_TYPE *x,
 	    const VECTOR_TYPE *y,
@@ -134,6 +119,7 @@ phTchebyfit(const VECTOR_TYPE *x,
 	    const VECTOR_TYPE *fitx,
 	    VECTOR_TYPE *fity, 
             int fitn);
+ */
 
 REGION *
 phRegionExtrapolate(REGION *out,	     /* output region, or NULL */

@@ -1,6 +1,8 @@
 #if !defined(PHDERVISH_H)		/* not DERVISH_H -- this is a fake */
 #define PHDERVISH_H
 
+void shDebug(int i, char* s, ...);
+
 const char *phPhotoVersion(void);
 
 /*
