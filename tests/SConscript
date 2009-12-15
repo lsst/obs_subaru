@@ -1,0 +1,23 @@
+# -*- python -*-
+#
+#
+Import("env")
+import re, os, glob
+import lsst.tests
+
+for fileName in glob.glob("*.cc"):
+    if ( re.search("(_wrap.cc)", os.path.basename(fileName)) ):
+        continue
+    env.Program(fileName, LIBS=env.getlibs("deblender"))
+
+# env.CheckSwig("python", ilang="c++", includedProducts="utils pex_logging afw")
+
+# testLib = env.LoadableModuleIncomplete("_testLib", ["testlib.i"], LIBS=env.getlibs("stack"))
+
+#tests = lsst.tests.Control(env, ignoreList=["testLib.py", "testLib_wrap.cc"], expectedFailures={})
+tests = lsst.tests.Control(env, ignoreList=[], expectedFailures={})
+
+tests.run("*.cc")
+
+#for target in tests.run("*.py"):
+#    env.Depends(target, "../python/lsst/stack/_stackLib%s" % (env['LDMODULESUFFIX']))
