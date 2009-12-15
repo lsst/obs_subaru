@@ -396,12 +396,6 @@ OBJC *phObjcNewFromObjc(const OBJC *objc, /* OBJC to copy */
 void phObjcDel(OBJC *objc, int deep);
 void phObjcChainDel(CHAIN *chain, int deep);
 
-#if 0
-OBJC_IO *phObjcIoNew(int ncolor);
-OBJC_IO *phObjcIoNewFromObjc(const OBJC *objc);
-void phObjcIoDel(OBJC_IO *objc_io, int deep);
-#endif
-
 ATLAS_IMAGE *phAtlasImageNew(int ncolor);
 ATLAS_IMAGE *phAtlasImageNewFromObjc(const OBJC *objc);
 void phAtlasImageDel(ATLAS_IMAGE *aimage, int deep);
