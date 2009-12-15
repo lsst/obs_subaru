@@ -88,7 +88,6 @@ phObjcDel(OBJC *objc,			/* OBJC to delete */
       shFree(objc->color);
    }
    phAtlasImageDel(objc->aimage,1);
-   phTestInfoDel(objc->test,1);
    phPeaksDel(objc->peaks);
 
    shFree((char *) objc);
@@ -317,8 +316,7 @@ phObjcChainDel(CHAIN *chain,		/* chain of OBJCs to destroy */
    OBJC *objc;
    int nel;
 
-   shAssert(chain != NULL &&
-	    shChainTypeGet(chain) == shTypeGetFromName("OBJC"));
+   shAssert(chain != NULL && shChainTypeGet(chain) == shTypeGetFromName("OBJC"));
 
    nel = chain->nElements;
    

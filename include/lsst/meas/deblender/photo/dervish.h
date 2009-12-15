@@ -2,13 +2,7 @@
 #define PHDERVISH_H
 
 const char *phPhotoVersion(void);
-/*
- * Try to include the real dervish.h; if we succeed it'll define DERVISH_H
- * and we'll know not to provide our own fake version.
- */
-#include <dervish.h>
 
-#if !defined(DERVISH_H)			/* we didn't find the real one */
 /*
  * functions usually provided by dervish
  */
@@ -34,6 +28,11 @@ void *shRealloc(void *ptr, size_t n);
 void shFree(void *ptr);
 int p_shMemRefCntrGet(void *ptr);
 void p_shMemRefCntrDecr(void *ptr);
+void p_shMemRefCntrIncr(void *ptr);
+void shMemRefCntrIncr(void *ptr);
+int shMemRefCntrGet(void *ptr);
+void shMemRefCntrDecr(void *ptr);
+
 /*
  * assertions
  */
@@ -98,6 +97,7 @@ void shMaskClear(MASK *mask);
 #define AFTER 0
 #define BEFORE 1
 #define TAIL 1
+#define NEXT 2
 
 typedef struct chain_elem {
    struct chain_elem *pNext;
@@ -118,5 +118,14 @@ void *shChainElementRemByPos(const CHAIN *ch, int el);
 
 int shRegClear(REGION *reg);
 
-#endif
+TYPE shChainTypeGet(const CHAIN* ch);
+
+typedef struct cursor {
+	CHAIN_ELEM* element;
+} CURSOR_T;
+
+CURSOR_T shChainCursorNew(CHAIN* ch);
+void* shChainWalk(CHAIN* ch, CURSOR_T crsr, int where);
+void shChainCursorDel(CHAIN* ch, CURSOR_T crsr);
+
 #endif

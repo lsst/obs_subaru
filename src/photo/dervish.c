@@ -139,6 +139,34 @@ p_shMemRefCntrDecr(void *ptr)		/* NOTUSED */
    ;
 }
 
+void
+p_shMemRefCntrIncr(void *ptr)		/* NOTUSED */
+{
+   ;
+}
+
+int
+shMemRefCntrGet(void *ptr)		/* NOTUSED */
+{
+   return(0);
+}
+
+void
+shMemRefCntrDecr(void *ptr)		/* NOTUSED */
+{
+   ;
+}
+
+void
+shMemRefCntrIncr(void *ptr)		/* NOTUSED */
+{
+   ;
+}
+
+TYPE shChainTypeGet(const CHAIN* ch) {
+	return ch->type;
+}
+
 /*****************************************************************************/
 /*
  * regions
