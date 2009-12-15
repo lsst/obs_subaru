@@ -2,12 +2,10 @@
 #define PHOBJC_H
 
 #include "dervish.h"
-/*
-#include "phExtract.h"
-#include "phSpanUtil.h"
 #include "phFramestat.h"
 #include "phConsts.h"
- */
+#include "phExtract.h"
+#include "phSpanUtil.h"
 #include "phPeaks.h"
 
 /*
@@ -286,6 +284,9 @@ typedef struct objc {
    struct objc *children;		/* list of children */
 } OBJC;					/* pragma SCHEMA */
 
+
+
+#if 0
 /*
  * And here is an OBJC reorganised for output, including an Atlas Image
  */
@@ -379,6 +380,7 @@ typedef struct {
    float profMean[NCOLOR][NANN];
    float profErr[NCOLOR][NANN];
 } OBJC_IO;				/* pragma SCHEMA */
+#endif
 
 /*****************************************************************************/
 /*
@@ -394,9 +396,11 @@ OBJC *phObjcNewFromObjc(const OBJC *objc, /* OBJC to copy */
 void phObjcDel(OBJC *objc, int deep);
 void phObjcChainDel(CHAIN *chain, int deep);
 
+#if 0
 OBJC_IO *phObjcIoNew(int ncolor);
 OBJC_IO *phObjcIoNewFromObjc(const OBJC *objc);
 void phObjcIoDel(OBJC_IO *objc_io, int deep);
+#endif
 
 ATLAS_IMAGE *phAtlasImageNew(int ncolor);
 ATLAS_IMAGE *phAtlasImageNewFromObjc(const OBJC *objc);

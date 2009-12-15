@@ -11,6 +11,11 @@
 #include "phFramestat.h"
 #include "phObjc.h"
 
+
+int phObjcDeblend(OBJC *objc, const FIELDPARAMS *fparams);
+
+
+#if 0
 /*
  * The current best estimate of the PSF
  */
@@ -58,6 +63,8 @@ phMeasureObjc(OBJC *objc,		/* the OBJC to measure */
 	      int fit_models);		/* should we fit models to objects? */
 
 void phFieldstatSetFromMO(FIELDSTAT *fieldstat);
+#endif
+
 
 /*
  * These procedures are not really meant to be called by the general
@@ -141,7 +148,6 @@ int phObjcMakeChildren(OBJC *objc,		/* give this OBJC a family */
 void phObjcChildrenDel(OBJC *objc);	/* the object whose children are
 					   to be destroyed */
 
-int phObjcDeblend(OBJC *objc, const FIELDPARAMS *fparams);
 int phObjcDeblendMovingChild(OBJC *objc, const FIELDPARAMS *fparams);
 
 void phDeblendedObjcRecenter(OBJC *objc, const FIELDPARAMS *fparams);
