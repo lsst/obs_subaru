@@ -129,3 +129,53 @@ void p_shHdrFreeForVec(HDR *a_hdr)
        p_shHdrCntrIncrement(a_hdr);
    }
 }
+
+/*============================================================================
+ * ROUTINE: p_shHdrFree
+ *
+ * DESCRIPTION:
+ *    Free the header buffer and remove all traces of it from the header
+ *    vector.
+ *
+ * CALL:
+ *   (void) p_shHdrFree(HDR *a_hdr);
+ *              a_hdr    - pointer to the header structure
+ *
+ * CALLS TO:
+ *   p_shHdrCntrIncrement()
+ *============================================================================
+ */
+void p_shHdrFree(HDR *a_hdr)
+{
+/*###*   struct region_p *rp;
+ *###*
+ *###*   rp = a_reg->prvt;
+ *###*/
+
+   if ((a_hdr->hdrVec != NULL) && (a_hdr->hdrVec[0] != NULL))  {
+/*###*/       /*
+ *###*        * If this is a physical header, and a free procedure for it is defined,
+ *###*        * then call it
+ *###*        */
+/*###*       if ((rp->type == SHREGPHYSICAL) && (rp->phys) &&
+ *###*           (rp->phys->physHdrFree))  
+ *###*/           /*
+ *###*            * The first element of the header structure contains the starting
+ *###*            * address of the physical header
+ *###*            */
+/*###*           (*(rp->phys->physHdrFree))(rp->phys->physIndex, a_hdr->hdrVec[0]);
+ *###*/
+       /*
+        * Now, for each physical and virtual region, free each of the header
+        * lines. The routines responsible for populating these header lines
+        * always malloc memory for them
+        * Note: do not free the vector.
+        */
+#if defined(NOPE)
+       f_hdel(a_hdr->hdrVec);
+#endif // NOPE
+       p_shHdrCntrIncrement(a_hdr);
+   }
+
+   return;
+}

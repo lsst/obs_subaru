@@ -13,6 +13,9 @@ env.SharedLibrary(
 	'object1',
 	'phSpanUtil',
 	'utils',
+	'finder-peaks',
+	'atlasImages',
+	'random-fake',
 	]]
 	+
 	['../src/dervish/'+x+'.c' for x in [
@@ -27,6 +30,7 @@ env.SharedLibrary(
 
 	'region',
 	'hdr',
+	'tree',
 	]]
 	#glob.glob("../src/photo/*.c"),
 	,
