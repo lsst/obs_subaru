@@ -121,6 +121,14 @@ void *shChainElementRemByPos(const CHAIN *ch, int el);
 
 int shRegClear(REGION *reg);
 
+// used in shRegWriteAsFits; meaning unknown
+#define STANDARD 0
+#define DEF_NONE 0
+
+// no idea what the q? args are.
+void shRegWriteAsFits(REGION*, const char* fn,
+					  int q1, int q2, int q3, void* q4, int q5);
+
 TYPE shChainTypeGet(const CHAIN* ch);
 
 typedef struct cursor {

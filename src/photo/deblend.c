@@ -16,12 +16,106 @@
 #include "phUtils.h"
 #include "phMathUtils.h"
 #include "phCellFitobj.h"
-#include "phMergeColors.h"
+//#include "phMergeColors.h"
 
 static REGION *scr0 = NULL;
 static REGION *scr1 = NULL;
 static REGION *scr2 = NULL;
 static MASK *mscr0 = NULL;
+
+static float
+assign_missing_flux(const OBJC **children, /* the children in question */
+		    int nchild,		/* number of children */
+		    int c,		/* in this band */
+		    const float *Is2)	/* children's I*sigma^2 values */
+	;
+
+static float
+find_Isigma2(const OBJC *objc,		/* the object in question */
+	     int c,			/* in this band */
+	     int bkgd)			/* background level */
+	;
+
+static int
+peephole_optimizer(OBJC *objc,		/* parent */
+		   const FIELDPARAMS *fiparams, /* astrometry etc. */
+		   int nchild,		/* number of children */
+		   OBJC *children[],	/* list of children */
+		   ATLAS_IMAGE **smoothed_ai)/* list of atlas images containing
+						smoothed templates. Not used,
+						but may need to be freed */
+	;
+
+
+static int
+reject_template(OBJC *objc,
+		int nchild,
+		int reject,
+		OBJC *children[],
+		ATLAS_IMAGE *smoothed_ai[],
+		MAT *A[],
+		VEC *b[],
+		VEC *norm[],
+		VEC *lambda[],
+		MAT *Q[],
+		VEC *w[])
+	;
+
+static void
+transfer_centers_and_peaks(OBJC *keep, OBJC *reject)
+	;
+
+static void
+sort_Q(const int ncolor,		/* dimen of lambda and Q arrays */
+       const int canonical_color,	/* sort to match this colour */
+       VEC **lambda,			/* eigenvalues */
+       MAT **Q)				/* eigenvectors */
+	;
+
+static void
+setup_normal(const OBJC *parent,	/* parent object */
+	     const OBJC **children,	/* array of children */
+	     int nchild,		/* dimension of children[] */
+	     int c,			/* the colour in question */
+	     int bkgd,			/* == (bkgd from fparams) + SOFT_BIAS*/
+	     MAT *A,			/* The LSQ problem is */
+	     VEC *b,			/*    A w = b */
+	     VEC *norm)			/* normalisation of templates */
+	;
+
+static int
+maybe_deblend_at_edge(OBJC *objc,		/* object to deblend */
+		      const FIELDPARAMS *fiparams, /* gain etc. */
+		      int filtsize)		   /* smoothing filter size */
+	;
+int
+phObjcDeblendMovingChild(OBJC *objc,	/* OBJC to deblend */
+			 const FIELDPARAMS *fiparams) /* info about frame */
+	;
+void
+phObjcChildDel(OBJC *child)		/* the child to destroy */
+	;
+
+static int
+deblend_template_find(OBJC *objc,	/* the OBJC in question */
+		      OBJMASK **psfmasks, /* masks for pixels in PSFs */
+		      const FIELDPARAMS *fiparams, /* gain etc. */
+		      ATLAS_IMAGE **smoothed_ai, /* ATLAS_IMAGE containing
+						   smoothed templates */
+		      int filtsize,	/* size of smoothing filter */
+		      int ngrow)	/* how many pixels to grow objects */
+	;
+
+static void
+set_parent_position_from_child(OBJC *objc,
+			       const OBJC *child)
+	;
+static void
+average_templates(OBJC *child)
+	;
+
+
+#if defined(NOPE)
 
 static void average_peak_centers(const PEAK *peak1, const PEAK *peak2,
 				 float *rowc, float *colc);
@@ -1871,6 +1965,8 @@ assign_missing_flux(const OBJC **children, /* the children in question */
    return(unassigned);
 }
 
+#endif // NOPE
+
 /*****************************************************************************/
 /*
  * Look at an object with the EDGE flag set and determine if it'll be
@@ -2065,6 +2161,8 @@ maybe_deblend_at_edge(OBJC *objc,		/* object to deblend */
    
    return(0);
 }
+
+#if defined(NOPE)
 
 /*****************************************************************************/
 /*
@@ -2592,6 +2690,8 @@ average_templates(OBJC *child)
     phObjmaskDel(mask);
 }
 
+#endif // NOPE
+
 /*****************************************************************************/
 /*
  * <AUTO EXTRACT>
@@ -2686,6 +2786,10 @@ phObjcDeblend(OBJC *objc,		/* object to deblend */
 	 return(-1);
       }
    }
+
+#if defined(NOPE)
+
+
 /*
  * Put pointers to the descendents into an array, children[], for the
  * convenience of this routine
@@ -3907,9 +4011,15 @@ phObjcDeblend(OBJC *objc,		/* object to deblend */
       phAtlasImageDel(smoothed_ai[i], 0);
    }
    shFree(smoothed_ai);
+
+
+#endif // NOPE
+
    
    return(0);
 }
+
+#if defined(NOPE)
 
 /*****************************************************************************/
 /*
@@ -4003,6 +4113,9 @@ phObjcDeblendMovingChild(OBJC *objc,	/* OBJC to deblend */
 	 obj1->rowcErr = sqrt(pow(rowErr[i],2) + pow(drowErr,2));
       }
    }
-   
+
    return(0);
 }
+
+#endif // NOPE
+

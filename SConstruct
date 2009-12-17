@@ -29,6 +29,9 @@ env = scons.makeEnv(
 env.libs["deblender"] += env.getlibs("pex_exceptions afw boost utils daf_base daf_data daf_persistence pex_logging pex_policy security")
 
 env.Append(CPPPATH = Dir("include/lsst/meas/deblender/photo"))
+env.Append(CPPPATH = Dir("include/lsst/meas/deblender/dervish"))
+env.Append(CCFLAGS = ['-DNOTCL'])
+
 
 ##################################################
 # Build/install things
