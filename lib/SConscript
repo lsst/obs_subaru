@@ -9,10 +9,10 @@ env.SharedLibrary(
 	glob.glob("../src/*.cc") +
 	['../src/photo/'+x+'.c' for x in [
 	#'deblend',
-	#'objc'
-	#'object1',
-	#'phSpanUtil',
-	#'dervish',
+	'objc'
+	'object1',
+	'phSpanUtil',
+	'utils',
 	]]
 	+
 	['../src/dervish/'+x+'.c' for x in [
@@ -24,6 +24,8 @@ env.SharedLibrary(
 	'diskio',
 	'vecOps',
 	'shHash',
+
+	'region',
 	]]
 	#glob.glob("../src/photo/*.c"),
 	,

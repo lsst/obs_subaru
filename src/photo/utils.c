@@ -54,9 +54,57 @@ phStrategicMemoryReserveIsEmpty(void)
     return (allocated_reserve && strategic_memory_reserve == NULL) ? 1 : 0;
 }
 
+/*****************************************************************************/
+/*
+ * <AUTO EXTRACT>
+ *
+ * Use the system qsort to sort a chain
+ *
+ *
+ * N.b. this routine belongs in shChain.c; it assumes knowledge of
+ * CHAIN internals
+ *
+ * Note also that any cursors that the chain might have may be invalid
+ * when this routine returns. This routine doesn't bother to go through
+ * all of the possible cursors checking if any exist.
+ */
+void
+shChainQsort(CHAIN *chain,
+	     int (*compar)(const void *, const void *))
+{
+   void **arr;				/* unpack chain into this array */
+   CHAIN_ELEM *elem;			/* a link of a chain */
+   int i;
+   int n;				/* length of chain */
+
+   shAssert(chain != NULL && chain->type != shTypeGetFromName("GENERIC"));
+
+   if((n = chain->nElements) <= 1) {		/* nothing to do */
+      return;
+   }
+/*
+ * extract chain into arr[]
+ */
+   arr = alloca(n*sizeof(void *));
+
+   for(elem = chain->pFirst, i = 0; elem != NULL; elem = elem->pNext, i++) {
+      arr[i] = elem->pElement;
+   }
+/*
+ * call the system qsort to do the work
+ */
+   qsort(arr, n, sizeof(void *), compar);
+/*
+ * and rebuild the chain
+ */
+   for(elem = chain->pFirst, i = 0; elem != NULL; elem = elem->pNext, i++) {
+      elem->pElement = arr[i];
+   }
+}
 
 
-#if 0
+
+#if defined(NOPE)
    /* 
     * these are private, faster functions called by the general-purpose
     * (and global) phRegStatsSigmaClip function.
@@ -3037,54 +3085,6 @@ phMaskSetFromCircle(MASK *mask,		/* the mask to set */
 
 /*****************************************************************************/
 /*
- * <AUTO EXTRACT>
- *
- * Use the system qsort to sort a chain
- *
- *
- * N.b. this routine belongs in shChain.c; it assumes knowledge of
- * CHAIN internals
- *
- * Note also that any cursors that the chain might have may be invalid
- * when this routine returns. This routine doesn't bother to go through
- * all of the possible cursors checking if any exist.
- */
-void
-shChainQsort(CHAIN *chain,
-	     int (*compar)(const void *, const void *))
-{
-   void **arr;				/* unpack chain into this array */
-   CHAIN_ELEM *elem;			/* a link of a chain */
-   int i;
-   int n;				/* length of chain */
-
-   shAssert(chain != NULL && chain->type != shTypeGetFromName("GENERIC"));
-
-   if((n = chain->nElements) <= 1) {		/* nothing to do */
-      return;
-   }
-/*
- * extract chain into arr[]
- */
-   arr = alloca(n*sizeof(void *));
-
-   for(elem = chain->pFirst, i = 0; elem != NULL; elem = elem->pNext, i++) {
-      arr[i] = elem->pElement;
-   }
-/*
- * call the system qsort to do the work
- */
-   qsort(arr, n, sizeof(void *), compar);
-/*
- * and rebuild the chain
- */
-   for(elem = chain->pFirst, i = 0; elem != NULL; elem = elem->pNext, i++) {
-      elem->pElement = arr[i];
-   }
-}
-
-/*****************************************************************************/
-/*
  * a qsort comparison function
  */
 static int
@@ -3826,4 +3826,4 @@ phStrategicMemoryReserveSet(const size_t size)
     return (strategic_memory_reserve == NULL) ? 0 : 1;
 }
 
-#endif
+#endif // NOPE
