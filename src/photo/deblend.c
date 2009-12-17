@@ -11,416 +11,253 @@
 #include "dervish.h"
 #include "phMeasureObj.h"
 #include "phObjects.h"
-
 #include "phObjectCenter.h"
 #include "phPeaks.h"
 #include "phUtils.h"
 #include "phMathUtils.h"
 #include "phCellFitobj.h"
-//#include "phMergeColors.h"
-#include "phMeasureObj.h"
-#include "phOffset.h"
+#include "phMergeColors.h"
 
 static REGION *scr0 = NULL;
 static REGION *scr1 = NULL;
-//static REGION *scr2 = NULL;
+static REGION *scr2 = NULL;
 static MASK *mscr0 = NULL;
 
-void phObjcChildDel(OBJC *child);
+static void average_peak_centers(const PEAK *peak1, const PEAK *peak2,
+				 float *rowc, float *colc);
+static void merge_peaks(PEAK *peak_i, PEAK *peak_j);
 
 /*****************************************************************************/
 /*
- * go through a set of children's atlas images, and for pixels where the
- * sum of the children's fluxes doesn't equal the parent, assign the balance
- * based on Is2/R^2
+ * <AUTO EXTRACT>
  *
- * Return the total number of DN that this routine was forced to share out
- * among the children
+ * Setup scratch space for the deblender
  */
-static float
-assign_missing_flux(const OBJC **children, /* the children in question */
-		    int nchild,		/* number of children */
-		    int c,		/* in this band */
-		    const float *Is2)	/* children's I*sigma^2 values */
+void
+phDeblendSet(REGION *i_scr0,
+	     REGION *i_scr1,
+	     REGION *i_scr2,
+	     REGION *i_scr3)
 {
-   int best_k;				/* best choice of child to get flux */
-   const OBJC *child;			/* == children[k] */
-   int drow, dcol;			/* distance to an object's centre */
-   int i, j, k;				/* span and pixel counter resp. */
-   float max;				/* maximum weight of any object */
-   const OBJMASK *mmask = children[0]->parent->aimage->master_mask;
-   const int nspan = mmask->nspan;
-   int r2;				/* == (distance from object centre)^2*/
-   float unassigned = 0;		/* flux unassigned to any object */
-   int val;				/* value of a pixel to be assigned */
-   float weight;			/* an object's weight */
-#define USE_WEIGHTS 0
-#if USE_WEIGHTS
-   float *weights = alloca(nchild*sizeof(float)); /* weights for all children */
-#endif
-   int x;				/* column counter */
-   int y, x1, x2;			/* SPAN.{y,x[12]} */
-/*
- * assign fluxes
- */
-   for(i = j = 0; i < nspan; i++) {
-      y = mmask->s[i].y;
-      x1 = mmask->s[i].x1; x2 = mmask->s[i].x2;
-      for(x = x1; x <= x2; x++, j++) {
-	 for(k = 0; k < nchild; k++) {
-	    if(phAtlasImagePixelGet(children[k]->aimage, c, y, x) != SOFT_BIAS) {
-	       break;			/* we assigned flux to someone */
-	    }
-	 }
-	 if(k == nchild) {		/* unassigned pixel */
-#if USE_WEIGHTS
-	    double sum = 0;
-	    val = phAtlasImagePixelGet(children[0]->parent->aimage, c, y, x) - SOFT_BIAS;
-	    max = -1e9; best_k = 0;
-	    for(k = 0; k < nchild; k++) {
-	       child = children[k];
-	       drow = y - child->rowc + 0.5;
-	       dcol = x - child->colc + 0.5;
-	       r2 = drow*drow + dcol*dcol;
-	       if(r2 == 0) {
-		  best_k = k;
-		  break;
-	       }
-
-	       if(weight > max) {
-		  max = weight; best_k = k;
-	       }
-
-	       weight = weights[k] = Is2[k]/r2;
-	       sum += weight;
-	    }
-	    if(k < nchild) {
-		phAtlasImagePixelSet(children[k]->aimage, c, y, x, val + SOFT_BIAS);
-	    } else {
-		for(k = 0; k < nchild; k++) {
-		    int dval = val*weights[k]/sum + 0.5;
-		    if(dval > 0) {
-			phAtlasImagePixelSet(children[k]->aimage, c, y, x, dval + SOFT_BIAS);
-			val -= dval;
-		    }
-		}
-		phAtlasImagePixelSet(children[best_k]->aimage, c, y, x,
-				     phAtlasImagePixelGet(children[best_k]->aimage, c, y, x) + val); /* left over flux*/
-	    }
-#else
-	    val = phAtlasImagePixelGet(children[0]->parent->aimage, c, y, x) - SOFT_BIAS;
-	    max = -1e9; best_k = 0;
-	    for(k = 0; k < nchild; k++) {
-	       child = children[k];
-	       drow = y - child->rowc + 0.5;
-	       dcol = x - child->colc + 0.5;
-	       r2 = drow*drow + dcol*dcol;
-	       if(r2 == 0) {
-		  best_k = k; break;
-	       }
-
-	       weight = Is2[k]/r2;
-
-	       if(weight > max) {
-		  max = weight; best_k = k;
-	       }
-	    }
-	    phAtlasImagePixelSet(children[best_k]->aimage, c, y, x, val + SOFT_BIAS);
-#endif
-	    unassigned += val;
-	 }
-      }
-   }
-
-   return(unassigned);
-}
-
-
-
-/*****************************************************************************/
-/*
- * look at the potential children and see if there are any `local'
- * modifications to the list that would improve the deblend.
- *
- * Initially, the only such case is re-assembling unrecognised moving objects
- */
-
-static int
-peephole_optimizer(OBJC *objc,		/* parent */
-		   const FIELDPARAMS *fiparams, /* astrometry etc. */
-		   int nchild,		/* number of children */
-		   OBJC *children[],	/* list of children */
-		   ATLAS_IMAGE **smoothed_ai)/* list of atlas images containing
-						smoothed templates. Not used,
-						but may need to be freed */
-		   
-{
-   int c;				/* counter in colour */
-   float col[NCOLOR], colErr[NCOLOR];	/* estimated col centre in each band */
-   OBJC *child;				/* == children[] */
-   int *detected;			/* Which bands are present
-						   in each of the children[] */
-   float drow[NCOLOR], dcol[NCOLOR];	/* _Add_ to convert to canon. band */
-   float drowErr[NCOLOR], dcolErr[NCOLOR]; /* errors in drow/dcol */
-   int i, j;
-   OBJC *merged = NULL;			/* candidate merged object */
-   const float min_peak_spacing = fiparams->deblend_min_peak_spacing;
-   int did_merge = 0;			/* did I merge any bands together? */
-   float row[NCOLOR], rowErr[NCOLOR];	/* estimated row centre in each band */
-/*
- * Find astrometric offsets
- */
-   for(c = 0; c < objc->ncolor; c++) {
-      phOffsetDo(fiparams, objc->rowc, objc->colc, 
-		 c, fiparams->ref_band_index,
-		 0, NULL, NULL, &drow[c], &drowErr[c], &dcol[c], &dcolErr[c]);
-   }
-/*
- * Go through list of children setting bits for which bands are present;
- * not totally by coincidence these are the same as PEAK_BAND0 etc. although
- * we don't use this fact.
- */
-   detected = shMalloc(nchild*sizeof(int));
-
-   for(i = 0; i < nchild; i++) {
-      child = children[i];
-      detected[i] = 0;
-      for(c = 0; c < objc->ncolor; c++) {
-	 if(child->color[c]->flags & OBJECT1_DETECTED) {
-	    detected[i] |= (1 << c);
-	 }
-      }
-   }
-/*
- * Go through all pairs of children that don't have any peaks in
- * common, and see if it makes sense to merge them
- */
-   for(i = 0; i < nchild; i++) {
-      for(j = i + 1; j < nchild; j++) {
-	 if((detected[i] & detected[j]) != 0) { /* they have bands in common */
-	    continue;
-	 }
-	 /*
-	  * Copy OBJECT1s from i and j into merged
-	  */
-	 if(merged == NULL) {
-	    merged = phObjcNew(objc->ncolor);
-	 }
-	 for(c = 0; c < objc->ncolor; c++) {
-	    if((detected[i] & (1 << c))) {
-	       merged->color[c] = children[i]->color[c];
-	    } else if((detected[j] & (1 << c))) {
-	       merged->color[c] = children[j]->color[c];
-	    }
-	 }
-	 /*
-	  * estimate the velocity
-	  */
-	 if(phVelocityFind(merged, fiparams,
-			   row, rowErr, col, colErr, NULL) != 0) {
-	    for(c = 0; c < objc->ncolor; c++) {	/* Not a good candidate */
-	       merged->color[c] = NULL;
-	    }
-	    
-	    continue;
-	 }
-	 /*
-	  * Hmm, a good candidate for a merger.  Replace i with merged
-	  * (well, actually overlay i with merged) and prepare to discard j
-	  */
-	 {
-	    long mask = ~(OBJECT2_NODEBLEND_MOVING |
-			  OBJECT2_BAD_MOVING_FIT |
-			  OBJECT2_BAD_MOVING_FIT_CHILD |
-			  OBJECT2_TOO_FEW_DETECTIONS);
-
-	    objc->flags2 &= mask;
-	    children[i]->flags2 &= mask;
-	 }
-
-	 objc->flags2 |=
-	    OBJECT2_DEBLENDED_AS_MOVING | OBJECT2_DEBLEND_PEEPHOLE;
-	 children[i]->flags2 |=
-	    OBJECT2_DEBLENDED_AS_MOVING | OBJECT2_DEBLEND_PEEPHOLE;
-	 did_merge = 1;
-
-	 detected[i] |= detected[j];
-
-	 for(c = 0; c < objc->ncolor; c++) {
-	    if(merged->color[c] == NULL) {
-	       OBJECT1 *obj1 = children[i]->color[c];
-	       shAssert(obj1 != NULL);
-	       if(obj1->flags & OBJECT1_DETECTED) {
-		  shAssert(obj1->flags & OBJECT1_CANONICAL_CENTER);
-	       }
-	       
-	       obj1->colc = col[c] - dcol[c];
-	       obj1->colcErr = sqrt(pow(colErr[c],2) + pow(dcolErr[c],2));
-	       obj1->rowc = row[c] - drow[c];
-	       obj1->rowcErr = sqrt(pow(rowErr[c],2) + pow(drowErr[c],2));
-	       
-	       obj1->flags |= OBJECT1_CANONICAL_CENTER;
-	    } else {
-	       if(children[i]->color[c] == merged->color[c]) {
-		  ;			/* nothing to do */
-	       } else if(children[j]->color[c] == merged->color[c]) {
-		  phObject1Del(children[i]->color[c]);
-		  children[i]->color[c] = merged->color[c];
-		  children[j]->color[c] = NULL;
-		  
-		  shAssert(children[i]->aimage->mask[c] == NULL);
-		  children[i]->aimage->mask[c] = children[j]->aimage->mask[c];
-		  children[j]->aimage->mask[c] = NULL;
-		  
-		  phAtlasImagePixReplace(children[i]->aimage, c, children[j]->aimage, c);
-		  phAtlasImagePixReplace(smoothed_ai[i],      c, smoothed_ai[j],      c);
-	       } else {
-		  shFatal("You cannot get here");
-	       }
-	       
-	       merged->color[c] = NULL;
-	    }
-	 }
-	 /*
-	  * and discard j, filling its slot in children[]
-	  */
-	 phObjcChildDel(children[j]); children[j] = NULL;
-	 phAtlasImageDel(smoothed_ai[j], 0);
-
-	 for(; j < nchild - 1; j++) {
-	    detected[j] = detected[j + 1];
-	    children[j] = children[j + 1];
-	    smoothed_ai[j] = smoothed_ai[j + 1];
-	 }
-
-	 nchild--;
-
-	 i--;				/* try a further merge */
-	 break;				/*       by continuing with i loop */
-      }
-   }
-/*
- * If we merged any children to create a new moving object, see if
- * there are other detections of the moving object that weren't merged
- * into the new object.  In other words, look for detections in other
- * children at the correct calculated position.
- *
- * We need to do this to avoid shredding objects that now appear in
- * two objects 
- */
-   if(did_merge) {
-      for(i = 0; i < nchild; i++) {
-	 if(!(children[i]->flags2 & OBJECT2_DEBLEND_PEEPHOLE)) {
-	    continue;
-	 }
-
-	 for(j = 0; j < nchild; j++) {
-	    int nmatch_j = 0;		/* number of matched objects in j */
-
-	    if(i == j) {
-	       continue;
-	    }
-	    if((detected[i] & detected[j]) != 0) { /* bands in common */
-	       continue;
-	    }
-
-	    for(c = 0; c < objc->ncolor; c++) {
-	       OBJECT1 *obj1_i = children[i]->color[c];
-	       OBJECT1 *obj1_j = children[j]->color[c];
-	       float rowc_i, rowcErr_i, colc_i, colcErr_i;
-	       float rowc_j, rowcErr_j, colc_j, colcErr_j;
-
-	       if((obj1_i->flags & OBJECT1_DETECTED) ||
-		  !(obj1_j->flags & OBJECT1_DETECTED)) {
-		  continue;
-	       }
-
-	       rowc_i = obj1_i->rowc;
-	       colc_i = obj1_i->colc;
-	       rowcErr_i = obj1_i->rowcErr;
-	       colcErr_i = obj1_i->colcErr;
-
-	       rowc_j = obj1_j->rowc;
-	       colc_j = obj1_j->colc;
-	       rowcErr_j = obj1_j->rowcErr;
-	       colcErr_j = obj1_j->colcErr;
-
-	       if(pow(fabs(rowc_i - rowc_j) - rowcErr_i - rowcErr_j, 2) +
-		  pow(fabs(colc_i - colc_j) - colcErr_i - colcErr_j, 2) <
-					   min_peak_spacing*min_peak_spacing) {
-		  obj1_i->flags |= (obj1_j->flags & OBJECT1_DETECTED);
-		  nmatch_j++;
-	       } else {
-		  break;
-	       }
-	    }
-
-	    if(c == objc->ncolor && nmatch_j > 0) { /* all peaks match */
-	       /*
-		* and discard j, filling its slot in children[]
-		*/
-	       phObjcChildDel(children[j]); children[j] = NULL;
-	       phAtlasImageDel(smoothed_ai[j], 0);
-	       
-	       for(; j < nchild - 1; j++) {
-		  detected[j] = detected[j + 1];
-		  children[j] = children[j + 1];
-		  smoothed_ai[j] = smoothed_ai[j + 1];
-	       }
-	       
-	       nchild--;
-	       
-	       i--;			/* try a further merge */
-	       break;			/*       by continuing with i loop */
-	    }
-	 }
-      }
-   }
-/*
- * Clean up
- */
-   if(merged != NULL) {
-      for(c = 0; c < objc->ncolor; c++) {
-	 merged->color[c] = NULL;	/* merged never owned them */
-      }
-      phObjcDel(merged, 1);
-   }
-   shFree(detected);
-
-   return(nchild);
-}
-
-
-/*****************************************************************************/
-/*
- * If we are reduced to only a single child, make sure that the parent
- * has the child's positions in all bands; as the parent was a deblend
- * candidate it may have a mixture of the candidate peaks
- */
-static void
-set_parent_position_from_child(OBJC *objc,
-			       const OBJC *child)
-{
-   int c;
-
-   objc->flags &= ~OBJECT1_CANONICAL_CENTER;
-   objc->flags |= (child->flags & OBJECT1_CANONICAL_CENTER);
-   objc->rowc = child->rowc;
-   objc->rowcErr = child->rowcErr;
-   objc->colc = child->colc;
-   objc->colcErr = child->colcErr;
+   int i;
    
-   for(c = 0; c < objc->ncolor; c++) {
-      objc->color[c]->flags &= ~OBJECT1_CANONICAL_CENTER;
-      objc->color[c]->flags |=
-	(child->color[c]->flags & OBJECT1_CANONICAL_CENTER);
-      objc->color[c]->rowc = child->color[c]->rowc;
-      objc->color[c]->rowcErr = child->color[c]->rowcErr;
-      objc->color[c]->colc = child->color[c]->colc;
-      objc->color[c]->colcErr = child->color[c]->colcErr;
+   scr0 = i_scr0; scr1 = i_scr1; scr2 = i_scr2;
+
+   if(scr0 == NULL) {
+      shAssert(scr1 == NULL && scr2 == NULL && i_scr3 == NULL);
+      return;
    }
+
+   shAssert(scr0->type == TYPE_PIX);
+   shAssert(scr1 != NULL && scr1->type == TYPE_PIX);
+   shAssert(scr1->nrow == scr0->nrow && scr1->ncol == scr0->ncol);
+   shAssert(scr2 != NULL && scr2->type == TYPE_PIX);
+   shAssert(scr2->nrow == scr0->nrow && scr2->ncol == scr0->ncol);
+   shAssert(i_scr3 != NULL && i_scr3->type == TYPE_PIX);
+   shAssert(i_scr3->nrow == scr0->nrow && i_scr3->ncol == scr0->ncol);
+/*
+ * we want to make a MASK out of the i_scr3
+ */
+   shAssert(sizeof(mscr0->rows[0][0]) <= sizeof(PIX));
+
+   mscr0 = shMaskNew("deblender", i_scr3->nrow, 0);
+   for(i = 0; i < mscr0->nrow; i++) {
+      mscr0->rows[i] = (unsigned char *)i_scr3->ROWS[i];
+   }
+   mscr0->ncol = i_scr3->ncol;
 }
 
+/*****************************************************************************/
+/*
+ * Note that we don't actually own this scratch space, we merely borrowed
+ * it in phDeblendSet
+ */
+void
+phDeblendUnset(void)
+{
+   scr0 = scr1 = scr2 = NULL;
+   mscr0->rows[0] = NULL;		/* memory belongs to i_scr3 */
+   shMaskDel(mscr0); mscr0 = NULL;
+}
+
+/*****************************************************************************/
+/*
+ * Given an OBJC, create a child from OBJC->peaks->peaks[n], link it into
+ * OBJC->children or OBJC->sibbs, and copy appropriate fields
+ */
+OBJC *
+phObjcChildNew(OBJC *objc,		/* the parent */
+	       const PEAK *peak,	/* which peak? */
+	       const FIELDPARAMS *fiparams, /* gain etc. */
+	       int is_child)		/* make new OBJC a child, not a sibb */
+{
+   OBJC *child;				/* the desired child */
+   int c;				/* a color index */
+   OBJECT1 *cobj1;			/* an OBJECT1 in child */
+   PEAK *cpeak;				/* == cobj1->peaks->peaks[0] */
+   float drow, dcol;			/* offsets from reference colour */
+   float drowErr, dcolErr;		/* errors in drow, dcol */
+   int i;
+   const OBJECT1 *obj1;			/* an OBJECT1 in objc */
+   SPANMASK *sm;			/* == obj1->region->mask */
+   
+   shAssert(objc != NULL && objc->peaks != NULL);
+   shAssert(peak != NULL);
+
+   objc->nchild++;
+   child = phObjcNew(objc->ncolor);
+   child->parent = objc; shMemRefCntrIncr(child->parent);
+   child->flags = objc->flags & (OBJECT1_EDGE |
+				 OBJECT1_INTERP |
+				 OBJECT1_NOTCHECKED |
+				 OBJECT1_SUBTRACTED);
+   child->flags |= OBJECT1_CHILD;
+   if(peak->flags & PEAK_MOVED) {
+      child->flags |= OBJECT1_MOVED;
+   }
+   child->flags3 = objc->flags3 & OBJECT3_GROWN_MERGED;
+/*
+ * link new child as a sibling of objc->children or objc->sibbs according
+ * to the value of is_child
+ */
+   if(is_child) {
+      if(objc->children == NULL) {
+	 objc->children = child;
+      } else {
+	 OBJC *tmp = objc->children;
+
+	 while(tmp->sibbs != NULL) tmp = tmp->sibbs;
+	 tmp->sibbs = child;
+      }
+   } else {
+      if(objc->sibbs == NULL) {
+	 objc->sibbs = child;
+      } else {
+	 OBJC *tmp = objc->sibbs;
+
+	 while(tmp->sibbs != NULL) tmp = tmp->sibbs;
+	 tmp->sibbs = child;
+      }
+   }
+/*
+ * and set fields from the parent
+ */
+   for(i = 0;i < objc->ncolor;i++) {
+      obj1 = objc->color[i];
+      cobj1 = child->color[i] = phObject1New();
+      shAssert(obj1 != NULL && obj1->mask != NULL);
+      shAssert(obj1->region != NULL && obj1->region->mask != NULL);
+      sm = (SPANMASK *)obj1->region->mask;
+      shAssert(sm != NULL && sm->cookie == SPAN_COOKIE);
+
+      cobj1->flags = obj1->flags & (OBJECT1_CANONICAL_CENTER |
+				    OBJECT1_EDGE |
+				    OBJECT1_NOTCHECKED |
+				    OBJECT1_SUBTRACTED);
+      cobj1->flags |= OBJECT1_CHILD;
+      cobj1->flags2 = obj1->flags2 & OBJECT2_LOCAL_EDGE;
+      cobj1->flags3 = obj1->flags3 & OBJECT3_GROWN_MERGED;
+
+      cobj1->region = shSubRegNew("",obj1->region,
+				  obj1->region->nrow, obj1->region->ncol,
+				  0, 0, NO_FLAGS);
+      shAssert(cobj1->region != NULL);
+      cobj1->region->row0 = obj1->region->row0;
+      cobj1->region->col0 = obj1->region->col0;
+      cobj1->region->mask = (MASK *)phSubSpanmaskNew(sm);
+
+      cobj1->mask = NULL;
+
+      cobj1->sky = obj1->sky; cobj1->skyErr = obj1->skyErr;
+   }
+/*
+ * and copy the master_mask to the children
+ */
+   shAssert(objc->aimage->master_mask != NULL);
+   child->aimage->master_mask =
+     phObjmaskCopy(objc->aimage->master_mask, 0, 0);
+/*
+ * now set the centres from the peaks list. We label it BINNED1 for now,
+ * although we'll reconsider this when deblending
+ */
+   do {
+      c = phPeakBand(peak);
+      shAssert(c < objc->ncolor);
+      cobj1 = child->color[c];
+
+      shAssert(cobj1->peaks == NULL);	/* only one peak in each band */
+      cobj1->peaks = phPeaksNew(1);
+      cobj1->peaks->npeak++;
+      cpeak = cobj1->peaks->peaks[0];
+      phPeakCopy(cpeak, peak);
+
+      if(peak->flags & PEAK_CANONICAL) {
+	 phOffsetDo(fiparams, peak->rowc, peak->colc, 
+		    fiparams->ref_band_index, c,
+		    1, NULL, NULL, &drow, &drowErr, &dcol, &dcolErr);
+	 cpeak->rowc += drow;
+	 cpeak->colc += dcol;
+	 cpeak->flags &= ~PEAK_CANONICAL; /* it no longer is*/
+      }
+      if (peak->flags & PEAK_REAL) {	/* our position was derived in this band */
+	  drowErr = dcolErr = 0;	/*   => no added error; PR 6747 */
+      }
+
+      cpeak->next = NULL;
+      cpeak->flags &= ~PEAK_DANGLING;	/* it no longer is */
+
+      if(cobj1->rowcErr < -900) {	/* not yet set */
+	 cobj1->rowc = cpeak->rowc;
+	 cobj1->rowcErr = sqrt(pow(cpeak->rowcErr,2) + pow(drowErr,2));
+	 cobj1->colc = cpeak->colc;
+	 cobj1->colcErr = sqrt(pow(cpeak->colcErr,2) + pow(dcolErr,2));
+
+	 cobj1->flags |= OBJECT1_BINNED1;
+      }
+
+      if(cpeak->flags & PEAK_PEAKCENTER) { /* used pixel center as peak */
+	 child->flags |= OBJECT1_PEAKCENTER;
+	 cobj1->flags |= OBJECT1_PEAKCENTER;
+      }
+      if(cpeak->flags & PEAK_SATUR) {	/* a saturated peak */
+	 cobj1->flags |= OBJECT1_SATUR;
+      }
+
+      cobj1->profMean[0] = cpeak->peak;
+      /*
+       * deal with known objects
+       */
+      if (cpeak->catID != 0 && child->catID != peak->catID) {
+	  if (child->catID != 0) {
+	      fprintf(stderr,"Replacing catID %d with %d\n", child->catID, peak->catID);
+	  }
+	  child->catID = peak->catID;
+      }
+
+      peak = (PEAK *)peak->next;
+   } while(peak != NULL);
+/*
+ * if the OBJECT1 in some band still has no centre, generate one from the
+ * canonical centre
+ */
+   phObjcCenterCalc(child, fiparams, 0); /* find canonical centre */
+   for(c = 0;c < child->ncolor;c++) {
+      cobj1 = child->color[c];
+      
+      if(!(cobj1->flags & OBJECT1_DETECTED)) { /* no peak, so no centre */
+	 phOffsetDo(fiparams, child->rowc, child->colc, 
+		    fiparams->ref_band_index, c,
+		    0, NULL, NULL, &drow, &drowErr, &dcol, &dcolErr);
+	 cobj1->rowc = child->rowc + drow;
+	 cobj1->rowcErr = sqrt(pow(child->rowcErr,2) + pow(drowErr,2));
+	 cobj1->colc = child->colc + dcol;
+	 cobj1->colcErr = sqrt(pow(child->colcErr,2) + pow(dcolErr,2));
+	 cobj1->flags |= OBJECT1_CANONICAL_CENTER;
+      }
+   }
+   
+   return(child);
+}
 
 /*****************************************************************************/
 /*
@@ -467,168 +304,497 @@ phObjcChildDel(OBJC *child)		/* the child to destroy */
 
 /*****************************************************************************/
 /*
- * Given an OBJC that is thought to be moving, generate proper centres
- * and atlas images
+ * <AUTO EXTRACT>
  *
- * Return 0 if OK, -1 in case of trouble; in this case, the object is
- * deleted
+ * Make an OBJC's children, returning the number created (may be 0)
+ *
+ * Once an OBJC has been through phObjcMakeChildren() it has a non-NULL
+ * children field which points at one of its children; in addition its
+ * OBJECT1_BLENDED bit is set, and nchild is one or more.
+ *
+ * Each child has a non-NULL parent field which points to its parent, and may
+ * have a sibbs field too. It has its OBJECT1_CHILD bit set.
  */
 int
-phObjcDeblendMovingChild(OBJC *objc,	/* OBJC to deblend */
-			 const FIELDPARAMS *fiparams) /* info about frame */
-
+phObjcMakeChildren(OBJC *objc,		/* give this OBJC a family */
+		   const FIELDPARAMS *fiparams) /* misc. parameters */
 {
-   float col[NCOLOR], colErr[NCOLOR];	/* estimated col centre in each band */
-   float drow, dcol;			/* offset from canonical band */
-   float drowErr, dcolErr;		/* errors in drow, dcol */
-   int flags2;				/* flags2 bits set in velocity fit */
-   int i;
-   OBJECT1 *obj1;			/* == objc->color[] */
-   int ndetect;				/* how many times was object found? */
-   float row[NCOLOR], rowErr[NCOLOR];	/* estimated row centre in each band */
+   const PEAK *cpeak;			/* == objc->peaks->peaks[] */
+   float errMin = 0;			/* minimum possible positional error */
+   int i, j;
+   OBJC *moving;			/* objc's moving sibbling */
+   PEAK *mpeaks[NCOLOR];		/* list of possibly-moving peaks */
+   int nchild;				/* number of children created */
+   PEAK *peak;				/* a PEAK in the OBJC */
+   float min_peak_spacing;
 
-   shAssert(objc != NULL && (objc->flags2 & OBJECT2_DEBLENDED_AS_MOVING));
-   shAssert(objc->parent != NULL && objc->parent->aimage != NULL);
-   shAssert(fiparams != NULL);
+   shAssert(objc != NULL && objc->peaks != NULL && fiparams != NULL);
+   min_peak_spacing = fiparams->deblend_min_peak_spacing;
+
+   nchild = objc->peaks->npeak;
 /*
- * In how many bands was the object detected? Was this enough?
+ * See if this blend might simply be a moving object.
+ *
+ * Look for objects detected in a different place in each band, i.e. that
+ * show up as a single detection in a given band. We currently
+ * only allow a single unmatched detection in each band, and
+ * require that there are at least ndetect_min detections in toto.
+ *
+ * We do not require the peaks to appear in the order of the filters
+ * on the sky, although we shall use this as a criterion when
+ * deciding whether to deblend as a moving object
+ *
+ * We can do a little better for isolated moving objects; if we have no
+ * more than one detection in each band we can ask if they are consistent
+ * with a moving object; to do this it is sufficient to set the OBJECT1_MOVED
+ * bit and see if the fit is acceptable
  */
-   ndetect = 0;
    for(i = 0; i < objc->ncolor; i++) {
-      if(objc->color[i]->flags & OBJECT1_BINNED1) {
-	 ndetect++;
+      mpeaks[i] = NULL;
+   }
+
+   for(i = 0; i < objc->peaks->npeak; i++) {
+      for(peak = objc->peaks->peaks[i]; peak != NULL;
+						   peak = (PEAK *)peak->next) {
+	 j = phPeakBand(peak);
+
+	 if(mpeaks[j] == NULL) {
+	    mpeaks[j] = peak;
+	 } else {
+	    break;			/* two detections in the same band */
+	 }
       }
-   }
-   if(ndetect <= 2) {
-      objc->parent->flags2 |= (OBJECT2_TOO_FEW_DETECTIONS |
-			       OBJECT2_NODEBLEND_MOVING);
-      objc->parent->flags2 &= ~OBJECT2_DEBLENDED_AS_MOVING;
-      phObjcChildDel(objc);
-      
-      return(-1);
-   }
-/*
- * estimate the velocity
- */
-   flags2 = phVelocityFind(objc, fiparams, row, rowErr, col, colErr, NULL);
-
-   if(flags2 & OBJECT2_TOO_FEW_GOOD_DETECTIONS) { /* too few good detections */
-      objc->parent->flags2 |= (OBJECT2_TOO_FEW_GOOD_DETECTIONS |
-			       OBJECT2_NODEBLEND_MOVING);
-      objc->parent->flags2 &= ~OBJECT2_DEBLENDED_AS_MOVING;
-      phObjcChildDel(objc);
-      
-      return(-1);
-   } else if(flags2 & OBJECT2_BAD_MOVING_FIT) {
-      objc->parent->flags2 |= (OBJECT2_BAD_MOVING_FIT_CHILD |
-			       OBJECT2_NODEBLEND_MOVING);
-      objc->parent->flags2 &= ~OBJECT2_DEBLENDED_AS_MOVING;
-      phObjcChildDel(objc);
-      
-      return(-1);
-   }
-/*
- * If the velocity is consistent with zero, don't deblend as moving
- */
-   if(flags2 & OBJECT2_STATIONARY) {
-      objc->parent->flags2 |= (OBJECT2_STATIONARY |
-			       OBJECT2_NODEBLEND_MOVING);
-      objc->parent->flags2 &= ~OBJECT2_DEBLENDED_AS_MOVING;
-      phObjcChildDel(objc);
-      
-      return(-1);
-   }
-/*
- * The positions in bands that weren't detected should be those from
- * the velocity fit, suitably transformed, rather than a suitably
- * transformed canonical centre
- */
-   for(i = 0; i < objc->ncolor; i++) {
-      obj1 = objc->color[i];
-      shAssert(obj1 != NULL);
-      
-      if(obj1->flags & OBJECT1_CANONICAL_CENTER) {
-	 phOffsetDo(fiparams, objc->rowc, objc->colc, 
-		    fiparams->ref_band_index, i,
-		    0, NULL, NULL, &drow, &drowErr, &dcol, &dcolErr);
-	 obj1->colc = col[i] + dcol;
-	 obj1->colcErr = sqrt(pow(colErr[i],2) + pow(dcolErr,2));
-	 obj1->rowc = row[i] + drow;
-	 obj1->rowcErr = sqrt(pow(rowErr[i],2) + pow(drowErr,2));
+      if(peak != NULL) {		/* we broke out */
+	 break;
       }
    }
    
-   return(0);
+   if(i == objc->peaks->npeak) {	/* we didn't break out */
+      objc->flags |= OBJECT1_MOVED;	/* we'll check that the velocity is
+					   consistent with zero and that the
+					   fit's acceptable in a moment, and
+					   maybe clear this bit again */
+   } else if(nchild > 1) {
+      int ndetect = 0;			/* number of single-band detections */
+      int ndetect_min = 2;		/* must be seen at least this many
+					   times in different bands */
+
+      for(i = 0; i < objc->ncolor; i++) {
+	 mpeaks[i] = NULL;
+      }
+
+      for(i = 0; i < objc->peaks->npeak; i++) {
+	 if(objc->peaks->peaks[i] == NULL) {
+	    continue;
+	 }
+/*
+ * If there's more than one detection with a good position, this cannot
+ * be a moving peak. More precisely, if there's more than one peak that
+ * is clearly at the same position it cannot be moving, but if the second
+ * (third, ...) peak is merely consistent but has large errors, don't
+ * hold that against the primary.  This is a concern because the u and z
+ * detections can confuse the gri ones of real moving objects
+ *
+ * So look at the peaks.
+ */
+	 if(objc->peaks->peaks[i]->next != NULL) { /* more than one detection*/
+	    int n = 0;			/* number of "good" detections */
+	    const PEAK *cpeak = objc->peaks->peaks[i];
+	    static float err_min = 0.2;	/* minimum error to accept nth peak */
+	    static float nsigma = 2;	/* minimum significance to treat
+					   peaks as separate */
+	    float const rowc = cpeak->rowc;
+	    float const colc = cpeak->colc;
+	    float const rowcErr = cpeak->rowcErr;
+	    float const colcErr = cpeak->colcErr;
+
+	    do {
+	       if(n == 0) {
+		  n++;			/* first detection's always good */
+	       } else {
+		  if(cpeak->rowcErr > err_min || cpeak->colcErr > err_min) {
+		     ;			/* too bad to invalidate first peak */
+		  } else if(pow(cpeak->rowc - rowc, 2) <
+			    nsigma*nsigma*(cpeak->rowcErr*cpeak->rowcErr +
+					    rowcErr*rowcErr + errMin*errMin) &&
+			    pow(cpeak->colc - colc, 2) <
+			    nsigma*nsigma*(cpeak->colcErr*cpeak->colcErr +
+					    colcErr*colcErr + errMin*errMin)) {
+		     n++;		/* they really are in the same place */
+		  }
+	       }
+	       if(n > 1) {
+		  break;
+	       }
+	       
+	       cpeak = cpeak->next;
+	    } while(cpeak != NULL);
+
+	    if(n > 1) {
+	       continue;		/* two detections of same peak */
+	    }
+	 }
+/*
+ * It's only detected in one band; remember the peak in the mpeaks array
+ */
+	 for(peak = objc->peaks->peaks[i]; peak != NULL;
+						   peak = (PEAK *)peak->next) {
+	    j = phPeakBand(peak);
+	    
+	    if(mpeaks[j] != NULL) {	/* slot was already taken */
+	       ;			/* somehow decide which one to use;
+					   by doing nothing we keep the
+					   earlier (brighter) one. XXX */
+	    } else {
+	       mpeaks[j] = peak;
+	       ndetect++;
+	    }
+	 }
+      }
+      if(ndetect >= ndetect_min) {
+	 objc->flags |= OBJECT1_MOVED;
+      }
+   }
+/*
+ * If the object may have moved, create an extra sibling for it. The array
+ * mpeaks points to PEAKs linked into their own lists, so we have to
+ * copy them here. The original mpeaks are labelled PEAK_MOVED, so that
+ * we can identify and ignore them if we decide to deblend them as a single
+ * moving object
+ */
+   if(objc->flags & OBJECT1_MOVED) {
+      PEAK *tmp;
+
+      peak = NULL;			/* list of peaks for this relative */
+      for(i = 0; i < objc->ncolor; i++) {
+	 if(mpeaks[i] != NULL) {
+	    tmp = peak;
+	    peak = phPeakNew();
+	    phPeakCopy(peak, mpeaks[i]);
+	    peak->flags &= ~PEAK_DANGLING;
+	    peak->next = NULL;
+	    
+	    mpeaks[i]->flags |= PEAK_MOVED; /* peak is copied into moving */
+
+	    if(tmp != NULL) {
+	       peak->next = tmp;
+	       tmp->flags |= PEAK_DANGLING;
+	    }
+	 }
+      }
+      moving = phObjcChildNew(objc, peak, fiparams, 0);
+      moving->flags |= OBJECT1_MOVED;
+      moving->flags2 |= OBJECT2_DEBLENDED_AS_MOVING;
+      objc->flags2 |= OBJECT2_DEBLENDED_AS_MOVING;
+      
+      phPeakDel(peak);
+   }
+/*
+ * Done with moving objects. See if any of the surviving peaks are
+ * too close
+ */
+   for(i = 0; i < objc->peaks->npeak; i++) {
+      PEAK *const peak_i = objc->peaks->peaks[i];
+      PEAK *peak_j;
+      float rowc_i, colc_i;		/* == peak_i->{col,row}c */
+      float rowcErr_i, colcErr_i;	/* == peak_i->{col,row}cErr */
+      float rowc_j, colc_j;		/* == peak_j->{col,row}c */
+      float rowcErr_j, colcErr_j;	/* == peak_j->{col,row}cErr */
+
+      if(peak_i == NULL) {
+	 continue;
+      }
+      shAssert(peak_i->flags & PEAK_CANONICAL);
+      
+      rowc_i = peak_i->rowc;
+      colc_i = peak_i->colc;
+      rowcErr_i = peak_i->rowcErr;
+      colcErr_i = peak_i->colcErr;
+      for(j = i + 1; j < objc->peaks->npeak; j++) {
+	 if(objc->peaks->peaks[j] == NULL) {
+	    continue;
+	 }
+
+	 peak_j = objc->peaks->peaks[j];
+	 rowc_j = peak_j->rowc;
+	 colc_j = peak_j->colc;
+	 rowcErr_j = peak_j->rowcErr;
+	 colcErr_j = peak_j->colcErr;
+	 if(pow(fabs(rowc_i - rowc_j) - rowcErr_i - rowcErr_j, 2) +
+	    pow(fabs(colc_i - colc_j) - colcErr_i - colcErr_j, 2) <
+					   min_peak_spacing*min_peak_spacing) {
+	    objc->flags2 |= OBJECT2_PEAKS_TOO_CLOSE;
+/*
+ * If the two peaks are in the same band, delete peak_j otherwise add
+ * it to peak_i's ->next list.  If there's already a peak on the ->next
+ * list in the same band, average their positions
+ */
+	    merge_peaks(peak_i, peak_j);
+
+	    objc->peaks->peaks[j] = NULL;
+	    nchild--;
+
+	    i--;			/* reconsider the i'th peak */
+	    break;
+	 }
+      }
+   }
+/*
+ * We demand that the children are detected in at least deblend_min_detect
+ * bands; reject peaks that fail this test
+ */
+   for(i = 0; i < objc->peaks->npeak; i++) {
+      int n;				/* number of detections */
+
+      if(objc->peaks->peaks[i] == NULL) {
+	 continue;
+      }
+
+      for(n = 0, peak = objc->peaks->peaks[i]; peak != NULL;
+						   peak = (PEAK *)peak->next) {
+	 n++;
+      }
+      if(n < fiparams->deblend_min_detect) {
+	 objc->flags2 |= OBJECT2_TOO_FEW_DETECTIONS;
+	 
+	 phPeakDel(objc->peaks->peaks[i]);
+	 objc->peaks->peaks[i] = NULL;
+	 nchild--;
+      }
+   }
+/*
+ * condense the peaks list
+ */
+   if(nchild != objc->peaks->npeak) {
+      for(i = j = 0; i < objc->peaks->npeak; i++) {
+	 if(objc->peaks->peaks[i] != NULL) {
+	    objc->peaks->peaks[j++] = objc->peaks->peaks[i];
+	 }
+      }
+      shAssert(j == nchild);
+      for(i = nchild; i < objc->peaks->npeak; i++) {
+	 objc->peaks->peaks[i] = NULL;	/* it's been moved down */
+      }
+      phPeaksRealloc(objc->peaks, nchild);
+   }
+/*
+ * and create the desired children
+ */
+   if(objc->peaks->npeak > fiparams->nchild_max) { /* are there too many? */
+      objc->flags |= OBJECT1_DEBLEND_TOO_MANY_PEAKS;
+      phPeaksRealloc(objc->peaks, fiparams->nchild_max);
+   }
+
+   for(i = 0;i < objc->peaks->npeak;i++) { /* create children */
+      cpeak = objc->peaks->peaks[i];
+      (void)phObjcChildNew(objc, cpeak, fiparams, 1);
+   }
+
+   return(objc->peaks->npeak + ((objc->sibbs != NULL) ? 1 : 0));
 }
 
 /*****************************************************************************/
 /*
- * Reject a template
+ * Merge peak_j into peak_i, including processing their ->next chains
  */
-static int
-reject_template(OBJC *objc,
-		int nchild,
-		int reject,
-		OBJC *children[],
-		ATLAS_IMAGE *smoothed_ai[],
-		MAT *A[],
-		VEC *b[],
-		VEC *norm[],
-		VEC *lambda[],
-		MAT *Q[],
-		VEC *w[])
+static void
+merge_peaks(PEAK *peak_i,
+	    PEAK *peak_j)
 {
-   int c;
-   int i;
+   int flagi = 0, flagj = 0;		/* union of [ij] flags */
+   int i, j;
+   int npeak_i, npeak_j;
+   PEAK *peaki, *peakj;			/* pointers to peak_[ij]->next chains*/
+   PEAK **peaklist_i, **peaklist_j;		/* unpacked [ij] chains */
+/*
+ * Count the ->next peaks, and OR together their flags
+ */
+   for(npeak_i = 0, peaki = peak_i; peaki != NULL;
+						 peaki = (PEAK *)peaki->next) {
+      shAssert((flagi & peaki->flags) == 0); /* no duplicates within chain */
+      flagi |= (peaki->flags & PEAK_BANDMASK);
+      npeak_i++;
+   }
 
-   objc->flags |= OBJECT1_DEBLEND_PRUNED;
-   for(c = 0; c < objc->ncolor; c++) {
-      objc->color[c]->flags |= OBJECT1_DEBLEND_PRUNED;
+   for(npeak_j = 0, peakj = peak_j; peakj != NULL;
+						 peakj = (PEAK *)peakj->next) {
+      shAssert((flagj & peakj->flags) == 0); /* no duplicates within chain */
+      flagj |= (peakj->flags & PEAK_BANDMASK);
+      npeak_j++;
    }
 /*
- * and reject it
+ * look for peaks on the two chains that are in the same band;
+ * we can easily detect the simple no-duplicates case
  */
-   phObjcChildDel(children[reject]);
-   phAtlasImageDel(smoothed_ai[reject], 0);
-   for(i = reject;i < nchild - 1;i++) { /* move the others down */
-      children[i] = children[i + 1];
-      smoothed_ai[i] = smoothed_ai[i + 1];
+   if((flagi & flagj) == 0) {		/* no duplicates */
+      for(peaki = peak_i; peaki->next != NULL; peaki = (PEAK *)peaki->next) {
+	 ;
+      }
+      peaki->next = peak_j;
+      peak_j->flags |= PEAK_DANGLING;
+
+      return;
    }
-   nchild--;
+/*
+ * unpack the ->next chains.  This makes removing PEAKs from the middle
+ * of the (singly-linked) lists much easier
+ */
+   peaklist_i = alloca(npeak_i*sizeof(PEAK *));
+   for(i = 0, peaki = peak_i; peaki != NULL; peaki = (PEAK *)peaki->next) {
+      peaklist_i[i++] = peaki;
+   }
+   peaklist_j = alloca(npeak_j*sizeof(PEAK *));
+   for(j = 0, peakj = peak_j; peakj != NULL; peakj = (PEAK *)peakj->next) {
+      peaklist_j[j++] = peakj;
+   }
+/*
+ * look for multiple detections in the same band
+ */
+   for(i = 0; i < npeak_i; i++) {
+      peaki = peaklist_i[i];
+      
+      for(j = 0; j < npeak_j; j++) {
+	 peakj = peaklist_j[j];
+
+	 if(peakj == NULL) {		/* already merged */
+	    continue;
+	 }
+
+	 if(phPeakBand(peaki) == phPeakBand(peakj)) {
+	    average_peak_centers(peaki, peakj, &peaki->rowc, &peaki->colc);
+	    peakj->flags &= ~PEAK_DANGLING; peakj->next = NULL;
+	    phPeakDel(peakj);
+	    peaklist_j[j] = NULL;
+	    if(j > 0 && peaklist_j[j - 1] != NULL) {
+	       peaklist_j[j - 1]->next = NULL;
+	    }
+	    break;
+	 }
+      }
+   }
+/*
+ * Add the surviving peak_j peaks to peak_i
+ */
+   peaki = peaklist_i[npeak_i - 1];	/* end of ->next chain */
+   for(j = 0; j < npeak_j; j++) {
+      peakj = peaklist_j[j];
+      
+      if(peakj == NULL) {		/* already merged */
+	 continue;
+      }
+
+      peaki->next = peakj;
+      peakj->flags |= PEAK_DANGLING;
+      
+      peaki = (PEAK *)peaki->next;
+   }
+}
    
-   for(c = 0; c < objc->ncolor; c++) { /* reject from Normal eqs.*/
-      A[c] = phMatDelRowCol(A[c], reject, reject);
-      b[c] = phVecDelElement(b[c], reject);
-      norm[c] = phVecDelElement(norm[c], reject);
-      phVecDel(w[c]); w[c] = NULL;
+/*****************************************************************************/
+/*
+ * <AUTO EXTRACT>
+ *
+ * Delete all of an OBJC's children
+ */
+void
+phObjcChildrenDel(OBJC *objc)
+{
+   phObjcDel(objc->sibbs, 1);
+   objc->sibbs = NULL;
+
+   phObjcDel(objc->children, 1);
+   objc->children = NULL;
+
+   objc->nchild = 0;
+}
+
+/*****************************************************************************/
+/*
+ * <AUTO EXTRACT>
+ *
+ * Recalculate an object's centre now that it's been deblended, based
+ * on its nominal peak position
+ */
+void
+phDeblendedObjcRecenter(OBJC *objc,	/* the object in question */
+			const FIELDPARAMS *fiparams) /* properties of field */
+{
+   int c;
+   const REGION *data;			/* == fiparams->frame[c].data */
+   float drow, dcol;			/* offsets from reference colour */
+   OBJECT1 *obj1;
+   int rpeak, cpeak;			/* peak pixel of an object */
+   float threshold;			/* threshold for accepting peaks */
+
+   shAssert(objc != NULL && fiparams != NULL);
+   
+   for(c = 0;c < objc->ncolor;c++) {
+      obj1 = objc->color[c];
+      
+      if(obj1 == NULL) {
+	 continue;
+      }
+/*
+ * Was the centre already estimated for missing detections of this object,
+ * based on it's motion?
+ */
+      if(objc->flags2 & OBJECT2_DEBLENDED_AS_MOVING) {
+	 continue;
+      }
+/*
+ * See if the peak was bright enough to have been detected, but wasn't;
+ * this can happen to children due to the vagueries of peak matching
+ */
+      if(objc->parent == NULL) {
+	 continue;
+      }
+
+      if(obj1->peaks == NULL || obj1->peaks->npeak == 0) {
+	 shAssert(!(obj1->flags & OBJECT1_DETECTED));
+
+	 phOffsetDo(fiparams, objc->rowc, objc->colc, 
+		    fiparams->ref_band_index, c,
+		    1, NULL, NULL, &drow, NULL, &dcol, NULL);
+
+	 rpeak = objc->rowc + drow;
+	 cpeak = objc->colc + dcol;
+	 data = fiparams->frame[c].data;
+	 shAssert(data != NULL);
+	 
+	 threshold = fiparams->frame[c].ffo_threshold +
+					   fiparams->frame[c].bkgd + SOFT_BIAS;
+
+	 if(rpeak < 0 || rpeak >= data->nrow ||
+	    cpeak < 0 || cpeak >= data->ncol ||
+					data->ROWS[rpeak][cpeak] < threshold) {
+	    continue;
+	 } else {
+	    obj1->flags  |= OBJECT1_BINNED1;
+	    obj1->flags2 |= OBJECT2_DEBLEND_NOPEAK;
+	    
+	    if(obj1->peaks == NULL) {
+	       obj1->peaks = phPeaksNew(1);
+	    } else {
+	       phPeaksRenew(obj1->peaks, 1);
+	    }
+	    
+	    obj1->peaks->npeak = 1;
+	    obj1->peaks->peaks[0]->rpeak = rpeak;
+	    obj1->peaks->peaks[0]->cpeak = cpeak;
+	 }
+      }
+
+      phObject1CenterFit(obj1, fiparams->frame[c].data,
+			 &fiparams->frame[c], 32, ALWAYS_SMOOTH);
    }
 
-   if(nchild <= 1) {
-      for(c = 0; c < objc->ncolor; c++) {
-	 phMatDel(A[c]);
-	 phVecDel(b[c]);
-	 phVecDel(norm[c]);
-	 phVecDel(lambda[c]);
-	 phMatDel(Q[c]);
-      }
-      
-      if(nchild == 1) {
-	 set_parent_position_from_child(objc, children[0]);
-      }
-      
-      objc->flags |= OBJECT1_NODEBLEND;
-      for(c = 0; c < objc->ncolor; c++) {
-	 objc->color[c]->flags |= OBJECT1_NODEBLEND;
-      }
-      shFree(children);
-      for(i = 0;i < nchild;i++) {
-	 phAtlasImageDel(smoothed_ai[i], 0);
-      }
-      shFree(smoothed_ai);
-      return(0);
+   if(objc->peaks != NULL) {
+      objc->peaks->npeak = 0;		/* discard old peaks list */
    }
-
-   return(nchild);
+   phObjcPeaksSetFromObject1s(objc, fiparams);
+  
+   objc->flags3 &= ~OBJECT3_HAS_CENTER;
+   phObjcCenterCalc(objc, fiparams, 0);	/* find canonical centre */
 }
 
 /*****************************************************************************/
@@ -726,8 +892,6 @@ find_maximal_objmask(const REGION *reg,	/* region that object exists in */
    return(highmask);
 }
 
-
-
 /*****************************************************************************/
 /*
  * return a better estimate of a deblending template. The template is
@@ -818,10 +982,8 @@ improve_template(const OBJMASK *mask,	/* OBJC's master_mask */
        static char *dump_filename = NULL; /* write data to this file?
 					     For use from gdb */
        if(dump_filename != NULL) {
-		   /*
-			shRegWriteAsFits(smoothed,
-			dump_filename, STANDARD, 2,DEF_NONE,NULL,0);
-			*/
+	   shRegWriteAsFits(smoothed,
+			    dump_filename, STANDARD, 2,DEF_NONE,NULL,0);
 	   dump_filename = NULL;
        }
    }
@@ -955,299 +1117,6 @@ copy_region_within_mask(REGION *out,	/* region to copy to */
 						    (x2 - x1 + 1)*sizeof(PIX));
    }
 }
-
-
-/*****************************************************************************/
-/*
- * Find the sum of I_i * r_i^2 for an object in a given band
- *
- * Note that, because the master mask's in the canonical band, that's
- * the coordinate system we use in this routine
- */
-static float
-find_Isigma2(const OBJC *objc,		/* the object in question */
-	     int c,			/* in this band */
-	     int bkgd)			/* background level */
-{
-   const int colc = objc->color[c]->colc - objc->aimage->dcol[c] + 0.5;
-   int i;				/* span counter */
-   const OBJMASK *mmask = objc->aimage->master_mask;
-   const int nspan = mmask->nspan;
-   int peakval;				/* peak value in objc */
-   int r2;				/* == (distance from object centre)^2*/
-   const int rowc = objc->color[c]->rowc - objc->aimage->drow[c] + 0.5;
-   int row2, col2;			/* == ({row,col} - {row,col}c)^2 */
-   float sum = 0;			/* the desired sum */
-   int val;				/* == pix[j] */
-   int x, y;				/* column/row counters */
-   int x1, x2;				/* ends of this span */
-
-   if(objc->color[c]->peaks == NULL || objc->color[c]->peaks->npeak == 0) {
-      return(0.0);
-   }
-   
-   peakval = 1.1*objc->color[c]->peaks->peaks[0]->peak + bkgd;
-
-   for(i = 0; i < nspan; i++) {
-      x1 = mmask->s[i].x1; x2 = mmask->s[i].x2;
-      y = mmask->s[i].y;
-
-      row2 = y - rowc; row2 *= row2;
-      col2 = x1 - colc; col2 *= col2;
-      for(x = x1; x <= x2; x++) {
-	 r2 = row2 + col2;
-	 val = phAtlasImagePixelGet(objc->aimage, c, y, x);
-	 if(val > bkgd && val < peakval) {
-	    sum += (val - bkgd)*r2;
-	 }
-
-	 col2 += 2*(x - colc) + 1;	/* ((x-xc)+1)^2 == (x-xc)^2+2(x-xc)+1*/
-      }
-   }
-
-   return(sum);
-}
-
-/************************************************************************************************************/
-/*
- * Calculate the inner product of a pair of columns of two matrices
- */
-static double
-columnDotColumn(const MAT *Q1, const MAT *Q2, /* the two matrices */
-		const int c1, const int c2) /* the two columns */
-{
-    int i;
-    double sum = 0;
-
-    for (i = 0; i < Q1->n; i++) {
-	sum += Q1->me[i][c1]*Q2->me[i][c2];
-    }
-
-    return sum;
-}
-
-/*
- * Swap columns c1 and c2 of matrix Q and the corresponding
- * elements of vector lambda (if non-NULL)
- */
-static void
-swap_columns(MAT *Q, VEC *lambda,
-	     const int c1, const int c2)
-{
-    int i;
-
-    if (c1 == c2) return;
-
-    for (i = 0; i < Q->n; i++) {
-	const double tmp = Q->me[i][c1];
-	Q->me[i][c1] = Q->me[i][c2];
-	Q->me[i][c2] = tmp;
-    }
-
-    if (lambda != NULL) {
-	const double tmp = lambda->ve[c1];
-	lambda->ve[c1] = lambda->ve[c2];
-	lambda->ve[c2] = tmp;
-    }
-}
-
-
-
-/*****************************************************************************/
-/*
- * Copy peaks in reject into keep, if the object isn't detected in that
- * band in object keep.  Move the centroid over too, as it came from the peaks
- */
-static void
-transfer_centers_and_peaks(OBJC *keep, OBJC *reject)
-{
-   int c;
-   
-   for(c = 0; c < keep->ncolor; c++) {
-      if((keep->color[c]->flags & OBJECT1_DETECTED) != 0 ||
-	 reject->color[c]->peaks == NULL) {
-	 continue;			/* nothing to do */
-      }
-
-      phPeaksDel(keep->color[c]->peaks);
-      keep->color[c]->peaks = reject->color[c]->peaks;
-      reject->color[c]->peaks = NULL;
-/*
- * We should copy over the centers too, but it seems rather scary to do
- * so at this late stage (v5_4_24).
- */
-#if 1
-      keep->color[c]->rowc = reject->color[c]->rowc;
-      keep->color[c]->rowcErr = reject->color[c]->rowcErr;
-      keep->color[c]->colc = reject->color[c]->colc;
-      keep->color[c]->colcErr = reject->color[c]->colcErr;
-#endif
-      
-      keep->flags &= ~OBJECT1_CANONICAL_CENTER; /* we need reject's value of */
-      keep->color[c]->flags &= ~OBJECT1_CANONICAL_CENTER; /* CANONICAL_CENTER*/
-      
-      keep->flags |= reject->color[c]->flags & OBJECT1_DETECTED;
-      keep->color[c]->flags |= reject->color[c]->flags & OBJECT1_DETECTED;
-   }
-}
-
-
-/************************************************************************************************************/
-/*
- * Given a set of Q and lambda (the eigenvectors and values of a matrix),
- * one for each of a set of colours, sort the eigenobjects so that they
- * are in the same order as the canonical colour.  This is done by looking
- * at each eigenvector in turn, and seeing with which eigenvector in
- * Q[canonical_color] it has the largest |inner product|
- */
-static void
-sort_Q(const int ncolor,		/* dimen of lambda and Q arrays */
-       const int canonical_color,	/* sort to match this colour */
-       VEC **lambda,			/* eigenvalues */
-       MAT **Q)				/* eigenvectors */
-{
-    int c;
-    int i, j;
-
-    for (c = 0; c < ncolor; c++) {
-	if (c == canonical_color) continue; /* already sorted */
-
-	for (i = 0; i < Q[c]->m; i++) {
-	    int best_column = i;
-	    double best_dot = columnDotColumn(Q[canonical_color], Q[c], i, best_column);
-	    for (j = i + 1; j < Q[c]->m; j++) {
-		double dot = columnDotColumn(Q[canonical_color], Q[c], i, j);
-		if (fabs(dot) > fabs(best_dot)) {
-		    best_column = j;
-		    best_dot = dot;
-		    
-		}
-	    }
-	    swap_columns(Q[c], lambda[c], i, best_column);
-	}
-    }
-}
-
-/*
- * Set up the normal equations, Aw = b
- */
-static void
-setup_normal(const OBJC *parent,	/* parent object */
-	     const OBJC **children,	/* array of children */
-	     int nchild,		/* dimension of children[] */
-	     int c,			/* the colour in question */
-	     int bkgd,			/* == (bkgd from fparams) + SOFT_BIAS*/
-	     MAT *A,			/* The LSQ problem is */
-	     VEC *b,			/*    A w = b */
-	     VEC *norm)			/* normalisation of templates */
-{
-   int i, j;
-   float *maxpix = alloca(nchild*sizeof(float)); /* max. value for templates */
-   int npix = parent->aimage->master_mask->npix;
-
-   for(i = 0;i < nchild;i++) {
-      shAssert(children[i]->aimage->master_mask->npix == npix);
-   }
-/*
- * First A.
- */
-   for(i = 0;i < nchild;i++) {
-      for(j = 0;j <= i;j++) {
-	  A->me[i][j] = A->me[j][i] = phAtlasImageDotProduct(children[i]->aimage, c, bkgd,
-							     children[j]->aimage, c, bkgd);
-      }
-   }
-/*
- * and now b
- */
-   for(i = 0;i < nchild; i++) {
-      b->ve[i] = phAtlasImageDotProduct(children[i]->aimage, c, bkgd,
-					parent->aimage,      c, bkgd);
-
-      maxpix[i] = phAtlasImageMaximum(parent->aimage, c) - bkgd;
-      if(maxpix[i] <= 0) {
-	  maxpix[i] = 1;			/* don't divide by zero */
-      }
-   }
-/*
- * Now renormalise to try to control overflows etc., and to make the values
- * of the eigenvalues more comprehensible. We renormalise each template
- * to have a maximum value of unity rather than an rms of unity to avoid
- * problems with poorly known sky levels
- */
-   for(i = 0;i < nchild;i++) {
-      norm->ve[i] = maxpix[i];
-      b->ve[i] /= maxpix[i];
-      for(j = 0;j <= i;j++) {
-	 A->me[i][j] /= maxpix[i]*maxpix[j];
-	 A->me[j][i] = A->me[i][j];
-      }
-   }
-/*
- * write out template and data vectors, for debugging
- */
-#if 0
-   {
-      FILE *fil = fopen("template.dat","w");
-      if(fil != NULL) {
-	  const OBJMASK *mmask = parent->aimage->master_mask;
-	  for(k = 0; k < mmask->nspan; k++) {
-	      int x1 = mmask->s[k].x1, x2 = mmask->s[k].x2;
-	      int x;
-	      int y = mmask->s[k].y;
-
-	      fprintf(fil,"(%d, %d): ", y, x);
-	      for(x = x1; x <= x2; x++) {
-		  fprintf(fil," %d", phAtlasImagePixelGet(parent->aimage, c, y, x));
-		  for(j = 0; j < nchild;j++) {
-		      fprintf(fil," %d", phAtlasImagePixelGet(children[j]->aimage, c, y, x));
-		  }
-	      }
-	      fprintf(fil,"\n");
-	  }
-	  fclose(fil);
-      }
-   }
-#endif
-}
-
-
-/*****************************************************************************/
-/*
- * Average the per-band templates.
- *
- * This is a bit of a pain... First set the pixels outside the detection footprint to SOFT_BIAS (not 0),
- * then add a fraction 1/ncolor of each template to the 0th (also scaled down by 1/ncolor); this scaling
- * avoids overflows.  Then clip the resulting mean template to the union of the input masks, and copy
- * it back into the per-band templates.
- */
-static void
-average_templates(OBJC *child)
-{
-    int c;
-    OBJMASK *mask = phObjmaskCopy(child->color[0]->mask, 0, 0);
-    
-    for(c = 0; c < child->ncolor;c++) {
-	OBJECT1 *obj1 = child->color[c];
-	phAtlasImageSetIfNotInObjmask(child->aimage, c, obj1->mask, SOFT_BIAS);
-
-	phAtlasImagesTimesEquals(child->aimage, c, 1/(float)child->ncolor);
-	if (c > 0) {
-	    phObjmaskOrObjmask(mask, child->color[c]->mask);
-	    phAtlasImagesPlusEquals(child->aimage, 0, child->aimage, c, 0);
-	}
-    }
-	   
-    for(c = 0; c < child->ncolor;c++) {
-	phAtlasImageSetIfNotInObjmask(child->aimage, c, mask, 0);
-	if (c > 0) {
-	    phAtlasImagesPixelsCopy(child->aimage, c, child->aimage, 0);
-	}
-    }
-
-    phObjmaskDel(mask);
-}
-
 
 /*****************************************************************************/
 /*
@@ -1559,10 +1428,8 @@ deblend_template_find(OBJC *objc,	/* the OBJC in question */
 	  static char *dump_filename = NULL; /* write data to this file?
 						For use from gdb */
 	  if(dump_filename != NULL) {
-		  /*
-		   shRegWriteAsFits(data,
-		   dump_filename, STANDARD, 2,DEF_NONE,NULL,0);
-		   */
+	      shRegWriteAsFits(data,
+			       dump_filename, STANDARD, 2,DEF_NONE,NULL,0);
 	      dump_filename = NULL;
 	  }
       }
@@ -1602,10 +1469,8 @@ deblend_template_find(OBJC *objc,	/* the OBJC in question */
        static char *dump_filename = NULL; /* write data to this file?
 					     For use from gdb */
        if(dump_filename != NULL) {
-		   /*
-			shRegWriteAsFits((REGION *)fiparams->frame[c].data,
-			dump_filename, STANDARD, 2,DEF_NONE,NULL,0);
-			*/
+	   shRegWriteAsFits((REGION *)fiparams->frame[c].data,
+			    dump_filename, STANDARD, 2,DEF_NONE,NULL,0);
 	   dump_filename = NULL;
        }
    }
@@ -1624,7 +1489,6 @@ deblend_template_find(OBJC *objc,	/* the OBJC in question */
    for(c = 0;c < ncolor;c++) {
       objc->flags |= (objc->color[c]->flags & OBJECT1_DETECTED);
    }
-
    if(phStrategicMemoryReserveIsEmpty() ||
       !(objc->flags & OBJECT1_DETECTED)) { /* not detected in any band */
       phAtlasImageDel(*smoothed_ai, 0); *smoothed_ai = NULL;
@@ -1635,7 +1499,6 @@ deblend_template_find(OBJC *objc,	/* the OBJC in question */
 
       return(0);
    }
-
 #if MISSING_TEMPLATES_ARE_PSF == 1
 /*
  * create minimal templates in the bands where we failed to detect
@@ -1765,6 +1628,247 @@ deblend_template_find(OBJC *objc,	/* the OBJC in question */
    shMaskDel(psfmask);
 
    return(0);				/* OK */
+}
+
+/*
+ * Set up the normal equations, Aw = b
+ */
+static void
+setup_normal(const OBJC *parent,	/* parent object */
+	     const OBJC **children,	/* array of children */
+	     int nchild,		/* dimension of children[] */
+	     int c,			/* the colour in question */
+	     int bkgd,			/* == (bkgd from fparams) + SOFT_BIAS*/
+	     MAT *A,			/* The LSQ problem is */
+	     VEC *b,			/*    A w = b */
+	     VEC *norm)			/* normalisation of templates */
+{
+   int i, j;
+   float *maxpix = alloca(nchild*sizeof(float)); /* max. value for templates */
+   int npix = parent->aimage->master_mask->npix;
+
+   for(i = 0;i < nchild;i++) {
+      shAssert(children[i]->aimage->master_mask->npix == npix);
+   }
+/*
+ * First A.
+ */
+   for(i = 0;i < nchild;i++) {
+      for(j = 0;j <= i;j++) {
+	  A->me[i][j] = A->me[j][i] = phAtlasImageDotProduct(children[i]->aimage, c, bkgd,
+							     children[j]->aimage, c, bkgd);
+      }
+   }
+/*
+ * and now b
+ */
+   for(i = 0;i < nchild; i++) {
+      b->ve[i] = phAtlasImageDotProduct(children[i]->aimage, c, bkgd,
+					parent->aimage,      c, bkgd);
+
+      maxpix[i] = phAtlasImageMaximum(parent->aimage, c) - bkgd;
+      if(maxpix[i] <= 0) {
+	  maxpix[i] = 1;			/* don't divide by zero */
+      }
+   }
+/*
+ * Now renormalise to try to control overflows etc., and to make the values
+ * of the eigenvalues more comprehensible. We renormalise each template
+ * to have a maximum value of unity rather than an rms of unity to avoid
+ * problems with poorly known sky levels
+ */
+   for(i = 0;i < nchild;i++) {
+      norm->ve[i] = maxpix[i];
+      b->ve[i] /= maxpix[i];
+      for(j = 0;j <= i;j++) {
+	 A->me[i][j] /= maxpix[i]*maxpix[j];
+	 A->me[j][i] = A->me[i][j];
+      }
+   }
+/*
+ * write out template and data vectors, for debugging
+ */
+#if 0
+   {
+      FILE *fil = fopen("template.dat","w");
+      if(fil != NULL) {
+	  const OBJMASK *mmask = parent->aimage->master_mask;
+	  for(k = 0; k < mmask->nspan; k++) {
+	      int x1 = mmask->s[k].x1, x2 = mmask->s[k].x2;
+	      int x;
+	      int y = mmask->s[k].y;
+
+	      fprintf(fil,"(%d, %d): ", y, x);
+	      for(x = x1; x <= x2; x++) {
+		  fprintf(fil," %d", phAtlasImagePixelGet(parent->aimage, c, y, x));
+		  for(j = 0; j < nchild;j++) {
+		      fprintf(fil," %d", phAtlasImagePixelGet(children[j]->aimage, c, y, x));
+		  }
+	      }
+	      fprintf(fil,"\n");
+	  }
+	  fclose(fil);
+      }
+   }
+#endif
+}
+
+/*****************************************************************************/
+/*
+ * Find the sum of I_i * r_i^2 for an object in a given band
+ *
+ * Note that, because the master mask's in the canonical band, that's
+ * the coordinate system we use in this routine
+ */
+static float
+find_Isigma2(const OBJC *objc,		/* the object in question */
+	     int c,			/* in this band */
+	     int bkgd)			/* background level */
+{
+   const int colc = objc->color[c]->colc - objc->aimage->dcol[c] + 0.5;
+   int i;				/* span counter */
+   const OBJMASK *mmask = objc->aimage->master_mask;
+   const int nspan = mmask->nspan;
+   int peakval;				/* peak value in objc */
+   int r2;				/* == (distance from object centre)^2*/
+   const int rowc = objc->color[c]->rowc - objc->aimage->drow[c] + 0.5;
+   int row2, col2;			/* == ({row,col} - {row,col}c)^2 */
+   float sum = 0;			/* the desired sum */
+   int val;				/* == pix[j] */
+   int x, y;				/* column/row counters */
+   int x1, x2;				/* ends of this span */
+
+   if(objc->color[c]->peaks == NULL || objc->color[c]->peaks->npeak == 0) {
+      return(0.0);
+   }
+   
+   peakval = 1.1*objc->color[c]->peaks->peaks[0]->peak + bkgd;
+
+   for(i = 0; i < nspan; i++) {
+      x1 = mmask->s[i].x1; x2 = mmask->s[i].x2;
+      y = mmask->s[i].y;
+
+      row2 = y - rowc; row2 *= row2;
+      col2 = x1 - colc; col2 *= col2;
+      for(x = x1; x <= x2; x++) {
+	 r2 = row2 + col2;
+	 val = phAtlasImagePixelGet(objc->aimage, c, y, x);
+	 if(val > bkgd && val < peakval) {
+	    sum += (val - bkgd)*r2;
+	 }
+
+	 col2 += 2*(x - colc) + 1;	/* ((x-xc)+1)^2 == (x-xc)^2+2(x-xc)+1*/
+      }
+   }
+
+   return(sum);
+}
+
+/*****************************************************************************/
+/*
+ * go through a set of children's atlas images, and for pixels where the
+ * sum of the children's fluxes doesn't equal the parent, assign the balance
+ * based on Is2/R^2
+ *
+ * Return the total number of DN that this routine was forced to share out
+ * among the children
+ */
+static float
+assign_missing_flux(const OBJC **children, /* the children in question */
+		    int nchild,		/* number of children */
+		    int c,		/* in this band */
+		    const float *Is2)	/* children's I*sigma^2 values */
+{
+   int best_k;				/* best choice of child to get flux */
+   const OBJC *child;			/* == children[k] */
+   int drow, dcol;			/* distance to an object's centre */
+   int i, j, k;				/* span and pixel counter resp. */
+   float max;				/* maximum weight of any object */
+   const OBJMASK *mmask = children[0]->parent->aimage->master_mask;
+   const int nspan = mmask->nspan;
+   int r2;				/* == (distance from object centre)^2*/
+   float unassigned = 0;		/* flux unassigned to any object */
+   int val;				/* value of a pixel to be assigned */
+   float weight;			/* an object's weight */
+#define USE_WEIGHTS 0
+#if USE_WEIGHTS
+   float *weights = alloca(nchild*sizeof(float)); /* weights for all children */
+#endif
+   int x;				/* column counter */
+   int y, x1, x2;			/* SPAN.{y,x[12]} */
+/*
+ * assign fluxes
+ */
+   for(i = j = 0; i < nspan; i++) {
+      y = mmask->s[i].y;
+      x1 = mmask->s[i].x1; x2 = mmask->s[i].x2;
+      for(x = x1; x <= x2; x++, j++) {
+	 for(k = 0; k < nchild; k++) {
+	    if(phAtlasImagePixelGet(children[k]->aimage, c, y, x) != SOFT_BIAS) {
+	       break;			/* we assigned flux to someone */
+	    }
+	 }
+	 if(k == nchild) {		/* unassigned pixel */
+#if USE_WEIGHTS
+	    double sum = 0;
+	    val = phAtlasImagePixelGet(children[0]->parent->aimage, c, y, x) - SOFT_BIAS;
+	    max = -1e9; best_k = 0;
+	    for(k = 0; k < nchild; k++) {
+	       child = children[k];
+	       drow = y - child->rowc + 0.5;
+	       dcol = x - child->colc + 0.5;
+	       r2 = drow*drow + dcol*dcol;
+	       if(r2 == 0) {
+		  best_k = k;
+		  break;
+	       }
+
+	       if(weight > max) {
+		  max = weight; best_k = k;
+	       }
+
+	       weight = weights[k] = Is2[k]/r2;
+	       sum += weight;
+	    }
+	    if(k < nchild) {
+		phAtlasImagePixelSet(children[k]->aimage, c, y, x, val + SOFT_BIAS);
+	    } else {
+		for(k = 0; k < nchild; k++) {
+		    int dval = val*weights[k]/sum + 0.5;
+		    if(dval > 0) {
+			phAtlasImagePixelSet(children[k]->aimage, c, y, x, dval + SOFT_BIAS);
+			val -= dval;
+		    }
+		}
+		phAtlasImagePixelSet(children[best_k]->aimage, c, y, x,
+				     phAtlasImagePixelGet(children[best_k]->aimage, c, y, x) + val); /* left over flux*/
+	    }
+#else
+	    val = phAtlasImagePixelGet(children[0]->parent->aimage, c, y, x) - SOFT_BIAS;
+	    max = -1e9; best_k = 0;
+	    for(k = 0; k < nchild; k++) {
+	       child = children[k];
+	       drow = y - child->rowc + 0.5;
+	       dcol = x - child->colc + 0.5;
+	       r2 = drow*drow + dcol*dcol;
+	       if(r2 == 0) {
+		  best_k = k; break;
+	       }
+
+	       weight = Is2[k]/r2;
+
+	       if(weight > max) {
+		  max = weight; best_k = k;
+	       }
+	    }
+	    phAtlasImagePixelSet(children[best_k]->aimage, c, y, x, val + SOFT_BIAS);
+#endif
+	    unassigned += val;
+	 }
+      }
+   }
+
+   return(unassigned);
 }
 
 /*****************************************************************************/
@@ -1960,6 +2064,532 @@ maybe_deblend_at_edge(OBJC *objc,		/* object to deblend */
 #endif
    
    return(0);
+}
+
+/*****************************************************************************/
+/*
+ * If we are reduced to only a single child, make sure that the parent
+ * has the child's positions in all bands; as the parent was a deblend
+ * candidate it may have a mixture of the candidate peaks
+ */
+static void
+set_parent_position_from_child(OBJC *objc,
+			       const OBJC *child)
+{
+   int c;
+
+   objc->flags &= ~OBJECT1_CANONICAL_CENTER;
+   objc->flags |= (child->flags & OBJECT1_CANONICAL_CENTER);
+   objc->rowc = child->rowc;
+   objc->rowcErr = child->rowcErr;
+   objc->colc = child->colc;
+   objc->colcErr = child->colcErr;
+   
+   for(c = 0; c < objc->ncolor; c++) {
+      objc->color[c]->flags &= ~OBJECT1_CANONICAL_CENTER;
+      objc->color[c]->flags |=
+	(child->color[c]->flags & OBJECT1_CANONICAL_CENTER);
+      objc->color[c]->rowc = child->color[c]->rowc;
+      objc->color[c]->rowcErr = child->color[c]->rowcErr;
+      objc->color[c]->colc = child->color[c]->colc;
+      objc->color[c]->colcErr = child->color[c]->colcErr;
+   }
+}
+
+/*****************************************************************************/
+/*
+ * Reject a template
+ */
+static int
+reject_template(OBJC *objc,
+		int nchild,
+		int reject,
+		OBJC *children[],
+		ATLAS_IMAGE *smoothed_ai[],
+		MAT *A[],
+		VEC *b[],
+		VEC *norm[],
+		VEC *lambda[],
+		MAT *Q[],
+		VEC *w[])
+{
+   int c;
+   int i;
+
+   objc->flags |= OBJECT1_DEBLEND_PRUNED;
+   for(c = 0; c < objc->ncolor; c++) {
+      objc->color[c]->flags |= OBJECT1_DEBLEND_PRUNED;
+   }
+/*
+ * and reject it
+ */
+   phObjcChildDel(children[reject]);
+   phAtlasImageDel(smoothed_ai[reject], 0);
+   for(i = reject;i < nchild - 1;i++) { /* move the others down */
+      children[i] = children[i + 1];
+      smoothed_ai[i] = smoothed_ai[i + 1];
+   }
+   nchild--;
+   
+   for(c = 0; c < objc->ncolor; c++) { /* reject from Normal eqs.*/
+      A[c] = phMatDelRowCol(A[c], reject, reject);
+      b[c] = phVecDelElement(b[c], reject);
+      norm[c] = phVecDelElement(norm[c], reject);
+      phVecDel(w[c]); w[c] = NULL;
+   }
+
+   if(nchild <= 1) {
+      for(c = 0; c < objc->ncolor; c++) {
+	 phMatDel(A[c]);
+	 phVecDel(b[c]);
+	 phVecDel(norm[c]);
+	 phVecDel(lambda[c]);
+	 phMatDel(Q[c]);
+      }
+      
+      if(nchild == 1) {
+	 set_parent_position_from_child(objc, children[0]);
+      }
+      
+      objc->flags |= OBJECT1_NODEBLEND;
+      for(c = 0; c < objc->ncolor; c++) {
+	 objc->color[c]->flags |= OBJECT1_NODEBLEND;
+      }
+      shFree(children);
+      for(i = 0;i < nchild;i++) {
+	 phAtlasImageDel(smoothed_ai[i], 0);
+      }
+      shFree(smoothed_ai);
+      return(0);
+   }
+
+   return(nchild);
+}
+
+/*****************************************************************************/
+/*
+ * Copy peaks in reject into keep, if the object isn't detected in that
+ * band in object keep.  Move the centroid over too, as it came from the peaks
+ */
+static void
+transfer_centers_and_peaks(OBJC *keep, OBJC *reject)
+{
+   int c;
+   
+   for(c = 0; c < keep->ncolor; c++) {
+      if((keep->color[c]->flags & OBJECT1_DETECTED) != 0 ||
+	 reject->color[c]->peaks == NULL) {
+	 continue;			/* nothing to do */
+      }
+
+      phPeaksDel(keep->color[c]->peaks);
+      keep->color[c]->peaks = reject->color[c]->peaks;
+      reject->color[c]->peaks = NULL;
+/*
+ * We should copy over the centers too, but it seems rather scary to do
+ * so at this late stage (v5_4_24).
+ */
+#if 1
+      keep->color[c]->rowc = reject->color[c]->rowc;
+      keep->color[c]->rowcErr = reject->color[c]->rowcErr;
+      keep->color[c]->colc = reject->color[c]->colc;
+      keep->color[c]->colcErr = reject->color[c]->colcErr;
+#endif
+      
+      keep->flags &= ~OBJECT1_CANONICAL_CENTER; /* we need reject's value of */
+      keep->color[c]->flags &= ~OBJECT1_CANONICAL_CENTER; /* CANONICAL_CENTER*/
+      
+      keep->flags |= reject->color[c]->flags & OBJECT1_DETECTED;
+      keep->color[c]->flags |= reject->color[c]->flags & OBJECT1_DETECTED;
+   }
+}
+
+/*****************************************************************************/
+/*
+ * Average together the positions of two peaks
+ */
+static void
+average_peak_centers(const PEAK *peak1,	/* the peaks */
+		     const PEAK *peak2,	/*         in question */
+		     float *rowc, float *colc)	/* mean position */
+{
+   const float val1 = peak1->peak; const float val2 = peak2->peak;
+   const float rowc1 = peak1->rowc; const float rowc2 = peak2->rowc;
+   const float colc1 = peak1->colc; const float colc2 = peak2->colc;
+
+   shAssert(val1 + val2 != 0);
+   shAssert(val1 > -9998.0 && val2 > -9998.0);
+
+   *rowc = (val1*rowc1 + val2*rowc2)/(val1 + val2);
+   *colc = (val1*colc1 + val2*colc2)/(val1 + val2);
+}
+
+/*****************************************************************************/
+/*
+ * look at the potential children and see if there are any `local'
+ * modifications to the list that would improve the deblend.
+ *
+ * Initially, the only such case is re-assembling unrecognised moving objects
+ */
+
+static int
+peephole_optimizer(OBJC *objc,		/* parent */
+		   const FIELDPARAMS *fiparams, /* astrometry etc. */
+		   int nchild,		/* number of children */
+		   OBJC *children[],	/* list of children */
+		   ATLAS_IMAGE **smoothed_ai)/* list of atlas images containing
+						smoothed templates. Not used,
+						but may need to be freed */
+		   
+{
+   int c;				/* counter in colour */
+   float col[NCOLOR], colErr[NCOLOR];	/* estimated col centre in each band */
+   OBJC *child;				/* == children[] */
+   int *detected;			/* Which bands are present
+						   in each of the children[] */
+   float drow[NCOLOR], dcol[NCOLOR];	/* _Add_ to convert to canon. band */
+   float drowErr[NCOLOR], dcolErr[NCOLOR]; /* errors in drow/dcol */
+   int i, j;
+   OBJC *merged = NULL;			/* candidate merged object */
+   const float min_peak_spacing = fiparams->deblend_min_peak_spacing;
+   int did_merge = 0;			/* did I merge any bands together? */
+   float row[NCOLOR], rowErr[NCOLOR];	/* estimated row centre in each band */
+/*
+ * Find astrometric offsets
+ */
+   for(c = 0; c < objc->ncolor; c++) {
+      phOffsetDo(fiparams, objc->rowc, objc->colc, 
+		 c, fiparams->ref_band_index,
+		 0, NULL, NULL, &drow[c], &drowErr[c], &dcol[c], &dcolErr[c]);
+   }
+/*
+ * Go through list of children setting bits for which bands are present;
+ * not totally by coincidence these are the same as PEAK_BAND0 etc. although
+ * we don't use this fact.
+ */
+   detected = shMalloc(nchild*sizeof(int));
+
+   for(i = 0; i < nchild; i++) {
+      child = children[i];
+      detected[i] = 0;
+      for(c = 0; c < objc->ncolor; c++) {
+	 if(child->color[c]->flags & OBJECT1_DETECTED) {
+	    detected[i] |= (1 << c);
+	 }
+      }
+   }
+/*
+ * Go through all pairs of children that don't have any peaks in
+ * common, and see if it makes sense to merge them
+ */
+   for(i = 0; i < nchild; i++) {
+      for(j = i + 1; j < nchild; j++) {
+	 if((detected[i] & detected[j]) != 0) { /* they have bands in common */
+	    continue;
+	 }
+	 /*
+	  * Copy OBJECT1s from i and j into merged
+	  */
+	 if(merged == NULL) {
+	    merged = phObjcNew(objc->ncolor);
+	 }
+	 for(c = 0; c < objc->ncolor; c++) {
+	    if((detected[i] & (1 << c))) {
+	       merged->color[c] = children[i]->color[c];
+	    } else if((detected[j] & (1 << c))) {
+	       merged->color[c] = children[j]->color[c];
+	    }
+	 }
+	 /*
+	  * estimate the velocity
+	  */
+	 if(phVelocityFind(merged, fiparams,
+			   row, rowErr, col, colErr, NULL) != 0) {
+	    for(c = 0; c < objc->ncolor; c++) {	/* Not a good candidate */
+	       merged->color[c] = NULL;
+	    }
+	    
+	    continue;
+	 }
+	 /*
+	  * Hmm, a good candidate for a merger.  Replace i with merged
+	  * (well, actually overlay i with merged) and prepare to discard j
+	  */
+	 {
+	    long mask = ~(OBJECT2_NODEBLEND_MOVING |
+			  OBJECT2_BAD_MOVING_FIT |
+			  OBJECT2_BAD_MOVING_FIT_CHILD |
+			  OBJECT2_TOO_FEW_DETECTIONS);
+
+	    objc->flags2 &= mask;
+	    children[i]->flags2 &= mask;
+	 }
+
+	 objc->flags2 |=
+	    OBJECT2_DEBLENDED_AS_MOVING | OBJECT2_DEBLEND_PEEPHOLE;
+	 children[i]->flags2 |=
+	    OBJECT2_DEBLENDED_AS_MOVING | OBJECT2_DEBLEND_PEEPHOLE;
+	 did_merge = 1;
+
+	 detected[i] |= detected[j];
+
+	 for(c = 0; c < objc->ncolor; c++) {
+	    if(merged->color[c] == NULL) {
+	       OBJECT1 *obj1 = children[i]->color[c];
+	       shAssert(obj1 != NULL);
+	       if(obj1->flags & OBJECT1_DETECTED) {
+		  shAssert(obj1->flags & OBJECT1_CANONICAL_CENTER);
+	       }
+	       
+	       obj1->colc = col[c] - dcol[c];
+	       obj1->colcErr = sqrt(pow(colErr[c],2) + pow(dcolErr[c],2));
+	       obj1->rowc = row[c] - drow[c];
+	       obj1->rowcErr = sqrt(pow(rowErr[c],2) + pow(drowErr[c],2));
+	       
+	       obj1->flags |= OBJECT1_CANONICAL_CENTER;
+	    } else {
+	       if(children[i]->color[c] == merged->color[c]) {
+		  ;			/* nothing to do */
+	       } else if(children[j]->color[c] == merged->color[c]) {
+		  phObject1Del(children[i]->color[c]);
+		  children[i]->color[c] = merged->color[c];
+		  children[j]->color[c] = NULL;
+		  
+		  shAssert(children[i]->aimage->mask[c] == NULL);
+		  children[i]->aimage->mask[c] = children[j]->aimage->mask[c];
+		  children[j]->aimage->mask[c] = NULL;
+		  
+		  phAtlasImagePixReplace(children[i]->aimage, c, children[j]->aimage, c);
+		  phAtlasImagePixReplace(smoothed_ai[i],      c, smoothed_ai[j],      c);
+	       } else {
+		  shFatal("You cannot get here");
+	       }
+	       
+	       merged->color[c] = NULL;
+	    }
+	 }
+	 /*
+	  * and discard j, filling its slot in children[]
+	  */
+	 phObjcChildDel(children[j]); children[j] = NULL;
+	 phAtlasImageDel(smoothed_ai[j], 0);
+
+	 for(; j < nchild - 1; j++) {
+	    detected[j] = detected[j + 1];
+	    children[j] = children[j + 1];
+	    smoothed_ai[j] = smoothed_ai[j + 1];
+	 }
+
+	 nchild--;
+
+	 i--;				/* try a further merge */
+	 break;				/*       by continuing with i loop */
+      }
+   }
+/*
+ * If we merged any children to create a new moving object, see if
+ * there are other detections of the moving object that weren't merged
+ * into the new object.  In other words, look for detections in other
+ * children at the correct calculated position.
+ *
+ * We need to do this to avoid shredding objects that now appear in
+ * two objects 
+ */
+   if(did_merge) {
+      for(i = 0; i < nchild; i++) {
+	 if(!(children[i]->flags2 & OBJECT2_DEBLEND_PEEPHOLE)) {
+	    continue;
+	 }
+
+	 for(j = 0; j < nchild; j++) {
+	    int nmatch_j = 0;		/* number of matched objects in j */
+
+	    if(i == j) {
+	       continue;
+	    }
+	    if((detected[i] & detected[j]) != 0) { /* bands in common */
+	       continue;
+	    }
+
+	    for(c = 0; c < objc->ncolor; c++) {
+	       OBJECT1 *obj1_i = children[i]->color[c];
+	       OBJECT1 *obj1_j = children[j]->color[c];
+	       float rowc_i, rowcErr_i, colc_i, colcErr_i;
+	       float rowc_j, rowcErr_j, colc_j, colcErr_j;
+
+	       if((obj1_i->flags & OBJECT1_DETECTED) ||
+		  !(obj1_j->flags & OBJECT1_DETECTED)) {
+		  continue;
+	       }
+
+	       rowc_i = obj1_i->rowc;
+	       colc_i = obj1_i->colc;
+	       rowcErr_i = obj1_i->rowcErr;
+	       colcErr_i = obj1_i->colcErr;
+
+	       rowc_j = obj1_j->rowc;
+	       colc_j = obj1_j->colc;
+	       rowcErr_j = obj1_j->rowcErr;
+	       colcErr_j = obj1_j->colcErr;
+
+	       if(pow(fabs(rowc_i - rowc_j) - rowcErr_i - rowcErr_j, 2) +
+		  pow(fabs(colc_i - colc_j) - colcErr_i - colcErr_j, 2) <
+					   min_peak_spacing*min_peak_spacing) {
+		  obj1_i->flags |= (obj1_j->flags & OBJECT1_DETECTED);
+		  nmatch_j++;
+	       } else {
+		  break;
+	       }
+	    }
+
+	    if(c == objc->ncolor && nmatch_j > 0) { /* all peaks match */
+	       /*
+		* and discard j, filling its slot in children[]
+		*/
+	       phObjcChildDel(children[j]); children[j] = NULL;
+	       phAtlasImageDel(smoothed_ai[j], 0);
+	       
+	       for(; j < nchild - 1; j++) {
+		  detected[j] = detected[j + 1];
+		  children[j] = children[j + 1];
+		  smoothed_ai[j] = smoothed_ai[j + 1];
+	       }
+	       
+	       nchild--;
+	       
+	       i--;			/* try a further merge */
+	       break;			/*       by continuing with i loop */
+	    }
+	 }
+      }
+   }
+/*
+ * Clean up
+ */
+   if(merged != NULL) {
+      for(c = 0; c < objc->ncolor; c++) {
+	 merged->color[c] = NULL;	/* merged never owned them */
+      }
+      phObjcDel(merged, 1);
+   }
+   shFree(detected);
+
+   return(nchild);
+}
+
+/************************************************************************************************************/
+/*
+ * Calculate the inner product of a pair of columns of two matrices
+ */
+static double
+columnDotColumn(const MAT *Q1, const MAT *Q2, /* the two matrices */
+		const int c1, const int c2) /* the two columns */
+{
+    int i;
+    double sum = 0;
+
+    for (i = 0; i < Q1->n; i++) {
+	sum += Q1->me[i][c1]*Q2->me[i][c2];
+    }
+
+    return sum;
+}
+
+/*
+ * Swap columns c1 and c2 of matrix Q and the corresponding
+ * elements of vector lambda (if non-NULL)
+ */
+static void
+swap_columns(MAT *Q, VEC *lambda,
+	     const int c1, const int c2)
+{
+    int i;
+
+    if (c1 == c2) return;
+
+    for (i = 0; i < Q->n; i++) {
+	const double tmp = Q->me[i][c1];
+	Q->me[i][c1] = Q->me[i][c2];
+	Q->me[i][c2] = tmp;
+    }
+
+    if (lambda != NULL) {
+	const double tmp = lambda->ve[c1];
+	lambda->ve[c1] = lambda->ve[c2];
+	lambda->ve[c2] = tmp;
+    }
+}
+
+/************************************************************************************************************/
+/*
+ * Given a set of Q and lambda (the eigenvectors and values of a matrix),
+ * one for each of a set of colours, sort the eigenobjects so that they
+ * are in the same order as the canonical colour.  This is done by looking
+ * at each eigenvector in turn, and seeing with which eigenvector in
+ * Q[canonical_color] it has the largest |inner product|
+ */
+static void
+sort_Q(const int ncolor,		/* dimen of lambda and Q arrays */
+       const int canonical_color,	/* sort to match this colour */
+       VEC **lambda,			/* eigenvalues */
+       MAT **Q)				/* eigenvectors */
+{
+    int c;
+    int i, j;
+
+    for (c = 0; c < ncolor; c++) {
+	if (c == canonical_color) continue; /* already sorted */
+
+	for (i = 0; i < Q[c]->m; i++) {
+	    int best_column = i;
+	    double best_dot = columnDotColumn(Q[canonical_color], Q[c], i, best_column);
+	    for (j = i + 1; j < Q[c]->m; j++) {
+		double dot = columnDotColumn(Q[canonical_color], Q[c], i, j);
+		if (fabs(dot) > fabs(best_dot)) {
+		    best_column = j;
+		    best_dot = dot;
+		    
+		}
+	    }
+	    swap_columns(Q[c], lambda[c], i, best_column);
+	}
+    }
+}
+
+/*****************************************************************************/
+/*
+ * Average the per-band templates.
+ *
+ * This is a bit of a pain... First set the pixels outside the detection footprint to SOFT_BIAS (not 0),
+ * then add a fraction 1/ncolor of each template to the 0th (also scaled down by 1/ncolor); this scaling
+ * avoids overflows.  Then clip the resulting mean template to the union of the input masks, and copy
+ * it back into the per-band templates.
+ */
+static void
+average_templates(OBJC *child)
+{
+    int c;
+    OBJMASK *mask = phObjmaskCopy(child->color[0]->mask, 0, 0);
+    
+    for(c = 0; c < child->ncolor;c++) {
+	OBJECT1 *obj1 = child->color[c];
+	phAtlasImageSetIfNotInObjmask(child->aimage, c, obj1->mask, SOFT_BIAS);
+
+	phAtlasImagesTimesEquals(child->aimage, c, 1/(float)child->ncolor);
+	if (c > 0) {
+	    phObjmaskOrObjmask(mask, child->color[c]->mask);
+	    phAtlasImagesPlusEquals(child->aimage, 0, child->aimage, c, 0);
+	}
+    }
+	   
+    for(c = 0; c < child->ncolor;c++) {
+	phAtlasImageSetIfNotInObjmask(child->aimage, c, mask, 0);
+	if (c > 0) {
+	    phAtlasImagesPixelsCopy(child->aimage, c, child->aimage, 0);
+	}
+    }
+
+    phObjmaskDel(mask);
 }
 
 /*****************************************************************************/
@@ -2191,10 +2821,8 @@ phObjcDeblend(OBJC *objc,		/* object to deblend */
 	 binreg = phMedianSmooth(sub, bin_r, bin_c, 1, minval, maxval,
 				 0, 0, NULL, 0, (PIXDATATYPE)0);
 	 if(dump_filename != NULL) {
-		 /*
-		  shRegWriteAsFits(binreg->reg,
-		  dump_filename, STANDARD, 2,DEF_NONE,NULL,0);
-		  */
+	    shRegWriteAsFits(binreg->reg,
+			     dump_filename, STANDARD, 2,DEF_NONE,NULL,0);
 	    dump_filename = NULL;
 	 }
       }
@@ -2427,10 +3055,8 @@ phObjcDeblend(OBJC *objc,		/* object to deblend */
        static char *dump_filename = NULL; /* write data to this file?
 					     For use from gdb */
        if(dump_filename != NULL) {
-		   /*
-			shRegWriteAsFits((REGION *)fiparams->frame[c].data,
-			dump_filename, STANDARD, 2,DEF_NONE,NULL,0);
-			*/
+	   shRegWriteAsFits((REGION *)fiparams->frame[c].data,
+			    dump_filename, STANDARD, 2,DEF_NONE,NULL,0);
 	   dump_filename = NULL;
        }
    }
@@ -2580,10 +3206,8 @@ phObjcDeblend(OBJC *objc,		/* object to deblend */
 	    
 	    
 	    if(dump_filename != NULL) {
-			/*
-			 shRegWriteAsFits((REGION *)fiparams->frame[c].data,
-			 dump_filename, STANDARD, 2,DEF_NONE,NULL,0);
-			 */
+	       shRegWriteAsFits((REGION *)fiparams->frame[c].data,
+				dump_filename, STANDARD, 2,DEF_NONE,NULL,0);
 	       dump_filename = NULL;
 	    }
 #if 0
@@ -3287,766 +3911,98 @@ phObjcDeblend(OBJC *objc,		/* object to deblend */
    return(0);
 }
 
-
-
-#if 0
-
-
-static void average_peak_centers(const PEAK *peak1, const PEAK *peak2,
-				 float *rowc, float *colc);
-static void merge_peaks(PEAK *peak_i, PEAK *peak_j);
-
 /*****************************************************************************/
 /*
- * <AUTO EXTRACT>
+ * Given an OBJC that is thought to be moving, generate proper centres
+ * and atlas images
  *
- * Setup scratch space for the deblender
- */
-void
-phDeblendSet(REGION *i_scr0,
-	     REGION *i_scr1,
-	     REGION *i_scr2,
-	     REGION *i_scr3)
-{
-   int i;
-   
-   scr0 = i_scr0; scr1 = i_scr1; scr2 = i_scr2;
-
-   if(scr0 == NULL) {
-      shAssert(scr1 == NULL && scr2 == NULL && i_scr3 == NULL);
-      return;
-   }
-
-   shAssert(scr0->type == TYPE_PIX);
-   shAssert(scr1 != NULL && scr1->type == TYPE_PIX);
-   shAssert(scr1->nrow == scr0->nrow && scr1->ncol == scr0->ncol);
-   shAssert(scr2 != NULL && scr2->type == TYPE_PIX);
-   shAssert(scr2->nrow == scr0->nrow && scr2->ncol == scr0->ncol);
-   shAssert(i_scr3 != NULL && i_scr3->type == TYPE_PIX);
-   shAssert(i_scr3->nrow == scr0->nrow && i_scr3->ncol == scr0->ncol);
-/*
- * we want to make a MASK out of the i_scr3
- */
-   shAssert(sizeof(mscr0->rows[0][0]) <= sizeof(PIX));
-
-   mscr0 = shMaskNew("deblender", i_scr3->nrow, 0);
-   for(i = 0; i < mscr0->nrow; i++) {
-      mscr0->rows[i] = (unsigned char *)i_scr3->ROWS[i];
-   }
-   mscr0->ncol = i_scr3->ncol;
-}
-
-/*****************************************************************************/
-/*
- * Note that we don't actually own this scratch space, we merely borrowed
- * it in phDeblendSet
- */
-void
-phDeblendUnset(void)
-{
-   scr0 = scr1 = scr2 = NULL;
-   mscr0->rows[0] = NULL;		/* memory belongs to i_scr3 */
-   shMaskDel(mscr0); mscr0 = NULL;
-}
-
-/*****************************************************************************/
-/*
- * Given an OBJC, create a child from OBJC->peaks->peaks[n], link it into
- * OBJC->children or OBJC->sibbs, and copy appropriate fields
- */
-OBJC *
-phObjcChildNew(OBJC *objc,		/* the parent */
-	       const PEAK *peak,	/* which peak? */
-	       const FIELDPARAMS *fiparams, /* gain etc. */
-	       int is_child)		/* make new OBJC a child, not a sibb */
-{
-   OBJC *child;				/* the desired child */
-   int c;				/* a color index */
-   OBJECT1 *cobj1;			/* an OBJECT1 in child */
-   PEAK *cpeak;				/* == cobj1->peaks->peaks[0] */
-   float drow, dcol;			/* offsets from reference colour */
-   float drowErr, dcolErr;		/* errors in drow, dcol */
-   int i;
-   const OBJECT1 *obj1;			/* an OBJECT1 in objc */
-   SPANMASK *sm;			/* == obj1->region->mask */
-   
-   shAssert(objc != NULL && objc->peaks != NULL);
-   shAssert(peak != NULL);
-
-   objc->nchild++;
-   child = phObjcNew(objc->ncolor);
-   child->parent = objc; shMemRefCntrIncr(child->parent);
-   child->flags = objc->flags & (OBJECT1_EDGE |
-				 OBJECT1_INTERP |
-				 OBJECT1_NOTCHECKED |
-				 OBJECT1_SUBTRACTED);
-   child->flags |= OBJECT1_CHILD;
-   if(peak->flags & PEAK_MOVED) {
-      child->flags |= OBJECT1_MOVED;
-   }
-   child->flags3 = objc->flags3 & OBJECT3_GROWN_MERGED;
-/*
- * link new child as a sibling of objc->children or objc->sibbs according
- * to the value of is_child
- */
-   if(is_child) {
-      if(objc->children == NULL) {
-	 objc->children = child;
-      } else {
-	 OBJC *tmp = objc->children;
-
-	 while(tmp->sibbs != NULL) tmp = tmp->sibbs;
-	 tmp->sibbs = child;
-      }
-   } else {
-      if(objc->sibbs == NULL) {
-	 objc->sibbs = child;
-      } else {
-	 OBJC *tmp = objc->sibbs;
-
-	 while(tmp->sibbs != NULL) tmp = tmp->sibbs;
-	 tmp->sibbs = child;
-      }
-   }
-/*
- * and set fields from the parent
- */
-   for(i = 0;i < objc->ncolor;i++) {
-      obj1 = objc->color[i];
-      cobj1 = child->color[i] = phObject1New();
-      shAssert(obj1 != NULL && obj1->mask != NULL);
-      shAssert(obj1->region != NULL && obj1->region->mask != NULL);
-      sm = (SPANMASK *)obj1->region->mask;
-      shAssert(sm != NULL && sm->cookie == SPAN_COOKIE);
-
-      cobj1->flags = obj1->flags & (OBJECT1_CANONICAL_CENTER |
-				    OBJECT1_EDGE |
-				    OBJECT1_NOTCHECKED |
-				    OBJECT1_SUBTRACTED);
-      cobj1->flags |= OBJECT1_CHILD;
-      cobj1->flags2 = obj1->flags2 & OBJECT2_LOCAL_EDGE;
-      cobj1->flags3 = obj1->flags3 & OBJECT3_GROWN_MERGED;
-
-      cobj1->region = shSubRegNew("",obj1->region,
-				  obj1->region->nrow, obj1->region->ncol,
-				  0, 0, NO_FLAGS);
-      shAssert(cobj1->region != NULL);
-      cobj1->region->row0 = obj1->region->row0;
-      cobj1->region->col0 = obj1->region->col0;
-      cobj1->region->mask = (MASK *)phSubSpanmaskNew(sm);
-
-      cobj1->mask = NULL;
-
-      cobj1->sky = obj1->sky; cobj1->skyErr = obj1->skyErr;
-   }
-/*
- * and copy the master_mask to the children
- */
-   shAssert(objc->aimage->master_mask != NULL);
-   child->aimage->master_mask =
-     phObjmaskCopy(objc->aimage->master_mask, 0, 0);
-/*
- * now set the centres from the peaks list. We label it BINNED1 for now,
- * although we'll reconsider this when deblending
- */
-   do {
-      c = phPeakBand(peak);
-      shAssert(c < objc->ncolor);
-      cobj1 = child->color[c];
-
-      shAssert(cobj1->peaks == NULL);	/* only one peak in each band */
-      cobj1->peaks = phPeaksNew(1);
-      cobj1->peaks->npeak++;
-      cpeak = cobj1->peaks->peaks[0];
-      phPeakCopy(cpeak, peak);
-
-      if(peak->flags & PEAK_CANONICAL) {
-	 phOffsetDo(fiparams, peak->rowc, peak->colc, 
-		    fiparams->ref_band_index, c,
-		    1, NULL, NULL, &drow, &drowErr, &dcol, &dcolErr);
-	 cpeak->rowc += drow;
-	 cpeak->colc += dcol;
-	 cpeak->flags &= ~PEAK_CANONICAL; /* it no longer is*/
-      }
-      if (peak->flags & PEAK_REAL) {	/* our position was derived in this band */
-	  drowErr = dcolErr = 0;	/*   => no added error; PR 6747 */
-      }
-
-      cpeak->next = NULL;
-      cpeak->flags &= ~PEAK_DANGLING;	/* it no longer is */
-
-      if(cobj1->rowcErr < -900) {	/* not yet set */
-	 cobj1->rowc = cpeak->rowc;
-	 cobj1->rowcErr = sqrt(pow(cpeak->rowcErr,2) + pow(drowErr,2));
-	 cobj1->colc = cpeak->colc;
-	 cobj1->colcErr = sqrt(pow(cpeak->colcErr,2) + pow(dcolErr,2));
-
-	 cobj1->flags |= OBJECT1_BINNED1;
-      }
-
-      if(cpeak->flags & PEAK_PEAKCENTER) { /* used pixel center as peak */
-	 child->flags |= OBJECT1_PEAKCENTER;
-	 cobj1->flags |= OBJECT1_PEAKCENTER;
-      }
-      if(cpeak->flags & PEAK_SATUR) {	/* a saturated peak */
-	 cobj1->flags |= OBJECT1_SATUR;
-      }
-
-      cobj1->profMean[0] = cpeak->peak;
-      /*
-       * deal with known objects
-       */
-      if (cpeak->catID != 0 && child->catID != peak->catID) {
-	  if (child->catID != 0) {
-	      fprintf(stderr,"Replacing catID %d with %d\n", child->catID, peak->catID);
-	  }
-	  child->catID = peak->catID;
-      }
-
-      peak = (PEAK *)peak->next;
-   } while(peak != NULL);
-/*
- * if the OBJECT1 in some band still has no centre, generate one from the
- * canonical centre
- */
-   phObjcCenterCalc(child, fiparams, 0); /* find canonical centre */
-   for(c = 0;c < child->ncolor;c++) {
-      cobj1 = child->color[c];
-      
-      if(!(cobj1->flags & OBJECT1_DETECTED)) { /* no peak, so no centre */
-	 phOffsetDo(fiparams, child->rowc, child->colc, 
-		    fiparams->ref_band_index, c,
-		    0, NULL, NULL, &drow, &drowErr, &dcol, &dcolErr);
-	 cobj1->rowc = child->rowc + drow;
-	 cobj1->rowcErr = sqrt(pow(child->rowcErr,2) + pow(drowErr,2));
-	 cobj1->colc = child->colc + dcol;
-	 cobj1->colcErr = sqrt(pow(child->colcErr,2) + pow(dcolErr,2));
-	 cobj1->flags |= OBJECT1_CANONICAL_CENTER;
-      }
-   }
-   
-   return(child);
-}
-
-
-/*****************************************************************************/
-/*
- * <AUTO EXTRACT>
- *
- * Make an OBJC's children, returning the number created (may be 0)
- *
- * Once an OBJC has been through phObjcMakeChildren() it has a non-NULL
- * children field which points at one of its children; in addition its
- * OBJECT1_BLENDED bit is set, and nchild is one or more.
- *
- * Each child has a non-NULL parent field which points to its parent, and may
- * have a sibbs field too. It has its OBJECT1_CHILD bit set.
+ * Return 0 if OK, -1 in case of trouble; in this case, the object is
+ * deleted
  */
 int
-phObjcMakeChildren(OBJC *objc,		/* give this OBJC a family */
-		   const FIELDPARAMS *fiparams) /* misc. parameters */
+phObjcDeblendMovingChild(OBJC *objc,	/* OBJC to deblend */
+			 const FIELDPARAMS *fiparams) /* info about frame */
+
 {
-   const PEAK *cpeak;			/* == objc->peaks->peaks[] */
-   float errMin = 0;			/* minimum possible positional error */
-   int i, j;
-   OBJC *moving;			/* objc's moving sibbling */
-   PEAK *mpeaks[NCOLOR];		/* list of possibly-moving peaks */
-   int nchild;				/* number of children created */
-   PEAK *peak;				/* a PEAK in the OBJC */
-   float min_peak_spacing;
+   float col[NCOLOR], colErr[NCOLOR];	/* estimated col centre in each band */
+   float drow, dcol;			/* offset from canonical band */
+   float drowErr, dcolErr;		/* errors in drow, dcol */
+   int flags2;				/* flags2 bits set in velocity fit */
+   int i;
+   OBJECT1 *obj1;			/* == objc->color[] */
+   int ndetect;				/* how many times was object found? */
+   float row[NCOLOR], rowErr[NCOLOR];	/* estimated row centre in each band */
 
-   shAssert(objc != NULL && objc->peaks != NULL && fiparams != NULL);
-   min_peak_spacing = fiparams->deblend_min_peak_spacing;
-
-   nchild = objc->peaks->npeak;
+   shAssert(objc != NULL && (objc->flags2 & OBJECT2_DEBLENDED_AS_MOVING));
+   shAssert(objc->parent != NULL && objc->parent->aimage != NULL);
+   shAssert(fiparams != NULL);
 /*
- * See if this blend might simply be a moving object.
- *
- * Look for objects detected in a different place in each band, i.e. that
- * show up as a single detection in a given band. We currently
- * only allow a single unmatched detection in each band, and
- * require that there are at least ndetect_min detections in toto.
- *
- * We do not require the peaks to appear in the order of the filters
- * on the sky, although we shall use this as a criterion when
- * deciding whether to deblend as a moving object
- *
- * We can do a little better for isolated moving objects; if we have no
- * more than one detection in each band we can ask if they are consistent
- * with a moving object; to do this it is sufficient to set the OBJECT1_MOVED
- * bit and see if the fit is acceptable
+ * In how many bands was the object detected? Was this enough?
+ */
+   ndetect = 0;
+   for(i = 0; i < objc->ncolor; i++) {
+      if(objc->color[i]->flags & OBJECT1_BINNED1) {
+	 ndetect++;
+      }
+   }
+   if(ndetect <= 2) {
+      objc->parent->flags2 |= (OBJECT2_TOO_FEW_DETECTIONS |
+			       OBJECT2_NODEBLEND_MOVING);
+      objc->parent->flags2 &= ~OBJECT2_DEBLENDED_AS_MOVING;
+      phObjcChildDel(objc);
+      
+      return(-1);
+   }
+/*
+ * estimate the velocity
+ */
+   flags2 = phVelocityFind(objc, fiparams, row, rowErr, col, colErr, NULL);
+
+   if(flags2 & OBJECT2_TOO_FEW_GOOD_DETECTIONS) { /* too few good detections */
+      objc->parent->flags2 |= (OBJECT2_TOO_FEW_GOOD_DETECTIONS |
+			       OBJECT2_NODEBLEND_MOVING);
+      objc->parent->flags2 &= ~OBJECT2_DEBLENDED_AS_MOVING;
+      phObjcChildDel(objc);
+      
+      return(-1);
+   } else if(flags2 & OBJECT2_BAD_MOVING_FIT) {
+      objc->parent->flags2 |= (OBJECT2_BAD_MOVING_FIT_CHILD |
+			       OBJECT2_NODEBLEND_MOVING);
+      objc->parent->flags2 &= ~OBJECT2_DEBLENDED_AS_MOVING;
+      phObjcChildDel(objc);
+      
+      return(-1);
+   }
+/*
+ * If the velocity is consistent with zero, don't deblend as moving
+ */
+   if(flags2 & OBJECT2_STATIONARY) {
+      objc->parent->flags2 |= (OBJECT2_STATIONARY |
+			       OBJECT2_NODEBLEND_MOVING);
+      objc->parent->flags2 &= ~OBJECT2_DEBLENDED_AS_MOVING;
+      phObjcChildDel(objc);
+      
+      return(-1);
+   }
+/*
+ * The positions in bands that weren't detected should be those from
+ * the velocity fit, suitably transformed, rather than a suitably
+ * transformed canonical centre
  */
    for(i = 0; i < objc->ncolor; i++) {
-      mpeaks[i] = NULL;
-   }
-
-   for(i = 0; i < objc->peaks->npeak; i++) {
-      for(peak = objc->peaks->peaks[i]; peak != NULL;
-						   peak = (PEAK *)peak->next) {
-	 j = phPeakBand(peak);
-
-	 if(mpeaks[j] == NULL) {
-	    mpeaks[j] = peak;
-	 } else {
-	    break;			/* two detections in the same band */
-	 }
-      }
-      if(peak != NULL) {		/* we broke out */
-	 break;
-      }
-   }
-   
-   if(i == objc->peaks->npeak) {	/* we didn't break out */
-      objc->flags |= OBJECT1_MOVED;	/* we'll check that the velocity is
-					   consistent with zero and that the
-					   fit's acceptable in a moment, and
-					   maybe clear this bit again */
-   } else if(nchild > 1) {
-      int ndetect = 0;			/* number of single-band detections */
-      int ndetect_min = 2;		/* must be seen at least this many
-					   times in different bands */
-
-      for(i = 0; i < objc->ncolor; i++) {
-	 mpeaks[i] = NULL;
-      }
-
-      for(i = 0; i < objc->peaks->npeak; i++) {
-	 if(objc->peaks->peaks[i] == NULL) {
-	    continue;
-	 }
-/*
- * If there's more than one detection with a good position, this cannot
- * be a moving peak. More precisely, if there's more than one peak that
- * is clearly at the same position it cannot be moving, but if the second
- * (third, ...) peak is merely consistent but has large errors, don't
- * hold that against the primary.  This is a concern because the u and z
- * detections can confuse the gri ones of real moving objects
- *
- * So look at the peaks.
- */
-	 if(objc->peaks->peaks[i]->next != NULL) { /* more than one detection*/
-	    int n = 0;			/* number of "good" detections */
-	    const PEAK *cpeak = objc->peaks->peaks[i];
-	    static float err_min = 0.2;	/* minimum error to accept nth peak */
-	    static float nsigma = 2;	/* minimum significance to treat
-					   peaks as separate */
-	    float const rowc = cpeak->rowc;
-	    float const colc = cpeak->colc;
-	    float const rowcErr = cpeak->rowcErr;
-	    float const colcErr = cpeak->colcErr;
-
-	    do {
-	       if(n == 0) {
-		  n++;			/* first detection's always good */
-	       } else {
-		  if(cpeak->rowcErr > err_min || cpeak->colcErr > err_min) {
-		     ;			/* too bad to invalidate first peak */
-		  } else if(pow(cpeak->rowc - rowc, 2) <
-			    nsigma*nsigma*(cpeak->rowcErr*cpeak->rowcErr +
-					    rowcErr*rowcErr + errMin*errMin) &&
-			    pow(cpeak->colc - colc, 2) <
-			    nsigma*nsigma*(cpeak->colcErr*cpeak->colcErr +
-					    colcErr*colcErr + errMin*errMin)) {
-		     n++;		/* they really are in the same place */
-		  }
-	       }
-	       if(n > 1) {
-		  break;
-	       }
-	       
-	       cpeak = cpeak->next;
-	    } while(cpeak != NULL);
-
-	    if(n > 1) {
-	       continue;		/* two detections of same peak */
-	    }
-	 }
-/*
- * It's only detected in one band; remember the peak in the mpeaks array
- */
-	 for(peak = objc->peaks->peaks[i]; peak != NULL;
-						   peak = (PEAK *)peak->next) {
-	    j = phPeakBand(peak);
-	    
-	    if(mpeaks[j] != NULL) {	/* slot was already taken */
-	       ;			/* somehow decide which one to use;
-					   by doing nothing we keep the
-					   earlier (brighter) one. XXX */
-	    } else {
-	       mpeaks[j] = peak;
-	       ndetect++;
-	    }
-	 }
-      }
-      if(ndetect >= ndetect_min) {
-	 objc->flags |= OBJECT1_MOVED;
-      }
-   }
-/*
- * If the object may have moved, create an extra sibling for it. The array
- * mpeaks points to PEAKs linked into their own lists, so we have to
- * copy them here. The original mpeaks are labelled PEAK_MOVED, so that
- * we can identify and ignore them if we decide to deblend them as a single
- * moving object
- */
-   if(objc->flags & OBJECT1_MOVED) {
-      PEAK *tmp;
-
-      peak = NULL;			/* list of peaks for this relative */
-      for(i = 0; i < objc->ncolor; i++) {
-	 if(mpeaks[i] != NULL) {
-	    tmp = peak;
-	    peak = phPeakNew();
-	    phPeakCopy(peak, mpeaks[i]);
-	    peak->flags &= ~PEAK_DANGLING;
-	    peak->next = NULL;
-	    
-	    mpeaks[i]->flags |= PEAK_MOVED; /* peak is copied into moving */
-
-	    if(tmp != NULL) {
-	       peak->next = tmp;
-	       tmp->flags |= PEAK_DANGLING;
-	    }
-	 }
-      }
-      moving = phObjcChildNew(objc, peak, fiparams, 0);
-      moving->flags |= OBJECT1_MOVED;
-      moving->flags2 |= OBJECT2_DEBLENDED_AS_MOVING;
-      objc->flags2 |= OBJECT2_DEBLENDED_AS_MOVING;
+      obj1 = objc->color[i];
+      shAssert(obj1 != NULL);
       
-      phPeakDel(peak);
-   }
-/*
- * Done with moving objects. See if any of the surviving peaks are
- * too close
- */
-   for(i = 0; i < objc->peaks->npeak; i++) {
-      PEAK *const peak_i = objc->peaks->peaks[i];
-      PEAK *peak_j;
-      float rowc_i, colc_i;		/* == peak_i->{col,row}c */
-      float rowcErr_i, colcErr_i;	/* == peak_i->{col,row}cErr */
-      float rowc_j, colc_j;		/* == peak_j->{col,row}c */
-      float rowcErr_j, colcErr_j;	/* == peak_j->{col,row}cErr */
-
-      if(peak_i == NULL) {
-	 continue;
-      }
-      shAssert(peak_i->flags & PEAK_CANONICAL);
-      
-      rowc_i = peak_i->rowc;
-      colc_i = peak_i->colc;
-      rowcErr_i = peak_i->rowcErr;
-      colcErr_i = peak_i->colcErr;
-      for(j = i + 1; j < objc->peaks->npeak; j++) {
-	 if(objc->peaks->peaks[j] == NULL) {
-	    continue;
-	 }
-
-	 peak_j = objc->peaks->peaks[j];
-	 rowc_j = peak_j->rowc;
-	 colc_j = peak_j->colc;
-	 rowcErr_j = peak_j->rowcErr;
-	 colcErr_j = peak_j->colcErr;
-	 if(pow(fabs(rowc_i - rowc_j) - rowcErr_i - rowcErr_j, 2) +
-	    pow(fabs(colc_i - colc_j) - colcErr_i - colcErr_j, 2) <
-					   min_peak_spacing*min_peak_spacing) {
-	    objc->flags2 |= OBJECT2_PEAKS_TOO_CLOSE;
-/*
- * If the two peaks are in the same band, delete peak_j otherwise add
- * it to peak_i's ->next list.  If there's already a peak on the ->next
- * list in the same band, average their positions
- */
-	    merge_peaks(peak_i, peak_j);
-
-	    objc->peaks->peaks[j] = NULL;
-	    nchild--;
-
-	    i--;			/* reconsider the i'th peak */
-	    break;
-	 }
-      }
-   }
-/*
- * We demand that the children are detected in at least deblend_min_detect
- * bands; reject peaks that fail this test
- */
-   for(i = 0; i < objc->peaks->npeak; i++) {
-      int n;				/* number of detections */
-
-      if(objc->peaks->peaks[i] == NULL) {
-	 continue;
-      }
-
-      for(n = 0, peak = objc->peaks->peaks[i]; peak != NULL;
-						   peak = (PEAK *)peak->next) {
-	 n++;
-      }
-      if(n < fiparams->deblend_min_detect) {
-	 objc->flags2 |= OBJECT2_TOO_FEW_DETECTIONS;
-	 
-	 phPeakDel(objc->peaks->peaks[i]);
-	 objc->peaks->peaks[i] = NULL;
-	 nchild--;
-      }
-   }
-/*
- * condense the peaks list
- */
-   if(nchild != objc->peaks->npeak) {
-      for(i = j = 0; i < objc->peaks->npeak; i++) {
-	 if(objc->peaks->peaks[i] != NULL) {
-	    objc->peaks->peaks[j++] = objc->peaks->peaks[i];
-	 }
-      }
-      shAssert(j == nchild);
-      for(i = nchild; i < objc->peaks->npeak; i++) {
-	 objc->peaks->peaks[i] = NULL;	/* it's been moved down */
-      }
-      phPeaksRealloc(objc->peaks, nchild);
-   }
-/*
- * and create the desired children
- */
-   if(objc->peaks->npeak > fiparams->nchild_max) { /* are there too many? */
-      objc->flags |= OBJECT1_DEBLEND_TOO_MANY_PEAKS;
-      phPeaksRealloc(objc->peaks, fiparams->nchild_max);
-   }
-
-   for(i = 0;i < objc->peaks->npeak;i++) { /* create children */
-      cpeak = objc->peaks->peaks[i];
-      (void)phObjcChildNew(objc, cpeak, fiparams, 1);
-   }
-
-   return(objc->peaks->npeak + ((objc->sibbs != NULL) ? 1 : 0));
-}
-
-/*****************************************************************************/
-/*
- * Merge peak_j into peak_i, including processing their ->next chains
- */
-static void
-merge_peaks(PEAK *peak_i,
-	    PEAK *peak_j)
-{
-   int flagi = 0, flagj = 0;		/* union of [ij] flags */
-   int i, j;
-   int npeak_i, npeak_j;
-   PEAK *peaki, *peakj;			/* pointers to peak_[ij]->next chains*/
-   PEAK **peaklist_i, **peaklist_j;		/* unpacked [ij] chains */
-/*
- * Count the ->next peaks, and OR together their flags
- */
-   for(npeak_i = 0, peaki = peak_i; peaki != NULL;
-						 peaki = (PEAK *)peaki->next) {
-      shAssert((flagi & peaki->flags) == 0); /* no duplicates within chain */
-      flagi |= (peaki->flags & PEAK_BANDMASK);
-      npeak_i++;
-   }
-
-   for(npeak_j = 0, peakj = peak_j; peakj != NULL;
-						 peakj = (PEAK *)peakj->next) {
-      shAssert((flagj & peakj->flags) == 0); /* no duplicates within chain */
-      flagj |= (peakj->flags & PEAK_BANDMASK);
-      npeak_j++;
-   }
-/*
- * look for peaks on the two chains that are in the same band;
- * we can easily detect the simple no-duplicates case
- */
-   if((flagi & flagj) == 0) {		/* no duplicates */
-      for(peaki = peak_i; peaki->next != NULL; peaki = (PEAK *)peaki->next) {
-	 ;
-      }
-      peaki->next = peak_j;
-      peak_j->flags |= PEAK_DANGLING;
-
-      return;
-   }
-/*
- * unpack the ->next chains.  This makes removing PEAKs from the middle
- * of the (singly-linked) lists much easier
- */
-   peaklist_i = alloca(npeak_i*sizeof(PEAK *));
-   for(i = 0, peaki = peak_i; peaki != NULL; peaki = (PEAK *)peaki->next) {
-      peaklist_i[i++] = peaki;
-   }
-   peaklist_j = alloca(npeak_j*sizeof(PEAK *));
-   for(j = 0, peakj = peak_j; peakj != NULL; peakj = (PEAK *)peakj->next) {
-      peaklist_j[j++] = peakj;
-   }
-/*
- * look for multiple detections in the same band
- */
-   for(i = 0; i < npeak_i; i++) {
-      peaki = peaklist_i[i];
-      
-      for(j = 0; j < npeak_j; j++) {
-	 peakj = peaklist_j[j];
-
-	 if(peakj == NULL) {		/* already merged */
-	    continue;
-	 }
-
-	 if(phPeakBand(peaki) == phPeakBand(peakj)) {
-	    average_peak_centers(peaki, peakj, &peaki->rowc, &peaki->colc);
-	    peakj->flags &= ~PEAK_DANGLING; peakj->next = NULL;
-	    phPeakDel(peakj);
-	    peaklist_j[j] = NULL;
-	    if(j > 0 && peaklist_j[j - 1] != NULL) {
-	       peaklist_j[j - 1]->next = NULL;
-	    }
-	    break;
-	 }
-      }
-   }
-/*
- * Add the surviving peak_j peaks to peak_i
- */
-   peaki = peaklist_i[npeak_i - 1];	/* end of ->next chain */
-   for(j = 0; j < npeak_j; j++) {
-      peakj = peaklist_j[j];
-      
-      if(peakj == NULL) {		/* already merged */
-	 continue;
-      }
-
-      peaki->next = peakj;
-      peakj->flags |= PEAK_DANGLING;
-      
-      peaki = (PEAK *)peaki->next;
-   }
-}
-   
-/*****************************************************************************/
-/*
- * <AUTO EXTRACT>
- *
- * Delete all of an OBJC's children
- */
-void
-phObjcChildrenDel(OBJC *objc)
-{
-   phObjcDel(objc->sibbs, 1);
-   objc->sibbs = NULL;
-
-   phObjcDel(objc->children, 1);
-   objc->children = NULL;
-
-   objc->nchild = 0;
-}
-
-/*****************************************************************************/
-/*
- * <AUTO EXTRACT>
- *
- * Recalculate an object's centre now that it's been deblended, based
- * on its nominal peak position
- */
-void
-phDeblendedObjcRecenter(OBJC *objc,	/* the object in question */
-			const FIELDPARAMS *fiparams) /* properties of field */
-{
-   int c;
-   const REGION *data;			/* == fiparams->frame[c].data */
-   float drow, dcol;			/* offsets from reference colour */
-   OBJECT1 *obj1;
-   int rpeak, cpeak;			/* peak pixel of an object */
-   float threshold;			/* threshold for accepting peaks */
-
-   shAssert(objc != NULL && fiparams != NULL);
-   
-   for(c = 0;c < objc->ncolor;c++) {
-      obj1 = objc->color[c];
-      
-      if(obj1 == NULL) {
-	 continue;
-      }
-/*
- * Was the centre already estimated for missing detections of this object,
- * based on it's motion?
- */
-      if(objc->flags2 & OBJECT2_DEBLENDED_AS_MOVING) {
-	 continue;
-      }
-/*
- * See if the peak was bright enough to have been detected, but wasn't;
- * this can happen to children due to the vagueries of peak matching
- */
-      if(objc->parent == NULL) {
-	 continue;
-      }
-
-      if(obj1->peaks == NULL || obj1->peaks->npeak == 0) {
-	 shAssert(!(obj1->flags & OBJECT1_DETECTED));
-
+      if(obj1->flags & OBJECT1_CANONICAL_CENTER) {
 	 phOffsetDo(fiparams, objc->rowc, objc->colc, 
-		    fiparams->ref_band_index, c,
-		    1, NULL, NULL, &drow, NULL, &dcol, NULL);
-
-	 rpeak = objc->rowc + drow;
-	 cpeak = objc->colc + dcol;
-	 data = fiparams->frame[c].data;
-	 shAssert(data != NULL);
-	 
-	 threshold = fiparams->frame[c].ffo_threshold +
-					   fiparams->frame[c].bkgd + SOFT_BIAS;
-
-	 if(rpeak < 0 || rpeak >= data->nrow ||
-	    cpeak < 0 || cpeak >= data->ncol ||
-					data->ROWS[rpeak][cpeak] < threshold) {
-	    continue;
-	 } else {
-	    obj1->flags  |= OBJECT1_BINNED1;
-	    obj1->flags2 |= OBJECT2_DEBLEND_NOPEAK;
-	    
-	    if(obj1->peaks == NULL) {
-	       obj1->peaks = phPeaksNew(1);
-	    } else {
-	       phPeaksRenew(obj1->peaks, 1);
-	    }
-	    
-	    obj1->peaks->npeak = 1;
-	    obj1->peaks->peaks[0]->rpeak = rpeak;
-	    obj1->peaks->peaks[0]->cpeak = cpeak;
-	 }
+		    fiparams->ref_band_index, i,
+		    0, NULL, NULL, &drow, &drowErr, &dcol, &dcolErr);
+	 obj1->colc = col[i] + dcol;
+	 obj1->colcErr = sqrt(pow(colErr[i],2) + pow(dcolErr,2));
+	 obj1->rowc = row[i] + drow;
+	 obj1->rowcErr = sqrt(pow(rowErr[i],2) + pow(drowErr,2));
       }
-
-      phObject1CenterFit(obj1, fiparams->frame[c].data,
-			 &fiparams->frame[c], 32, ALWAYS_SMOOTH);
    }
-
-   if(objc->peaks != NULL) {
-      objc->peaks->npeak = 0;		/* discard old peaks list */
-   }
-   phObjcPeaksSetFromObject1s(objc, fiparams);
-  
-   objc->flags3 &= ~OBJECT3_HAS_CENTER;
-   phObjcCenterCalc(objc, fiparams, 0);	/* find canonical centre */
+   
+   return(0);
 }
-
-
-
-
-/*****************************************************************************/
-/*
- * Average together the positions of two peaks
- */
-static void
-average_peak_centers(const PEAK *peak1,	/* the peaks */
-		     const PEAK *peak2,	/*         in question */
-		     float *rowc, float *colc)	/* mean position */
-{
-   const float val1 = peak1->peak; const float val2 = peak2->peak;
-   const float rowc1 = peak1->rowc; const float rowc2 = peak2->rowc;
-   const float colc1 = peak1->colc; const float colc2 = peak2->colc;
-
-   shAssert(val1 + val2 != 0);
-   shAssert(val1 > -9998.0 && val2 > -9998.0);
-
-   *rowc = (val1*rowc1 + val2*rowc2)/(val1 + val2);
-   *colc = (val1*colc1 + val2*colc2)/(val1 + val2);
-}
-
-
-#endif
-

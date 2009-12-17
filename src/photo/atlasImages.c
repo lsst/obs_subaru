@@ -451,7 +451,7 @@ phAtlasImageSetInObjmask(ATLAS_IMAGE *ai, /* the atlas image with pix to set*/
    int x1, x2, y;			/* unpacked from sp */
 
    shAssert(c >= 0 && c < ai->ncolor);
-   shAssert(ai != NULL && ai->master_mask != NULL)
+   shAssert(ai != NULL && ai->master_mask != NULL);
    shAssert(ai->pix[c] != NULL && ai->pix[c]->mask != NULL && ai->pix[c]->mask->data != NULL);
    shAssert(ai->master_mask->row0 == 0 && ai->master_mask->col0 == 0);
    shAssert(om != NULL && om->npix >= 0);
