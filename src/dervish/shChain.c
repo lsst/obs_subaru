@@ -2434,6 +2434,7 @@ shChainCompare(CHAIN *chain1, char *row1Name, char *col1Name,
   }
   return SH_SUCCESS;
 }
+
 /*
  * ROUTINE: shChainCompare2()
  * 

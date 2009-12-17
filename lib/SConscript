@@ -17,6 +17,13 @@ env.SharedLibrary(
 	+
 	['../src/dervish/'+x+'.c' for x in [
 	'shChain',
+	'shGarbage',
+	'schema',
+	'utils',
+	'errStack',
+	'diskio',
+	'vecOps',
+	'shHash',
 	]]
 	#glob.glob("../src/photo/*.c"),
 	,
