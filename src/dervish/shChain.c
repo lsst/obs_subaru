@@ -2435,6 +2435,7 @@ shChainCompare(CHAIN *chain1, char *row1Name, char *col1Name,
   return SH_SUCCESS;
 }
 
+#if defined(NOPE)
 /*
  * ROUTINE: shChainCompare2()
  * 
@@ -2516,6 +2517,7 @@ shChainCompare2(CHAIN *chain1, char *row1Name, char *col1Name,
   shVectorDel(col2);
   return SH_SUCCESS;
 }
+#endif
 
 
 #ifdef DEBUG
