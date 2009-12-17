@@ -1,0 +1,351 @@
+<HTML>
+<TITLE>regUtils.c</TITLE>
+<H1>regUtils "C" Routines</H1>
+
+<P>Region Utilities perform standards operations on regions. These
+include standard arithmetic operations, like multiply and divide, even
+if the regions have pixels of differing types.  For example, it is
+possible to add an 8-bit region to a floating point region, and store
+the result into a 16-bit unsigned region.
+
+<P>Headers for these functions are available in
+<A HREF="../../include/shCRegUtils.h>shCRegUtils.h</A>.
+
+
+<H2><A NAME="Notes">Notes</A></H2>
+
+<P>Arithmetic operations are performed "as if" all operands are
+converted to a new type which has an exact representation for all the
+values of each type of pixel in the operation.
+
+<P>Before a result is stored back into a pixel, the following
+conversions are performed: 1) If the result is smaller (larger) than
+the smallest (largest) value representable in a pixel, it is set to
+that small (large) value. 2)If any of the operands were a floating
+point type, and the result is an integer type, the result is rounded
+down after 0.5 (-0.5) has been added to the positive (negative) value.
+
+<P>Routines which operate on more than one region require all the
+regions involved to have the same number of rows and columns. If the
+regUtils routines were compiled with NDEBUG undefined, the dimensions
+are checked by means of the sh_assert macro. Otherwise, the dimensions
+are not checked, and calls with mis-sized regions will have
+unpredictable results.  The routines work on sub-regions as well as
+regions.
+ 
+
+<DIR>
+<LI><A HREF=regUtils.html#shRegTypeSwitch>shRegTypeSwitch</A>
+<LI><A HREF=regUtils.html#shRegPixGetAsDbl>shRegPixGetAsDbl</A>
+<LI><A HREF=regUtils.html#shRegPixSetWithDbl>shRegPixSetWithDbl</A>
+<LI><A HREF=regUtils.html#shRegSetWithDbl>shRegSetWithDbl</A>
+<LI><A HREF=regUtils.html#shRegSub>shRegSub</A>
+<LI><A HREF=regUtils.html#shRegAdd>shRegAdd</A>
+<LI><A HREF=regUtils.html#shRegAddWithDbl>shRegAddWithDbl</A>
+<LI><A HREF=regUtils.html#shRegComp>shRegComp</A>
+<LI><A HREF=regUtils.html#shRegRowFlip>shRegRowFlip</A>
+<LI><A HREF=regUtils.html#shRegColFlip>shRegColFlip</A>
+<LI><A HREF=regUtils.html#shRegMultWithDbl>shRegMultWithDbl</A>
+<LI><A HREF=regUtils.html#shRegMult>shRegMult</A>
+<LI><A HREF=regUtils.html#shRegDiv>shRegDiv</A>
+</DIR>
+<PRE></PRE>
+
+<H2><A NAME="shRegTypeSwitch">shRegTypeSwitch</A></H2>
+<P> Switch the pixel type of the entered region.  The type is
+switched to either the entered type (if allowed) or to the 
+logically correct type.  The following switches are allowed.
+<DIR>
+<LI>signed 8-bit data to unsigned 8-bit data and vice versa
+<LI>signed 16-bit data to unsigned 16-bit data and vice versa
+<LI>signed 32-bit data to unsigned 32-bit data and vice versa
+</DIR>
+For example, if an unsigned 8-bit region is entered and no 
+type is entered, the region will have it's type switched to
+signed 8-bit.  In all cases the pixels remain untouched.
+
+<P>Regions with pixel types equal to floating point, cannot be
+switched to any other type.
+
+<LISTING>
+C SYNTAX:
+   double shRegTypeSwitch
+   (
+   REGION  	*region,    /* IN: Region whose pixel type is to be switched */
+   PIXDATATYPE  type        /* IN: Type to switch the pixels to.
+                                   Allowable types are - S8, U8, S16, U16,
+                                                         S32, U32 */
+   )
+RETURNS:
+   SH_SUCCESS           - Operation completed successfully
+   SH_CANT_SWITCH_TYPES - Could not switch the types as requested.
+                          A more explanatory error message has been
+                          pushed on the error stack.
+                               
+</LISTING>
+<PRE></PRE>
+
+<H2><A NAME="shRegPixGetAsDbl">shRegPixGetAsDbl</A></H2>
+<P>
+Return as a double the value of the pixel in REGION at the location specified 
+by ROW and COLUMN.  The macro sdss_assert is used to check that ROW and COLUMN
+are in bounds. 
+See <A HREF=regUtils.html#Notes>Notes</A> for details about arithmetic operations and
+region size.
+
+<LISTING>
+C SYNTAX:
+   double shRegPixGetAsDbl
+   (
+   REGION  	*region,       /* IN: Region whose pixels are to be retrieved */
+   int  	row,           /* IN: Row Number */
+   int  	column,        /* IN: Column Number */
+   )
+RETURNS:
+   The value of the specified pixel.
+                               
+</LISTING>
+<PRE></PRE>
+
+<H2><A NAME="shRegPixSetWithDbl">shRegPixSetWithDbl</A></H2>
+<P>
+Set the pixel in REGION  at ROW, COL to the value implied by CONSTANT.
+See <A HREF=regUtils.html#Notes>Notes</A> for details about arithmetic operations and
+region size.
+
+<LISTING>
+C SYNTAX:
+   void shRegPixSetWithDbl
+   (
+
+   REGION  	*region,        /* MOD: Region whose pixels are to be set */
+   int  	row,	       	/* IN : Row number */ 
+   int	 	column,		/* IN : Column Number */ 
+   double 	constant,       /* IN : Number to set */ 
+   )
+                               
+</LISTING>
+<PRE></PRE>
+<H2><A NAME="shRegSetWithDbl">shRegSetWithDbl</A></H2>
+<P>
+Set all of the pixels in REGION to the value implied by CONSTANT.
+See <A HREF=regUtils.html#Notes>Notes</A> for details about arithmetic operations and
+region size.
+
+<LISTING>
+C SYNTAX:
+   void shRegSetWithDbl
+   (
+   double 	constant,       /* IN : Number for initialization */
+   REGION  	*region,        /* MOD: Region whose pixels are to be set */
+   )
+                               
+</LISTING>
+<PRE></PRE>
+<H2><A NAME="shRegSub">shRegSub</A></H2>
+<P>
+Subtract SUBTRAHEND from MINUEND pixel-by-pixel. Place the resulting pixels in
+RESULT. RESULT may be the same region as SUBTRAHEND or MINUEND.
+See <A HREF=regUtils.html#Notes>Notes</A> for details about arithmetic operations and
+region size.
+
+<LISTING>
+C SYNTAX:
+   void shRegSub
+   (
+   REGION 	*minuend,       /* IN : Region */
+   REGION 	*subtrahend, 	/* IN : This Region's pixels are negated */
+   REGION 	*result,       	/* Mod: Pixels are stored here */
+   )
+                               
+</LISTING>
+<PRE></PRE>
+<H2><A NAME="shRegAdd">shRegAdd</A></H2>
+<P>
+Add ADDEND1 to ADDEND2 pixel-by-pixel. Place the resulting pixels in
+RESULT. RESULT may be the same region as ADDEND1 or ADDEND2.
+See <A HREF=regUtils.html#Notes>Notes</A> for details about arithmetic operations and
+region size.
+
+<LISTING>
+C SYNTAX:
+   void shRegAdd
+   (
+   REGION 	*addend1,       /* IN : First operand Region */
+   REGION 	*addend2, 	/* IN : Second Operand */
+   REGION 	*result,       	/* Mod: Pixels are stored here */
+   )
+                               
+</LISTING>
+<PRE></PRE>
+
+<H2><A NAME="shRegAddWithDbl">shRegAddWithDbl</A></H2>
+<P>
+Add CONSTANT to ADDEND pixel-by-pixel. Place the resulting pixels in
+RESULT. RESULT may be the same region as ADDEND.
+See <A HREF=regUtils.html#Notes>Notes</A> for details about arithmetic operations and
+region size.
+
+<LISTING>
+C SYNTAX:
+   void shRegAddWithDbl
+   (
+   double 	*constant,      /* IN : First operand Region */
+   REGION 	*addend, 	/* IN : Second Operand */
+   REGION 	*result,       	/* Mod: Pixels are stored here */
+   )
+                               
+</LISTING>
+<PRE></PRE>
+
+
+<H2><A NAME="shRegPixCopy">shRegPixCopy</A></H2>
+<P>
+Copy the pixels from REGIN to REGOUT pixel-by-pixel. REGIN and REGOUT may have
+any type of pixel. This procedure correctly copies regions which overlap.
+See <A HREF=regUtils.html#Notes>Notes</A> for details about arithmetic operations and
+region size.
+
+<LISTING>
+C SYNTAX:
+   void shRegPixCopy
+   (
+   REGION 	*regIn, 	/* IN : Source of pixels */
+   REGION 	*regOut,       	/* Mod: Pixels are stored here */
+   )
+                               
+</LISTING>
+<PRE></PRE>
+
+
+<H2><A NAME="shRegComp">shRegComp</A></H2>
+<P>
+Compare the pixels in REG1 to REG1 pixel-by-pixel. REGIN and REGOUT may have
+any type of pixel. If after conversion, a difference is detected, ROWDIFF and
+COLDIFF are set to the row, col of the difference. 
+See <A HREF=regUtils.html#Notes>Notes</A> for details about arithmetic operations and
+region size.
+
+<LISTING>
+C SYNTAX:
+   int shRegComp
+   (
+   REGION 	*region1, 	/* IN : Source of pixels */
+   REGION 	*region2,       /* IN : Source of pixels */
+   int		*rowdiff	/* OUT: row number*/
+   int		*colDiff	/* OUT: Col number*/
+   )
+
+RETURNS:
+   0 - Regions are the same
+   1 - Regions are different
+                               
+</LISTING>
+<PRE></PRE>
+
+
+<H2><A NAME="shRegRowFlip">shRegRowFlip</A></H2>
+<P>
+Flip the pixels in REGION row-wise. This procedure may be called on regions 
+having any type of pixel. Flipping is done by copying pixels, not by altering
+row vectors.
+
+<LISTING>
+C SYNTAX:
+   void shRegRowFlip
+   (
+   REGION 	*region, 	/* Mod : Region to flip */
+   )
+
+                               
+</LISTING>
+<PRE></PRE>
+
+
+<H2><A NAME="shRegColFlip">shRegColFlip</A></H2>
+<P>
+Flip the pixels in REGION column-wise. This procedure may be called on regions 
+having any type of pixel. Flipping is done by copying pixels.
+
+<LISTING>
+C SYNTAX:
+   void shRegColFlip
+   (
+   REGION 	*region, 	/* Mod : Region to flip */
+   )
+
+                               
+</LISTING>
+<PRE></PRE>
+
+
+<H2><A NAME="shRegMultWithDbl">shRegMultWithDbl</A></H2>
+<P>
+Multiply each pixel in REGIN by CONSTANT. Place the result
+in REGOUT. REGIN and REGOUT my be the same. 
+See <A HREF=regUtils.html#Notes>Notes</A> for details about arithmetic operations and
+region size.
+
+<LISTING>
+C SYNTAX:
+   int shRegMultWithDbl
+   (
+   double	constant	/* IN : Constant */
+   REGION 	*regIn, 	/* IN : Source of pixels */
+   REGION 	*regOut,	/* MOD : Sink of pixels */
+   )
+
+                               
+</LISTING>
+<PRE></PRE>
+
+
+<H2><A NAME="shRegMult">shRegMult</A></H2>
+<P>
+Multiply  MULT1 and MULT2 pixel-by-pixel. Divide each pixel by SCALE. Place the result
+in REGOUT. REGOUT may be the same region as MULT1 or MULT2.
+See <A HREF=regUtils.html#Notes>Notes</A> for details about arithmetic operations and
+region size.
+
+<LISTING>
+C SYNTAX:
+   int shRegMult
+   (
+   double	scale		/* IN : Constant */
+   REGION 	*Mult1, 	/* IN : Source of pixels */
+   REGION 	*Mult2, 	/* IN : Source of pixels */
+   REGION 	*regOut,	/* MOD : Sink of pixels */
+   )
+
+                               
+</LISTING>
+<PRE></PRE>
+
+
+
+<H2><A NAME="shRegDiv">shRegDiv</A></H2>
+<P>
+Divide  DIVIDEND by DIVISOR pixel-by-pixel. Multiply the intermediate result by SCALE. 
+Place the result in REGOUT. REGOUT may be the same region as DIVIDEND or DIVISOR.
+See <A HREF=regUtils.html#Notes>Notes</A> for details about arithmetic operations and
+region size.
+
+<LISTING>
+C SYNTAX:
+   int shRegDiv
+   (
+   double	scale		/* IN : Constant */
+   REGION 	*dividend, 	/* IN : Source of pixels */
+   REGION 	*divisor, 	/* IN : Source of pixels (take the inverse of these) */
+   REGION 	*result		/* MOD : Sink of pixels */
+   )
+
+                               
+</LISTING>
+<PRE></PRE>
+
+
+</HTML>
+
+
+

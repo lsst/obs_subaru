@@ -1,0 +1,775 @@
+<HTML>
+<HEAD>
+<TITLE>Dervish Handle Expression Printing Facility</TITLE>
+
+<LINK REV="made" HREF="mailto:pcanal@fnal.gov">
+
+</HEAD>
+
+<BODY>
+
+<h1>Dervish Handle Expression Printing Facility</h1>
+
+<i>
+This document describes the Dervish tcl functions
+that give access to handles, their <b>schema</b> and their values. 
+</i>
+<h2>Table of Contents</h2>
+<DIR>
+  <LI>    <A HREF="#Overview"><B>Overview</B></A>
+       <UL>
+	 <LI> <A HREF="#Introduction"><B>Introduction</B></A>
+	 <LI> <A HREF="#Schema"><B>Functions Giving Access to Schema</B></A>
+	 <LI> <A HREF="#Handle"><B>Functions Giving Access to Handles</B></A>
+	 <LI> <A HREF="#exprGet_Overview"><B>Functions Giving Access to the Contents of Handles</B></A>
+	 <LI> <A HREF="#exprSet_Overview"><B>Functions to Set the Contents of Handles</B></A>
+	 <LI> <A HREF=dervish.dump.html#schemaIntro><B>A Walkthru example</B>
+	 <LI> <A HREF="#String"><B>Limitations with Character Strings</B></A>
+       </UL>
+  <LI>    <A HREF="#Reference"><B>Reference Pages</B></A>
+       <UL>
+	 <LI> <A HREF="#New Functions"><B>Summary</B></A>
+	 <LI> <A HREF=#cTypeGet><B>cTypeGet</B></A> (NA)
+	 <LI> <A HREF="#exprGet"><B>exprGet</B></A>
+	 <LI> <A HREF="#exprPrint"><B>exprPrint</B></A>
+	 <LI> <A HREF=handleExpr.c.html><B>Handle Expression</B></A>
+	 <LI> <A HREF="tclHandle.html#handleGet"><B>handleGet</B></A>
+	 <LI> <A HREF="tclHandle.html#handlePrint"><B>handlePrint</B></A>
+	 <LI> <A HREF="tclHandle.html#handleSet"><B>handleSet</B></A>
+	 <LI> <A HREF="tclHandle.html#handleSetFromHandle"><B>handleSetFromHandle</B></A>
+	 <LI> <A HREF="tclDiskio.html#schemaGet"><B>schemaGet</B></A>
+	 <LI> <A HREF="#schemaPrint"><B>schemaPrint</B></A>
+	 <LI> <A HREF="tclDiskio.html#schemaGetFromType"><B>schemaGetFromType</B></A>
+	 <LI> <A HREF="#schemaPrintFromType"><B>schemaPrintFromType</B></A>
+	 <LI> <A HREF="#schemaKindGet"><B>schemaKindGet</B></A>
+	 <LI> <A HREF="#schemaKindGetFromType"><B>schemaKindGetFromType</B></A>
+	 <LI> <A HREF="tclProcedures.html#schemaMemberGet"><B>schemaMemberGet</B></A>
+       </UL>
+  <LI>    <A HREF="#Appendixes"><B>Appendixes</B>
+       <UL>
+	 <LI> <A HREF=dervish.dump.html><B>Discussion On Object Schema</B></A> 
+	 <LI> <A HREF="#Removed"><B>Functions Only In Dervish v5_1 And Earlier</B></A>
+	 <LI> <A HREF="#Translation"><B>Translation From Dervish v5_1 And Earlier To v5_2 And Later</B></A>
+	 <LI> <A HREF=#handleShow><B>handleShow</B></A>
+	 <LI> <A HREF="#Bugs"><B>Known 'Bugs'</B></A>
+       </UL>
+</DIR>
+<HR>
+
+<h2><A NAME="Overview">Overview</A></h2>
+
+<h3><A NAME="Introduction">Introduction</A></h3>
+
+We can distinguish 4 categories of functions: <p>
+<ul>
+  <LI><A HREF=#Schema>Funnctions Giving Access To Schema</A>
+  <LI><A HREF=#Handle>Functions Giving Access To Handles</A>
+  <LI><A HREF=#exprGet_Overview>Functions Giving Access To The Contents Of Handles</A>
+  <LI><A HREF=#exprSet_Overview>Functions To Set The Contents Of Handles</A>
+</ul>
+
+Throughout this document we will be using the following BOGUS schema in the examples
+of the use of the functions:<P>
+struct BOGUS:<P><PRE>
+	name 	 "char*"
+	Label 	 "char[80]"
+	nrow 	 "int"
+	type 	 "PIXDATATYPE"
+	mask 	 "MASK*"
+	hdr 	 "HDR"
+	all_mask "MASK[10]"</PRE><P>
+
+We followed these rules in designing these functions:
+<UL>
+  <LI>
+       Any function with a <I>Get</I> in its name should return a tcl list, while a function
+       with <I>Print</I> in its name should give a visual result.
+       We provide the functions in both styles when revelent. <P>
+  <LI>
+       All functions which take a handle should be able to deal with a handle
+       expression (h1-&gt;mask.ncol)<P>
+</UL>
+
+<h3><A NAME="Schema">Functions Giving Access To <A HREF=dervish.dump.html>Schema</A>.</A></h3>
+
+<A HREF=#schemaGetFullFromType>schemaGetFullFromType</A> in itself gives enough information
+to provide for any schema info need.  However some additional functions simplify
+everybody's life.  Hence we are providing both getting schema info from a
+type and from an handle.  We will also provide a simpler version which
+gives information only about types and not about alignment and data size.<P>
+
+<DL>
+  <DT><A HREF=#schemaGetFullFromType>schemaGetFullFromType</A> &lt;type&gt;
+  <DT><A HREF=#schemaGetFull>schemaGetFull</A> &lt;handle expr&gt;
+  <DD>Return the complete definition of a schema in the form used by 
+       schemaDefine.<p>
+
+  <DT><A HREF=tclDiskio.html#schemaGet>schemaGet</A> &lt;handle expr&gt;
+  <DT><A HREF=tclDiskio.html#schemaGetFromType>schemaGetFromType</A> &lt;type&gt;
+  <DD>Return a list containing the schema of a data type or handle.<P>
+
+  <DT><A HREF=#schemaPrint>schemaPrint</A> &lt;handle expr&gt;
+  <DT><A HREF=#schemaPrintFromType>schemaPrintFromType</A> &lt;type&gt;
+  <DD>Print the schema of a handle or data type.<P>
+
+  <DT><A HREF="#schemaKindGetFromType">schemaKindGetFromType</A> &lt;type&gt;
+  <DT><A HREF="#schemaKindGet">schemaKindGet</A> &lt;handle expr&gt;
+  <DD>return UNKNOWN, PRIM, ENUM or STRUCT for the schema given by the type or handle.<P>
+
+  <DT><A HREF=tclProcedures.html#schemaMemberGet>schemaMemberGet</A> &lt;type&gt; &lt;elem&gt; 
+  <DD>Return a list containing the schema of an elem of schema. This is particularly
+       helpfull to look at schema when you can or don't want to create an instance of it.<P>
+
+  <DT><A HREF=#cTypeGet>cTypeGet</A> &lt;handle expr&gt;
+  <DD>return the actual C type of the handle expression.<P>
+</DL>
+
+Examples:<p>
+
+<PRE>
+<B>&lt;dervish&gt;</B> schemaGetFullFromType BOGUS
+{BOGUS STRUCT 384 7} {name char 1 NULL 0} {Label char 0 80 4}
+{nrow int 0 NULL 84} {type PIXDATATYPE 0 NULL 88}
+{mask MASK 1 NULL 92} {hdr HDR 0 NULL 96} {all_mask MASK 0 10 104}
+
+<B>&lt;dervish&gt;</B> schemaPrintFullFromType BOGUS
+BOGUS	STRUCT 	384 	7
+name 	char	1	NULL 	0
+Label 	char	0 	80 	4
+nrow 	int	0 	NULL	84
+type 	PIXDATATYPE 0	NULL 	88
+mask 	MASK	1	NULL	92
+hdr 	HDR	0 	NULL	96
+all_mask MASK	0 	10 	104
+
+<B>&lt;dervish&gt;</B> schemaGetFromType BOGUS  
+{name char*} {Label {char[80]}} {nrow int}
+{type PIXDATATYPE} {mask MASK*} {hdr HDR} {all_mask {MASK[10]}}
+
+<B>&lt;dervish&gt;</B> schemaPrintFromType BOGUS
+name char*
+Label {char[80]}
+nrow int
+type PIXDATATYPE
+mask MASK*
+hdr HDR
+all_mask {MASK[10]}
+
+<B>&lt;dervish&gt;</B> schemaKindGetFromType BOGUS
+STRUCT
+
+<B>&lt;dervish&gt;</B> schemaKindGet h1.name
+PRIM
+
+<B>&lt;dervish&gt;</B> cTypeGet h1
+BOGUS
+
+<B>&lt;dervish&gt;</B> cTypeGet h1.Label
+char&lt;80&gt;
+
+<B>&lt;dervish&gt;</B> cTypeGet h1.mask
+MASK*
+
+<B>&lt;dervish&gt;</B> cTypeGet h1.hdr
+HDR
+</pre>
+
+<h3><A NAME="Handle">Functions Giving Access to Handles.</A></h3>
+
+The following can probably be reduced to handleGet and handleNameGet
+since the output of <A HREF=tclHandle.html#handlePrint>handlePrint</A> and
+<A HREF=tclHandle.html#handleGet>handleGet</A> is the name (except for its
+direction: stdout vs tcl interp stack).<P>
+Numerous other small functions have been written to facilitate the use
+of the followings functions (eg. <A HREF=tclProcedures.html#handlePtr>handlePtr</A>,
+<A HREF=tclProcedures.html#handleType>handleType</A>, <A HREF=tclHandle.html>etc...</A>).<P>
+<DL>
+  <DT><A HREF=tclHandle.html#handlePrint>handlePrint</A> &lt;handle expr&gt; 
+  <DD>Prints the address and type of the 'object' pointed by the handle 
+       expression
+
+  <DT><A HREF=tclHandle.html#handleGet>handleGet</A> &lt;handle expr&gt;
+  <DD>Returns the address and type of the 'object' pointed by the handle 
+       expression
+
+  <DT><A HREF=tclHandle.html#handleNameGet>handleNameGet</A> &lt;address&gt;
+  <DD>Return the name of the handle pointing to address if it exits.
+</DL>
+
+Examples:<P>
+
+<PRE>
+<B>&lt;dervish&gt;</B> handlePrint h1
+0x104fe660 REGION
+
+<B>&lt;dervish&gt;</B> handlePrint h1.hdr
+0x104fe69c HDR
+
+<B>&lt;dervish&gt;</B> handlePrint h1.mask
+0x104fe690 PTR
+
+<B>&lt;dervish&gt;</B> handleNameGet 0x104fe660
+h1
+</PRE>
+
+<h3><A NAME="exprGet_Overview">Functions Giving Access to the Content of Handles.</A></h3>
+
+ExprGet can returns the content of a C stuctures in many differents format.<P>
+
+As a reminder a <A HREF=handleExpr.c.html>handle expression</A> can have a type cast.  This allow you
+to give specify how Dervish is to interpret what the handle is pointing to!<p>
+<DL>
+  <DT><A HREF=#exprGet>exprGet</A> [switches] &lt;handle expr&gt;
+  <DD>Return a list giving the values of &lt;handle expr&gt;
+       <P>
+
+  <DT><A HREF=#exprPrint>exprPrint</A> [switches] &lt;handle expr&gt;
+  <DD>Print the content of &lt;handle expr&gt;
+       This is a pretty presentation of the result of exprGet
+       <P>
+
+  <DT>Possible switches:
+  <DD><UL>
+    <LI>-recurse: recurse on any structs (not on pointers)
+    <LI>-nostring: print the addresses of any strings rather than their
+       contents.
+    <LI>-header: Add an additional element containing the description
+	 of the handle itself (eg. {type REGION})
+    <LI>-unfold: Print the contents of any arrays rather than their
+	 starting addresses
+    <LI>-enum: Do not remove the "(enum)" in front of enum values
+    <LI>-flat: Present the arrays in a flat fashion rather than in
+	 a nested way
+    <LI>-limited n:Same as -flat but limit the 'flatening' of an array to the last
+	 n dimensions. n==0 means flatenning all the dimensions. 
+    <LI>-noquote: (exprPrint only) Don't put double quotes around strings!
+    <LI>-noname: (exprPrint only) Don't try to interpret address as handle
+    <LI>-nolabel: (exprGet only) Returns a list of values rather than a keyed list.
+   </UL>
+</DL>
+
+Examples:<P>
+
+<PRE>
+<B>&lt;dervish&gt;</B> exprGet h0
+{name h0} {Label {This is a label}} {nrow 10} {type {(enum) TYPE_U16}}
+{mask 0x14095dc28} {hdr ...} {all_mask 0x14094efc0}
+
+<B>&lt;dervish&gt;</B> exprGet -recurse -nostring h0
+{name 0x14095d9a8} {Label 0x14094ef50} {nrow 10} {type {(enum) TYPE_U16}}
+{mask 0x14095dc28} {hdr {{modCnt 100} {hdrVec 0x0}}} {all_mask 0x14094efc0}
+
+<B>&lt;dervish&gt;</B> exprGet -header -unfold -enum h0
+{type BOGUS} {name h0} {Label {This is a label}} {nrow 10} {type TYPE_U16}
+{mask 0x14095dc28} {hdr ...} {all_mask {{&lt;0&gt; ...} {&lt;1&gt; ...} {&lt;2&gt; ...}}}
+
+<B>&lt;dervish&gt;</B> exprGet -header -unfold -enum -recurse h0
+{type BOGUS} {name h0} {Label {This is a label}} {nrow 10} {type TYPE_U16}
+{mask 0x14095dc28} {hdr {{modCnt 100} {hdrVec 0x0}}} {all_mask
+{{&lt;0&gt; {{name all_mask_0} {nrow 10} {ncol 1} {rows 0x0} {row0 0} {col0 0} {prvt 0x0}}}
+{&lt;1&gt; {{name all_mask_1} {nrow 20} {ncol 2} {rows 0x0} {row0 0} {col0 0} {prvt 0x0}}}
+{&lt;2&gt; {{name all_mask_2} {nrow 30} {ncol 3} {rows 0x0} {row0 0} {col0 0} {prvt 0x0}}}}}
+
+<B>&lt;dervish&gt;</B> exprGet -flat -unfold -recurse -enum -nolabel h0
+
+{type BOGUS} {name h0} {Label {This is a label}} {nrow 10} {type TYPE_U16}
+{mask 0x14095dc28} {hdr {{modCnt 100} {hdrVec 0x0}}} {all_mask
+{{&lt;0&gt; {{name all_mask_0} {nrow 10} {ncol 1} {rows 0x0} {row0 0} {col0 0} {prvt 0x0}}}
+{&lt;1&gt; {{name all_mask_1} {nrow 20} {ncol 2} {rows 0x0} {row0 0} {col0 0} {prvt 0x0}}}
+{&lt;2&gt; {{name all_mask_2} {nrow 30} {ncol 3} {rows 0x0} {row0 0} {col0 0} {prvt 0x0}}}}}
+
+<B>&lt;dervish&gt;</B> exprGet h0.Label
+{This is a label}
+
+<B>&lt;dervish&gt;</B> exprGet -nostring h0.Label
+0x14095d9a8
+
+<B>&lt;dervish&gt;</B> exprGet -header h0.Label
+{type STR} {This is a label}
+
+<B>&lt;dervish&gt;</B> exprGet -header -nostring h0.Label
+{type STR} 0x14094ef50
+
+<B>&lt;dervish&gt;</B> exprGet h0.nrow
+10
+
+<B>&lt;dervish&gt;</B> exprGet -header h0.nrow
+{type INT} 10
+
+<B>&lt;dervish&gt;</B> exprPrint h1
+(h0).name            "h0"
+(h0).Label           "This is a label"
+(h0).nrow            10
+(h0).type            (enum) TYPE_U16
+(h0).mask            (handle)h1
+(h0).hdr             ...
+(h0).all_mask        0x14094efc0
+
+<B>&lt;dervish&gt;</B> exprPrint -recurse -nostring h1
+(h0).name            0x14095d9a8
+(h0).Label           0x14094ef50
+(h0).nrow            10
+(h0).type            (enum) TYPE_U16
+(h0).mask            (handle)h1
+(h0).hdr.modCnt      100
+(h0).hdr.hdrVec      0x0
+(h0).all_mask        0x14094efc0
+
+<B>&lt;dervish&gt;</B> exprPrint -header -unfold -enum h1 
+(h0).name            "h0"
+(h0).Label           "This is a label"
+(h0).nrow            10
+(h0).type            TYPE_U16
+(h0).mask            (handle)h1
+(h0).hdr             ...
+(h0).all_mask&lt;0&gt;     ...
+(h0).all_mask&lt;1&gt;     ...
+(h0).all_mask&lt;2&gt;     ...
+</PRE>
+
+And with h0.f being an array defined as followed: float f&lt;5&gt;&lt;4&gt;&lt;3&gt;
+
+<PRE>
+<B>&lt;dervish&gt;</B> exprPrint -header -unfold h0.f
+h0.f                 PTR
+(h0.f).<0><0><0>     0
+(h0.f).<0><0><1>     0
+(h0.f).<0><0><2>     0
+(h0.f).<0><1><0>     0
+(h0.f).<0><1><1>     0
+(h0.f).<0><1><2>     0
+(h0.f).<0><2><0>     0
+etc ...
+
+<B>&lt;dervish&gt;</B> exprPrint -header -unfold -flat h0.f
+h0.f                 PTR
+h0.f                     0  0  0   0  0  0   0  0  0   0  0  0    0  0  0   0  0  0   0  0  0   0  0  0    0  0  0   0  0  0   0  0  0   0  0  0    0  0  0   0  0  0   0  0  0   0  0  0    0  0  0   0  0  0   0  0  0   0  0  0
+
+<B>&lt;dervish&gt;</B> exprPrint -header -unfold -limited 2 h0.f
+h0.f                 PTR
+(h0.f).<0>              0  0  0   0  0  0   0  0  0   0  0  0
+(h0.f).<1>              0  0  0   0  0  0   0  0  0   0  0  0
+(h0.f).<2>              0  0  0   0  0  0   0  0  0   0  0  0
+(h0.f).<3>              0  0  0   0  0  0   0  0  0   0  0  0
+(h0.f).<4>              0  0  0   0  0  0   0  0  0   0  0  0
+
+<B>&lt;dervish&gt;</B> exprPrint -header -unfold -limited 1 h0.f
+h0.f                 PTR
+(h0.f).<0><0>          0  0  0
+(h0.f).<0><1>          0  0  0
+(h0.f).<0><2>          0  0  0
+(h0.f).<0><3>          0  0  0
+(h0.f).<1><0>          0  0  0
+(h0.f).<1><1>          0  0  0
+(h0.f).<1><2>          0  0  0
+(h0.f).<1><3>          0  0  0
+(h0.f).<2><0>          0  0  0
+(h0.f).<2><1>          0  0  0
+(h0.f).<2><2>          0  0  0
+(h0.f).<2><3>          0  0  0
+(h0.f).<3><0>          0  0  0
+(h0.f).<3><1>          0  0  0
+(h0.f).<3><2>          0  0  0
+(h0.f).<3><3>          0  0  0
+(h0.f).<4><0>          0  0  0
+(h0.f).<4><1>          0  0  0
+(h0.f).<4><2>          0  0  0
+(h0.f).<4><3>          0  0  0
+</PRE>
+
+<H3><A NAME="exprSet_Overview">Functions to Set the Contents of Handles.</A></H3>
+
+<DL>
+  <DT><A HREF=tclHandle.html#handleSet>handleSet</A> &lt;handle expr&gt; value
+  <DD>Set memory pointed to by &lt;handle expr&gt; to &lt;value&gt;.  <br>
+       &lt;value&gt; can be of numerical type, or a string, or a list (in which
+       case we do the equivalent of an arraySet).
+       
+  <DT><A HREF=tclHandle.html#handleSetFromHandle>handleSetFromHandle</A> &lt;handle expr&gt; &lt;handle&gt;
+  <DD>Copy the contents of handle to the location pointed to by &lt;handle expr&gt;
+</DL>
+
+The value passed to <A HREF=tclHandle.html#handleSet>handleSet</A> must be of the same type as the the object pointed
+to by the <A HREF=handleExpr.c.html>handle expression</A>. For arrays and struct you can pass a list of value.<P>
+Examples:<P>
+
+<PRE>
+<B>&lt;dervish&gt;</B> handleSet $header { 100 0x109283091 }
+
+<B>&lt;dervish&gt;</B> handleSet $region { Name 100 100 TYPE_U16 0x01298301 0x0 0x
+0x01298301 0x0 0x0 0x0 0x0 0x0 10 10 { 50 0x119823 } 0x987126 }
+
+</pre>
+
+<H3><A NAME="String">Limitations with Character Strings</A></H3>
+
+<P>
+When character strings are returned as part of an array of character strings
+( char* or char[] ),
+they are quoted to allow Tcl lists to represent the array.
+This behaviour can cause a problem.
+Consider a character string which contains one or more quote characters
+(open or close brace (<SAMP>{}</SAMP>)) that is returned as part of an array
+of character strings (here, the field contains 2 character strings per row):
+
+<PRE WIDTH="132">
+     <B>&LT;dervish&GT;</B> exprGet h1
+     <I>{name {abc}def}} {value {0}}</I>
+</PRE>
+
+Problems will occur when trying to access one of the array elements.  Consider:
+
+<PRE WIDTH="132">
+     <B>&LT;dervish&GT;</B> set x [exprGet h1.name]
+     <I>{name {abc}def}} {value {0}}</I>
+     <B>&LT;dervish&GT;</B> lindex $x 0
+     <I>Error: list element in braces followed by "def}" instead of space</I>
+</PRE>
+
+<P>
+<B>NOTE:</B><I>
+If <B><A HREF=#exprGet>exprGet</A></B> were to quote the brace with a backslash
+(<SAMP>\</SAMP>), behaviour would not be as expected.  Consider:
+
+<PRE WIDTH="132">
+     <B>&LT;dervish&GT;</B> set x [exprGet h1.name]
+     <I>{abc\}def}  {xyz}</I>
+     <B>&LT;dervish&GT;</B> string index [lindex $x 0] 3
+     <I>\</I>
+</PRE>
+
+Notice that the backslash (<SAMP>\</SAMP>) is treated by Tcl as part of the
+string rather than quoting the character following it.
+</I>
+
+<h2><A NAME="Reference">Reference Pages</A></h2>
+<h3><A NAME="New Functions">Summary</A></h3>
+A few of these functions are not yet available (NA).
+<UL>
+  <LI> Schema functions:<PRE>
+       <A HREF=#schemaGetFullFromType>schemaGetFullFromType</A> &lt;type&gt;
+       <A HREF=#schemaGetFull>schemaGetFull</A> &lt;handle expr&gt;
+       <A HREF=tclDiskio.html#schemaGet>schemaGet</A> &lt;handle expr&gt;
+       <A HREF=tclDiskio.html#schemaGetFromType>schemaGetFromType</A> &lt;type&gt;
+       <A HREF=#schemaPrint>schemaPrint</A> &lt;handle expr&gt;
+       <A HREF=#schemaPrintFromType>schemaPrintFromType</A> &lt;type&gt;
+       <A HREF=#schemaKindGetFromType>schemaKindGetFromType</A> &lt;type&gt;
+       <A HREF=#schemaKindGet>schemaKindGet</A> &lt;handle expr&gt;
+       (NA) <A HREF=#cTypeGet>cTypeGet</A> &lt;handle expr&gt;
+
+       See also the discussion on <A HREF=dervish.dump.html>object schema</A></PRE> 
+  <LI> Handle functions:<PRE>
+       <A HREF=tclHandle.html#handlePrint>handlePrint</A> &lt;handle expr&gt;
+       <A HREF=tclHandle.html#handleGet>handleGet</A> &lt;handle expr&gt;
+       <A HREF=tclHandle.html#handleNameGet>handleNameGet</A> &lt;address&gt;
+       
+       <A HREF=tclHandle.html>And more ...</A></PRE>
+  <LI> Handle Expression functions:<PRE>
+       <A HREF=#exprGet>exprGet</A> [-enum] [-flat] [-header] [-nostring] [-recurse] [-unfold]  &lt;handle expr&gt;
+       <A HREF=#exprPrint>exprPrint</A> [-enum] [-flat] [-header] [-noname] [-noquote] [-nostring] [-recurse] [-unfold] &lt;handle expr&gt;</PRE>
+  <LI> Setting Handle Expression:<PRE>
+       <A HREF=tclHandle.html#handleSet>handleSet</A> &lt;handle expr&gt; &lt;value&gt;
+       <A HREF=tclHandle.html#handleSetFromHandle>handleSetFromHandle</A> &lt;handle expr&gt; &lt;handle expression&gt;</PRE>
+</UL>
+
+<HR>
+<H3><A NAME="exprGet">exprGet</A></H3>
+<P>
+Return a nested keyed list of the value of an handle expression.
+See the <A HREF=#exprGet_Overview>overview on exprGet</A> for more
+details.
+<listing>
+exprGet h4
+exprGet &amp;h4
+exprGet h4.mask
+exprGet (&amp;h4)->mask
+exprGet h4.mask->nrow
+exprGet h4.mask->rows&lt;1&gt;&lt;2&gt;
+exprGet *((FOO*)h12.first)->next->next
+exprGet "*((FOO *)h12.first)->next->next"
+</listing>
+The quotes are needed if you want to include white space in your expression.
+<p>
+
+Note well that two or higher dimensional arrays are treated as if they
+are really pointers to pointers (to pointers...) rather than C's
+rather useless n-dimensional arrays (e.g. float cc[4][5]). This will be
+fixed when I get a chance to work on the schema package a little more.
+
+<LISTING>
+TCL SYNTAX:
+   exprGet -enum -flat -header -nostring -recurse -unfold &lt;expr&gt; -help
+
+   &lt;expr&gt;     An expression involving a handle, e.g. h4.mask->nrow.
+   -enum:     Do not remove the '(enum)' in front of enums values 
+   -flat:     Present the arrays in a flat fashion rather than a nested way 
+   -header:   Add an additionnal element containing the description of the
+                  handle itself (eg. {type REGION}) 
+   -limited n:Same as -flat but limit the 'flatening' of an array to the last
+                  n dimensions. n==0 means flatenning all the dimensions. 
+   -nostring: Return the address of strings (char*, char[]) rather than their contents 
+   -recurse:  Recursively returns the contents of internal struct 
+   -unfold:   Add the content of the arrays rather than the starting address 
+   -help:     Print summary of command-line options and abort 
+
+RETURNS:
+   TCL_OK       Successful completion. Returns the value of the expression.
+   TCL_ERROR    Error occurred.
+</LISTING>
+
+<HR>
+
+<H3><A NAME="exprPrint">exprPrint</A></H3>
+<P>
+Print the value(s) of an expression involving an <A HREF=tclHandle.html>handle</A>.
+The result is a formatted version of the result returned by <a href=#exprGet>exprGet</a>.
+See the <A HREF=#exprGet_Overview>overview on exprPrint</A> for more
+details.
+<P>
+
+<LISTING>
+TCL SYNTAX:
+   exprPrint -enum -flat -header -noname -noquote -nostring -recurse -unfold &lt;expr&gt; -help
+
+   &lt;expr&gt;     An expression involving a handle, e.g. h4.mask->nrow.
+   -enum:     Do not remove the '(enum)' in front of enums values 
+   -flat:     Present the arrays in a flat fashion rather than a nested way 
+   -header:   Add an additionnal element containing the description of the
+                  handle itself (eg. {type REGION}) 
+   -limited n:Same as -flat but limit the 'flatening' of an array to the last
+                  n dimensions. n==0 means flatenning all the dimensions. 
+   -noname:   Don't try to interpret address as handle 
+   -noquote:  Don't put double quotes around strings! 
+   -nostring: Return the address of strings (char*, char[]) rather than their contents 
+   -recurse:  Recursively returns the contents of internal struct 
+   -unfold:   Add the content of the arrays rather than the starting address 
+   -help:     Print summary of command-line options and abort 
+
+RETURNS:
+   TCL_OK       Successful completion.
+   TCL_ERROR    Error occurred.
+</LISTING>
+
+<HR>
+
+<H3><A NAME=schemaGetFullFromType>schemaGetFullFromType</A></H3>
+Return the complete definition of a <A HREF=dervish.dump.html>Schema</A> in the form used by schemaDefine. 
+
+<LISTING>
+TCL SYNTAX:
+   schemaGetFullFromType &lt;type&gt;
+
+   &lt;type&gt;	The type under scrutiny. You have to use a symbolic name
+		such as REGION.
+
+RETURNS:
+   TCL_OK       Successful completion.
+   TCL_ERROR    Error occurred.
+</LISTING>
+
+<HR>
+
+<H3><A NAME=schemaGetFull>schemaGetFull</A></H3>
+Return the complete definition of a <A HREF=dervish.dump.html>schema</A> in the form used by schemaDefine. 
+
+<LISTING>
+TCL SYNTAX:
+   schemaGetFullFromType &lt;expr&gt;
+
+   &lt;expr&gt;	An <A HREF=handleExpr.c.html>handle expression</A> pointing to a object of
+                the type under scrutiny.
+
+RETURNS:
+   TCL_OK       Successful completion.
+   TCL_ERROR    Error occurred.
+</LISTING>
+
+<HR>
+
+<h3><a name="schemaKindGetFromType">schemaKindGetFromType</a></h3>
+return UNKNOWN, PRIM, ENUM or STRUCT for the <A HREF=dervish.dump.html>schema</A> given by the type.
+
+<LISTING>
+TCL SYNTAX:
+   schemaKindGetFromType &lt;type&gt;
+
+   &lt;type&gt;       The type of the schema 
+
+RETURNS:
+   TCL_OK       Successful completion.
+   TCL_ERROR    Error occurred.
+</LISTING>
+
+<HR>
+
+<h3><a name="schemaKindGet">schemaKindGet</a></h3>
+return UNKNOWN, PRIM, ENUM or STRUCT for the <A HREF=dervish.dump.html>schema</A> of the
+object pointed to by the <A HREF=handleExpr.c.html>handle expression</A>.
+
+<LISTING>
+TCL SYNTAX:
+   schemaKindGetFromType &lt;expr&gt;
+
+   &lt;expr&gt;       An <A HREF=handleExpr.c.html>handle expression</A> pointing to the object
+		to examine
+
+RETURNS:
+   TCL_OK       Successful completion.
+   TCL_ERROR    Error occurred.
+</LISTING>
+
+<HR>
+
+<h3><a name="schemaPrint">schemaPrint</a></h3>
+Print the <A HREF=dervish.dump.html>schema</A> associated with a &lt;handle&gt;
+
+<LISTING>
+TCL SYNTAX:
+   schemaPrint &lt;handle&gt;
+
+   &lt;handle&gt;     The handle which schema we wish to inspect
+
+RETURNS:
+   TCL_OK       Successful completion.
+   TCL_ERROR    Error occurred.
+</LISTING>
+
+<HR>
+
+<h3><a name="schemaPrintFromType">schemaPrintFromType</a></h3>
+Print the <A HREF=dervish.dump.html>schema</A> associated with a given type
+
+<LISTING>
+TCL SYNTAX:
+   schemaPrintFromType &lt;type&gt;
+
+   &lt;type&gt;       The type of the schema to print
+
+RETURNS:
+   TCL_OK       Successful completion.
+   TCL_ERROR    Error occurred.
+</LISTING>
+
+<HR>
+
+<h2><A NAME=Appendixes>Appendixes</A></h2>
+
+<h3><A NAME="Translation">Translation From Dervish v5_1 And Earlier To v5_2 And Later</A></h3>
+
+<I>Please note that the new xxxPrint functions only <B>ECHO</B> their results to the
+screen!  In order to use the value of an <A HREF=handleExpr.c.html>handle expression</A> you <B>MUST</B>
+use an xxxGet function.  The xxxGet functions returns a single value or a tcl list
+to the tcl interpreter.</I>
+<P>
+<A HREF=#exprGet>exprGet</A> used to return strings between double quotes.  Now exprGet puts curly
+brackets - { ... } - around the string <B>when necessary</B>. <P>
+If you used to get a string directly by <pre> exprGet h5.Label </pre> and then
+removed manually the double quotes, you might find the following instruction useful:
+<pre> lindex [exprGet h0.Label] 0 </pre>
+This will return the string without the curly brackets.
+<P>
+<TABLE BORDER CELLPADDING=10>
+        <TR>    <TH>Old Syntax</TH>
+                <TH>Replacing Syntax</TH>
+                <TH>Example</TH>
+        </TR>
+        <TR>    <TD><I>exprPrintAsArray</I> &lt;array&gt; &lt;dimension&gt;</TD>
+	        <TD><I><A HREF=#exprPrint>exprPrint</A></I> -unfold (array definition)&lt;array&gt;</TD>
+                <TD><I>exprPrint</I> -unfold (INT&lt;10&gt;&lt;10&gt;)h1.rows</TD>
+        </TR>
+        <TR>    <TD><I>exprPrintMember</I> &lt;handle&gt; &lt;elem&gt;</TD>
+                <TD><I><A HREF=#exprPrint>exprPrint</A></I> &lt;handle.elem&gt;</TD>
+                <TD><I>exprPrint</I> h1.ncol</TD>
+        </TR>
+        <TR>    <TD><I>structsPrint</I> &lt;handle expr&gt;</TD>
+                <TD><I><A HREF=#exprPrint>exprPrint</A></I> -header -enum -recurse &lt;handle expr&gt;</TD>
+                <TD><I>exprPrint</I> -header -enum -recurse h1</TD>
+        </TR>
+        <TR>    <TD><I>structPrint</I> &lt;handle expr&gt;</TD>
+                <TD><I><A HREF=#exprPrint>exprPrint</A></I> -noquote &lt;handle expr&gt;</TD>
+                <TD><I>exprPrint</I> -noquote h1</TD>
+        </TR>
+        <TR>    <TD><I>structGet</I> &lt;handle expr&gt;</TD>
+                <TD><I><A HREF=#exprGet>exprGet</A></I> -noquote &lt;handle expr&gt;</TD>
+                <TD><I>exprGet</I> -noquote h1</TD>
+        </TR>
+        <TR>    <TD><I>exprPrint</I> &lt;handle expr&gt;</TD>
+                <TD><I><A HREF=#exprPrint>exprPrint</A></I> -noquote -noname &lt;handle expr&gt;</TD>
+                <TD><I>exprPrint</I> -noquote -noname h1</TD>
+        </TR>
+        <TR>    <TD><I>membersGet</I> &lt;handle expr&gt;</TD>
+                <TD><I><A HREF=#exprGet>exprGet</A></I> -header &lt;handle expr&gt;</TD>
+                <TD><I>exprGet</I> -header h1</TD>
+        </TR>
+        <TR>    <TD><I>memberGet</I> &lt;handle&gt; &lt;member&gt;</TD>
+                <TD><I><A HREF=#exprGet>exprGet</A></I> &lt;handle.member&gt;</TD>
+                <TD><I>exprGet</I> h1.nrow</TD>
+        </TR>
+        <TR>    <TD><I>exprSet</I> &lt;handle expression&gt;</TD>
+                <TD><I><A HREF=#handleSet>handleSet</A></I> &lt;handle expression&gt;</TD>
+                <TD><I>handleSet</I> h1.vec&lt;2&gt; 4</TD>
+        </TR>
+        <TR>    <TD><I>arraySet</I> &lt;handle expression&gt; &lt;array member&gt; &lt;values&gt;</TD>
+                <TD><I><A HREF=#handleSet>handleSet</A></I> &lt;handle expression&gt;  &lt;values&gt;</TD>
+                <TD><I>handleSet</I> h1.name&lt;2&gt; {this is a label}</TD>
+        </TR>
+        <TR>    <TD><I>arrayShow</I> &lt;handle-expression&gt; &lt;array-member&gt;</TD>
+                <TD><I><A HREF=#exprGet>exprGet</A></I> -unfold -flat -enum &lt;handle-expression.array-member&gt;</TD>
+                <TD><I>exprGet</I> -unfold -flat -enum h1.name</TD>
+        </TR>
+        <TR>    <TD><I>ptype</i> &lt;handle&gt;</TD>
+                <TD><I><A HREF=#handleType>handleType</A></i> &lt;handle&gt;</TD>
+                <TD><I>handleType</I> h1</TD>
+        </TR>
+        <TR>    <TD><I>typeGet</I> &lt;type&gt;</TD>
+                <TD>None.  Use -enum if necessary </TD>
+        </TR>
+</TABLE>
+
+
+<h3><A NAME="Removed">List Of Functions Removed In Dervish v5_1</A></h3>
+<UL>
+  <LI>Tcl Layer
+       <UL>
+	 <LI>exprPrintAsArray
+	 <LI>exprGetAsArray
+	 <LI>exprPrintMember
+	 <LI>exprGetMember
+	 <LI>__exprGetMember
+	 <LI>ptype
+	 <LI>structsPrint
+	 <LI>elemTest
+	 <LI>recursPrint
+	 <LI>structPrint
+	 <LI>membersGet
+	 <LI>memberGet
+	 <LI>memberSet
+	 <LI>structGet
+	 <LI>exprSet
+	 <LI>arraySet
+	 <LI>arrayGet
+	 <LI>arrayPrint
+	 <LI>arrayShow
+	 <LI>elemStructGet
+	 <LI>elemStructPrint
+       </UL>
+  <LI>C Layer
+       <UL>
+	 <LI>tclMembersGet
+	 <LI>tclMemberSet
+       </ul>
+</UL>
+
+<H3><A NAME=handleShow>handleShow</A></H3>
+handleShow is a tcl Script around <A HREF=#exprGet>exprGet</A> that
+only return simple values. If the handle expression passed to handleShow
+is not a simple value handleShow will return the handle expression itself.
+
+<h3><A NAME=Bugs>Known 'Bugs'</A></H3>
+Know bugs: exprPrint print <pre>"(h1).j         <0> 0"</pre> rather than <pre>"(h1).j<0>      0"</pre>
+for a one element array ! (who cares?!)
+<HR>
+Comments and suggestions to <A HREF = "mailto:pcanal@sdss.fnal.gov">Philippe Canal (pcanal@sdss.fnal.gov)</A>
+
+</body>
+</html>

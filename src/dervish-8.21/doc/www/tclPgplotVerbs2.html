@@ -1,0 +1,1019 @@
+<H1>PGPLOT Extensions Part II</H1>
+<H2><A NAME=pgCons>pgCons</A></H2>
+Draws a contour map of an array. The map is truncated if
+necessary at the boundaries of the viewport.  Each contour line is
+drawn with the current line attributes (color index, style, and
+width).  This routine, unlike pgCont, does not draw each contour as a
+continuous line, but draws the straight line segments composing each
+contour in a random order.  It is thus not suitable for use on pen
+plotters, and it usually gives unsatisfactory results with dashed lines.
+<P>Calling sequence:
+<LISTING>
+          pgCons &lt;a&gt; &lt;i1&gt; &lt;i2&gt; &lt;j1&gt; &lt;j2&gt; &lt;c&gt; &lt;tr&gt;
+where:
+  a        : 2-dimensional data array.
+  i1,i2    : range of first index to be contoured (inclusive).
+  j1,j2    : range of second index to be contoured (inclusive).
+  c        : 1-dimensional array of contour levels (in the same units as the
+             data in array a).
+  tr       : 1-dimensional array defining a transformation between the i,j
+             grid of the array and the world coordinates. The world 
+             coordinates of the array point a(i,j) are given by:
+                      x = tr(1) + tr(2)*i + tr(3)*j
+                      y = tr(4) + tr(5)*i + tr(6)*j
+             Usually tr(3) and tr(5) are zero - unless the
+             coordinate transformation involves a rotation or shear.
+
+
+For example: pgCons a 1 10 2 20 {c-levels} {0 1 0 0 0 1}
+
+
+
+
+
+
+</LISTING>
+
+<H2><A NAME=pgCont>pgCont</A></H2>
+Draws a contour map of an array.  The map is truncated if
+necessary at the boundaries of the viewport.  Each contour line
+is drawn with the current line attributes (color index, style, and
+width); except that if "auto" is specified (see below), the line
+style is set by pgCont to 1 (solid) for positive contours or 2
+(dashed) for negative contours.
+<P>Calling sequence:
+<LISTING>
+          pgCont &lt;a&gt; &lt;i1&gt; &lt;i2&gt; &lt;j1&gt; &lt;j2&gt; &lt;c&gt; &lt;tr&gt; [d:auto | current]
+where:
+  a       : 2-dimensional data array. 
+  i1, i2  : range of first index to be contoured (inclusive).
+  j1, j2  : range of second index to be contoured (inclusive).
+  c       : 1-dimensional array of NC contour levels; dimension at least NC.
+  tr      : 1-dimensional array defining a transformation between the i,j
+            grid of the array and the world coordinates.
+            The world coordinates of the array point a(i,j)
+            are given by:
+                     x = tr(1) + tr(2)*i + tr(3)*j
+                     y = tr(4) + tr(5)*i + tr(6)*j
+            Usually tr(3) and tr(5) are zero - unless the
+            coordinate transformation involves a rotation or shear.
+auto      : The line-style is chosen automatically as described above. 
+current   : The current setting of line-style is used for all the contours.
+
+For example: 
+   pgCont a 1 10 2 20 {c-levels} {0 1 0 0 0 1} current
+
+
+
+
+
+
+
+
+
+</LISTING>
+
+<H2><A NAME=pgConx>pgConx</A></H2>
+Draws a contour map of an array using a user-supplied plotting
+routine.  This routine should be used instead of pgCont when the
+data are defined on a non-rectangular grid.  pgCont permits only
+a linear transformation between the (i,j) grid of the array
+and the world coordinate system (x,y), but pgConx permits any
+transformation to be used, the transformation being defined by a
+user-supplied subroutine. The nature of the contouring algorithm,
+however, dictates that the transformation should maintain the
+rectangular topology of the grid, although grid-points may be
+allowed to coalesce.  As an example of a deformed rectangular
+grid, consider data given on the polar grid theta=0.1n(pi/2),
+for n=0,1,...,10, and r=0.25m, for m=0,1,..,4. This grid
+contains 55 points, of which 11 are coincident at the origin.
+The input array for pgConx should be dimensioned (11,5), and
+data values should be provided for all 55 elements.  pgConx can
+also be used for special applications in which the height of the
+contour affects its appearance, e.g., stereoscopic views.
+
+<P>The map is truncated if necessary at the boundaries of the viewport.
+Each contour line is drawn with the current line attributes (color
+index, style, and width); except that if auto is specified
+(see below), the line style is set by pgConx to 1 (solid) for
+positive contours or 2 (dashed) for negative contours. 
+<P>Calling sequence:
+<LISTING>
+          pgConx &lt;a&gt; &lt;i1&gt; &lt;i2&gt; &lt;j1&gt; &lt;j2&gt; &lt;c&gt; &lt;x-trans&gt; &lt;y-trans&gt;
+
+where:
+  a       : 2-dimensional data array.
+  i1, i2  : range of first index to be contoured (inclusive).
+  j1, j2  : range of second index to be contoured (inclusive).
+  c       : i-dimensional array of NC contour levels; dimension at least NC.
+  x-trans : x-coordinate transformation.
+            The variables x, y and z can be used be the transformation script.
+  y_trans : y-coordinate transformation.
+            The variables x, y and z can be used be the transformation script.
+
+auto      : The line-style is chosen automatically as described above. 
+current   : The current setting of line-style is used for all the contours.
+
+For example:
+    pgConx a i1 i2 j1 j2 {c-levels} {$x*cos($y)} {$x*sin($y)}
+
+
+
+
+
+
+
+
+
+</LISTING>
+
+<H2><A NAME=pgErrx>pgErrx</A></H2>
+Plots horizontal error bars.
+This routine draws an error bar only; to mark the data point in
+the middle of the error bar, an additional call to pgPoint or
+pgErry is required.
+<P>Calling sequence:
+<LISTING>
+          pgErrx &lt;x1&gt; &lt;x2&gt; &lt;y&gt; [t, d:0.0]
+where:
+  x1       : world x-coordinates of lower end of the error bars.
+  x2       : world x-coordinates of upper end of the error bars.
+  y        : world y-coordinates of the data.
+  t        : length of terminals to be drawn at the ends
+             of the error bar, as a multiple of the default
+             length; if t = 0.0, no terminals will be drawn.
+
+ Note: the dimension of arrays x1, x2, and y must be equal. 
+       If one element is defined then, x1, x2, and y may be scalar 
+       variables, or expressions, eg: pgErrx x-sigma x+sigma y
+
+
+
+
+
+
+
+
+
+</LISTING>
+
+<H2><A NAME=pgErry>pgErry</A></H2>
+Plots vertical error bars.
+This routine draws an error bar only; to mark the data point in
+the middle of the error bar, an additional call to pgPtext or
+pgErrx is required.
+<P>Calling sequence:
+<LISTING>
+          pgErry x y1 y2 [t, d:0.0]
+where:
+  x        : world x-coordinates of the data.
+  y1       : world y-coordinates of top end of the error bars.
+  y2       : world y-coordinates of bottom end of the error bars.
+  t        : length of terminals to be drawn at the ends
+             of the error bar, as a multiple of the default
+             length; if t = 0.0, no terminals will be drawn.
+
+ Note: the dimension of arrays x, y1, and y2 must be equal. 
+       If only one element is specified then, x, y1, and y2 may be scalar
+       variables or expressions, eg: pgErry x y+sigma y-sigma
+
+
+
+
+
+
+
+
+</LISTING>
+
+<H2><A NAME=pgFunt>pgFunt</A></H2>
+Draw a curve defined by parametric equations x = fx(t), y = fy(t).
+<P>Calling sequence:
+<LISTING>
+          pgFunt &lt;fx&gt; &lt;fy&gt; &lt;n&gt; &lt;tmin&gt; &lt;tmax&gt; [d:current | new]
+
+where:
+  fx       : A real function of variable t that evaluates X-coordinate.
+  fy       : A real function of variable t that evaluates Y-coordinate.
+  n        : the number of points required to define the
+             curve. The functions fx and fy will each be
+             called n+1 times.
+  tmin     : the minimum value for the parameter t.
+  tmax     : the maximum value for the parameter t.
+  current  : the curve is plotted in the current window and viewport
+  new      : pgEnv is called automatically by pgFunt to start a new plot 
+             with automatic scaling.
+
+
+
+
+
+
+
+
+
+</LISTING>
+
+<H2><A NAME=pgFunx>pgFunx</A></H2>
+Draws a curve defined by the equation y = fy(x), where fy is a
+user-supplied subroutine.
+<P>Calling sequence:
+<LISTING>
+          pgFunx &lt;fy&gt; &lt;n&gt; &lt;xmin&gt; &lt;xmax&gt; [d:current | new]
+
+where:
+  fy       : A real function of variable x that evaluates  Y value at a 
+             given X-coordinate.
+             The variable x is available for use by the function fy
+  n        : the number of points required to define the
+             curve. The function fy will be called n+1 times.
+             If n is greater than 1000, 1000 will be used instead.  
+             If n is less than 1, nothing will be drawn.
+  xmin     : the minimum value of X.
+  xmax     : the maximum value of X.
+  current  : the curve is plotted in the current window and viewport
+  new      : pgEnv is called automatically by pgFunx to start a new 
+             plot with X limits (xmin, xmax) and automatic scaling in Y.
+
+
+
+
+
+
+
+
+
+
+</LISTING>
+
+<H2><A NAME=pgFuny>pgFuny</A></H2>
+Draws a curve defined by the equation x = fx(y), where fy is a
+user-supplied subroutine.
+<P>Calling sequence:
+<LISTING>
+          pgFuny &lt;fx&gt; &lt;n&gt; &lt;ymin&gt; &lt;ymax&gt; [d:current | new]
+
+where:
+  fx       : A real function of variable y that evaluates X value at a 
+             given Y-coordinate.
+             The variable y is available for use by the function fx
+  n        : the number of points required to define the
+             curve. The function fx will be called n+1 times.
+             If n is greater than 1000, 1000 will be used instead.  
+             If n is less than 1, nothing will be drawn.
+  ymin     : the minimum value of Y.
+  ymax     : the maximum value of Y.
+  current  : the curve is plotted in the current window and viewport
+  new      : pgEnv is called automatically by pgFuny to start a new 
+             plot with Y limits (ymin, ymax) and automatic scaling in X.
+
+
+
+
+
+
+
+
+
+
+
+</LISTING>
+
+<H2><A NAME=pgGray>pgGray</A></H2>
+Draws gray-scale map of an array in current window. The subsection
+of the array 'a' defined by indices (i1:i2, j1:j2) is mapped onto
+the view surface world-coordinate system by the transformation
+matrix tr. The resulting quadrilateral region is clipped at the edge
+of the window and shaded with the shade at each point determined
+by the corresponding array value.  The shade is a number in the
+range 0 to 1 obtained by linear interpolation between the background
+level (bg) and the foreground level (fg), i.e.,
+<LISTING>
+   shade = [a(i,j) - bg] / [fg - bg]
+</LISTING>
+<P>The background level bg can be either less than or greater than the
+foreground level fg.  Points in the array that are outside the range
+bg to fg are assigned shade 0 or 1 as appropriate.
+
+<P>The algorithm used by pgGray is device-dependent.  On devices
+that have only two color indices (0 and 1), the background color
+is the color assigned to color index 0, the foreground color
+is the color assigned to color index 1, and pgGray uses a
+"dithering" algorithm to fill in pixels in the two colors, with
+the shade (computed as above) determining the faction of pixels
+that are assigned color index 1.
+
+<P>On devices that have more than 16 color indices, pgGray may use
+color indices outside the range 0-15 to provide more than two
+gray shades.  Note that pgGray may change the color representation
+of these color indices, but it will not change the representation
+of indices 0-15.
+
+<P>On most devices, the shaded region is "opaque", i.e., it obscures
+all graphical elements previously drawn in the region. But on
+devices that do not have erase capability, the background shade
+is "transparent" and allows previously-drawn graphics to show
+through.
+
+<P>The transformation matrix tr is used to calculate the world
+coordinates of the center of the "cell" that represents each
+array element. The world coordinates of the center of the cell
+corresponding to array element a(i,j) are given by:
+<LISTING>
+
+          x = tr(1) + tr(2)*i + tr(3)*j
+          y = tr(4) + tr(5)*i + tr(6)*j
+
+</LISTING>
+<P>Usually tr(3) and tr(5) are zero -- unless the coordinate
+transformation involves a rotation or shear.  The corners of the
+quadrilateral region that is shaded by pgGray are given by
+applying this transformation to (i1-0.5,j1-0.5), (i2+0.5, j2+0.5).
+<P>Calling sequence:
+<LISTING>
+          pgGray &lt;a&gt; &lt;i1&gt; &lt;i2&gt; &lt;j1&gt; &lt;j2&gt; &lt;fg&gt; &lt;bg&gt; &lt;tr&gt;
+where:
+  a        : the 2-dimensional array to be plotted.
+  i1, i2   : the inclusive range of the first index (i) to be plotted.
+  j1, j2   : the inclusive range of the second index (j) to be plotted.
+  fg       : the array value which is to appear with shade 1 ("foreground").
+  bg       : the array value which is to appear with shade 0 ("background").
+  tr       : a 1-dimensional transformation matrix between array grid and
+             world coordinates (tr[6]).
+
+
+
+
+
+
+
+
+
+</LISTING>
+
+<H2><A NAME=pgHi2d>pgHi2d</A></H2>
+Plots a series of cross-sections through a 2D data array.
+Each cross-section is plotted as a hidden line histogram.  The plot
+can be slanted to give a pseudo-3D effect - if this is done, the
+call to pgEnv may have to be changed to allow for the increased x
+range that will be needed.
+<P>Calling sequence:
+<LISTING>
+  pgGray &lt;data&gt; &lt;ix1&gt; &lt;ix2&gt; &lt;iy1&gt; &lt;iy2&gt; &lt;x&gt; &lt;ioff&gt; &lt;bias&gt; [d:center | lowedge]
+where:
+  data     : 2-dimensional data array to be plotted.
+  ix1    
+  ix2    
+  iy1    
+  iy2      : pgHi2d plots a subset of the input array data.
+             This subset is delimited in the first (x)
+             dimension by ix1 and ix2 and the 2nd (y) by iy1
+             and iy2, inclusively. Note: iy2 &lt; iy1 is
+             permitted, resulting in a plot with the
+             cross-sections plotted in reverse Y order.
+             However, ix2 must be =&gt; ix1.
+  x        : the abscissae of the bins to be plotted. That is,
+             x(1) should be the x value for data(ix1,iy1), and
+             x should have (ix2-ix1+1) elements.  The program
+             has to assume that the x value for data(X,Y) is
+             the same for all y.
+  ioff     : an offset in array elements applied to successive
+             cross-sections to produce a slanted effect.  A
+             plot with ioff &gt; 0 slants to the right, one with
+             ioff &lt; 0 slants left.
+  bias     : a bias value applied to each successive cross-
+             section in order to raise it above the previous
+             cross-section.  This is in the same units as the data.
+  center   : the x values denote the center of the bins
+  lowedge  : the x values denote the lower edges (in x) of the bins.
+
+
+
+
+
+
+
+
+
+</LISTING>
+
+<H2><A NAME=pgHist>pgHist</A></H2>
+Draws a histogram of N values of a variable in array
+data(1...N) in the range datmin to datmax using nbin bins.  Note
+that array elements which fall exactly on the boundary between
+two bins will be counted in the higher bin rather than the
+lower one; and array elements whose value is less than datmin or
+greater than or equal to datmax will not be counted at all.
+<P>Calling sequence:
+<LISTING>
+          pgHist &lt;data&gt; &lt;datmin&gt; &lt;datmax&gt; &lt;nbin&gt; [d:current | new]
+where:
+  data     : 1-dimensional array with data values.
+  datmin   : the minimum data value for the histogram.
+  datmax   : the maximum data value for the histogram.
+  nbin     : the number of bins to use: the range datmin to
+             datmax is divided into nbin equal bins and
+             the number of data values in each bin is
+             determined by pgHist.  nbin may not exceed 200.
+  current  : the histogram is plotted in the current window and viewport
+  new      : pgEnv is called automatically by pgHist to start a new plot 
+             (the x-limits of the window will be datmin and datmax; 
+             the y-limits will be chosen automatically).
+
+  Note:  The pen position is changed to (datmax,0.0) in world coordinates.
+
+
+
+
+
+
+
+
+
+</LISTING>
+
+<H2><A NAME=pgCurse>pgCurse</A></H2>
+Reads the cursor position and a character typed by the user.
+The position is returned in world coordinates.  PGCURSE positions
+the cursor at the position specified, allows the user to move the
+cursor using the joystick or arrow keys or whatever is available on
+the device. When he has positioned the cursor, the user types a
+single character on the keyboard; 
+<P>pgCurse then returns this character and the new cursor position 
+(in world coordinates); if the device has no cursor or if some other 
+error occurs, the value CHAR(0) [ASCII NULL character] is returned.
+<P>Calling sequence:
+<LISTING>
+          pgCurse &lt;x&gt; &lt;y&gt;
+where:
+  x       : the world x-coordinate of the cursor.
+  y       : the world y-coordinate of the cursor.
+
+ Note: The cursor coordinates (x,y) may be changed by pgCurse even if
+       the device has no cursor or if the user does not move the cursor.
+       Under these circumstances, the position returned in (x,y) is that of
+       the pixel nearest to the requested position.
+
+
+
+
+
+
+
+
+
+</LISTING>
+
+<H2><A NAME=pgLcurse>pgLcurse</A></H2>
+Interactive routine for user to enter a polyline by use of
+the cursor.  Routine allows user to Add and Delete vertices;
+vertices are joined by straight-line segments.
+<P>Calling sequence:
+<LISTING>
+          pgLcurse &lt;coord&gt;
+
+where:
+  coord   : variable name. If coord variable does not exists it is 
+            defined. Upon return coord contains the new x and y coordinates
+            in the form {{x-coord} {y-coord}}
+
+ Note 1: On return from the program, cursor points are returned in the order 
+         they were entered. Routine may be (re-)called with points already
+         defined in coord, and they will be plotted first, before editing.
+
+ Note 2: User commands: the user types single-character commands after 
+         positioning the cursor: the following are accepted:
+                A (Add)    - add point at current cursor location.
+                D (Delete) - delete last-entered point.
+                X (exit)   - leave subroutine.
+
+
+
+
+
+
+
+
+
+
+</LISTING>
+
+<H2><A NAME=pgNcurse>pgNcurse</A></H2>
+Interactive routine for user to enter data points by use of
+the cursor.  Routine allows user to Add and Delete points.  The
+points are returned in order of increasing x-coordinate, not in the
+order they were entered.
+<P>Calling sequence:
+<LISTING>
+          pgNcurse &lt;coord&gt; [symbol, d=-1] 
+where
+  coord   : variable name. If coord variable does not exists it is 
+            defined. Upon return coord contains the new x and y coordinates
+            in the form {{x-coord} {y-coord}}
+  symbol  : code number of symbol to use for marking  entered points 
+            (see pgPoint).
+
+ Note 1: On return from the program, cursor points are returned in increasing 
+         order of X. Routine may be (re-)called with points already defined 
+         in coord, and they will be plotted first, before editing.
+
+ Note 2: User commands: the user types single-character commands
+         after positioning the cursor: the following are accepted:
+               A (Add)    - add point at current cursor location.
+               D (Delete) - delete nearest point to cursor.
+               X (exit)   - leave subroutine.
+
+
+
+
+
+
+
+
+
+
+</LISTING>
+
+<H2><A NAME=pgOlin>pgOlin</A></H2>
+Interactive routine for user to enter data points by use of
+the cursor.  Routine allows user to Add and Delete points.  The
+points are returned in the order that they were entered (unlike
+pgNcurse).
+<P>Calling sequence:
+<LISTING>
+          pgOlin &lt;coord&gt; [symbol, d=-1] 
+where
+  coord   : variable name. If coord variable does not exists it is 
+            defined. Upon return coord contains the new x and y coordinates
+            in the form {{x-coord} {y-coord}}
+  symbol  : code number of symbol to use for marking  entered points 
+            (see pgPoint).
+
+ Note 1: On return from the program, cursor points are returned in the order
+         they were entered. Routine may be (re-)called with points already 
+         defined in coord, and they will be plotted first, before editing.
+
+ Note 2: User commands: the user types single-character commands
+         after positioning the cursor: the following are accepted:
+               A (Add)    - add point at current cursor location.
+               D (Delete) - delete nearest point to cursor.
+               X (exit)   - leave subroutine.
+
+
+
+
+
+
+
+
+
+
+</LISTING>
+
+<H2><A NAME=pgQcf>pgQcf</A></H2>
+Query the current Character Font (set by routine pgScf).
+<P>Returns the current font number.
+<P>Calling sequence:
+<LISTING>
+          pgQcf
+
+
+
+
+
+
+
+
+
+</LISTING>
+
+<H2><A NAME=pgQch>pgQch</A></H2>
+Query the Character Size attribute (set by routine pgSch)
+<P>Returns the current character size.
+<P>Calling sequence:
+<LISTING>
+          pgQch
+
+
+
+
+
+
+
+
+
+
+</LISTING>
+
+<H2><A NAME=pgQci>pgQci</A></H2>
+Query the Color Index attribute (set by routine pgSci).
+<P>Returns the current color index (in range 0-max). This is
+the color index actually in use, and may differ from the color index 
+last requested by pgSci if that index is not available on the output device.
+<P>Calling sequence:
+<LISTING>
+          pgQci
+
+
+
+
+
+
+
+
+
+</LISTING>
+
+<H2><A NAME=pgQcol>pgQcol</A></H2>
+Query the range of Color Indices available for this device.
+<P>Returns the current color index range as a Tcl list.  The first element is
+the minimum color index and the second element is the maximum.
+<P>Calling sequence:
+<LISTING>
+          pgQcol
+
+
+
+
+
+
+
+
+
+</LISTING>
+
+<H2><A NAME=pgQcr>pgQcr</A></H2>
+Query the current Color Representation.
+<P>Returns the current color representation.
+<P>Calling sequence:
+<LISTING>
+          pgQcr
+
+
+
+
+
+
+
+
+
+</LISTING>
+
+<H2><A NAME=pgQfs>pgQfs</A></H2>
+ Query the current Fill-Area Style attribute (set by routine pgSfs).
+<P>Returns the current fill-area style:
+<LISTING>
+           1 =&gt; solid (default)
+           2 =&gt; hollow
+</LISTING>
+<P>Calling sequence:
+<LISTING>
+          pgQfs
+
+
+
+
+
+
+
+
+
+</LISTING>
+
+<H2><A NAME=pgQinf>pgQinf</A></H2>
+This routine can be used to obtain miscellaneous information about
+the PGPLOT environment. Input is a character string defining the
+information required, and output is a character string containing the
+requested information.
+
+<P>The following item codes are accepted (note that the strings must
+match exactly, except for case, but only the first 8 characters are
+significant). For items marked *, PGPLOT must be in the OPEN state
+for the inquiry to succeed. If the inquiry is unsuccessful, either
+because the item code is not recognized or because the information
+is not available, a question mark ('?') is returned.
+<LISTING>
+   'version'     - version of PGPLOT software in use.
+   'state'       - status of PGPLOT ('open' if a graphics device
+                   is open for output, 'closed' otherwise).
+   'user'        - the username associated with the calling program.
+   'now'         - current date and time (e.g., '17-FEB-1986 10:04').
+   'device'    * - current PGPLOT device or file.
+   'file'      * - current PGPLOT device or file.
+   'type'      * - device-type of the current PGPLOT device.
+   'dev/type'  * - current PGPLOT device and type, in a form which
+                   is acceptable as an argument for pgBegin.
+   'hardcopy'  * - is the current device a hardcopy device? ('yes' or
+                   'no').
+   'terminal'  * - is the current device the user's interactive
+                   terminal? ('yes' or 'no').
+   'cursor'    * - does the current device have a graphics cursor?
+                   ('yes' or 'no').
+</LISTING>
+<P>Calling sequence:
+<LISTING>
+          pgQinf &lt;item&gt;
+where:
+  item    : character string defining the information to
+            be returned; see above for a list of possible values.
+
+
+
+
+
+
+
+
+
+</LISTING>
+
+<H2><A NAME=pgQls>pgQls</A></H2>
+Query the current Line Style attribute (set by routine pgSls).
+<P>Returns the current line-style attribute (in range 1-5).
+<P>Calling sequence:
+<LISTING>
+          pgQls
+
+
+
+
+
+
+
+
+
+</LISTING>
+
+<H2><A NAME=pgQlw>pgQlw</A></H2>
+Query the current Line-Width attribute (set by routine pgSlw).
+<P>Returns the current the line-width (in range 1-21).
+<P>Calling sequence:
+<LISTING>
+          pgQlw
+
+
+
+
+
+
+
+
+
+</LISTING>
+
+<H2><A NAME=pgQvp>pgQvp</A></H2>
+Inquiry routine to determine the current viewport setting.
+The values returned may be normalized device coordinates, inches, mm,
+or pixels, depending on the value of the input parameter cflag.
+<P>Returns the current 
+<LISTING>
+   the x-coordinate of the bottom left corner of the viewport.
+   the x-coordinate of the top right corner of the viewport.
+   the y-coordinate of the bottom left corner of the viewport.
+   the y-coordinate of the top right corner of the viewport.
+</LISTING>
+<P>Calling sequence:
+<LISTING>
+          pgQvp &lt;units&gt;
+where:
+  units    : used to specify the units of the output parameters:
+                    units = 0 : normalized device coordinates
+                    units = 1 : inches
+                    units = 2 : millimeters
+                    units = 3 : pixels
+                    Other values give an error message, and are
+                    treated as 0.
+
+
+
+
+
+
+
+
+
+</LISTING>
+
+<H2><A NAME=pgQwin>pgQwin</A></H2>
+Inquiry routine to determine the current window setting.
+The values returned are world coordinates.
+<P>Returns the current
+<LISTING>
+   the x-coordinate of the bottom left corner of the window.
+   the x-coordinate of the top right corner of the window.
+   the y-coordinate of the bottom left corner of the window.
+   the y-coordinate of the top right corner of the window.
+</LISTING>
+<P>Calling sequence:
+<LISTING>
+          pgQwin
+
+
+
+
+
+
+
+
+
+</LISTING>
+
+<H2><A NAME=pgEtxt>pgEtxt</A></H2>
+Some graphics terminals display text (the normal interactive dialog)
+on the same screen as graphics. This routine erases the text from the
+view surface without affecting the graphics. It does nothing on
+devices which do not display text on the graphics screen, and on
+devices which do not have this capability.
+<P>Calling sequence:
+<LISTING>
+          pgEtxt
+
+
+
+
+
+
+
+
+
+</LISTING>
+
+<H2><A NAME=pgIden>pgIden</A></H2>
+Write username, date, and time at bottom of plot.
+<P>Calling sequence:
+<LISTING>
+          pgIden
+
+
+
+
+
+
+
+
+
+</LISTING>
+
+<H2><A NAME=pgLdev>pgLdev</A></H2>
+Writes a list to the terminal of all device types known to the
+current version of PGPLOT.
+<P>Calling sequence:
+<LISTING>
+          pgLdev
+
+
+
+
+
+
+
+
+
+</LISTING>
+
+<H2><A NAME=pgNumb>pgNumb</A></H2>
+This routine converts a number into a decimal character
+representation. To avoid problems of floating-point roundoff, the
+number must be provided as an integer (mm) multiplied by a power of 10
+(10**pp).  The output string retains only significant digits of mm,
+and will be in either integer format (123), decimal format (0.0123),
+or exponential format (1.23x10**5). Standard escape sequences \u, \d
+raise the exponent and \\ is used for the multiplication sign.
+This routine is used by pgBox to create numeric labels for a plot.
+<LISTING>
+ Formatting rules:
+   (a) Decimal notation (form=1):
+       - Trailing zeros to the right of the decimal sign are
+         omitted
+       - The decimal sign is omitted if there are no digits
+         to the right of it
+       - When the decimal sign is placed before the first digit
+         of the number, a zero is placed before the decimal sign
+       - The decimal sign is a period (.)
+       - No spaces are placed between digits (ie digits are not
+         grouped in threes as they should be)
+       - A leading minus (-) is added if the number is negative
+   (b) Exponential notation (form=2):
+       - The exponent is adjusted to put just one (non-zero)
+         digit before the decimal sign
+       - The mantissa is formatted as in (a), unless its value is
+         1 in which case it and the multiplication sign are omitted
+       - If the power of 10 is not zero and the mantissa is not
+         zero, an exponent of the form \\10\u[-]nnn is appended,
+         where \\ is a multiplication sign (cross), \u is an escape
+         sequence to raise the exponent, and as many digits nnn
+         are used as needed
+   (c) Automatic choice (form=0):
+         Decimal notation is used if the absolute value of the
+         number is less than 10000 or greater than or equal to
+         0.01. Otherwise exponential notation is used.
+</LISTING>
+<P>Returns the formatted character string, left justified.
+ If the length of STRING is insufficient, a single asterisk is returned.
+<P>Calling sequence:
+<LISTING>
+          pgNumb &lt;mm&gt; &lt;pp&gt; &lt;form&gt;
+where:
+  mm     
+  pp       : the value to be formatted is mm*10**pp.
+  form     : controls how the number is formatted:
+                    form = 0 -- use either decimal or exponential
+                    form = 1 -- use decimal notation
+                    form = 2 -- use exponential notation
+
+
+
+
+
+
+
+
+</LISTING>
+
+<H2><A NAME=pgRnd>pgRnd</A></H2>
+Routine to find the smallest "round" number larger than x, a
+"round" number being 1, 2 or 5 times a power of 10. If X is negative,
+pgRnd(x) = -pgRnd(ABS(x)). eg pgRnd(8.7) = 10.0,
+pgRnd(-0.4) = -0.5.  If x is zero, the value returned is zero.
+This routine is used by pgBox for choosing  tick intervals.
+<P>Returns a suitable number of subdivisions for subdividing the "nice" 
+number: 2 or 5.
+<P>Calling sequence:
+<LISTING>
+          pgRnd &lt;x&gt;
+where:
+  x        : the number to be rounded.
+
+
+
+
+
+
+
+
+
+</LISTING>
+
+<H2><A NAME=pgRnge>pgRnge</A></H2>
+Chooses plotting limits xlo and xhi which encompass the data
+range x1 to x2.
+<P>Returns suitable values to use as the extremes of a graph
+axis (xlo &lt;= x1, xhi &gt;= x2).
+<P>Calling sequence:
+<LISTING>
+          pgRnge &lt;x1&gt; &lt;x2&gt;
+where:
+  x1, x2   : the data range (x1 is less than x2), ie,
+             the min and max values to be plotted.
+
+
+
+
+
+
+
+
+
+</LISTING>
+
+<H2><A NAME=pgPrinter>pgPrinter</A></H2>
+Chooses the printer command to be used by the pgDump command
+<P>Calling sequence:
+<LISTING>
+          pgPrinter [print_command, d: flpr -q wh6w_lwps -h bison.fnal.gov]
+where:
+  print_command   : the full Unix shell command to be used for printing a file.
+
+
+
+
+
+
+
+
+
+</LISTING>
+
+<H2><A NAME=pgDump>pgDump</A></H2>
+It invokes the xwd and xpr system services to create a PostScript bit map 
+image of an X window. 
+The X window to be bit mapped must be in the foreground.
+<P>Calling sequence:
+<LISTING>
+          pgDump [output_file]
+where:
+  output_file     : an optional output file to store the image instead of
+                    sending to the printer.
+                    If the printer command string is not set via the pgPrinter
+                    command and output_file is not specified then the output
+                    is directed in a system defined temporary file.
+
+
+
+
+
+
+
+
+
+</LISTING>

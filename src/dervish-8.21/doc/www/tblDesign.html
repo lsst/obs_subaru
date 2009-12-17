@@ -1,0 +1,197 @@
+<HTML>
+<HEAD>
+<!-- *********************************************************************** -->
+<!-- *++
+<!-- * FACILITY:        Dervish
+<!-- *                  Documentation
+<!-- *
+<!-- * ABSTRACT:        Design of Translation Table.
+<!-- *
+<!-- * ENVIRONMENT:     HTML (HyperText Markup Language).
+<!-- *                  
+<!-- *
+<!-- * AUTHOR:          Wei Peng, Creation date: 21-Dec-1994
+<!-- *--
+<!-- *********************************************************************** -->
+ 
+<TITLE>Design of Translation Table</TITLE>
+
+
+This document presents an insider's look into the design of translation table, 
+a data structure now heavily used and relied on in SDSS
+environment.
+
+<H1>Why Translation Table</H1>
+
+Filling pre-defined data structures with data from arbitrary FITS (Flexible
+Image Transport System) is highly desirable. Before TBLCOL/Translation table
+package was born, writing FITS I/O was mostly done for individual structures
+on an ad hoc basis. However, because
+the large number of different data structures (in dervish alone, there are roughly 50),
+writing ad hoc FITS I/O codes becomes very expensive and inefficient. Dervish (Survey
+Human Interface and Visualization Environment) already has the capability to recognize 
+data structures at runtime. With TBLCOL,  dervish has the capability of reading 
+arbitrary FITS files into a TBLCOL data structure. To maximumly
+use these capabilities, the scheme of using translation tables is invented in
+order to delink data structure-specific things from data conversion.
+<P>
+In this scheme, a translation table is built at runtime to map data source to
+data destination, while actual data conversion is done through compiled-code.
+In other words, a translation table is a set of string-based commands that
+instruct the compiled-code how data conversion should be done. Translation tables
+contain information specific to a particular data structure, but the underlying
+code is generaly and invariant. 
+
+
+<H1>How Translation table Works</H1>
+
+For translation table syntax please click <A HREF="tclSchema.html">here</A>.
+<P>
+A translation table is a collection of translation entries,
+each entry effectively instruct the conversion code to do one conversion.
+
+For an intruction to be flexible enough, a table entry must
+<DIR>
+<LI>allow data source and data destination be specified at runtime.</LI>
+<LI>allow destination data type be specified at runtime.</LI>
+<P>
+   Note here we don't have to require source data type be specified. If TBLCOL
+is the source or a C object is the data source, the source type information
+is easily avaible from TBLCOL or SCHEMA. Even though most likely same thing can be said
+about 
+destination data, there are cases one does have to specify the destination
+type, e.g, aliased types (by typedef).
+</P>
+<LI>Allow destination dimensionality be specified at runtime for pointer
+   type destination.</LI>
+<P>
+   A good example of this requirement being particularly useful is when 
+destination is a string represented by a pointer to char and the source
+data should be copied over to the memory area pointed by the pointer, 
+not the memory area occupied by the pointer. Same thing can be said
+about other type of pointers, pointers with mulitple level of indirections, etc.
+</P>
+<LI>Support the case when destination is a field in a structure embedded
+  or available through indirections (pointers). </LI>
+<P>
+  In SDSS, data structures in which one field points off to another structure
+are frequently encountered. The translation table scheme must be able to
+copy over the data to the real destination.
+<P>
+  Note, we can imitate the process of traversing links in memory by using
+multiple source/destination pairs, each pair is an entry. Thus the translation
+table should support multi-line translation entry.
+
+<LI>Be able to call Tcl constructor for destinations that are pointers to
+   other data structures.</LI>
+
+<LI>Support heap data type, whose dimensionality is only known at runtime
+and can vary from one object to another.</LI>
+<P>
+   Note this requirement is different from 3, where dimensionality is
+invariant among objects.
+
+<LI>Support optional source/destination data ratio change.</LI>
+ <P>
+   Useful when source and destination should differ in units.
+</DIR> 
+ 
+<H1>Translation Table Data Structure</H1>
+
+These requirements lead to the formation of the table entry data
+structure:
+
+<LISTING>
+typedef struct _xtable_entry 
+ {
+      CONVTYPE 	     type;		/* Req.4: conversion type */
+      char*          src;		/* Req.1: source string */
+      char*          dst;		/* Req.1: destination string */
+      char*          dsttype;           /* Req.2: dst type string */
+      char*          heaptype;          /* Req.6: heap base type */
+      char*          heaplen;           /* Req.6: number of blocks  */
+      DSTTYPE        dstDataType;       /* Req.2: destinnation type */
+      char*          proc;              /* Req.5: malloc command for dst*/
+      char*          size;              /* Req.3: size string */
+      int   num[MAX_INDIRECTION];       /* number of blocks to malloc*/
+      double         srcTodst;          /* Req.7: optional ratio of data */
+ 
+} SCHEMATRANS_ENTRY; 
+</LISTING>
+<P>
+where num and dstDataType are the enumerated and numeric representation of 
+dsttype and size. Num is filled not at the time when entry is added.
+
+<P>
+A translation table keeps the track of the access status of all the
+entries and uses a hashing scheme:
+<LISTING>
+typedef struct _xtabl_hash        /* hash table for SCHEMATRANS */
+{
+      int    totalNum;
+      int    curNum;
+      int *  entries;
+} SCHTR_HASH;   
+
+typedef struct _xtable
+{
+      int             totalNum;    /* total number of entries, empty or not*/
+      int             entryNum;    /* current number of filled entries */
+SCHEMATRANS_ENTRY*    entryPtr;    /* pointed to entryNum entries */
+SCHTR_STATUS     *    status;      /* status of entries */
+                         	   /* 0 = fresh otherwise visited */
+SCHTR_HASH  hash[SCHTRS_HASH_TBLLEN];
+ 
+} SCHEMATRANS;        
+
+</LISTING>
+
+<H1>Routines that operates on translation tables</H1>
+
+A set of C routines are defined to work on translation tables. Some of
+the important ones are :
+<DIR>
+<LI>shSchemaTransNew()</LI>
+<P>
+Creates a bare-bone translation table in memory. No entries yet.
+<P>
+<LI>shSchemaTransDel()</LI>
+<P>
+       Deletes a translation table as well all the entries in it and
+       free the memory.
+<P>
+<LI>shSchemaTransEntryAdd()</LI>
+<P> 
+Add a table entry to a translation table.
+<P>
+<LI>shSchemaTransClearEntries()</LI>
+<P>
+clear and frees the memory of all the entries in a table but
+       keep the bare-bone structure.
+<P>
+<LI>shSchemaTransCreateFromFile</LI>
+<P>
+       create a complete translation table from a given ascii file.
+<P>
+<LI>shSchemaTransWriteToFile</LI>
+<P>
+       dump out the content of the translation table to an ascii file.
+       Users may edit the output file.
+<P>
+
+<LI>shSpptGeneralSyntaxCheck()</LI>
+<P>
+      Check the translation table syntax according to a specific schema.
+     The routine checks for correct grammar and test if the fields are
+     existent in the schema. At this time, it also fill a few attributes
+     in each entry, e.g, the "num" field in SCHEMATRANS_ENTRY.
+<P>
+</DIR>
+
+
+
+
+
+
+
+

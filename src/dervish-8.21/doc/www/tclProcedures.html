@@ -1,0 +1,261 @@
+<HTML>
+<TITLE>Dervish Tcl Procedures</TITLE>
+
+<H1>Dervish Tcl Procedures</H1>
+
+<H2><A NAME="handleBindNew">handleBindNew</A></H2>
+<P>
+Return a new handle, bound to &lt;addr&gt;, type &lt;type&gt;
+<P>
+Warning: if &lt;addr&gt; is incorrect or even NULL (0x0) dervish might core
+dump upon the use of the new handle.
+
+<LISTING>
+TCL SYNTAX:
+   handleBindNew &lt;addr&gt; &lt;type&gt;
+
+   &lt;addr&gt;       The desired address, e.g. 0x1234
+   &lt;type&gt;       The type pointed to by that address, e.g. FOO
+
+RETURNS:
+   TCL_OK       Successful completion. Returns the handle (e.g. h4)
+   TCL_ERROR    Error occurred.
+
+</LISTING>
+
+<HR>
+
+<H2><A NAME="handleDup">handleDup</A></H2>
+<P>
+Return a new handle whose contents (pointer and type) are the same as
+&lt;handle&gt;
+
+<LISTING>
+TCL SYNTAX:
+   handleDup &lt;handle&gt;
+
+   &lt;handle&gt;     The name of a handle, e.g. h11
+
+RETURNS:
+   TCL_OK       Successful completion. Returns a new handle, e.g. h23
+   TCL_ERROR    Error occurred.
+</LISTING>
+
+<HR>
+
+<H2><A NAME="handleNew">handleNew</A></H2>
+<P>
+Return a new handle; it is initialised to (NULL, UNKNOWN).
+
+<LISTING>
+TCL SYNTAX:
+   handleNew
+
+RETURNS:
+   TCL_OK       Successful completion. Returns the name of the new handle.
+   TCL_ERROR    Error occurred.
+</LISTING>
+<PRE></PRE>
+
+<HR>
+
+<H2><A NAME="handlePtr">handlePtr</A></H2>
+<P>
+Return a handle's pointer.
+
+<LISTING>
+TCL SYNTAX:
+   handlePtr &lt;handle&gt;
+
+   &lt;handle&gt;     The name of a handle, e.g. h11
+
+RETURNS:
+   TCL_OK       Successful completion. Returns an address, e.g. 0x1234af
+   TCL_ERROR    Error occurred.
+</LISTING>
+
+<HR>
+
+<H2><A NAME="handleType">handleType</A></H2>
+<P>
+Return a handle's type.
+
+<LISTING>
+TCL SYNTAX:
+   handleType &lt;handle&gt;
+
+   &lt;handle&gt;     The name of a handle, e.g. h11
+
+RETURNS:
+   TCL_OK       Successful completion. Returns type, e.g. REGION
+   TCL_ERROR    Error occurred.
+
+<HR>
+
+<H2><A NAME="handleListFromType">handleListFromType</A></H2>
+<P>Return a Tcl list of the handle names that are attached to a structure of
+the given type (i.e. REGION, PT, HDR... ).  This is a Tcl procedure.
+
+<LISTING>
+TCL SYNTAX:
+   handleListFromType   &lt;type&gt;
+
+   &gt;type&gt;               An ASCII type.
+
+</LISTING>
+
+<HR>
+
+<H2><A NAME="hdrNew">hdrNew</A></H2>
+
+<P>
+A TCL expression to create a new empty header.  This command is actually an
+alias in dervishStartup.tcl for <EM>handleNewFromType HDR</EM>.
+
+<LISTING>
+TCL SYNTAX:
+   hdrNew
+
+RETURNS:
+   TCL_OK       Successful completion. The Interp result string contains the
+                name of the handle that was created.
+   TCL_ERROR    Error occurred. Depending on the nature of the error,
+                the Interp result string will contain an appropriate message.
+</LISTING>
+<PRE></PRE>
+
+<HR>
+
+<H2><A NAME="hdrDel">hdrDel</A></H2>
+<P>
+A TCL expression to delete a header.  This command is actually an
+alias in dervishStartup.tcl for <EM>handleDelFromType</EM>.
+
+<LISTING>
+TCL SYNTAX:
+   hdrDel   &lt;handle&gt;
+
+   &lt;handle&gt;     handle to a header
+
+RETURNS:
+   TCL_OK       Successful completion.
+   TCL_ERROR    Error occurred. Depending on the nature of the error,
+                the Interp result string will contain an appropriate message.
+</LISTING>
+<PRE></PRE>
+
+<HR>
+
+<H2><A NAME="regListNames">regListNames</A></H2>
+<P>
+Return a Tcl list of the handle names that are attached to a region.  This
+Tcl procedure uses <EM>handleListFromType</EM>.
+
+<LISTING>
+TCL SYNTAX:
+   regListNames
+
+
+</LISTING>
+<PRE></PRE>
+
+<HR>
+
+<h2><a name="schemaMemberGet">schemaMemberGet</a></h2>
+Get an element of a schema of the given type
+
+<LISTING>
+TCL SYNTAX:
+   schemaMemberGet &lt;type&gt; &lt;elem&gt;
+
+   &lt;type&gt;  The type of the schema to get
+   &lt;elem&gt;  The element of the schema to return
+
+RETURNS:
+   TCL_OK       Successful completion. Returns the element schema.
+   TCL_ERROR    Error occurred.
+</LISTING>
+
+<HR>
+
+
+<h2><a name="shMemTest">shMemTest</a></h2>
+On error returns a list where the first element is a list of the handles
+that were not freed, and the second element is a list of the memory blocks
+that have not been freed.  Only memory obtained using shMalloc will appear
+on this list.  If no memory is left hanging around, nothing is returned.
+
+<LISTING>
+TCL SYNTAX:
+   shMemTest
+
+RETURNS:
+   TCL_OK       Successful completion.
+   TCL_ERROR    Error occurred.
+</LISTING>
+
+<HR>
+
+<H2><A NAME="tblColNew">tblColNew</A></H2>
+
+<LISTING>
+_______________________________________________________________________________
+NAME
+     tblColNew  -  Return a handle to a new tblCol.
+
+SYNOPSIS (Tcl Syntax)
+     tblColNew
+
+ARGUMENTS
+     none
+
+RETURN VALUES
+     TCL_OK     Success.  Successful completion.  The interp result string
+                contains the name of the created handle.
+
+     TCL_ERROR  Failure.  The interp result string contains an error message.
+_______________________________________________________________________________
+DESCRIPTION
+</LISTING>
+
+<P>
+This extension will create a new handle pointing to a new tblCol structure.
+In fact this Tcl extensions is actually aliased to the following command:
+
+<PRE WIDTH="132">
+     handleNewFromType TBLCOL
+</PRE>
+
+<HR>
+
+<H2><A NAME="tblColDel">tblColDel</A></H2>
+
+<LISTING>
+_______________________________________________________________________________
+NAME
+     tblColDel  -  Delete the TBLCOL structure pointed to by the passed
+                   handle.
+
+SYNOPSIS (Tcl Syntax)
+     tblColDel  &lt;handle&gt;
+
+ARGUMENTS
+      handle    The TBLCOL Table handle.
+
+RETURN VALUES
+     TCL_OK     Success.  Successful completion.
+
+     TCL_ERROR  Failure.  The interp result string contains an error message.
+_______________________________________________________________________________
+DESCRIPTION
+</LISTING>
+
+<P>
+This extension will delete the TBLCOL structure pointed to by a handle.
+In fact this Tcl extensions is actually aliased to the following command:
+
+<PRE WIDTH="132">
+     handleDelFromType
+</PRE>
+
+</HTML>

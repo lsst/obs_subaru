@@ -1,0 +1,93 @@
+<HTML>
+<TITLE>Dervish Utility Routines</TITLE>
+<H1>"C" Routines for Memory Management and Error Handling</H1>
+<P>
+The following routines are provided as a convinience for Dervish programmers.
+They provide a consistent interface to memory management and error handling.
+
+<DIR>
+<LI><A HREF=utils.html#shDebug>shDebug</A>
+<LI><A HREF=utils.html#shVerboseSet>shVerboseSet</A>
+<LI><A HREF=utils.html#shError>shError</A>
+<LI><A HREF=utils.html#shFatal>shFatal</A>
+</DIR>
+<PRE></PRE>
+
+<H2><A NAME="shDebug">shDebug</A></H2>
+<P>
+This routine prints a debugging message on the output device. Only those
+messages below a certain threshold will be printed. Specify message to
+be printed using printf(2V) type strings.
+<LISTING>
+C SYNTAX:
+   void shDebug
+   (
+   int  level,          /* IN: Debug level threshold */
+   char *fmt,           /* IN: printf(2V) like format string */
+   ...                  /* IN: printf(2V) like string specifiers */
+   }
+
+RETURNS:
+   Nothing
+</LISTING>
+<PRE></PRE>
+
+<H2><A NAME="shVerboseSet">shVerboseSet</A></H2>
+<P>
+This routine sets the maximum threshold value for printing error messages. 
+All error messages less then or equal to this threshold value will be printed.
+All error messages greater then this value will be silently ignored.
+If the passed parameter value is less then zero, then the threshold value
+remains unchanged.
+<LISTING>
+C SYNTAX:
+   int shVerboseSet
+   (
+   int threshold         /* IN: New threshold value */
+   )
+
+RETURNS:
+   The old threshold value.
+</LISTING>
+<PRE></PRE>
+
+<H2><A NAME="shError">shError</A></H2>
+<P>
+This is the routine to call when the science module receives a non-fatal
+error and needs to tell the framework. The message is printed on the ouput
+device, and the string is pushed onto the <A HREF=errStack.html#error stack>error stack</A>. A new line in the error string will be removed before passing 
+it on to the error stack routines.
+
+<LISTING>
+C SYNTAX:
+   void shError
+   (
+   char *fmt,           /* IN: printf(2V) like format string */
+   ...                  /* IN: printf(2V) like string specifiers */
+   )
+ 
+RETURNS:
+   Nothing.
+</LISTING>
+<PRE></PRE>
+
+<H2><A NAME="shFatal">shFatal</A></H2>
+<P>
+This routine handles fatal errors by displaying an error message on the output
+device and terminating the program. It also produces a core image of the
+executable for further debugging purposes.
+ 
+<LISTING>
+C SYNTAX:
+   void shFatal
+   (
+   char *fmt,           /* IN: printf(2V) like format string */
+   ...                  /* IN: printf(2V) like string specifiers */
+   )
+ 
+RETURNS:
+   Nothing.
+</LISTING>
+<PRE></PRE>
+
+</HTML>

@@ -1,0 +1,166 @@
+<HTML>
+<HEAD> Ascii Plotting Procedures</HEAD>
+
+<TITLE>Ascii Plotting Procedures</TITLE>
+<BODY>
+
+These routines can be used to plot data from ascii files.  The ascii files
+are assumed to be data only (no title lines or comments).  The data should
+consist of one or more columns of parameters, one instance per line.  The
+data columns should be separated by spaces.  Using these routines, data
+colums can be plotted against each other as lines or points, and can be
+sent to the screen or to color postscript (if the plot is not in color,
+it can be printed on the B&W printers, at least at FNAL).  After the
+plot has been drawn, pgLabel can be used to add title and axis labels.
+To plot multiple columns against one column, plot the first set of points,
+and then append each additional set of points.  To plot the different
+data sets in different colors, use pgSci before each plotting routine.
+So that these techniques will also work for saving plots, the pgEnd
+routine must be used when you have finished appending to a saved plot.
+If you do not issue this, the postscript data may not have been flushed
+to the pgplot.ps file.
+
+<P>
+There are three utility routines in this file: proc listMax {list}, 
+proc listMin {list}, and proc scantoarray {linevar arrayname}.  The first
+two do the obvious thing, and scantoarray separates all elements of
+$linevar (separated by spaces) into elements of arrayname(x) starting with
+arrayname(0).
+
+<PRE></PRE>
+<HR><MENU>
+<LI><A HREF="#plotFromFile">plotFromFile</A>
+<LI><A HREF="#appendFromFile">appendFromFile</A>
+<LI><A HREF="#savePlotFromFile">savePlotFromFile</A>
+<LI><A HREF="#plotFromFileWithLimits">plotFromFileWithLimits</A>
+<LI><A HREF="#savePlotFromFileWithLimits">savePlotFromFileWithLimits</A>
+<LI><A HREF="#plotFromFileLogLin">plotFromFileLogLin</A>
+<LI><A HREF="#appendFromFileLogLin">appendFromFileLogLin</A>
+<LI><A HREF="#plotPointsFromFile">plotPointsFromFile</A>
+<LI><A HREF="#appendPointsFromFile">appendPointsFromFile</A>
+<LI><A HREF="#savePlotPointsFromFile">savePlotPointsFromFile</A>
+<LI><A HREF="#plotPointsFromFileWithLimits">plotPointsFromFileWithLimits</A>
+<LI><A HREF="#savePlotPointsFromFileWithLimits">savePlotPointsFromFileWithLimits</A>
+</MENU>
+
+<HR><H2><A NAME="plotFromFile">plotFromFile</A></H2>
+<PRE></PRE>
+<P>
+SYNTAX: plotFromFile file xpos ypos
+<P>
+EXAMPLE: plotFromFile mydatafile 0 1
+<P>
+Using the file "mydatafile", makes a linear plot of the items in column 1 
+(on the y axis) vs. the items in column 0 (on the x axis), scaling the plot 
+so that all data points fit on it.
+
+<HR><H2><A NAME="appendFromFile">appendFromFile</A></H2>
+<PRE></PRE>
+<P>
+SYNTAX: appendFromFile file xpos ypos
+<P>
+EXAMPLE: appendFromFile mydatafile 0 2
+<P>
+Using the file "mydatafile", appends (to an aleady existing linear plot) a
+plot of the items in column 2 (on the y axis) vs. the items in column 0 
+(on the x axis), using the same scaling as the original plot.
+
+<HR><H2><A NAME="savePlotFromFile">savePlotFromFile</A></H2>
+<PRE></PRE>
+<P>
+SYNTAX: savePlotFromFile file xpos ypos
+<P>
+EXAMPLE: savePlotFromFile mydatafile 0 1
+<P>
+Same as plotFromFile, but writes postscript to the file pgplot.ps.
+
+<HR><H2><A NAME="plotFromFileWithLimits">plotFromFileWithLimits</A></H2>
+<PRE></PRE>
+<P>
+SYNTAX: plotFromFileWithLimits file xpos ypos xmin xmax ymin ymax
+<P>
+EXAMPLE: plotFromFileWithLimits mydatafile 0 1 0 100 -50 50
+<P>
+Same as plotFromFile, but the x axis will go from 0 to 100 and the y axis
+will go from -50 to 50.  Parts of the image that are out of range will not
+be shown.
+
+<HR><H2><A NAME="savePlotFromFileWithLimits">savePlotFromFileWithLimits</A></H2>
+<PRE></PRE>
+<P>
+SYNTAX: savePlotFromFileWithLimits file xpos ypos xmin xmax ymin ymax
+<P>
+EXAMPLE: savePlotFromFileWithLimits mydatafile 0 1 0 100 -50 50
+<P>
+Same as plotFromFileWithLimits, but the data will be written to the
+postscript file pgplot.ps.
+
+<HR><H2><A NAME="plotFromFileLogLin">plotFromFileLogLin</A></H2>
+<PRE></PRE>
+<P>
+SYNTAX: plotFromFileLogLin file xpos ypos
+<P>
+EXAMPLE: plotFromFileLogLin mydatafile 0 1
+<P>
+Same as plotFromFile, but the y axis is in log scale.
+
+<HR><H2><A NAME="appendFromFileLogLin">appendFromFileLogLin</A></H2>
+<PRE></PRE>
+<P>
+SYNTAX: appendFromFileLogLin file xpos ypos
+<P>
+EXAMPLE: appendFromFileLogLin mydatafile 0 1
+<P>
+Same as plotFromFileLogLin, but appends to a log-linear plot instead of
+a linear-linear plot.
+
+<HR><H2><A NAME="plotPointsFromFile">plotPointsFromFile</A></H2>
+<PRE></PRE>
+<P>
+SYNTAX: plotPointsFromFile file xpos ypos
+<P>
+EXAMPLE: plotPointsFromFile mydatafile 0 1
+<P>
+Same as plotFromFile, but puts dots at each coordinate instead of drawing
+a line from point to point.
+
+<HR><H2><A NAME="appendPointsFromFile">appendPointsFromFile</A></H2>
+<PRE></PRE>
+<P>
+SYNTAX: appendPointsFromFile file xpos ypos
+<P>
+EXAMPLE: appendPointsFromFile mydatafile 0 1
+<P>
+Appends points to a linear-linear file, using the previously defined limits
+on the x and y axes.
+
+<HR><H2><A NAME="savePlotPointsFromFile">savePlotPointsFromFile</A></H2>
+<PRE></PRE>
+<P>
+SYNTAX: savePlotPointsFromFile file xpos ypos
+<P>
+EXAMPLE: savePlotPointsFromFile mydatafile 0 1
+<P>
+Same as plotPointsFromFile, but sends postscript output to pgplot.ps.
+
+<HR><H2><A NAME="plotPointsFromFileWithLimits">plotPointsFromFileWithLimits</A></H2>
+<PRE></PRE>
+<P>
+SYNTAX: plotPointsFromFileWithLimits file xpos ypos xmin xmax ymin ymax
+<P>
+EXAMPLE: plotPointsFromFileWithLimits mydatafile 0 1 0 100 -50 50
+<P>
+Same as plotPointsFromFile, but scales the x and y axes so that you only
+see the part of the plot within the given boundaries.
+
+<HR><H2><A NAME="savePlotPointsFromFileWithLimits">savePlotPointsFromFileWithLimits</A></H2>
+<PRE></PRE>
+<P>
+SYNTAX: savePlotPointsFromFileWithLimits file xpos ypos xmin xmax ymin ymax
+<P>
+EXAMPLE: savePlotPointsFromFileWithLimits mydatafile 0 1 0 100 -50 50
+<P>
+Same as plotPointsFromFileWithLimits, but writes the plot to the postscript
+file pgplot.ps.
+
+</HTML>

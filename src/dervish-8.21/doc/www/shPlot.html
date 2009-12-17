@@ -1,0 +1,56 @@
+<HTML>
+<TITLE>Dervish Plotting Utilities</TITLE>
+<H1>Dervish Plotting Utilities</H1>
+
+<A NAME="dervishPlot"></A>
+<H3>dervishPlot</H3>
+This procedure plots a column or a row (or both) of a region.
+<PRE>
+dervishPlot  &lt;region&gt;  [opts]
+
+      &lt;region&gt;  : region name
+
+      [opts] are one or more of the following (NOTE that all opts with 
+      values currently require an equal sign):
+
+      -row      : row number to be plotted
+      -col      : column number to be plotted
+      -xmin     : x-axis minimum value
+      -xmax     : x-axis maximum value
+      -ymin     : y-axis minimum value
+      -ymax     : y-axis maximum value
+      -point    : plot with specified points (graph markers) rather than lines
+      -title    : plot title when plotting a particular row (or col) 
+                  cross section (not both)
+      -coltitle : plot title when plotting a particular col cross section 
+                  (used when plotting cross sections of both a row and a col
+                  with one dervishPlot call. then -title is the row cross
+                  section title.)
+      -log      : if specified then y-axis is log scaled
+      -file     : create the plot in the /PS device
+      -sec      : number of seconds to wait inbetween plots (if plotting 2)
+      -overplot : if specified, overplot previous graph
+
+</PRE>
+
+<A NAME="xsectionPlot"></A>
+<H3>xsectionPlot</H3>
+This procedure does the plotting of both a row and a column cross-section with 
+one call.  xsectionPlot is basically a shell procedure around dervishPlot.
+It is primarily used to capture plotting commands issued from
+the mouse commands on fsao.
+
+<PRE>
+xsectionPlot  &lt;choice&gt;  &lt;region&gt;  &lt;row&gt;  &lt;col&gt;  &lt;fsao&gt;  [opts]
+
+      &lt;choice&gt;  : R, C, or B  (i.e., Row, Column, or Both)
+      &lt;region&gt;  : region name
+      &lt;row&gt;     : row
+      &lt;col&gt;     : column
+      &lt;fsao&gt;    : fsao number (Value not used - required since mouse commands
+                               return it)
+
+      [opts] are the same as <A HREF="#dervishPlot">dervishPlot</A>.
+
+</PRE>
+</HTML>

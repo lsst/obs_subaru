@@ -1,0 +1,7 @@
+1d4c31b623677b6b46d62a8250dbe90b  ./Makefile
+36982e9311200e69673afc83aa4330a8  ./old.fits
+bfbf2bc3ae3ca8ee69c6d3784d9a3f0a  ./test_chainContrib.tcl
+a2de94474eb2e8b4c58a44c153d643a6  ./test_fits2Schema.tcl
+67792ec2837ffbe1abc79ab77a7d1d08  ./test_hg.tcl
+cc49ad397383cd6b47b891d0ad78393a  ./test_nextFrame.tcl
+98347e35b4b3441b02ab0d5746dbf016  ./test_template.tcl

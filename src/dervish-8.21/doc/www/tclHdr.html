@@ -1,0 +1,471 @@
+<HTML>
+<TITLE>Header TCL Commands</TITLE>
+<H1>TCL Layer Expressions for Headers</H1>
+<P>
+TCL expressions to manipulate headers are documented below.
+
+
+<DIR>
+<LI><A HREF=tclHdr.html#hdrNew>hdrNew</A>
+<LI><A HREF=tclHdr.html#hdrDel>hdrDel</A>
+<LI><A HREF=tclHdr.html#hdrInsWithLogical>hdrInsWithLogical</A>
+<LI><A HREF=tclHdr.html#hdrInsWithDbl>hdrInsWithDbl</A>
+<LI><A HREF=tclHdr.html#hdrInsWithInt>hdrInsWithInt</A>
+<LI><A HREF=tclHdr.html#hdrInsWithAscii>hdrInsWithAscii</A>
+<LI><A HREF=tclHdr.html#hdrDelByKeyword>hdrDelByKeyword</A>
+<LI><A HREF=tclHdr.html#hdrFree>hdrFree</A>
+<LI><A HREF=tclHdr.html#hdrGetAsAscii>hdrGetAsAscii</A>
+<LI><A HREF=tclHdr.html#hdrGetAsDbl>hdrGetAsDbl</A>
+<LI><A HREF=tclHdr.html#hdrGetAsInt>hdrGetAsInt</A>
+<LI><A HREF=tclHdr.html#hdrGetAsLogical>hdrGetAsLogical</A>
+<LI><A HREF=tclHdr.html#hdrGetLine>hdrGetLine</A>
+<LI><A HREF=tclHdr.html#hdrGetLineCont>hdrGetLineCont</A>
+<LI><A HREF=tclHdr.html#hdrGetLineno>hdrGetLineno</A>
+<LI><A HREF=tclHdr.html#hdrDelByLine>hdrDelByLine</A>
+<LI><A HREF=tclHdr.html#hdrReplaceLine>hdrReplaceLine</A>
+<LI><A HREF=tclHdr.html#hdrMakeLineWithAscii>hdrMakeLineWithAscii</A>
+<LI><A HREF=tclHdr.html#hdrMakeLineWithDbl>hdrMakeLineWithDbl</A>
+<LI><A HREF=tclHdr.html#hdrMakeLineWithInt>hdrMakeLineWithInt</A>
+<LI><A HREF=tclHdr.html#hdrMakeLineWithLogical>hdrMakeLineWithLogical</A>
+<LI><A HREF=tclHdr.html#hdrCopy>hdrCopy</A>
+<LI><A HREF=tclHdr.html#hdrPrint>hdrPrint</A>     
+</DIR>
+<PRE></PRE>
+
+<H2><A NAME="hdrNew">hdrNew</A></H2>
+<P>
+A TCL expression to create a new empty header.  This command is actually an
+alias in dervishStartup.tcl for <EM>handleNewFromType HDR</EM>.
+
+<LISTING>
+TCL SYNTAX:
+   hdrNew
+
+RETURNS:
+   TCL_OK	Successful completion. The Interp result string contains the
+                name of the handle that was created.
+   TCL_ERROR	Error occurred. Depending on the nature of the error,
+                the Interp result string will contain an appropriate message.
+</LISTING>
+<PRE></PRE>
+
+<H2><A NAME="hdrDel">hdrDel</A></H2>
+<P>
+A TCL expression to delete a header.  This command is actually an
+alias in dervishStartup.tcl for <EM>handleDelFromType</EM>.  This
+command should <B>not</B> be used to delete a header within a
+region (see <A HREF="#hdrFree">hdrFree</A> instead).
+
+<LISTING>
+TCL SYNTAX:
+   hdrDel   &lt;handle&gt;
+
+   &lt;handle&gt;     handle to a header
+
+RETURNS:
+   TCL_OK	Successful completion. 
+   TCL_ERROR	Error occurred. Depending on the nature of the error,
+                the Interp result string will contain an appropriate message.
+</LISTING>
+<PRE></PRE>
+
+<H2><A NAME="hdrInsWithDbl">hdrInsWithDbl</A></H2>
+<P>
+A TCL expression to insert a double value in a header. 
+
+<LISTING>
+TCL SYNTAX:
+   hdrInsWithDbl &lt;header&gt; &lt;keyword&gt; &lt;value&gt; [comment]
+
+   &lt;header&gt;	header expression
+   &lt;keyword&gt;	keyword used to identify the value
+   &lt;value&gt;      Double value to be inserted
+   [comment]	Optional comment
+                               
+RETURNS:
+   TCL_OK	Successful completion.
+   TCL_ERROR	Error occurred. Depending on the nature of the error,
+                the Interp result string will contain an appropriate message.
+</LISTING>
+<PRE></PRE>
+
+<H2><A NAME="hdrInsWithInt">hdrInsWithInt</A></H2>
+<P>
+A TCL expression to insert an integer value in a header.
+
+<LISTING>
+TCL SYNTAX:
+   hdrInsWithInt &lt;header&gt; &lt;keyword&gt; &lt;value&gt; [comment]
+
+   &lt;header&gt;     header expression
+   &lt;keyword&gt;    keyword used to identify the value
+   &lt;value&gt;      Integer value to be inserted
+   [comment]    Optional comment
+
+RETURNS:
+   TCL_OK       Successful completion.
+   TCL_ERROR    Error occurred. Depending on the nature of the error,
+                the Interp result string will contain an appropriate message.
+</LISTING>
+<PRE></PRE>
+
+<H2><A NAME="hdrInsWithAscii">hdrInsWithAscii</A></H2>
+<P>
+A TCL expression to insert an alphanumeric value in a header.
+
+<LISTING>
+TCL SYNTAX:
+   hdrInsWithAscii &lt;header&gt; &lt;keyword&gt; &lt;value&gt; [comment]
+
+   &lt;header&gt;     header expression
+   &lt;keyword&gt;    keyword used to identify the value
+   &lt;value&gt;      Alphanumeric value to be inserted
+   [comment]    Optional comment
+
+RETURNS:
+   TCL_OK       Successful completion.
+   TCL_ERROR    Error occurred. Depending on the nature of the error,
+                the Interp result string will contain an appropriate message.
+</LISTING>
+<PRE></PRE>
+
+<H2><A NAME="hdrDelByKeyword">hdrDelByKeyword</A></H2>
+<P>
+A TCL expression to delete a line identified by a keyword from a header.
+The header must exist in order for this expression to
+execute successfully.
+
+<LISTING>
+TCL SYNTAX:
+   hdrDelByKeyword &lt;header&gt; &lt;keyword&gt;
+
+   &lt;header&gt;     header expression
+   &lt;keyword&gt;    keyword used to identify the line to be deleted
+
+RETURNS:
+   TCL_OK       Successful completion
+   TCL_ERROR    Error occurred. Depending on the nature of the error,
+                the Interp result string will contain an appropriate message.
+</LISTING>
+<PRE></PRE>
+
+<H2><A NAME="hdrFree">hdrFree</A></H2>
+<P>
+A TCL expression to free all memory occupied by a header except the
+actual header structure.
+
+<LISTING>
+TCL SYNTAX:
+   hdrFree &lt;header&gt;
+
+   &lt;header&gt;     header expression
+
+RETURNS:
+   TCL_OK       Successful completion
+   TCL_ERROR    Error occurred. Depending on the nature of the error,
+                the Interp result string will contain an appropriate message.
+</LISTING>
+<PRE></PRE>
+
+<H2><A NAME="hdrGetAsAscii">hdrGetAsAscii</A></H2>
+<P>
+A TCL expression to get an alphanumeric string identified by a keyword from a
+header. The header must have been created before using this expression.
+
+<LISTING>
+TCL SYNTAX:
+   hdrGetAsAscii &lt;header&gt; &lt;keyword&gt;
+
+   &lt;header&gt;     header expression
+   &lt;keyword&gt;    keyword to search the header by
+
+RETURNS:
+   TCL_OK       Successful completion
+   TCL_ERROR    Error occurred. Depending on the nature of the error,
+                the Interp result string will contain an appropriate message.
+</LISTING>
+<PRE></PRE>
+
+<H2><A NAME="hdrGetAsDbl">hdrGetAsDbl</A></H2>
+<P>
+A TCL expression to get a double identified by a keyword from a header.
+The header must have been created before using this expression.
+
+<LISTING>
+TCL SYNTAX:
+   hdrGetAsDbl &lt;header&gt; &lt;keyword&gt;
+
+   &lt;header&gt;     header expression
+   &lt;keyword&gt;    keyword to search the header by
+
+RETURNS:
+   TCL_OK       Successful completion
+   TCL_ERROR    Error occurred. Depending on the nature of the error,
+                the Interp result string will contain an appropriate message.
+</LISTING>
+<PRE></PRE>
+
+<H2><A NAME="hdrGetAsInt">hdrGetAsInt</A></H2>
+<P>
+A TCL expression to get an integer identified by a keyword from a header.
+The header must have been created before using this expression.
+
+<LISTING>
+TCL SYNTAX:
+   hdrGetAsInt &lt;header&gt; &lt;keyword&gt;
+
+   &lt;header&gt;     header expression
+   &lt;keyword&gt;    keyword to search the header by
+
+RETURNS:
+   TCL_OK       Successful completion
+   TCL_ERROR    Error occurred. Depending on the nature of the error,
+                the Interp result string will contain an appropriate message.
+</LISTING>
+<PRE></PRE>
+
+<H2><A NAME="hdrGetAsLogical">hdrGetAsLogical</A></H2>
+<P>
+A TCL expression to get a logical value (0 or 1) identified by a keyword from 
+a header. The header must have been created before using this expression.
+
+<LISTING>
+TCL SYNTAX:
+   hdrGetAsLogical &lt;header&gt; &lt;keyword&gt;
+
+   &lt;header&gt;     header expression
+   &lt;keyword&gt;    keyword to search the header by
+
+RETURNS:
+   TCL_OK       Successful completion
+   TCL_ERROR    Error occurred. Depending on the nature of the error,
+                the Interp result string will contain an appropriate message.
+</LISTING>
+<PRE></PRE>
+
+<H2><A NAME="hdrGetLine">hdrGetLine</A></H2>
+<P>
+A TCL expression to get an entire line (vector) identified by a keyword from
+a header. The header must have been created before using this expression.
+
+<LISTING>
+TCL SYNTAX:
+   hdrGetLine &lt;header&gt; &lt;keyword&gt;
+
+   &lt;header&gt;     header expression
+   &lt;keyword&gt;    keyword to search the header by
+
+RETURNS:
+   TCL_OK       Successful completion
+   TCL_ERROR    Error occurred. Depending on the nature of the error,
+                the Interp result string will contain an appropriate message.
+</LISTING>
+<PRE></PRE>
+
+<H2><A NAME="hdrGetLineCont">hdrGetLineCont</A></H2>
+<P>
+A TCL expression to get an entire line (vector) identified by a line number from
+a header. The header must have been created before using this expression.
+
+<LISTING>
+TCL SYNTAX:
+   hdrGetLineCont &lt;header&gt; &lt;lineno&gt;
+
+   &lt;header&gt;     header expression
+   &lt;lineno&gt;     line number to search the header by
+
+RETURNS:
+   TCL_OK       Successful completion
+   TCL_ERROR    Error occurred. Depending on the nature of the error,
+                the Interp result string will contain an appropriate message.
+</LISTING>
+<PRE></PRE>
+
+<H2><A NAME="hdrGetLineno">hdrGetLineno</A></H2>
+<P>
+A TCL expression to get the line number on which a certain line occurred in
+a header. The line to be searched for is identified by a keyword.
+The header must have been created before using this expression.
+
+<LISTING>
+TCL SYNTAX:
+   hdrGetLineno &lt;header&gt; &lt;keyword&gt;
+
+   &lt;header&gt;     header expression
+   &lt;keyword&gt;    keyword to search the header by
+
+RETURNS:
+   TCL_OK       Successful completion
+   TCL_ERROR    Error occurred. Depending on the nature of the error,
+                the Interp result string will contain an appropriate message.
+</LISTING>
+<PRE></PRE>
+
+<H2><A NAME="hdrDelByLine">hdrDelByLine</A></H2>
+<P>
+A TCL expression to delete a line from a header. The line to be deleted
+is identified by a line number. The header must exist for this
+expression to execute successfully.
+
+<LISTING>
+TCL SYNTAX:
+   hdrDelByLine &lt;header&gt; &lt;lineNumber&gt;
+
+   &lt;header&gt;     header expression
+   &lt;lineNumber&gt; Line number of the line to be deleted
+
+RETURNS:
+   TCL_OK       Successful completion
+   TCL_ERROR    Error occurred. Depending on the nature of the error,
+                the Interp result string will contain an appropriate message.
+</LISTING>
+<PRE></PRE>
+
+<H2><A NAME="hdrReplaceLine">hdrReplaceLine</A></H2>
+<P>
+A TCL expression to replace a header line. The line to be replaced
+is passed as an argument, as is the line number where it should be
+replaced at. The header must exist for this expression to execute
+successfully.
+
+<LISTING>
+TCL SYNTAX:
+   hdrReplaceLine &lt;header&gt; &lt;lineNumber&gt; &lt;lineContents&gt;
+
+   &lt;header&gt;       header expression
+   &lt;lineNumber&gt;   Line number of the line to be deleted
+   &lt;lineContents&gt; Line to be replaced (Enclose in quotes)
+
+RETURNS:
+   TCL_OK       Successful completion
+   TCL_ERROR    Error occurred. Depending on the nature of the error,
+                the Interp result string will contain an appropriate message.
+</LISTING>
+<PRE></PRE>
+
+<H2><A NAME="hdrMakeLineWithAscii">hdrMakeLineWithAscii</A></H2>
+<P>
+A TCL expression to construct a line containing ASCII (alphanumeric) value
+suitable for insertion in a header. The line is constructed using
+the supplied keyword, value and an optional comment field.
+
+<LISTING>
+TCL SYNTAX:
+   hdrMakeLineWithAscii &lt;keyword&gt; &lt;value&gt; [comment]
+
+   &lt;keyword&gt;    Keyword to be contained in the line
+   &lt;value&gt;      Ascii value in the line
+   [comment]    Comments for the line (optional)
+
+RETURNS:
+   TCL_OK       Successful completion. The Interp result string will contain
+                the constructed line
+   TCL_ERROR    Error occurred. Depending on the nature of the error,
+                the Interp result string will contain an appropriate message.
+</LISTING>
+<PRE></PRE>
+
+<H2><A NAME="hdrMakeLineWithDbl">hdrMakeLineWithDbl</A></H2>
+<P>
+A TCL expression to construct a line containing a double value suitable 
+for insertion in a header. The line is constructed using the supplied 
+keyword, value and an optional comment field.
+
+<LISTING>
+TCL SYNTAX:
+   hdrMakeLineWithDbl &lt;keyword&gt; &lt;value&gt; [comment]
+
+   &lt;keyword&gt;    Keyword to be contained in the line
+   &lt;value&gt;      Double value in the line
+   [comment]    Comments for the line (optional)
+
+RETURNS:
+   TCL_OK       Successful completion. The Interp result string will contain
+                the constructed line
+   TCL_ERROR    Error occurred. Depending on the nature of the error,
+                the Interp result string will contain an appropriate message.
+</LISTING>
+<PRE></PRE>
+
+<H2><A NAME="hdrMakeLineWithInt">hdrMakeLineWithInt</A></H2>
+<P>
+A TCL expression to construct a line containing an integer value suitable
+for insertion in a header. The line is constructed using the supplied
+keyword, value and an optional comment field.
+
+<LISTING>
+TCL SYNTAX:
+   hdrMakeLineWithInt &lt;keyword&gt; &lt;value&gt; [comment]
+
+   &lt;keyword&gt;    Keyword to be contained in the line
+   &lt;value&gt;      Integer value in the line
+   [comment]    Comments for the line (optional)
+
+RETURNS:
+   TCL_OK       Successful completion. The Interp result string will contain
+                the constructed line
+   TCL_ERROR    Error occurred. Depending on the nature of the error,
+                the Interp result string will contain an appropriate message.
+</LISTING>
+<PRE></PRE>
+
+<H2><A NAME="hdrMakeLineWithLogical">hdrMakeLineWithLogical</A></H2>
+<P>
+A TCL expression to construct a line containing a logical (0 or 1) value 
+suitable for insertion in a header. The line is constructed using 
+the supplied keyword, value and an optional comment field.
+
+<LISTING>
+TCL SYNTAX:
+   hdrMakeLineWithLogical &lt;keyword&gt; &lt;value&gt; [comment]
+
+   &lt;keyword&gt;    Keyword to be contained in the line
+   &lt;value&gt;      Logical value in the line
+   [comment]    Comments for the line (optional)
+
+RETURNS:
+   TCL_OK       Successful completion. The Interp result string will contain
+                the constructed line
+   TCL_ERROR    Error occurred. Depending on the nature of the error,
+                the Interp result string will contain an appropriate message.
+</LISTING>
+<PRE></PRE>
+
+<H2><A NAME="hdrCopy">hdrCopy</A></H2>
+<P>
+A TCL expression to copy one header to another.
+
+<LISTING>
+TCL SYNTAX:
+   hdrCopy &lt;sourceHeader&gt; &lt;destinationHeader&gt;
+
+   &lt;sourceHeader&gt;      header to copy from
+   &lt;destinationHeader&gt; header to copy to
+
+RETURNS:
+   TCL_OK              Successful completion.
+   TCL_ERROR           Error occurred. Depending on the nature of the error,
+                       the Interp result string will contain an appropriate 
+                       message.
+</LISTING>
+<PRE></PRE>
+
+<H2><A NAME="hdrCopy">hdrPrint</A></H2>
+<P>
+A TCL expression to print the contents of a header.
+
+<LISTING>
+TCL SYNTAX:
+   hdrPrint &lt;handle&gt;
+
+   &lt;handle&gt;      header to print
+
+RETURNS:
+   TCL_OK              Successful completion.
+   TCL_ERROR           Error occurred. Depending on the nature of the error,
+                       the Interp result string will contain an appropriate 
+                       message.
+</LISTING>
+<PRE></PRE>
+
+</HTML>

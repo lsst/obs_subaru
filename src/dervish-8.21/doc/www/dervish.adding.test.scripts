@@ -1,0 +1,23 @@
+<HTML>
+<TITLE>Guidelines For Adding Test Scripts To Dervish</TITLE>
+<H1>Guidelines For Adding Test Scripts To Dervish</H1>
+<P>
+
+The following guidelines should be used when writing test scripts in Dervish.
+Any currently existing test script can be used as a template.  All tests
+are run automatically by the Makefile during the build procedure.
+
+<UL>
+<LI>All test scripts belong in Dervish's test subdirectory.
+<LI>They should be named <B>tst_xxxx.tcl</B>, where xxxx is replaced by
+something appropriate to what is being tested.
+<LI>The script name should be added to the <EM>SCRIPTS</EM> target in the
+Makefile in the same directory.
+<LI>Please comment all scripts especially at the top stating what Tcl
+extensions are being tested and how.
+<LI>Use the <EM>catch</EM> Tcl extension around Dervish Tcl extensions to capture
+errors so more informative error messages can be output.  Only Dervish Tcl
+extensions that are being tested (or that <EM>may</EM> fail) need this
+precaution.
+<LI>The test script should not generate any output except on error.
+</UL>

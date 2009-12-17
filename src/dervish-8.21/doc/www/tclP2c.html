@@ -1,0 +1,186 @@
+<HTML>
+<HEAD>
+</HEAD>
+
+There is a pair of file I/O commands for
+inputting and outputting parameter files. These commands
+are analogous to the 'fits2Schema' and 'schema2Fits' commands
+which I/O binary fits tables.
+
+<TITLE>param2Chain, chain2Param</TITLE>
+<BODY>
+
+<H1>param2Chain</H1>
+
+dervish&gt; param2Chain &lt paramfile &gt hdrlist<p>
+
+will read the paramfile off of disk and load it into a chain and 
+associated header. 
+The header (hdrlist) will become a keyed list.
+Note that you do not put a $ in front of the variable,
+as it references the variable's address.
+
+<p>
+A param file has the format:
+
+<pre>
+==============   file.par  =========================
+TEMP         10.1
+pressure     760.2
+waterVap     15.3
+
+typedef struct {
+	int filter;
+	double skyMag;
+	double seeing;
+	double zeroPt;
+	double extinction;
+	char name[10];
+} OC;
+
+oc 0 0 0 0 0 "blank"
+oc 102 21.15 1 25.9 0.04 "r"
+oc 103 20.19 1 25.5 0.03 "i"
+oc 100 22.12 1 23.6 0.06 "u"
+oc 104 18.55 1 23.8 0.02 "z"
+oc 101 21.77 1 25.7 0.05 "g"
+oc 105 24.95 1 22.1 0.04 "o"
+oc 106 24.95 1 22.1 0.04 "l"
+oc 106 24.95 1 22.1 0.04 "t"
+oc 106 24.95 1 22.1 0.04 "s"
+oc 109 21.15 1 23.9 0.04 "r_mt"
+oc 110 20.19 1 23.5 0.03 "i_mt"
+oc 107 22.12 1 21.6 0.06 "u_mt"
+oc 111 18.55 1 21.8 0.02 "z_mt"
+oc 108 21.77 1 23.7 0.05 "g_mt"
+=====================================================
+</pre>
+
+The top of the file may be filled with KEYWORD VALUE pairs,
+these pairs are read into the hdr and can be examined with
+echo $hdr
+keylkeys hdr
+set value [keylget $hdr TEMP] 	
+
+<p>
+Note that if you put ascii strings into the headers with
+embedded spaces, you must quote them with curly braces or double quotes
+
+<p>
+authors	 {Michael Richmond} {Nan Ellman}
+
+<p>
+The typedef of the table portion of the file is first set up
+with a 'c-like'  statement:
+typedef struct { .... } &lt usertype &gt;
+
+<p>
+The &lt usertype &gt must be uppercase.
+
+<p>
+The body of the table consists of  N lines of 
+&lt userType &gt   &lt value1 &gt &lt value2 &gt ... &lt value_n &gt
+data.
+
+<p>
+
+
+More than one table may be placed in to the same param
+file, in which case there must be a 
+typedef struct { .... } &lt usertype2 &gt
+set of lines for the second type of table.
+
+<p>
+If more than one type of table is present, then a separate chain
+is returned for each table type.
+
+<p>
+Only one header is returned.
+
+<p>
+One may optionally leave either out the hdr or the table 
+section of a param file.
+
+<p>
+
+The above table would be read in with
+
+<pre>
+dervish&gt; param2Chain file.par hdr
+h2
+The header (hdr) will become a keyed list.
+Note that you do not put a $ in front of the variable,
+as it references the variable's address and fills it in.
+</pre>
+
+At this point all the normal chain and keyed list processing utilities
+can be used on the chain h2 and on the hdr $hdr:
+
+<pre>
+dervish&gt; chainSize h2
+15
+dervish&gt; echo $hdr
+{TEMP 10.1} {pressure 76.02} {waterVap 15.3}
+dervish&gt; keylget hdr pressure
+76.02		#again note: no $ in front of hdr
+dervish&gt; chainElementGetByPos h2 6
+h9
+dervish&gt; exprPrint h9
+filter     105
+skyMag     24.95
+seeing     1
+zeroPt     22.1
+extinction 0.04
+name       o '\000' '\000' '\000' '\000' '\000' '\000' '\000' '\000' '\000'
+dervish&gt; chainPage h2
+	(etc)
+
+</pre>
+
+<h1>chain2Param</h1>
+
+The reverse of param2Chain is chain2Param
+
+<p>
+chain2Param &lt outfile.par&gt [&lt chain_list&gt] [&lt hdr &gt] 
+<p>
+
+<pre>
+dervish&gt; chain2Param outfile.par h2 $hdr 
+dervish&gt; more outfile.par
+TEMP     10.1
+pressure     760.2
+waterVap     15.3
+
+typedef struct {
+	int filter;
+	double skyMag;
+	double seeing;
+	double zeroPt;
+	double extinction;
+	char name[10];
+}
+
+OC 0 0 0 0 0 "blank"
+OC 102 21.15 1 25.9 0.04 "r"
+OC 103 20.19 1 25.5 0.03 "i"
+OC 100 22.12 1 23.6 0.06 "u"
+OC 104 18.55 1 23.8 0.02 "z"
+OC 101 21.77 1 25.7 0.05 "g"
+OC 105 24.95 1 22.1 0.04 "o"
+OC 106 24.95 1 22.1 0.04 "l"
+OC 106 24.95 1 22.1 0.04 "t"
+OC 106 24.95 1 22.1 0.04 "s"
+OC 109 21.15 1 23.9 0.04 "r_mt"
+OC 110 20.19 1 23.5 0.03 "i_mt"
+OC 107 22.12 1 21.6 0.06 "u_mt"
+OC 111 18.55 1 21.8 0.02 "z_mt"
+OC 108 21.77 1 23.7 0.05 "g_mt"
+
+dervish&gt;
+</pre>
+
+</HTML>
+
+
+

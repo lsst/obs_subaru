@@ -1,0 +1,41 @@
+<TITLE>Examples of using DERVISH</TITLE>
+
+<H1>Augmenting DERVISH</H1>
+
+
+
+<H2>Adding an Extension to DERVISH</H2>
+
+Here is a summary of what you must do to use DERVISH to develop a TCL Extension
+or "word". It is assumed that DERVISH software has been installed on your
+computer.  
+
+<DIR>
+<LI>Select a directory in which to develop software. Do NOT develop in the 
+DERVISH area itself.
+
+<LI>Issue the command "setup dervish". This gives you environmental variables
+pointing to the directories holding the DERVISH include and library files as
+well as other software packaged separately, which supports DERVISH, like TCL.
+This command also gives you the UNIX command "sdssmake" which is shell
+script which drives our makefiles.
+
+<LI>Copy the contents of $DERVISH_DIR/examples into your directory. Choose
+a filename for your command. Edit "Makefile" and add the name of the file
+with your commands to the line defining the Make macro USERSOURCEFILE.
+
+<LI>Hunt for a file to use as an example. A file that looks at regions is 
+called "example.c" in the example area.
+
+<LI>Modify the file as your needs dictate.
+
+<LI>Compile and link your program. Use the UNIX command "sdssmake".
+
+<LISTING>
+	sdssmake -debug
+</LISTING> 
+
+</DIR>
+
+
+

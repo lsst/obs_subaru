@@ -1,0 +1,45 @@
+<HTML>
+<TITLE>
+Binary File I/O
+</TITLE>
+The following procedures can be used to read and write binary files that
+are not in standard FITS format (e.g, David Weinberg's catalog files).
+No provision is available for byte-swapping
+or conversion to/from non-IEEE format floating point representation.
+Thus, files are normally usable only on the platform where they are
+generated.
+<P>
+<DIR>
+<li><a href=#binRead>binRead</a> Read binary data
+<li><a href=#binWrite>binWrite</a> Write binary data
+</DIR>
+*********************************************************************
+<P>
+<a name=binRead><h2>binRead</h2></a>
+<pre>
+Read binary data from an open file into storage specified by a Dervish handle.
+
+	Usage:	binRead  file  handle  [nbytes]
+
+	file:	Handle to a file (previously opened using the TCL
+		"open" statement)
+	handle: A Dervish handle
+	nbytes:	Number of bytes to read.  If not specified, the number
+		is taken to be the size given by the handle TYPE.
+*****************************************************************************
+</PRE>
+<P>
+<a name=binWrite><h2>binWrite</h2></a>
+<pre>
+Write binary data to an open file from storage specified by a Dervish handle.
+
+	Usage:	binWrite  file  handle  [nbytes]
+
+	file:	Handle to a file (previously opened using the TCL
+		"open" statement)
+	handle: A Dervish handle
+	nbytes:	Number of bytes to write.  If not specified, the number
+		is taken to be the size given by the handle TYPE.
+*****************************************************************************
+</PRE>
+</HTML>

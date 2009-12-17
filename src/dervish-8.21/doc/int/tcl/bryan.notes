@@ -1,0 +1,44 @@
+Define a new command;
+
+proc aaaa {} {set rname [regionNew]; regionReadFile $rname ../m51.fits}
+
+proc aaaa {} {regionReadFile  [regionNew] ../m51.fits}
+
+proc aaaa {fname} {regionReadFile  [regionNew] $fname }
+
+saoDisplay [aaaa ../m51.fits]
+
+
+
+ exec ls
+set els [exec ls]
+ echo $els
+ exec ls .. | grep fits
+set els [exec ls .. | grep fits ]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,313 @@
+<HTML>
+<TITLE>region.c</TITLE>
+<H1>region.html "C" Routines</H1>
+
+<P>Regions and masks can be accessed using the routines listed below.
+see 
+<A HREF=dervish.region.html#region>the features of regions</A>for a more comprehensive
+overview of region structures, masks, and headers,
+
+<DIR>
+<LI><A HREF=region.html#shRegNew>shRegNew</A>
+<LI><A HREF=region.html#shSubRegNew>shSubRegNew</A>
+<LI><A HREF=region.html#shRegDel>shRegDel</A>
+<LI><A HREF=region.html#shRegInfo>shRegInfo</A>
+<LI><A HREF=region.html#shRegNewFromReg>shRegNewFromReg</A>
+<LI><A HREF=region.html#shMaskNew>shMaskNew</A>
+<LI><A HREF=region.html#shSubMaskNew>shSubMaskNew</A>
+<LI><A HREF=region.html#shMaskDel>shMaskDel</A>
+<LI><A HREF=region.html#isRWMask>isRWMask</A>
+<LI><A HREF=region.html#isRWRegion>isRWRegion</A>
+</DIR>
+<PRE></PRE>
+
+<H2><A NAME="shRegNew">shRegNew</A></H2>
+
+<P>This routine creates a region of the given type with the indicated number
+of rows and columns. The region's header is empty. The region has no mask.
+The pixels in the region are not cleared. They have undetermined values.
+The name which is passed in is to tag the structure. The name is copied.
+The user may make a mask having the same number of rows and columns 
+using shMaskNew and place the address in the mask field of the region structure.
+Explain errors using sh_error() or sh_fatal().
+
+<LISTING>
+C SYNTAX:
+   REGION *shRegNew
+   (
+   char *name,       		/* IN : Address of name*/
+   int nrow,       		/* IN : Number of rows in image */
+   int ncol,       		/* IN : Number of columns in image */
+   PIXDATATYPE type		/* IN : type of pixels to create */
+   )
+                               
+RETURNS:
+   pointer to new region   -   Successful completion.
+   NULL 		   -   Failed miserably.
+
+</LISTING>
+<PRE></PRE>
+
+
+<H2><A NAME="shSubRegNew">shSubRegNew</A></H2>
+
+<P>Given a region, a row, a col, number of rows, number of
+cols, return a pointer to a region structure which points to the
+rectangle described by (ROW0, COL0) to (ROW0+NROW-1, COL0+NCOL-1)in the
+parent.  Return a null if the arguments have an error, or if the
+supporting data structures cannot be allocated. Name the new region by
+copying in NAME. Explain errors using sh_error() or sh_fatal().
+
+<P> Mask is built up from the enumerated type REGION_FLAGS.  The
+argument may be specified as NO_FLAGS, or the "logical or" of any of
+COPY_MASK, COPY_HEADER_DEEP, ENLARGE_EXACT, READ_ONLY and READ_WRITE.
+If READ_ONLY and READ_WRITE both specified, then READ_ONLY is used.
+
+<P>The subregion has a mask only if REGION has a mask and COPY_MASK is
+specified.  In that case, the mask in the subregion in not a copy, but
+points to the mask in corresponding parts of the parent region.
+
+<P>The subregion has a header which is copied out from the parents' if
+COPY_HEADER_DEEP is present.
+
+<LISTING>
+C SYNTAX:
+   REGION * shSubRegNew
+   (
+   char *name,       		/* IN : Address of name*/
+   REGION *region		/* IN : Address of parent region*/
+   int nrow,       		/* IN : Number of rows in image */
+   int ncol,       		/* IN : Number of columns in image */
+   int row0,       		/* IN : smallest  row number in parent */
+   int col0,       		/* IN : smallest col number in parent */
+   REGION_FLAGS flags		/* IN : Described above*/
+   )
+                               
+RETURNS:
+   pointer to new region   -   Successful completion.
+   NULL 		   -   Failed miserably.
+</LISTING>
+<PRE></PRE>
+
+
+<H2><A NAME="shRegDel">shRegDel</A></H2>
+
+<P>Free the space associated with REGION.  It is an error to free a
+physical region.  It is an error to free a region which has
+sub-regions. If the region has a mask, it is deleted as well. Errors
+are explained using shError();
+
+<P>Image pixels and mask pixels are not really freed if REGION is a
+subregion, as they properly belong to a parent.
+
+
+<LISTING>
+C SYNTAX:
+   RET_CODE shRegDel
+   (
+   REGION *region		/* IN : Address of region*/
+   )
+                               
+RETURNS:
+   DERVISH_SUCCESS  		   -   Successful completion.
+   DERVISH_GENERIC_ERROR             -   Region is not a subregion.
+   DERVISH_FREENONVIRTUALREG         -   Region is a physical region.
+</LISTING>	
+<PRE></PRE>
+
+
+
+<H2><A NAME="shRegInfo">shRegInfo</A></H2>
+
+<P>Fill out a REGINFO structure which describes REGION. Write its
+address into the location specified by REGINFO.  The user should NOT
+free the pointer to REGINFO. The returned REGINFO structure may be
+reused by subsequent calls to regInfoGet().
+
+<LISTING>
+	
+C SYNTAX:
+   RET_CODE  *shRegInfoGet (REGION *region, REGINFO **reginfo) 
+   (
+   REGION  *region		/* Address of region*/
+   REGINFO **reginfo		/* */
+   )
+                               
+RETURNS:
+   DERVISH_SUCCESS  		   -   Successful completion.
+   others	                   -   problem fillingout REGINFO
+</LISTING>	
+<PRE></PRE>
+
+
+<H2><A NAME="shRegNewFromReg">shRegNewFromReg</A></H2>
+
+<P>Create a new region based on an existing region. If successful, the  
+address of a new region is returned and the return status parameter is set
+to DERVISH_SUCCESS.  Otherwise a NULL is returned and the return status is set
+accordingly. 
+
+<P>The new region will be of the type specified.
+REGION_FLAGS should be set to either NO_FLAGS or to the
+logical OR of any of COPY_MASK and COPY_HEADER_DEEP.
+
+<P>If COPY_MASK is specified and the parent region has a mask, then the
+new region has copy of the parent's mask, otherwise the region does not
+have a mask.
+
+<P> If COPY_HEADER_DEEP is specified the header state of the region is copied
+into the new region.
+
+<P>Note that when successful, a NEW region is created.  Any subsequent changes
+to the new region will NOT be reflected in the parent (or vice-versa).
+
+<LISTING>
+	
+C SYNTAX:
+   REGION *shRegNewFromReg
+   (
+   REGION       *region         /* IN : Source region */
+   char         *name           /* IN : ASCII name for new region */
+   PIXDATATYPE  type            /* IN : Pixel data type for new region */
+   REGION_FLAGS flags           /* IN : Described above */
+   RET_CODE     *rstat          /* OUT: Return status */
+   )
+                               
+RETURNS:
+   pointer to new region    -   Successful completion.
+   NULL 		    -   Failed miserably.
+</LISTING>	
+<PRE></PRE>
+
+
+
+<H2><A NAME="shMaskNew">shMaskNew</A></H2>
+
+<P>Create a MASK structure and mask pixels.  Return NULL on error.
+Clear the mask to 0. The error is explained using sh_error();
+
+<LISTING>
+	
+C SYNTAX:
+   RET_CODE  *shMaskNew
+   (
+   char   *name			/* IN : Name for new region*/
+   int nrow,       		/* IN : Number of rows in image */
+   int ncol       		/* IN : Number of columns in image */
+   )
+                               
+RETURNS:
+   DERVISH_SUCCESS  		   -   Successful completion.
+   others	                   -   problem
+</LISTING>	
+<PRE></PRE>
+
+
+
+<H2><A NAME="shSubMaskNew">shSubMaskNew</A></H2>
+
+<P>Given a parent mask, a row, a col, number of rows, number of
+cols, return a pointer to a mask structure which points to the
+rectangle described by (ROW0, COL0) to (ROW0+NROW-1, COL0+NCOL-1)in the
+parent.  Return a null if the arguments have an error, or if the
+supporting data structures cannot be allocated. Name the new region by
+copying in NAME.  Explain errors using sh_error() or sh_fatal().
+
+<P> FLAGS is built up from the enumerated type REGION_FLAGS.  The
+argument may be specified as NO_FLAGS, or READ_ONLY or READ_WRITE.
+
+<LISTING>
+C SYNTAX:
+   REGION * shSubMaskNew
+   (
+   char *name,       		/* IN : Address of name*/
+   MASK *mask			/* IN : Address of parent region*/
+   int nrow,       		/* IN : Number of rows in image */
+   int ncol,       		/* IN : Number of columns in image */
+   int row0,       		/* IN : smallest  row number in parent */
+   int col0,       		/* IN : smallest col number in parent */
+   REGION_FLAGS flags		/* IN : Described above*/
+   )
+                               
+RETURNS:
+   pointer to new submask   -   Successful completion.
+   NULL 		    -   Failed miserably.
+</LISTING>
+<PRE></PRE>
+
+
+<H2><A NAME="shMaskDel">shMaskDel</A></H2>
+
+<P>Delete the mask structure, and its supporting storage.  It is an
+error to delete a mask which has sub-mask.  Errors are explained using
+shError().
+
+<P>Mask pixels are not really freed if REGION is a subregion, as they
+properly belong to a parent.
+
+
+<LISTING>
+C SYNTAX:
+   RET_CODE shMaskDel
+   (
+   REGION *mask			/* IN : Address of mask*/
+   )
+                               
+RETURNS:
+   DERVISH_SUCCESS  		   -   Successful completion.
+   DERVISH_GENERIC_ERROR             -   Mask has subregions.
+</LISTING>	
+
+<PRE></PRE>
+
+
+
+<H2><A NAME="isRWMask">isRWMask</A></H2>
+
+<P>This procedure tests whether the mask is writable; 0
+is returned if the mask is not to be written into.
+
+<LISTING>
+C SYNTAX:
+   int isRWMask 
+   (
+   MASK *mask			/* Address of mask*/
+   )
+                               
+RETURNS:
+   0		-   Mask is not writable.
+   otherwise	-   Mask is writable
+</LISTING>	
+
+<PRE></PRE>
+
+
+
+
+<H2><A NAME="isRWRegion">isRWRegion</A></H2>
+
+<P>This procedure tests whether the pixels in the region are writable; 0
+is returned if the pixels are not to be written into.
+
+<LISTING>
+C SYNTAX:
+   int isRWRegion
+   (
+   REGION *mask			/* Address of region*/
+   )
+                               
+RETURNS:
+   0		-   Mask is not writable.
+   otherwise	-   Mask is writable
+</LISTING>	
+
+<PRE></PRE>
+
+
+
+</HTML>
+
+
+
+
+

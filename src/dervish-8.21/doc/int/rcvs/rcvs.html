@@ -1,0 +1,380 @@
+<html>
+<head>
+<title> primer for rcvs </title>
+
+<body>
+<h1>
+rcvs primer
+</h1>
+
+<h2> QUESTIONS </h2>
+<dir>
+<li> 1.  What is rcvs?
+<li> 2.  How do I make it work?
+<li> 3.  What documents are there?
+<li> 4.  What are the commands?
+<li> 5.  How do you "check out" code?
+<li> 6.  So do I have to do anything special to work on the files?
+<li> 7.  Once I'm done working, how do I send back the improvements?
+<li> 8.  How do I get write access?
+<li> 9.  How can I find out a module's history?
+<li> 10.  What does the status command do?
+<li> 11.  How do I merge versions?
+<li> 12.  How do I check in the merged version?
+<li> 13.  What else can I do?
+<li> 14.  How do I create a brand new module?
+</dir>
+
+<h2> ANSWERS </h2>
+<listing>
+1.  What is rcvs?
+
+This is the code management system that we use for the SDSS.  It allows us to
+have many people working on a software package, making it relatively painless
+for them to share their latest fixes.
+
+The basic idea is that there is a master source of all source code.  These
+commands allow you to copy over parts of the code, modify it, and then send it
+back for all to see.  It works by keeping track of differences, so you do not
+have to haul all of the code back and forth over the net to get at it.
+
+2.  How do I make it work?
+fndaub % setup sdssrcvs
+setting your umask to 2 -- this required for sane operation of rcvs
+
+Notice that it changes your umask setting.  It might also ask you to add an 
+entry in the .rhosts file in your home directory.
+
+fndaub % printenv | grep RCVS
+RCVS_DIR=/usr/products/IRIX/rcvs/rcvs-0.3.9A
+RCVSHOST=fndauh.fnal.gov
+RCVSUSER=cvs
+SDSSRCVS_DIR=/usr/products/IRIX/sdssrcvs/v1_0
+RCVSDIR=/usr/products/IRIX/sdssrcvs/v1_0/src
+
+Several variables are set:  the $RCVS_DIR is where you will find documents
+and source, for example.
+
+$RCVSDIR is the "clone directory", $RCVSUSER is the "user" and $RCVSHOST is the
+machine you will get code from; in this case, fndauh at Fermilab.
+
+So this sets up the code management for use with the SDSS software, using the
+master copy.
+
+If you are not authorized to use the distribution, you'll get the following
+message:
+
+You are not in the products group. DO NOT USE RCVS.
+
+2a. How do I become a member of products?
+
+Vijay Gurbani maintains the script that allows access.  Contact him at
+vijay@fndaub.fnal.gov.  
+
+3.  What documents are there?
+
+The basic commands are described here, and there are more documents in the
+doc area:
+
+fndaub % cd $RCVS_DIR/cvs/doc
+fndaub % ls *.ps
+cvs.texinfo
+cvs.ps
+rcvs.ps
+
+cvs.texinfo is "Version Management with CVS" by Per Cederqvist.
+cvs.ps is "CVS II:  Parallelizing Software Development" by Brian Berliner
+rcvs.ps is "UNIX Code Management and Distribution" by Terry Hung and Paul Kunz.
+
+
+4.  What are the commands?
+
+status	- get the status of a file
+co	- check out; get a copy 
+log	- show a listing of what has happened to this file
+update	- I already have a copy, but include any changes that others have made
+ci	- check in; send back the changes I have made
+
+A complete list of commands is in "Version Management with CVS."
+
+5.  How do you "check out" code?
+
+There is a set of files under "test" in the repository that we can use to 
+practice rcvs commands.  Go to a directory where you want to work.  Then:
+
+fndaub % cvs co test
+1. Sending rdist request to cvs@fndauh.fnal.gov
+CVSROOT ----> clone
+directory: test
+updating host fndaud.fnal.gov
+updating: CVSROOT/history
+cvs checkout: cannot find stoughto's entry in passwd file
+2. Local checkout
+clone   ----> working dir
+cvs checkout: Updating test
+U test/test.1
+U test/test.2
+U test/test.3
+U test/test.4
+U test/test.5
+U test/test.6
+U test/test.7
+U test/test.8
+U test/test.9
+
+First of all, notice that it complained about some things.  Don't worry about
+them.  Second, notice that it created a subdirectory called "test"
+In that subdirectory, it made you a local copy of the code:
+
+fndaub % cd test
+fndaub % ls -CF
+CVS/    test.1  test.2  test.3  test.4  test.5  test.6  test.7  test.8  test.9
+
+
+
+6.  So do I have to do anything special to work on the files?
+
+No.  Just use whatever editors or other programs you want to improve the 
+programs.  
+
+Please avoid changes that are only COSMETIC.  The beauty of this system is that
+it tracks only differences in the files.  If you change 2-space indentations to
+3-space indentations, and then the next programmer changes them all back to 
+2-space, we defeat the system.  
+
+Now make your changes to whatever file of files you want to fix.  In this 
+example, I added the following lines to the file tst.3:
+
+I added this line and the next three lines to this file:
+one one one
+two two two
+three three three
+
+
+7.  Once I'm done working, how do I send back the improvements?
+
+You "check in" the modules with:
+
+fndaub % cvs ci -m 'rcvs practice 1  Chris Stoughton' test.3
+1. Sending rdist request to cvs@fndauh.fnal.gov
+CVSROOT ----> clone
+directory: test
+updating host fndaud.fnal.gov
+updating: CVSROOT/history
+cvs checkout: cannot find stoughto's entry in passwd file
+2. Local commit
+clone   <---- working dir
+Checking in test.3;
+/usr/products/IRIX/sdssrcvs/v1_0/src/test/test.3,v  <--  test.3
+new revision: 1.2; previous revision: 1.1
+done
+3. Rdist modules back to cvs@fndauh.fnal.gov
+CVSROOT <---- clone
+directory: test
+updating host fndauh.fnal.gov
+updating: test/test.3,v
+removed /src/CVSROOT/.#rcvslock
+updating: CVSROOT/history
+
+A lot happens, but basically it follows the three steps listed above in the
+output.
+
+IF THIS DOES NOT WORK, then you might not have write access to the master
+repository.  
+
+8.  How do I get write access?
+
+For obvious reasons, we don't want everyone to have uncontrolled access to 
+all of the ource code.  So, notify the rcvs administrator at
+vs@fndauh.fnal.gov to get added to the list.
+
+9.  How can I find out a module's history?
+
+The log command lists the comments in the check in command along with the date,
+author, and more:
+
+fndaub % cvs log test.3
+1. Sending rdist request to cvs@fndauh.fnal.gov
+CVSROOT ----> clone
+directory: test
+updating host fndaud.fnal.gov
+updating: CVSROOT/history
+cvs checkout: cannot find stoughto's entry in passwd file
+2. Local log
+
+RCS file: /usr/products/IRIX/sdssrcvs/v1_0/src/test/test.3,v
+Working file: test.3
+head: 1.2
+branch:
+locks: strict
+access list:
+symbolic names:
+        alpha: 1.1.0.2
+comment leader: "# "
+keyword substitution: kv
+total revisions: 2;     selected revisions: 2
+description:
+----------------------------
+revision 1.2
+date: 1993/06/22 15:13:07;  author: stoughto;  state: Exp;  lines: +4 -0
+rcvs practice
+----------------------------
+revision 1.1
+date: 1993/06/01 22:04:37;  author: vijay;  state: Exp;
+Created files for class
+=============================================================================
+
+
+Of course, if you make more changes, then they will all show up in this log 
+listing.
+
+10.  What does the status command do?
+
+It lets you know whether the copy you have is up to date with the master copy.
+
+ndaub % cvs status test.3
+1. Sending rdist request to cvs@fndauh.fnal.gov
+CVSROOT ----> clone
+directory: test
+updating host fndaud.fnal.gov
+updating: CVSROOT/history
+cvs checkout: cannot find stoughto's entry in passwd file
+2. Local status
+===================================================================
+File: test.3            Status: Up-to-date
+
+    Version:            1.2     Tue Jun 22 10:13:07 1993
+    RCS Version:        1.2     /usr/products/IRIX/sdssrcvs/v1_0/src/test/test.3,v
+    Sticky Tag:         (none)
+    Sticky Date:        (none)
+    Sticky Options:     (none)
+
+
+In the above example, the status is Up-to-date.  Other values are:
+
+Locally Modified - this means you changed the file but have not checked it in
+Needs Merge - someone checked in a version of the file AFTER you got your copy.
+
+11.  How do I merge versions?
+
+There is no automatic way to do the merging.  How is the rcvs program to know 
+what the better version of the file is?  What it can do is give you a copy of
+the file with the unmergeable lines marked, and let YOU decide.
+
+First, assume that you make another change to test.3 so it looks like this:
+
+This is a test file called test.3
+I added this line and the next three lines to this file:
+one one one
+two two two
+THIS IS THE FIRST CHANGE TO test.3 BETWEEN LINES two AND three
+three three three
+
+Before you check in this file, someone else changes it, but in a different way:
+
+This is a test file called test.3
+I added this line and the next three lines to this file:
+one one one
+two two two
+HERE IS A DIFFERENT SET OF LINES
+BETWEEN LINES two AND three
+three three three
+
+The other person finishes working, and checks in the changes.
+
+Since this can happen at any time, it is a VERY good idea to update the package
+you are working on frequently:  at least once a day, or right after you have
+completed a set of changes and tests.  
+
+Use "update" if you have code checked out for a while.  First thing in the
+morning, for example, update all the code you have to see what other changes
+are in the code.  The longer you wait between updates, the harder it will
+be to resolve the merge.
+
+To do the update:
+
+fndaub % cd ..
+fndaub % cvs update test
+1. Sending rdist request to cvs@fndauh.fnal.gov
+CVSROOT ----> clone
+directory: test
+updating host sdsshost.fnal.gov
+updating: CVSROOT/history
+cvs checkout: cannot find stoughto's entry in passwd file
+2. Local update
+clone   ----> working dir
+cvs update: Updating test
+RCS file: /usr/products/IRIX/sdssrcvs/v1_0/src/test/test.3,v
+retrieving revision 1.2
+retrieving revision 1.3
+Merging differences between 1.2 and 1.3 into test.3
+rcsmerge warning: overlaps during merge
+cvs update: conflicts found in test/test.3
+C test/test.3
+cvs update: cannot find stoughto's entry in passwd file
+
+So we see here that the file test.3 needs some more work.  Right now it looks
+like this:
+
+This is a test file called test.3
+I added this line and the next three lines to this file:
+one one one
+two two two
+<<<<<<< test.3
+THIS IS THE FIRST CHANGE TO test.3 BETWEEN LINES two AND three
+=======
+HERE IS A DIFFERENT SET OF LINES
+BETWEEN LINES two AND three
+>>>>>>> 1.3
+three three three
+
+12.  How do I check in the merged version?
+
+Edit out the marker lines (<<<<<<<, =======, >>>>>>>) and, of course, one or 
+the other version of the conflict.  Then check it in as usual.
+
+
+13.  What else can I do?
+
+Add a file or directory to the repository with the command add, and remove one
+with the command remove.  List the differences between versions with the diff 
+command.
+
+fndaub % cd test
+fndaub % cvs diff -r 1.3 -r 1.4 test.3
+
+1. Sending rdist request to cvs@fndauh.fnal.gov
+CVSROOT ----> clone
+directory: test
+updating host sdsshost.fnal.gov
+updating: CVSROOT/history
+cvs checkout: cannot find stoughto's entry in passwd file
+2. Local diff
+===================================================================
+RCS file: /usr/products/IRIX/sdssrcvs/v1_0/src/test/test.3,v
+retrieving revision 1.3
+retrieving revision 1.4
+diff -r1.3 -r1.4
+5,6c5
+< HERE IS A DIFFERENT SET OF LINES
+< BETWEEN LINES two AND three
+---
+> THIS IS THE FIRST CHANGE TO test.3 BETWEEN LINES two AND three
+
+This should be enough to get you started.  Read the documents, especially
+"Version Management with CVS" for more details.
+
+
+14.  How do I create a brand new module?
+
+You can do so by issuing the following command on sdss only:
+
+   $ /cvs/bin/create_module
+
+Follow the directions from there. Let me know if you have any problems.
+
+- vijay
+ 
+</listing>
+</body>
+</html>

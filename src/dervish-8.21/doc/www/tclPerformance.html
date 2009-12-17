@@ -1,0 +1,168 @@
+<HTML>
+<HEAD>
+<!--
+ ************************************************************
+ *++
+ * FACILITY:	Dervish
+ *		Documentation
+ *
+ * ABSTRACT:	Peformance measurement tools.
+ *
+ * ENVIRONMENT:	HTML (HyperText Markup Language).
+ *		tclPerformance.html
+ *
+ * AUTHOR:	Tom Nicinski, Creation date:  2-Nov-1993
+ *--
+ ************************************************************
+-->
+
+<TITLE>Measuring Dervish Performance</TITLE>
+
+<BODY>
+
+<H1>Measuring Dervish Performance</H1>
+
+<P>
+Besides the native Tcl command, <STRONG>time</STRONG>, Dervish provides extensions
+for measuring system performance.
+
+<P>
+<A HREF="tclPerformance.html#timerStart">timerStart</A> is
+used to reset the performance measurements and start acquiring them.
+<A HREF="tclPerformance.html#timerLap">timerLap</A> takes a
+"snapshot" of the current performance measurements and returns a Tcl Extension
+keyed list containing their values.  <STRONG>timerLap</STRONG> can be called
+again to report the accumulated performance measurements (since the last
+<STRONG>timerStart</STRONG>) at different points within the code.
+
+
+<H2><A NAME="Grain of Salt">Using Performance Values with a Grain of Salt ...</A></H2>
+
+<P>
+In order to use the times returned by 
+<A HREF="tclPerformance.html#timerLap">timerLap</A> correctly,
+one must understand how timing measurements are obtained.
+The times, returned in seconds, are a conversion from the number of clock ticks
+that an operation takes.  Since the clock ticks are granular, they place an
+ultimate resolution on the time.  On most UNIX systems, the clock rate is
+100 Hz (see the <STRONG>HZ</STRONG> macro definition in
+<EM>/usr/include/sys/params.h</EM>).  This coarse clock rate does not allow
+the system to resolve quick lived events accurately.
+
+<P>
+With longer durations, the elapsed time and the overall CPU time will be
+reasonably accurate.  But, the breakdown of the overall CPU time between
+
+<UL>
+<LI>user mode time for the current process
+<LI>system mode time for the current process
+<LI>user mode time for the current process' children
+<LI>system mode time for the current process' children
+</UL>
+
+can still be quite skewed.
+The problem lies that many operations split between user mode and system mode
+can be very short, less than the granularity of the clock tick.  It is possible
+to not account time to a particular mode because it falls between clock ticks.
+It is also possible to account time improperly because of the current mode at
+a clock tick boundary.  Consider the drawing below:
+
+<LISTING>
+                         clock ticks                      +--+
+   -|----------|----------|----------|----------|-  where |UU| is user   mode
+      +-------+--+      +--+--------+-+--------+          +--+
+      |UUUUUUU|SS|      |SS|UUUUUUUU|S|UUUUUUUU|          |SS| is system mode
+      +-------+--+      +--+--------+-+--------+          +--+
+</LISTING>
+
+Both cases show where the system mode is charged the CPU time, even though
+considerably more time was spent within user mode.
+Unfortunately, these accounting errors will accumulate over time;  one cannot
+rely on them "balancing" themselves out over the long term.
+
+<P>
+One other condition, which should not be encountered often, occurs when the
+system time (not the time zone or the Daylight Savings Time state) is changed
+between a <STRONG>timerStart</STRONG> and a subsequent
+<STRONG>timerLap</STRONG>.  In that case, the elapsed time will be
+inaccurate (the CPU times will not be affected).
+
+<H2><A NAME="timerStart">timerStart</A></H2>
+
+<LISTING>
+_______________________________________________________________________________
+
+NAME
+     timerStart  -  Reset the timer and start it
+
+SYNOPSIS (Tcl Syntax)
+     timerStart
+
+ARGUMENTS
+     (None)
+
+RETURN VALUES
+   TCL_OK	Success.  Successful completion.  The interp result string is
+		empty.
+
+   TCL_ERROR	Failure.  The interp result string contains an error message.
+_______________________________________________________________________________
+
+DESCRIPTION
+</LISTING>
+
+<P>
+The timer is reset and started.
+
+<H2><A NAME="timerLap">timerLap</A></H2>
+
+<LISTING>
+_______________________________________________________________________________
+
+NAME
+     timerLap  -  Measure and display current times
+
+SYNOPSIS (Tcl Syntax)
+     timerLap
+
+ARGUMENTS
+     (None)
+
+RETURN VALUES
+   TCL_OK	Success.  Successful completion.  The interp result string is a
+		Tcl Extension keyed list containing the elapsed and CPU times
+		since the last timerStart.
+
+   TCL_ERROR	Failure.  The interp result string contains an error message.
+_______________________________________________________________________________
+
+DESCRIPTION
+</LISTING>
+
+<P>
+Measure current times, without stopping the timer, and return the elapsed and
+CPU utilization times since the last
+<A HREF="tclPerformance.html#timerStart">timerStart</A>.
+A Tcl Extension keyed list is returned:
+
+<LISTING>
+{ELAPSED 5.390} {CPU {{OVERALL 0.030} {UTIME 0.010} {STIME 0.010} {CUTIME 0.000} {CSTIME 0.010}}}
+</LISTING>
+
+The values are in seconds.
+The <STRONG>CPU</STRONG> subkeys correspond to the fields returned by the
+UNIX <STRONG>times ()</STRONG> call:
+
+<DIR>
+<LI><STRONG>UTIME</STRONG> user mode time used by the current process
+<LI><STRONG>STIME</STRONG> system mode time used by the current process
+<LI><STRONG>CUTIME</STRONG> user mode time used by all the current process' children
+<LI><STRONG>CSTIME</STRONG> system mode time used by all the current process' children
+</DIR>
+
+The <STRONG>CPU.OVERALL</STRONG> time is the sum of the component CPU times
+(listed above).
+Performance values, especially non-overall counts, can be
+<A HREF="tclPerformance.html#Grain of Salt">inaccurate</A>.
+
+</HTML>

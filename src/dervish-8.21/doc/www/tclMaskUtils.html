@@ -1,0 +1,210 @@
+<HTML>
+<TITLE>tclMaskUtils.html</TITLE>
+<H1>TCL Routines which operate on masks.</H1>
+<P>
+Procedures which take more than one mask as parameters require that all
+masks have the same number of rows and columns.
+
+<H2>Rows and Columns</H2>
+
+<P> ROW and COLUMN operands which locate specific pixels in a mask
+may be specified as either floating point or decimal numbers. 0.0,
+0, 0.5, or 0.9 all refer to the row or column 0.
+
+<DIR>
+<LI><A HREF=tclMaskUtils.html#maskReadAsFits>maskReadAsFits</A>
+<LI><A HREF=tclMaskUtils.html#maskWriteAsFits>maskWriteAsFits</A>
+<LI><A HREF=tclMaskUtils.html#maskSetWithNum>maskSetWithNum</A>
+<LI><A HREF=tclMaskUtils.html#maskSetWithMasks>maskSetWithMasks</A>
+<LI><A HREF=tclMaskUtils.html#maskRowFlip>maskRowFlip</A>
+<LI><A HREF=tclMaskUtils.html#maskColFlip>maskColFlip</A>
+
+
+</DIR>
+<PRE></PRE>
+
+<H2><A NAME="maskReadAsFits">maskReadAsFits</A></H2>
+
+<P> Read a mask from a UNIX-resident disc file (in FITS formet) into a mask.
+In the file's header, BITPIX must be 8, and NAXIS must be 2, SIMPLE
+must be T. NAXIS1  and NAXIS2 give the dimensions of the mask.
+All other keywords (except END) are ignored.
+
+<P>In all cases the handle is preserved, the existing mask is deleted and a
+new mask is created, using the information encoded in the NAXIS1 and NAXIS2
+header fields. It is an error for MASK to have sub-masks.
+
+<LISTING>
+
+TCL SYNTAX:
+   maskReadAsFits [-nodefault] &lt;mask&gt; &lt;file&gt; [-pipe] [-tape]
+	 
+   [-nodefault] If specfied, mask file will be read from the current 
+                working directory. If not specifed, mask file name will
+                be constructed using the default directory name and 
+                extension specified by a call to the TCL verb dirSet.
+   &lt;maskIn&gt;	Required handle to mask
+   &lt;file&gt;	FITS file to read.
+   [-pipe]      &lt;file&gt; is a pipe name
+   [-tape]      &lt;file&gt; is the name of the tape device from which
+                to read the mask.
+
+RETURNS:
+   TCL_OK	Successful completion.
+   TCL_ERROR	Error occurred.  The Interp result explains the error.
+
+</LISTING>
+<STRONG>See Also</STRONG> : <A HREF=tclDirUtils.html#dirSet>dirSet</A>
+
+<H2><A NAME="maskWriteAsFits">maskWriteAsFits</A></H2>
+
+<P>
+
+Write a mask to a unix-Resident FITS file. The FITS keywords
+SIMPLE, NAXIS, BITPIX, NAXIS1, NAXIS2, and END are automaticlly generated.
+Currently, there is no other method for generating other keywords for these
+files.
+
+<LISTING>
+TCL SYNTAX:
+   maskWriteAsFits [-nodefault] &lt;mask&gt;  &lt;file&gt; [-pipe] [-tape]
+	 
+   [-nodefault] If specfied, mask file will be written to the current 
+                working directory. If not specifed, mask file name will
+                be constructed using the default directory name and 
+                extension specified by a call to the TCL verb dirSet.
+   &lt;mask&gt;	Required handle to mask
+   &lt;file&gt;	Required Handle to mask
+   [-pipe]      &lt;file&gt; is a pipe name
+   [-tape]      &lt;file&gt; is the name of the tape device from which
+                to read the mask.
+                               
+RETURNS:
+   TCL_OK	Successful completion.
+   TCL_ERROR	Error occurred.  The Interp result explains the error.
+
+</LISTING>
+<STRONG>See Also</STRONG> : <A HREF=tclDirUtils.html#dirSet>dirSet</A>
+
+
+<PRE></PRE>
+
+<H2><A NAME="maskSetWithNum">maskSetWithNum</A></H2>
+
+<P>Set the pixels in MASK to NUMBER. NUMBER may be
+positive decimal, hexadecimal or octal, ranging from 0 to 255. 
+If "-and", "-or", or "-xor" are present, set then mask
+to the result of the operation on the corresponding pixel and number.
+
+<LISTING>
+TCL SYNTAX:
+   maskSet &lt;mask&gt; [-and | -or | -xor] &lt;number&gt;
+	 
+   &lt;mask&gt;	Required handle to mask
+   &lt;number&gt;	Number to set
+                               
+RETURNS:
+   TCL_OK	Successful completion.
+   TCL_ERROR	Error occurred.  The Interp result explains the error.
+
+</LISTING>
+<PRE></PRE>
+
+
+<H2><A NAME="maskSetWithMasks">maskSetWithMasks</A></H2>
+
+<P>Set  each pixel in RESULT using an EXPRESSION involving the
+correponding pixels in MASK1 and MASK2. If RESULT is not passed, MASK2
+is used as RESULT.
+
+<P>EXPRESSION is a TCL expression in the variables <em>mp1</em> and
+<em>mp2</em> which specifies a a 256x256 lookup table giving a result
+pixel for any possible pair of input pixels. For example:
+
+<LISTING>
+	maskSetWithMasks h0 h1 -t {expr $mp1|$mp2} h2
+</LISTING>
+
+sets each pixel in h2 to the logical OR of the corresponding pixels in h0 and
+h1.
+
+<LISTING>
+	maskSetWithMasks h0 h1 -t {expr $mp1}
+</LISTING>
+
+sets each pixel in h1 to the corresponding pixel in h0. The reader is
+advised that TCL has a rich set of operators, including shifts. 
+
+<LISTING>
+	maskSetWithMasks h0 h1 -o -t {$mp1|$mp2} h2
+</LISTING>
+
+sets each pixel in h2 to the logical OR of the corresponding pixels in h0 and
+h1. The only difference between the above example and the first example is
+the presence of a -o flag. If the -o flag is present, dervish will try to
+optimize the calculation for a faster turn around time. Note that the TCL
+script following -t does not include <em>expr</em>. If -o flag is used, a
+TCL script is expected that conforms to any of the forms accepted by the
+<em>expr</em> command. Use the -o flag for simple scripts that evaluate 
+<em>$mp1</em> and/or <em>$mp2</em> only. Also note that the -o flag does 
+not make any sense when used with the -p option.
+
+
+<LISTING>
+TCL SYNTAX:
+   maskSetWithMasks &lt;mask1&gt; &lt;mask2&gt; [-o] &lt;-t expression | -p procedure&gt; [result]
+	 
+   &lt;mask1&gt;	Required handle to input mask 1
+   &lt;mask2&gt;	Required handle to input mask 2
+   &lt;-t expression | -p procedure&gt; Tcl expression in the variables mp1 and mp2,
+                or a TCL procedure
+   [-o]         Optimization flag (default, optimization off)
+   [result]	Optional result mask. If not specifed, mask2 is used. 
+
+RETURNS:
+   TCL_OK	Successful completion.
+   TCL_ERROR	Error occurred.  The Interp result explains the error.
+
+</LISTING>
+<PRE></PRE>
+
+
+<H2><A NAME="maskRowFlip">maskRowFlip</A></H2>
+<P>
+Flip the pixels in MASK row-wise by copying the pixels.
+
+<LISTING>
+TCL SYNTAX:
+   maskRowFlip &lt;mask&gt;
+	 
+   &lt;mask&gt;	Required: Handle of mask to flip.
+
+                               
+RETURNS:
+   TCL_OK	Successful completion.
+   TCL_ERROR	Error occurred.  The Interp result explains the error
+
+</LISTING>
+<PRE></PRE>
+
+
+<H2><A NAME="maskColFlip">maskColFlip</A></H2>
+<P>
+Flip the pixels in MASK column-wise by copying the pixels.
+
+
+<LISTING>
+TCL SYNTAX:
+   maskRowFlip &lt;mask&gt;
+	 
+   &lt;mask&gt;	Required Handle of mask to flip.
+
+                               
+RETURNS:
+   TCL_OK	Successful completion.
+   TCL_ERROR	Error occurred.  The Interp result explains the error.
+</LISTING>
+<PRE></PRE>
+
+
+</HTML>

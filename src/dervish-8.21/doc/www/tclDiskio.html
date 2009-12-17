@@ -1,0 +1,267 @@
+<HTML>
+<TITLE>tclDiskio</TITLE>
+<H1>TCL Routines to manipulate object schema and disk dumps</H1>
+<P>
+Dervish knows about the internal layout of C-level objects such as
+REGIONS; this is manifested in two ways: the ability to return lists
+of values of elements of structs along with their names and types
+and to change values; 
+and the ability to write objects to disk and read them back. The latter
+in not entirely trivial, as it involves understanding pointers, and
+writing out all pointed-to objects.<p>
+
+This document is essentially for reference; fortunately more tutorial
+introductions to
+<a href=dervish.dump.html#dumpIntro>disk dumps</a>
+and
+<a href=dervish.dump.html#schemaIntro>schema manipulation</a>
+have been written.
+
+<DIR>
+<li><a href=tclDiskio.html#dumpOpen>dumpOpen</a>
+<li><a href=tclDiskio.html#dumpReopen>dumpReopen</a>
+<li><a href=tclDiskio.html#dumpClose>dumpClose</a>
+<li><a href=tclDiskio.html#dumpPtrsResolve>dumpPtrsResolve</a>
+<li><a href=tclDiskio.html#dumpDateGet>dumpDateGet</a>
+<li><a href=tclDiskio.html#dumpDateDel>dumpDateDel</a>
+<li><a href=tclDiskio.html#dumpTypeGet>dumpTypeGet</a>
+<li><a href=tclDiskio.html#dumpHandleWrite>dumpHandleWrite</a>
+<li><a href=tclDiskio.html#dumpValueWrite>dumpValueWrite</a>
+<li><a href=tclDiskio.html#dumpHandleRead>dumpHandleRead</a>
+     <p>
+     
+<li><a href=tclDiskio.html#schemaGetFromType>schemaGetFromType</a>
+<li><a href=tclDiskio.html#schemaGet>schemaGet</a>
+<li><a href=tclProcedure.html#schemaMemberGet>schemaMemberGet</a>
+<LI><A HREF="dervish.exprGet.html#schemaKindGet">schemaKindGet</A>
+<LI><A HREF="dervish.exprGet.html#schemaKindGetFromType">schemaKindGetFromType</A>
+
+</DIR>
+
+There are also some utility routines, written in TCL:
+<DIR>
+<li><a href=tclDiskio.html#dumpRead>dumpRead</a>
+<li><a href=tclDiskio.html#dumpPrint>dumpPrint</a>
+<li><a href=tclDiskio.html#schemaHashPrintStat>schemaHashPrintStat</a>
+<li><a href=tclProcedures.html#schemaPrint>schemaPrint</a>
+<li><a href=tclProcedures.html#schemaPrintFromType>schemaPrintFromType</a>
+</DIR>
+Also more information in available on <A HREF=dervish.exprGet.html>how to access handle</A>
+
+<h2><a name="dumpOpen">dumpOpen</a></h2>
+
+<LISTING>
+TCL SYNTAX:
+   dumpOpen &lt;file&gt; &lt;mode&gt;
+   &lt;file&gt;  name of dump file
+   &lt;mode&gt;  mode to open file in. Mode may be r, w, or a for read, write,
+or append. If you capitalise the mode, don't perform usual cleanup on close.
+
+RETURNS:
+   TCL_OK	Successful completion.
+   TCL_ERROR	Error occurred.
+</LISTING>
+
+<h2><a name="dumpReopen">dumpReopen</a></h2>
+This is the same as dumpOpen, but doesn't initialise the internal data
+structures used by the dump code.
+
+<LISTING>
+TCL SYNTAX:
+   dumpReopen &lt;file&gt; &lt;mode&gt;
+   &lt;file&gt;  name of dump file
+   &lt;mode&gt;  mode to open file in
+
+RETURNS:
+   TCL_OK	Successful completion.
+   TCL_ERROR	Error occurred.
+</LISTING>
+
+<h2><a name="dumpClose">dumpClose</a></h2>
+Close an open dump file. If there are any `anonymous' structures left at the
+end of the file they are read, and then all remaining pointer id's are
+mapped to pointers.
+
+<LISTING>
+TCL SYNTAX:
+   dumpClose
+
+RETURNS:
+   TCL_OK	Successful completion.
+   TCL_ERROR	Error occurred (e.g. not all pointer id's could be mapped)
+</LISTING>
+
+<h2><a name="dumpPtrsResolve">dumpPtrsResolve</a></h2>
+Attempt to convert pointer ids to pointers. This will fail if there are
+pointer ids whose target has not yet been read, in which case dereferencing
+some `pointers' will lead to trouble; binding these ids to handles will
+also cause problems. Caveat Lector.
+
+<p> You don't usually need to use this verb explicitly, as it is executed
+when a dump file is closed. An example of when you might want to use it
+would be just after reading a list, to resolve the `first' and `last' pointers.
+
+<LISTING>
+TCL SYNTAX:
+   dumpPtrsResolve
+
+RETURNS:
+   TCL_OK	Successful completion.
+   TCL_ERROR	Not all pointer id's were successfully resolved.
+</LISTING>
+
+<h2><a name="dumpDateGet">dumpDateGet</a></h2>
+Return the data string from a dump file
+
+<LISTING>
+TCL SYNTAX:
+   dumpDateGet
+
+RETURNS:
+   TCL_OK	Successful completion. The date string is returned
+   TCL_ERROR	Error occurred.
+</LISTING>
+
+<h2><a name="dumpDateDel">dumpDateDel</a></h2>
+Replace the data in a dump file with XXXs. This is occasionally useful for
+comparing dump files. No dump file may be open when you use this verb
+
+<LISTING>
+TCL SYNTAX:
+   dumpDateDel  &lt;file&gt;
+   &lt;file&gt;       The name of the dump file
+
+RETURNS:
+   TCL_OK	Successful completion.
+   TCL_ERROR	Error occurred.
+</LISTING>
+
+<h2><a name="dumpTypeGet">dumpTypeGet</a></h2>
+Return a string giving the type of the next object in a dump file.
+
+<LISTING>
+TCL SYNTAX:
+   dumpTypeGet
+
+RETURNS:
+   TCL_OK	Successful completion. Return the type, e.g. REGION
+   TCL_ERROR	Error occurred.
+</LISTING>
+
+<h2><a name="dumpHandleWrite">dumpHandleWrite</a></h2>
+Write an object described by &lt;handle&gt; to the current dump file.
+
+<LISTING>
+TCL SYNTAX:
+   dumpHandleWrite &lt;handle&gt;
+
+RETURNS:
+   TCL_OK	Successful completion.
+   TCL_ERROR	Error occurred.
+</LISTING>
+
+<h2><a name="dumpValueWrite">dumpValueWrite</a></h2>
+Write an object, given as a &lt;value&gt; and a &lt;type&gt; to the dump file. This
+is only supposed to be used for primitive types, ints, longs, floats,
+or strings
+
+<LISTING>
+TCL SYNTAX:
+   dumpValueWrite &lt;value&gt; &lt;type&gt;
+
+RETURNS:
+   TCL_OK	Successful completion. Return the type, e.g. REGION
+   TCL_ERROR	Error occurred.
+</LISTING>
+
+<h2><a name="dumpHandleRead">dumpHandleRead</a></h2>
+Read the next object in a dump file. A handle is returned for your perusal.
+
+<LISTING>
+TCL SYNTAX:
+   dumpHandleRead [shallow]
+
+   shallow	Optional. If true only top-level data structures are
+		read; see <a href=diskio.html#shDumpReadShallow>shDumpRead</a>.
+
+RETURNS:
+   TCL_OK	Successful completion. Returns a handle to the object read.
+   TCL_ERROR	Error occurred.
+</LISTING>
+
+<h2><a name="schemaGetFromType">schemaGetFromType</a></h2>
+Return a list of { type name } pairs for all members of the specified type;
+such information is referred to as a type's schema.
+
+<LISTING>
+TCL SYNTAX:
+   schemaGetFromType &lt;type&gt;
+   &lt;type&gt;	The type under scrutiny. You can use either a symbolic name
+		such as REGION or a number such as 1008.
+
+RETURNS:
+   TCL_OK	Successful completion. Returns a list of {type name}s
+   TCL_ERROR	Error occurred.
+</LISTING>
+
+<h2><a name="schemaGet">schemaGet</a></h2>
+Like <A HREF=#schemaGetFromType>schemaGetFromType</a>, but the type is taken to be that of the handle.
+
+<LISTING>
+TCL SYNTAX:
+   schemaGet &lt;handle&gt;
+   &lt;handle&gt;  The handle whose schema is desired.
+
+RETURNS:
+   TCL_OK	Successful completion. Returns a list of {type name}s
+   TCL_ERROR	Error occurred.
+</LISTING>
+
+<h2><a name="dumpRead">dumpRead</a></h2>
+Read an entire dump file from &lt;file&gt;, returning a list of handles.
+The first element in the file name and dump time; successive elements
+are handles to the contents of the file. This list can be inspected
+by using <a href=tclDiskio.html#dumpPrint>dumpPrint</a>. Currently, dumpRead
+produces a spurious error message.
+
+<LISTING>
+TCL SYNTAX:
+   dumpRead &lt;file&gt;
+   &lt;handle&gt;	The file that we want read.
+
+RETURNS:
+   TCL_OK	Successful completion. Returns a list of handles
+   TCL_ERROR	Error occurred.
+</LISTING>
+
+<h2><a name="dumpPrint">dumpPrint</a></h2>
+Print the contents of a dump, by reading the &lt;list&gt; produced by
+<a href=tclDiskio.html#dumpRead>dumpRead</a>.
+
+<LISTING>
+TCL SYNTAX:
+   dumpPrint &lt;list&gt;
+   &lt;list&gt;	A list produced by dumpRead
+
+RETURNS:
+   TCL_OK	Successful completion.
+   TCL_ERROR	Error occurred.
+</LISTING>
+
+<h2><a name="schemaHashPrintStat">schemaHashPrintStat</a></h2>
+Print the hashing statistics of the schema table.
+
+<LISTING>
+TCL SYNTAX:
+   schemaHashPrintStat 
+
+RETURNS:
+   TCL_OK	Successful completion.
+   TCL_ERROR	Error occurred.
+</LISTING>
+
+</HTML>
+
+
+
+

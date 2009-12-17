@@ -1,0 +1,95 @@
+<HTML>
+<HEAD>
+<TITLE>TCL Shell Main Program Features</TITLE>
+<BODY>
+<H1>Features of the Dervish TCL Shell Main Program</H1>
+<P>
+The Dervish main program (or a user program modelled after the Dervish template) is
+an event loop handler which provides both an interactive TCL shell with command
+line editing support, as well as an interface to other communicating
+applications (for example, the image display program - FSAOimage).  Fortunately,
+the internal workings of the Dervish main program need not be understood in order
+to use it - many users simply use the executable "as is". For those wishing to
+modify or extend the main program, seek out other sections of the Dervish
+documentation.  For those wishing to use the executable "as is", there are still
+some features and options available which might prove useful.  These are listed
+below:
+<PRE></PRE>
+
+<A NAME="Startup Scripts"/A>
+<A NAME="DERVISH_STARTUP"/A>
+<A NAME="DERVISH_USER"/A>
+<H2>Startup Scripts</H2>
+<P>
+Upon startup of a Dervish main program, any TCL scripts defined by the
+environmental variables DERVISH_STARTUP and DERVISH_USER are executed respectively. 
+The first variable (DERVISH_STARTUP) is defined when Dervish is setup and should not
+be altered by the casual user, for it points to a default Dervish TCL script which
+contains many useful verb declarations. The second variable (DERVISH_USER) remains
+undefined by default, and is available for the user to define as needed.
+
+<A NAME="Command line arguments to Dervish"/A>
+<H2>Command line arguments to Dervish</H2>
+<P>
+Dervish now supports command line arguments for better end user control.
+Typing the following command will yield:
+
+<LISTING>
+   $ dervish -help
+     Command-specific options:
+     -file:     File from which to read commands
+     -continue: Do not exit after sourcing fileName or executing command
+     -geometry: Initial geometry for window
+     -display:  Display to use
+     -name:     Name to use for application
+     -sync:     Use synchronous mode for display server
+     -useTk:    Use the Tk/Wish capabilities with DERVISH
+     -noTk:     Do not use the Tk/Wish capabilities with DERVISH
+     -prompt:   Set the main DERVISH prompt to given string
+     -command:  Execute the following command and then exit;
+                The command to be executed must be quoted, i.e.
+                -command "echo Running an interactive command"
+    Generic options for all commands:
+     -help:     Print summary of command-line options and abort
+   $
+</LISTING>
+
+Interpretation for the above command line arguments is as follows:
+<DIR>
+<LI>
+-file:   if specified, the next token is used as a file name from which
+           to read TCL commands. Please note that this option puts Dervish in
+           <EM>batch</EM> mode, thus interactive command line editing will
+           not be availaible
+<LI>
+-geometry: if specified, the next token is used as the location of the
+           Tk window
+<LI>
+-display:  if specified, the next token is the name of the X server to contact
+<LI>
+-name:     if specified, the next token is the name of the Tk window
+<LI>
+-sync:     if specified, forces a synchronization between Tk and the X
+           server
+<LI>
+-useTk:    if specified, a Tk window is opened for use with Dervish
+<LI>
+-prompt:   if specified, the next token is taken as the main Dervish prompt.
+           Enclose multi token prompts in quotes. Example:
+<LISTING>
+$ dervish -useTk -prompt "Dervish v3_2> "
+</LISTING>
+<LI>
+-command:  if specified, the succeeding tokens are evaluated as TCL commands
+           by Dervish. Enclose the tokens in quotes. This command puts Dervish 
+           in <I>batch</I> mode, thus interactive command line editing will
+           not be available. Dervish will exit once it has evaluated the tokens.
+           Example:
+<LISTING>
+$ dervish -command "regReadAsFits [regNew] $INT_DIR/m51.fits"
+</LISTING>
+</DIR>
+
+<P>
+<ADDRESS><A HREF="dervish.authors.html">Authors</A></ADDRESS>
+</HTML>

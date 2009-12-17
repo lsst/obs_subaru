@@ -1,0 +1,362 @@
+<HTML>
+<TITLE>tclHandle</TITLE>
+<H1>TCL Routines to manipulate handles</H1>
+<P>
+Dervish doesn't allow a user to make use of raw C pointers, rather you must
+use handles which are in essence typed pointers. At the C level, a handle is
+simply a struct:
+<listing>
+typedef struct {
+   void *ptr;
+   TYPE type;
+} HANDLE;
+</listing>
+whereas in TCL they are referred to by name, for example "h12". It is usually
+helpful to think of a handle as being the object itself rather than a pointer
+to it when working from TCL (this may make more sense when you remember that
+when you manipulate a variable i in C or any other language you are really
+manipulating the place where i's value is stored, in other words an address).
+
+<DIR>
+<LI><A HREF=tclProcedures.html#handleNew>handleNew</A>
+<LI><A HREF=tclHandle.html#handleNewFromType>handleNewFromType</A>
+<LI><A HREF=tclHandle.html#handleDelFromType>handleDelFromType</A>
+<LI><A HREF=tclHandle.html#handleBind>handleBind</A>
+<LI><A HREF=tclHandle.html#handleDel>handleDel</A>
+<LI><A HREF=tclHandle.html#handleGet>handleGet</A>
+<LI><A HREF=tclHandle.html#handleList>handleList</A>
+<LI><A HREF=tclHandle.html#handleNameGet>handleNameGet</A>
+<LI><A HREF=tclHandle.html#handlePrint>handlePrint</A>
+<LI><A HREF=tclHandle.html#handleDeref>handleDeref</A>
+<LI><A HREF=tclHandle.html#handleDerefAndSet>handleDerefAndSet</A>
+<LI><A HREF=tclHandle.html#handleExprEval>handleExprEval</A>
+<LI><A HREF=tclHandle.html#handleSet>handleSet</A>
+<LI><A HREF=tclHandle.html#handleSetFromHandle>handleSetFromHandle</A>
+<LI><A HREF=tclHandle.html#handleBindFromHandle>handleBindFromHandle</A>
+<LI><A HREF=tclHandle.html#expr>expr</A>
+</DIR>
+There are also a few utility verbs, written in TCL:
+<DIR>
+<LI><A HREF=tclProcedures.html#handleBindNew>handleBindNew</A>
+<LI><A HREF=tclProcedures.html#handleDup>handleDup</A>
+<LI><A HREF=tclProcedures.html#handlePtr>handlePtr</A>
+<LI><A HREF=tclProcedures.html#handleType>handleType</A>
+</DIR>
+And a few verbs which deal with expressions:
+<DIR>
+<LI><A HREF=dervish.exprGet.html#exprGet>exprGet</A>
+<LI><A HREF=dervish.exprGet.html#exprPrint>exprPrint</A>
+<LI><A HREF=tclHandle.html#handleSet>handleSet</A>
+</DIR>
+
+<H2><A NAME="handleNewFromType">handleNewFromType</A></H2>
+<P>
+Make a new thing of the specified type-name, using the constructor specified
+in the schema definition.
+
+<LISTING>
+TCL SYNTAX:
+   handleNewFromType &lt;type-name&gt;
+
+   &lt;type-name&gt;	The type of the object to create.
+
+RETURNS:
+   TCL_OK	Successful completion. Returns the name of the new handle.
+   TCL_ERROR	Error occurred.
+</LISTING>
+<PRE></PRE>
+
+<H2><A NAME="handleDelFromType">handleDelFromType</A></H2>
+<P>
+Delete the object pointed to by a handle using the destructor specified in the
+schema definition.  The handle type is changed to UNKNOWN and the handle
+pointer set to 0x0.
+
+<LISTING>
+TCL SYNTAX:
+   handleDelFromType &lt;handle&gt;
+
+   &lt;handle&gt;	The handle name of the object to delete.
+
+RETURNS:
+   TCL_OK	Successful completion.
+   TCL_ERROR	Error occurred.
+</LISTING>
+<PRE></PRE>
+
+<H2><A NAME="handleBind">handleBind</A></H2>
+<P>
+Associate a pointer and a type with a handle.
+
+<LISTING>
+TCL SYNTAX:
+   handleBind &lt;handle&gt; &lt;address&gt; &lt;type&gt;
+
+   &lt;handle&gt;	The name of a pre-existing handle, e.g. h11
+   &lt;address&gt;	The address to bind to the handle, e.g. 0x1234af
+   &lt;type&gt;	The type of the object at &lt;address&gt;, e.g. REGION. You can
+		use a numerical type if you wish (e.g. 1008).
+                               
+RETURNS:
+   TCL_OK	Successful completion. No result string.
+   TCL_ERROR	Error occurred.
+</LISTING>
+
+<H2><A NAME="handleDel">handleDel</A></H2>
+<P>
+Delete a handle (but not the pointer bound to it).
+
+<LISTING>
+TCL SYNTAX:
+   handleDel &lt;handle&gt;
+
+   &lt;handle&gt;	The name of a handle, e.g. h11
+                               
+RETURNS:
+   TCL_OK	Successful completion. No result string.
+   TCL_ERROR	Error occurred.
+</LISTING>
+
+<H2><A NAME="handleList">handleList</A></H2>
+<P>
+Return all existing handle's pointers and types as a Tcl list.
+
+<LISTING>
+TCL SYNTAX:
+   handleList
+
+                               
+RETURNS:
+   TCL_OK	Successful completion. Returns "address type", e.g.
+		0x1234af REGION for each existing handle
+   TCL_ERROR	Error occurred.
+</LISTING>
+
+<H2><A NAME="handleNameGet">handleNameGet</A></H2>
+<P>
+Given an address return a handle.
+
+<LISTING>
+TCL SYNTAX:
+   handleNameGet &lt;address&gt;
+
+   &lt;address&gt;	An address bound to handle, e.g. 0x1234af
+                               
+RETURNS:
+   TCL_OK	Successful completion. Returns a handle, e.g. h11
+   TCL_ERROR	Error occurred.
+</LISTING>
+
+<H2><A NAME="handleGet">handleGet</A></H2>
+<P>
+Return a handle's pointer and type.
+
+<LISTING>
+TCL SYNTAX:
+   handleGet &lt;handle&gt;
+
+   &lt;handle&gt;	The name of a handle, e.g. h11
+                               
+RETURNS:
+   TCL_OK	Successful completion. Returns "address type", e.g.
+		0x1234af REGION
+   TCL_ERROR	Error occurred.
+</LISTING>
+
+<H2><A NAME="handlePrint">handlePrint</A></H2>
+<P>
+Print a handle's pointer and type.
+
+<LISTING>
+TCL SYNTAX:
+   handlePrint &lt;handle&gt;
+
+   &lt;handle&gt;	The name of a handle, e.g. h11
+                               
+RETURNS:
+   TCL_OK	Successful completion. Prints "address type", e.g.
+		0x1234af REGION
+   TCL_ERROR	Error occurred.
+</LISTING>
+
+<H2><A NAME="handleDeref">handleDeref</A></H2>
+<P>
+Return whatever is pointed to by a &lt;handle&gt;; in C, `*(void **)handle'.
+
+<LISTING>
+TCL SYNTAX:
+   handleDeref &lt;handle&gt;
+
+   &lt;handle&gt;	The desired handle, e.g. h12
+                               
+RETURNS:
+   TCL_OK	Successful completion. Returns the value (e.g. 123.45)
+   TCL_ERROR	Error occurred.
+</LISTING>
+
+<H2><A NAME="handleDerefAndSet">handleDerefAndSet</A></H2>
+<P>
+Set what a &lt;handle&gt; points to to a &lt;value&gt;;
+in C, *(int *)handle = value. Of course, the value can be a pointer. Note
+that the object being set is assumed to have the length of an int; you
+cannot use this verb to set char or short values.
+
+<LISTING>
+TCL SYNTAX:
+   handleDerefAndSet &lt;handle&gt; &lt;value&gt;
+
+   &lt;handle&gt;	The handle in question, e.g. h12
+   &lt;value&gt;	The value to set the handle to, e.g. 1234.
+                               
+RETURNS:
+   TCL_OK	Successful completion. Returns the value (e.g. 1234)
+   TCL_ERROR	Error occurred.
+
+NOTE: This command is obsolete; use handleSet, which allows more types for
+&lt;value&gt; and which allows &lt;handle&gt; to be a handle expression
+
+</LISTING>
+
+<H2><A NAME="handleExprEval">handleExprEval</A></H2>
+<P>
+Evaluate an expression involving an expression &lt;expr&gt;. The result is
+returned as a string of the form `addr type' ready to be bound to a handle.
+For example,
+<listing>
+handleExprEval h12.mask->rows&lt;1&gt;&lt;2&gt;
+</listing>
+might return
+<listing>
+0x1234 CHAR
+</listing>
+so the command
+<listing>
+exprPrint [eval handleBindNew [handleExprEval h12.mask->rows&lt;1&gt;&lt;2&gt;]]
+</listing>
+might print `\041'. (you need the eval as handleExprEval returns a list
+consisting of two strings which handleBindNew treats as a single argument).
+<p>
+NOTE: You might consider using <A HREF=dervish.exprGet.html#exprGet>exprGet</A> if
+you only intend to get the value of of the handle expression. 
+<LISTING>
+TCL SYNTAX:
+   handleExprEval &lt;expr&gt;
+
+   &lt;expr&gt;	The expression you want evaluated, e.g. h12.mask->rows&lt;1&gt;&lt;2&gt;
+                               
+RETURNS:
+   TCL_OK	Successful completion. Returns the value and type
+		(e.g. 0xabcd CHAR)
+   TCL_ERROR	Error occurred.
+</LISTING>
+<p>
+
+The grammar for expressions acceptable to handleExprEval is a subset of the
+full C grammar, in particular the relevant part of operator table from
+K&amp;R (table 2-1) is:
+<listing>
+Operators              Associativity
+() [] &lt;&gt; -&gt; .          left to right
+* &amp; (type)             right to left
+</listing>
+You can use either [] or &lt;&gt; to subscript expressions, but note that the
+former are special to TCL so you'll have to quote the whole expression
+with {}.<p>
+
+Note that two or higher dimensional arrays are treated as if they
+are really pointers to pointers (to pointers...) rather than C's
+rather useless n-dimensional arrays (e.g. float cc[4][5]).
+
+There are a number of utility functions to make handleExprEval easier
+to use, in particular <a href=dervish.exprGet.html#exprGet>exprGet</a>.
+
+</LISTING>
+
+<H2><A NAME="handleSet">handleSet</A></H2>
+<P>
+Set what a &lt;handle&gt; points to to a &lt;value&gt;;
+in C, *(int *)handle = value. See the <A HREF=dervish.exprGet.html#Handle>overview</a>
+for some examples.
+
+<LISTING>
+TCL SYNTAX:
+   handleSet &lt;handle&gt; &lt;value&gt;
+
+   &lt;handle&gt;	The handle expression in question, e.g. h12
+   &lt;value&gt;	The value to set the handle to, e.g. 1234.  It can be any
+		type described be a Schema. It can be simple type like int, float,
+		double, char, ptr, string, unsigned int, etc ...
+		It even can be a complexe type like REGION or arrays; to describe
+		those simply list in order all the values of the different elements
+		of the struct or the array in a tcl list.                               
+RETURNS:
+   TCL_OK	Successful completion.
+   TCL_ERROR	Error occurred.
+
+</LISTING>
+
+<H2><A NAME="handleSetFromHandle">handleSetFromHandle</A></H2>
+<P>
+Copies what a &lt;handle&gt; from another handle.
+Arbitrary types are allowed.
+
+<LISTING>
+TCL SYNTAX:
+   handleSetFromHandle &lt;handle1&gt; &lt;handle2&gt;
+
+   &lt;handle1&gt;	A handle expression to the thing being copied to.
+   &lt;handle2&gt;    A handle expression to the thing being copied from.
+
+The handles are checked to make sure that they reference things of the same
+type.  A straight binary copy is made of the thing referenced by handle2 to
+handle1.  Thing can be a primitive type (e.g., an INT) or a more complicated
+type (e.g., a region).  NOTE: for complicated types like regions, only
+the elements in the region structure are copied, not the rows and columns
+of pixels themselves.  In such cases, this command should be used with
+caution to avoid orphaning bits of memory.
+                               
+RETURNS:
+   TCL_OK	Successful completion.
+   TCL_ERROR	Error occurred.
+
+</LISTING>
+
+<H2><A NAME="handleBindFromHandle">handleBindFromHandle</A></H2>
+<P>
+Sets one handle to point to the same thing that another one does.
+
+<LISTING>
+TCL SYNTAX:
+   handleBindFromHandle &lt;handle1&gt; &lt;handle2&gt;
+
+   &lt;handle1&gt;	A null handle that will be bound to a new thing.
+   &lt;handle2&gt;	A handle expression that points to the thing.
+
+This command provides a safer way to bind a handle to a thing; it should
+be used instead of handleBind, which requires one to use explicit addresses
+at the TCL level.
+   
+                               
+RETURNS:
+   TCL_OK	Successful completion.
+   TCL_ERROR	Error occurred.
+
+</LISTING>
+
+<H2><A NAME="expr">expr</A></H2>
+Calls the expression processor to evaluate arg, and returns the result as a
+string.  See the section EXPRESSIONS in TCL Man Pages for a detailed
+description.
+
+<LISTING>
+TCL SYNTAX:
+   expr &lt;arg&gt;
+
+   &lt;arg&gt;	Argument to evaluate.
+                               
+RETURNS:
+   TCL_OK	Successful completion.
+   TCL_ERROR	Error occurred.
+</LISTING>
+
+</HTML>

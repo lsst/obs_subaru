@@ -1,0 +1,738 @@
+<HTML>
+<HEAD>
+<!-- *********************************************************************** -->
+<!-- *++
+<!-- * FACILITY:        Dervish
+<!-- *                  Documentation
+<!-- *
+<!-- * ABSTRACT:        SCHEMA TBLCOL conversion and its TCL interface.
+<!-- *
+<!-- * ENVIRONMENT:     HTML (HyperText Markup Language).
+<!-- *                  tclSchema.html
+<!-- *
+<!-- * AUTHOR:          Wei Peng, Creation date: March 18, 1994
+<!-- *--
+<!-- *********************************************************************** -->
+
+<TITLE>TBLCOL/Schema Conversion and Its TCL Interface</TITLE>
+
+<H1>TBLCOL/Schema Conversion and Its Tcl Interface</H1>
+
+<P>
+TBLCOL/Schema conversion is done through a translation table. Click
+<A HREF="shSchema.html#SCHEMATRANS">here</A> for its C implementation. This
+documentation describes Tcl routines for following purposes:
+
+<DIR>
+<LI> <A HREF="tclSchema.html#SCHEMATRANS"><B>Building Translation Tables</B></A>
+<LI> <A HREF="tclSchema.html#SYNTAX"><B>Translation Table Syntax</B></A>
+<LI> <A HREF="tclSchema.html#CONVERSION"><B>TBLCOL/Schema Conversion</B></A>
+<LI> <A HREF="tclSchema.html#EXAMPLES"><B>Examples</B></A>
+</DIR>
+
+<P>
+if you'd like to see the high-level description of translation table
+or object conversion, please click <A HREF="tblDesign.html">here</A>.
+
+<H2><A NAME="SCHEMATRANS">Building Translation Tables</A></H2>
+
+There are two ways to create/edit a translation table. The first way,
+which reads in an ascii file and create entries, is much faster and
+thus prefered. The other way, directly calling entry-addition routines,
+is more suited for tables containing only a few entries and small
+scale in-memory changes.
+<P>
+Click <A
+HREF="tclSchema.html#SCHEMATARNS_ASCII">here</A> to create a table from
+ascii files. Click <A HREF="tclSchema.html#SCHEMATARNS_MEM">here</A> to
+create a table directly in Tcl.
+
+<H2><A NAME="SCHEMATRANS_ASCII">Building Translation Tables from Ascii Files</A></H2>
+
+Two Tcl verbs are provided to create a table from ascii files and write out
+a table to an ascii file. Click <A HREF="tclSchema.html#ASC_FMT">here</A>for a
+description of the ascii format.
+<DIR>
+<LI><A HREF="tclSchema.html#schemaTransWriteToFile">schemaTransWriteToFile</A></LI>
+<LI><A HREF="tclSchema.html#schemaTransEntryAddFromFile">schemaTransEntryAddFromFile</A></LI>
+</DIR>
+<H3> <A NAME="schemaTransWriteToFile">schemaTransWriteToFile</A></H3>
+<LISTING>
+        Purpose:    write out all entries in the table to an ascii file
+        Arguments:  tableHandle  fileName
+        Return:     none
+
+        Example:    dervish> schemaTransWriteToFile h1 junkfile
+                    dervish>
+</LISTING>
+
+<H3> <A NAME="schemaTransEntryAddFromFile">schemaTransEntryAddFromFile</A></H3>
+<LISTING>
+	Purpose:    read the entries in the ascii into a translation table
+        Arguments:  tableHandle  fileName
+        Return:     none
+
+        Example:    dervish> schemaTransNew
+                    h1
+                    dervish> schemaTransEntryAddFromFile h1 junkfile
+                    dervish>
+</LISTING>
+
+<H2><A NAME="SCHEMATRANS_MEM">Building Translation Tables using Tcl verbs </A></H2>
+
+Following Tcl routines are for use with translation tables.
+<DIR>
+<LI><A HREF="tclSchema.html#schemaTransNew">schemaTransNew</A></LI>
+<LI><A HREF="tclSchema.html#schemaTransDel">schemaTransDel</A></LI>
+<LI><A HREF="tclSchema.html#schemaTransEntryAdd">schemaTransEntryAdd</A></LI>
+<LI><A HREF="tclSchema.html#schemaTransEntryDel">schemaTransEntryDel</A></LI>
+<LI><A HREF="tclSchema.html#schemaTransEntryClearAll">schemaTransEntryClearAll</A></LI>
+<LI><A HREF="tclSchema.html#schemaTransEntryImport">schemaTransEntryImport</A></LI>
+<LI><A HREF="tclSchema.html#schemaTransEntryShow">schemaTransEntryShow</A></LI>
+
+</DIR>
+
+<H3> <A NAME="schemaTransNew">schemaTransNew</A></H3>
+<LISTING>
+	Purpose:    mallocks a table of MAX_SCHEMATRANS_SIZE entries
+	Arguments:  none
+	Return :    a handle, if successful.
+
+        Example:    dervish> schemaTransNew
+                    h1
+                    dervish>
+</LISTING>
+
+
+<H3> <A NAME="schemaTransDel">schemaTransDel</A></H3> 
+<LISTING>
+	Purpose:    deletes a table and frees all memories associated with entries
+	Arguments:  tbl_handle
+	Return :    none.
+
+        Example:    dervish> schemaTransDel h1
+                    dervish>
+</LISTING>
+
+
+<H3> <A NAME="schemaTransEntryAdd">schemaTransEntryAdd</A></H3> 
+<LISTING>
+	Purpose:    add an entry to an existing table
+	Arguments:  tblHandle  convType  fitsName  fldName  data_type -proc -dimen -ratio -position
+	Return :    none if successful.
+
+        Example:    dervish> schemaTransEntryAdd h1 name GSC_ID   id    int 
+                    Entry added
+                    dervish> schemaTransEntryAdd h1 name NROW     mask  struct -proc maskNew
+                    Entry added
+                    dervish> schemaTransEntryAdd h1 cont mask     nrow  int 
+                    dervish>
+</LISTING>
+where, tblHandle is a handle to an existing 
+translation table and convType specifies how the following fields 
+are intepreted. If convType is "name", then the following two fields 
+are taken as field name in FITS file and in
+schema respectively. If it is "ignore" (in this case, one still has to specify
+fitsName, which will not be used, though), the field by fldName in the
+given schema will ignored. This allows maximum flexibility especially when FITS files
+don't have all the fields one wants.  Lastly, convType can also
+be "cont", indicating the line is a continuation line following the
+previous line. See <A HREF="tclSchema.html#SYNTAX"><B>syntax</B></A> 
+for more explanations. 
+
+
+<P>
+Briefly, for ConvType, following types are allowed:
+<DIR>
+<LI>name</LI>
+<LI>cont or continue</LI>
+<LI>ignore</LI>
+</DIR>
+</P>
+<P>
+For data_type, following are allowed:
+<DIR>
+<LI>char, or unsigned char</LI>
+<LI>short, or unsigned short</LI>
+<LI>int, or unsigned int</LI>
+<LI>long, or unsigned long</LI>
+<LI>float</LI>
+<LI>double</LI>
+<LI>enum</LI>
+<LI>string</LI>
+<LI>struct</LI>
+</DIR>
+</P>
+In addition, schemaTransEntryAdd also can deal with heap  -- a variable length storage
+available in FITS, and make enum type portable.
+See <A HREF="tclSchema.html#HEAP"><B>Portable Enum and Heap 
+Capabilities</B></A> for details.
+<P>
+Optional parameters are: -proc provides a custom Tcl constructor, which
+, if specified, will be used to construct the objects; -dimen is the
+dimension information, say, "5x10" (i.e, two dimension with size 5 and 10)
+and the constructor will be called 50 times. If corresponding field is of
+elementary type (which doesn't need constructor), memory of this size
+will be allocated. Lastly, -position optionally specifies where to add
+the entry, -position n adds to the n-th line.
+
+<H3> <A NAME="schemaTransEntryDel">schemaTransEntryDel</A></H3> 
+<LISTING>
+	Purpose:    deletes a table entry and frees all memories associated with entry
+	Arguments:  tbl_handle entry_number -only
+	Return :    message.
+
+        Example:    dervish> schemaTransEntryDel h1 1 -only
+                    dervish>
+</LISTING>  
+The routine normally will delete the given entry and its associated
+continuation lines. But if -only is given, only that entry is deleted.
+
+
+<H3> <A NAME="schemaTransEntryClearAll">schemaTransEntryClearAll</A></H3> 
+<LISTING>
+	Purpose:    Empty the table by clearing all the entries
+	Arguments:  tbl_handle
+	Return :    none
+
+        Example:    dervish> schemaTransEntryClearAll h1
+                    dervish>
+</LISTING>  
+
+
+<H3> <A NAME="schemaTransEntryImport">schemaTransEntryImport</A></H3> 
+<LISTING>
+	Purpose:    Import to a table selected entries from another table
+	Arguments:  src_tblHandle dst_tableHandle -from -to -at
+	Return :    none
+
+        Example:    dervish> schemaTransEntryImport h1 h2 
+                    dervish> schemaTransEntryImport h1 h3 -from 1 -to 3 -at 1
+</LISTING>  
+where -from/-to designates the begining and ending of the range in source table to copy,
+and -at chooses where to insert in destination table (default is at the end).
+<P>
+First example shows the way to append the entire source table to the destination table.
+Second example imports entries from 1 to 3 (inclusive) to h3 at entry number 1.
+
+
+<H3> <A NAME="schemaTransEntryShow">schemaTransEntryShow</A></H3> 
+<LISTING>
+	Purpose:    print a translation table on the screen
+	Arguments:  tblHandle
+	Return :    none        
+</LISTING>
+
+<H2><A NAME="ASC_FMT">Translation Table's Ascii format</A></H2>
+
+Before proceeding, I assume you're already familiar with <A HREF="tclSchema.html#SYNTAX">
+translation table syntax</A>. 
+<P>
+Translation table's ascii format consists of entry list in 
+plain ascii. Each entry is expected to have at least 4 ascii 
+strings (sparated by spaces) to represent conversion type, fits 
+side name, object side name, and object data type, in that order. 
+Option parameters appear after the 4 basic units, e.g., -proc = regNew.
+A entry must end with semicolon ';'.  In short, an ascii entry resembles
+the command line of <A HREF="tclSchema.html#schemaTransEntryAdd"
+>schemaTransEntryAdd</A>.
+<P>
+Comments are allowed in the ascii file. All comment lines start with a 
+pound sign '#' and ends at end of the line. 
+<P>
+Here are some example ascii files.
+<LISTING>
+#
+# following entries are machine-generated. Editing is welcome. 
+#
+# All comments start with pound sign.
+#
+# Entries are in following order: 
+# ConversionType   FitsSideName    ObjSideName  ObjDataType   others   ;
+#
+# An entry always ends with a semicolon ';'
+ 
+name  OBJID  id  int      ;
+ 
+name  NCOLOR  ncolor  int         ;
+ 
+name  ID[0]  color[0]  struct    -dimen=3  ;  # option parameters seen
+cont  COLOR[0]  id  int   ;
+
+name  REGPIX0  color[0]  struct  -dimen=3  ;
+cont  COLOR[0]  region  struct   -proc="{regNew} {-mask}"  ;
+cont  REGION  rows_s16  heap     -dimen=color&lt;0&gt;->region->nrow -heaptype=SHORT  
+          -heaplength=color&lt;0&gt;->region->ncol  ;
+
+name  NSPIX1  color[1]  struct   -dimen=3  ;
+cont  COLOR[1]  noise  struct    -proc={regNew}  ;
+cont  NOISE  rows_u16  heap      -dimen=color&lt;1&gt;->noise->nrow 
+        -heaptype=SHORT  -heaplength=color&lt;1&gt;->noise->ncol  ;
+
+#
+# end of table
+#
+</LISTING>
+<P>
+<P>
+
+
+
+
+<H2><A NAME="SYNTAX">Translation Table Syntax</A></H2>
+
+<H3><A>Single Line Entires</A></H3> 
+
+Single-line entries in a translation table are self-explanatory. They
+match a specific FITS field name to a field in schema, and the conversion
+routines will fill one field with the values found from the other. Note
+1st field is always at FITS side and the 2nd is always the schema side when
+adding entries. This way, a single translation table can be used in 
+conversion of either direction.
+<P>
+Following example shows how to add an entry for converting the field called "id"
+in a schema to FITS field "MY_ID".
+<LISTING>
+           dervish> schemaTransNew
+           h1
+           dervish> schemaTransEntryAdd h1 name MY_ID id
+           Entry added
+           dervish>
+</LISTING>
+Note capitalizing MY_ID is optional, as the routine will convert all FITS field names
+to upper cases.
+<P>
+Single line entries are very useful when the fields one is interested in are all
+elementary fields. However, such may not be all in the cases. If a user-defined
+structure is present in a schema and the user wants to convert it, multiple line
+entry is used. A multiple line entry has a single main line followed by one or
+more continuation lines.
+
+
+
+
+<H3><A>Continuation line</A></H3>
+
+Let's see an example. Suppose we want to match a FITS
+field called GSC_ID to nrow, i.e, region.mask.nrow (or even region->mask->nrow), 
+where region is a REGION and mask is a MASK. The translation table looks like:
+<LISTING>
+ConvType   FITS-side   SCHEMA-side   FieldType   ratio constructor size
+  name      GSC_ID         mask        struct    1.000   none      none
+  cont      mask           nrow        int       1.000   none      none
+</LISTING>
+This is achieved by:
+<LISTING>
+dervish> schemaTransEntryAdd  $xtbl   name    GSC_ID   mask   struct
+dervish> schemaTransEntryAdd  $xtbl   cont     mask    nrow   int 
+</LISTING>
+For each add, we may specify options like -proc, -dimen and -ratio to 
+elaborate the conversion at that level. In this case, mask has a Tcl
+constructor called maskNew, we then:
+<LISTING>
+dervish> schemaTransEntryAdd  $xtbl   name    GSC_ID   mask   struct -proc maskNew
+dervish> schemaTransEntryAdd  $xtbl   cont     mask    nrow   int 
+</LISTING>
+The table now looks like
+<LISTING>
+ConvType   FITS-side   SCHEMA-side   FieldType   ratio constructor size
+  name      GSC_ID         mask        struct    1.000   maskNew   none
+  cont      mask           nrow        int       1.000   none      none
+</LISTING>
+So each time a mask is found, maskNew will be used to construct that objects. 
+(if one doesn't give a constructor, the conversion routines will try to
+other ways. See <A HREF="shSchema.html#STATECHECK"><B>Oject State Initialization</B>
+</A> for more details.
+
+
+<H3><A>Array/Pointer Specification<A></H3> 
+
+Array specification is flexibly allowed in a translation
+table. But before we explain that, we first go through some basics.
+<P>
+A schema field can be a combination of following three types:
+<DIR>
+<LI>C elementary types (e.g, char, int) or custom-defined types (e.g, struct)
+</LI>
+<LI>Pointer type with a number of indirections (stars), e.g, char ***s;</LI>
+<LI>Array, e.g, int i[10][20];
+</DIR>
+
+Although C generally allows users to mix pointers with arrays, these two
+types have important differences. Array memories are static and contiguous, 
+whereas pointers 
+require initialization and/or run-time memory allocation, and may point to
+discrete memory blocks. And loosely speaking,  the former doesn't
+need de-reference indirect addressing, while the latter does. 
+
+<P>
+For a field that is already an array (static, contiguous memory), say, int
+c[5], translation table allows specifications like c[3] to get the
+4th element of the array. In other words, you can do
+<LISTING>
+schemaTransEntryAdd name GSC_ID {c\[3\]} int 
+</LISTING>
+where escape \ is used. Now the translation table looks like:
+<LISTING>
+ConvType   FITS-side   SCHEMA-side   FieldType   ratio constructo size
+  name      GSC_ID         c[3]        int    1.000   none     none
+</LISTING>
+<P>
+Therefore the value of GSC_ID will get copied to c[3], but not other
+elements of the array.
+</P> 
+<P>
+Multidimensional arrays have similar syntax. Say now c is defined to be c[5][10].
+You may then in the table specify c[3][2] to access the 3rd element of the 4th array,
+whose value will be set to that of GSC_ID.
+<P>
+You may even be able to specify c[3] for the above multi-D array. 
+In this case, c[3] just mean c[3][0], but now GSC_ID has to be an 1-D array of
+size 10 because c[3] is an array of size 10 whose top is pointed by &amp;c[3][0]!
+
+<P>
+A field might also be just a pointer to pointer to ... pointer, say, 
+<LISTING>
+              REGION ****region;
+              int    ****i;
+</LISTING>
+This may mean either a 3-D array of REGION pointers or
+a 4-D array of REGIONs. However, in practice, such an ambiguity doesn't
+exist because, in the situation of single star, REGION *region only
+indicates one object but not a 1-D array of REGION objects. This is
+so partly because region (of REGION* ) only points to ONE object
+at a time, and objects like REGION are meant to have their own
+memory blocks, which may not be contiguous.
+<P>
+When elementary types are associated with pointer (in the above example, i),
+the concept of object is much weaker. These fields, say i, don't have 
+contructors and their memory can be (and in fact is) contiguous. So,
+in the above case, i can be treated as a 4-D array.
+<P>
+We now agree that, 
+
+<DIR>
+<LI>Pointer to pointer .. to pointer to complex types are not meant to
+be array of that many dimension. Instead, they are array of pointers to
+the complex type and have a dimension of number of indirections minus 1.</LI>
+
+<LI>Pointer to pointer .. to pointer to elementary types are meant to
+be array of that many dimension. They are pointers pointing to the elementary 
+type arrays having a dimension of size equal to the number of 
+indirections</LI>.
+</DIR>
+
+Briefly, pointer to a complex type is NOT an array but an indirection to
+a single object, wherease pointer to an elementary type is an array.
+
+<H3><A>Dimension and size specification</A></H3> 
+
+When indirection is present, dimension/size specification is achieved in
+one single string, i.e, the option <A><B>-dimen</B></A> for <A
+HREF="tclSchema.html#SCHEMATRANS"><B>schemaTransEntryAdd</B></A>
+with <A><B>x</B></A> used to separate each dimension. For example, -dimen 
+5x3 means a 2-D of size 5 and 3 in each dimension, just like C's [5][3]
+and indicates that the field has 3 indirections if a complex type, and
+2 indirections if an elementary type. 
+
+<P>
+When giving dimension information, one must fully resolve the indirections
+for elementary types and leave one indirection for complex types.
+
+<P>
+<H3><A>Array access<A></H3> 
+<P>
+Array access, when indirection is present, is just same as
+the case for ordinary arrays, treating the added dimension by -dimen
+as a regular part of the array. For example, MyType ****mytype[3][4]
+is just like a 6-D array when MyType is elementary type, but is a 5-D
+array of pointers to MyType when it is a complex type.
+</P>
+
+<H3><A>FITS-side Array access<A></H3>
+
+Array specification is also allowed in specifying FITS-side fields and
+follows a syntax similar to that for schema-side fields.
+<LISTING>
+     dervish> schemaTransEntryAdd h1 name {NROW\[0\]} {subRegs\[0\]} struct -proc regNew -dimen 3
+     dervish> schemaTransEntryAdd h1 cont {subRegs\[0\] nrow         int
+     dervish> schemaTransEntryAdd h1 name {NROW\[1\]} {subRegs\[1\]} struct 
+     shvia> schemaTransEntryAdd h1 cont {subRegs\[1\] nrow         int
+     dervish> schemaTransEntryAdd h1 name {NROW\[2\]} {subRegs\[2\]} struct
+     shvia> schemaTransEntryAdd h1 cont {subRegs\[2\] nrow         int
+</LISTING>
+
+In the above example, field "subRegs" is type REGION**. A 1-D array of size 3
+is specified with tcl verb "regNew" to construct all 3 objects. Each object's
+"nrow" will be copied to NROW, which is 1-D array of size 3. 
+
+<P>
+Arrow brackets are also legitimate array specifiers.
+</P>
+
+<H2><A NAME="HEAP">Portable Enumeration and Heap Capabilities</A></H2>
+
+<H3><B>Portable Enumeration</B></H3> 
+
+Enumerated types are integral types. While they are different types from integers,
+C allows conversion (or cast) between enum value and integer. When writing 
+(or reading a ) FITS, however, an enum value become meaningless as it loses 
+the context. To avoid this, the author devised the code such that, when writing
+a FITS, a composite ascii string that includes both the type and the enum memer
+that associates with the value is written out.; when reading a FITS, both type
+and value string will be read in and the integer value that associates with this 
+string found from this type will be assigned to the field. Therefore, the context
+is maintained throught FITS I/O process.
+
+<LISTING>
+     dervish > schemaTransEntryAdd h1 name MY_ENUM  type enum
+</LISTING>
+Note that,  instead of enum, one can still use "int". 
+
+<H3><B>Heap Capability</B></H3> 
+
+Heap is a variable storage available in FITS.  If a particular field takes 
+variable size, then you want to use heap. Specifying heap is not much  
+different from specifying other types. In place of "int", "enum", "struct",
+or whatever you may use in the 4th parameter, one simply says "heap".
+In addition, heap requires at least one more parameter be given "-heaptype"
+and, if you are converting schema objects to FITS (TBLCOL), "-heaplength".
+<P>
+Heaptype is the heap base type. It usually is one of the C elementary types,
+but one can use customized structures. Heaplength is an expression whose
+result gives the length of heap, i.e, number of base blocks. Obviously, when
+reading FITS file, this information is not needed because length information
+is stored in FITS. </P>
+
+<LISTING>
+     dervish > schemaTransEntryAdd h1 name HP test heap -heaptype FLOAT
+</LISTING>
+This example indicates "test" is a float heap. Data from HP in FITS should be
+copied to test.
+
+When writing FITS, heaplength is absolutely required:
+<LISTING>
+     dervish > schemaTransEntryAdd h1 name HP contents heap -heaptype FLOAT \
+                     -heaplength ncol
+</LISTING>
+This example shows how heap in a REGION is taken care of. Contents is a heap
+of type FLOAT. Heap length is given by the value of nocl in the same object.
+If heaplength is not a numerical string (say, 10, a case when one wants to
+use fixed length for all objects), it should be a field specified with respect to
+the object. In this example, ncol is a field in REGION.  If the desired length is
+not given directly in REGION but in objects pointed by some field in REGION, 
+one should use normal C syntax, e.g, mask->row0.  The expression will be
+evaluated for each object to convert, and hence length may vary between
+objects.
+<P>
+There are cases where heap field is multi-dimensional. The "rows_u16"
+in a REGION, for example, has two indirections (i.e, two stars) and
+hence acts like a 2-D array. A "-dimen" option has to be specified, just
+like any other multi-indireciton fields. Like "-heaplength", this 
+"-dimen" parameter also takes expressions. The result of evaluating the
+expressions yields the dimension information, which may vary from objects
+to objects.
+<LISTING>
+     dervish > schemaTransEntryAdd h1 name HP rows_u16 heap -heaptype FLOAT \
+                     -heaplength ncol -dimen nrow
+</LISTING>
+The result is that rows_u16 will be a field that has a size of nrow x ncol
+x sizeof(float) bytes.
+<P>
+Multiplication is allowed when specifying -dimen or -heaplength. For example,
+one may use -heaplength 2 x ncol, or -dimen nrow x ncol, etc, where "x"
+is interpreted as the multiplication operation. To heaplength, only the
+result of this product is significant. But to -dimen, "x" also suggests 
+dimension information, which will be matched against the number of
+indirections of this field minus 1. For example, "rows_u16" has two
+indirection, and therefore "-dimen" should only consist of a single number.
+No "x" is allowed" (The fastest changing dimension is always given by
+-heaplength). If "rows_u16" were "float ***", then "-dimen" would require
+one "x" be present, making it to be something like "nrow x ncol".
+</P>
+<P>
+In short, for heap types, the total number of blocks is given by the product
+of dimen and heaplength, with each block having sizeof(heaptype) bytes.
+</P>
+
+<P>
+both portable enum and heap can be used in multi-line table entries.
+</P>
+
+<H2> <A NAME="CONVERSION">TBLCOL/Schema Conversion</A></H2>
+
+Two routines are provided, each for one direction.
+<H3><B>tblToSchema</B></H3> 
+
+This routine converts TBLCOL format to one instance or
+an array of instances. Parameters/options in order are:
+<LISTING>
+	TBLCOL handle	a handle of TBLCOL that contains the FITS file
+
+	handle          a schema handle or a container (ARRAY, LIST) handle
+
+        schemaTrans     a translation table handle
+
+        -proc           Tcl constructor to use when container is given.
+                        When NULL (default), schema constructor and
+                        malloc will be tried in order.
+
+	-schemaName	specifies schema name when container is used.
+	-row            row number in FITS to start when only a subset 
+                        of instances is	needed. Default is 0.
+
+        -stopRow        row number before which conversion stops. If 
+                        specified, a total of stopRow - row rows 
+                        (beginning at row) are converted to objects. 
+                        Default value is the ending row number.
+
+        -objectReuse	if set, objects that are already in the given 
+			container will be used. The conversion routine
+			will not create any new objects. This is very
+			useful when data from multiple FITS files are
+			needed for the objects. However, when a field
+			is found unitialized, the routine still will try
+			hard to initialize it.Default is FALSE.
+
+	-handleRetain	if set, the handles associated with objects
+			created with Tcl commands will be retained.
+			Default value is FALSE.
+</LISTING>
+<P>On success, it returns the container/schema handle givenon command
+line.</P>
+<P>
+Example:
+<LISTING>
+       dervish> set array [handleNewFromType ARRAY]
+       dervish> tblToSchema $tblcol $array $table -schemaName REGION -proc regNew
+</LISTING>
+In this case, array will be filled with REGION objects constructed by regNew
+and filled with the values from $tblcol.
+
+
+<H3><B>schemaToTbl</B></H3> 
+
+The verb converts one instance or more instances to TBLCOL. Parameters/options in order are:
+<LISTING>
+	handle          a schema handle or a container (ARRAY, LIST) handle
+        schemaTrans     a translation table handle
+	-schemaName	specifies schema name when container is used.
+	-autoConvert	if TRUE, elementary types in the given schema that are
+			not listed in the translation table will be converted.
+			Default is FALSE.
+
+</LISTING>
+<P>On success, it returns a TBLCOL handle.</P>
+
+
+<H2> <A NAME="EXAMPLES">Tcl Interface Examples</A></H2>
+
+<DIR>
+<LI><B>Converting TBLCOL to one instance of schema</B></LI>
+<P>
+Suppose we want to convert a FITS file to a schema HG. Specifically,
+the FITS file we use have fields like RA_DEG, GSC_ID, PLATE_ID and
+MULTIPLE, which are double, int, char*4 and char respectively. We now
+want to convert them to sum, id, xLabel, yLabel, which in schema HG
+are double, int, char*, and char* respectively.
+
+<P><B>Build the translation table </B></P>
+<LISTING>
+   dervish> set xtbl [schemaTransNew]</P>
+   dervish> schemaTransEntryAdd $xtbl name RA_DEG sum double -ratio 2
+   dervish> schemaTransEntryAdd $xtbl name GSC_ID id   int   -ratio 20
+   dervish> schemaTransEntryAdd $xtbl name PLATE_ID   xLabel  string -dimen 5
+   dervish> schemaTransEntryAdd $xtbl name MULTIPLE   yLabel  string -dimen 2
+</LISTING>
+ Note conversion will match the other fields in HG not listed here
+directly to FITS and will ignore those it fails to locate in FITS file.
+
+<P><B>Get FITS file into TBLCOL </B></P>
+<LISTING>
+   dervish> set tblcol [handleNewFromType TBLCOL]
+   dervish> fitsRead $tblcol /data/sdss2/GuideStars/v1_1/gsc/n0000/0001.gsc -hdu 1
+</LISTING>
+
+
+<P><B>Create an instance of HG </B></P>
+<LISTING>
+   dervish> set scheam [hgNew]
+</LISTING>
+<P><B>Now convert</B></P>
+<LISTING>
+   dervish> tblToSchema $tblcol $schema $xtbl] 
+</LISTING>
+Note it is to the user's discretion whether to delete TBLCOL after
+conversion is done. 
+
+<P><B>Write back to fits just for fun</B></P>
+<LISTING>
+   dervish> set ntblcol [schemaToTbl $schema $xtbl] 
+   dervish> fitsWrite $ntblcol junkFits -ascii 
+</LISTING>
+
+<LI><B>Converting all in TBLCOL to array of instances of a schema</B></LI>
+
+<P>
+Suppose we now want to convert a FITS file to a schema REGION. We convert 
+a fits file whose GSC_ID interestes us to nrow, mask.nrow, xLabel, yLabel, 
+which in schema REGION are int, int (in MASK) and int respectively.
+To make it more intereseting, we specify different conversion ratios for
+these fields. Note, for type MASK, we'd have to specify a Tcl constructor
+maskNew.
+
+<P>
+<B>Build a tranlsation table...</B>
+<LISTING>
+   dervish> schemaTransNew
+   dervish> schemaTransEntryAdd $xtbl name GSC_ID nrow   int   -ratio 2
+   dervish> schemaTransEntryAdd $xtbl name GSC_ID mask  struct <B>-proc maskNew</B>
+   dervish> schemaTransEntryAdd $xtbl cont  mask  nrow   int   -ratio 20 
+   dervish> schemaTransEntryAdd $xtbl name GSC_ID type   int   -ratio 20
+</LISTING>
+<B>Create a TBLCOL and get the FITS...</B>
+<LISTING>
+   dervish> set tblcol [handleNewFromType TBLCOL]
+   dervish> fitsRead $tblcol /data/sdss2/GuideStars/v1_1/gsc/s8230/9537.gsc -hdu 1
+</LISTING>
+<P>
+<B>Create an empty container...</B>
+<LISTING>
+   dervish> set container [handleNewFromType ARRAY]
+</LISTING>
+<P>
+<B>Convert TBLCOL to array...</B>
+<LISTING>
+   dervish> tblToSchema $tblcol $schema $xtbl <B>-proc regNew</B> -schemaName REGION
+</LISTING>
+Note on command line, we used -proc regNew to construct the REGION objects to put
+in the array. If no -proc is specified, default constructor or manaully mallocking
+will be used.
+<P>
+<B>Write back for fun...</B>
+<LISTING>
+   dervish> set ntblcol [schemaToTbl $container $xtbl -schemaName REGION]
+   dervish> fitsWrite $ntblcol junkFits -ascii -pdu MINIMAL
+</LISTING>
+When oen or more FITS-side fields are specified as array, one has to write
+to a binary fit file.
+<LISTING>
+   dervish> fitsWrite $ntblcol junkFits -binary -pdu MINIMAL
+</LISTING>
+</DIR>
+<P>
+<P>
+
+<HR>
+<ADDRESS><A HREF="dervish.authors.html#Peng">Wei Peng</A></ADDRESS>
+
+</HTML>
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,51 @@
+#!/bin/sh
+#
+# text 2 verbatim -- given a flat text files, put on stdout a laTEX chapters
+# with chapter name the file name, and the chapter body  the file surrounded
+# by verbatims.  
+#
+
+arg0=`basename $0`
+tmpfile=/tmp/$$
+
+if [ "$*" = "" ] ; then
+   echo "$arg0: no arguments specified" >&2
+   exit 1;
+fi;
+
+#
+# Make sure the shell echoes properly '\chapter' and '\begin'. For instance,
+# the SunOS shell echoes the above two directives fine, but the IRIX shell
+# echoes '\begin' as 'egin' and does not echo '\chapter' at all.
+#
+echo '\chapter' > $tmpfile                    # If shell echoes properly, we
+chars=`wc -c $tmpfile | awk '{print $1}'`     # should have 9 characters in
+if [ "$chars" = "9" ]                         # $tmpfile
+then
+   chapter='\chapter'
+else
+   chapter='\\chapter'
+fi
+
+/bin/rm -f $tmpfile
+echo '\begin' > $tmpfile                      # If shell echoes properly, we
+chars=`wc -c $tmpfile | awk '{print $1}'`     # should have 7 characters in
+if [ "$chars" = "7" ]                         # $tmpfile
+then
+   begin='\begin'
+else
+   begin='\\begin'
+fi
+ 
+/bin/rm -f $tmpfile
+
+for f in $*; do
+   if [ ! -f "$f" ] ; then
+      echo "$arg0: file $f does not exist, wrong kind, or not specified" >&2;
+   else
+       echo "$chapter{$f}"
+       echo "$begin{verbatim}"
+      cat $f
+      echo "\end{verbatim}";
+   fi;
+done

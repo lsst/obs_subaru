@@ -1,0 +1,71 @@
+<TITLE>Documentation for DERVISH</TITLE>
+
+<H1>Documentation  </H1>
+
+<H2>Simple Online Help</H2>
+
+Brief command descriptions are available for most commands in DERVISH. These
+are implemented using the "FTCL help facility". It is required than all 
+commands implement at least a brief help. More extensive help, and
+rationale are available through the Narrative help facilities, described below,
+
+The Help Facility is available using the "help" command and has the
+following features:
+
+<LISTING>
+
+help *
+	List ALL commands and full messages for them
+
+help cmd
+	Show the message text associated with command CMD
+
+help cmd -full
+	List ALL available commands
+
+help facil=facil1,facil2
+	List Commands associated with FACIL1 and FACIL2
+
+help -search=pattern
+	List all commands whose messages contain PATTERN
+
+help -search=pattern -full
+	List all commands and help text for commands
+	whose messages contain PATTERN.
+
+help -sort
+	List all commands sorted by command name
+
+</LISTING>
+
+<H2>World Wide Web</H2>
+
+Long narrative help is available using the World Wide Web system.
+This system implements a "web" connected documents using
+hypertext The system  supports many word processors and mark-up languages.
+
+<P>Programs called browsers access this information.  Simple browsers which
+operate on ordinary files are available. A browser called "xmosaic" was used
+to view the  documentation developed for or integrated into DERVISH. A command,
+"www" is in TCL DERVISH which starts the "Xmosaic" browser. 
+
+<P>The UNIX command "setup dervish" sets an environmental variable,
+"WWW_HOME" to point to a page of hypertext which dispatches to much of
+the DERVISH documentation. Having set WWW_HOME to the DERVISH home page,
+both the "xmosaic" command from UNIX and the "www" command from TCL
+will give you a good starting position to hunt for information.
+
+
+<H2>Paper Documentation</H2>
+ 
+<P>Hardcopy documentation may be obtained from a www browser, or by
+looking in "doc" directories of DERVISH and its component products.
+<DIR>
+<LI>$DERVISH_DIR/doc
+<LI>$FTCL_DIR/doc
+<LI>$FSAO_DIR/doc
+</DIR>
+
+
+
+</HTML>

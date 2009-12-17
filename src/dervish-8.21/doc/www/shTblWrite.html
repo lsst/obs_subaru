@@ -1,0 +1,329 @@
+<HTML>
+<HEAD>
+<!-- *********************************************************************** -->
+<!-- *++
+<!-- * FACILITY:	Dervish
+<!-- *			Documentation
+<!-- *
+<!-- * ABSTRACT:	FITS I/O.  Common documentation for FITS Tables.
+<!-- *
+<!-- * ENVIRONMENT:	HTML (HyperText Markup Language).
+<!-- *			shTblWrite.html
+<!-- *
+<!-- * AUTHOR:		Tom Nicinski, Creation date:  22-Nov-1993
+<!-- *--
+<!-- *********************************************************************** -->
+
+<TITLE>FITS Table Writing Under Dervish</TITLE>
+
+<H1>FITS Table Writing Under Dervish</H1>
+
+<P>
+FITS <A HREF="dervish.fitsio.html#tblcol">ASCII and Binary Table</A> can be written from
+Dervish.
+The <A HREF="shTblAccess.html"><SAMP>TBLCOL</SAMP> Table</A>
+can be one that was <A HREF="shTblRead.html">read in</A>,
+<A HREF="shTblAccess.html">accessed and possibly modified</A>, or it can
+be <A HREF="shTblAccess.html#Creating a Table">generated from scratch</A>.
+
+<P>
+There are very few limitations placed on Tables when used in the Dervish
+environment.
+But, there are some
+<A HREF="shTblAccess.html#Keeping Tables FITS Compliant">restrictions</A>
+that need to be adhered to if the Table is to be written out as a FITS Header
+and Data Unit (HDU).
+In general, the writing out of a FITS HDU is the reverse of
+<A HREF="shTblRead.html">reading</A> and HDU into a Table.
+
+<P>
+The following interfaces are provided for writing out FITS files:
+<DIR>
+<LI>	<A HREF="shFits.html">ANSI C</A>
+<LI>	<A HREF="tclFits.html">Tcl</A>
+</DIR>
+
+<H2><A NAME="Platform-specific Floating Point Values">Platform-specific Floating Point Values</A></H2>
+
+<P>
+The FITS Table writer does <EM>not</EM> convert between the native machine's
+floating point number representation and the FITS Standard floating point
+format (IEEE).
+This poses no problems when writing ASCII Tables.
+But, for Binary Tables, if the platform on which the FITS Table writer runs
+does not use the IEEE format, the resulting FITS HDU will not comply with
+the FITS Standard.
+Currently, the FITS Table writer does <EM>not</EM> convert from the native
+machine format to IEEE format.  It simply copies the native format values
+to the FITS HDU.
+
+<H2><A NAME="Headers">Dervish Headers</A></H2>
+
+<P>
+The <A HREF="shTblAccess.html#Headers">Dervish header</A> associated with the
+<SAMP>TBLCOL</SAMP> Table being written is converted to a FITS header.
+This conversion basically adds FITS keywords needed to describe the FITS ASCII
+or Binary Table.
+Some Dervish header keywords associated with the <SAMP>TBLCOL</SAMP>, namely
+<A HREF="shTblAccess.html#Unaccessible Header Keywords">those which should
+<EM>not</EM> be available</A> from the Dervish header</A>, will <EM>not</EM> be
+written to the FITS header.
+Instead, these keywords are generated based on <SAMP>TBLCOL</SAMP> information.
+
+<P>
+FITS keywords are generate from information in the different Table structures.
+Keywords describing the entire Table come from the
+<A HREF="shTblAccess.html#TBLCOL"><SAMP>TBLCOL</SAMP></A> structure.
+Per-field keywords are also generated.
+They are <A HREF="dervish.fitsio.html#0-indexing vs. 1-indexing">1-indexed</A>,
+namely the Table field position (0-indexed) plus 1.
+The generation of keyword values is dependent upon whether an ASCII Table or
+Binary Table HDU is being written.
+Their values are taken from the
+<A HREF="dervish.array.html#ARRAY"><SAMP>ARRAY</SAMP></A> and
+optional <A HREF="shTblAccess.html#TBLFLD"><SAMP>TBLFLD</SAMP></A>
+structures associated with the field.
+
+<UL>
+<LI>	<SAMP>TFORM</SAMP>n is primarily generated from the <SAMP>ARRAY</SAMP>
+	structure; in particular, the data type from
+	<CODE>data.schemaType</CODE>.
+	If a Binary Table is being written and the data is contained in heap,
+	the <SAMP>TBLFLD</SAMP> <CODE>heap.schemaType</CODE> data type is
+	also used.
+<P>
+<LI>	<A NAME="TBCOLn"><SAMP>TBCOL</SAMP>n for ASCII Tables</A> is generated
+	to prevent overlapped fields.
+<P>
+<LI>	<SAMP>TDIM</SAMP>n for Binary Tables is generated from the
+	<SAMP>ARRAY</SAMP> <CODE>dim</CODE> member.
+	The first dimension is dropped, as it's the Table row count.
+	The <CODE>dim</CODE>ensions are also reversed from Dervish's
+	<A HREF="dervish.fitsio.html#Row-major vs. Column-major"><I>row-major</I></A>
+	order to FITS' <I>column-major</I> order.
+	<SAMP>TDIM</SAMP>n is generated only if the data is multidimensional
+	(not counting the row count dimension) or if
+	<SAMP>SH_TBL_TDIM</SAMP> is present (in <SAMP>TBLFLD</SAMP>'s
+	<CODE>Tpres</CODE>).
+<P>
+<LI>	<SAMP>TTYPE</SAMP>n, <SAMP>TSCAL</SAMP>n, <SAMP>TZERO</SAMP>n,
+	<SAMP>TUNIT</SAMP>n, and <SAMP>TDISP</SAMP>n
+	are generated from their corresponding
+	<A HREF="shTblAccess.html#TBLFLD"><SAMP>TBLFLD</SAMP></A> member,
+	if present (in <CODE>Tpres</CODE>).
+	<SAMP>TNULL</SAMP>n is generated from either
+	<CODE>TNULLSTR</CODE> for ASCII Tables or
+	<CODE>TNULLINT</CODE> for Binary Tables.
+
+	<P>
+	Some FITS keywords are not permitted in the FITS header, depending
+	upon the <SAMP>TFORM</SAMP>n data type.
+	For example, `<SAMP>A</SAMP>' data types under ASCII Tables may not
+	have <SAMP>TSCAL</SAMP>n and <SAMP>TZERO</SAMP>n keywords.
+	If the corresponding values are present in the field
+	(<SAMP>TBLFLD</SAMP>), they are <EM>not</EM> written to the FITS header,
+	nor is any warning issued.
+
+	<P>
+	<SAMP>TSCAL</SAMP>n and <SAMP>TZERO</SAMP>n may also be generated to
+	<A HREF="#TSCAL/TZERO">flip the "signedness"</A> of integer data to
+	permit the generation of a legal FITS HDU.
+</UL>
+
+<P>
+If the Dervish header contains unknown indexed keywords (for example,
+<SAMP>TMINE</SAMP>n), these are <EM>not</EM> guaranteed to
+<A HREF="shTblAccess.html#Unknown Header Keywords">correspond accurately</A>
+with Table fields.  The addition or removal of Table fields after these
+keywords were inserted into the Dervish header can cause this `misalignment.'
+
+<H2><A NAME="Writing to FITS">Writing a TBLCOL Table out to a FITS HDU</A></H2>
+
+<P>
+When data from a <SAMP>TBLCOL</SAMP> Table is written to a FITS HDU, 
+the in-memory data type and the type of FITS HDU (ASCII or Binary Table)
+is used to determine how Table data is written out.
+For any FITS HDU type (ASCII or Binary Table)
+<UL>
+<LI>	The mapping of object schema data types to FITS HDU
+	<SAMP>TFORM</SAMP>n data typs is basically reverse of the mapping
+	used when reading in an
+	<A HREF="shTblRead.html#Mapping ASCII Data Types">ASCII Table</A> or a
+	<A HREF="shTblRead.html#Mapping Binary Data Types">Binary Table</A>.
+<P>
+<LI>	<A NAME="STR Truncation">For character strings</A>
+	(object schema type <SAMP>STR</SAMP>), the last character is dropped.
+	This character is considered to be present only to guarantee
+	null-terminated strings (the
+	<A HREF="shTblRead.html#Beyond the FITS Standard">FITS Table reader</A>
+	extends the FITS Standard by appending this extra character).
+	This dropping of the last character is performed on Record Storage Area
+	(RSA) data and heap data (for Binary Tables).
+</UL>
+
+<P>
+When writing an ASCII Table, all data in the Dervish Table is converted to
+its ASCII representation.
+Futhurmore
+<UL>
+<LI>	ASCII Table fields are automatically sized to allow the largest possible
+	ASCII representation to fit in the ASCII Table field (the user has no
+	control over this).
+<P>
+<LI>	<A HREF="shTblWrite.html#TBCOLn">As mentioned</A>, fields cannot be
+	positioned explicitly by the user.  Instead, they are positioned
+	sequentially (as in the Dervish Table) without any overlap.
+<P>
+<LI>	Any Dervish Table character strings (object schema type of
+	<SAMP>STR</SAMP>) are blank padded on the right to fill the ASCII
+	Table field width.
+<P>
+<LI>	<A HREF="shTblAccess.html#LOGICAL"><SAMP>LOGICAL</SAMP></A>
+	object schemas are written out as a one digit integer (`<SAMP>I</SAMP>'
+	data type), zero (0) indicating a false value and one (1) indicating
+	a true value.
+
+	<P>
+	<B>NOTE:</B>
+	Because ASCII Tables do not have a logical data type as Binary Tables
+	do (the `<SAMP>L</SAMP>' data type), reading an ASCII Table back in
+	will <EM>not</EM> result in the Dervish Table seeing the value as a
+	logical (<SAMP>LOGICAL</SAMP>);  instead, it will be treated only
+	as an integer.
+<P>
+<LI>	Floating-point Not-a-Numbers (NaN) are written as "NaN".
+	The <A HREF="shTblRead.html#TABLE Extensions">reader is extended</A>
+	to handle these inputs.
+</UL>
+
+<P>
+When writing Binary Tables, data is copied directly from the Dervish Table to
+the FITS HDU.
+This direct copying can
+<A HREF="shTblWrite.html#Platform-specific Floating Point Values">result in an invalid FITS HDU</A>
+if the machine running Dervish does not use the IEEE floating point number format.
+
+<H3><A NAME="TSCAL/TZERO">Generating FITS-compliant HDUs</H3>
+
+<P>
+Some integer data types supported by <SAMP>TBLCOL</SAMP> Tables are not
+directly supported by the FITS Standard (for example, unsigned 16-bit integers).
+For Binary Tables, the FITS community's <EM>convention</EM> is to use particular
+values for <SAMP>TSCAL</SAMP>n and <SAMP>TZERO</SAMP>n to indicate that the
+"signedness" of the integer data type is to be flipped, along with the sign
+bit of the data associated with the Table field.
+
+<P>
+When writing Binary Tables from a <SAMP>TBLCOL</SAMP> Table, the Binary Table
+field data type will be "flipped" and <SAMP>TSCAL</SAMP>n is set to 1.0 and
+<SAMP>TZERO</SAMP>n is set to one of the following values based on the
+<SAMP>TBLCOL</SAMP> field data type
+(<A HREF="dervish.dump.html#diskio">object schema</A>):
+
+<UL>
+<LI>	<SAMP>`B'</SAMP> and <SAMP>TZERO</SAMP>n of 128 for <SAMP>SCHAR</SAMP>
+<LI>	<SAMP>`I'</SAMP> and <SAMP>TZERO</SAMP>n of 32768 for <SAMP>USHORT</SAMP>
+<LI>	<SAMP>`J'</SAMP> and <SAMP>TZERO</SAMP>n of 2147483648 for <SAMP>UINT</SAMP> (or <SAMP>ULONG</SAMP> if it's 32 bits)
+</UL>
+
+The <SAMP>TZERO</SAMP>s correspond to
+
+<PRE>
+          7-1            16-1                 32-1
+   128 = 2      32768 = 2       2147483648 = 2
+</PRE>
+
+<P>
+This flipping of "signedness" only occurs when
+
+<UL>
+<LI>	a FITS-compliant Table is requested
+<LI>	<SAMP>TSCAL</SAMP>n and <SAMP>TZERO</SAMP>n are not specified for the
+	field, <EM>or</EM>
+	<BR>
+	<SAMP>TSCAL</SAMP>n is set to 1.0 and
+	<SAMP>TZERO</SAMP>n is set to 0.0
+</UL>
+
+This last condition prevents the overriding of any explicit <SAMP>TSCAL</SAMP>n
+or <SAMP>TZERO</SAMP>n values for the field, unless those values do not
+effectively affect the Table data.
+If these conditions are not met when requesting a FITS-compliant Table, the
+Table writing will not be done.
+
+<P>
+If a FITS-compliant Table is not requested, then the unsupported integer data
+types are written to the Binary Table using Dervish's
+<A HREF="shTblRead.html#Extension Binary Table Data Types">extension data types</A>.
+
+<H3><A NAME="Limitations">Limitations and Quirks</A></H3>
+
+<P>
+Complete flexibility with Dervish Tables is not available.
+There are some features of FITS ASCII and Binary Tables which cannot be
+attained:
+
+<UL>
+<LI>	ASCII Table fields are not overlapped.
+	The Dervish FITS ASCII Table reader reads
+	<A HREF="shTblRead.html#Overlapped Fields">overlapped fields</A>
+	into separate Table fields.
+	This non-overlapped relationship is retained when writing out
+	<SAMP>TBLCOL</SAMP> Tables.
+<P>
+<LI>	Binary Table heap data is not overlapped.
+	The Dervish FITS Binary Table reader reads
+	<A HREF="shTblRead.html#Overlapped Heap Data">overlapped heap data</A>
+	into non-overlapped Table areas.
+	This non-overlapped relationship is retained when writing out
+	<SAMP>TBLCOL</SAMP> Tables.
+<P>
+<LI>	For ASCII Tables, field widths are predetermined values, dependent
+	upon the data type.
+	The field width for character strings (data type `<SAMP>A</SAMP>')
+	is the is <A HREF="shTblWrite.html#STR Truncation">one less</A>
+	than indicated by the <SAMP>ARRAY</SAMP>.
+<P>
+<LI>	A Table with a zero row count still has field information written out.
+	For Binary Tables, most fields will default to 0 elements.
+	The exception is for multi-dimensional fields (character strings,
+	<SAMP>STR</SAMP> are treated as such).  In that case, the element
+	count will be correct.
+<P>
+<LI>	Under a Table with a non-zero row count, a field with no data will
+	have its field width (ASCII Tables) or element count (Binary Tables)
+	set to zero, as there is no data to write (and more importantly,
+	subsequently to read).
+	This occurs even if the field information indicates a particular size
+	(such as array dimensions).
+<P>
+<LI>	No gap is (or can be) placed between a Binary Table Record Storage
+	Area (RSA) and any heap storage that follows.
+<P>
+<LI>	Padding between heap data elements in the <I>in-memory</I> Table
+	(due to machine alignment requirements) is retained in the FITS HDU
+	being written.
+<P>
+<LI>	For ASCII Tables, unsigned integers are effectively written as signed
+	integers.  When the written ASCII Table is read back, the integer
+	field will be treated as signed.
+<P>
+<LI>	Tables that were read from a FITS file will
+	<A HREF="dervish.fitsio.html#What Comes In is not What Goes Out">probably <EM>not</EM> be the same</A>
+	when written out.
+</UL>
+
+<H2>Invalid Conditions and How They are Handled</H2>
+
+<P>
+Most conditions that would result in an invalid FITS file result in aborting
+the writing of the FITS file.
+
+<!-- *********************************************************************** -->
+
+</BODY>
+
+<HR>
+<ADDRESS><A HREF="dervish.authors.html#Nicinski">Tom Nicinski</A></ADDRESS>
+
+</HTML>

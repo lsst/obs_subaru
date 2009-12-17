@@ -1,0 +1,286 @@
+<HTML>
+<TITLE>tclRegSupport</TITLE>
+<H1>Support for TCL Region Extensions</H1>
+
+<P>These routines support code which adds extensions to TCL. An
+extension is a new word in the TCL language.  These routines aid in
+the translation of handles to addresses, etc. Most of these routines
+are of interest to a person who wants to get at regions. Some of the
+routines here are of more general interest, and will be factored to
+a new module in a future release of DERVISH.
+
+<P>It is assumed that the reader has some familiarity with coding TCL
+extensions.
+
+<DIR>
+<LI><A HREF=tclRegSupport.html#shTclRegAddrGetFromName>shTclRegAddrGetFromName
+-- Get the address of a region implied by a region handle string</A>
+<LI><A HREF=tclRegSupport.html#shTclRegNameGet>shTclRegNameGet -- Get a new
+name string for a handle to region</A>
+<LI><A HREF=tclRegSupport.html#shTclRegNameSetWithAddr>shTclRegNameSetWithAddr
+-- (Re)bind a region address to a name string</A>
+<LI><A HREF=tclRegSupport.html#shTclRegNameDel>shTclRegNameDel -- Unbind a
+region address to a name string and release the name</A>
+<LI><A HREF=tclRegSupport.html#shTclRegTypeCheck>shTclRegTypeCheck -- Check to
+see if a region has pixels of the specified types</A>
+<LI><A HREF=tclRegSupport.html#shTclRegTypeGetAsEnum>shTclRegTypeGetAsEnum --
+Given a string specifying a pixel type, return the corresponding enum</A>
+<LI><A HREF=tclRegSupport.html#shTclRegTypeGetAsAscii>shTclRegTypeGetAsAscii
+-- Given an enum specifying a pixel type, return the corresponding string</A>
+<LI><A
+HREF=tclRegSupport.html#shTclRowColStrGetAsFloat>shTclRowColStrGetAsFloat --
+Given a number denoting a row of column number, produce a float</A>
+<LI><A HREF=tclRegSupport.html#shTclRowColStrGetAsInt>shTclRowColStrGetAsInt
+-- Given a number denoting a row of column number, produce an int</A>
+</DIR>
+<PRE></PRE>
+
+
+<H2><A NAME="shTclRegAddrGetFromName">shTclRegAddrGetFromName</A></H2>
+
+<P>This procedure translates an ASCII handle, such as may be passed to
+a TCL extension from the command line to a region address. If an error
+occurs Interp->result is set to an appropriate string and TCL_ERROR is
+returned. If successful, it returns TCL_OK, and fills out the address
+of the region where REGION points.
+
+<LISTING>
+C SYNTAX:
+   int shTclRegAddrGetFromName
+   (
+   Tcl_Interp 	*interp,         /* IN: Interpreter to set the result for */
+   charconst    *regName,	 /* IN: ASCII Handle to region*/
+   REGION       **region         /* OUT: Address if region written here*/
+   )
+RETURNS:
+   TCL_OK
+   TCL_ERROR
+                               
+</LISTING>
+<PRE></PRE>
+
+
+
+
+
+<H2><A NAME="shTclRegNameGet">shTclRegNameGet</A></H2>
+
+<P>This procedure creates a new handle for a region. It does NOT make a
+new region structure. Rather, the user is to bind a region address to 
+the handle with shTclRegNameSetWithAddr. If an error
+occurs Interp->result is set to an appropriate string and TCL_ERROR is
+returned. If successful, it returns TCL_OK, and fills out the address
+of the region where REGIONNAME points.  It is the user's responsibility
+to ensure that the <EM>regName</EM> array is large enought to contain
+the name of the handle.
+
+<LISTING>
+C SYNTAX:
+   int shTclRegNameGet
+   (
+   Tcl_Interp 	*interp,         /* IN: Interpreter to set the result for */
+   char         *regName,	 /* OUT: Pointer to string to be filled out 
+					      with the name of the handle */
+   )
+RETURNS:
+   TCL_OK
+   TCL_ERROR
+                               
+</LISTING>
+<PRE></PRE>
+
+
+
+<H2><A NAME="shTclRegNameSetWithAddr">shTclRegNameSetWithAddr</A></H2>
+
+<P>This procedure binds an address of a region to a handle. If another
+region was previously bound to the handle, it is unbound.  If an error
+occurs Interp->result is set to an appropriate string and TCL_ERROR is
+returned. If successful, the routine returns TCL_OK.
+
+<LISTING>
+C SYNTAX:
+   int shTclRegNameSetWithAddr
+   (
+   Tcl_Interp 	*interp,         /* IN: Interpreter to set the result for */
+   REGION	*region		 /* IN: Address of region to be bound to */
+				 /*     the handle */
+   char         *regName,	 /* IN: Pointer to string holding the ASCII */
+			 	 /*     name of the handle */
+   )
+RETURNS:
+   TCL_OK
+   TCL_ERROR
+                               
+</LISTING>
+<PRE></PRE>
+
+
+<H2><A NAME="shTclRegNameDel">shTclRegNameDel</A></H2>
+
+<P>This procedure deletes a handle pointing to a region If a
+region was previously bound to the handle, it is unbound.  If an error
+occurs Interp->result is set to an appropriate string and TCL_ERROR is
+returned. If successful, the routine returns TCL_OK.
+
+<LISTING>
+C SYNTAX:
+   int shTclRegNameSetWithAddr
+   (
+   Tcl_Interp 	*interp,         /* IN: Interpreter to set the result for */
+   char         *regName,	 /* IN: Pointer to string holding the ASCII handle*/
+   )
+RETURNS:
+   TCL_OK
+   TCL_ERROR
+                               
+</LISTING>
+<PRE></PRE>
+
+
+<H2><A NAME="shTclRegTypeCheck">shTclRegTypeCheck</A></H2>
+
+<P>This procedure checks to see if the pixels in a region are of a
+type mentioned in TYPEMASK. This allows protection for users
+implementing TCL extensions handling regions of many types. This
+routine provides protection against the addition of future types as
+well, so should be used if the the region structure is directly accessed by
+user code. (See regUtils for manipulating pixels as doubles.)  
+TypeMask is produced by ORING values of PIXDATATYPE together.
+
+<LISTING>
+C SYNTAX:
+   int shTclRegTypeCheck
+   (
+   Tcl_Interp 	*interp,         /* IN: Interpreter to set the result for */
+   REGION 	*region,	 /* IN: region Structure to test*/
+   int		*typeMask	 /* IN: Or of allowable types*/
+   )
+RETURNS:
+   TCL_OK
+   TCL_ERROR
+                               
+</LISTING>
+<PRE></PRE>
+
+
+
+<H2><A NAME="shTclRegTypeGetAsEnum">shTclRegTypeGetAsEnum</A></H2>
+
+<P>This procedure takes a string which names a type of pixel in
+a region structure, and writes the appropriate value of the enum
+PIXDATATYPE to the location given by TYPEOFPIX. TCL_ERROR is returned
+and the Interp->Result is set if the string does not correspond to a
+valid type name.
+
+<LISTING>
+C SYNTAX:
+   int shTclRegTypeGetAsEnum
+   (
+   Tcl_Interp 	*interp,         /* IN: Interpreter to set the result for */
+   char const 	*typeName,	 /* IN: ASCII Name of type*/
+   int		*typeOfPix	 /* IN: Or of allowable types*/
+   )
+RETURNS:
+   TCL_OK
+   TCL_ERROR
+                               
+</LISTING>
+<PRE></PRE>
+
+
+
+
+<H2><A NAME="shTclRegTypeGetAsAscii">shTclRegTypeGetAsAscii</A></H2>
+
+<P>This procedure  takes an enum of type PIXDATATYPE and fills
+out a string which gives a name for that type. This string can be
+translated back to type PIXDATATYPE using the routine
+shTclRegGetAsEnum. TCL_ERROR is returned and the Interp->Result is set
+if the string does not correspond to a valid type name.
+
+<LISTING>
+C SYNTAX:
+   int shTclRegTypeGetAsAscii
+   (
+   Tcl_Interp 	*interp,         /* IN: Interpreter to set the result for */
+   char const 	*typeName,	 /* IN: ASCII Name of type*/
+   int		*typeOfPix	 /* IN: Or of allowable types*/
+   )
+RETURNS:
+   TCL_OK
+   TCL_ERROR
+                               
+</LISTING>
+<PRE></PRE>
+
+
+
+
+<H2><A NAME="shTclRowColStrGetAsInt">shTclRowColStrGetAsInt</A></H2>
+
+<P>This procedure takes an a string specifying a row or column in a
+region and writes its integer value into the address specified
+by VAL.  TCL_ERROR is returned and the Interp->Result is set if the
+string does not correspond to a valid type name.
+
+<P>Programmers are cautioned that it is allowable that rows and columns
+be specified using a floating point number from the TCL level. This
+routine rounds these numbers properly into the proper integer row and
+column numbers.
+
+<LISTING>
+C SYNTAX:
+   int shTclRowColStrGetAsInt
+   (
+   Tcl_Interp 	*interp,         /* IN: Interpreter to set the result for */
+   char const 	*RowOrCol,	 /* IN: String specifying row or column */
+   int		*val	 	 /* IN: Address to write converted value */
+   )
+RETURNS:
+   TCL_OK
+   TCL_ERROR
+                               
+</LISTING>
+<PRE></PRE>
+
+
+
+
+<H2><A NAME="shTclRowColStrGetAsFloat">shTclRowColStrGetAsFloat</A></H2>
+
+<P>This procedure takes an a string specifying a row or column in a
+region and writes its floating point value into the address specified
+by VAL.  TCL_ERROR is returned and the Interp->Result is set if the
+string does not correspond to a valid type name.
+
+<LISTING>
+C SYNTAX:
+   int shTclRowColStrGetAsFloat
+   (
+   Tcl_Interp 	*interp,         /* IN: Interpreter to set the result for */
+   char const 	*RowOrCol,	 /* IN: string specifying row or column*/
+   float	*val	 	 /* IN:  Adress to write converted value*/
+   )
+RETURNS:
+   TCL_OK
+   TCL_ERROR
+                               
+</LISTING>
+<PRE></PRE>
+
+
+
+
+
+</HTML>
+
+
+
+
+
+
+
+
+
+

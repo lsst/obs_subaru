@@ -1,0 +1,69 @@
+# README_NOTCL
+#
+# Peter Z Kunszt, March 11 1999
+# Johns Hopkins University
+#
+
+This is the README_NOTCL addendum to the dervish source.
+
+In order to have an interface to dervish's fits reader and
+binary table manipulation capabilities, i.e. to be able to
+link to dervish's C API for this purpose, you may build the
+libdervishnotcl.a library. This library compiles on most unix
+platforms, even those not officially supported by dervish.
+You don't even need sdssmake to build this library.
+
+You can then write c or c++ programs that use the shFits* functions
+to access the files and the shTblCol* functions to manipulate the
+tables. See the dervish C API documentation for details.
+Link to libdervish_notcl.a instead of libdervish.a and there will
+be no unresolved functions. You don't need tcl/tk, ftcl, pgplot, tclx
+or even the contrib files.
+
+Procedure:
+
+Get a dervish source, cd to dervish. Apply the patch using
+
+patch -p0 -i patch_notcl
+
+Dervish will continue to work as usual.
+
+
+This is how you build the library:
+
+1. If not done already, get libfits and set the LIBFITS_DIR environment 
+   variable to the directory you installed it. Build libfits (you don't
+   need sdssmake, just type make all).
+
+2. Edit the Makefile:
+
+    * Remove all dependencies from the end, i.e.
+      everything below the line #START_DEPEND
+      On systems where dervish runs already, this step is not necessary.
+
+    * Set the -DNOTCL at the CFLAGS variable on line 60
+
+    * Also important, the ENDIANness
+
+         ---------------------
+         MACHINE | ENDIANNESS
+         ---------------------
+          SUN    | BIG
+         ---------------------
+          ALPHA  | LITTLE
+         ---------------------
+          SGI    | BIG
+         ---------------------
+          NT     | LITTLE
+         ---------------------
+          LINUX  | LITTLE
+         ---------------------
+
+      insert a -DSDSS_BIG_ENDIAN or -DSDSS_LITTLE_ENDIAN accordingly on the
+      CFLAGS line in the Makefile.
+
+3. Build the library invoking
+   make lib_notcl
+
+If everything runs fine, this gives you the library ../lib/libdervishnotcl.a
+     

@@ -1,0 +1,16 @@
+cfa60fcaa73a0fc03e1c2858c1a03faa  ./.cvsignore
+8bc71406c9834fbfcae8f4793e7c243e  ./Makefile
+c018a8817530e50812db0ebaf09c3c7d  ./cTemplate.html
+af83d2f4f96bb6ab50c9e8eb5b4887fe  ./dervish_foo.c
+d1098ae763656c675ef63e155ed0c36c  ./dervish_template.c
+d0b5fb047965e843c054dcbad7ce4755  ./foo.c
+b983b7bbada873161e5470650b5ea72f  ./foo.h
+ee5b7b4eb288ce65e5a40ca5d0aec5f8  ./foo.tcl
+7e43870cc44c526d125b890a802ff531  ./hdrTemplate.c
+77fd449c5e4c7b9958acda2c2019ea0c  ./hdrTemplate.h
+58cd30c4f89258c86cf888b3982e4a32  ./operate.F
+fa307b56a8a7feb8cfb2119148a4874c  ./operate.h
+13653cdfb687e327b3db5c79ff30eef5  ./operateCBind.c
+41ef9d1ce69f8a87594210b5968d2114  ./operateTest.c
+0f6317e22fb5c995a33a11977182c0fe  ./tclFoo.c
+16fc130786cd49a96f987b8b9a779525  ./tclTemplate.html

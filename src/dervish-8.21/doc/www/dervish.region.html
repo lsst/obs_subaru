@@ -1,0 +1,197 @@
+<HTML>
+<HEAD>
+
+<TITLE>Regions</TITLE>
+<BODY>
+
+<H1>Regions</H1>
+
+<H2>TCL API</H2>
+<UL>
+<LI><A HREF="tclRegion.c.html">Creating regions, sub-regions, deleting regions</A>
+<LI><A HREF="tclRegUtils.html">Simple region manipulations: copying, addition, getting information, etc</A>
+</UL>
+
+<H2>C Routine Interface</H2>
+<UL>
+<LI><A HREF="region.html">Basic region and mask construction/deletion/information routines</A>
+<LI><A HREF="regUtils.html">Manipulating regions having pixels of any type</A>
+<LI><A HREF="regPhysical.html">Physical region support</A>
+</UL>
+
+
+<H2><A NAME="region">Key Features of regions</A></H2>
+
+REGIONs are define in the header file <A HREF="../../include/region.h"><EM>
+region.h</EM></A>.
+<P>
+A REGION consists of three main components: pixels, an optional mask, and an
+optional header; plus some supporting information.  SUBREGIONS are very similar
+to regions. Their pixels reside in another region called a parent. Their 
+masks may point into the mask of their parent as well, or they may have 
+their own mask. 
+
+<H3>PIXELS</H3>
+  
+<P>Pixels are stored in a logically two-dimensional array.  Pixels may
+be of any supported type,signed and unsigned 8, 16, and 32-bit
+integers, and 32-bit floating point numbers. They are thought of as
+organized in rows and columns.  These arrays are actually implemented
+using a vector of pointers to rows of the image.  The region
+structure has a type-safe pointer for each type of pixel; an
+enumerated type, PIXDATATYPE has been created to indicate the type of
+the region, and indicates which pointer is valid. All other pointers
+are null.
+
+<H3>HEADERS</H3>
+  
+<P>A header is trivially convertible into a FITS header.  The Data
+Acquisition system may very well add, delete, or modify header elements
+during its processing.  The package provides ways to edit headers and
+to check if a header has been edited.
+
+<P>Header elements are NOT thought to include the FITS keywords that
+describe the "container" for the pixels which follow: NAXIS, NAXIS1,
+NAXIS2, BITPIX as well as BZERO and BSCALE for this version of DERVISH.
+
+<P>Header elements are NOT thought to include the FITS keywords which
+fundamentally describe the FITS header itself: SIMPLE, END.
+
+<P>Header elements ARE thought to consist of a keyword, optional value
+of any supported FITS type and optional comment.  Headers are edited
+by using a keyword, not by referring to a compiled-in C-Struct. All editing
+is made through a procedure call interface.
+
+
+<H3><A NAME="MASK">MASK</A></H3> 
+
+<P>The C programmer can create masks, logically two-dimensional arrays
+of 8-bit bytes independently of regions. DERVISH does not name the bits
+in a mask, but the software is built around the idea that one
+performs bit-wise operations on a mask. Each mask bit is considered to
+be a flag. No method for naming the bits is built into dervish yet. In a future
+development of dervish, it
+is possible that the mask may grow from 8 bits to 16.
+
+<P>The C language programmer can associate a mask with a region by
+storing the mask address in the mask member of the region structure.
+Masks can be associated with a region structure in the TCL procedure
+regNew.  It is a rule that regions either have no mask, and the mask
+structure member is NULL, or the mask is the size of the corresponding
+region.
+
+<P> SubMasks may be made from masks.  When a mask is associated in the
+sub-regioning process: If a region has a mask, then the corresponding
+words of the mask are treated analogously to the pixels.  Utilities
+which clobber the pixels in an image check for a mask. If present, the
+mask is cleared.
+
+<P>Masks need to be integrated into the package in a way such that pixels can be
+displayed along with arbitrary mask bits.  This is yet to be done.
+
+
+<H3>SUBREGIONS</H3>
+
+<P>Subregions are regions which do not "own" pixels storage. 
+Rather, they point to
+pixels in another region, called the parent, which does own the pixels.
+Readers of pixels can access pixels through subregions as if they were regions.
+
+<P>For example, one  might wish to neglect the overscan in an  exposure. To do
+this, one would make a subregion of a region  omitting the overscan.
+
+<P>Writing to the pixels in a subregion has side-effects. Changing the 
+pixels in a subregion changes the pixels in the parent region, and in all
+other subregions referencing that pixel. The existence of sub-regions has 
+semantic effects on the deletion of a region as well.
+
+<P>The effect of taking a subregion of a subregion is to take the equivalent
+subregion of the parent.
+
+<P>It is possible to associate a mask with a subregion. The API for making a 
+subregion supports creating the corresponding submask of the parent when the 
+subregion is created. It is possible to associate a mask, rather than a submask
+with a region.
+ 
+<P>Subregions cannot, as of yet share a header with their parent. Subregions
+can have a copy of their parent's header. In the interim, it is possible to
+edit the parent's header because it is always possible to determine the parent
+of a subregion.
+
+<P>Subregions may be destroyed with the API call that destroys regions. The
+package will follow the philosophy that the user must actively manage large
+chunks of memory. Therefore, deleting a region which has sub-regions gives an
+error.  An API allows the discovery of handles or addresses for any sub-regions
+attached to a region.
+
+<P>Subregions may be promoted to regions in two ways.  Since there is
+no hierarchy of subregions, the status of what would be "children" of
+the subregion is not called into question.  The first method of
+promotion is re-parenting. The region structure itself retains the
+same address, and the tcl handle remains the same.  Space for the
+actual pixels is allocated, and the pixels from the parent are copied
+in.  However, re-parenting is one of those things we did not manage to
+put into V3 of dervish.  A method we did manage to implement is simply
+to use regNewFromReg. A new region is generated, and pixels copied
+into them.
+
+<A NAME="physical region description"/A>
+<H3>Physical Regions</H3>
+
+<P>Yet another type of region is a physical regions. These are present only
+when DERVISH is configured with a data acquisition system. The underlying memory
+in physical regions is contiguous not only in virtual address space, but
+physical address space. Physical regions have the following attributes:
+  
+<DIR>
+<LI>A finite number of regions are configured for a machine.
+<LI>All applications on that machine share these regions.
+<LI>Utilities that create or change the type of a region may not work on 
+physical regions.
+</DIR>
+
+
+<H3>How regions are named</H3>
+
+Regions, subregions are known by two sorts of "names" -- a raw memory
+address seen by C programmers and a string, or "handle" which identifies
+them when being manipulated in TCL.  Therefore, most general support
+of a feature of the region package means that there is access to that
+feature from both the C language and from TCL, that means that support is
+provided at three levels:
+
+<P>Pure C --  A 
+<A HREF=region.html>C Programmer's interface </A>which is packaged into files in
+a way which does NOT require the presence of TCL. (i.e. No
+direct/indirect includes of tcl.h)
+
+
+<P>Tcl Verb Toolkit -- 
+<A HREF=tclRegSupport.html>Tools for those implementing TCL verbs</A>. 
+These should mostly deal with the creation and deletion of handles, the
+translation of handles to addresses, proper conversion of numbers to
+row or column, end the like.
+
+<P>TCL Extensions -- which <A HREF=tclRegUtils.html>manipulate regions </A>
+and their features from Tcl, using the handles to identify the regions.
+
+<P>Furthermore, we have physically packaged the software for each level  in
+different files. This allows the use of the pure C interface in tools other
+than Dervish.
+
+<P>Every region has an address, only some have TCL handles.  The Pure C
+layer cannot create a TCL Handle.  The regDel pure C API call
+ignores delete requests for regions which have TCL handles.
+Only the TCL level API call can delete these regions.
+
+<P>If a subregion has a TCL handle, and its parent does not, then a TCL
+handle must be created for its parent.
+
+<P>Any Pure C operators which might indicate failure by information
+returned at function return must provide an error string which
+explains the failure. an errStack package is provided for this 
+purpose.
+
+</BODY>
+</HTML>
+

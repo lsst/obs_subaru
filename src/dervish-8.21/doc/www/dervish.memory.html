@@ -1,0 +1,153 @@
+<HTML>
+<HEAD>
+
+<TITLE>Memory Management and Garbage Collection</TITLE>
+<BODY>
+
+<H1> Memory Management and Garbage Collection </H1>
+
+<H2>TCL API</H2>
+<UL>
+<LI><A HREF="tclGarbage.html">Memory Management and Garbage Collection</A>
+</UL>
+
+<H2>C Routine Interface</H2>
+<UL>
+<LI><A HREF="shGarbage.html">Memory Management and Garbage Collection</A>
+</UL>
+
+<H2>General Tools</H2>
+<UL>
+<LI><A HREF="memoryDebug.html">Debugging Memory Problems</A>
+</UL>
+
+
+<H2><A NAME="memory">Introduction</A></H2>
+Dervish contains a specialized memory manager and garbage collector.
+Dervish memory manager can be used to replace entirely the system memory manager
+(<I>malloc()</I> and friends), or it can be used in conjunction with the
+system memory manager. Furthermore, the Dervish memory manager does not preclude
+one from using a third party memory manager. <B>The only stipulation is that
+one should not mix-and-match calls between memory managers; for instance, one
+should not attempt to use the Dervish memory manager routine to deallocate a 
+memory block that was allocated using a call to the system memory manager</B>.
+Consistency is the key here.
+<P>
+
+It is <B>recommended</B> (required? after all, this is still a democracy) that
+all framework and pipeline code use Dervish memory manager calls. In addition to
+making code uniform, this also has the added benefit of collecting interesting
+statistics about how memory is being used during the a pipeline run. These 
+statistics can be analyzed to figure out memory requirements of a pipeline.
+
+<H2>Description of the Dervish Memory Manager</H2>
+Dervish memory manager works by maintaining two (or sometimes three) lists
+or pools: the Allocated 
+Memory Pool (AMP), the Free Memory Pool (FMP), and optionally a pool of
+memory allocated from the operating system but not currently an active part of
+Dervish's memory management system, the MMP (Malloced Memory Pool).
+the AMP holds all memory blocks
+currently being used. FMP holds all memory blocks that have been <I>freed</I>,
+but not returned to the MMP.
+Note that freeing memory does not imply returning it back to the operating
+system, rather the freed block is maintained in the FMP or MMP for later
+re-use.
+<P>
+
+The basic algorithm is as follows:
+
+<UL>
+<LI>
+
+When a request is made to allocate a memory block, the FMP is searched
+first for a suitable fit. If a suitable block is found, a pointer to
+it is returned to the user. If a suitable block is not found, memory
+is provided from the MMP if available, and failing that then requested
+from the operating system. Dervish memory management routines actually
+allocat a little more memory then requested by the user for
+bookkeeping; if the MMP is being used, potentially <EM>much</EM> more
+is allocated.
+
+<LI>
+
+Conversely, when a request is made to deallocate a memory block, the
+block is not actually handed back to the operating system; rather it
+is kept in a look aside list (the FMP).  Future allocation requests
+are satisfied from this list first. If an explicit request to
+defragment the memory pool the contents of the FMP are returned to the
+operating system, or passed to the MMP.
+
+</UL>
+
+<H2>Garbage Collection and Memory Leaks</H2>
+Garbage collection is the ability of the operating environment to ensure that
+unused memory blocks are deallocated automatically and returned to the 
+operating environment. Unfortunately, garbage collection is difficult
+using the C/C++ programming environments since they put the onus of memory
+management upon the user. 
+<P>
+
+The Dervish Memory Manager provides some degree of help to the user in
+the area of garbage collection. Each block allocated by Dervish memory
+management routines contains a unique number: it's serial
+number. Serial numbers increase in time, thus successively allocated
+memory blocks will have successively larger serial numbers; this
+can be used to ensure that there are no memory `leaks'; blocks of
+allocated memory that are no longer being used (and may have been
+totally lost, the classic reason being that the only record of their
+existence having been a local variable in a subroutine).
+<P>
+
+Garbage collection can then be performed by calling an API that
+deallocates all memory blocks between two serial numbers
+(inclusively). Dervish memory allocation API, <I>shMemFreeBlocks()</I>
+does exactly that. Note well that this will cause havoc if some of the
+blocks in the range are actually still in use; it's much safer to
+use Dervish's ability to list allocated blocks to check that no
+memory is unaccounted for.
+
+<H2>Defragmentation</H2>
+
+<EM>Memory Fragmentation</EM> is the tendency for memory managers
+to reduce the memory in their charge to a very large number of hopelessly
+small pieces; the result of course is that they have to repeatedly
+return to the operating system for more large memory blocks.
+<P>
+
+Dervish is not immune from this disease, although the structure of
+the FMP was designed to minimise it. Fortunately there is an API
+to minimise its effects, <CODE>memDefragment</CODE>; it has been used
+to reduce the memory appetite of SDSS pipelines by a factor of two or so.
+
+<H2>Other interesting features of Dervish Memory Management</H2>
+
+In addition to tracking allocated memory and allowing statistical analysis,
+the Dervish Memory
+Manager provides a host of other interesting features as well. Primary among
+them are two abilities:
+<DL>
+<DT>Referencing
+<DD>Dervish Memory Manager provides the ability for multiple pointers to 
+    reference the same object without the fear of accidentally (or 
+    intentionally) deleting the object and ending up with dangling pointers.
+    This is called <B>referencing</B> and two APIs are provided for this
+    purpose: <I>shMemRefCntrIncr()</I> and <I>shMemRefCntrDecr()</I>
+
+<DT>Call back mechanism
+<DD>Dervish Memory Manager allows the user to register a call back function to
+    the allocation of a certain serial number. When a memory block with that
+    serial number is allocated, the registered call back function is 
+    triggered. <I>shMemSerialCB()</I> is provided for registering the callback
+    function; additionally you can get a callback when a given block
+    is freed -- see the discussion under
+    <A HREF="memoryDebug.html">Debugging Memory Problems</A>.
+</DL>
+
+<P>
+Dervish Memory Management and Garbage Collection routines have both
+<A HREF="shGarbage.html">C</A> and
+<A HREF="tclGarbage.html">TCL</A> bindings.
+
+<P>
+
+</HTML>

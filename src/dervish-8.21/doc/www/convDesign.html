@@ -1,0 +1,149 @@
+<HTML>
+<HEAD>
+<!-- *********************************************************************** -->
+<!-- *++
+<!-- * FACILITY:        Dervish
+<!-- *                  Documentation
+<!-- *
+<!-- * ABSTRACT:        Design of Object Conversion.
+<!-- *
+<!-- * ENVIRONMENT:     HTML (HyperText Markup Language).
+<!-- *                  
+<!-- *
+<!-- * AUTHOR:          Wei Peng, Creation date: 21-Dec-1994
+<!-- *--
+<!-- *********************************************************************** -->
+ 
+<TITLE>Design of Object Conversion</TITLE>
+ 
+<H1>Design of Object Conversion</H1>
+
+This document explains how data transfer between objects and TBLCOL is
+achieved.  There are two types of conversions:
+
+<DIR>
+<LI><A HREF="tclSchema.html#CONVERSION">tblToSchema</A></LI> fills an object with the 
+data found from <A HREF="dervish.fitsio.html#tblcol">TBLCOL</A> and
+<LI><A HREF="tclSchema.html#CONVERSION">schemaToTbl</A></LI> does the 
+reverse by extracting the data from objects to fill a TBLCOL,
+</DIR>
+
+The same <A HREF="tclSchema.html">translation table</A> works for both type of 
+conversions. For this reason, the source and destination field in <A
+HREF="shSchema.html#SCHEMATRANS">SCHEMATRANS_ENTRY</A> structure 
+are absolute, not relative, in a sense that "src" represents TBLCOL (FITS) side data and 
+"dst", the object side data, regardless of conversion type. This may be misleading 
+because "src" obviously is not the source when schemaToTbl is performed. A 
+direct benefit of this is that no table inversion is needed when changing 
+conversion type.
+
+<H2>TblToSchema</H2>
+
+      <A HREF="tclSchema.html#CONVERSION">TblToSchema</A> fills an object of 
+given schema with the data from TBLCOL. At the begining of the process, no 
+objects are born. But when tblToSchema finishes, a set of objects are created 
+and contain the data found from TBLCOL. Obviously,  TBLCOL may contain numerous 
+records and it would be a burden for a user to create these many objects and 
+pass them to tblToSchema. Even with only a few objects, initialization of these 
+objects to the specifics described in the translation table would be dfficult 
+and error-prune. Hence the design requires that the C code of
+tblToSchema (<A HREF="../../src/tclSchema.c">shTclTblToSchema()</A>) 
+handles the object creation internally and transparently. 
+
+<H3>Object Creation</H3>
+
+      In Dervish environment, there are three ways to create an object of given
+schema: Tcl constructor, C constructor and direct memory allocation. When
+creating objects for the conversion, user wants the freedom to be able to
+call Tcl constructor. Therefore <A HREF="../../src/tclSchema.c">
+shTclTblToSchema()</A> is designed such that it always tries Tcl constructor, 
+C constructor, and direct memory allocation in that order. The Tcl constructor 
+string is passed in through command line,but if not, C constructor (available 
+through SCHEMA data structure) is tried before the last resort -- allocating 
+memory directly.
+
+<H3>Object State Initialization</H3>
+
+   Once an object is created, it is likely that it is just an empty chunk
+of memory with nothing there. If this object requires a link (pointer) to another
+object, this link must be properly set up after object creation. I here borrow
+the terminology "State" from C++ world to refer to the collection of
+internal attributes of a C object. The state of an object must be initialized
+before the object can be used. In other words, each field of a C object must
+be properly initialized just as the translation table says, including
+pointers, arrays, strings and others. If a field from an indirected object
+(referenced through pointer) is ever used as the data destination, that field 
+also has to be properly initialized.
+<P>
+<A HREF="../../include/shCSchemaTrans.h">SCHEMATRANS_ENTRY</A> is designed to 
+contain all information needed to initialize a field. In addition, it has 
+<A HREF="tclSchema.html#SYNTAX">multi-line entry capability</A>, which make it 
+possible to support initialization of indirected objects. SCHEMATRANS_ENTRY 
+also accepts a Tcl constructor string and whenever this string is exists, 
+initialization routines will call Tcl_Eval() to evaluate the string, whose 
+result should be a handle to a newly created object, just as in the manner 
+object creation is done. These procedures are done transparently through either 
+of the two routines, <A HREF="shSchema.html#STATECHECK"> shSpptTclObjectInit()
+</A>and <A HREF="shSchema.html#STATECHECK">shSpptObjectStateInit()</A>. The 
+former has the capability calling Tcl procedures in addition to what 
+shSpptObjectStateInit() has.
+
+
+<H3>Conversion</H3>
+
+Conversion part is relatively easy and straightforward. 
+<P>
+   shCnvTblToSchema() performs the actual conversion. It starts by checking the 
+dimensionality of both source and destination. Because C doesn't forbid you overflow 
+a memory boundary, this checking has to be very rigorous. In no circumstances 
+can the source have a larger memory size than that provided by the destination. 
+Once checking passes, shCnvTblToSchema() directly calls p_shSpptCastAndConvert() 
+to copy data. See <A HREF="../../src/shSchemaSupport.c"> shSchemaSupport.c</A>
+for more details.
+<P>
+   Note <A HREF="tclSchema.html#HEAP">heap type</A> is treated as a special case in 
+shCnvTblToSchema(). Object initialization routines don't operate on fields specified 
+as heap. When shCnvTblToSchema sees a field being specified as heap, it'll call 
+appropriate heap-related routines. Heap fields, whose sizes are known only when 
+the objects are seen, are initialized only within shCnvTblToSchema(). 
+<P>
+Because we might deal with complicated combinations of static array with heap (e.g, 
+long **ptr[3], where two directions are heap type, whose length derives from other 
+parameters in the same object), the task of shifting pointers to a particular heap 
+block is handled by specialized routines. See shSchemaSupport.c for more details.
+
+
+
+<H2>SchemaToTbl</H2>
+
+<P>
+   Upon converting a set of objects to TBLCOL, we assume that objects are already
+properly initialized. All we need to do is to properly allocate a memory used by 
+TBLCOL and copy data.
+<P>
+   Just as in the case of tblTblSchema, schemaToTbl calls syntax checking routine, 
+which checks for grammar and fills in other necessary information, and then calls 
+shCnvSchemaToTbl.
+<P>
+<H3>Processing of Translation table</H3>
+<P>
+   
+    shCnvSchemaToTbl starts by processing the translation table first. The first
+pass searches so-called "redundant entries.", namely those entries that designate 
+same "src" name (TBLCOL side, now a destination) but differ only in array index. 
+For example, an entry might use "RA[0]" and another uses
+"RA[1]". This implies that data may be copied over to different segment of the
+field -- "RA" in this example -- and the destination field is actually an array. 
+Each different 
+name create a new <A
+HREF="shTblAccess.html#TBLFLD">TBLFLD</A>in TBLCOL. Same names must refer to the same
+TBLFLD. Processing of translation tables by two routines, shCnvRedundNumGet() and 
+shCnvRedundInfoSet(), results in a run-time association of TBLFLD's names and their 
+memory pointers as well as some other pertinant information like array size, access 
+status etc.
+
+<P>
+   shCnvSchemaToTbl() picks up the information and rigorously perform dimensionality 
+checking just as shCnvTblToSchema does. Heap types, once again, are treated specially by 
+the same set of heap routines used in shCnvTblToSchema. If the dimensionality 
+checking passes, data copying will be performed straightforward.<HTML>

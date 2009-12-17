@@ -1,0 +1,275 @@
+<HTML>
+<HEAD>
+<!-- FACILITY: Dervish Documentation -->
+<!-- ABSTRACT: Dervish Memory Management -->
+
+<TITLE>Dervish Memory Management and Garbage Collection</TITLE>
+</HEAD>
+
+<H1>TCL Expressions for Dervish Memory Management and Garbage Collection</H1>
+<HR>
+Dervish provides a rich set of TCL extensions for memory management and garbage
+collection. Each of the TCL extension is documented below, and wherever
+appropriate, examples are provided.
+<P>
+The TCL level help facility is <STRONG>memory</STRONG>
+<P>
+For an overview of DERVISH Memory Management and Garbage Collection, and the
+definition of some commonly used terms,
+<A HREF="dervish.memory.html#memory">press here.</A>
+<P>
+The following TCL extensions are provided. All of these extensions return a 
+TCL_OK on a successful completion. If an error occurred, they return TCL_ERROR,
+and the <EM>Interp</EM> result will contain a string detailing the reason for
+the error.
+<DIR>
+<LI><A HREF="tclGarbage.html#memAMPSize">memAMPSize</A>
+<LI><A HREF="tclGarbage.html#memBlocksGet">memBlocksGet</A>
+<LI><A HREF="tclGarbage.html#memBlocksPrint">memBlocksPrint</A>
+<LI><A HREF="tclGarbage.html#memBytesInPool">memBytesInPool</A>
+<LI><A HREF="tclGarbage.html#memBytesInUse">memBytesInUse</A>
+<LI><A HREF="tclGarbage.html#memFreeBlocks">memFreeBlocks</A>
+<LI><A HREF="tclGarbage.html#memNumBlocksInUse">memNumBlocksInUse</A>
+<LI><A HREF="tclGarbage.html#memNumFrees">memNumFrees</A>
+<LI><A HREF="tclGarbage.html#memNumMallocs">memNumMallocs</A>
+<LI><A HREF="tclGarbage.html#memSerialNumber">memSerialNumber</A>
+<LI><A HREF="tclGarbage.html#memStatsPrint">memStatsPrint</A>
+<LI><A HREF="tclGarbage.html#memTotalBytes">memTotalBytes</A>
+<LI><A HREF="tclGarbage.html#memActualBytes">memActualBytes</A>
+<LI><A HREF="tclGarbage.html#memCheck">memCheck</A>
+<LI><A HREF="#memBlocksizeSet">memBlocksizeSet</A>
+<LI><A HREF="#memDefragment">memDefragment</A>
+</DIR>
+<HR>
+<H2><A NAME=memBlocksGet>memAMPSize</A></H2>
+Get, as a TCL return, the number of allocation requests that are current.  In
+other words, no request for freeing the memory has been made.  This value is
+equivalent to the number of allocation requests minus the number of free
+requests.
+<LISTING>
+TCL SYNTAX:
+   memAMPSize
+</LISTING>
+<HR>
+<H2><A NAME=memBlocksGet>memBlocksGet</A></H2>
+Get, as a TCL list of lists, all the memory blocks allocated. Each list will
+have the following form:
+<PRE>
+             {serial-number address size [handle type]} { ... }
+</PRE>
+where <EM>serial-number</EM> is the serial number of the memory block, 
+<EM>address</EM> is the starting address of the memory block, <EM>size</EM> is
+the size (in bytes) of the memory block, <EM>handle</EM> is a handle (if any)
+bound to the memory block, and <EM>type</EM> identifies the memory block as
+being a REGION, MASK, CHAIN, etc. The last two elements of the list are 
+optional. 
+<LISTING>
+TCL SYNTAX:
+   memBlocksGet
+</LISTING>
+<HR>
+<H2><A NAME=memBlocksPrint>memBlocksPrint</H2></A>
+This extension is analogous to <EM>memBlocksGet</EM> except that instead of
+displaying the allocated memory pool as a TCL list, it formats it in a pretty
+fashion and displays it on the standard output.
+<LISTING>
+TCL_SYNTAX:
+   memBlocksPrint
+</LISTING>
+<HR>
+<H2><A NAME=memBytesInPool>memBytesInPool</H2></A>
+This TCL extension returns in the TCL interp, a count of all bytes on the
+free memory pool.
+<LISTING>
+TCL SYNTAX:
+   memBytesInPool
+</LISTING>
+<HR>
+<H2><A NAME=memBytesInUse>memBytesInUse</H2></A>
+This TCL extension returns in the TCL interp, a count of all bytes on the
+allocated memory pool; i.e the total in bytes of all memory blocks being used
+at that instant in time. Note that that result of this extension and the
+result of <EM>memBytesInPool</EM> yields the total number of bytes being 
+managed by Dervish.
+<LISTING>
+TCL SYNTAX:
+   memBytesInPool
+</LISTING>
+<HR>
+<H2><A NAME=memFreeBlocks>memFreeBlocks</H2></A>
+This TCL extension performs the unenvious task of garbage collection in Dervish 
+Memory management TCL extensions. Unlike other operating environments (LISP, 
+SmallTalk, emacs), where garbage collection is an automatic procedure, Dervish
+garbage collection is user driven.
+<P>
+Central to the theme of garbage collection in Dervish is the idea that each
+memory block allocated has a unique serial number associated with it. Garbage
+collection then simply becomes an issue of deallocating all memory blocks
+bounded (inclusively) by two serial number.
+<P>
+To deallocate a single memory block, set <EM>HIGH_BOUND</EM> to be the same as 
+<EM>LOW_BOUND</EM>.
+<LISTING>
+TCL SYNTAX:
+   memFreeBlocks &lt;LOW_BOUND&gt; &lt;HIGH_BOUND&gt;
+
+   &lt;LOW_BOUND&gt;  : deallocate blocks starting with this serial number
+   &lt;HIGH_BOUND&gt; : stop deallocating blocks whose serial number is
+                  greater then HIGH_BOUND
+
+EXAMPLE:
+   dervish&gt; set lower [memSerialNumber]
+   3
+   dervish&gt; regNew 100 100 
+   h1
+   dervish&gt; maskNew 50 50
+   h2
+   ...
+   dervish&gt; memFreeBlocks [expr $lower+1] [memSerialNumber]
+  
+</LISTING>  
+<HR>
+<H2><A NAME=memNumBlocksInUse>memNumBlocksInUse</H2></A>
+This TCL extension returns in the TCL interp, a count of the number of
+blocks on the allocated memory pool.
+<LISTING>
+TCL SYNTAX:
+   memNumBlocksInUse
+</LISTING>
+<HR>
+<H2><A NAME=memNumFrees>memNumFrees</H2></A>
+This TCL extension returns in the TCL interp, a count of the number of
+a number of times <EM>shFree()</EM>, the Dervish memory deallocation routine
+was called.
+<LISTING>
+TCL SYNTAX:
+   memNumFrees
+</LISTING>
+<HR>
+<H2><A NAME=memNumMallocs>memNumMallocs</H2></A>
+This TCL extension returns in the TCL interp, a count of the number of
+a number of times <EM>shMalloc()</EM>, the Dervish memory allocation routine
+was called.
+<LISTING>
+TCL SYNTAX:
+   memNumMallocs
+</LISTING>
+<HR>
+<H2><A NAME=memSerialNumber>memSerialNumber</H2></A>
+This TCL extension returns in the TCL interp, the serial number of the latest
+allocated block.
+<LISTING>
+TCL SYNTAX:
+   memSerialNumber
+</LISTING>
+<HR>
+<H2><A NAME=memStatsPrint>memStatsPrint</H2></A>
+This TCL extension prints on the standard output, some interesting memory
+allocation and usage statistics.
+<LISTING>
+TCL SYNTAX:
+   memStatsPrint
+
+EXAMPLE:
+   dervish&gt; memStatsPrint
+
+   Number of memory allocation requests:     16
+   Number of memory de-allocation requests:  15
+   Total bytes currently in use:             20
+   Total bytes in Free Memory Pool:          33692
+   Percentage of memory allocation requests
+     satisfied from Free Memory Pool:        50.00 %
+   Percentage of memory allocation requests
+     satisfied from the Operating System:    50.00 %
+
+   dervish&gt;
+</LISTING>
+<HR>
+<H2><A NAME=memTotalBytes>memTotalBytes</H2></A>
+This TCL extension returns in the TCL interp, a count of the number of
+total bytes allocated so far from the operating system, including
+memory not yet used to satisfy any shMalloc request as well as
+book-keeping headers.
+<LISTING>
+TCL SYNTAX:
+   memTotalBytes
+</LISTING>
+
+<HR>
+<H2><A NAME=memActualBytes>memActualBytes</H2></A>
+This TCL extension returns in the TCL interp, a count of the number of
+total bytes given to shMalloc. Note that this count
+will be bigger then you would expect (if you were keeping tabs) since it also
+includes all the bytes for internal bookkeeping as well.
+<LISTING>
+TCL SYNTAX:
+   memActualBytes
+</LISTING>
+
+<HR>
+<H2><A NAME=memCheck>memCheck</H2></A>
+Check the heap administered by shMalloc for corruption.
+<LISTING>
+TCL SYNTAX:
+   memCheck [-abort]
+
+</LISTING>
+If any corrupt blocks are detected, <CODE>memCheck</CODE> returns an error.
+If <CODE>-abort</CODE> is provided, <CODE>shFatal()</CODE> is called instead.
+<P>
+Note that if the heap is corrupted, calling <CODE>memCheck</CODE> may
+generate a segmentation violation --- but of course this is merely a
+symptom of an already existing bug.
+
+<HR>
+<H2><A NAME=memBlocksizeSet>memBlocksizeSet</A></H2>
+
+Set the minimum size in bytes for a malloc() request, the balance of any memory
+requested goes onto the internal free list g_mallocList
+<P>
+
+Returns the old value; as a special case is <CODE>[size]</CODE> is
+omitted <EM>only</EM> return it; it's not changed.
+<P>
+
+The initial value of the memory block size is 0; the significance of the
+call is explained under <A HREF="#memDefragment">memDefragment</A>.
+
+<LISTING>
+SYNOPSIS:
+memBlocksizeSet [size]
+</LISTING>
+
+<HR>
+<H2><A NAME=memDefragment>memDefragment</A></H2>
+Defragment the free memory list.
+<P>
+
+You have two options; if you specify <CODE>-free</CODE>, simply go through the
+free lists freeing all allocated blocks back to the O/S, so as to give it
+a chance to defragment for us. To use this option you must <EM>not</EM>
+have called memBlocksizeSet or chaos will ensue, as some of the
+freed blocks will not have been allocated directly by malloc.
+<P>
+
+Otherwise, go through the FMP looking for adjacent blocks which
+are then merged together, and if possible returned to g_mallocList (the
+MMP in the language of
+<A HREF="dervish.memory.html#memory">the introduction</A>).
+This will only work if large blocks have been allocated from the
+O/S; i.e. if you called
+<A HREF="#p_memCheck">memBlocksizeSet</A> with a largish
+argument (a few Mby?).
+<P>
+
+<LISTING>
+SYNOPSIS:
+memDefragment [Options]
+Options:
+    -free               Call free() on any unused blocks
+</LISTING>
+
+</HTML>
+
+</HTML>
+

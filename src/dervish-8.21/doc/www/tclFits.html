@@ -1,0 +1,618 @@
+<HTML>
+<HEAD>
+<!-- *********************************************************************** -->
+<!-- *++
+<!-- * FACILITY:	Dervish
+<!-- *			Documentation
+<!-- *
+<!-- * ABSTRACT:	FITS I/O.  Tcl interface to FITS.
+<!-- *
+<!-- * ENVIRONMENT:	HTML (HyperText Markup Language).
+<!-- *			tclFits.html
+<!-- *
+<!-- * AUTHOR:		Tom Nicinski, Creation date:  22-Nov-1993
+<!-- *--
+<!-- *********************************************************************** -->
+
+<TITLE>FITS Files Under Dervish: Tcl API</TITLE>
+
+<H1>FITS Files Under Dervish: Tcl API</H1>
+
+<P>
+Procedures for reading and writing FITS files, including
+<A HREF="dervish.fitsio.html#tblcol">ASCII and Binary Tables</A>, are provided:
+
+<DIR>
+<LI>	<A HREF="tclFits.html#fitsDirGet"><B>fitsDirGet</B></A>
+<LI>	<A HREF="tclFits.html#fitsRead"><B>fitsRead</B></A>
+<LI>	<A HREF="tclFits.html#fitsWrite"><B>fitsWrite</B></A>
+</DIR>
+
+<P>
+Users should be careful to understand the
+<A HREF="dervish.fitsio.html#Dervish vs. FITS">differences in nomencalture</A>
+between Dervish and FITS.
+
+<H2><A NAME="TBLCOL Handles">TBLCOL Handles</A></H2>
+
+<P>
+To read an ASCII or Binary Table in
+<A HREF="shTblAccess.html#TBLCOL Tables">columnar (<SAMP>TBLCOL</SAMP>) format</A>,
+Dervish provides a <SAMP>TBLCOL</SAMP> object schema.
+A <A HREF="handle.html">handle</A>, to an empty Table, can be created with
+either <A HREF="handle.html">C</A> or <A HREF="tclHandle.html">Tcl</A> routines,
+such as <A HREF="tclHandle.html#handleNewFromType"><B>handleNewFromType</B></A>.
+They can be destroyed with, for example,
+<A HREF="tclHandle.html#handleDelFromType"><B>handleDelFromType</B></A>
+(do <EM>not</EM> use
+<A HREF="tclHandle.html#handleDel"><B>handleDel</B></A> as it only frees
+the handle memory and <EM>not</EM> the memory used by the Table):
+
+<PRE WIDTH="132">
+    <B>dervish&gt;</B> set myTbl [handleNewFromType TBLCOL]
+    <I>h1</I>
+    <B>dervish&gt;</B> fitsRead $myTbl m51.fits -xtension BINTABLE
+    <B>dervish&gt;</B> handleDelFromType $myTbl
+</PRE>
+
+<P>
+The <A HREF="shTblRead.html#Headers">Dervish header</A> associated with a
+<SAMP>TBLCOL</SAMP> Table can be accessed with a handle expression.
+Consider an example where <SAMP>`h3'</SAMP> is the handle to a
+<SAMP>TBLCOL</SAMP> Table:
+
+<PRE WIDTH="132">
+    <B>dervish&gt;</B> hdrGetLine h3.hdr AUTHOR
+</PRE>
+
+<H2><A NAME="Defaulting File Specifications">Defaulting File Specifications</A></H2>
+
+<P>
+Tcl commands which take a <VAR>file</VAR> specification as a parameter usually
+expand the <VAR>file</VAR> specification based on the <VAR>handle</VAR> type
+involved.  The <VAR>file</VAR> specification is prefixed with a default
+directory path and suffixed with a default file extension.  These defaults come
+from <A HREF="tclDirUtils.html#dirSet"><B>dirSet</B></A>'s list of defaults.
+Any metacharaceters and environment variables in the expanded <VAR>file</VAR>
+specification are also substituted (expanded).
+
+<P>
+The choice of which defaults from <B>dirSet</B> are applied are based on the
+<VAR>handle</VAR> type.  If no <VAR>handle</VAR> is involved, the Tcl command
+uses the same defaults (for example, as in
+<A HREF="tclFits.html#fitsDirGet"><B>fitsDirGet</B></A>).
+The selection of a <B>dirSet</B> default based on the <VAR>handle</VAR> type
+is as follows:
+<UL>
+<LI>	<SAMP>MASK  </SAMP> -- <SAMP>MASK_FILE</SAMP>
+<LI>	<SAMP>REGION</SAMP> -- <SAMP>REGION_FILE</SAMP>
+<LI>	<SAMP>TBLCOL</SAMP> -- <SAMP>REGION_FILE</SAMP>
+<LI>	<SAMP>HDR   </SAMP> -- <SAMP>REGION_FILE</SAMP>
+<LI>	<I>object schema</I> -- <SAMP>REGION_FILE</SAMP>
+</UL>
+
+<P>
+Most Tcl commands allow the
+<A NAME="Defaulting File Specifications: -dirset"><VAR>-dirset</VAR> option</A>
+to override the selection of which of <B>dirSet</B>'s defaults are applied.
+The choices are:
+<UL>
+<LI>	<SAMP>REGION_FILE</SAMP>
+<LI>	<SAMP>POOL_GROUP</SAMP>
+<LI>	<SAMP>POOL_FILE</SAMP>
+<LI>	<SAMP>MASK_FILE</SAMP>
+</UL>
+In addition, <SAMP>NONE</SAMP> indicates that no file expansion with defaults
+is to take place.  Still, the substitution (expansion) of metacharacters and
+environment variables is done.
+
+<H2><A NAME="Specifying Fields">Specifying Fields: <VAR>-col</VAR> and <VAR>-field</VAR></A></H2>
+
+<P>
+When refering to an individual field within a Table, one of two command line
+options can be used:
+
+<UL>
+<LI>	<VAR>-col</VAR> indicates the (0-indexed) position of the field.
+<P>
+<LI>	<VAR>-field</VAR> specifies the name of the field.
+	The <VAR>-field</VAR> name is matched against the field descriptor's,
+	<A HREF="shTblAccess.html#TBLFLD"><SAMP>TBLFLD</SAMP></A>,
+	<SAMP>TTYPE</SAMP> (which was derived from the FITS header keyword
+	<SAMP>TTYPE</SAMP>n, if present).
+	The first field to match the <VAR>-field</VAR> name is the one which
+	will be processed.
+</UL>
+
+<!-- *********************************************************************** -->
+
+<H2><A NAME="fitsDirGet">fitsDirGet</A></H2>
+
+<LISTING>
+_______________________________________________________________________________
+
+NAME
+     fitsDirGet  -  Get a directory of a FITS file's header and data units(HDU)
+
+SYNOPSIS (Tcl Syntax)
+     fitsDirGet  &lt;file&gt; [-dirset defaultType]
+
+ARGUMENTS
+      file	The FITS file specification.
+
+     -dirset	Indicate which default type is to be used for expanding the
+		FITS &lt;file&gt; specification.  If -dirset is not specified, the
+		default type is REGION_FILE.
+
+RETURN VALUES
+     TCL_OK	Success.  Successful completion.  The interp result string
+		contains the directory in a Tcl list of keyed lists.
+
+     TCL_ERROR	Failure.  The interp result string contains an error message.
+_______________________________________________________________________________
+
+DESCRIPTION
+</LISTING>
+
+<P>
+The headers in the FITS file are read and a directory of the
+header and data units (HDUs) is returned.
+By default, the FITS file specification is
+<A HREF="tclFits.html#Defaulting File Specifications">expanded</A>
+with a default directory (path) and file extension from
+<B><A HREF="tclDirUtils.html#dirSet">dirSet</A></B>'s
+<SAMP>REGION_FILE</SAMP> defaults.
+The default file expansion can be overridden with the
+<A HREF="tclFits.html#Defaulting File Specifications: -dirset"><VAR>-dirset</VAR></A>
+option.
+
+<P>
+<B>fitsDirGet</B>'s result is a Tcl list of keyed lists.  Each list element,
+corresponding to an HDU, is a keyed list with the following information:
+
+<LISTING>
+    {HDUn {{TYPE {Primary}} {NAXIS 3}}}  {HDUo...}
+</LISTING>
+
+where <SAMP>HDU</SAMP>n indicates the position (0-indexed) of the HDU within
+the FITS file.
+You can access information about each HDU by its position within the FITS file.
+For example:
+
+<PRE WIDTH="132">
+    <B>dervish&gt;</B> <TT>set fitsDir [fitsDirGet m51.fits]</TT>
+    <I>{{HDU0 {{TYPE {Primary}} {NAXIS 2}}} {HDU2 {{TYPE {BINTABLE}} ...}}}</I>
+    <B>dervish&gt;</B> <TT>keylget fitsDir HDU2.NAXIS</TT>
+    <I>2</I>
+</PRE>
+
+<P>
+The <SAMP>TYPE</SAMP> specifies the type of HDU:
+<MENU>
+<LI>	<SAMP>Primary</SAMP>
+<LI>	<SAMP>Random Groups</SAMP>
+<LI>	<SAMP>TABLE</SAMP> (ASCII Table)
+<LI>	<SAMP>BINTABLE</SAMP> (Binary Table)
+</MENU>
+
+Other list elements are keyed by the FITS header keyword.
+The complete FITS header is <EM>not</EM> included in the keyed list.
+
+<!-- *********************************************************************** -->
+
+<!-- *********************************************************************** -->
+
+<H2><A NAME="fitsRead">fitsRead</A></H2>
+
+<LISTING>
+_______________________________________________________________________________
+
+NAME
+     fitsRead  -  Read a FITS file header and data unit (HDU)
+
+SYNOPSIS (Tcl Syntax)
+     fitsRead  &lt;handle&gt; &lt;file&gt; [-dirset defaultType]  [-ascii | -binary]
+                               [-hdu n | -xtension name]  [-checktype]
+                               [-keeptype]
+
+ARGUMENTS
+      handle	The handle into which the FITS HDU will be read.  The handle
+		must be described by an object schema.  The schema implicitly
+		indicates which format an HDU should be read.
+
+      file	The FITS file specification.
+
+     -dirset	Indicates which default type is to be used for expanding the
+		FITS &lt;file&gt; specification.  If -dirset is not specified, the
+		default type is based on the handle type.
+
+     -ascii	Indicates that a FITS ASCII Table extension (TABLE HDU) is to
+		be read.  -ascii conflicts with -binary.
+
+     -binary	Indicates that a FITS Binary Table extension (BINTABLE HDU) is
+		to be read.  -binary conflicts with -ascii.
+
+     -hdu n	Read the nth HDU in the FITS file. The value must be a positive
+		integer (it's 0-indexed). If -xtension is not present, the def-
+		ault is to read the primary HDU (equivalent to -hdu 0).  -hdu
+		conflicts with -xtension
+
+     -xtension name	The header must match the specified extension. The
+		first HDU matching the XTENSION name will be read. -xtension
+		conflicts with -hdu.
+
+     -checktype	REGION &lt;handle&gt; only.  Indicates that if the type of the extant
+		REGION is not the type in the FITS file (HDU), abort the read
+		with an error.
+
+     -keeptype	REGION &lt;handle&gt; only.  Indicates that the pixels in the FITS
+		PDU are to be cast to the type of the extant REGION when being
+		read in.
+
+RETURN VALUES
+     TCL_OK	Success.  Successful completion.  The interp result string
+		contains the &lt;handle&gt; expression.
+
+     TCL_ERROR	Failure.  The interp result string contains an error message.
+_______________________________________________________________________________
+
+DESCRIPTION
+</LISTING>
+
+<P>
+A specified header and data unit (HDU) is read from the FITS file.
+By default, the FITS file specification is
+<A HREF="tclFits.html#Defaulting File Specifications">expanded</A>
+with a default directory (path) and file extension based on the
+<VAR>handle</VAR> type.
+The default file expansion can be overridden with the
+<A HREF="tclFits.html#Defaulting File Specifications: -dirset"><VAR>-dirset</VAR></A>
+option.
+
+<P>
+The way an HDU is read is affected by the HDU position in the FITS file,
+the <VAR>handle</VAR> object schema type, and the expected HDU type
+(as specified by <VAR>-ascii</VAR> or <VAR>-binary</VAR>).
+The setting of the Primary Data Unit's (PDU) <SAMP>SIMPLE</SAMP> keyword
+does not affect reading.  The HDUs are read as if all Dervish extensions to
+the FITS Standard were permitted.
+
+<P>
+The following FITS HDU types can be read:
+
+<UL>
+<LI>	Primary HDU
+<LI>	<SAMP>TABLE</SAMP> (ASCII Table)
+<LI>	<SAMP>BINTABLE</SAMP> (Binary Table)
+</UL>
+
+The default, if <VAR>-hdu</VAR> and <VAR>-xtension</VAR> are not present,
+is to read the primary HDU (first HDU in the FITS file).
+Support for ASCII Tables, Random Groups, and any future FITS extensions is not
+available.
+The <VAR>handle</VAR> argument implicitly specifies how the FITS HDU should be
+read.  The following formats
+(<A HREF="dervish.dump.html#diskio">object schemas</A>) are understood:
+
+<UL>
+<LI>	<SAMP>REGION</SAMP>:	read the primary HDU into a Dervish region
+<LI>	<SAMP>MASK</SAMP>:	read the primary HDU into a Dervish mask
+<LI>	<SAMP>TBLCOL</SAMP>:	read the Binary Table HDU in columnar format
+</UL>
+
+<P>
+The reading of a FITS file is also controlled by the <VAR>-ascii</VAR> and
+<VAR>-binary</VAR> options.
+When present, they force the reading of an ASCII Table or Binary Table,
+respectively.
+If either is present, the corresponding <VAR>handle</VAR> type and HDU extension
+must match.
+For example, a <SAMP>REGION</SAMP> <VAR>handle</VAR> may not be used to receive
+a Binary Table (if <VAR>-binary</VAR> were present).
+Using <VAR>-ascii</VAR> or <VAR>-binary</VAR> is most useful for checking that
+the appropriate Table is being read, especially if the <VAR>-hdu</VAR> option
+is used to indicate which HDU to read.
+
+<H3>Reading REGIONs</H3>
+
+<P>
+<A HREF="dervish.region.html#region"><SAMP>REGION</SAMP>s</A> are read from the
+Primary HDU.
+
+<P>
+<VAR>-checktype</VAR> and <VAR>-keeptype</VAR> options are valid only with
+<SAMP>REGION</SAMP> handles.
+<VAR>-checktype</VAR> forces the checking of the FITS file pixel data type
+against the pixel data type associated with the extant <SAMP>REGION</SAMP>.
+If the data types differ, the reading of the FITS PDU into the
+<SAMP>REGION</SAMP> is aborted.
+
+<P>
+The presence of the <VAR>-keeptype</VAR> option indicates that the pixel
+data type of the extant <SAMP>REGION</SAMP> is to be retained.
+Pixel values from the FITS file are converted to the pixel data type of the
+<SAMP>REGION</SAMP>.  If the FITS file pixel value does not fit in the range
+of values permitted by the <SAMP>REGION</SAMP> pixel data type, the read in
+pixel value is set to the maximum/minimum possible value for the
+<SAMP>REGION</SAMP> pixel data type (for example, this can occur when
+reading 32-bit integers into 16-bit integers).
+If the <SAMP>REGION</SAMP> does not have a data type associated with it,
+the data type of the pixels in the FITS file is used.
+
+<H3>Reading MASKs</H3>
+
+<P>
+<A HREF="dervish.region.html#MASK"><SAMP>MASK</SAMP>s</A> are read from the
+Primary HDU.
+
+<H3>Reading ASCII or Binary Tables</H3>
+
+<P>
+<A HREF="dervish.fitsio.html#tblcol">ASCII and Binary Table data</A> is
+<A HREF="shTblRead.html">converted</A> to the data type specified by the
+<SAMP>TFORM</SAMP>n keyword.
+It is aligned based on the format (general object schema or one of the special
+formats).
+<A HREF="shTblRead.html#TSCAL/TZERO">Scaling and zeroing are applied</A>
+<EM>only</EM> when changing the "signedness" of an integer data type for
+Binary Tables.
+If <SAMP>TSCAL</SAMP>n and <SAMP>TZERO</SAMP>n are not applied, they are saved
+for reference by the user.
+
+<P>
+If the heap area is used by a Binary Table, the data in the heap area is
+converted and aligned (based on the <SAMP>`P'</SAMP> data type specified by the
+<SAMP>TFORM</SAMP>n keyword).
+As with Table data (Record Storage Area) <I>per se</I>,
+<A HREF="shTblRead.html#TSCAL/TZERO">scaling and zeroing are applied</A>
+only for changing the "signedness" of an integer heap data type (even though
+the FITS Standard indicates that <SAMP>TSCAL</SAMP>n and <SAMP>TZERO</SAMP>n
+are not defined for heap).
+The Table array descriptors are modified to reflect changes in placement and
+alignment of the heap area data.
+
+<H3>Things to Sort Out</H3>
+
+<I>
+<UL>
+<LI>	How would multiple HDUs matching the extension name be selected (first
+	one found, etc.)?
+	Would options to specify the FITS keywords <SAMP>EXTNAME</SAMP>,
+	<SAMP>EXTVER</SAMP>, and <SAMP>EXTLEVEL</SAMP> be used? necessary?
+</UL>
+</I>
+
+<!-- *********************************************************************** -->
+
+<!-- *********************************************************************** -->
+
+<H2><A NAME="fitsWrite">fitsWrite</A></H2>
+
+<LISTING>
+_______________________________________________________________________________
+
+NAME
+     fitsWrite  -  Write a FITS file header and data unit (HDU)
+
+SYNOPSIS (Tcl Syntax)
+     fitsWrite  &lt;handle&gt; &lt;file&gt; [-dirset defaultType]  [-ascii | -binary]
+                                [-pdu option]  [-standard {T|F}]  [-extend]
+                                [-append]
+
+ARGUMENTS
+      handle	The handle from which the FITS HDU will be written.  The handle
+		must be described by an object schema.  The schema implicitly
+		indicates the format in which the HDU will be written out.
+
+      file	The FITS file specification.
+
+     -dirset	Indicates which default type is to be used for expanding the
+		FITS &lt;file&gt; specification.  If -dirset is not specified, the
+		default type is based on the handle type.
+
+     -ascii	Indicates that &lt;handle&gt; is to be written to a FITS ASCII Table
+		extension (TABLE HDU).  -ascii conflicts with -binary.
+
+     -binary	Indicates that &lt;handle&gt; is to be written to a FITS Binary Table
+		extension (BINTABLE HDU).  -binary conflicts with -ascii.
+
+     -pdu	Indicates whether a Primary HDU is written.  The options are
+		NONE and MINIMAL.  If NONE is specified, no PDU is written.
+		MINIMAL indicates that a minimal PDU for handling FITS exten-
+		sions is written.  -pdu conflicts with -append.
+
+     -standard	Indicates whether the HDU is to be FITS compliant. -standard
+		set to a `true' value causes the HDU to be tested for FITS
+		compliance.   -standard also controls the value of the FITS
+		SIMPLE keyword if the PDU is written.  Accepted `true' values
+		are `1', `true', `on', and `yes'.  Accepted `false' values are
+		`0', `false', `off', and `no'.  These may be abbreviated and
+		are case-insensitive.  If -standard is not specified, the
+		default type is `true'.
+
+     -extend	Indicates that the Primary HDU contain the FITS keyword EXTEND
+		set to `T'.  -extend conflicts with -append and -pdu NONE.
+
+     -append	Append the FITS HDU to the &lt;file&gt;.  If the &lt;file&gt; does not
+		exist, it will be created.  -append conflicts with -pdu and
+		-extend.
+
+RETURN VALUES
+     TCL_OK	Success.  Successful completion.  The interp result string
+		contains the &lt;handle&gt; expression.
+
+     TCL_ERROR	Failure.  The interp result string contains an error message.
+_______________________________________________________________________________
+
+DESCRIPTION
+</LISTING>
+
+<P>
+A specified header and data unit (HDU) is written to a FITS file.
+By default, the FITS file specification is
+<A HREF="tclFits.html#Defaulting File Specifications">expanded</A>
+with a default directory (path) and file extension based on the
+<VAR>handle</VAR> type.
+The default file expansion can be overridden with the
+<A HREF="tclFits.html#Defaulting File Specifications: -dirset"><VAR>-dirset</VAR></A>
+option.
+
+<P>
+The following FITS HDU types can be written:
+
+<UL>
+<LI>	Primary HDU
+<LI>	<SAMP>TABLE</SAMP> (ASCII Table)
+<LI>	<SAMP>BINTABLE</SAMP> (Binary Table)
+</UL>
+
+Support for Random Groups and any other FITS extensions is not available.
+The <VAR>handle</VAR> argument implicitly specifies which FITS extension HDU
+should be written.  The following formats
+(<A HREF="dervish.dump.html#diskio">object schemas</A>) are understood:
+
+<UL>
+<LI>	<SAMP>HDR</SAMP>:	write a Dervish header as the primary HDU
+<LI>	<SAMP>REGION</SAMP>:	write a Dervish region to the primary HDU
+<LI>	<SAMP>MASK</SAMP>:	write a Dervish mask to the primary HDU
+<LI>	<SAMP>TBLCOL</SAMP>:	write a <SAMP>TBLCOL</SAMP> Table to a
+</UL>
+
+<P>
+The writing of a FITS file is also controlled by the <VAR>-ascii</VAR> and
+<VAR>-binary</VAR> options.
+Either is necessary when writing from a <SAMP>TBLCOL</SAMP> object schema
+to an ASCII or Binary Table (respectively).
+If either option is present, the <VAR>handle</VAR> type must match.
+For example, a <SAMP>REGION</SAMP> <VAR>handle</VAR> may not be written to a
+Binary Table extension HDU (if <VAR>-binary</VAR> were present).
+
+<P>
+The <VAR>-extend</VAR> option indicates that the FITS keyword
+<SAMP>EXTEND</SAMP> be set to <SAMP>`T'</SAMP>.
+It can only be used when a Primary HDU is written by <B>fitsWrite</B>.
+This occurs if <VAR>-pdu</VAR> is specified with an option other than
+<CODE>NONE</CODE> or a <SAMP>REGION</SAMP> is written.
+
+<P>
+The <VAR>-append</VAR> option indicates that the HDU being written out be
+appended to the FITS <VAR>file</VAR>.  Only FITS extensions can be appended,
+that is, <VAR>handle</VAR>s that must be written as the Primary Data Unit (PDU)
+cannot be appended (such as <SAMP>REGION</SAMP>s and <SAMP>MASK</SAMP>s).
+If the file does not exist initially, or is zero-length, then a PDU can be
+written out also with the <VAR>-pdu</VAR> option.
+The <SAMP>MINIMAL</SAMP> option value will cause a minimal PDU to be written
+that will allow FITS readers to access the extension HDU being written
+(the FITS <SAMP>EXTEND</SAMP> keyword is set to <SAMP>`T'</SAMP>).
+
+<P>
+The <VAR>-standard</VAR> option performs two related functions:
+<UL>
+<LI>    Determining whether the resultant HDU will comply with the
+        FITS Standard.
+<LI>    Setting the value of the FITS <SAMP>SIMPLE</SAMP> keyword.
+</UL>
+
+If <VAR>-standard</VAR> is false, no checks are made to see whether the
+resulting HDU (that's being written out) will comply with the FITS Standard.
+Furthermore, if the HDU being written is the PDU, then the FITS
+<SAMP>SIMPLE</SAMP> keyword is set to be false (<SAMP>`F'</SAMP>).
+
+<P>
+If <VAR>-standard</VAR> is true, the object schema pointed to by the
+<VAR>handle</VAR> is first checked to see if a FITS compliant HDU can be
+written.  If not, <B>fitsWrite</B> returns with a failure status.
+If the resulting and FITS compliant HDU is also the PDU, the FITS
+<SAMP>SIMPLE</SAMP> keyword is set to be true (<SAMP>`T'</SAMP>).
+
+<H3>Writing HDRs</H3>
+
+<P>
+<SAMP>HDR</SAMP>s are written to the Primary HDU (they may not be
+<VAR>-append</VAR>ed as an extension header).
+The following options cannot be used when writing <SAMP>HDR</SAMP>s:
+<UL>
+<LI>	<VAR>-ascii</VAR>
+<LI>	<VAR>-binary</VAR>
+<LI>	<VAR>-pdu</VAR> (any value other than <SAMP>NONE</SAMP>)
+<LI>	<VAR>-append</VAR>
+</UL>
+
+<P>
+The <SAMP>HDR</SAMP> (<A HREF="shTblAccess.html#Headers">Dervish headers</A>)
+is checked to see whether it would form a legal FITS Primary header
+<EM>without</EM> and following data.
+If necessary, the FITS keywords <SAMP>SIMPLE</SAMP>, <SAMP>BITPIX</SAMP>,
+<SAMP>NAXIS</SAMP>, and <SAMP>END</SAMP> will be inserted (temporarily).
+
+<H3>Writing REGIONs</H3>
+
+<P>
+<SAMP>REGION</SAMP>s are written to the Primary HDU.
+The following options cannot be used when writing <SAMP>REGION</SAMP>s:
+<UL>
+<LI>	<VAR>-ascii</VAR>
+<LI>	<VAR>-binary</VAR>
+<LI>	<VAR>-pdu</VAR> (any value other than <SAMP>NONE</SAMP>)
+<LI>	<VAR>-append</VAR>
+</UL>
+Additionally, <B>fitsWrite</B> does not provide support for
+<A HREF="tclFitsIo.html#regWriteAsFits"><B>regWriteAsFits</B></A>'s
+<VAR>-naxis</VAR> option.  Instead, the number of axes is set to 2, unless the
+<SAMP>REGION</SAMP> is empty (the number of rows and columns are both zero).
+
+<H3>Writing MASKs</H3>
+
+<P>
+<SAMP>MASK</SAMP>s are written to the Primary HDU.
+The following options cannot be used when writing <SAMP>MASK</SAMP>s:
+<UL>
+<LI>	<VAR>-extend</VAR> (<SAMP>MASK</SAMP>s do not have associated
+	Dervish headers)
+<LI>	<VAR>-standard</VAR>
+<LI>	<VAR>-ascii</VAR>
+<LI>	<VAR>-binary</VAR>
+<LI>	<VAR>-pdu</VAR> (any value other than <SAMP>NONE</SAMP>)
+<LI>	<VAR>-append</VAR>
+</UL>
+
+<H3>Writing ASCII or Binary Tables</H3>
+
+<P>
+Table data is converted to the appropriate form based on the FITS HDU type --
+whether it's an ASCII Table or a Binary Table.
+The mapping of <A HREF="dervish.dump.html#diskio">object schema</A> data types
+of the in-memory data is the reverse of the mappings used when reading in
+<A HREF="shTblRead.html#Mapping ASCII Data Types">ASCII</A> or
+<A HREF="shTblRead.html#Mapping Binary Data Types">Binary</A> Tables.
+The <VAR>-standard</VAR> option affects the
+<A HREF="shTblWrite.html">writing of Tables</A> through a possible
+<A HREF="shTblWrite.html#TSCAL/TZERO">flip of the "signedness"</A> of
+unsupported FITS integer data types.
+
+<P>
+FITS ASCII Table data is written with printable ASCII characters
+(though it is possible for character string object schemas (of type
+<SAMP>STR</SAMP>) to contain non-printable characters).
+The field size is predetermined, based on the data type.
+The size of a character string field (type <SAMP>STR</SAMP>) is based on the
+dimensions of the in-memory Table field.
+Character strings are blank padded on the right to fill the size of the
+field.
+
+<P>
+Some FITS keywords are not permitted in the FITS header, depending upon the
+resulting <SAMP>TFORM</SAMP>n data type.
+For example, <SAMP>`A'</SAMP> data types under ASCII Tables may not have
+<SAMP>TSCAL</SAMP>n and <SAMP>TZERO</SAMP>n keywords.
+If the corresponding values are present in the field, they are <EM>not</EM>
+written to the FITS header, nor is any warning issued.
+
+<!-- *********************************************************************** -->
+
+</BODY>
+
+<HR>
+<ADDRESS><A HREF="dervish.authors.html#Nicinski">Tom Nicinski</A></ADDRESS>
+
+</HTML>

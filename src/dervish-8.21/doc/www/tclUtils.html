@@ -1,0 +1,309 @@
+<HTML>
+<TITLE>tclUtils</TITLE>
+<H1>Various utility TCL verbs</H1>
+<P>
+<DIR>
+<li><a href=tclUtils.html#handleListFromType>handleListFromType</a>
+<li><a href=tclUtils.html#nameGetFromType>nameGetFromType</a>
+<li><a href=tclUtils.html#typeGetFromName>typeGetFromName</a>
+<li><a href=tclUtils.html#verboseSet>verboseSet</a>
+<li><a href=tclUtils.html#treePrint>treePrint</a>
+<li><a href=tclUtils.html#treeGet>treeGet</a>
+<li><a href=tclUtils.html#mallinfoPrint>mallinfoPrint</a>
+<li><a href=tclUtils.html#mallinfoGet>mallinfoGet</a>
+<li><a href=tclUtils.html#thingNew>thingNew</a>
+<li><a href=tclUtils.html#thingDel>thingDel</a>
+<li><a href=tclUtils.html#shMalloc>shMalloc</a>
+<li><a href=tclUtils.html#shCalloc>shCalloc</a>
+<li><a href=tclUtils.html#shFree>shFree</a>
+</DIR>
+
+<P>
+In addition there is the C routine <A HREF="#shTclDeclare">shTclDeclare</A>
+which should be used in order to declare your extensions to Tcl.
+
+<h2><a name="handleListFromType">handleListFromType</a></h2>
+Return a Tcl list of the handle names that are attached to a structure of the
+given type (i.e. REGION, PT, HDR... ).  This is a Tcl procedure.
+
+<LISTING>
+TCL SYNTAX:
+   handleListFromType	&lt;type&gt;
+   &lt;type&gt;		An ASCII type.  
+
+</LISTING>
+
+
+
+<h2><a name="nameGetFromType">nameGetFromType</a></h2>
+Return the ASCII name associated with an integer type.  The object whose type is&lt;elem_size&gt;
+given must have a schema defined within Dervish.
+
+<LISTING>
+TCL SYNTAX:
+   nameGetFromType	&lt;integer type&gt;
+   &lt;integer type&gt;	The integer value of the type of the object.
+
+RETURNS:
+   TCL_OK	Successful completion. The ASCII name associated with the type
+		is returned.
+   TCL_ERROR	Error occurred.
+</LISTING>
+
+
+
+<h2><a name="typeGetFromName">typeGetFromName</a></h2>
+Return the integer type value associated with an ASCII type name.  The object
+whose ASCII type name is given must have a schema defined within Dervish.
+
+<LISTING>
+TCL SYNTAX:
+   typeGetFromName	&lt;ASCII type name&gt;
+   &lt;ASCII type name&gt;	The ASCII type name of the object.
+
+RETURNS:
+   TCL_OK	Successful completion. The integer type associated with the 
+		ASCII type name is returned.
+   TCL_ERROR	Error occurred.
+</LISTING>
+
+
+
+<h2><a name="verboseSet">verboseSet</a></h2>
+Set the level of verbosity for shDebug.
+
+<LISTING>
+TCL SYNTAX:
+   verboseSet	&lt;level&gt;
+   &lt;level&gt;	Desired level
+
+RETURNS:
+   TCL_OK	Successful completion. The previous verbosity is returned
+   TCL_ERROR	Error occurred.
+</LISTING>
+If the level is negative, the current level is returned, but not changed.
+
+
+
+
+<h2><a name="treePrint">treePrint</a></h2>
+<P>Print out all addresses that have been malloced with shMalloc and have not 
+been freed.  When possible, the handle name and type of handle are also
+printed out.  Many things are malloced in Dervish that are not tied to a handle
+(such as region pixel areas and pixel vectors).  In these cases only the
+address is printed out.  The size of the malloced area is not saved and
+therefore not available.
+
+<P>It is expected that this command will be useful in 
+finding suspected memory leaks.  After mallocing and then freeing many items,
+this command will list those addresses that were not freed and thus slipped
+through the cracks.  In combination with the debugger, it will be possible
+to more acurately pinpoint memory problems and solve them.
+
+
+<LISTING>
+TCL SYNTAX:
+   treePrint	
+
+RETURNS:
+   TCL_OK	Successful completion. The total number of items is returned.
+   TCL_ERROR	Error occurred.
+</LISTING>
+
+
+
+<h2><a name="treeGet">treeGet</a></h2>
+<P>Return all addresses that have been malloced with shMalloc and have not 
+been freed as a Tcl list.  When possible, the handle name and type of handle
+are included in the list.  Many things are malloced in Dervish that are not tied
+to a handle (such as region pixel areas and pixel vectors).  In these cases
+only the address is printed out.  The size of the malloced area is not saved
+and therefore not available.  For example, after doing a single <EM>regNew</EM>
+command, the following list could be generated -
+
+<P>0x10105a0c 0x1011ce50 {0x10122978 h1 REGION}
+
+<P>This Tcl list consists of 3 elements -
+<DIR>
+<LI>0x10105a0c
+<LI>0x1011ce50
+<LI>0x10122978 h1 REGION
+</DIR>
+
+Notice that the third element is itself a Tcl list with 3 elements.
+
+<P>It is expected that this command will be useful in 
+finding suspected memory leaks.  After mallocing and then freeing many items,
+this command will list those addresses that were not freed and thus slipped
+through the cracks.  In combination with the debugger, it will be possible
+to more acurately pinpoint memory problems and solve them.
+
+
+<LISTING>
+TCL SYNTAX:
+   treeGet	
+
+RETURNS:
+   TCL_OK	Successful completion.
+   TCL_ERROR	Error occurred.
+</LISTING>
+
+
+
+<h2><a name="mallinfoPrint">mallinfoPrint</a></h2>
+<P>Print out all elements of the mallinfo structure.  This structure describes
+the current space usage of the program.
+
+<LISTING>
+TCL SYNTAX:
+   mallinfoPrint	
+
+RETURNS:
+   TCL_OK	Successful completion.
+   TCL_ERROR	Error occurred.
+</LISTING>
+
+
+
+<h2><a name="mallinfoGet">mallinfoGet</a></h2>
+<P>Return the mallinfo structure as a Tcl list.  The structure elements have
+the following meaning -
+
+<UL>
+<LI>arena - total space in arena
+<LI>ordblks - number of ordinary blocks
+<LI>smblks - number of small blocks
+<LI>hblkhd - space in holding block headers
+<LI>hblks - number of holding blocks
+<LI>usmblks - space in small blocks in use
+<LI>fsmblks - space in free small blocks
+<LI>uordblks - space in ordinary blocks in use
+<LI>fordblks - space in free ordinary blocks
+<LI>keepcost - space penalty if keep option is used
+</UL>
+
+This structure describes the current space usage of the program.
+
+<LISTING>
+TCL SYNTAX:
+   mallinfoGet	
+
+RETURNS:
+   TCL_OK	Successful completion.  The mallinfo structure is returned as
+                a Tcl list.
+   TCL_ERROR	Error occurred.
+</LISTING>
+
+
+
+<h2><a name="thingNew">thingNew</a></h2>
+Create a new thing of the specified type pointing to address addr
+(default: NULL).
+
+<LISTING>
+TCL SYNTAX:
+   thingNew	&lt;type&gt; [addr]
+   &lt;type&gt;	Type of thing to create
+   [addr]	Address to which the newly created thing should point.
+
+RETURNS:
+   TCL_OK	Successful completion. The handle name of the new thing is
+        	returned.
+   TCL_ERROR	Error occurred.
+</LISTING>
+
+
+
+<h2><a name="thingDel">thingDel</a></h2>
+Delete a thing; it must contain a NULL pointer.
+
+<LISTING>
+TCL SYNTAX:
+   thingNew	&lt;thing&gt;
+   &lt;thing&gt;	Handle of thing to delete.
+
+RETURNS:
+   TCL_OK	Successful completion.
+   TCL_ERROR	Error occurred.
+</LISTING>
+
+
+
+<h2><a name="shMalloc">shMalloc</a></h2>
+Malloc some space using shMalloc, and return it in a handle.
+
+<LISTING>
+TCL SYNTAX:
+   shMalloc	&lt;len&gt;
+   &lt;len&gt;	Number of bytes to malloc.
+
+RETURNS:
+   TCL_OK	Successful completion. The handle name is returned.
+   TCL_ERROR	Error occurred.
+</LISTING>
+
+<h2><a name="shCalloc">shCalloc</a></h2>
+Malloc some space using shCalloc, and return it in a handle.
+
+<LISTING>
+TCL SYNTAX:
+   shCalloc	&lt;num_elem&gt; &lt;elem_size&gt;
+   &lt;num_elem&gt;	Number of elements to malloc.
+   &lt;elem_size&gt;	Size of each element to malloc
+
+RETURNS:
+   TCL_OK	Successful completion. The handle name is returned.
+   TCL_ERROR	Error occurred.
+</LISTING>
+
+<h2><a name="shFree">shFree</a></h2>
+Use shFree to Free some shMalloced space, associated with the passed handle.
+
+<LISTING>
+TCL SYNTAX:
+   shFree	&lt;handle&gt;
+   &lt;handle&gt;	Handle to space to free.
+
+RETURNS:
+   TCL_OK	Successful completion.
+   TCL_ERROR	Error occurred.
+</LISTING>
+
+<H2><A NAME="shTclDeclare">shTclDeclare</A></H2>
+
+<P>This procedure is the supported jacket for declaring dervish TCL
+extensions to an interpreter.  Users should NOT call Tcl_CreateCommand
+directly. This procedure loads the FTCL run-time help facility and
+then creates the command in the given interp.  The HELPFACILITY string
+should be chosen to name the set of commands you are writing uniquely.
+The CMDPROTOYPE is not yet checked, but should, for future
+compatibility, be a valid FTCL PARSE prototype.  The HELPTEXT should
+contain a brief, plain language description of what the command does.
+Help shown to the user will be built from the concatenation of all the
+strings.  DATA and PROC are passed directly to Tcl_CreateCommand.
+
+<LISTING>
+C SYNTAX:
+   int shTclDeclare
+   (
+   Tcl_Interp 	*interp  	/* MOD: Interpreter to declare the command to*/
+   char 	*cmdName        /* IN: Name of the command */
+   Tcl_CmdProc 	*cmdProc        /* IN: Address of the c routine for the */
+			        /*     command */
+   Client_Data	data         	/* In: Passed directly to Tcl_CreateCommand*/
+   Tcl_CmdDeleteProc *proc      /* IN: Passed directly to Tcl_CreateCommand */
+   char 	*helpFacility	/* IN: Pointer to string identifying this */
+				/*     command's facility */
+   char 	*helpText       /* IN: Pointer to string giving brief help */
+				/*     text for this command*/
+   char 	*cmdProtoype	/* IN: Pointer to string with TFCL prototype*/
+   )
+RETURNS:
+   TCL_OK
+   TCL_ERROR
+                               
+</LISTING>
+<PRE></PRE>
+
+
+</HTML>

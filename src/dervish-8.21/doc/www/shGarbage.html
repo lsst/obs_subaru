@@ -1,0 +1,618 @@
+<HTML>
+<HEAD>
+<!-- FACILITY: Dervish Documentation -->
+<!-- ABSTRACT: Dervish Memory Documentation -->
+
+<TITLE>Dervish Memory Management and Garbage Collection</TITLE>
+</HEAD>
+
+<H1>Dervish Memory Management and Garbage Collection C API</H1>
+
+<HR>
+Dervish provides an extensive API for memory management. The following 
+discussions details each API and wherever appropriate, source code examples 
+are included as well.
+<P>
+For an overview of DERVISH Memory Management and Garbage Collection, and the
+definition of some commonly used terms, 
+<A HREF="dervish.memory.html#memory">press here.</A>
+
+<H2>Descriptions of the C API</H2>
+<DIR>
+<LI><A HREF="#shMalloc">shMalloc</A>
+<LI><A HREF="#shFree">shFree</A>
+<LI><A HREF="#shCalloc">shCalloc</A>
+<LI><A HREF="#shRealloc">shRealloc</A>
+<LI><A HREF="#shMemEmptyCB">shMemEmptyCB</A>
+<LI><A HREF="#shMemRefCntrIncr">shMemRefCntrIncr</A>
+<LI><A HREF="#shMemRefCntrDecr">shMemRefCntrDecr</A>
+<LI><A HREF="#shIsShMallocPtr">shIsShMallocPtr</A>
+<LI><A HREF="#shMemSerialCB">shMemSerialCB</A>
+<LI><A HREF="#shMemSerialFreeCB">shMemSerialFreeCB</A>
+<LI><A HREF="#shMemFreeBlocks">shMemFreeBlocks</A>
+<LI><A HREF="#shMemStatsPrint">shMemStatsPrint</A>
+<LI><A HREF="#shMemSerialNumberGet">shMemSerialNumberGet</A>
+<LI><A HREF="#shMemTotalBytesMalloced">shMemTotalBytesMalloced</A>
+<LI><A HREF="#shMemBytesInUse">shMemBytesInUse</A>
+<LI><A HREF="#shMemBytesInPool">shMemBytesInPool</A>
+<LI><A HREF="#shMemNumFrees">shMemNumFrees</A>
+<LI><A HREF="#shMemNumMallocs">shMemNumMallocs</A>
+<LI><A HREF="#shMemAMPSize">shMemAMPSize</A>
+<LI><A HREF="#p_shMemCheck">p_shMemCheck</A>
+<LI><A HREF="#shMemBlocksizeSet">shMemBlocksizeSet</A>
+<LI><A HREF="#shMemDefragment">shMemDefragment</A>
+</DIR>
+<HR>
+<H2><A NAME=shMalloc>shMalloc</A></H2>
+Allocate requested bytes of memory, returning address of the starting byte
+to the user. The returned pointer is guaranteed to be suitably aligned for
+any type of object.
+<LISTING>
+SYNOPSIS:
+
+   #include "shCGarbage.h"
+
+   void *shMalloc(const size_t size)
+        size - number of bytes to allocate
+
+RETURNS:
+   On success - pointer to a suitably aligned memory area
+   On failure - there is no failure return from this function. It will abort
+                if it cannot allocate requested memory
+</LISTING>
+<HR>
+<H2><A NAME=shFree>shFree</A></H2>
+De-allocate memory block specified in the parameter. This function will abort
+if:
+<DIR>
+<LI> address of the block to be de-allocated has not been allocated by 
+     <I>shMalloc()</I>, or
+<LI> attempt is made to <I>shFree()</I> a block that has already been
+     deallocated.
+</DIR>
+If a memory block to be de-allocated is still being referenced, it
+will not be de-allocated. Rather, the reference counter associated with that
+block will be decremented. A memory block will only be de-allocated when
+it's reference count reaches 0, i.e. it is not being referenced at all.
+<LISTING>
+SYNOPSIS:
+
+   #include "shCGarbage.h"
+
+   void shFree(void *ptr)
+        ptr - Pointer to the memory block to be de-allocated
+
+RETURNS:
+   Nothing
+</LISTING>
+<HR>
+<H2><A NAME=shCalloc>shCalloc</A></H2>
+Allocates space for an array with the number of elements specified by the
+num_of_elts parameter, where each element is of the size specified by the
+elt_size parameter.  The space is initialized to all-zero-bits, which
+on most but not all machines is equivalent to assignment to a zero of the
+appropriate type.
+<LISTING>
+SYNOPSIS:
+
+   #include "shCGarbage.h"
+
+   void *shCalloc(size_t size)
+   void *shCalloc(size_t num_of_elts,size_t elt_size);
+        num_of_elts - number of elements to allocate
+        elt_size    - size of each element
+
+RETURNS:
+   On success - pointer to a suitably aligned memory area
+   On failure - there is no failure return from this function. It will abort
+                if it cannot allocate requested memory
+</LISTING>
+<HR>
+<H2><A NAME=shRealloc>shRealloc</A></H2>
+<I>shRealloc()</I> takes a pointer to the memory block previously allocated
+by <I>shMalloc()</I> and changes its size while preserving its contents;
+Although the system realloc may be able to grow memory blocks in place,
+shRealloc <EM>never</EM> does.
+If the new size is less then the original size, contents will be preserved upto
+the new size only. If the new size is 0 and the original pointer is not NULL,
+the original pointer is de-allocated and a NULL is returned. If the original
+pointer is NULL, a new memory block of the requested size is created and
+returned.
+<LISTING>
+SYNOPSIS:
+
+   #include "shCGarbage.h"
+
+   void *shRealloc(void *ptr, size_t size)
+        ptr  - Original pointer to the original memory area
+        size - new size
+
+RETURNS:
+   On success - A pointer to the new memory area
+   On failure - NULL
+
+EXAMPLE:
+
+   void *pMemBlock;
+
+   pMemBlock = (char *) shMalloc(20);
+   ...
+   /* 
+    * Do something with pMemBlock
+    */
+   ...
+   /*
+    * Now we realized that we need more then 20 bytes, let's re-alloc
+    */
+   pMemBlock = (char *) shRealloc(pMemBlock, 200);
+   ...
+</LISTING>
+
+<HR>
+<H2><A NAME=shMemEmptyCB>shMemEmptyCB</A></H2>
+<I>shMemEmptyCB()</I> registers a user-supplied callback function which
+is called when a request for memory cannot be fulfilled.
+The signature of the user-supplied callback function should be as follows:
+<LISTING>
+   void *callBackFunc(size_t nbyte)
+</LISTING>
+Unless the <I>callBackFunc()</I> calls <I>exit(2)</I> or <I>abort(2)</I>,
+control will be passed back to the Dervish memory management routines and
+execution will continue from the point where the callback function was called.
+If you return, you <EM>must</EM> return a pointer to the requested number
+of bytes. If you don't, there is very little chance that your application
+will continue successfully!
+<LISTING>
+SYNOPSIS:
+
+   #include "shCGarbage.h"
+
+   void shMemEmptyCB(const unsigned long trigger,
+		void *(*callBackFuncp)(size_t nbyte))
+        trigger       - serial number to trigger the event on
+        callBackFuncp - address of the user-supplied callback function
+
+RETURNS:
+   Nothing.
+</LISTING>
+For an example of using callbacks,
+see <A HREF=#shMemSerialCB>shMemSerialCB</A>.
+<P>
+
+<HR>
+<H2><A NAME=shMemRefCntrIncr>shMemRefCntrIncr</A></H2>
+<I>shMemRefCntrIncr()</I> increments a reference counter associated with the
+given memory address. This function will abort if the memory address passed
+as the parameter was not allocated using <I>shMalloc()</I>.
+<LISTING>
+SYNOPSIS:
+
+   #include "shCGarbage.h"
+
+   void shMemRefCntrIncr(void *addr)
+        addr - Memory address whose reference counter is to be incremented
+
+RETURN:
+   Nothing
+
+EXAMPLE:
+
+   char *sp1, *sp2;
+   ...
+   sp1 = shMalloc(20);
+   ...
+   /*
+    * Now we need to set sp2 to sp1, but we want to make sure that if sp1 is
+    * deallocated, sp2 still remains a valid pointer. How do we do that? we
+    * increment sp1's reference counter as follows:
+    */
+   sp2 = sp1;
+   shMemRefCntrIncr(sp1);
+   ...
+</LISTING>
+<HR>
+<H2><A NAME=shMemRefCntrDecr>shMemRefCntrDecr</A></H2>
+<I>shMemRefCntrDecr()</I> is the complement of <I>shMemRefCntrIncr()</I>. It
+decrements a reference counter associated with the memory address passed in
+as the parameter. The memory block will be de-allocated only when the reference
+counter reaches 0.
+<LISTING>
+
+   #include "shCGarbage.h"
+
+   void shMemCntrDecr(void *addr)
+        addr - Memory address whose reference counter is to be decremented
+
+RETURNS:
+   Nothing
+
+EXAMPLE:
+
+   char *sp1, *sp2;
+   ...
+   sp1 = shMalloc(20);
+   ...
+   sp2 = sp1;
+   shMemRefCntrIncr(sp1);
+   ...
+   shFree(sp1);   /* This will not deallocate block pointed to by sp1, 
+                     since it is still being referenced by sp2 */
+   ...
+   printf("%s\n", sp2);  /* We can still derefrence sp2 */
+   ...
+   shFree(sp2)    /* Now we will actually de-allocate the block. Any attempts
+                     to dereference it from here on out will result in 
+                     failure */
+</LISTING>
+<HR>
+<H2><A NAME=shIsShMallocPtr>shIsShMallocPtr</A></H2>
+<I>shIsShMallocPtr()</I> determines if a given address has been allocated using
+<I>shMalloc()</I> or not.
+<LISTING>
+SYNOPSIS:
+
+   #include "shCGarbage.h"
+
+   int shIsShMallocPtr(void *ptr)
+       ptr - address of interest
+
+RETURNS:
+   On success - 1
+   On failure - 0
+</LISTING>
+<HR>
+<H2><A NAME=shMemSerialCB>shMemSerialCB</A></H2>
+<I>shMemSerialCB()</I> registers a user-supplied callback function which is 
+invoked on a specified event. The event of interest here is the allocation
+of a memory block with a certain serial number. The signature of the 
+user-supplied callback function should be as follows:
+<LISTING>
+   void callBackFunc(unsigned long thresh, const SH_MEMORY *m)
+</LISTING>
+Unless the <I>callBackFunc()</I> calls <I>exit(2)</I> or <I>abort(2)</I>,
+control will be passed back to the Dervish memory management routines and
+execution will continue from the point where the callback function was called.
+<P>
+The arguments to the callback function are the threshold, and the block
+of memory that's just been allocated.
+<P>
+If the requested serial number is <CODE>~0UL</CODE> (all bits set), the
+callback function will be called during every shMalloc call.
+<LISTING>
+SYNOPSIS:
+
+   #include "shCGarbage.h"
+
+   void shMemSerialCB(const unsigned long trigger,
+	void (*callBackFuncp)(unsigned long thresh, const SH_MEMORY *m))
+
+        trigger       - serial number to trigger the event on
+        callBackFuncp - address of the user-supplied callback function
+
+RETURNS:
+   Nothing.
+
+EXAMPLE:
+
+   /*
+    * Suppose you want to set a certain global flag when memory block number
+    * 1000 is being allocated. Here's how to do it...
+    */
+   void callBackFunc(void);
+   static int flag = 0;
+
+   void callBackFunc(void)
+   {
+      flag = 1;
+   }
+
+   int main(int ac, char *av[])
+   {
+      ...
+      shMemSerialCB(1000L, callBackFunc);
+      ...
+      /*
+       * Do regular processing that may call shMalloc() many times
+       */
+      ...
+      if (flag) 
+          ...
+      else
+          ...
+   }
+</LISTING>
+For an example of a more sophisticated callback, see the discussion of
+<A HREF="#p_shMemCheck">p_shMemCheck</A>.
+<P>
+
+Rather than call <CODE>shMemSerialCB</CODE> to change the threshold, it
+is often convenient to set the global variable <CODE>g_Serial_threshold</CODE>
+using a debugger.
+
+<HR>
+<H2><A NAME=shMemSerialFreeCB>shMemSerialFreeCB</A></H2>
+<I>shMemSerialFreeCB()</I> registers a user-supplied callback function which
+is called when a memory block with a certain serial number is freed.
+The signature of the 
+user-supplied callback function should be as follows:
+<LISTING>
+   void callBackFunc(unsigned long thresh, const SH_MEMORY *m)
+</LISTING>
+Unless the <I>callBackFunc()</I> calls <I>exit(2)</I> or <I>abort(2)</I>,
+control will be passed back to the Dervish memory management routines and
+execution will continue from the point where the callback function was called.
+<P>
+The arguments to the callback function are the threshold, and the block
+of memory that's just about to be freed.
+<LISTING>
+SYNOPSIS:
+
+   #include "shCGarbage.h"
+
+   void shMemSerialFreeCB(const unsigned long trigger,
+	void (*callBackFuncp)(unsigned long thresh, const SH_MEMORY *m))
+
+        trigger       - serial number to trigger the event on
+        callBackFuncp - address of the user-supplied callback function
+
+RETURNS:
+   Nothing.
+</LISTING>
+For an example of using callbacks,
+see <A HREF=#shMemSerialCB>shMemSerialCB</A>.
+<P>
+
+Rather than call <CODE>shMemSerialFreeCB</CODE> to change the threshold, it
+is often convenient to set the global variable
+<CODE>g_Serial_free_threshold</CODE> using a debugger.
+
+<HR>
+<H2><A NAME=shMemFreeBlocks>shMemFreeBlocks</A></H2>
+<EM>shMemFreeBlocks()</EM> performs the unenviable task of garbage collection 
+in Dervish Memory management routines. Unlike other operating environments 
+(LISP, SmallTalk, emacs), where garbage collection is an automatic procedure,
+Dervish garbage collection is user driven. 
+<P>
+Central to the theme of garbage collection in Dervish is the idea that each 
+memory block allocated using <I>shMalloc()</I> has a unique serial number
+associated with it. Garbage collection then simply becomes an issue of
+deallocating all memory blocks bounded (inclusively) by two serial numbers.
+<P>
+<EM>Note that you <EM>must</EM> be absolutely sure that all blocks in
+this range are actually not in use before calling this function! In
+practice this probably requires you to free them individually rather
+than using <CODE>shMemFreeBlocks</CODE></EM>. You can check this within
+TCL with a command such as
+<PRE>
+   if {[memBlocksGetRange $low $high] != {}} { error "Not all memory is free" }
+</PRE>
+<P>
+To deallocate a single memory block, set <EM>hi_bound</EM> to be the same as 
+<EM>low_bound</EM>
+<LISTING>
+SYNOPSIS:
+
+   #include "shCGarbage.h"
+
+   int shMemFreeBlocks(const unsigned long low_bound,
+                       const unsigned long hi_bound,
+                       void (*funcp)(void *))
+       low_bound - deallocate blocks starting with this serial number
+       hi_bound  - stop deallocating blocks whose serial number is greater 
+                   then hi_bound
+       funcp     - pointer to a user-supplied function to deallocate memory
+                   blocks. Can be NULL, in which case, shFree() is used.
+
+RETURNS:
+   On success - 0
+   On failure - 1 : if the AMP (allocated memory pool) is empty
+                2 : if low_bound >= hi_bound
+</LISTING>
+<HR>
+<H2><A NAME=shMemStatsPrint>shMemStatsPrint</A></H2>
+<EM>shMemStatsPrint()</EM> prints (to stdandard output) some interesting
+memory usage statistics.
+<LISTING>
+SYNOPSIS:
+
+   #include "shCGarbage.h"
+
+   void shMemStatsPrint(void)
+
+RETURNS:
+   Nothing
+</LISTING>
+<HR>
+<H2><A NAME=shMemSerialNumberGet>shMemSerialNumberGet</A></H2>
+<EM>shMemSerialNumberGet()</EM> returns the serial number of the memory 
+block last allocated.
+<LISTING>
+SYNOPSIS:
+
+   #include "shCGarbage.h"
+
+   unsigned long shMemSerialNumberGet(void)
+</LISTING>
+<HR>
+<H2><A NAME=shMemTotalBytesMalloced>shMemTotalBytesMalloced</A></H2>
+<EM>shMemTotalBytesMalloced()</EM> returns the total number of bytes allocated
+from the operating system.
+<LISTING>
+SYNOPSIS:
+
+   #include "shCGarbage.h"
+
+   unsigned long shMemTotalBytesMalloced(void)
+</LISTING>
+<HR>
+<H2><A NAME=shMemActualBytesMalloced>shMemActualBytesMalloced</A></H2>
+<EM>shMemActualBytesMalloced()</EM> returns the total number of bytes
+provided to the AMP and FMP.
+<LISTING>
+SYNOPSIS:
+
+   #include "shCGarbage.h"
+
+   unsigned long shMemActualBytesMalloced(void)
+</LISTING>
+<HR>
+<H2><A NAME=shMemBytesInUse>shMemBytesInUse</A></H2>
+<EM>shMemBytesInUse()</EM> returns the total number of bytes in the allocated
+memory pool.
+<LISTING>
+SYNOPSIS:
+
+   #include "shCGarbage.h"
+
+   unsigned long shMemBytesInUse(void)
+</LISTING>
+<HR>
+<H2><A NAME=shMemBytesInPool>shMemBytesInPool</A></H2>
+<EM>shMemBytesInUse()</EM> returns the total number of bytes in the free
+memory pool. Note that return result of this function, if added to the
+return result of <I>shMemBytesInUse()</I> gives a count of the total number
+of bytes being managed by Dervish.
+<LISTING>
+SYNOPSIS:
+
+   #include "shCGarbage.h"
+
+   unsigned long shMemBytesInPool(void)
+</LISTING>
+<HR>
+<H2><A NAME=shMemNumMallocs>shMemNumMallocs</A></H2>
+<EM>shMemNumMallocs()</EM> returns the total number of times <I>shMalloc()</I>
+was called.
+<LISTING>
+SYNOPSIS:
+
+   #include "shCGarbage.h"
+
+   unsigned long shMemNumMallocs(void)
+</LISTING>
+<HR>
+<H2><A NAME=shMemNumFrees>shMemNumFrees</A></H2>
+<EM>shMemNumFrees()</EM> returns the total number of times <EM>shFree()</EM>
+was called.
+<LISTING>
+SYNOPSIS:
+
+   #include "shCGarbage.h"
+
+   unsigned long shMemNumFrees(void)
+</LISTING>
+<HR>
+<H2><A NAME=shMemAMPSize>shMemAMPSize</A></H2>
+<EM>shMemAMPSize()</EM> returns the total number of memory blocks on the
+Allocated Memory Pool.
+<LISTING>
+SYNOPSIS:
+
+   #include "shCGarbage.h"
+
+   unsigned long shMemAMPSize(void)
+</LISTING>
+
+<HR>
+<H2><A NAME=p_shMemCheck>p_shMemCheck</A></H2>
+<EM>shMemCheck()</EM> checks the memory pool for corruption.
+<LISTING>
+SYNOPSIS:
+#include "dervish.h"
+
+int
+p_shMemCheck(int check_allocated,	/* check allocated blocks? */
+		int check_free,		/* check free blocks? */
+		int abort_on_error);	/* abort on first error? */
+</LISTING>
+
+Calling this routine checks all the memory known to dervish; this may
+take some time. Note that there is NO GUARANTEE that a trashed heap
+will not lead to SEGVs in this code --- but of course this will only
+happen if you have a bug anyway.
+<P>
+
+The number of bad blocks detected is returned
+<P>
+
+It's possible to call this from within a memory callback function
+to achieve any desired granularity of memory checking, e.g.
+<LISTING>
+   static void
+   malloc_check(unsigned long thresh, const SH_MEMORY *mem)
+   {
+      static int abort_on_error = 1;
+      static int check_allocated = 1;
+      static int check_free = 1;
+      static int frequency = 10;
+   
+      shAssert(mem != NULL);
+   
+      if(frequency > 0) {
+         p_shMemCheck(check_allocated, check_free, abort_on_error);
+   
+         shMemSerialCB(thresh + frequency, malloc_check);
+      }
+   }
+</LISTING>
+After which, calling
+<LISTING>
+      shMemSerialCB(1, malloc_check);
+</LISTING>
+will cause the heap to be checked every 10 calls to shMalloc
+
+
+<HR>
+<H2><A NAME=shMemBlocksizeSet>shMemBlocksizeSet</A></H2>
+
+Set the minimum size in bytes for a malloc() request, the balance of any memory
+requested goes onto the internal free list g_mallocList
+<P>
+
+Returns the old value; as a special case is size of <CODE>~0UL</CODE>,
+the value is <EM>not</EM> changed.
+<P>
+
+The initial value of the memory block size is 0; the significance of the
+call is explained under <A HREF="#shMemDefragment">shMemDefragment</A>.
+
+<LISTING>
+SYNOPSIS:
+#include "dervish.h"
+
+size_t
+shMemBlocksizeSet(size_t size)		/* size of requests from to malloc */
+</LISTING>
+
+<HR>
+<H2><A NAME=shMemDefragment>shMemDefragment</A></H2>
+<EM>shMemCheck()</EM> checks the memory pool for corruption.
+
+Defragment the free memory list.
+<P>
+
+You have two options; if free_to_os is true, simply go through the
+free lists freeing all allocated blocks back to the O/S, so as to give it
+a chance to defragment for us. To use this option you must <EM>not</EM>
+have called shMemBlocksizeSet or chaos will ensue, as some of the
+freed blocks will not have been allocated directly by malloc.
+<P>
+
+Otherwise, go through the FMP looking for adjacent blocks which
+are then merged together, and if possible returned to g_mallocList.
+This will only work if large blocks have been allocated from the
+O/S; i.e. if you called
+<A HREF="#p_shMemCheck">shMemBlocksizeSet</A> with a largish
+argument (a few Mby?).
+<P>
+
+Return 0 if all is well, or -1 in case of trouble
+<LISTING>
+SYNOPSIS:
+#include "dervish.h"
+
+int
+shMemDefragment(int free_to_os)		/* return free memory to O/S? */
+</LISTING>
+
+</HTML>

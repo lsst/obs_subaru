@@ -1,0 +1,297 @@
+<HTML>
+<TITLE>Debugging Memory Problems using Dervish</TITLE>
+<H2>Debugging Memory Problems using Dervish</H2>
+<H4>Robert Lupton, October 1997</H4>
+
+This document could use a tutorial introduction -- offers of help, comments,
+or (gasp) HTML to <A HREF="mailto:rhl@astro.princeton.edu">me</A>, please.
+<P>
+
+The hardest class of bug to find in C programs is probably memory problems,
+either leaks or corruption. Fortunately, dervish has a number of tools
+available to help you in your task.
+<P>
+
+In the following, the term <EM>heap</EM> will sometimes appear; it's
+the name of all the memory under shMalloc's control; that is, the
+memory that has been handed out by shMalloc (and maybe shFreed again).
+You should also know that every piece of memory that dervish hands to
+the user, whether via shMalloc or shRealloc, has a unique <A
+NAME="serial_number">serial number</A> (the same <EM>address</EM> may
+be used several times).
+<P>
+
+Dervish will always:
+<UL>
+<LI> Tell you when
+you attempt to <A HREF="#default_warnings">free the same memory twice</A>.
+
+<LI> Warn if it happens to notice a that the
+<A HREF="#default_warnings">heap is corrupted</A>.
+</UL>
+
+Furthermore, you can always ask dervish to:
+<UL>
+<LI> Provide information about memory blocks which were
+<A HREF="#memstats">allocated but never freed</A>.
+<LI> Tell you if there is any <A HREF="#memCheck">corruption in memory</A>
+managed by dervish.
+</UL>
+
+If you define <CODE>CHECK_LEAKS</CODE>
+to the C pre-processor, you will also be given:
+<UL
+<LI> Information about
+<A HREF="#check_leaks">where memory blocks were allocated</A> (e.g. line 123
+in file panic.c)
+</UL>
+
+If you know how to ask (and if your application has a few lines of code
+compiled in), you can also get:
+<UL>
+<LI> Notification when particular blocks of memory are
+<A HREF="#malloc_callbacks">allocated or freed</A>
+<LI> Checks of the internal
+<A HREF="#corruption_checks">consistency of dervish's memory</A>
+at any desired resolution down to every call to shMalloc/shRealloc/shFree.
+<LI> A chance to recover if dervish
+<A HREF="#malloc_null">runs out of allocatable memory</A>.
+</UL>
+
+Additionally, you can
+<UL>
+<LI> Set <A HREF="#breakpoints">debugger breakpoints</A>
+when a particular memory block is used within some procedure of yours.
+</UL>
+
+<H3>How Dervish can Help</H3>
+
+<H4><A NAME="default_warnings">Dervish's Default Warnings</A></H4>
+
+Whenever you 
+<UL>
+<LI> Free or reallocate memory that wasn't allocated by shMalloc
+<LI> Free or reallocate memory that has already been freed
+</UL>
+Dervish will tell you, and (<A HREF="#malloc_null">by default</A>)
+call shFatal. (in fact, it will also do so when using an internal
+counter on a bad block, but don't worry about that).
+<P>
+
+The first class of problems are either a programming error (e.g. calling
+shFree on a variable that you declared as an array), or else the block
+is really valid, but the heap is corrupted; if the latter, consult the
+section on <A HREF="#corruption_checks">heap corruption</A>.
+<P>
+
+You can diagnose the second class of problems using the tools discussed
+under <A HREF="#malloc_callbacks">memory callbacks</A>.
+
+
+
+<H4><A NAME="memstats">Dervish's Memory Leak Tools</A></H4>
+There is a tcl (dervish actually) procedure called
+<CODE>memBlocksPrintRange</CODE> that prints out all the blocks of memory
+that have been allocated but not freed. Because you have almost certainly
+got some blocks that are not going to be freed (e.g. stuff allocated in
+startup code), it actually only tells you about blocks in a specified
+range of <A HREF="#serial_numbers">memory serial numbers</A>. The photo
+group uses the following proc as a convenient wrapper:
+<PRE>
+
+	proc mortal {args} {
+	   global startMem
+
+	   if {$args == "set"} {
+	      set startMem [memSerialNumber]; return
+	   }
+
+	   if {![info exists startMem]} {
+	      set startMem 0
+	   }
+	   memBlocksPrintRange [expr $startMem+1] [memSerialNumber] $args
+}
+</PRE>
+Used as:
+<PRE>
+	allocate lots of stuff for startup
+	mortal set
+	do lots of work, cleaning up carefully
+	if {[mortal] != ""} {
+	   error "Found a memory leak"
+	}
+</PRE>
+The output looks like:
+<PRE>
+0x10d7f1c0 {18 2 64 region.c 875}
+0x10d58a50 {17 44 64 region.c 349}
+0x10d33260 {16 3 64 region.c 340}
+0x10d18fb0 {15 4 64 region.c 934}
+0x10d674d0 {14 72 128 region.c 331 h0 REGION}
+</PRE>
+Where the first column (0x10d7f1c0)is the address that should have been freed,
+the second (18) is the serial number, the next two (2 64) are the number of
+bytes allocated, and the size of the internal block that dervish used to
+satisfy the request for memory. The next two fields (region.c 875) are the
+file and line number where shMalloc was called.
+<P>
+
+In the case of block 14, there are two additional fields (h0 REGION), which
+tell you that the block, of type REGION, is bound to handle 14.
+
+<H4><A NAME="memCheck">Dervish's Memory Corruption Tools</A></H4>
+There is a dervish proc <CODE>memCheck</CODE> that checks the entire heap
+for corruption;
+with the option -abort it'll call shFatal if it finds any. It is a good
+idea to call this at about the time that your tcl framework calls
+memBlocksPrintRange to check for memory leaks. It is very helpful to
+track down memory corruption as soon as it's introduced into your
+program, even before it starts leading to symptoms.
+
+<H4><A NAME="check_leaks">File and Line Information for shMalloc</A></H4>
+If you compile your program with <CODE>-DCHECK_LEAKS</CODE>, every call
+to shMalloc, shRealloc, and shFree contains the file and line number where
+the call is made. This is used in error messages when dervish detects
+problems, as well as in the output from
+<A HREF="#memstats">memBlocksPrintRange</A>
+
+
+<H4><A NAME="malloc_callbacks">Callbacks for allocating or freeing specified blocks</A>
+</H4>
+It is often helpful to be able to get control of a program when a particular
+memory block is allocated or freed. The commonest use of this capability
+is to catch memory leaks (or twice-freed pointers), but I find myself using
+it for other purposes too
+(see the section on <A HREF="#breakpoints">breakpoints</A>).
+<P>
+Let's first consider finding a memory leak. The output of
+<A HREF="#memstats">memBlocksPrintRange</A> indicates that the block
+with serial number 50258 is never freed. Add a function that looks like
+to your main program,
+<PRE>
+	static void
+	malloc_trace(unsigned long thresh, const SH_MEMORY *mem)
+	{
+	   printf("Allocated block %ld\n", thresh);
+	}
+</PRE>
+add a line
+<PRE>
+	shMemSerialCB(50258,malloc_trace);
+</PRE>
+recompile, and when block 50258 is allocated, a message is printed.
+<P>
+
+This may not seem very helpful, but when used in conjunction with a debugger
+things look up. Set a breakpoint in malloc_trace, and the program will stop
+when your block is allocated, which is usually enough to diagnose the problem.
+<P>
+
+Once you've decided to use a debugger, the whole procedure can be
+streamlined. Rather than adding the line 
+<PRE>
+	shMemSerialCB(50258,malloc_trace);
+</PRE>
+only when block 50258 catches your fancy, leave the line
+<PRE>
+	shMemSerialCB(0,malloc_trace);
+</PRE>
+in permanently. Then use the debugger to set the variable
+<CODE>shMalloc::g_Serial_threshold</CODE> to 50258, and proceed as
+before (that's what gdb likes to call it; with e.g. dbx your mileage
+may vary).
+<P>
+
+If your problem is a doubly-freed pointer, you need to define
+<CODE>malloc_free_trace</CODE>, call
+<PRE>
+	shMemSerialCB(0,malloc_free_trace);
+</PRE>
+set a breakpoint in malloc_free_trace,
+and set <CODE>shMalloc::g_Serial_free_threshold</CODE>.
+<P>
+
+<H4><A NAME="corruption_checks">Checking for Heap Corruption</A>
+</H4>
+There's a C API <CODE>p_shMemCheck</CODE> to check the heap. I usually
+run it from a memory callback like that described in the
+<A HREF="#malloc_callbacks">previous section</A>:
+<PRE>
+/*
+ * This callback can used to check the heap for corruption at any desired
+ * granularity (set by the variable frequency)
+ */
+static void
+malloc_check(unsigned long thresh, const SH_MEMORY *mem)
+{
+   static int abort_on_error = 1;	/* abort on first error? */
+   static int check_allocated = 1;	/* check allocated blocks? */
+   static int check_free = 1;		/* check free blocks? */
+   static int frequency = 10;		/* frequency of checks */
+
+   shAssert(mem != NULL);		/* use it for something */
+
+   if(frequency > 0) {
+      p_shMemCheck(check_allocated, check_free, abort_on_error);
+
+      shMemSerialCB(thresh + frequency, malloc_check);
+   }
+}
+</PRE>
+Followed by a call to
+<PRE>
+	shMemSerialCB(0,malloc_check);
+</PRE>
+and setting the variable
+<CODE>shMalloc::g_Serial_threshold</CODE> to whatever value you want to
+start checking the heap (set it to 1 to start at the beginning of your
+program. Using malloc_check will slow things down, so I usually increase
+the starting threshold as I localise the problem).
+
+<H4><A NAME="malloc_null">Recovering from Dervish Running out of Memory</A>
+</H4>
+There are also callbacks for dealing with fatal conditions, namely running
+out of memory, and detecting a problem in the heap. They are respectively
+<DL>
+<DD> void *shMemEmpty(size_t n)
+<DT> A function expecting a single argument. It <EM>must</EM> either allocate
+<CODE>n</CODE> bytes and return them, or not return at all. It's called when
+dervish has failed to allocate the desired memory, so simply calling shMalloc
+(or malloc) is unlikely to work; you'll have to free something first. Set
+by <CODE>shMemEmptyCB</CODE>
+
+<DD> void shMemInconsistency(unsigned long thresh, const SH_MEMORY *mem)
+<DT> Called when a problem in the heap is detected; <CODE>mem</CODE> is the
+offending block, and <CODE>thresh</CODE> is the current value of
+p_Serial_threshold. You needn't do anything in your callback function,
+simply returning will probably not lead to any trouble --- but you should
+fix the underlying problem immediately.
+Set by <CODE>shMemInconsistencyCB</CODE>
+
+</DL>
+
+<H4><A NAME="breakpoints">Setting Breakpoints for Particular Memory Blocks</A>
+</H4>
+Many objects in photo (e.g. OBJCs, OBJECT1s, and STAR1s) have their own unique
+ID numbers that are very handy for following them around using the debugger;
+for example, if I want to know why the OBJECT1_BLENDED flag is set in a
+particular OBJECT1, I can set breakpoints such as
+<PRE>
+	b file.c:123 if obj1->id == 123
+</PRE>
+Some data types, however, have no such luxury, but all is not lost as you
+can use their memory serial number; you can find this by saying (in gdb)
+<PRE>
+	p ((SH_MEMORY*)obj1 - 1)->serial_number
+</PRE>
+after which the preceeding break point could have been set as
+<PRE>
+	b file.c:123 if ((SH_MEMORY*)obj1 - 1)->serial_number == 12695
+</PRE>
+<P>
+
+If I wanted to watch when that object was created, I could have registered
+a <A HREF="#malloc_callbacks">callback</A> for memory block 12695.
+
+</HTML>
+

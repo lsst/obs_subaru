@@ -1,0 +1,72 @@
+<html>
+<head>
+<title> SDSS Primer Files </title>
+<body>
+<h1> SDSS Primers </h1>
+
+This area dervish/doc/int (or $INT_DIR)
+contains an introduction to SDSS software and some fits files.
+Each  file is in a subdirectory that names its subject, along
+with some sample files.
+
+<h2> The Primers </h2>
+
+This is the suggested order for working through the  files:
+<dir>
+<li> <a href=setup/setup.html>setup</a>: 
+code distribution
+<li> <a href=dervish/dervish.html>dervish</a>: 
+a quick romp through SDSS tools
+<li> <a href=tcl/tcl.html>tcl</a>: 
+tool command language; what you type to
+<li> <a href=pgplot/pgplot.html>pgplot</a>: 
+plotting tool; use the help tool; simple examples of compiling
+<li> <a href=help/help.html>help</a>: 
+how to read and write documentation 
+<li> <a href=saodisplay/saodisplay.html>saodisplay</a>: 
+how to display images
+<li> <a href=rcvs/rcvs.html>rcvs</a>: 
+code management and control; how to get the latest.
+<li> <a href=regions/regions.html>regions</a>:  
+how to get at the pixels and related information "legally"
+<li> <a href=lists/lists.html>lists</a>: linked lists of objects
+<li> <a href=hg/hg.html>histograms and arrays</a>:
+how to create and plot them.
+</dir>
+
+<h2> Where this is located </h2>
+
+To access the files used in the examples, use the variable $INT_DIR.
+It is set for you when you "setup dervish" and when you run dervish.
+
+Do the following to find these files:
+
+<listing>
+fndaub % setup dervish
+fndaub % cd $INT_DIR
+fndaub % ls -CF
+CVS/           help/          primers.html   saodisplay/    style/
+doc/           lists/         rcvs/          setup/         tcl/
+fits/          pgplot/        regions/       dervish/         whoswho/
+</listing>
+
+Read the hypertext version of this document by doing this:
+<listing>
+fndaub % setup www
+fndaub % setenv DISPLAY my_machine_name:0.0
+fndaub % xmosaic primers.html &
+</listing>
+or by accessing it through the SDSS home page, under "Introduction to SDSS."
+
+<p>
+The hardcopy is a postScript file, located in $DERVISH_DIR/doc/primers.ps.
+
+<h2> Acknowledgements </h2>
+Steve Kent and Robert Brunner supplied text that is incorporated into
+these primers.  Many thanks to all who have read and commented on these
+primers.  They are doomed to be always "out of date" since s/w 
+development is dynamic.  Thanks to all the programmers who are
+making this package work, and to all who help me keep
+these primers accurate.
+</body>
+</html>

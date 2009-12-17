@@ -1,0 +1,632 @@
+<HTML>
+<TITLE>Next Frame Processing Utilities</TITLE>
+<H1>Next Frame Processing Utilities</H1>
+The TCL procedures in the nextFrameProc.tcl file provide support for reading a 
+sequence of FITS files into a <I>frame</I>.  A <I>frame</I> is defined as 
+one FITS file (or possibly more than one) plus some overlap 
+appended from the start of the next FITS file in the sequence.    
+<P>
+The procedures of interest are:
+<UL>
+<LI><A HREF="#nextFrameInit">nextFrameInit</A> - Initialize and setup state 
+information.
+<LI><A HREF="#nextFrameGet">nextFrameGet</A> - Read next FITS file and 
+overlap into the frame.
+<LI><A HREF="#nextEOF">nextEOF</A>- Check if all FITS files have been read.
+<LI><A HREF="#nextFieldInit">nextFieldInit</A> - Initialize and setup state 
+information for reading 5 frames from a "tape" 
+<LI><A HREF="#nextFieldGet">nextFieldGet</A> - Read next set of FITS file and 
+overlap into the frames to make the next field.
+<LI><A HREF="#regFromFilter">regFromFilter</A> - get the handle to the region in the
+     frame that corresponds to the filter.
+</UL>
+<a href="#example">EXAMPLE</a>of how these things work
+
+<H3>NOTE:</H3>
+<UL>
+<LI>The sequence is complete when the second-to-last FITS file is
+read (i.e., <I>nextEOF</I> returns a 1).  The last file is <B>not</B> read
+in completely - only enough to fill the overlap. 
+<LI>
+For general use, the <I>frameRows</I> parameter to <I>nextFrameInit</I>
+should be equal to <I>overlapRows</I> plus the number of rows in
+each FITS file.
+</UL>  
+<HR>
+<H2>Example Usage</H2>
+Assume there is a sequence of ten FITS files, each containing 100 rows 
+and 100 columns.  They are located in the current directory and named 
+as follows:  
+<PRE>
+        test-1.fits 
+        test-2.fits
+        ...
+        test-10.fits
+</PRE>
+If you would like to process this sequence of files with an overlap of
+10 rows, then the frame size would be 110 (i.e., number of rows in FITS 
+file plus number of overlap rows).  The following TCL line would 
+initialize the state: 
+<PRE>
+        dervish> set state [nextFrameInit . test- 1 10 .fits 10 110 0]
+</PRE>
+Then the <I>nextFrameGet</I> and <I>nextEOF</I> proc's could be used to read
+each FITS file in the sequence and determine when the last file has been read:
+<PRE>
+        dervish> set region [keylget state frameHandle]
+        dervish> set state [nextFrameGet $state]
+        dervish> if { ![nextEOF state] } then {...do something with $region...}
+</PRE>
+    A loop in a TCL script to do this might look like:
+<PRE>        
+        set state [nextFrameInit . test- 1 10 .fits 10 110 0]
+        set region [keylget state frameHandle]  # Save frame region handle
+        set state [nextFrameGet $state]         # Get first frame
+        while { ![nextEOF $state] } {           # Loop over FITS file sequence
+          ...do something with $region...
+          set state [nextFrameGet $state]       # Get next frame
+        }
+</PRE>
+<HR>
+<H2><A NAME="nextFrameInit">nextFrameInit</A></H2>
+Initializes the keyed list that controls nextFrame.
+<PRE>
+nextFrameInit &lt;dirName&gt; &lt;baseName&gt; &lt;beginFile&gt; &lt;endFile&gt; 
+              &lt;suffixName&gt; &lt;overlapRows&gt; &lt;frameRows&gt; &lt;nfDebug&gt;
+
+       &lt;dirName&gt;	Directory containing FITS files
+       &lt;baseName&gt;	Base component of file names
+       &lt;beginFile&gt;	Beginning (numbered) component of file name
+       &lt;endFile&gt;	Ending (numbered) compenent of file name
+       &lt;suffixName&gt;	Suffix of file names
+       &lt;overlapRows&gt;	Number of rows in overlap
+       &lt;frameRows&gt;	Number of rows in frame (FITS file rows + overlap rows)
+       &lt;nfDebug&gt;	0 = No debug statements;  1 = Print debug statements
+</PRE>
+
+<H2><A NAME="nextFrameGet">nextFrameGet</A></H2>
+Loads up the frame with the next set of rows.
+<PRE>
+nextFrameGet &lt;state&gt;
+       &lt;state&gt;	Frame state
+</PRE>
+
+<H2><A NAME="nextEOF">nextEOF</A></H2>
+Returns 1 if state says it is out of input files, 0 otherwise.
+<PRE>
+nextEOF &lt;state&gt;
+       &lt;state&gt;	Frame state
+</PRE>
+
+
+<hr>
+<H2><A NAME="nextFieldInit">nextFieldInit</A></H2>
+Initializes the keyed list that controls nextField.
+<PRE>
+set fieldState [nextFieldInit &lt;dirName&gt; &lt;filterList&gt; &lt;baseName&gt; &lt;beginFile&gt;
+              &lt;endFile&gt; &lt;suffixName&gt; &lt;overlapRows&gt; &lt;frameRows&gt; &lt;nfDebug&gt;]
+
+       &lt;filterList&gt;	list of filter names, in the order they appear on the tape
+       &lt;dirName&gt;	Directory containing FITS files
+       &lt;baseName&gt;	Base component of file names
+       &lt;beginFile&gt;	Beginning (numbered) component of file name
+       &lt;endFile&gt;	Ending (numbered) compenent of file name
+       &lt;suffixName&gt;	Suffix of file names
+       &lt;overlapRows&gt;	Number of rows in overlap
+       &lt;frameRows&gt;	Number of rows in frame (FITS file rows + overlap rows)
+       &lt;nfDebug&gt;	0 = No debug statements;  1 = Print debug statements
+</PRE>
+
+<H2><A NAME="nextFieldGet">nextFieldGet</A></H2>
+Loads up the set of frames with the next field.
+<PRE>
+set fieldState [nextFieldGet &lt;fieldState&gt;]
+       &lt;fieldState&gt;	Field state
+</PRE>
+
+<h2><a name="regFromFilter">regFromFilter</a></h2>
+Get the handle to the region corresponding to the filter
+<pre>
+regFromFilter &lt;filter&gt; &lt;fieldState&gt;
+</pre>
+<a name="example"><h2>Example</h2></a>
+Here is a proc that reads 7 fields:
+
+<pre>
+proc nextFieldGetExample {dirName iRun iCol} {
+    set baseName run[format %06d $iRun]-c$iCol
+    set hdr [hdrNew]
+    set infoChain [fits2Schema $dirName/$baseName.fieldInfo FI $hdr]
+    set filterList [hdrGetAsAscii $hdr FILTERS]
+    echo call initNextField:
+    set iField 0
+    set debug 1
+    set fieldState [nextFieldInit $filterList \
+	    $dirName $baseName- 0 1000 .fits 200 1554 $debug]
+
+    echo ============================================================
+    echo MemStatsPrint after nextFieldInit:
+    echo [memStatsPrint]
+    echo ============================================================
+
+    echo [timerStart]
+    loop iField 0 7 {
+	# Get the next field
+	echo call nextFieldGet for iField = $iField
+	set fieldState [nextFieldGet $fieldState]
+	echo ============================================================
+	echo MemStatsPrint after nextFieldGet:
+	echo [memStatsPrint]
+	echo ============================================================
+
+	# Do the analysis
+	set memPt [expr 1+[memSerialNumber]]
+	foreach filter $filterList {
+	    echo - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	    set reg [regFromFilter $filter $fieldState]
+	    echo for filter=$filter and reg=$reg
+	    set ccdRow [hdrGetAsInt $reg.hdr CCDROW]
+	    set ccdCol [hdrGetAsInt $reg.hdr CCDCOL]
+	    set frame  [hdrGetAsInt $reg.hdr FRAME]
+	    echo ccdRow=$ccdRow    ccdCol=$ccdCol   frame=$frame
+	    set if [chainElementGetByPos $infoChain $iField]
+	    echo Information from the infoChain:
+	    exprPrint $if
+	    handleDel $if
+	    set reg [regNew 1000 1000]
+	    set reg [regNew 1000 1000]
+	    set reg [regNew 1000 1000]
+	    set reg [regNew 1000 1000]
+	    set reg [regNew 1000 1000]
+	}
+	echo -----------> Free up the memory allocated during iField=$iField
+	memFreeBlocks $memPt [memSerialNumber]
+	echo [timerLap]
+    }
+    return 0
+}
+
+</pre>
+
+And here is its output:
+
+<pre>
+al> nextFieldGetExample /data/dp1.3/astroline/run/601Input 601 3 
+call initNextField:
+--- bufferFill: thisFile=0 endFile=1000
+--- bufferFill: Reading /data/dp1.3/astroline/run/601Input/run000601-c3-000000.fits
+--- bufferFill: thisFile=1 endFile=1000
+--- bufferFill: Reading /data/dp1.3/astroline/run/601Input/run000601-c3-000001.fits
+--- bufferFill: thisFile=2 endFile=1000
+--- bufferFill: Reading /data/dp1.3/astroline/run/601Input/run000601-c3-000002.fits
+--- bufferFill: thisFile=3 endFile=1000
+--- bufferFill: Reading /data/dp1.3/astroline/run/601Input/run000601-c3-000003.fits
+--- bufferFill: thisFile=4 endFile=1000
+--- bufferFill: Reading /data/dp1.3/astroline/run/601Input/run000601-c3-000004.fits
+============================================================
+MemStatsPrint after nextFieldInit:
+
+Number of memory allocation requests:     504
+Number of memory de-allocation requests:  82
+Total bytes currently in use:             103575705
+Total bytes in Free Memory Pool:          9472
+Percentage of memory allocation requests
+  satisfied from Free Memory Pool:        13.10 %
+Percentage of memory allocation requests
+  satisfied from the Operating System:    86.90 %
+
+
+============================================================
+
+call nextFieldGet for iField = 0
+--- bufferFill: thisFile=5 endFile=1000
+--- bufferFill: Reading /data/dp1.3/astroline/run/601Input/run000601-c3-000005.fits
+--- nextEOF: No EOF yet
+--- bufferFill: thisFile=6 endFile=1000
+--- bufferFill: Reading /data/dp1.3/astroline/run/601Input/run000601-c3-000006.fits
+--- nextEOF: No EOF yet
+--- bufferFill: thisFile=7 endFile=1000
+--- bufferFill: Reading /data/dp1.3/astroline/run/601Input/run000601-c3-000007.fits
+--- nextEOF: No EOF yet
+--- bufferFill: thisFile=8 endFile=1000
+--- bufferFill: Reading /data/dp1.3/astroline/run/601Input/run000601-c3-000008.fits
+--- nextEOF: No EOF yet
+--- bufferFill: thisFile=9 endFile=1000
+--- bufferFill: Reading /data/dp1.3/astroline/run/601Input/run000601-c3-000009.fits
+--- nextEOF: No EOF yet
+============================================================
+MemStatsPrint after nextFieldGet:
+
+Number of memory allocation requests:     1164
+Number of memory de-allocation requests:  492
+Total bytes currently in use:             103617170
+Total bytes in Free Memory Pool:          19200
+Percentage of memory allocation requests
+  satisfied from Free Memory Pool:        40.81 %
+Percentage of memory allocation requests
+  satisfied from the Operating System:    59.19 %
+
+
+============================================================
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+for filter=r and reg=h5
+ccdRow=1 ccdCol=3 frame=15
+Information from the infoChain:
+lambda     -2.89377777
+eta        0
+time       50893.3391839
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+for filter=i and reg=h8
+ccdRow=2 ccdCol=3 frame=17
+Information from the infoChain:
+lambda     -2.89377777
+eta        0
+time       50893.3391839
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+for filter=u and reg=h11
+ccdRow=3 ccdCol=3 frame=19
+Information from the infoChain:
+lambda     -2.89377777
+eta        0
+time       50893.3391839
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+for filter=z and reg=h14
+ccdRow=4 ccdCol=3 frame=21
+Information from the infoChain:
+lambda     -2.89377777
+eta        0
+time       50893.3391839
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+for filter=g and reg=h17
+ccdRow=5 ccdCol=3 frame=23
+Information from the infoChain:
+lambda     -2.89377777
+eta        0
+time       50893.3391839
+-----------> Free up the memory allocated during iField=0
+{ELAPSED 40.881} {CPU {{OVERALL 30.970} {UTIME 25.360} {STIME 5.610} {CUTIME 0.000} {CSTIME 0.000}}}
+call nextFieldGet for iField = 1
+--- bufferFill: thisFile=10 endFile=1000
+--- bufferFill: Reading /data/dp1.3/astroline/run/601Input/run000601-c3-000010.fits
+--- nextEOF: No EOF yet
+--- bufferFill: thisFile=11 endFile=1000
+--- bufferFill: Reading /data/dp1.3/astroline/run/601Input/run000601-c3-000011.fits
+--- nextEOF: No EOF yet
+--- bufferFill: thisFile=12 endFile=1000
+--- bufferFill: Reading /data/dp1.3/astroline/run/601Input/run000601-c3-000012.fits
+--- nextEOF: No EOF yet
+--- bufferFill: thisFile=13 endFile=1000
+--- bufferFill: Reading /data/dp1.3/astroline/run/601Input/run000601-c3-000013.fits
+--- nextEOF: No EOF yet
+--- bufferFill: thisFile=14 endFile=1000
+--- bufferFill: Reading /data/dp1.3/astroline/run/601Input/run000601-c3-000014.fits
+--- nextEOF: No EOF yet
+============================================================
+MemStatsPrint after nextFieldGet:
+
+Number of memory allocation requests:     1984
+Number of memory de-allocation requests:  1312
+Total bytes currently in use:             103617170
+Total bytes in Free Memory Pool:          50138240
+Percentage of memory allocation requests
+  satisfied from Free Memory Pool:        59.17 %
+Percentage of memory allocation requests
+  satisfied from the Operating System:    40.83 %
+
+
+============================================================
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+for filter=r and reg=h5
+ccdRow=1 ccdCol=3 frame=16
+Information from the infoChain:
+lambda     -2.59288889
+eta        0
+time       50893.3400198
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+for filter=i and reg=h8
+ccdRow=2 ccdCol=3 frame=18
+Information from the infoChain:
+lambda     -2.59288889
+eta        0
+time       50893.3400198
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+for filter=u and reg=h11
+ccdRow=3 ccdCol=3 frame=20
+Information from the infoChain:
+lambda     -2.59288889
+eta        0
+time       50893.3400198
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+for filter=z and reg=h14
+ccdRow=4 ccdCol=3 frame=22
+Information from the infoChain:
+lambda     -2.59288889
+eta        0
+time       50893.3400198
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+for filter=g and reg=h17
+ccdRow=5 ccdCol=3 frame=24
+Information from the infoChain:
+lambda     -2.59288889
+eta        0
+time       50893.3400198
+-----------> Free up the memory allocated during iField=1
+{ELAPSED 77.152} {CPU {{OVERALL 58.760} {UTIME 49.790} {STIME 8.970} {CUTIME 0.000} {CSTIME 0.000}}}
+call nextFieldGet for iField = 2
+--- bufferFill: thisFile=15 endFile=1000
+--- bufferFill: Reading /data/dp1.3/astroline/run/601Input/run000601-c3-000015.fits
+--- nextEOF: No EOF yet
+--- bufferFill: thisFile=16 endFile=1000
+--- bufferFill: Reading /data/dp1.3/astroline/run/601Input/run000601-c3-000016.fits
+--- nextEOF: No EOF yet
+--- bufferFill: thisFile=17 endFile=1000
+--- bufferFill: Reading /data/dp1.3/astroline/run/601Input/run000601-c3-000017.fits
+--- nextEOF: No EOF yet
+--- bufferFill: thisFile=18 endFile=1000
+--- bufferFill: Reading /data/dp1.3/astroline/run/601Input/run000601-c3-000018.fits
+--- nextEOF: No EOF yet
+--- bufferFill: thisFile=19 endFile=1000
+--- bufferFill: Reading /data/dp1.3/astroline/run/601Input/run000601-c3-000019.fits
+--- nextEOF: No EOF yet
+============================================================
+MemStatsPrint after nextFieldGet:
+
+Number of memory allocation requests:     2804
+Number of memory de-allocation requests:  2132
+Total bytes currently in use:             103617170
+Total bytes in Free Memory Pool:          50138240
+Percentage of memory allocation requests
+  satisfied from Free Memory Pool:        71.11 %
+Percentage of memory allocation requests
+  satisfied from the Operating System:    28.89 %
+
+
+============================================================
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+for filter=r and reg=h5
+ccdRow=1 ccdCol=3 frame=17
+Information from the infoChain:
+lambda     -2.292
+eta        0
+time       50893.3408556
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+for filter=i and reg=h8
+ccdRow=2 ccdCol=3 frame=19
+Information from the infoChain:
+lambda     -2.292
+eta        0
+time       50893.3408556
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+for filter=u and reg=h11
+ccdRow=3 ccdCol=3 frame=21
+Information from the infoChain:
+lambda     -2.292
+eta        0
+time       50893.3408556
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+for filter=z and reg=h14
+ccdRow=4 ccdCol=3 frame=23
+Information from the infoChain:
+lambda     -2.292
+eta        0
+time       50893.3408556
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+for filter=g and reg=h17
+ccdRow=5 ccdCol=3 frame=25
+Information from the infoChain:
+lambda     -2.292
+eta        0
+time       50893.3408556
+-----------> Free up the memory allocated during iField=2
+{ELAPSED 123.107} {CPU {{OVERALL 86.720} {UTIME 74.190} {STIME 12.530} {CUTIME 0.000} {CSTIME 0.000}}}
+call nextFieldGet for iField = 3
+--- bufferFill: thisFile=20 endFile=1000
+--- bufferFill: Reading /data/dp1.3/astroline/run/601Input/run000601-c3-000020.fits
+--- nextEOF: No EOF yet
+--- bufferFill: thisFile=21 endFile=1000
+--- bufferFill: Reading /data/dp1.3/astroline/run/601Input/run000601-c3-000021.fits
+--- nextEOF: No EOF yet
+--- bufferFill: thisFile=22 endFile=1000
+--- bufferFill: Reading /data/dp1.3/astroline/run/601Input/run000601-c3-000022.fits
+--- nextEOF: No EOF yet
+--- bufferFill: thisFile=23 endFile=1000
+--- bufferFill: Reading /data/dp1.3/astroline/run/601Input/run000601-c3-000023.fits
+--- nextEOF: No EOF yet
+--- bufferFill: thisFile=24 endFile=1000
+--- bufferFill: Reading /data/dp1.3/astroline/run/601Input/run000601-c3-000024.fits
+--- nextEOF: No EOF yet
+============================================================
+MemStatsPrint after nextFieldGet:
+
+Number of memory allocation requests:     3624
+Number of memory de-allocation requests:  2952
+Total bytes currently in use:             103617170
+Total bytes in Free Memory Pool:          50138240
+Percentage of memory allocation requests
+  satisfied from Free Memory Pool:        77.65 %
+Percentage of memory allocation requests
+  satisfied from the Operating System:    22.35 %
+
+
+============================================================
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+for filter=r and reg=h5
+ccdRow=1 ccdCol=3 frame=18
+Information from the infoChain:
+lambda     -1.99111111
+eta        0
+time       50893.3416914
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+for filter=i and reg=h8
+ccdRow=2 ccdCol=3 frame=20
+Information from the infoChain:
+lambda     -1.99111111
+eta        0
+time       50893.3416914
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+for filter=u and reg=h11
+ccdRow=3 ccdCol=3 frame=22
+Information from the infoChain:
+lambda     -1.99111111
+eta        0
+time       50893.3416914
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+for filter=z and reg=h14
+ccdRow=4 ccdCol=3 frame=24
+Information from the infoChain:
+lambda     -1.99111111
+eta        0
+time       50893.3416914
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+for filter=g and reg=h17
+ccdRow=5 ccdCol=3 frame=26
+Information from the infoChain:
+lambda     -1.99111111
+eta        0
+time       50893.3416914
+-----------> Free up the memory allocated during iField=3
+{ELAPSED 172.125} {CPU {{OVERALL 114.380} {UTIME 98.570} {STIME 15.810} {CUTIME 0.000} {CSTIME 0.000}}}
+call nextFieldGet for iField = 4
+--- bufferFill: thisFile=25 endFile=1000
+--- bufferFill: Reading /data/dp1.3/astroline/run/601Input/run000601-c3-000025.fits
+--- nextEOF: No EOF yet
+--- bufferFill: thisFile=26 endFile=1000
+--- bufferFill: Reading /data/dp1.3/astroline/run/601Input/run000601-c3-000026.fits
+--- nextEOF: No EOF yet
+--- bufferFill: thisFile=27 endFile=1000
+--- bufferFill: Reading /data/dp1.3/astroline/run/601Input/run000601-c3-000027.fits
+--- nextEOF: No EOF yet
+--- bufferFill: thisFile=28 endFile=1000
+--- bufferFill: Reading /data/dp1.3/astroline/run/601Input/run000601-c3-000028.fits
+--- nextEOF: No EOF yet
+--- bufferFill: thisFile=29 endFile=1000
+--- bufferFill: Reading /data/dp1.3/astroline/run/601Input/run000601-c3-000029.fits
+--- nextEOF: No EOF yet
+============================================================
+MemStatsPrint after nextFieldGet:
+
+Number of memory allocation requests:     4444
+Number of memory de-allocation requests:  3772
+Total bytes currently in use:             103617170
+Total bytes in Free Memory Pool:          50138240
+Percentage of memory allocation requests
+  satisfied from Free Memory Pool:        81.77 %
+Percentage of memory allocation requests
+  satisfied from the Operating System:    18.23 %
+
+
+============================================================
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+for filter=r and reg=h5
+ccdRow=1 ccdCol=3 frame=19
+Information from the infoChain:
+lambda     -1.69022222
+eta        0
+time       50893.3425272
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+for filter=i and reg=h8
+ccdRow=2 ccdCol=3 frame=21
+Information from the infoChain:
+lambda     -1.69022222
+eta        0
+time       50893.3425272
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+for filter=u and reg=h11
+ccdRow=3 ccdCol=3 frame=23
+Information from the infoChain:
+lambda     -1.69022222
+eta        0
+time       50893.3425272
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+for filter=z and reg=h14
+ccdRow=4 ccdCol=3 frame=25
+Information from the infoChain:
+lambda     -1.69022222
+eta        0
+time       50893.3425272
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+for filter=g and reg=h17
+ccdRow=5 ccdCol=3 frame=27
+Information from the infoChain:
+lambda     -1.69022222
+eta        0
+time       50893.3425272
+-----------> Free up the memory allocated during iField=4
+{ELAPSED 201.786} {CPU {{OVERALL 141.560} {UTIME 122.850} {STIME 18.710} {CUTIME 0.000} {CSTIME 0.000}}}
+call nextFieldGet for iField = 5
+--- bufferFill: thisFile=30 endFile=1000
+--- bufferFill: Reading /data/dp1.3/astroline/run/601Input/run000601-c3-000030.fits
+--- nextEOF: No EOF yet
+--- bufferFill: thisFile=31 endFile=1000
+--- bufferFill: Reading /data/dp1.3/astroline/run/601Input/run000601-c3-000031.fits
+--- nextEOF: No EOF yet
+--- bufferFill: thisFile=32 endFile=1000
+--- bufferFill: Reading /data/dp1.3/astroline/run/601Input/run000601-c3-000032.fits
+--- nextEOF: No EOF yet
+--- bufferFill: thisFile=33 endFile=1000
+--- bufferFill: Reading /data/dp1.3/astroline/run/601Input/run000601-c3-000033.fits
+--- nextEOF: No EOF yet
+--- bufferFill: thisFile=34 endFile=1000
+--- bufferFill: Reading /data/dp1.3/astroline/run/601Input/run000601-c3-000034.fits
+--- nextEOF: No EOF yet
+============================================================
+MemStatsPrint after nextFieldGet:
+
+Number of memory allocation requests:     5264
+Number of memory de-allocation requests:  4592
+Total bytes currently in use:             103617170
+Total bytes in Free Memory Pool:          50138240
+Percentage of memory allocation requests
+  satisfied from Free Memory Pool:        84.61 %
+Percentage of memory allocation requests
+  satisfied from the Operating System:    15.39 %
+
+
+============================================================
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+for filter=r and reg=h5
+ccdRow=1 ccdCol=3 frame=20
+Information from the infoChain:
+lambda     -2.74333334
+eta        0
+time       50893.3396019
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+for filter=i and reg=h8
+ccdRow=2 ccdCol=3 frame=22
+Information from the infoChain:
+lambda     -2.74333334
+eta        0
+time       50893.3396019
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+for filter=u and reg=h11
+ccdRow=3 ccdCol=3 frame=24
+Information from the infoChain:
+lambda     -2.74333334
+eta        0
+time       50893.3396019
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+for filter=z and reg=h14
+ccdRow=4 ccdCol=3 frame=26
+Information from the infoChain:
+lambda     -2.74333334
+eta        0
+time       50893.3396019
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+for filter=g and reg=h17
+ccdRow=5 ccdCol=3 frame=28
+Information from the infoChain:
+lambda     -2.74333334
+eta        0
+time       50893.3396019
+-----------> Free up the memory allocated during iField=5
+{ELAPSED 228.413} {CPU {{OVERALL 167.250} {UTIME 146.940} {STIME 20.310} {CUTIME 0.000} {CSTIME 0.000}}}
+call nextFieldGet for iField = 6
+--- bufferFill: thisFile=35 endFile=1000
+--- bufferFill: Reading /data/dp1.3/astroline/run/601Input/run000601-c3-000035.fits
+--- nextEOF: No EOF yet
+--- bufferFill: thisFile=36 endFile=1000
+--- bufferFill: Reading /data/dp1.3/astroline/run/601Input/run000601-c3-000036.fits
+--- nextEOF: No EOF yet
+--- bufferFill: thisFile=37 endFile=1000
+--- bufferFill: Reading /data/dp1.3/astroline/run/601Input/run000601-c3-000037.fits
+--- nextEOF: No EOF yet

@@ -1,0 +1,31 @@
+<TITLE>FSAOimage - Fermi Modified SAOimage</TITLE>
+<H1>FERMI Modifications to SAOimage</H1>
+<P>The following modifications have been made to the SAOimage program to create
+FSAOimage.
+<UL>
+<LI>The display of the current cursor coordinates in the upper left window
+of FSAOimage is now in (row, column) format. SAOimage displays the
+coordinates in (column, row) format.
+<LI>A Fermi cursor has been defined when FSAOimage is put in Cursor mode.
+(This is done by hitting the Cursor button in the FSAOimage button menu
+panel.) Once FSAOimage is put in cursor mode, it will send the current
+coordinates of the cursor to the user program whenever a mouse button
+is hit or whenever the CTRL key and a mouse button are hit
+concurrently.  DERVISH contains TCL commands to allow the user to define
+the action that should be taken when these coordinates are received.
+<LI>The labels for cursors are displayed in the format (row,column). SAOimage
+displays these labels as (column,row).
+<LI>The coordinates of the upper left corner of the image in the main image
+display window are 0,0.  The SAOimage default is 1,1.
+<LI>DERVISH masks can be displayed over the image.
+	<UL>
+	<LI>	When saoMaskDisplay is executed, the masked image will be
+		displayed.  Toggling between the masked image and unmasked
+		image is done with the right mouse button (on a right-handed
+		mouse) when in scale (SOP) mode.  [<EM>This takes away one of
+		the blink buttons when in scale (SOP) mode.</EM>]
+	</UL>
+</UL>
+See also <A HREF=tclSaoDisplay.c.html>saoDisplay</A>,
+<A HREF=tclSaoMouse.c.html#mouseDefine>mouseDefine</A>,
+<A HREF=saoMaskDisplay.c.html>saoMaskDisplay</A>.

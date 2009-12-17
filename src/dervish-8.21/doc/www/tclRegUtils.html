@@ -1,0 +1,766 @@
+<HTML>
+<TITLE>tclRegUtils.html</TITLE>
+<H1>Simple Region Manipulation</H1>
+<P>
+These region utilities will operate on regions whose
+pixels are of any supported type.  Procedures which 
+take more than one region as parameters require that all
+regions have the same number of rows and columns.
+
+<H2>Arithmetic</H2>
+
+Arithmetic operations are performed "as if" all operations were
+converted to a type which has an exact representation for all the
+values of each type of pixel.
+
+<P>Before a result is stored back into a pixel the following conversions
+are performed: 1) If the result is smaller (largest) than the
+smallest (largest) value representable in a pixel, it is set to that
+small (large) value. 2)If any of the operands were a floating-point
+type, and the result is an integer type, the result is rounded down after
+0.5 (-0.5) has been added to positive (negative) values.
+
+
+<H2>Rows and Columns</H2>
+
+<P> ROW and COLUMN operands which locate specific pixels in a region
+may be specified as either floating point or decimal numbers. 0.0,
+0, 0.5, or 0.9 all refer to the row or column 0.
+
+<DIR>
+<LI><A HREF=tclRegUtils.html#regInfoGet>regInfoGet</A>
+<LI><A HREF=tclRegUtils.html#regListNames>regListNames</A>
+<LI><A HREF=tclRegUtils.html#regTypeSwitch>regTypeSwitch</A>
+<LI><A HREF=tclRegUtils.html#regSetWithDbl>regSetWithDbl</A>
+<LI><A HREF=tclRegUtils.html#regSubtract>regSubtract</A>
+<LI><A HREF=tclRegUtils.html#regAddWithDbl>regAddWithDbl</A>
+<LI><A HREF=tclRegUtils.html#regAdd>regAdd</A>
+<LI><A HREF=tclRegUtils.html#regPixSetWithDbl>regPixSetWithDbl</A>
+<LI><A HREF=tclRegUtils.html#regPixGet>regPixGet</A>
+<LI><A HREF=tclRegUtils.html#regComp>regComp</A>
+<LI><A HREF=tclRegUtils.html#regRowFlip>regRowFlip</A>
+<LI><A HREF=tclRegUtils.html#regColFlip>regColFlip</A>
+<LI><A HREF=tclRegUtils.html#regMultiplyWithDbl>regMultiplyWithDbl</A>
+<LI><A HREF=tclRegUtils.html#regMultiply>regMultiply</A>
+<LI><A HREF=tclRegUtils.html#regDivide>regDivide</A>
+<LI><A HREF=tclRegUtils.html#regAddCol>regAddCol</A>
+<LI><A HREF=tclRegUtils.html#regAddRow>regAddRow</A>
+<LI><A HREF=tclRegUtils.html#regSubCol>regSubCol</A>
+<LI><A HREF=tclRegUtils.html#regSubRow>regSubRow</A>
+<LI><A HREF=tclRegUtils.html#regMultWithRow>regMultWithRow</A>
+<LI><A HREF=tclRegUtils.html#regMultWithCol>regMultWithCol</A>
+<LI><A HREF=tclRegUtils.html#regDivByRow>regDivByRow</A>
+<LI><A HREF=tclRegUtils.html#regDivByCol>regDivByCol</A>
+<LI><A HREF=tclRegUtils.html#regMaskGetAsPix>regMaskGetAsPix</A>
+<LI><A HREF=tclRegUtils.html#regMaskSetAsPix>regMaskSetAsPix</A>
+<LI><A HREF=tclRegUtils.html#regMaskSet>regMaskSet</A>
+<LI><A HREF=tclRegUtils.html#regMaskCopy>regMaskCopy</A>
+<LI><A HREF=tclRegUtils.html#regPixCopy>regPixCopy</A>
+</DIR>
+<PRE></PRE>
+
+<H2><A NAME="regInfoGet">regInfoGet</A></H2>
+
+<P>Return a Tcl list of region information.  The information returned includes
+
+<LISTING>
+           nrow
+           ncol
+           type
+           name
+           row0
+           col0
+           modCntr
+           isSubReg
+           isPhysical
+           physicalRegNum
+           pxAreContiguous
+           hasHeader
+           headerModCntr
+           nSubReg
+           hasMask
+
+
+TCL SYNTAX:
+   regInfoGet &lt;handle&gt;
+
+
+</LISTING>
+<PRE></PRE>
+
+<H2><A NAME="regListNames">regListNames</A></H2>
+
+<P>Return a Tcl list of the handle names that are attached to a region.  This
+Tcl procedure uses <EM>handleListFromType</EM>.
+
+<LISTING>
+TCL SYNTAX:
+   regListNames
+
+
+</LISTING>
+<PRE></PRE>
+
+<H2><A NAME="regTypeSwitch">regTypeSwitch</A></H2>
+
+<P>Switch the pixel type of the entered region.  The type is
+switched to either the entered type (if allowed) or to the 
+logically correct type.  The following switches are allowed.
+<DIR>
+<LI>signed 8-bit data to unsigned 8-bit data and vice versa
+<LI>signed 16-bit data to unsigned 16-bit data and vice versa
+<LI>signed 32-bit data to unsigned 32-bit data and vice versa
+</DIR>
+For example, if an unsigned 8-bit region is entered and no 
+type is entered, the region will have it's type switched to
+signed 8-bit.  In all cases the pixels remain untouched.
+
+<P>Regions with pixel types equal to floating point, cannot be
+switched to any other type.
+
+<LISTING>
+TCL SYNTAX:
+   regTypeSwitch &lt;region&gt; [type]
+
+        &lt;region&gt;        Handle to region.
+        [type]          Pixel type to switch the region's pixel type to.
+                         Allowed values are - U8, S8, U16, S16, U32, S32.
+                               
+RETURNS:
+   TCL_OK	Successful completion. The Interp result string is null.
+   TCL_ERROR	Error occurred.  The Interp result string explain the error
+
+</LISTING>
+<PRE></PRE>
+
+<H2><A NAME="regSetWithDbl">regSetWithDbl</A></H2>
+
+<P> Sets all pixels in REGION to the value implied by DOUBLE.
+REGION may have pixels of any type. 
+Type conversions are performed as described in 
+<A HREF=tclRegUtils.html#Arithmetic>Arithmetic </A>.
+
+<LISTING>
+TCL SYNTAX:
+   regSetWithDbl &lt;region&gt; &lt;double&gt;
+
+   &lt;region&gt;	Handle to region.
+   &lt;double&gt;	Number which can be converted to a floating point number.
+                               
+RETURNS:
+   TCL_OK	Successful completion. The Interp result string is null.
+   TCL_ERROR	Error occurred.  The Interp result string explain the error
+
+</LISTING>
+<PRE></PRE>
+
+
+<H2><A NAME="regSubtract">regSubtract</A></H2>
+<P>
+This procedure subtracts REGION2  from REGION1 pixel-by-pixel.
+If regOut is present, store the result there; else store the 
+result in REGION1. The regions may have pixels of any type. 
+Type conversions are performed as described in 
+<A HREF=tclRegUtils.html#Arithmetic>Arithmetic </A>.
+
+<LISTING>
+TCL SYNTAX:
+   regSubtract &lt;region1&gt; &lt;region2&gt; [-regOut reg]
+	 
+   &lt;region1&gt;	Required handle to region holding minuend pixels
+   &lt;region2&gt;	Required handle to region holding subtrahend pixels.
+   [-regOut]	Optional Handle to region to receive the 
+		resulting pixels. If Not specified, REGION1 is used.
+   
+                               
+RETURNS:
+   TCL_OK	Successful completion.
+   TCL_ERROR	Error occurred.  The Interp result string explains why.
+</LISTING>
+<PRE></PRE>
+
+
+
+<H2><A NAME="regAddWithDbl">regAddWithDbl</A></H2>
+<P>
+This procedure adds NUMBER to each pixel in REGIN. If REGOUT is present, store
+the result there; else store the result in REGIN. NUMBER may have the syntax
+of a floating point or decimal integer. The regions may be of differing types.
+Type conversions are performed as described in
+<A HREF=tclRegUtils.html#Arithmetic>Arithmetic </A>.
+
+
+<LISTING>
+TCL SYNTAX:
+   regAddWithDbl &lt;regIn&gt; &lt;number&gt; [-regOut reg]
+	 
+   &lt;regIn&gt;	Required handle to region supplying the pixels.
+   &lt;number&gt;	Required decimal or floating-point number.
+   [-regOut]	Optional handle to region receiving the pixels.
+		If not specified REGIN is used.
+                               
+RETURNS:
+   TCL_OK	Successful completion.
+   TCL_ERROR	Error occurred.  The Interp result explains the error.
+
+</LISTING>
+<PRE></PRE>
+
+
+
+<H2><A NAME="regAdd">regAdd</A></H2>
+<P>
+This procedure adds REGION1 to REGION2 pixel-by-pixel.
+If regOut is present, store the result there; else store the 
+result in REGION1.  The regions may be of differing types.  
+Type conversions are performed as described in 
+<A HREF=tclRegUtils.html#Arithmetic>Arithmetic </A>.
+
+<LISTING>
+TCL SYNTAX:
+   regAdd &lt;addend1&gt; &lt;addend2&gt; [-regOut reg] 
+	 
+   &lt;addend1&gt;	Required handle to region.
+   &lt;addend2&gt;	Required handle to region.
+   [-regOut]	Optional handle to region receiving the result
+		If not supplied, ADDEND1 is used.
+                               
+RETURNS:
+   TCL_OK	Successful completion.
+   TCL_ERROR	Error occurred.  The Interp result explains the error.
+
+</LISTING>
+<PRE></PRE>
+
+
+
+<H2><A NAME="regPixSetWithDbl">regPixSetWithDbl</A></H2>
+<P>
+The pixel in REGION specified by ROW and COL is set to NUMBER.
+NUMBER may be floating point or decimal. 
+<A HREF=tclRegUtils.html#Rows and Columns >Row or Column </A>.
+may be specified using decimal or floating-point number
+Type conversions are performed as described in 
+<A HREF=tclRegUtils.html#Arithmetic>Arithmetic </A>.
+
+<LISTING>
+TCL SYNTAX:
+   regPixSetWithDbl &lt;region&gt; &lt;row&gt; &lt;column&gt; &lt;number&gt; 
+	 
+   &lt;region&gt;	Required handle to region holding pixel to be set.
+   &lt;row&gt;	Required row number of pixel to be set.
+   &lt;column&gt;	Required column number of pixel to be set.
+   &lt;number&gt;	Required value to set as decimal or floating point number. 
+                               
+RETURNS:
+   TCL_OK	Successful completion.
+   TCL_ERROR	Error occurred.  The Interp result string will contain
+		the error string.
+</LISTING>
+<PRE></PRE>
+
+
+
+<H2><A NAME="regPixGet">regPixGet</A></H2>
+<P>
+Return the pixel in REGION at location ROW, COL. The pixel is formatted
+in a way appropriate to the type of the pixels in REGION. ROW and COLUMN 
+may be specified as either decimal or floating point numbers. 
+<A HREF=tclRegUtils.html#Rows and Columns >Row or Column </A>.
+may be specified using decimal or floating-point number
+Type conversions are performed as described in 
+<A HREF=tclRegUtils.html#Arithmetic>Arithmetic </A>.
+
+<LISTING>
+TCL SYNTAX:
+   regPixGet &lt;region&gt; &lt;row&gt; &lt;column&gt;
+	 
+   &lt;region&gt;	Required handle to region supplying the pixel.
+   &lt;row&gt;	Required row number of pixel.
+   &lt;column&gt;	Required column number of pixel.
+                               
+RETURNS:
+   TCL_OK	Successful completion. The Interp result contains the pixel.
+   TCL_ERROR	Error occurred.  The Interp result explains the error.
+
+</LISTING>
+<PRE></PRE>
+
+
+
+<H2><A NAME="regComp">regComp</A></H2>
+<P>
+Compare REGION1 to REGION2 pixel-by-pixel after applying the arithmetic
+conversions described at the top of this file.  Return the string "same"
+if all the pixels are equivalent. If not, return a keyed list with keys 
+"row" and "col" set to the coordinates of a pixel which is not equivalent.
+Type conversions are performed as described in 
+<A HREF=tclRegUtils.html#Arithmetic>Arithmetic </A>.
+
+<LISTING>
+TCL SYNTAX:
+   regComp &lt;region1&gt; &lt;region2&gt; 
+	 
+   &lt;region1&gt;	Required Handle to region holding pixels to compare.
+   &lt;region2&gt;	Required Handle to region holding pixels to compare.
+                               
+RETURNS:
+   TCL_OK	Successful completion.
+   TCL_ERROR	Error occurred.  The Interp result explains the error.
+
+</LISTING>
+<PRE></PRE>
+
+
+<H2><A NAME="regRowFlip">regRowFlip</A></H2>
+<P>
+Flip the pixels in REGION row-wise by copying the pixels.
+
+<LISTING>
+TCL SYNTAX:
+   regRowFlip &lt;region&gt;
+	 
+   &lt;region&gt;	Required Handle of region to flip.
+
+                               
+RETURNS:
+   TCL_OK	Successful completion.
+   TCL_ERROR	Error occurred.  The Interp result explains the error
+
+</LISTING>
+<PRE></PRE>
+
+
+<H2><A NAME="regColFlip">regColFlip</A></H2>
+<P>
+Flip the pixels in REGION column-wise by copying the pixels.
+
+
+<LISTING>
+TCL SYNTAX:
+   regionRowFlip &lt;region&gt; 
+	 
+   &lt;region&gt;	Required Handle of region to flip.
+
+                               
+RETURNS:
+   TCL_OK	Successful completion.
+   TCL_ERROR	Error occurred.  The Interp result explains the error.
+</LISTING>
+<PRE></PRE>
+
+
+<H2><A NAME="regMultiplyWithDbl">regMultiplyWithDbl</A></H2>
+<P>
+Set each pixel in the resulting region to the product of the corresponding
+pixel in REGIN and NUMBER after applying the conversions specified 
+at the top of this file. If regOut is not specified, place the result in 
+REGIN. 
+Type conversions are performed as described in 
+<A HREF=tclRegUtils.html#Arithmetic>Arithmetic </A>.
+
+<LISTING>
+TCL SYNTAX:
+   regMultiplyWithDbl &lt;regIn&gt; &lt;number&gt; [-regOut reg] 
+	 
+   &lt;regIn&gt;	Required handle of region supplying the pixels.
+   &lt;number&gt;	Required floating point or decimal number.
+   [-regOut]	Optional handle of region receiving the pixels.
+		If absent, REGIN is used.
+                               
+RETURNS:
+   TCL_OK	Successful completion.
+   TCL_ERROR	Error occurred.  The Interp result explains the error.
+
+</LISTING>
+<PRE></PRE>
+
+
+<H2><A NAME="regMultiply">regMultiply</A></H2>
+<P>
+
+Set each pixel in the resulting region to the product of the corresponding
+pixels in MULT1 and MULT2 divided by SCALE.  If -regOut is omitted, the 
+result is MUTL1. If scale is omitted, use 1.0. The regions may be of different
+types. The arithmetic conversions specified at the file are performed.
+Type conversions are performed as described in 
+<A HREF=tclRegUtils.html#Arithmetic>Arithmetic </A>.
+
+<LISTING>
+TCL SYNTAX:
+   regMultiply [-scale SCALE] [-regOut reg] &lt;mult1&gt; &lt;mult2&gt;
+	 
+   [-scale]	Optional decimal or floating point number divisor
+   [-regOut]	Optional output region
+   &lt;mult1&gt;	Required handle to region.
+   &lt;mult2&gt;	Required handle to region.
+                               
+RETURNS:
+   TCL_OK	Successful completion.
+   TCL_ERROR	Error occurred.  The Interp result explains the error.
+
+</LISTING>
+<PRE></PRE>
+
+
+<H2><A NAME="regDivide">regDivide</A></H2>
+<P>
+
+Set each pixel in the resulting region to the corresponding pixel in
+DIVIDEND divided by DIVISOR. If -scale is present, the (intermediate)
+result is multiplied by the value SCALE.  DIVIDEND is the result unless
+the -regOut switch is present. The regions may be of different
+types. The arithmetic conversions specified at the file are performed.
+Type conversions are performed as described in 
+<A HREF=tclRegUtils.html#Arithmetic>Arithmetic </A>.
+
+<LISTING>
+TCL SYNTAX:
+   regDivide [-scale SCALE] [-regOut reg] &lt;dividend&gt; &lt;divisor&gt;
+	 
+   &lt;dividend&gt;	Required dividend.
+   &lt;divisor&gt;	Required divisor.
+   [-scale]	Optional switch giving multiplicative scale factor
+   [-regOut]	Optional switch giving output region
+                               
+RETURNS:
+   TCL_OK	Successful completion.
+   TCL_ERROR	Error occurred.  The Interp result explains the error.
+
+</LISTING>
+<PRE></PRE>
+
+
+
+<H2><A NAME="regAddRow">regAddRow</A></H2>
+<P>
+This procedure adds ROWVECTOR to REGION1 pixel-by-pixel,
+row-by-row.  If regOut is present, store the result there;
+else store the result in REGION1.  The regions may be of differing types.  
+Type conversions are performed as described in 
+<A HREF=tclRegUtils.html#Arithmetic>Arithmetic </A>.
+
+<LISTING>
+TCL SYNTAX:
+   regAddRow &lt;region1&gt; &lt;rowvector&gt; [-regOut reg] 
+	 
+   &lt;region1&gt;	Required handle to region.
+   &lt;rowvector&gt;	Required handle to the row.
+   [-regOut]	Optional handle to region receiving the result
+		If not supplied, REGION1 is used.
+                               
+RETURNS:
+   TCL_OK	Successful completion.
+   TCL_ERROR	Error occurred.  The Interp result explains the error.
+
+</LISTING>
+<PRE></PRE>
+
+
+<H2><A NAME="regAddCol">regAddCol</A></H2>
+<P>
+This procedure adds COLVECTOR to REGION1 pixel-by-pixel,
+column-by-column.  If regOut is present, store the result there;
+else store the result in REGION1.  The regions may be of differing types.  
+Type conversions are performed as described in 
+<A HREF=tclRegUtils.html#Arithmetic>Arithmetic </A>.
+
+<LISTING>
+TCL SYNTAX:
+   regAddCol &lt;region1&gt; &lt;colvector&gt; [-regOut reg] 
+	 
+   &lt;region1&gt;	Required handle to region.
+   &lt;colvector&gt;	Required handle to the column.
+   [-regOut]	Optional handle to region receiving the result
+		If not supplied, REGION1 is used.
+                               
+RETURNS:
+   TCL_OK	Successful completion.
+   TCL_ERROR	Error occurred.  The Interp result explains the error.
+
+</LISTING>
+<PRE></PRE>
+
+
+<H2><A NAME="regSubRow">regSubRow</A></H2>
+<P>
+This procedure subtracts ROWVECTOR from REGION1 pixel-by-pixel,
+row-by-row.  If regOut is present, store the result there;
+else store the result in REGION1.  The regions may be of differing types.  
+Type conversions are performed as described in 
+<A HREF=tclRegUtils.html#Arithmetic>Arithmetic </A>.
+
+<LISTING>
+TCL SYNTAX:
+   regSubRow &lt;region1&gt; &lt;rowvector&gt; [-regOut reg] 
+	 
+   &lt;region1&gt;	Required handle to region.
+   &lt;rowvector&gt;	Required handle to the row.
+   [-regOut]	Optional handle to region receiving the result
+		If not supplied, REGION1 is used.
+                               
+RETURNS:
+   TCL_OK	Successful completion.
+   TCL_ERROR	Error occurred.  The Interp result explains the error.
+
+</LISTING>
+<PRE></PRE>
+
+
+<H2><A NAME="regSubCol">regSubCol</A></H2>
+<P>
+This procedure subtracts COLVECTOR from REGION1 pixel-by-pixel,
+column-by-column.  If regOut is present, store the result there;
+else store the result in REGION1.  The regions may be of differing types.  
+Type conversions are performed as described in 
+<A HREF=tclRegUtils.html#Arithmetic>Arithmetic </A>.
+
+<LISTING>
+TCL SYNTAX:
+   regSubCol &lt;region1&gt; &lt;colvector&gt; [-regOut reg] 
+	 
+   &lt;region1&gt;	Required handle to region.
+   &lt;colvector&gt;	Required handle to the column.
+   [-regOut]	Optional handle to region receiving the result
+		If not supplied, REGION1 is used.
+                               
+RETURNS:
+   TCL_OK	Successful completion.
+   TCL_ERROR	Error occurred.  The Interp result explains the error.
+
+</LISTING>
+<PRE></PRE>
+
+
+<H2><A NAME="regMultWithRow">regMultWithRow</A></H2>
+<P>
+
+Multiply each pixel in MULT1 by the corresponding (same column) pixel
+in ROWVECTOR, divide the result by SCALE (which is set to 1.0 if not
+specified) and store the result in the output region
+(store in MULT1 if -regOut not specified).  The regions may be of different
+types. The arithmetic conversions specified at the file are performed.
+Type conversions are performed as described in 
+<A HREF=tclRegUtils.html#Arithmetic>Arithmetic </A>.
+
+<LISTING>
+TCL SYNTAX:
+   regMultWithRow [-scale SCALE] [-regOut reg] &lt;mult1&gt; &lt;rowvector&gt;
+	 
+   [-scale]	Optional decimal or floating point number divisor
+   [-regOut]	Optional output result region
+   &lt;mult1&gt;	Required handle to input region.
+   &lt;rowvector&gt;	Required handle to row vector.
+                               
+RETURNS:
+   TCL_OK	Successful completion.
+   TCL_ERROR	Error occurred.  The Interp result explains the error.
+
+</LISTING>
+<PRE></PRE>
+
+
+<H2><A NAME="regMultWithCol">regMultWithCol</A></H2>
+<P>
+
+Multiply each pixel in MULT1 by the corresponding (same row) pixel
+in COLVECTOR, divide the result by SCALE (which is set to 1.0 if not
+specified) and store the result in the output region
+(store in MULT1 if -regOut not specified).  The regions may be of different
+types. The arithmetic conversions specified at the file are performed.
+Type conversions are performed as described in 
+<A HREF=tclRegUtils.html#Arithmetic>Arithmetic </A>.
+
+<LISTING>
+TCL SYNTAX:
+   regMultWithCol [-scale SCALE] [-regOut reg] &lt;mult1&gt; &lt;colvector&gt;
+	 
+   [-scale]	Optional decimal or floating point number divisor
+   [-regOut]	Optional output result region
+   &lt;mult1&gt;	Required handle to input region.
+   &lt;colvector&gt;	Required handle to column vector.
+                               
+RETURNS:
+   TCL_OK	Successful completion.
+   TCL_ERROR	Error occurred.  The Interp result explains the error.
+
+</LISTING>
+<PRE></PRE>
+
+
+<H2><A NAME="regDivByRow">regDivByRow</A></H2>
+<P>
+
+Divide each pixel in DIVIDEND by the corresponding (same column) pixel
+in ROWVECTOR, multiply the result by SCALE (which is set to 1.0 if not
+specified) and store the result in the output region
+(store in DIVIDEND if -regOut not specified).  The regions may be of different
+types. The arithmetic conversions specified at the file are performed.
+Type conversions are performed as described in 
+<A HREF=tclRegUtils.html#Arithmetic>Arithmetic </A>.
+
+<LISTING>
+TCL SYNTAX:
+   regDivByRow [-scale SCALE] [-regOut reg] &lt;dividend&gt; &lt;rowvector&gt;
+	 
+   [-scale]	Optional decimal or floating point number divisor
+   [-regOut]	Optional output result region
+   &lt;dividend&gt;	Required handle to input region.
+   &lt;rowvector&gt;	Required handle to row vector.
+                               
+RETURNS:
+   TCL_OK	Successful completion.
+   TCL_ERROR	Error occurred.  The Interp result explains the error.
+
+</LISTING>
+<PRE></PRE>
+
+
+
+<H2><A NAME="regDivByCol">regDivByCol</A></H2>
+<P>
+
+Divide each pixel in DIVIDEND by the corresponding (same row) pixel
+in COLVECTOR, multiply the result by SCALE (which is set to 1.0 if not
+specified) and store the result in the output region
+(store in DIVIDEND if -regOut not specified).  The regions may be of different
+types. The arithmetic conversions specified at the file are performed.
+Type conversions are performed as described in 
+<A HREF=tclRegUtils.html#Arithmetic>Arithmetic </A>.
+
+<LISTING>
+TCL SYNTAX:
+   regDivByCol [-scale SCALE] [-regOut reg] &lt;dividend&gt; &lt;rowvector&gt;
+	 
+   [-scale]	Optional decimal or floating point number divisor
+   [-regOut]	Optional output result region
+   &lt;dividend&gt;	Required handle to input region.
+   &lt;colvector&gt;	Required handle to column vector.
+                               
+RETURNS:
+   TCL_OK	Successful completion.
+   TCL_ERROR	Error occurred.  The Interp result explains the error.
+
+</LISTING>
+<PRE></PRE>
+
+
+<H2><A NAME="regMaskSetAsPix">regMaskSetAsPix</A></H2>
+<P>
+
+Set the indicated mask element in REGION to VALUE. VALUE may
+be a decimal, octal or hexadecimal number. It is an error if 
+VALUE has bits set which are not representable in a mask element.
+e.g. set an 8-bit mask pixel to 512. n.b. Tcl supports c-style
+bit-wise operators.
+
+<LISTING>
+TCL SYNTAX:
+   regMaskSetAsPix
+	 
+   &lt;region&gt;	Required handle to region
+   &lt;row&gt;		Required row number
+   &lt;col&gt;		Required column number
+   &lt;value&gt;	Required decimal, octal or hexadecimal number
+                               
+RETURNS:
+   TCL_OK	Successful completion.
+   TCL_ERROR	Error occurred.  The Interp result explains the error.
+
+</LISTING>
+<PRE></PRE>
+
+
+<H2><A NAME="regMaskGetAsPix">regMaskGetAsPix</A></H2>
+<P>
+
+Return the Mask-pixel in REGION at ROW, COL as a  hexadecimal 
+number.
+
+<LISTING>
+TCL SYNTAX:
+   regMaskGetAsPix &lt;region&gt; &lt;row&gt; &lt;col&gt;
+	 
+   &lt;region&gt;	Required handle to region
+   &lt;row&gt;		Required row number
+   &lt;col&gt;		Required column number
+                               
+RETURNS:
+   TCL_OK	Successful completion.
+   TCL_ERROR	Error occurred.  The Interp result explains the error.
+
+</LISTING>
+<PRE></PRE>
+
+<H2><A NAME="regPixCopy">regPixCopy</A></H2>
+<P>
+
+Copy the Pixels from REGIN to REGOUT. Both regions must be of the
+same size. Either region may be a sub-region. The regions may 
+be of different types.
+
+<LISTING>
+TCL SYNTAX:
+   regPixCopy &lt;regIn&gt; &lt;regOut&gt; 
+	 
+   &lt;regIn&gt;	Required handle to region
+   &lt;regIn&gt;	Required handle to region
+
+                               
+RETURNS:
+   TCL_OK	Successful completion.
+   TCL_ERROR	Error occurred.  The Interp result explains the error.
+
+</LISTING>
+<PRE></PRE>
+
+<H2><A NAME="regMaskCopy">regMaskCopy</A></H2>
+
+<P>Copy the mask pixels from REGIN to REGOUT. Both REGIN and
+REGOUT must be of the same size. Both REGIN an REGOUT must 
+have masks. 
+
+<LISTING>
+TCL SYNTAX:
+   regMaskCopy &lt;regIn&gt; &lt;regOut&gt;
+	 
+   &lt;regIn&gt;	Required handle to region
+   &lt;regIn&gt;	Required handle to region
+                               
+RETURNS:
+   TCL_OK	Successful completion.
+   TCL_ERROR	Error occurred.  The Interp result explains the error.
+
+</LISTING>
+<PRE></PRE>
+
+
+<H2><A NAME="regMaskSet">regMaskSet</A></H2>
+
+<P>Set the mask pixels in REGION to NUMBER. NUMBER may be
+positive decimal, hexadecimal or octal. 
+It is an error for NUMBER to have bits set which are not representable
+in a mask-pixel.  If "-and", "-or", or "-xor" are present, set then mask
+to the result of the operation on the corresponding pixel and number.
+REGION must have a mask.
+
+<LISTING>
+TCL SYNTAX:
+   regMaskSet &lt;region&gt; &lt;number&gt;
+	 
+   &lt;region&gt;	Required handle to region
+   &lt;number&gt;	Number to set
+                               
+RETURNS:
+   TCL_OK	Successful completion.
+   TCL_ERROR	Error occurred.  The Interp result explains the error.
+
+</LISTING>
+<PRE></PRE>
+
+</HTML>
+
+
+
+
+

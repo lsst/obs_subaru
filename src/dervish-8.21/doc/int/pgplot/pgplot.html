@@ -1,0 +1,282 @@
+<html>
+<head>
+<title> primer for pgplot, with more TCL </title>
+
+<body>
+<h1>
+pgplot (and TCL) primer  
+</h1>
+
+<h2> QUESTIONS </h2>
+<dir>
+<li> 1.  What is pgplot?
+<li> 2.  Is there anything wrong with pgplot?
+<li> 3.  Where is the documentation?
+<li> 4.  How do I write a FORTRAN program that uses pgplot routines?
+<li> 5.  How do I find out what all those subroutines do?
+<li> 6.  Can I write a program in c that does the same thing?
+<li> 7.  How do I compile this c program?
+<li> 8.  Should I clean up?
+<li> 9.  How can I use pg commands as tcl verbs?
+<li> 10.  How do I know whether to program in tcl or c?
+</dir>
+<h2> ANSWERS </h2>
+<listing>
+
+1.  What is pgplot?
+
+It is a set of graphics modules to make simple plots.  It is available from c,
+FORTRAN, and tcl.  It is available via the standard "setup" utility.  It can
+make postscript output for printing.  It makes plots on the screen in an X
+window.
+
+2.  Is there anything wrong with pgplot?
+
+There are a couple of things about pgplot that could be better.  First, only
+one "device" at a time can be open.  Thus, if you are working at the screen
+and finally like what you see, you have to close the window, open a postscript
+file, and then recreate the plot.  Second, there is not a simple
+way to turn on logarithmic scaling on the plots.
+
+You can do a screen dump, but this puts out a very large postscript file.
+
+3.  Where is the documentation?
+
+$PGPLOT_DIR/manual has a file called pgplot.ps which is over 100 pages.
+Once you work through examples, you should be able to manage with online
+help, but you can also print out the manual.
+
+A short text file called pgplot_c.txt in the same directory describes how
+to call pgplot from c.
+
+4.  How do I write a FORTRAN program that uses pgplot routines?
+
+Here is an example from the pgplot manual:
+
+This is the file simple_f.f in the $INT_DIR/pgplot directory:
+      PROGRAM SIMPLE
+      REAL XR(100), YR(100)
+      REAL XS(5), YS(5)
+      DATA XS/1.,2.,3.,4.,5./
+      DATA YS/1.,4.,9.,16.,25./
+      CALL PGBEGIN(0,'?',1,1)
+      CALL PGENV(0.,10.,0.,20.,0,1)
+      CALL PGLABEL('(x)', '(y)', 'A Simple Graph')
+      CALL PGPOINT(5,XS,YS,9)
+      DO 10 I=1,60
+          XR(I) = 0.1*I
+          YR(I) = XR(I)**2
+   10 CONTINUE
+      CALL PGLINE(60,XR,YR)
+      CALL PGEND
+      END
+
+This is the interesting part of the makefile:
+
+simple_f: simple_f        f77 -O -c simple_f.f
+        f77 -o simple_f simple_f.o -L$(PGPLOT_DIR)/lib -lpgplot -lX11
+
+Note that the library pgplot is referenced with the variable PGPLOT_DIR.
+We also need the standard X11 library.
+
+Copy simple_f.f and makefile to your subdirectory.  Compile the program:
+
+% premake simple_f
+        f77 -O -c simple_f.f
+        f77 -o simple_f simple_f.o -L/usr/products/IRIX/pgplot/v4_9ef2/lib -lpg
+plot -lX11
+
+To run this program:
+
+% simple_f
+Graphics device/type (? to see list): ?
+PGPLOT v4.9E Copyright 1991 California Institute of Technology
+Legal PGPLOT device types are:
+/GF (GraphOn)     /NULL             /PS               /RETRO
+/TEK4010          /VPS              /VT125            /XWINDOW
+/XDISP
+Graphics device/type (? to see list): /xwindow
+
+(An xwindow appears; position it and click.  Clicking once more exits.)
+
+ In the graphics window: click any mouse button or type <RETURN> to continue
+
+
+To make a postscript file, answer the graphics device question with /ps.
+
+If you want to skip the question, modify the PGBEGIN call in the 
+simple_f.f file:
+      CALL PGBEGIN(0,'/xwindow',1,1)
+Recompile and run the program.
+
+5.  How do I find out what all those subroutines do?
+
+Here is your chance to use xmosaic.  
+
+% setup www (If you have not already done this.)
+% setup dss
+% setenv DISPLAY hostname:0.0 (If you have not already done this.)
+% xmosaic &
+
+->Click on the word "dervish".
+->Click on "C Programmer's Interface"
+->Click on "Routines to Plot"
+
+Let's look for documentation on that first call; PGBEGIN.
+->Use the scroll bar on the right to go down a bit to the list of verbs.
+->Click on the word "pgBegin".
+(This simply jumps forward in the file.  You could have scrolled forward 
+yourself, but this is easier.)
+(The entry there describes the call as a Dervish verb, but we can see how it 
+corresponds to the subroutine entry.  In FORTRAN calls, none of the arguments 
+are optional.  You have to at least use the default value.  The other problem 
+is that you have to guess what are INTEGERs and what are REALs.  
+-> Click on the "back" button in the lower left-hand corner to get back
+	to the list of verbs.
+-> Click on the word "pgEnv" to see what that does.
+
+6. Can I write a program in c that does the same thing?
+
+Yes, there are c bindings.  Preface everything with pgplot_ and use all lower
+cases.  More details are in the document mentioned above.  The file simple_c.c
+in $INT_DIR/pgplot is the same example worked out in c:
+
+main()
+{
+  float xs[] = { 1.0, 2.0, 3.0,  4.0,  5.0 };
+  float ys[] = { 1.0, 4.0, 9.0, 16.0, 25.0 };
+
+/* for call to pgplot_pgbegin */
+  int unit, nxsub, nysub; 
+  char string[10];
+/* for call to pgplot_pgenv */
+  float xmin, xmax, ymin, ymax;
+  int just, axis;
+/* for call to pgplot_pglabel */
+  char xlab[80],ylab[80],tlab[80];
+/* for call to pgpoint */
+  int npoints, symbol;
+/* for setup and call to pgline */
+  int i, nlines;
+  float xr[60], yr[60];
+
+  unit = 0; strcpy(string, "?"); nxsub = 1; nysub = 1;
+  pgplot_pgbegin(&unit, string, &nxsub, &nysub);
+
+  xmin = 0.0; xmax = 10.0; ymin = 0.0; ymax = 20.0; just = 0; axis = 1;
+  pgplot_pgenv(&xmin, &xmax, &ymin, &ymax, &just, &axis);
+
+  strcpy(xlab,"(x)"); strcpy(ylab,"(y)"); strcpy(tlab,"A Simple Graph");
+  pgplot_pglabel(xlab,ylab,tlab);
+
+  npoints = 5; symbol = 9;
+  pgplot_pgpoint(&npoints, xs, ys, &symbol);
+
+  for (i=0; i<60; i++){
+    xr[i] = 0.1*i;
+    yr[i] = xr[i]*xr[i];
+  }
+  nlines = 60;
+  pgplot_pgline(&nlines, xr, yr);
+
+  pgplot_pgend();
+}
+
+7. How do I compile this c program?
+
+Now we run into the interesting thing about supporting code on different 
+platforms.  You need a long list of libraries to get the program linked 
+together, and these libraries live in different places on different platforms.
+So, we have a pair of files, called premake and makefile, that figure out what
+kind of machine you are on and then does the right thing.  We do NOT cross 
+compile.  That is, if you want the executable to run on a SUN, compile on a 
+SUN, and if you want it to run on an SGI, compile it on an SGI.
+
+Copy the $INT_DIR/pgplot/Makefile file and the makefile in the same area to 
+your subdirectory.  To compile the c version of the program:
+
+% sdssmake simple_c
+
+You can look at the premake file, which is a stripped-down version of the
+premake file for DERVISH, to see what it does.
+
+7.1 What about TCL?
+
+This TCL script will do the same thing as the c and FORTRAN examples.
+The difference is that you enter it directly into dervish.  The advantage
+of using TCL is that you avoid the compile step when you make changes.
+The disadvantage of using TCL is that it will be slower for larger programs.
+
+pgBegin
+pgEnv 0 10 0 20 0 1
+pgLabel (x) (y) "A Simple Graph"
+pgPoint {1 2 3 4 5} {1 4 9 16 25} 9
+unset xr
+unset yr
+for {set i 0} {$i<60} {incr i} {
+  lappend xr [expr $i*0.1]
+  lappend yr [expr [pow [lindex $xr $i] 2]]
+  }
+pgLine $xr $yr
+pgEnd
+
+8.  Should I clean up?
+
+Sure.  
+
+% sdssmake clean
+
+deletes object files and executables.
+
+9.  How can I use pg commands as tcl verbs?
+
+The command that you used in the dervish.faq is actually a verb that is 
+automatically defined for you when dervish starts up.  A version of this is in 
+the file pgverbs.tcl.  It defines the verb dervishPlot2, but it does the
+same thing that dervishPlot does.  Copy the pgverbs.tcl into your area.
+
+You can read in this definition with the command
+
+dervish> source $INT_DIR/pgplot/pgverbs.tcl
+
+This executes the commands in the file pgverbs.tcl.
+
+Several PARSE commands are used in this example:
+
+a) use the ftclParse set of commands to interpret a string of arguments.
+The first call is to ftclFullParse.  It uses a list of argument/switch names to
+prototype the argument string.  By default, it returns this prpototype in an
+error message when you use "?" or "help" as the argument to the command.
+
+b) use ftclGetStr to set the value of reg and put it into region.
+
+c) use ftclPresent to see if the correct combination of row and col were 
+	specified.  Use the "if" command to act based on these values.
+
+
+Several LIST commands are also used:
+
+e) lappend puts a value at the end of a list
+
+f) lindex points to a member of the list; lsort sorts a list
+
+Other commands:
+
+d) loop loops through, incrementing the value each time
+
+g) expr evaluates an expression
+
+These control verbs working in conjunction with the pg commands make the plot.
+
+10.  How do I know whether to program in tcl or c?
+
+The big advantage of the tcl programming shell is that you do not compile each 
+time you make a change.  For applications that are not CPU intensive, this 
+means quicker developments.  The disadvantage is that numeric processing is 
+awkward and slow, so serious computational jobs should be done in c.  There is
+no absolutely correct answer to this question; it is up to the taste of the 
+programmer to decide how to implement a particular function.
+
+</listing>
+</body>
+</html>

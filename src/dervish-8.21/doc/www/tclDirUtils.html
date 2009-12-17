@@ -1,0 +1,100 @@
+<HTML>
+<TITLE>tclDirUtils.html</TITLE>
+<H1>Directory Utility TCL Routines</H1>
+
+Default directories and file extensions can be specified for files to be read
+into regions from disk (virtual regions) and from the pool (physical regions)
+and to be written from a region to a disk file.  These defaults (if they
+exist) are automatically added onto the file name before reading or writing. 
+For example, if the default directory is specified as "/home/t2/brahe/fits" and
+the default extension is specified as ".fits", then specifying "m31" will
+actually mean "/home/t2/brahe/fits/m51.fits". In addition these defaults
+can be returned to be used by another TCL procedure.
+
+<DIR>
+<LI><A HREF=tclDirUtils.html#dirSet>dirSet</A> - Set the defaults
+<LI><A HREF=tclDirUtils.html#dirGet>dirGet</A> - Get the defaults
+<LI><A HREF=tclDirUtils.html#dirList>dirList</A> - Format and list the defaults
+</DIR>
+<PRE></PRE>
+
+<H2><A NAME="dirSet">dirSet</A></H2>
+<P>
+
+Set the default directory and or file extension for use with virtual and
+physical region IO. Either the directory, the file extension or both must be
+specified on the command line.
+
+<LISTING>
+
+TCL:    dirSet &lt;REGION_FILE | POOL_GROUP | PLOT_FILE | MASK_FILE&gt; [-dir default directory] 
+         [-ext default extension]
+           &lt;REGION_FILE&gt;  Use this for IO involving virtual regions
+                            (regReadAsFits or regWriteAsFits).
+           &lt;POOL_GROUP&gt;   Use this for IO involving physical regions
+                            (regReadPool).
+           &lt;PLOT_FILE&gt;    Use this for IO involving pgplot routines
+                            (pgGet and pgSave)
+           &lt;MASK_FILE&gt;    Use this for IO involving masks (maskReadAsFits
+                            and maskWriteAsFits)
+           [-dir]         Default directory
+           [-ext]         Default extension
+
+
+        Returns:
+           TCL_OK       Successful completion.
+           TCL_ERROR    Error occurred.  The Interp result string will contain
+                        the error string.
+
+</LISTING>
+<PRE></PRE>
+
+
+
+<H2><A NAME="dirGet">dirGet</A></H2>
+<P>
+
+Get the default directory and or file extension for use with virtual and
+physical region IO.
+
+<LISTING>
+
+TCL:    dirGet &lt;REGION_FILE | POOL_GROUP&gt; [-dir | -ext ]
+           &lt;REGION_FILE&gt;  Use this for IO involving virtual regions
+                            (regReadAsFits or regWriteAsFits).
+           &lt;POOL_GROUP&gt;   Use this for IO involving physical regions
+                            (regReadPool).
+           [-dir]         Default directory
+           [-ext]         Default extension
+
+
+        Returns:
+           TCL_OK       Successful completion. The interp result string will
+                        contain the requested default.
+           TCL_ERROR    Error occurred.  The Interp result string will contain
+                        the error string.
+
+
+</LISTING>
+<PRE></PRE>
+
+
+
+<H2><A NAME="dirList">dirList</A></H2>
+<P>
+
+List all the defaults.
+
+<LISTING>
+
+TCL:    dirlist 
+
+        Returns:
+           TCL_OK       Successful completion.
+
+</LISTING>
+<PRE></PRE>
+
+
+
+</HTML>

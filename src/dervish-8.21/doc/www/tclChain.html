@@ -1,0 +1,660 @@
+<HTML>
+<HEAD>
+<!-- FACILITY: Dervish Documentation -->
+<!-- ABSTRACT: Dervish Chain documentation -->
+
+<TITLE>Chains under DERVISH</TITLE>
+</HEAD>
+
+<H1>TCL Expressions for Dervish Chains</H1>
+
+Dervish provides an extensive array of primitive TCL expressions to support 
+chains. The following discussion details each TCL expression and whenever 
+appropriate, parts of a TCL procedure are included for illustrative purposes.
+<P>
+For an overview of DERVISH chains, including the definition of <I>cursors</I> and
+<I>indexes</I>, <A HREF=dervish.chain.html#chain>press here.</A>
+<P>
+All chain TCL extensions operate on the notion of a <B>handle</B>. Handles are
+treated as a valuable resource and are reused wherever possible. Any TCL 
+extension that returns a handle to an object first checks to see if a handle
+is already bound to that object. If so, the bound handle is returned. If a
+handle is not bound to an object, a new handle will be created, bound to the
+object and returned.
+<P>
+In the discussions for each TCL extension, the following conventions apply:
+<DIR>
+<LI> All required parameters are denoted by delimiting them with &lt; and &gt;,
+example &lt;CHAIN&gt;
+<LI> All optional parameters are denoted by delimiting them with [ and ]; 
+example [pos]
+<LI> All optional command line switches are denoted by preceeding the switch
+with a - (negative sign); example -increasing
+</DIR>
+<P>
+The <STRONG>Dervish</STRONG> chain package contains 
+<A HREF=../../contrib/www/chainUtils.html>contributed</A> code as well which
+complements, at the TCL level, the chain manipulation extensions provided below.
+<P>
+<H2>Description of TCL extensions</H2>
+<H3>Creation and Deletion</H3>
+<DIR>
+<LI><A HREF=tclChain.html#chainNew>chainNew</A>
+<LI><A HREF=tclChain.html#chainDel>chainDel</A>
+<LI><A HREF=tclChain.html#chainDestroy>chainDestroy</A>
+</DIR>
+<H3>Miscellaneous Operations</H3>
+<DIR>
+<LI><A HREF=tclChain.html#chainTypeSet>chainTypeSet</A>
+<LI><A HREF=tclChain.html#chainTypeGet>chainTypeGet</A>
+<LI><A HREF=tclChain.html#chainTypeDefine>chainTypeDefine</A>
+<LI><A HREF=tclChain.html#chainSize>chainSize</A>
+<LI><A HREF=tclChain.html#chainJoin>chainJoin</A>
+<LI><A HREF=tclChain.html#chainCopy>chainCopy</A>
+<LI><A HREF=tclChain.html#chainSort>chainSort</A>
+<LI><A HREF=tclChain.html#chainCursorNew>chainCursorNew</A>
+<LI><A HREF=tclChain.html#chainCursorSet>chainCursorSet</A>
+<LI><A HREF=tclChain.html#chainCursorDel>chainCursorDel</A>
+<LI><A HREF=tclChain.html#chainCursorCount>chainCursorCount</A>
+<LI><A HREF=tclChain.html#chainCursorCopy>chainCursorCopy</A>
+</DIR>
+<H3>Chain Maintenance (addition/removal/retreival/traversal)</H3>
+<DIR>
+<LI><A HREF=tclChain.html#chainElementAddByPos>chainElementAddByPos</A>
+<LI><A HREF=tclChain.html#chainElementRemByPos>chainElementRemByPos</A>
+<LI><A HREF=tclChain.html#chainElementGetByPos>chainElementGetByPos</A>
+<LI><A HREF=tclChain.html#chainElementTypeGetByPos>chainElementTypeGetByPos</A>
+<LI><A HREF=tclChain.html#chainElementAddByCursor>chainElementAddByCursor</A>
+<LI><A HREF=tclChain.html#chainElementRemByCursor>chainElementRemByCursor</A>
+<LI><A HREF=tclChain.html#chainElementTypeGetByCursor>
+chainElementTypeGetByCursor</A>
+<LI><A HREF=tclChain.html#chainWalk>chainWalk</A>
+</DIR>
+_______________________________________________________________________________
+<H2><A NAME=chainNew>chainNew</A></H2>
+<P>
+Creates a new chain and returns a handle bound to it. The <B>type</B> of the
+chain must be specified as well. If a heterogeneous chain is to be
+created, a type of <B>GENERIC</B> must be specified.
+<LISTING>
+TCL SYNTAX:
+   chainNew &lt;TYPE&gt;
+
+   &lt;TYPE&gt; - type of the chain to create
+
+RETURNS:
+   TCL_OK      Successful completion. Interp result contains the handle of
+               the newly created chain
+   TCL_ERROR   On an error. Interp result will contain reason for the error
+</LISTING>
+_______________________________________________________________________________
+<H2><A NAME=chainDel>chainDel</A></H2>
+<P>
+Deletes an existing chain and all chain elements. Note that the data on each
+chain element is <B>not</B> deleted. However, the chain and all it's elements
+will be deleted.
+<LISTING>
+TCL SYNTAX:
+   chainDel &lt;CHAIN&gt;
+
+   &lt;CHAIN&gt;  handle of the chain to be deleted
+
+RETURNS:
+   TCL_OK      Successful completion. No result string
+   TCL_ERROR   Error occurred. Interp result will contain the reason
+</LISTING>
+_______________________________________________________________________________
+
+<H2><A NAME="chainDestroy">chainDestroy</A></H2>
+<P>
+Deletes the specified chain, all chain elements, and all the data on associated
+with each chain element.
+<P>
+
+Note that you can get into trouble applying this proc to a chain
+if there are other places where the addresses of the objects on the
+chain are stored (e.g. if the object appears on two chains).
+<P>
+
+This will, in fact, only bite for types that call shMalloc more than
+once in their constructor (e.g. REGION). The problem is no worse than
+any other way of getting the same pointer into multiple handles, so
+don't worry too much about this warning.
+
+<LISTING>
+SYNOPSIS:
+   chainDestroy &lt;chain&gt; &lt;delProc&gt; 
+       &lt;chain&gt;   handle to the chain to be destroyed
+       &lt;delProc&gt; name of a proc which deletes each element on the chain
+                  which is passed a handle to the element. If omitted,
+		  <CODE>genericDel</CODE> is assumed
+
+Returns: 
+  0 : On success
+  1 : Otherwise
+</LISTING>
+_______________________________________________________________________________
+<H2><A NAME=chainTypeSet>chainTypeSet</A></H2>
+This extension changes the existing type of the chain to the new type
+specified. It's the callers responsibility to ensure that all elements on the
+chain are of the new type. This extension does not check for that; it simply
+changes the type of the chain as indicated.
+<LISTING>
+TCL_SYNTAX:
+   chainTypeSet &lt;CHAIN&gt; &lt;TYPE&gt;
+
+   &lt;CHAIN&gt;      handle of the chain
+   &lt;TYPE&gt;       new chain type
+
+RETURNS:
+   TCL_OK       Successful completion. No result string
+   TCL_ERROR    Error occurred. Interp result will contain the reason
+</LISTING>
+_______________________________________________________________________________
+<H2><A NAME=chainTypeGet>chainTypeGet</A></H2>
+This extension returns the existing type of a chain as a TCL list.
+<LISTING>
+TCL_SYNTAX:
+   chainTypeGet &lt;CHAIN&gt;
+
+   &lt;CHAIN&gt;      handle of the chain
+
+
+RETURNS:
+   TCL_OK       Successful completion. Interp result contains the existing
+                type as a TCL list
+   TCL_ERROR    Error occurred. Interp result will contain the reason
+</LISTING>
+_______________________________________________________________________________
+<H2><A NAME=chainTypeDefine>chainTypeDefine</A></H2>
+This extension defines the chain type according to the following conventions:
+<OL>
+<LI> if the chain is empty, return the original type as a TCL list
+<LI> if the chain TYPE is GENERIC, but the chain contains homogeneous elements,
+return the type of the elements as a TCL list
+<LI> if the chain TYPE is GENERIC and the chain contains heterogeneous 
+elements, the chain type is left unchanged
+</OL>
+<LISTING>
+TCL SYNTAX:
+   chainTypeDefine &lt;CHAIN&gt;
+   
+   &lt;CHAIN&gt;         handle of the chain
+
+RETURNS:
+   TCL_OK          Successful completion. Interp result contains the defined
+                   type as a TCL list
+   TCL_ERROR       Erroc occurred. Interp result will contain the reason
+</LISTING>
+_______________________________________________________________________________
+<H2><A NAME=chainSize>chainSize</A></H2>
+This extension returns the chain size (number of elements on the chain).
+<LISTING>
+TCL SYNTAX:
+   chainSize &lt;CHAIN&gt;
+   
+   &lt;CHAIN&gt;   handle of the chain
+
+RETURNS
+   TCL_OK    Successful completion. Interp result will contain the size
+   TCL_ERROR Error occurred. Interp result will contain the reason
+</LISTING>
+_______________________________________________________________________________
+<H2><A NAME=chainJoin>chainJoin</A></H2>
+This extension appends a target chain to a source chain. Both the chains 
+<B>must</B> be of the same type, unless the source chain is of type 
+<B>GENERIC</B>, in which case the target chain can be of any type. The
+target chain will be destroyed on the success of this extension.
+<LISTING>
+TCL SYNTAX:
+   chainJoin &lt;SOURCE-CHAIN&gt; &lt;TARGET-CHAIN&gt;
+
+   &lt;SOUCRE-CHAIN&gt;  handle of the source chain
+   &lt;TARGET-CHAIN&gt;  handle of the target chain. Will be destroyed on a 
+                   successful completion
+
+RETURNS:
+   TCL_OK      Successful completion. Interp result will contain &lt;SOURCE-CHAIN&gt;
+   TCL_ERROR   Error occurred. Interp result will contain the reason
+</LISTING>
+_______________________________________________________________________________
+<H2><A NAME=chainCopy>chainCopy</A></H2>
+This extension copies a given chain. The copied chain does <B>not</B> inherit
+any cursor information from the parent. Interp result will contain a handle
+bound to the newly copied chain.
+<LISTING>
+TCL SYNTAX:
+   chainCopy &lt;CHAIN&gt;
+
+   &lt;CHAIN&gt;   handle of the chain to copy
+
+RETURNS:
+   TCL_OK    Successful completion. Interp result will contain a handle bound
+             to the newly created chain
+   TCL_ERROR Error occurred. Interp result will contain the reason
+</LISTING>
+_______________________________________________________________________________
+<H2><A NAME=chainSort>chainSort</A></H2>
+This extension sorts a chain according to a specified criterion. The chain to
+be sorted must be homogeneous. Note that since sorting involves moving the
+chain element pointers around, cursor information set on the chain prior to a
+call to this extension will be lost.
+<LISTING>
+TCL SYNTAX:
+   chainSort &lt;CHAIN&gt; &lt;FIELD&gt; -increasing
+
+   &lt;CHAIN&gt;       handle of the chain to sort
+   &lt;FIELD&gt;       field name to sort on
+   -increasing   Direction of the sort; if specified on the TCL command line,
+                 the sort is performed in an ascending fashion
+
+RETURNS:
+   TCL_OK        Successful completion. No result string
+   TCL_ERROR     Error occurred. Interp result will contain the reason
+</LISTING>
+_______________________________________________________________________________
+<H2><A NAME=chainCursorNew>chainCursorNew</A></H2>
+This extension creates a new cursor on a chain. A chain can have upto 10
+simultaneous active cursors. A cursor can be viewed as a context sensitive
+device on a chain; i.e. it holds the context of the chain. Cursors are helpful
+while traversing chains using <A HREF=tclChain.html#chainWalk>chainWalk</A> 
+and modifying the state of the chain using 
+<A HREF=tclChain.html#chainElementAddByCursor>chainElementAddByCursor</A> and
+<A HREF=tclChain.html#chainElementREmByCursor>chainElementRemByCursor</A>.
+<P>
+This extension creates a chain cursor and initializes it to point to the first
+element on the chain. If the chain is empty, this extension is smart enough to
+wait till the first element is added, upon which time the cursor is initialized
+to the first element.
+
+<LISTING>
+TCL SYNTAX:
+   chainCursorNew &lt;CHAIN&gt;
+
+   &lt;CHAIN&gt;        Handle of the chain
+
+RETURNS:
+   TCL_OK         Successful completion. Interp result will contain a handle
+                  to the newly created cursor
+   TCL_ERROR      Error occurred. Interp result will contain the reason
+
+EXAMPLE:
+   dervish&gt; chainNew GENERIC
+   h1
+   dervish&gt; chainCursorNew h1
+   h2
+   . . .
+</LISTING>
+_______________________________________________________________________________
+<H2><A NAME=chainCursorSet>chainCursorSet</A></H2>
+This extension initializes a cursor to an element on the chain. The cursor
+<B>must</B> have been previously created using
+<A HREF=tclChain.html#chainCursorNew>chainCursorNew</A>. This extension will
+return an error if the chain is empty.
+<LISTING>
+TCL SYNTAX
+   chainCursorSet &lt;CHAIN&gt; &lt;CURSOR&gt; [n]
+
+   &lt;CHAIN&gt;        Handle of the chain
+   &lt;CURSOR&gt;       Handle of the cursor previously created
+   [n]            Optional parameter that specifies the chain element to set
+                  the cursor to. Default value: HEAD
+RETURNS:
+   TCL_OK         Successful completion. Interp result will contain a handle
+                  of the nth element on the chain
+   TCL_ERROR      Error occurred. Interp result will contain the reason
+
+EXAMPLE:
+   # The following example:
+   #   1) declares a chain
+   #   2) inserts two elements on it 
+   #   3) declares a cursor and sets it to the TAIL of the chain
+
+   dervish&gt; chainNew GENERIC
+   h1
+   dervish&gt; chainElementAddByPos h1 [regNew]
+   dervish&gt; chainElementAddByPos h1 [ptNew]
+   dervish&gt; chainCursorNew h1
+   h4
+   dervish&gt; chainCursorSet h1 h4 TAIL
+   h3
+   . . .
+</LISTING>
+_______________________________________________________________________________
+<H2><A NAME=chainCursorCopy>chainCursorCopy</A></H2>
+This extension copies an existing cursor. A new cursor is created that holds
+the same information as the existing one.
+<LISTING>
+TCL SYNTAX
+   chainCursorCopy &lt;CHAIN&gt; &lt;CURSOR&gt;
+
+   &lt;CHAIN&gt;        Handle of the chain
+   &lt;CURSOR&gt;       Handle of the existing cursor
+
+RETURNS:
+   TCL_OK         Successful completion. Interp result will contain a handle
+                  of the newly created cursor
+   TCL_ERROR      Error occurred. Interp result will contain the reason
+
+</LISTING>
+_______________________________________________________________________________
+<H2><A NAME=chainCursorDel>chainCursorDel</A></H2>
+This extension deletes a chain cursor. The cursor to be deleted should have 
+been created with a call to the extension 
+<A HREF=tclChain.html#chainCursorNew>chainCursorNew</A>
+<LISTING>
+TCL SYNTAX
+   chainCursorDel &lt;CHAIN&gt; &lt;CURSOR&gt;
+
+   &lt;CHAIN&gt;        Handle of the chain
+   &lt;CURSOR&gt;       Handle of the cursor to be deleted
+
+RETURNS:
+   TCL_OK         Successful completion. No result string
+   TCL_ERROR      Error occurred. Interp result will contain the reason
+</LISTING>
+_______________________________________________________________________________
+<H2><A NAME=chainCursorCount>chainCursorCount</A></H2>
+This extension returns a count of all active cursors associated with a chain.
+<LISTING>
+TCL SYNTAX
+   chainCursorCount &lt;CHAIN&gt;
+
+   &lt;CHAIN&gt;          Handle of the chain
+
+RETURNS:
+   TCL_OK           Successful completion. Interp result contains the count
+   TCL_ERROR        Error occurred. Interp result will contain the reason
+</LISTING>
+_______________________________________________________________________________
+<H2><A NAME=chainElementAddByPos>chainElementAddByPos</A></H2>
+This extension inserts a new element onto the chain. The new element is added
+relative to a fixed position which is specified on the Tcl command line. The
+new element can be added either <B>before</B> or <B>after</B> the specified
+position. The specified position and relativity are  ignored when the very 
+first element is added to a chain.
+<P>
+Unless the chain is of type <B>GENERIC</B>, the element to be added should be
+of the same type as the chain's type.
+<LISTING>
+TCL SYNTAX
+   chainElementAddByPos &lt;CHAIN&gt; &lt;ELEMENT&gt; [n] [how]
+
+   &lt;CHAIN&gt;    Handle of the chain
+   &lt;ELEMENT&gt;  Handle of the element to be inserted
+   [n]        New element is added in relation to element at this position
+                 Default value: "TAIL"
+   [how]      How to add the new element in relation to the nth element
+                 Default value: "AFTER"
+RETURNS:
+   TCL_OK     Successful completion. No result string
+   TCL_ERROR  Error occurred. Interp result will contain the reason
+
+EXAMPLE:
+   # The following example demonstrates how to:
+   #   1) Create a chain
+   #   2) Add the first element to it
+   #   3) Append the next element to the chain
+   #   4) Add the third element in between the two existing elements
+   
+   dervish&gt; chainNew GENERIC
+   h1
+   dervish&gt; chainElementAddByPos h1 [regNew]
+   dervish&gt; chainElementAddByPos h1 [maskNew]
+   dervish&gt; chainElementAddByPos h1 [ptNew] 2 BEFORE
+   dervish&gt; . . .
+</LISTING>
+_______________________________________________________________________________
+<H2><A NAME=chainElementRemByPos>chainElementRemByPos</A></H2>
+This extension removes an element from the chain. The index of the element to
+be removed is specified on the TCL command line. Since chains are 0-indexed,
+this index must be in the interval [0, size of chain]
+
+<LISTING>
+TCL SYNTAX
+   chainElementRemByPos &lt;CHAIN&gt; &lt;position&gt;
+
+   &lt;CHAIN&gt;     Handle of the chain
+   &lt;position&gt;  Position in chain of the desired element. One can specify
+               either HEAD or TAIL or an integer
+
+RETURNS:
+   TCL_OK      Successful completion. Interp result contains a handle bound
+               to the element that was removed from the chain
+   TCL_ERROR   Error occurred. Interp result will contain the reason
+
+EXAMPLE:
+   # Assume we have a chain of 10 elements. To delete the 4th element 
+   # one would say:
+   dervish&gt; chainElementRemByPos h1 3
+   h3
+
+   # So, now we have 9 elements. To delete the first element, one would say:
+   dervish&gt; chainElementRemByPos h1 HEAD
+   h5
+
+   # So, now we have 8 elements. To delete the 3rd element from head of the
+   # chain, one would say:
+   dervish&gt; chainElementRemByPos h1 2
+   h2
+   dervish&gt; . . .
+</LISTING>
+_______________________________________________________________________________
+<H2><A NAME=chainElementGetByPos>chainElementGetByPos</A></H2>
+This extension retrieves an element from the chain. The index of the element to
+be retrieved is specified on the TCL command line. Since chains are 0-indexed, 
+this index must be in the interval [0, size of chain]
+<LISTING>
+TCL SYNTAX
+   chainElementGetByPos &lt;CHAIN&gt; &lt;position&gt;
+
+   &lt;CHAIN&gt;     Handle of the chain
+   &lt;position&gt;  Position in chain of the desired element. One can specify
+               either HEAD or TAIL or an integer
+
+RETURNS:
+   TCL_OK      Successful completion. Interp result contains a handle bound
+               to the retrieved element
+   TCL_ERROR   Error occurred. Interp result will contain the reason
+
+EXAMPLE:
+   # Assume we have a chain of 10 elements. To get a handle to the 4th 
+   # element of the chain, one would say:
+   dervish&gt; chainElementGetByPos h1 3
+   h3
+
+   # To get a handle to the first element, one would say:
+   dervish&gt; chainElementGetByPos h1 HEAD
+   h5
+
+   # To get a handle to the last element, one would say:
+   dervish&gt; chainElementGetByPos h1 TAIL
+   h10
+</LISTING>
+_______________________________________________________________________________
+<H2><A NAME=chainElementTypeGetByPos>chainElementTypeGetByPos</A></H2>
+This extension gets the type of a requested element from the chain. The type
+is returned as a TCL list.
+<LISTING>
+TCL SYNTAX
+   chainElementTypeGetByPos &lt;CHAIN&gt; &lt;position&gt;
+
+   &lt;CHAIN&gt;     Handle of the chain
+   &lt;position&gt;  Position in chain of the desired element. One can specify
+               either HEAD or TAIL or an integer
+
+RETURNS:
+   TCL_OK      Successful completion. Interp result contains a TCL list of
+               the requested information
+   TCL_ERROR   Error occurred. Interp result will contain the reason
+
+EXAMPLE:
+   dervish&gt; chainNew MASK
+   h1
+   dervish&gt; chainElementAddByPos h1 [maskNew]
+   dervish&gt; chainElementTypeGetByPos h1 HEAD
+   {type "MASK"}
+   dervish&gt; . . .
+</LISTING>
+_______________________________________________________________________________
+<H2><A NAME=chainElementAddByCursor>chainElementAddByCursor</A></H2>
+This extension adds a new element in relation to the cursor. The new element
+can be added either <B>before</B> or <B>after</B> the cursor. The cursor is 
+supposed to have been correctly created and initialized. As the result of
+this extension, the cursor is set to the newly added element.
+<LISTING>
+TCL SYNTAX
+   chainElementAddByCursor &lt;CHAIN&gt; &lt;ELEMENT&gt; &lt;CURSOR&gt; [how]
+
+   &lt;CHAIN&gt;      Handle of the chain
+   &lt;ELEMENT&gt;    Handle of the element to be added on the chain
+   &lt;CURSOR&gt;     Handle of the cursor 
+   [how]        How to add the new element in relation to the cursor; can be
+                one of "BEFORE" or "AFTER." Default value: "AFTER"
+
+RETURNS:
+   TCL_OK       Successful completion. No result string
+   TCL_ERROR    Error occurred. Interp result will contain the reason
+
+EXAMPLE:
+   dervish&gt; chainNew MASK
+   h1
+   dervish&gt; chainCursorNew h1
+   h2
+   dervish&gt; chainElementAddByPos h1 [maskNew -name MASK1]
+   dervish&gt; chainCursorSet h1 h2
+   h3
+   dervish&gt; chainElementAddByCursor h1 [maskNew -name MASK2] h2
+   dervish&gt; chainElementAddByCursor h1 [maskNew -name MASK3] h2 BEFORE
+   dervish&gt; chainSize h1
+   3
+   . . .
+</LISTING>
+_______________________________________________________________________________
+<H2><A NAME=chainElementRemByCursor>chainElementRemByCursor</A></H2>
+This extension removes an element from a chain. The element to be removed is
+referenced by the cursor. On a successful removal, the cursor is set to NULL.
+Any attempts to retrieve the deleted element will result in failure. Since
+an element can be deleted while traversing a chain using 
+<A HREF=tclChain.html#chainWalk>chainWalk</A>, <I>chainElementRemByCursor</I>
+saves the locations of the neighbors of the deleted element so that the
+chain can still be traversed.
+<LISTING>
+TCL SYNTAX
+   chainElementRemByCursor &lt;CHAIN&gt; &lt;CURSOR&gt;
+
+   &lt;CHAIN&gt;     Handle of the chain
+   &lt;CURSOR&gt;    Handle of the cursor
+
+RETURNS:
+   TCL_OK      Successful completion. Interp result will contain a handle
+               bound to the deleted element
+   TCL_ERROR   Error occurred. Interp result will contain the reason
+
+EXAMPLE:
+   # Assume we have a chain (h1) with 3 elements on it. Let's
+   # 1) create e new cursor
+   # 2) set it to the 2nd element
+   # 3) delete that element
+   dervish&gt; chainCursorNew h1
+   h7
+   dervish&gt; chainCursorSet h1 h7 2
+   h3
+   dervish&gt; chainElementRemByCursor h1 h7
+   h3
+   . . .
+</LISTING>
+_______________________________________________________________________________
+<H2><A NAME=chainElementTypeGetByCursor>chainElementTypeGetByCursor</A></H2>
+This extension gets the type of the element under the cursor.
+<LISTING>
+TCL SYNTAX
+   chainElementTypeGetByCursor &lt;CHAIN&gt; &lt;CURSOR&gt;
+
+   &lt;CHAIN&gt;    Handle of the chain
+   &lt;CURSOR&gt;   Handle of the cursor
+
+RETURNS:
+   TCL_OK     Successful completion. Interp result will contain the type of
+              the element under the cursor as a TCL list
+   TCL_ERROR  Error occurred. Interp result will contain the reason
+</LISTING>
+_______________________________________________________________________________
+<H2><A NAME=chainWalk>chainWalk</A></H2>
+This extension traverses a chain using a cursor. The state of a chain can be
+changed during traversal; i.e. new elements can be added, or existing elements
+deleted. Addition and deletion are done relative to the cursor, so the
+appropriate cursor APIs (
+<A HREF=tclChain.html#chainElementAddByCursor>chainElementAddByCursor</A>, 
+<A HREF=tclChain.html#chainElementRemByCursor>chainElementRemByCursor</A>) 
+should be used.
+<P>
+Direction of traversal relative to the cursor can be one of THIS (the current
+element is fetched), NEXT (the next element is fetched) or PREVIOUS (the
+previous element is fetched).
+<P>
+Two TCL extensions may be used as a preamble to traversing a chain: 
+<EM>chainCursorNew</EM> and <EM>chainCursorSet</EM>. <EM>chainCursorNew</EM>
+actually sets the cursor to one element <STRONG>before</STRONG> the start of
+the chain, so that the first <EM>chainWalk</EM> moves the cursor to the first
+element. <EM>chainCursorSet</EM> provides the ability to set a cursor to the
+start, or end of a chain. If this extension is used as a preamble to chain 
+traversal, the cursor is actually set to one element before (after) the start
+(end) of the chain.
+<P>
+<EM>chainWalk</EM> normally returns a handle bound to the appropriate element 
+on the chain. On reaching the end of the chain, an empty string is returned in 
+the interpreter.
+<LISTING>
+TCL SYNTAX
+   chainWalk &lt;CHAIN&gt; &lt;CURSOR&gt; [whither]
+
+   &lt;CHAIN&gt;     Handle of the chain
+   &lt;CURSOR&gt;    Handle of the cursor
+   [whither]   Traversal direction; one of PREVIOUS, THIS, or NEXT. Defaults
+               to NEXT
+
+RETURNS:
+   TCL_OK      Successful completion. Interp result will contain a handle 
+               bound to the chain element being traversed. On reaching the
+               end of the chain, the interpreter will contain an empty string.
+   TCL_ERROR   Error occurred. Interp result will contain the reason
+
+EXAMPLE:
+   # In all the examples below, assume we have a chain (h1) that has already
+   # been populated with 3 elements.
+   #
+   # Example 1 demonstrates how to walk the chain using a newly created 
+   #       cursor. Note that on reaching the end of the chain, if user wants
+   #       to keep on walking, the first element is returned
+   #
+   # Example 2 initializes the cursor to the TAIL of the chain, and loops 
+   #           through the chain, applying a TCL extension to each element
+   #           on the chain
+
+   # Example 1
+   dervish&gt; chainCursorNew h1
+   h5
+   dervish&gt; chainWalk h1 h5 NEXT
+   h3
+   dervish&gt; chainWalk h1 h5 NEXT
+   h2 
+   dervish&gt; chainWalk h1 h5 NEXT
+   h4
+   dervish&gt; chainWalk h1 h5 NEXT
+   dervish&gt; 
+   dervish&gt; chainWalk h1 h5 NEXT
+   h3                 
+   dervish&gt; 
+   . . .
+
+   # Example 2
+   dervish&gt; chainCursorSet h1 h5 TAIL
+   dervish&gt; while {[set elem [chainWalk h1 h5 PREVIOUS]] != ""}  {
+   &gt;&gt;     exprPrint -header $elem
+   &gt;&gt; }
+   . . .
+
+</LISTING>
+_______________________________________________________________________________
+</HTML>

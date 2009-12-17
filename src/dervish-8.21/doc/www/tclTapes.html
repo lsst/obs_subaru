@@ -1,0 +1,272 @@
+<HTML>
+<HEAD>
+<!--
+ ************************************************************
+ *++
+ * FACILITY:	Dervish
+ *		Documentation
+ *
+ * ABSTRACT:	Dervish Tape I/O
+ *
+ * ENVIRONMENT:	HTML (HyperText Markup Language).
+ *		tclTapes.html
+ *
+ * AUTHOR:	V. Gurbani, Creation date:  9-May-1994
+ *              Additions to reflect code changes:
+ *              DJH, 2/28/96
+ *--
+ ************************************************************
+-->
+
+<TITLE>Tape I/O in Dervish</TITLE>
+
+<BODY>
+
+<IMG SRC="tape.xbm">
+<H1>Dervish Tape I/O Extensions</H1>
+
+<P>
+<B>Dervish</B> adheres to the FITS standard for performing I/O on physical
+media (example DLT cartridges). FITS standard dictates that individual 
+FITS files be terminated by a tape-mark, and the end of that physical
+medium be denoted by two (2) consecutive tape-marks. FITS files should
+not span multiple mediums.
+
+<P>
+Logically, one can visualize FITS images stored on tape as follows:
+
+<LISTING>
+     <B>FITS-image-1 [EOF] FITS-image-2 [EOF] . . . FITS-image-n [EOF] [EOF] </B>
+</LISTING>
+
+<P>
+The remaining discussion assumes the physical media to be 8mm or DLT tape cartridges.
+
+<P>
+In order to use dervish for FITS tape I/O, a device driver must be chosen that
+has the following properties:
+<DIR>
+<LI> it must be a no-rewind device
+<LI> it must be a variable block type device
+<LI> it must be a no-swapping device
+</DIR>
+The following devices correspond to the above list here at Fermilab:
+<DIR>
+<LI> sdss.fnal.gov:/dev/rmt/tps1d5nrnsv.8500
+<LI> sdss.fnal.gov:/dev/rmt/tps1d6nrnsv.8500
+<LI> sdssdp1.fnal.gov:/dev/rmt/tps4d3nrnsv.8500  (8mm)
+<LI> sdssdp1.fnal.gov:/dev/rmt/tps4d2nrnsv.8500  (8mm)
+<LI> sdssdp1.fnal.gov:/dev/rmt/tps4d3nrnsv       (DLT)
+<LI> sdssdp1.fnal.gov:/dev/rmt/tps5d3nrnsv       (DLT)
+<LI> fncase.fnal.gov:/dev/nrst8
+</DIR>
+
+<H3>Accessing Tapes from Region, Header, and Mask Commands</H3>
+The following TCL commands all take an optional switch, <samp>[-tape]</samp>,
+which causes data to be read/written from the tape device specified:
+<DIR>
+<LI><A HREF="tclFitsIo.html#regReadAsFits">regReadAsFits</A>,
+<LI><A HREF="tclFitsIo.html#regWriteAsFits">regWriteAsFits</A>,
+<LI><A HREF="tclFitsIo.html#hdrReadAsFits">hdrReadAsFits</A>,
+<LI><A HREF="tclFitsIo.html#hdrWriteAsFits">hdrWriteAsFits</A>,
+<LI><A HREF="tclMaskUtils.html#maskReadAsFits">maskReadAsFits</A>,
+<LI><A HREF="tclMaskUtils.html#maskWriteAsFits">maskWriteAsFits</A>
+</DIR>
+During execution, these commands all cause a copy of the UNIX "dd" command
+to be forked from Dervish.  The actual tape I/O is handled by <b>dd</b>, and
+the data are passed to Dervish via a pipe.  Each of these commands also has
+a <samp>[-pipe]</samp> switch, which causes data to be read/written from
+a user specified pipe.  These two commands are equivalent in effect:
+<PRE>
+regReadAsFits -tape h0 /dev/rmt/tps4d3nrnsv
+regReadAsFits -pipe h0 [open "|dd if=/dev/rmt/tps4d3nrnsv bs=144000 files=1"]
+</PRE>
+The <samp>[-tape]</samp> option uses a tape blocksize of 144000 bytes,
+which corresponds to the blocking used in the data acquisition system.
+Tapes with smaller blocksizes may be read successfully; tapes with
+larger blocking must be read using a variation on the command with the
+<samp>[-pipe]</samp> option shown above.  Similarly, if you require
+tapes to be written with blocksizes other than 144000 bytes, you must
+use the <samp>[-pipe]</samp> form of these commands with an explicit
+<B>dd</B> command specified.
+
+<H3>Accessing Tapes from Region, Header, and Mask Routines</H3>
+The following routines all take an argument which, if set,
+causes data to be read/written from the tape device specified:
+<DIR>
+<LI><A HREF="fitsIo.html#shRegReadAsFits">shRegReadAsFits</A>,
+<LI><A HREF="fitsIo.html#shRegWriteAsFits">shRegWriteAsFits</A>,
+<LI><A HREF="fitsIo.html#shHdrReadAsFits">shHdrReadAsFits</A>,
+<LI><A HREF="fitsIo.html#shHdrWriteAsFits">shHdrWriteAsFits</A>,
+<LI><A HREF="mask.html#shMaskReadAsFits">shMaskReadAsFits</A>,
+<LI><A HREF="mask.html#shMaskWriteAsFits">shMaskWriteAsFits</A>
+</DIR>
+During execution, these commands all cause a copy of the UNIX "dd" command
+to be forked from Dervish.  The actual tape I/O is handled by <b>dd</b>, and
+the data are passed to Dervish via a pipe.  The <b>dd</b> uses a tape blocksize
+of 144000 bytes, which corresponds to the blocking used in the data acquisition system.
+Tapes with smaller blocksizes may be read successfully.
+
+<H3>TCL Extensions for Tape Movement</H3>
+The following TCL extensions are available for positioning tapes and
+writing EOT markers:
+
+<DIR>
+<LI><A HREF="tclTapes.html#tapeRewind">tapeRewind</A>
+<LI><A HREF="tclTapes.html#tapeEject">tapeEject</A>
+<LI><A HREF="tclTapes.html#tapePositionOverImage">tapePositionOverImage</A>
+<LI><A HREF="tclTapes.html#tapePositionOverNextImage">tapePositionOverNextImage</A>
+<LI><A HREF="tclTapes.html#tapeWriteEot">tapeWriteEot</A>
+</DIR>
+
+<P>
+All of the above extensions expect to find the tape drive to be used in an
+environment variable called <B>$TAPE</B>. This behaviour can be changed by
+specifying an optional command line parameter containing the name of tape 
+drive. If both the <B>$TAPE</B> environmental variable and the command line 
+parameter naming the drive are specifed, the latter takes precedence.
+
+<H2>Examples</H2>
+
+The following example assumes the existence of two regions, h1 and h2, and
+one mask, m1. The regions and mask are previously read from elsewhere and
+are going to be written on tape. Here is the sequence of commands that will
+accomplish this:
+
+<LISTING>
+dervish> tapeRewind /dev/nrst8
+dervish> regWriteAsFits -tape h1 /dev/nrst8
+h1
+dervish> regWriteAsFits -tape h2 /dev/nrst8
+h2
+dervish> maskWriteAsFits -tape m1 /dev/nrst8
+m1
+dervish> tapeWriteEot /dev/nrst8
+dervish> tapeRewind /dev/nrst8
+dervish> tapeEject /dev/nrst8
+</LISTING>
+
+In the above example, note that no explicit EOF marker was written after each
+region or mask. The device driver automatically writes a EOF marker on 
+encountering the <B>close(1)</B> UNIX system call. However, note that we had
+to explicitly write an End-of-Tape marker.
+
+<P>
+The following examples will read the data written on tape. It is assumed that
+the data stored on tape is of the following format:
+<P>
+<B> region-1 [EOF] region-2 [EOF] mask-1 [EOF][EOF] </B>
+
+<P>
+In the examples below, assume that the tape drive to be used is specified 
+in the environment variable <B>$TAPE</B>:
+<OL>
+<LI> Reading the third image on tape:
+<LISTING>
+dervish> tapeRewind
+dervish> tapePositionOverImage 3
+dervish> maskReadAsFits -tape [maskNew] /dev/nrst8
+h1
+dervish> tapeRewind
+dervish> tapeEject
+</LISTING>
+<LI> Reading all images sequentially from tape:
+<LISTING>
+dervish> tapeRewind
+dervish> regReadAsFits -tape [regNew] /dev/nrst8
+h1
+dervish> tapePositionOverNextImage
+dervish> regReadAsFits -tape [regNew] $env(TAPE)
+h2
+dervish> tapePositionOverNextImage
+dervish> maskReadAsFits -tape [maskNew] /dev/nrst8
+h3
+dervish> tapeRewind
+dervish> tapeEject
+</LISTING>
+</OL>
+
+<HR>
+<H2><A NAME="tapeRewind">tapeRewind</A></H2>
+
+<P> 
+Rewind a tape drive
+
+<LISTING>
+TCL SYNTAX:
+     tapeRewind [tapeDevice]
+
+     [tapeDevice] - name of the tape device. If omitted, the value of the
+                    environmental variable $TAPE is used instead. Specifying
+                    tapeDevicetakes precedence over using $TAPE
+</LISTING>
+<HR><HR>
+<H2><A NAME="tapeEject">tapeEject</A></H2>
+
+<P>
+Eject a tape drive
+
+<LISTING>
+TCL SYNTAX:
+     tapeEject [tapeDevice]
+
+     [tapeDevice] - name of the tape device. If omitted, the value of the
+                    environmental variable $TAPE is used instead. Specifying
+                    tapeDevicetakes precedence over using $TAPE
+</LISTING>
+<HR><HR>
+<H2><A NAME="tapePositionOverImage">tapePositionOverImage</A></H2>
+
+<P>
+Position the tape head over the nth image for a subsequent read operation.
+Note that <I>n</I> is relative to the beginning of tape, not the current
+position.
+
+<LISTING>
+TCL SYNTAX:
+     tapePositionOverImage [tapeDevice] &lt;n&gt;
+
+     [tapeDevice] - name of the tape device. If omitted, the value of the
+                    environmental variable $TAPE is used instead. Specifying
+                    tapeDevicetakes precedence over using $TAPE
+     n            - Number of the desired image on tape. The head will be 
+                    positioned over this image.
+</LISTING>
+<HR><HR>
+<H2><A NAME="tapePositionOverNextImage">tapePositionOverNextImage</A></H2>
+
+<P>
+Position the tape head over the next image for a subsequent read operation. If
+the preceeding image was the last one on tape, the tape head will be positioned
+on an <B>[EOF]</B>
+
+<LISTING>
+TCL SYNTAX:
+     tapePositionOverNextImage [tapeDevice] 
+
+     [tapeDevice] - name of the tape device. If omitted, the value of the
+                    environmental variable $TAPE is used instead. Specifying
+                    tapeDevicetakes precedence over using $TAPE
+</LISTING>
+<HR><HR>
+<H2><A NAME="tapeWriteEot">tapeWriteEot</A></H2>
+
+<P>
+Write a FITS standard End-of-Tape marker on the tape. This extension 
+<B>MUST</B> be used after writing the last FITS image on tape.
+
+<LISTING>
+TCL SYNTAX:
+     tapeWriteEot [tapeDevice]
+
+     [tapeDevice] - name of the tape device. If omitted, the value of the
+                    environmental variable $TAPE is used instead. Specifying
+                    tapeDevicetakes precedence over using $TAPE
+</LISTING>
+
+
+
+
+
+
+

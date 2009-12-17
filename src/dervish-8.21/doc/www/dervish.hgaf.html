@@ -1,0 +1,281 @@
+<HTML>
+<HEAD>
+
+<TITLE>Histograms and Arrays of Floats</TITLE>
+<BODY>
+
+<H1>Histograms and Arrays of Floats</H1>
+
+<H2>TCL API</H2>
+<UL>
+<LI><A HREF="tclHg.html">Histograms and arrays of floats</A>
+</UL>
+
+<H2>C Routine Interface</H2>
+<UL>
+<LI><A HREF="hg.c.html">Histograms and arrays of floats</A>
+</UL>
+
+<h2> <A NAME="hgaf">hg -- a tcl histogram package</A> </h2>
+<ul>
+<li> General description of the basic <a href=#concepts>concepts</a>
+<li> An <a href=#example>example</a>
+<li> Controlling the plot window with <a href=#pgstate>PGSTATE</a>
+<li> What <a href=#tlist>chains</a> can do for you.
+<li> The <a href=#structures>structures</a> employed: HG, AF, PT, PGSTATE
+</ul>
+<h2> <a name="concepts">concepts </h2>
+
+This package is a collection of tcl verbs and c functions to do histograms
+and arrays of floating points values.
+
+<h3> The basic structures </h3>
+
+We define the following structures in the package:
+<ul>
+<li> HG:  a histogram
+<li> AF:  an array of floats
+<li> PT:  a point (row, column, and "size")
+<li> PGSTATE: the state that pgplot is in: device, window, etc.
+</ul>
+
+The hg package provides the  basic manipulation of these strucures, including
+plotting.  There is also some interface to regions (hgReg 
+fills a histogram with the pixel values in a region) and lists
+(the routine afFromList fills an AF with the values from a liked list.)
+The pgplot package does the actual display.
+
+<h3> Selecting with the cursor from a plot </h3>
+Several functions allow you to pick from a plot.  When you go into the
+cursor mode, the following message appears on the tcl prompt window:
+<listing>
+Waiting for cursor input
+</listing>
+You can choose 1, 2, or 0 points.  To choose one point, click with the
+left mouse button.  To select two points, use the middle mouse button,
+one click at each position.  To bail out with doing minimal damage, 
+click the right button once anywhere.
+
+<p> HG:  selecting one point selects the BIN at that x value.  Selecting
+two points gets all the bins between the two selected bins.  The y value
+is ignored.
+
+<p> AF:  selecting one point gets the object closest to the point.  Distance
+is calculated as sqrt(delta_x^2 + delta_y^2) in whatever units are plotted.
+Selecting two points gets you everything inside the rectangle; it is possible
+to have nothing returned.
+
+<h3> afMask:  masking items </h3>
+
+Several functions use afMask to indicate which items are to be used.  If
+afMask==NULL then ALL items are used.  Otherwise, only items with the
+afMask->value==1 are used.  The function afInvert takes the (logical) inverse
+of an afMask, so you can plot all the good objects with afMask, make the
+inverse of afMask, and plot all the not-good objects with afMaskInverse.
+
+
+<h2> <a name="example">Example </h2>
+<listing>
+eagphot> hgNew
+h1
+eagphot> hgDefine h1 "-name First Example" -xLabel Counts -max 10000 -nbin 100
+eagphot> hgFill h1 30
+eagphot> hgFill h1 35
+eagphot> hgFill h1 40
+eagphot> hgFill h1 50 -weight 10
+eagphot> hgPrint h1
+id = 0
+name = First Example
+xLabel = Counts
+yLabel =
+nbin = 50
+minimum = 0.000000
+maximum = 100.000000
+underflow = 0.000000
+overflow = 0.000000
+entries  = 4
+ mean  = 47.461538
+ sigma = 134.359801
+eagphot> hgMean h1
+47.461538
+eagphot> hgSigma h1
+134.359801
+eagphot> pgstateNew
+h2
+eagphot> pgstateOpen h2
+Open /XWINDOW
+eagphot> hgPlot h2 h1
+eagphot> pgstateClose h2
+Close /XWINDOW
+
+ In the graphics window: click any mouse button or type &lt;RETURN&gt; to continue
+eagphot>
+
+</listing>
+
+<h2> <a name="pgstate">Controlling the plot with PGSTATE </h2>
+
+After creating a PGSTATE you control various features with the pgstateSet
+comand:
+
+<listing>
+eagphot> pgstateSet h2 -nxwindow 2
+</listing>
+
+sets the number of windows in the x direction to 2.
+
+The following parameters may be set:
+
+<ul>
+<li> device is where the plot is going; /XWINDOW, /PS, /VPS, or /TEK4010
+<li> nxwindow is the number of windows in x
+<li> nywindow is the number of windows in y
+<li> xfract is the fraction of space left for borders in x
+<li> yfract is the fraction of space left for borders in y
+<li> ixwindow is the current window in x
+<li> iywindow is the current window in y
+<li> just is the "just" parameter in pgplot_pgenv
+<li> axis is the "axis" parameter in pgplot_pgenv
+<li> full is the "full" parameter
+<li> xopt is the character string sent to pgbox for x, default is "BCNST"
+<li> yopt is the character string sent to pgbox for y, default is "BCNST"
+<li> xtick also used in pgbox
+<li> ytick also used in pgbox
+<li> nxsub also used in pgbox
+<li> nysub also used in pgbox
+<li> plotTitle is the title put at the top of the plot
+<li> symb is the key for which symbol to plot.  (Page A-33 of PGPLOT manual)
+<li> isLine is 1 if points are connected by lines; 0 if just symbols
+<li> icMark is the color to make points
+<li> icLine is the color to draw lines connecting points
+<li> icBox is the color of the box
+<li> icLabel is the color of the labels
+<li> icError is the color of the error bars
+<li> lineWidth is the width of lines connecting points (page A-42)
+<li> lineStyle is line style, 1 through 5.  (page A-41)
+<li> isNewplot is 1 to move to new plot; 0 to overplot on previous.
+</ul>
+
+<h3> Styles - plot symbols </h3>
+The parameter symb gives the following types of plot symbols:
+<ul>
+<li> -1, -2: a single dot
+<li> -3 to -31:  a regular polygon with abs(symb) sides
+<li> 0 to 31:  standard marker symbols
+<li> 32 to 127: ASCII characters
+<li> &gt; 127: a Hershey symbol number
+</ul>	
+<h3> Styles - line styles </h3>
+The parameter lineStyle gives the following types of lines:
+<ul>
+<li> 1 full line
+<li> 2 dashed
+<li> 3 dot-dash-dot-dash
+<li> 4 dotted
+<li> 5 dash-dot-dot-dot
+</ul>
+The lineWidth parameter says how many strokes are in each line.  This
+may be set from 1 to 201 inclusive.  
+
+<h3> Styles - color indices </h3>
+The colors for the marks, lines, boxes, labels, and error bars are
+chosen with a color index.  The representation of the color can
+also be chosen by defining (R,G,B) intensities for the index.
+The default color indices are:
+<ul>
+<li> 1 white (black on printer)
+<li> 2 red
+<li> 3 green
+<li> 4 blue
+<li> 5 cyan
+<li> 6 violet
+<li> 7 yellow
+<li> 8 orange
+</ul>
+Higher numbers are defined but I can't tell the difference in the colors.
+
+<h2> <a name="tlist"> Chains </h2>
+Chains are used to communicate between pgplot windows
+and saoDisplay windows.  The tcl interface that creates a chain
+uses the command chainFromPlot.  The command chainToSao takes
+the elements on the chain and marks their position in the saoDisplay 
+window.  From a distribution of parameters, chain elements that are near the
+selected point (or inside the selected rectangle) are marked on the
+image display.  
+
+<p> A future release will have the ability to select a position in
+the saoDisplay and feed the information from selected objects to the
+pgplot window.
+
+<h2> <a name="structures"> The C structures</h2>
+<listing>
+/* HistoGram Structure */
+typedef struct Hg {
+                                /* list management */
+  TYPE type;
+  struct Hg *next, *prev;
+  const int id;
+                                /* info for this histogram */
+  double minimum;
+  double maximum;
+  char *name, *xLabel, *yLabel;
+  unsigned int nbin;
+  float *contents;
+  float *binPosition;
+  double underflow;
+  double overflow;
+  unsigned int entries;
+  double wsum, sum, sum2;
+} HG;
+
+/* Array Float Structure */
+typedef struct Af {
+  TYPE type;
+  struct Af *next, *prev;
+  const int id;
+  char *name;
+  unsigned int nValue;
+  float *value, *error;
+} AF;
+
+typedef struct Pt {
+  TYPE type;
+  struct Pt *next, *prev;
+  int id;
+  float row, col, radius;
+} PT;
+
+/* Structure to define the state of the plotting */
+typedef struct Pgstate {
+                                /* list management */
+  TYPE type;
+  struct Pgstate *next, *prev;
+  const int id;
+                                /* info for the hg plotting state */
+  char device[HG_DEVICE_NAMELEN];
+  int nxwindow, nywindow;       /* number of windows in x and y */
+  float xfract, yfract;         /* window filling fraction in x and y */
+  int ixwindow, iywindow;       /* current window in x and y */
+  int just;                     /* "just" of pgplot_pgenv */
+  int axis;                     /* "axis" of pgplot_pgenv */
+  int full;                     /* 0 if plot is empty; 1 if it is full */
+                                /* parameters used in PGBOX */
+  char xopt[12], yopt[12];
+  float xtick, ytick;
+  int nxsub, nysub;
+
+} PGSTATE;
+
+/* PoinT Structure */
+typedef struct Pt {
+  TYPE type;
+  struct PT *next, *prev;
+  const int id;
+  float row, col, radius;
+} PT;
+
+</listing>
+
+</body>
+</HTML>
+

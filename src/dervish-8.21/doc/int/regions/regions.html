@@ -1,0 +1,186 @@
+<html>
+<head>
+<title> primer for regions </title>
+
+<body>
+<h1>
+regions primer
+</h1>
+
+<h2> QUESTIONS </h2>
+<dir>
+<li> 1.  What is a region?
+<li> 2.  How to I get a region in TCL?
+<li> 3.  What pixel types are allowed in regions?
+<li> 4.  How can I find out what is in an existing region?
+<li> 5.  How can I act on pixel values?
+<li> 6.  How can I act on header values?
+<li> 7.  How can I act on mask values?
+<li> 8.  What other operations are available?
+<li> 9. How do I access the pixels from a C program?
+<li> 10.  How much faster is this than the TCL version?
+</dir>
+<h2> ANSWERS </h2>
+<listing>
+
+1.  What is a region?
+
+A region is a collection of three components:  pixel values, header lines,
+and a mask.  Subregions can be sliced from a region and are similar to 
+regions, except that the actual pixel values can not be changed in a 
+subregion.  
+
+2.  How to I get a region in tcl?
+
+The command regNew creates a new region for you.  regReadAsFits reads a FITS
+file into the region.
+
+dervish> regReadAsFits [regNew] $INT_DIR/fits/m51.fits
+h0
+
+The handle "h0" is used to access the region.
+
+3.  What pixel types are allowed in regions?
+
+The 2-dimensional array may have the following data types:
+
+signed integers or unsigned integers; 8, 16, or 32 bits.
+floating point:  32-bit.
+
+4.  How can I find out what is in an existing region?
+
+The command regInfoGet lists the basic information:
+
+dervish> regInfoGet h0
+{nrow 512 } {ncol 512 } {type U16 } {name h0 } {row0 0 } {col0 0 } {modCntr 0 }
+{isSubReg 0 } {isPhysical 0 } {pxAreContiguous 1 } {hasHeader 1 } {headerModCnt
+r 1 } {nSubReg 0 }
+
+5.  How can I act on pixel values?
+
+A set of TCL extensions does this.  regSetWithDbl sets all the pixels to the
+same value.  There are verbs for arithmetic (regSub, regAdd, regMult, regDiv)
+In tcl, you read an individual pixel value with regPixGet.
+
+dervish> regNew 100 100
+h1
+dervish> regSetWithDbl h1 3.14159
+dervish> regMultiplyWithDbl 2.0  h1
+dervish> regPixGet h1 10 10
+6
+
+Note that the default type for pixels is unsigned 16-bit integers.  If we 
+want 2 pi more significant digits, we specify the data type when we create
+the region.
+
+dervish> regNew -type=FL32 100 100
+h2
+dervish> regSetWithDbl h2 3.14159
+dervish> regMultWithDbl 2.0 h2
+dervish> regPixGet h2 10 10
+6.283180
+
+Getting at pixels is very slow with this tcl verb.  In general, actions on
+an entire picture should be done in c, as described below.
+
+6.  How can I act on header values?
+
+This is done with the set of regHdr... verbs.  For example:
+
+dervish> regHdrGetAsAscii h0 OBJECT
+m51  B  600s
+dervish> regHdrMakeLineWithAscii FLATS DOME1 "We used dome flats 1 "
+FLATS   = 'DOME1   '           / We used dome flats 1
+dervish> regHdrInsWithAscii h0 FLATS DOME1 "We used dome flats 1 "
+dervish> regHdrGetAsAscii h0 FLATS
+DOME1
+
+
+dervish> help regHdr
+.
+.
+a complete list of regHdr... commands
+.
+.
+
+7.  How can I act on mask values?
+the regMask... verbs are similar to the regPix... verbs.  For example:
+dervish>  regMaskSetAsPix h0 10 20 7
+
+8.  What other operations are available?
+
+Look in help for a description of:
+
+regMap, regModeFind, regStatsFind, regGaussiansAdd, regConvolve, regSkyFind.
+
+dervish> regSetWithDbl [regNew 100 100] 100
+dervish> regGaussiansAdd h0 {40 50 60} {45 55 65} {200 300 200}
+dervish> regSkyFind h0
+99.2892
+dervish> help regModeFind
+regModeFind          USAGE: regModeFind region -min -max
+                       Histogram all of the pixels in a region and find the
+                       most common value.
+
+dervish> regModeFind h0
+100.
+dervish> help regStatsFind
+regStatsFind         USAGE: regStatsFind region
+                       Find region statistics
+
+dervish> regStatsFind h0
+{mean 100.439600} {sigma 7.300791} {high 334.000000} {hrow 49} {hcol 54} {low 1
+00.000000}{lrow 0} {lcol 0}
+
+9. How do I access the pixels from a C program?
+
+First, use shTclRegAddrGetFromName(interp, regName, &regPtr), which takes a
+region name (regName) and returns the pointer (regPtr) to that region.  Then
+there are two ways to do this.  If you are not uptight about speed, then use:
+shRegPixGetAsDbl(regPtr, i, j) which returns the value of the pixel at (i,j)
+as a double, regardless of the pixel data type.  If you want to access the
+pixels directly, then you need to determine the data type (it is in 
+regPtr->type) and then use the correct pointers.  For example, if the pixel
+type turns out to be U16, then the value of pixel (i,j) is 
+regPtr->rows_u16[i][j].
+
+These two methods are illustrated in the subdirectory $INT_DIR/regions,
+in the files privateTclVerbs.c, dervish_template.c, and Makefile.  This defines
+two new verbs, privateRegAvg and privateRegAvgFast.  The timing results are:
+
+MYVERB> regSetWithDbl [regNew 100 100] 200
+MYVERB> time {privateRegAvg h1} 1000
+27300 microseconds per iteration
+MYVERB> time {privateRegAvgFast h1} 1000
+18880 microseconds per iteration
+
+So the "fast" version is not even twice as fast.
+
+10.  How much faster is this than the TCL version?
+
+$INT_DIR/regions/pra.tcl defines the procedure pra:
+
+proc pra {handle} {
+	set regInfo [regInfoGet $handle]
+	set regNrow [keylget regInfo nrow]
+	set regNcol [keylget regInfo ncol]
+	set sum 0
+	loop icol 0 $regNcol {
+	  loop irow 0 $regNrow {
+	     set sum [expr {$sum + [regPixGet $handle $irow $icol]} ]
+	  }
+	}			
+	expr { $sum / ($regNrow * $regNcol) }
+}
+
+For comparison:
+
+MYVERB> time {pra h1} 100
+2545077 microseconds per iteration
+
+The "tcl" version is an order of magnitude slower than C versions.  Note
+that this time is for a region that is 100x100 pixels.
+
+</listing>
+</body>
+</html>

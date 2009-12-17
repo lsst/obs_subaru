@@ -1,0 +1,571 @@
+<HTML>
+<HEAD>
+<!-- *********************************************************************** -->
+<!-- *++
+<!-- * FACILITY:	Dervish
+<!-- *			Documentation
+<!-- *
+<!-- * ABSTRACT:	FITS I/O.  C interface to FITS.
+<!-- *
+<!-- * ENVIRONMENT:	HTML (HyperText Markup Language).
+<!-- *			shFits.html
+<!-- *
+<!-- * AUTHOR:		Tom Nicinski, Creation date: 12-Jan-1994
+<!-- *--
+<!-- *********************************************************************** -->
+
+<TITLE>FITS Tables Under Dervish: C API</TITLE>
+
+<H1>FITS Files Under Dervish: C API</H1>
+
+<P>
+Procedures for reading and writing FITS files, including
+<A HREF="dervish.fitsio.html#tblcol">ASCII and Binary Tables</A>, are provided:
+
+<DIR>
+<LI>	<A HREF="#shFitsRead"><B>shFitsRead</B></A>
+<LI>	<A HREF="#shFitsWrite"><B>shFitsWrite</B></A>
+<LI>	<A HREF="#shFitsTypeName"><B>shFitsTypeName</B></A>
+<LI>	<A HREF="#shFitsTBLCOLcomply"><B>shFitsTBLCOLcomply</B></A>
+</DIR>
+
+<P>
+Users should be careful to understand the
+<A HREF="dervish.fitsio.html#Dervish vs. FITS">differences in nomencalture</A>
+between Dervish and FITS.
+
+<!-- *********************************************************************** -->
+
+<!-- *********************************************************************** -->
+
+<H2><A NAME="shFitsRead">shFitsRead</A></H2>
+
+<LISTING>
+_______________________________________________________________________________
+
+NAME
+     shFitsRead  -  Read a FITS file Header and Data Unit (HDU)
+
+SYNOPSIS (C Syntax)
+     #include "shCFits.h"
+     #include "shCTbl.h"
+
+     RET_CODE  shFitsRead
+     (
+     HANDLE               *handle,     /* IN:    Dervish handle to read in to  */
+                    char  *FITSname,   /* IN:    FITS file specification     */
+     DEFDIRENUM            FITSdef,    /* IN:    Which default to apply      */
+     FITSHDUTYPE           FITStype,   /* IN:    FITS HDU type to read       */
+                    int    hduWanted,  /* IN:    HDU to read (0-indexed)     */
+                    char  *xtension,   /* IN:    XTENSION to read            */
+     HDR                 **hdr,        /* OUT:   Dervish header                */
+                    int    typeCheck,  /* IN:    Check data types   (REGION) */
+                    int    typeRetain  /* IN:    Keep  data types   (REGION) */
+     )
+
+RETURN VALUES
+     SH_SUCCESS		Success.  The specified HDU was read properly from the
+			FITS file.
+
+     SH_CONFLICT_ARG	Failure.  The hduWanted and xtension arguments were
+			both used, or the FITStype and handle type did not
+			match.
+
+     SH_NOT_SUPPORTED	Failure.  The handle (object schema) type is not sup-
+			ported.
+
+     SH_HEADER_IS_NULL	Failure.  The header vector (used by LIBFITS) could not
+			be allocated.
+
+     SH_FITS_OPEN_ERR	Failure.  The FITS file could not be opened.
+
+     SH_FITS_NOEXTEND	Failure.  The FITS file does not contain the requested
+			extension HDU.
+
+     SH_TYPE_MISMATCH	Failure.
+			The HDU type and the FITStype are incompatible.
+
+     SH_FITS_INV_FILE	Failure.  The FITS file structure is invalid.  This
+			includes an invalid FITS header or data area that does
+			not match what is expected (for example, the file ends
+			before the data does).
+
+     SH_MALLOC_ERR	Failure.
+			Space could not be allocated for the FITS file specifi-
+			cation.
+_______________________________________________________________________________
+
+DESCRIPTION
+</LISTING>
+
+<P>
+<B>shFitsRead</B> is a generic FITS reader, invoking other routines to read
+specific types of FITS header and data units (HDUs) into
+Dervish <A HREF="dervish.dump.html#diskio">object schemas</A>.
+A specified HDU is read from the FITS file.
+The FITS file specification can be expanded with a default path (directory) and
+extension, as set with
+<B><A HREF="dirUtils.html#shDirSet">shDirSet</A></B>.
+If <SAMP>DEF_NONE</SAMP> is passed, no defaulting will be applied.
+If <SAMP>DEF_DEFAULT</SAMP> is passed, the default path and extension are
+based on the <VAR>handle</VAR> type:
+<UL>
+<LI>	<SAMP>REGION</SAMP> object schemas default from <SAMP>DEF_REGION_FILE</SAMP>
+<LI>	<SAMP>TBLCOL</SAMP> object schemas default from <SAMP>DEF_REGION_FILE</SAMP>
+<LI>	<SAMP>MASK</SAMP> object schemas default from <SAMP>DEF_MASK_FILE</SAMP>
+</UL>
+But, in all cases, any metacharacters and environment variables in the file
+specification (after any defaulting) are translated.
+
+<P>
+The way an HDU is read is affected by the HDU position in the FITS file,
+the <VAR>handle</VAR> object schema type, and the expected HDU type
+(as specified by <VAR>FITStype</VAR>).
+The setting of the Primary Data Unit's (PDU) <SAMP>SIMPLE</SAMP> keyword
+does not affect reading.  The HDUs are read as if all Dervish extensions to
+the FITS Standard were permitted.
+
+<P>
+The following FITS HDU types can be read:
+
+<UL>
+<LI>	Primary HDU
+<LI>	<SAMP>TABLE</SAMP> (ASCII Table)
+<LI>	<SAMP>BINTABLE</SAMP> (Binary Table)
+</UL>
+
+The HDU to be read is selected by either the <VAR>hduWanted</VAR> or
+<VAR>xtension</VAR> parameter.  These parameters conflict, so only one may
+be passed with a valid value to indicate which search is to take place.
+The default, if <VAR>hduWanted</VAR> is less than zero and
+<VAR>xtension</VAR> is passed as a zero address, is to behave as if
+<VAR>hduWanted</VAR> was passed as zero.  This indicates that the Primary
+HDU is to be read.
+
+If <VAR>hduWanted</VAR> is positive, it indicates which HDU is to be
+read, by position (0-indexed).
+If <VAR>xtension</VAR> points to a character string, it is the HDU extension
+name which must match the <SAMP>XTENSION</SAMP> header keyword value.
+The first HDU extension matching this specification is read.
+
+<P>
+Based on the <VAR>handle</VAR>, the following formats
+(<A HREF="dervish.dump.html#diskio">object schemas</A>) are understood:
+
+<UL>
+<LI>	<SAMP>REGION</SAMP>:	read the primary HDU into a Dervish region
+<LI>	<SAMP>MASK</SAMP>:	read the primary HDU into a Dervish mask
+<LI>	<SAMP>TBLCOL</SAMP>:	read the Table HDU in columnar format
+</UL>
+
+The reading of a FITS file is also controlled by the <VAR>FITStype</VAR>
+parameter.  If not set to <SAMP>f_hduUnknown</SAMP>, it forces the reading of
+an ASCII Table (<SAMP>f_hduTABLE</SAMP>) or a Binary Table
+(<SAMP>f_hduBINTABLE</SAMP>).
+The corresponding <VAR>handle</VAR> type and HDU extension must match.
+For example, a <SAMP>REGION</SAMP> handle may not be used to receive a
+Binary Table (if <VAR>FITStype</VAR> is <SAMP>f_hduBINTABLE</SAMP>).
+<VAR>FITStype</VAR> is most useful for checking that the appropriate Table
+is being read, especially if the Table is located through <VAR>hduWanted</VAR>.
+The value of <SAMP>f_hduUnknown</SAMP> avoids this check.
+
+<P>
+<VAR>hdr</VAR> is an optional argument.
+If a null address is passed, no value is returned.
+If a non-null address is passed, the address of the Dervish header associated with
+the <VAR>handle</VAR> is returned.
+
+<H3>Reading REGIONs</H3>
+
+<P>
+<A HREF="dervish.region.html#region"><SAMP>REGION</SAMP>s</A> are read from the
+Primary HDU.
+
+<P>
+<VAR>typeCheck</VAR> and <VAR>typeRetain</VAR> parameters are used only with
+<SAMP>REGION</SAMP> handles.
+<VAR>typeCheck</VAR> (corresponding to
+<A HREF="fitsIo.html#shRegReadAsFits"><B>shRegReadAsFits</B></A>'s
+<VAR>checktype</VAR> parameter) forces the checking of the FITS file pixel data
+type against the pixel data type associated with the extant <SAMP>REGION</SAMP>.
+If the data types differ, the reading of the FITS PDU into the
+<SAMP>REGION</SAMP> is aborted.
+
+<P>
+The presence of the <VAR>typeRetain</VAR> parameter (corresponding to
+<A HREF="fitsIo.html#shRegReadAsFits"><B>shRegReadAsFits</B></A>'s
+<VAR>keeptype</VAR> parameter) indicates that the pixel
+data type of the extant <SAMP>REGION</SAMP> is to be retained.
+Pixel values from the FITS file are converted to the pixel data type of the
+<SAMP>REGION</SAMP>.  If the FITS file pixel value does not fit in the range
+of values permitted by the <SAMP>REGION</SAMP> pixel data type, the read in
+pixel value is set to the maximum/minimum possible value for the
+<SAMP>REGION</SAMP> pixel data type (for example, this can occur when
+reading 32-bit integers into 16-bit integers).
+If the <SAMP>REGION</SAMP> does not have a data type associated with it,
+the data type of the pixels in the FITS file is used.
+
+<H3>Reading MASKs</H3>
+
+<P>
+<A HREF="dervish.region.html#MASK"><SAMP>MASK</SAMP>s</A> are read from the
+Primary HDU.
+
+<H3>Reading ASCII and Binary Tables</H3>
+
+<P>
+<A HREF="dervish.fitsio.html#tblcol">ASCII and Binary Table data</A> is
+<A HREF="shTblRead.html">converted</A> to the data type specified by the
+<SAMP>TFORM</SAMP>n keyword.
+It is aligned based on the format (general object schema or one of the special
+formats).
+<A HREF="shTblRead.html#TSCAL/TZERO">Scaling and zeroing are applied</A>
+<EM>only</EM> when changing the "signedness" of an integer data type for
+Binary Tables.
+If <SAMP>TSCAL</SAMP>n and <SAMP>TZERO</SAMP>n are not applied, they are saved
+for reference by the user.
+
+<P>
+If the heap area is used by the Binary Table, the data in the heap area is
+converted and aligned (based on the <SAMP>`P'</SAMP> data type specified by the
+<SAMP>TFORM</SAMP>n keyword).
+As with Table data (record storage area) <I>per se</I>,
+<A HREF="shTblRead.html#TSCAL/TZERO">scaling and zeroing are applied</A>
+only for changing the "signedness" of an integer heap data type (even though
+the FITS Standard indicates that <SAMP>TSCAL</SAMP>n and <SAMP>TZERO</SAMP>n
+are not defined for heap).
+The Table array descriptors are modified to reflect changes in placement and
+alignment of the heap area data.
+The array descriptor offset will still be the 0-indexed byte offset of the first
+element of the array, measured from the start of the heap area.
+
+<H3>Things to Sort Out</H3>
+
+<I>
+<UL>
+<LI>	How would multiple HDUs matching the extension name be selected (first
+	one found, etc.)?
+	Would parameters to specify the FITS keywords <SAMP>EXTNAME</SAMP>,
+	<SAMP>EXTVER</SAMP>, and <SAMP>EXTLEVEL</SAMP> be used? necessary?
+</UL>
+</I>
+
+<!-- *********************************************************************** -->
+
+<!-- *********************************************************************** -->
+
+<H2><A NAME="shFitsWrite">shFitsWrite</A></H2>
+
+<LISTING>
+_______________________________________________________________________________
+
+NAME
+     shFitsWrite  -  Write a FITS file Header and Data Unit (HDU)
+
+SYNOPSIS (C Syntax)
+     #include "shCFits.h"
+     #include "shCTbl.h"
+
+     RET_CODE  shFitsRead
+     (
+     HANDLE               *handle,     /* IN:    Dervish handle to read in to  */
+                    char  *FITSname,   /* IN:    FITS file specification     */
+     DEFDIRENUM            FITSdef,    /* IN:    Which default to apply      */
+     FITSHDUTYPE           FITStype,   /* IN:    FITS HDU type to write      */
+     SHFITSPDU             pduWanted,  /* IN:    Put out a PDU too?          */
+                    int    append,     /* IN:    Boolean: append to file     */
+     FITSFILETYPE          FITSstd     /* IN:    SIMPLE=?/chk FITS compliance*/
+     )
+
+RETURN VALUES
+     SH_SUCCESS		Success.  The specified HDU was written properly to the
+			FITS file.
+
+     SH_INVARG		Failure.  An argument is invalid: pduWanted and/or
+			FITSstd are not valid.
+
+     SH_CONFLICT_ARG	Failure.  The append and pduWanted arguments were both
+			used, or the FITStype and handle type did not match.
+
+     SH_NOT_SUPPORTED	Failure.  The handle (object schema) type is not sup-
+			ported.
+
+     SH_FITS_OPEN_ERR	Failure.  The FITS file could not be opened.
+
+     SH_FITS_INV_FILE	Failure.  The FITS file structure is invalid.  This
+			includes an invalid FITS header or data area that does
+			not match what is expected (for example, the file length
+			is not a multiple of the FITS record length).
+
+     SH_MALLOC_ERR	Failure.
+			Space could not be allocated for the FITS file specifi-
+			cation.
+_______________________________________________________________________________
+
+DESCRIPTION
+</LISTING>
+
+<P>
+<B>shFitsWrite</B> is a generic FITS writer, invoking other routines to write
+specific types Dervish <A HREF="dervish.dump.html#diskio">object schemas</A> to
+FITS header and data units (HDUs).
+A specified header and data unit (HDU) is written to a FITS file.
+The FITS file specification can be expanded with a default path (directory) and
+extension, as set with
+<B><A HREF="dirUtils.html#shDirSet">shDirSet</A></B>.
+If <SAMP>DEF_NONE</SAMP> is passed, no defaulting will be applied.
+If <SAMP>DEF_DEFAULT</SAMP> is passed, the default path and extension are
+based on the <VAR>handle</VAR> type:
+<UL>
+<LI>	<SAMP>HDR</SAMP> object schemas default from <SAMP>DEF_REGION_FILE</SAMP>
+<LI>	<SAMP>REGION</SAMP> object schemas default from <SAMP>DEF_REGION_FILE</SAMP>
+<LI>	<SAMP>TBLCOL</SAMP> object schemas default from <SAMP>DEF_REGION_FILE</SAMP>
+<LI>	<SAMP>MASK</SAMP> object schemas default from <SAMP>DEF_MASK_FILE</SAMP>
+</UL>
+But, in all cases, any metacharacters and environment variables in the file
+specification (after any defaulting) are translated.
+
+<P>
+The following FITS HDU types can be written:
+
+<UL>
+<LI>	Primary HDU
+<LI>	<SAMP>TABLE</SAMP> (ASCII Table)
+<LI>	<SAMP>BINTABLE</SAMP> (Binary Table)
+</UL>
+
+Support for Random Groups and any other FITS extensions is not available.
+The <VAR>handle</VAR> argument implicitly specifies which FITS extension HDU
+should be written.  The following formats
+(<A HREF="dervish.dump.html#diskio">object schemas</A>) are understood:
+
+<UL>
+<LI>	<SAMP>HDR</SAMP>:	write a Dervish header to the primary HDU
+<LI>	<SAMP>REGION</SAMP>:	write a Dervish region to the primary HDU
+<LI>	<SAMP>MASK</SAMP>:	write a Dervish mask to the primary HDU
+<LI>	<SAMP>TBLCOL</SAMP>:	write a <SAMP>TBLCOL</SAMP> Table to a
+</UL>
+
+<P>
+The writing of a FITS file is also controlled by the <VAR>FITStype</VAR>
+parameter.  <VAR>FITStype</VAR> must be compatible with the <VAR>handle</VAR>
+type.
+For example, a <SAMP>REGION</SAMP> <VAR>handle</VAR> may not be written to a
+Binary Table extension HDU (if <VAR>FITStype</VAR> were
+<CODE>f_hduBINTABLE</CODE>).
+Usually, the <VAR>handle</VAR> type is adequate to select the FITS HDU type,
+thus a <VAR>FITStype</VAR> value of <CODE>f_hduUnknown</CODE> is adequate.
+But, <SAMP>TBLCOL</SAMP> <VAR>handle</VAR>s require either
+<CODE>f_hduTABLE</CODE> or <CODE>f_hduBINTABLE</CODE> to write an
+an ASCII or Binary Table respectively.
+
+<P>
+Setting the <VAR>append</VAR> parameter to a true value indicates that the
+HDU being written out be appended to the FITS file.
+Only FITS extensions can be appended, that is, <VAR>handle</VAR>s that must be
+written as the Primary Data Unit (PDU) cannot be appended (such as
+<SAMP>REGION</SAMP>s and <SAMP>MASK</SAMP>s).
+If the file does not exist initially, or is zero-length, then a PDU can be
+written out also with the <VAR>pduWanted</VAR> parameter being something
+other than <CODE>SH_FITS_PDU_NONE</CODE>.
+The <SAMP>SH_FITS_PDU_MINIMAL</SAMP> parameter value will cause a minimal PDU to be
+written that will allow FITS readers to access the extension HDU being written
+(the FITS <SAMP>EXTEND</SAMP> keyword is set to <SAMP>`T'</SAMP>).
+
+<P>
+The <VAR>FITSstd</VAR> parameter performs two related functions:
+<UL>
+<LI>	Determining whether the resultant HDU will comply with the
+	FITS Standard.
+<LI>	Setting the value of the FITS <SAMP>SIMPLE</SAMP> keyword.
+</UL>
+
+If <VAR>FITSstd</VAR> is <SAMP>NONSTANDARD</SAMP>, no checks are made to see
+whether the resulting HDU (that's being written out) will comply with the
+FITS Standard.  Furthermore, if the HDU being written is the PDU, then the
+FITS <SAMP>SIMPLE</SAMP> keyword is set to be false (<SAMP>`F'</SAMP>).
+<P>
+If <VAR>FITSstd</VAR> is <SAMP>STANDARD</SAMP>, the object schema pointed to
+by the <VAR>handle</VAR> is first checked to see if a FITS compliant HDU
+can be written.  If not, <B>shFitsWrite</B> returns with a failure status.
+If the resulting and FITS compliant HDU is also the PDU, the FITS
+<SAMP>SIMPLE</SAMP> keyword is set to be true (<SAMP>`T'</SAMP>).
+
+<H3>Writing HDRs</H3>
+
+<P>
+<SAMP>HDR</SAMP>s are written to the Primary HDU (they may not be
+<VAR>append</VAR>ed as an extension header,
+the <VAR>FITStype</VAR> must be either <CODE>f_hduPrimary</CODE> or
+<CODE>f_hduUnknown</CODE>).
+<VAR>pduWanted</VAR> must be <CODE>SH_FITS_PDU_NONE</CODE>.
+
+<P>
+The <SAMP>HDR</SAMP> (<A HREF="shTblAccess.html#Headers">Dervish headers</A>)
+is checked to see whether it would form a legal FITS Primary header
+<EM>without</EM> any following data.
+If necessary, the FITS keywords <SAMP>SIMPLE</SAMP>, <SAMP>BITPIX</SAMP>,
+<SAMP>NAXIS</SAMP>, and <SAMP>END</SAMP> will be inserted (temporarily).
+
+<H3>Writing REGIONs</H3>
+
+<P>
+<SAMP>REGION</SAMP>s are written to the Primary HDU;  they cannot be
+<VAR>append</VAR>ed to an existing FITS file.
+Additionally,
+<A HREF="fitsIo.html#shRegWriteAsFits"><B>shRegWriteAsFits</B></A>'s
+<VAR>naxis</VAR> parameter is not supported.  The number of axes is defaulted
+to 2, unless the <SAMP>REGION</SAMP> is empty (both the number of rows and the
+number of columns are zero).
+
+<H3>Writing MASKs</H3>
+
+<P>
+<SAMP>MASK</SAMP>s are written to the Primary HDU;  they cannot be
+<VAR>append</VAR>ed to an existing FITS file.
+Additionally, the <VAR>FITSstd</VAR> parameter is ignored -- no FITS compliance
+testing is performed.
+
+<H3>Writing ASCII or Binary Tables</H3>
+
+<P>
+Table data is converted to the appropriate form based on the FITS HDU type --
+whether it's an ASCII Table or a Binary Table.
+The mapping of <A HREF="dervish.dump.html#diskio">object schema</A> data types
+of the in-memory data is the reverse of the mappings used when reading in
+<A HREF="shTblRead.html#Mapping ASCII Data Types">ASCII</A> or
+<A HREF="shTblRead.html#Mapping Binary Data Types">Binary</A> Tables.
+The <VAR>FITSstd</VAR> parameter affects the
+<A HREF="shTblWrite.html">writing of Tables</A> through a possible
+<A HREF="shTblWrite.html#TSCAL/TZERO">flip of the "signedness"</A> of
+unsupported FITS integer data types.
+
+<P>
+FITS ASCII Table data is written with printable ASCII characters
+(though it is possible for character string object schemas (of type
+<SAMP>STR</SAMP>) to contain non-printable characters).
+The field size is predetermined, based on the data type.
+The size of a character string field (type <SAMP>STR</SAMP>) is based on the
+dimensions of the in-memory Table field.
+Character strings are blank padded on the right to fill the size of the
+field.
+
+<P>
+Some FITS keywords are not permitted in the FITS header, depending upon the
+resulting <SAMP>TFORM</SAMP>n data type.
+For example, <SAMP>`A'</SAMP> data types under ASCII Tables may not have
+<SAMP>TSCAL</SAMP>n and <SAMP>TZERO</SAMP>n keywords.
+If the corresponding values are present in the field, they are <EM>not</EM>
+written to the FITS header, nor is any warning issued.
+
+<!-- *********************************************************************** -->
+
+<!-- *********************************************************************** -->
+
+<H2><A NAME="shFitsTypeName">shFitsTypeName</A></H2>
+
+<LISTING>
+_______________________________________________________________________________
+
+NAME
+     shFitsTypeName  -  Return the name of a FITS Header and Data Unit Type
+
+SYNOPSIS (C Syntax)
+     #include "shCFits.h"
+
+     char     *shFitsTypeName
+     (
+     FITSHDUTYPE           FITStype    /* IN:    FITS HDU type               */
+     )
+
+RETURN VALUES
+     o   Pointer to a static character string which is the FITS HDU type.
+_______________________________________________________________________________
+
+DESCRIPTION
+</LISTING>
+
+<P>
+The FITS header type is converted to a string value.
+<B>shFitsTypeName</B> allows Dervish users to use consistent names for FITS
+HDU types.
+This value is usually the header and data unit (HDU) extension name, such as
+<SAMP>TABLE</SAMP> for an ASCII Table.
+But, some HDUs do not have explicit extension names, such as
+<SAMP>`Primary'</SAMP> and <SAMP>`Random Groups'</SAMP>.
+An explicitly unknown header type, <CODE>f_hduUnknown</CODE>, is distinguished
+from an invalid or unrecognized header type (<CODE>`(unknown)'</CODE>
+<I>vs.</I> <CODE>`(invalid)'</CODE>).
+
+<!-- *********************************************************************** -->
+
+<!-- *********************************************************************** -->
+
+<H2><A NAME="shFitsTBLCOLcomply">shFitsTBLCOLcomply</A></H2>
+
+<LISTING>
+_______________________________________________________________________________
+
+NAME
+     shFitsTBLCOLcomply  -  TBLCOL Table complies with FITS Standard?
+
+SYNOPSIS (C Syntax)
+     #include "shCFits.h"
+
+     RET_CODE  shFitsTBLCOLcomply
+     (
+     TBLCOL               *tblCol,     /* IN:    Table to check              */
+     FITSHDUTYPE           FITStype,   /* IN:    FITS Extension type         */
+     FITSFILETYPE         *FITSstd     /* IN:    FITS compliant?             */
+     )
+
+RETURN VALUES
+     SH_SUCCESS		Success.  The Table would result in a valid FITS HDU
+			FITSstd indicates whether the HDU is FITS compliant.
+
+     SH_NOT_SUPPORTED	Failure.  The FITS HDU type cannot be checked.
+
+     SH_INVOBJ		Failure.  The Table itself is invalid (inconsistent).
+			FITSstd still indicates whether the HDU is FITS compli-
+			ant (by ignoring the Table inconsistencies).
+
+     SH_INV_FITS_FILE	Failure.  The Table cannot be written as the requested
+			HDU type without being an illegal FITS file (this is
+			different than just non-compliance with the FITS Stan-
+			dard).
+_______________________________________________________________________________
+
+DESCRIPTION
+</LISTING>
+
+<P>
+The <A HREF="shTblAccess.html#TBLCOL"><SAMP>TBLCOL</SAMP> Table</A> is checked
+to see if it would result in a FITS compliant HDU.  The testing is affected by
+the type of HDU (<VAR>FITStype</VAR> parameter).
+The result, <VAR>FITSstd</VAR>, is either <SAMP>STANDARD</SAMP> or
+<SAMP>NONSTANDARD</SAMP>.
+
+<P>
+It is important to note that <B>shFitsTBLCOLcomply</B> tests the
+<EM>potential</EM> for a <SAMP>TBLCOL</SAMP> Table to be rendered
+FITS-compliant rather than actually being FITS-compliant.
+This subtle distinction applies when writing Binary Tables whose
+integer <A HREF="dervish.dump.html#diskio">object schemas</A> do not translate
+directly to a FITS-compliant data type.  In such cases, the Table writer
+attempts to use the FITS community <EM>convention</EM> of setting
+<SAMP>TSCAL</SAMP>n and <SAMP>TZERO</SAMP>n to
+<A HREF="shTblWrite.html#TSCAL/TZERO">flip the "signedness"</A>
+of the data type.
+
+<P>
+<VAR>FITSstd</VAR> is an optional argument.
+If a null address is passed, no value is returned.
+
+<!-- *********************************************************************** -->
+
+</BODY>
+
+<HR>
+<ADDRESS><A HREF="dervish.authors.html#Nicinski">Tom Nicinski</A></ADDRESS>
+
+</HTML>

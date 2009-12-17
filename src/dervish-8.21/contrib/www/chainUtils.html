@@ -1,0 +1,339 @@
+<HTML>
+<HEAD>
+<TITLE>Contrib chain utilities</TITLE>
+<BODY>
+<H1>Additional TCL Interfaces to CHAIN utilities</H1>
+<P>
+Several utility routines exist to manipulate chains.  Each chain consists
+of zero or more objects, and each object has one or more elements defined
+by a schema.  Only objects with TYPEs defined in dervish can be manipulated.
+Additional utilities to view chains can be found in the
+<a href="shCurses.html">curses</a> utilities.
+<p>
+Most commands manipulate chains based on accessing one or more elements.
+These elements can be referenced using the full handle expression syntax
+of dervish.  Thus, for example, if one has a chain of REGIONs with each region
+containing a pointer to a mask structure, one could select all regions
+with masks that have 512 rows by using the command:
+chainSearch h1 {{mask-&gt;nrow = 512}} (where h1 is a handle to the chain).
+<P>
+Some commands require predicates.  The format of the predicates is as
+follows:
+<pre>
+{{pred1} {pred2} {pred3} ... }
+</pre>
+where each individual predicate can have one of two forms: either
+<pre>
+{arg &lt;op&gt; value} or
+
+{value1 &lt;op&gt; arg &lt;op&gt; value2}.
+</pre>
+Each arg is an element or an element
+expression (that can be parsed by the dervish handle expression evaluator).
+Each &lt;op&gt; is one of the 6 standard boolean operators:
+&lt;, &gt;, = (== also works), &lt;=, &gt;=, !=.  value or value1 or
+value2 are constants to be used for the
+comparison.  The second type of predicate is called a "range".  The operators
+should have the same sense in this case (but no checking is done).  If one
+specifies a range such as  {23 &lt; ra &lt; 1} where the upper limit is smaller
+than the lower limit, the range "wraps around" so all objects with ra &lt; 23 or
+ra &gt; 1 are selected.  This is useful, obviously, for selecting on elements
+such as right ascension that are periodic.  NOTE: spaces between the
+value, op, and arg parameters are REQUIRED.  (this is because arg can involve
+subscripting, which is done using angle brackets).  If you want to use
+the standard TCL parameter substitution inside the braces, then the
+following archane syntax must be used instead: e.g.
+"\{$lowerlimit &lt; ra &lt; $upperlimit\}".
+<P> Note added in proof: I think one can get away without the \'s above; thus
+one can just type "{$lowerlimit &lt; ra &lt; $upperlimit}".  The double
+quotes neutralize the embedded braces.
+<P>
+EXAMPLES:
+
+Suppose one has a Dervish type STAR defined as:
+<pre>
+typedef star {
+	float ra;
+	float dec;
+	float mag;
+	int id;
+	char filter[1];
+	REGION *reg;
+	} STAR;
+
+Then a predicate to a search command might be:
+   "{180. &lt; ra &lt; 195.} {0 &lt; dec &lt; 10.} {mag &lt;= 18.}"
+
+Another one might be
+   "{reg-&gt;nrow = 512}"
+which will return all stars derived from regions with exactly 512 rows.
+
+In the following documentation, it is assumed that h1 and h2 are each handles
+to chains of STARs.
+</pre>
+<P>
+The command are as follows:
+<UL>
+<LI><A HREF="#search">chainSearch</A> - Search an unsorted chain for all
+objects satisfying a set of criteria.
+<LI><A HREF="#select">chainSelect</A> - Search a sorted chain for all objects
+satisfying criteria based on the sorting element.
+<LI><A HREF="#sort">chainFSort</A> - Sort a chain.
+<LI><A HREF="#match">chainMatch</A> - Match two chains based on one or more
+elements matching to within a given window.
+<LI><A HREF="#set">chainSet</A> - Set a given element for all objects on
+a chain to a specified value.
+<LI><A HREF="#setfromhandle">chainSetFromHandle</A> - Set a given element for
+all objects on a chain to a value pass via a handle.
+<LI><A HREF="#extract">chainExtract</A> - Extract a portion of a chain
+<LI><A HREF="#scale">chainScale</A> - Scale a given element for all objects
+on a chain.
+<LI><A HREF="#trans">chainTransXY</A> - Apply a TRANS transformation to two
+elements for all objects on a chain.
+<LI><A HREF="#transz">chainTransZXY</A> - Apply a transformation to two
+elements and store in a third for all objects on a chain.
+</UL>
+<P>
+<A NAME="search"><H2>chainSearch</H2></A>
+Search an unsorted chain for all elements satisfying a given predicate;
+return a new chain with selected items";
+<PRE>
+TCL SYNTAX:
+   chainSearch &lt;CHAIN&gt; &lt;predicate&gt;
+
+   &lt;CHAIN&gt;	handle of the chain
+   &lt;predicate&gt;	The search conditions
+
+RETURNS:
+   TCL_OK      Successful completion. No result string
+   TCL_ERROR   Error occurred. Interp result will contain the reason
+
+EXAMPLE:
+   chainSearch h1 "{180. &lt; ra &lt; 195.} {0 &lt; dec &lt; 10.} {mag &lt;= 18.}"
+
+</PRE>
+<P>
+<A NAME="select"><H2>chainSelect</H2></A>
+Select from a sorted chain all objects with elements satisfying a given
+predicate; return a new chain with selected items.
+<PRE>
+TCL SYNTAX:
+   chainSelect &lt;CHAIN&gt; &lt;predicate&gt;
+
+   &lt;CHAIN&gt;	handle of the chain
+   &lt;predicate&gt;	The selection conditions
+
+Note: Only one predicate is allowed in this command.  The element used for
+the selection in the predicate is the element on which the list must be
+sorted; however, there is no check to verify that this is the case.
+This command is much faster than "chainSearch" for long chains since it
+performs a binary search.
+
+RETURNS:
+   TCL_OK      Successful completion. No result string
+   TCL_ERROR   Error occurred. Interp result will contain the reason
+
+EXAMPLE:
+   chainSelect h1 "{23. &lt; ra &lt; 1.}"	The chain must first have
+						been sorted on ra.
+
+   Although this looks bizarre mathematically, in this form of predicate,
+   the selection will "wrap-around" from 23 hrs to 1 hr.
+   
+</PRE>
+<P>
+<A NAME="sort"><H2>chainFSort</H2></A>
+Sort a chain based on the specified argument.  The argument can be an element
+or handle expression.  Sorting is done "in place".
+<PRE>
+TCL SYNTAX:
+   chainFSort &lt;CHAIN&gt; &lt;arg&gt; [-reverse]
+
+   &lt;CHAIN&gt;	handle of the chain
+   &lt;arg&gt;	The argument on which the chain is to be sorted.
+
+If the "reverse" flag is specified, reverse the ordering from ascending to
+descending.
+
+RETURNS:
+   TCL_OK      Successful completion. No result string
+   TCL_ERROR   Error occurred. Interp result will contain the reason
+
+EXAMPLE:
+   chainFSort h1 ra	Sorts the chain on ra.
+
+</PRE>
+<P>
+<A NAME="match"><H2>chainMatch</H2></A>
+Match two chains based on one or more sets of arguments with the chains
+lying within a specified window.  A chain is return consisting of TSMERGE
+objects, whereby each object contains a pair of pointers to the matching
+objects in the input chains.  The objects are not copied.  The chains need
+not be of the same type.
+<PRE>
+TCL SYNTAX:
+   chainMatch &lt;CHAIN1&gt; &lt;CHAIN2&gt; &lt;match-args&gt; [-type TYPE]
+
+   &lt;CHAIN1&gt;	handle of the first chain
+   &lt;CHAIN2&gt; 	handle of the second chain
+   &lt;match-args&gt;	A list of matching conditions
+
+The match-args list has the following format:
+
+{{c1arg1 c2arg1 window [wrap]}} {c1arg2 c2arg2 window [wrap]} ... }
+
+One or more matching conditions can be on the list.  For each matching
+condition, the first item is the name of an argument on the 1st chain,
+the second item is the name of an argument on the 2nd chain, the third
+item is a window such that the absolute value of the different in the
+value of the two arguments must be smaller than the window.  The fourth
+argument is optional; if supplied, it gives the "wrap-around" value for
+the two arguments.  Thus, e.g., if "wrap" is 24, then pairs of objects with
+argument values of 23.9999 and 0.0001 will be match (provided the window
+condition is otherwise met).  (CAUTION: The "wrap" feature has not been
+properly tested yet.)  The arguments being matched need not be
+of the same type but must be of a numeric type.  The -type flag is
+optional.  If specified, the types of objects on the output list will
+be set to the specified TYPE rather than SHMERGE; it is up to the user
+to be sure that the first 2 element of TYPE are pointers (this feature
+is convenient when the pointers of TYPE have the types appropriate to the
+chains being matched; the TSMERGE pointers are declared as void *).
+
+RETURNS:
+   TCL_OK      Successful completion. No result string
+   TCL_ERROR   Error occurred. Interp result will contain the reason
+
+EXAMPLE:
+   chainMatch h1 h2 "{ra ra .001 360.} {dec dec .001}" -type STARMERGE
+
+This assumes that one has defined a Dervish type
+typedef starmerge {
+	STAR *object1;
+	STAR *object2;
+	...
+	} STARMERGE;
+
+</PRE>
+There is a higher level TCL command
+<a href=fits2Schema.html#chainMatchType>chainMatchType</a> that will
+create a new type if necessary based on the input chain types and then
+carry out the matching operation, all in one step.
+<P>
+<A NAME="set"><H2>chainSet</H2></A>
+Set a specified element in all objects on a chain to a specified value.
+<PRE>
+TCL SYNTAX:
+   chainSet &lt;CHAIN&gt; &lt;arg&gt; &lt;value&gt;
+
+   &lt;CHAIN&gt;	handle of the chain
+   &lt;arg&gt;	The argument to be set.
+   &lt;value&gt;	The value to which the argument is set
+
+RETURNS:
+   TCL_OK      Successful completion. No result string
+   TCL_ERROR   Error occurred. Interp result will contain the reason
+
+EXAMPLE:
+   chainSet h1 id 17
+</PRE>
+<P>
+<A NAME="setfromhandle"><H2>chainSetFromHandle</H2></A>
+Set a specified element in all objects on a chain to a specified value.
+The input value is given by a handle
+<PRE>
+TCL SYNTAX:
+   chainSet &lt;CHAIN&gt; &lt;arg&gt; &lt;handle&gt;
+
+   &lt;CHAIN&gt;	handle of the chain
+   &lt;arg&gt;	The argument to be set.
+   &lt;value&gt;	A handle to the value to which the argument is set
+
+RETURNS:
+   TCL_OK      Successful completion. No result string
+   TCL_ERROR   Error occurred. Interp result will contain the reason
+
+EXAMPLE:
+   chainSetFromHandle h1 id h17.id
+   This assumes that h17 is a handle to a structure with integer element id.
+</PRE>
+<P>
+<A NAME="extract"><H2>chainExtract</H2></A>
+Extract a portion of a chain as specified by a starting index and a size.
+<PRE>
+TCL SYNTAX:
+   chainExtract &lt;CHAIN&gt; &lt;start&gt; &lt;len&gt;
+
+   &lt;CHAIN&gt;	handle of the chain
+   &lt;start&gt;	The starting index (0-based)
+   &lt;len&gt;	Number of successive elements to be extracted.
+
+If len &lt; 0, go from start to abs(len) and reverse the ordering
+
+RETURNS:
+   TCL_OK      Successful completion. No result string
+   TCL_ERROR   Error occurred. Interp result will contain the reason
+
+EXAMPLE:
+   set subchain [chainExtract h1 17 4]		New chain has size 4
+</PRE>
+<P>
+<A NAME="scale"><H2>chainScale</H2></A>
+Scale a specified argument for all objects on a chain by specified coefficients.
+<PRE>
+TCL SYNTAX:
+   chainScale &lt;CHAIN&gt; &lt;arg&gt; &lt;a&gt; &lt;b&gt;";
+   &lt;CHAIN&gt;	handle of the chain
+   &lt;arg&gt;	The argument on which the scaling is performed
+   &lt;a&gt; &lt;b&gt;	The transformation coefficients.
+
+The scaling is as follows:
+      x(new) = a + b*x
+
+RETURNS:
+   TCL_OK      Successful completion. No result string
+   TCL_ERROR   Error occurred. Interp result will contain the reason
+
+EXAMPLE:
+   chainScale h1 ra 0 15.	Convert ra from hrs to degrees
+</PRE>
+<P>
+<A NAME="trans"><H2>chainTransXY</H2></A>
+Perform a "trans" operation on two aruments in each object on a chain.
+The transformation is done "in place"
+<PRE>
+TCL SYNTAX:
+   chainTrans &lt;CHAIN&gt; &lt;xarg&gt; &lt;yarg&gt; &lt;a&gt; &lt;b&gt; &lt;c&gt; &lt;d&gt; &lt;e&gt; &lt;f&gt;";
+
+   &lt;CHAIN&gt;		handle of the chain
+   &lt;xarg&gt; &lt;yarg&gt;	The arguments on which the operation is performed
+   &lt;a&gt; &lt;b&gt; &lt;c&gt; &lt;d&gt; &lt;e&gt; &lt;f&gt;	The transformation coefficients.
+
+The transformation is as follows:
+      x(new) = a + b*x + c*y
+      y(new) = d + e*x + f*y
+
+RETURNS:
+   TCL_OK      Successful completion. No result string
+   TCL_ERROR   Error occurred. Interp result will contain the reason
+</PRE>
+</HTML>
+<P>
+<A NAME="transz"><H2>chainTransZXY</H2></A>
+Perform a "trans" operation on two aruments in each object on a chain.
+The result is stored in a third argument.
+<PRE>
+TCL SYNTAX:
+   chainTransZXY &lt;CHAIN&gt; &lt;z arg&gt; &lt;xarg&gt; &lt;yarg&gt; &lt;a&gt; &lt;b&gt; &lt;c&gt;";
+
+   &lt;CHAIN&gt;		handle of the chain
+   &lt;xarg&gt; &lt;yarg&gt;	The arguments on which the operation is performed
+   &lt;a&gt; &lt;b&gt; &lt;c&gt;		The transformation coefficients.
+
+The transformation is as follows:
+      z = a + b*x + c*y
+
+RETURNS:
+   TCL_OK      Successful completion. No result string
+   TCL_ERROR   Error occurred. Interp result will contain the reason
+</PRE>
+</HTML>

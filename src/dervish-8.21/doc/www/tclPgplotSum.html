@@ -1,0 +1,238 @@
+<H1>PGPLOT</H1>
+<P>The following PGPLOT routines are currently available as TCL verbs from 
+DERVISH:
+
+<H2>New with Pgplot v5_0_1</H2>
+<DIR>
+<LI><A HREF=tclPgplot.c.html#pgArrow>pgArrow</A>Draw an arrow from X1,Y1 to X2,Y2.
+<LI><A HREF=tclPgplot.c.html#pgBand>pgBand</A>Read cursor position and character typed by user.
+<LI><A HREF=tclPgplot.c.html#pgCirc>pgCirc</A>Draw a circle.
+<LI><A HREF=tclPgplot.c.html#pgConl>pgConl</A>Label a contour map drawn with routine PGCONT.
+<LI><A HREF=tclPgplot.c.html#pgEras>pgEras</A>Erase all graphics from the current page or panel.
+<LI><A HREF=tclPgplot.c.html#pgImag>pgImag</A>Draw a color image of an array in current window.
+<LI><A HREF=tclPgplot.c.html#pgLen>pgLen</A>Work out length of a string in x and y directions.
+<LI><A HREF=tclPgplot.c.html#pgPanl>pgPanl</A>Start plotting in a different panel.
+<LI><A HREF=tclPgplot.c.html#pgPixl>pgPixl</A>Draw lots of solid-filled (tiny) rectangles aligned with the coordinate axes.
+<LI><A HREF=tclPgplot.c.html#pgPnts>pgPnts</A>Draw Graph Markers. Unlike PGPT, this routine can draw a different symbol at each point.
+<LI><A HREF=tclPgplot.c.html#pgQtxt>pgQtxt</A>Returns a bounding box for a text string.
+<LI><A HREF=tclPgplot.c.html#pgQah>pgQah</A>Inquire as to the arrow-head style
+<LI><A HREF=tclPgplot.c.html#pgQcir>pgQcir</A>Query the color index range to be used for producing images with PGGRAY or PGIMAG.
+<LI><A HREF=tclPgplot.c.html#pgQcr>pgQcr</A>Query the RGB colors associated with a color index.
+<LI><A HREF=tclPgplot.c.html#pgQcs>pgQcs</A>Return the current PGPLOT character height in a variety of units.
+<LI><A HREF=tclPgplot.c.html#pgQitf>pgQitf</A>Return the Image Transfer Function as set by default or by a previous call to PGSITF.
+<LI><A HREF=tclPgplot.c.html#pgQpos>pgQpos</A>Query the current pen position in world C coordinates (X,Y).
+<LI><A HREF=tclPgplot.c.html#pgQtbg>pgQtbg</A>Query the current Text Background Color Index (set by routine PGSTBG).
+<LI><A HREF=tclPgplot.c.html#pgQvsz>pgQvsz</A>Return the window, in a variety of units, defined by the full device view surface (0 -> 1 in normalized device coordinates)
+<LI><A HREF=tclPgplot.c.html#pgSah>pgSah</A>Set the style to be used for arrowheads drawn with routine PGARRO.
+<LI><A HREF=tclPgplot.c.html#pgSave>pgSave</A>Save the current PGPLOT attributes in a private storage area. Attributes saved are: character font, character height, color index, fill-area style, line style, line width, pen position, arrow-head style.
+<LI><A HREF=tclPgplot.c.html#pgScir>pgScir</A>Set the color index range to be used for producing images with PGGRAY or PGIMAG.
+<LI><A HREF=tclPgplot.c.html#pgScrn>pgScrn</A>Set color representation: i.e., define the color to be associated with a color index.
+<LI><A HREF=tclPgplot.c.html#pgSitf>pgSitf</A>Set the Image Transfer Function for subsequent images drawn by PGIMAG, PGGRAY, or PGWEDG.
+<LI><A HREF=tclPgplot.c.html#pgStbg>pgStbg</A>Set the Text Background Color Index for subsequent text. By default text does not obscure underlying graphics. If the text background color index is positive, text is opaque
+<LI><A HREF=tclPgplot.c.html#pgSubp>pgSubp</A>Divides the physical surface of the plotting device (screen, window, or sheet of paper) into NXSUB x NYSUB `panels'.
+<LI><A HREF=tclPgplot.c.html#pgTbox>pgTbox</A>Draw a box and optionally label one or both axes with (DD) HH MM SS tyle numeric labels (useful for time or RA - DEC plots).
+<LI><A HREF=tclPgplot.c.html#pgUnsa>pgUnsa</A>Restore the PGPLOT attributes saved in the last call to pgSave
+<LI><A HREF=tclPgplot.c.html#pgWedge>pgWedge</A>Plot an annotated grey-scale or color wedge parallel to a given axis.
+<LI><A HREF=tclPgplot.c.html#pgVect>pgVect</A>Draw a vector map of two arrays.
+</DIR>
+
+<H2>Fermi Additions to Pgplot</H2>
+<DIR>
+<LI><A HREF=tclPgplotVerbs3.html#pgGet>pgGet</A> Send a metafile disk file to a Pgplot device.
+<LI><A HREF=tclPgplotVerbs3.html#pgSaveMf>pgSaveMf</A> Save a plot(s) as a local metafile disk file.
+<LI><A HREF=tclPgplotVerbs3.html#pgGeomGet>pgGeomGet</A> Return the current geometry for pgplot windows as a Tcl list.
+<LI><A HREF=tclPgplotVerbs3.html#pgGeomSet>pgGeomSet</A> Set the current geometry for pgplot windows. 
+</DIR>
+
+<H2>CONTROL verbs</H2>
+<DIR>
+<LI><A HREF=tclPgplotVerbs1.html#pgAsk>pgAsk</A> Change prompt state.
+<LI><A HREF=tclPgplotVerbs1.html#pgBbuf>pgBbuf</A> Save graphical commands in a
+buffer.
+<LI><A HREF=tclPgplotVerbs1.html#pgBegin>pgBegin</A> Open the plot file.
+<LI><A HREF=tclPgplotVerbs1.html#pgEbuf>pgEbuf</A> Stop saving graphical commands.
+<LI><A HREF=tclPgplotVerbs1.html#pgEnd>pgEnd</A> Close the plot file.
+<LI><A HREF=tclPgplotVerbs1.html#pgPage>pgPage</A> Advance to a new page.
+<LI><A HREF=tclPgplotVerbs1.html#pgPaper>pgPaper</A> Change the size of the view
+paper.
+<LI><A HREF=tclPgplotVerbs1.html#pgUpdt>pgUpdt</A> Update the graphics display.
+</DIR>
+<H2>WINDOW and VIEWPORT verbs</H2>
+<DIR>
+<LI><A HREF=tclPgplotVerbs1.html#pgBox>pgBox</A> Annotate the viewport.
+<LI><A HREF=tclPgplotVerbs1.html#pgEnv>pgEnv</A> Set plotter environment.
+<LI><A HREF=tclPgplotVerbs1.html#pgVport>pgVport</A> Change the size of the viewport.
+<LI><A HREF=tclPgplotVerbs1.html#pgVsize>pgVsize</A> Change the size of the viewport.
+<LI><A HREF=tclPgplotVerbs1.html#pgVstand>pgVstand</A> Define viewport as standard
+viewport.
+<LI><A HREF=tclPgplotVerbs1.html#pgWindow>pgWindow</A> Change the window.
+<LI><A HREF=tclPgplotVerbs1.html#pgWnad>pgWnad</A> Change the window.
+</DIR>
+<LISTING>
+
+
+</LISTING>
+<H2>PRIMITIVE DRAWING verbs</H2>
+<DIR>
+<LI><A HREF=tclPgplotVerbs1.html#pgDraw>pgDraw</A> Draw a line.
+<LI><A HREF=tclPgplotVerbs1.html#pgLine>pgLine</A> Draw a polyline.
+<LI><A HREF=tclPgplotVerbs1.html#pgMove>pgMove</A> Move 'pen' to a specified point.
+<LI><A HREF=tclPgplotVerbs1.html#pgPoint>pgPoint</A> Draw a point.
+<LI><A HREF=tclPgplotVerbs1.html#pgPoly>pgPoly</A> Shade interior of a closed polygon.
+<LI><A HREF=tclPgplotVerbs1.html#pgRect>pgRect</A> Draw a rectangle.
+</DIR>
+<LISTING>
+
+
+</LISTING>
+<H2>TEXT verbs</H2>
+<DIR>
+<LI><A HREF=tclPgplotVerbs1.html#pgLabel>pgLabel</A> Write a label outside the
+viewport.
+<LI><A HREF=tclPgplotVerbs1.html#pgMtext>pgMtext</A> Write text in or outside the
+viewport.
+<LI><A HREF=tclPgplotVerbs1.html#pgPtext>pgPtext</A> Draw text.
+<LI><A HREF=tclPgplotVerbs1.html#pgText>pgText</A> Write text.
+</DIR>
+<LISTING>
+
+
+</LISTING>
+<H2>ATTRIBUTE SETTING verbs</H2>
+<DIR>
+<LI><A HREF=tclPgplotVerbs1.html#pgScf>pgScf</A> Set the character font.
+<LI><A HREF=tclPgplotVerbs1.html#pgSch>pgSch</A> Set the character size.
+<LI><A HREF=tclPgplotVerbs1.html#pgSci>pgSci</A> Set the color index.
+<LI><A HREF=tclPgplotVerbs1.html#pgScr>pgScr</A> Set the color representation.
+<LI><A HREF=tclPgplotVerbs1.html#pgSfs>pgSfs</A> Set the fill area style.
+<LI><A HREF=tclPgplotVerbs1.html#pgShls>pgShls</A> Set the color representation.
+<LI><A HREF=tclPgplotVerbs1.html#pgSls>pgSls</A> Set the line style.
+<LI><A HREF=tclPgplotVerbs1.html#pgSlw>pgSlw</A> Set the line width.
+</DIR>
+<LISTING>
+
+
+</LISTING>
+<H2>HIGHER-LEVEL DRAWING verbs</H2>
+<DIR>
+<LI><A HREF=tclPgplotVerbs1.html#pgBin>pgBin</A> Plot a histogram.
+<LI><A HREF=tclPgplotVerbs2.html#pgCons>pgCons</A> Draw a contour map.
+<LI><A HREF=tclPgplotVerbs2.html#pgCont>pgCont</A> Draw a contour map.
+<LI><A HREF=tclPgplotVerbs2.html#pgConx>pgConx</A> draw a contour map using a user
+supplied plotting routine.
+<LI><A HREF=tclPgplotVerbs2.html#pgErrx>pgErrx</A> Plot horizontal error bars.
+<LI><A HREF=tclPgplotVerbs2.html#pgErry>pgErry</A> Plot vertical error bars.
+<LI><A HREF=tclPgplotVerbs2.html#pgFunt>pgFunt</A> Draw a curve.
+<LI><A HREF=tclPgplotVerbs2.html#pgFunx>pgFunx</A> Draw a curve.
+<LI><A HREF=tclPgplotVerbs2.html#pgFuny>pgFuny</A> Draw a curve.
+<LI><A HREF=tclPgplotVerbs2.html#pgGray>pgGray</A> Draw a grey map.
+<LI><A HREF=tclPgplotVerbs2.html#pgHi2d>pgHi2d</A> Plot cross-sections through a 2D
+data array.
+<LI><A HREF=tclPgplotVerbs2.html#pgHist>pgHist</A> Draw a histogram.
+</DIR>
+<LISTING>
+
+
+</LISTING>
+<H2>INTERACTIVE GRAPHICS verbs</H2>
+<DIR>
+<LI><A HREF=tclPgplotVerbs2.html#pgCurse>pgCurse</A> Read position and character typed
+by user.
+<LI><A HREF=tclPgplotVerbs2.html#pgLcurse>pgLcurse</A> Enter a polyline through the
+cursor.
+<LI><A HREF=tclPgplotVerbs2.html#pgNcurse>pgNcurse</A> Enter data points through the
+cursor.
+<LI><A HREF=tclPgplotVerbs2.html#pgOlin>pgOlin</A> Enter data points through the
+cusor.
+</DIR>
+<LISTING>
+
+
+</LISTING>
+<H2>INQUIRY verbs</H2>
+<DIR>
+<LI><A HREF=tclPgplotVerbs2.html#pgQcf>pgQcf</A> Query the character font.
+<LI><A HREF=tclPgplotVerbs2.html#pgQch>pgQch</A> Query the character size.
+<LI><A HREF=tclPgplotVerbs2.html#pgQci>pgQci</A> Query the color index.
+<LI><A HREF=tclPgplotVerbs2.html#pgQcol>pgQcol</A> Query the range of the color indices for this device.
+<LI><A HREF=tclPgplotVerbs2.html#pgQcr>pgQcr</A> Query the color representation.
+<LI><A HREF=tclPgplotVerbs2.html#pgQfs>pgQfs</A> Query the fill-area style.
+<LI><A HREF=tclPgplotVerbs2.html#pgQinf>pgQinf</A> Obtain information about the plotting
+environment.
+<LI><A HREF=tclPgplotVerbs2.html#pgQls>pgQls</A> Query the line style.
+<LI><A HREF=tclPgplotVerbs2.html#pgQlw>pgQlw</A> Query the line width.
+<LI><A HREF=tclPgplotVerbs2.html#pgQvp>pgQvp</A> Query the viewport setting.
+<LI><A HREF=tclPgplotVerbs2.html#pgQwin>pgQwin</A> Query the current window setting.
+</DIR>
+<LISTING>
+
+
+</LISTING>
+<H2>UTILITY verbs</H2>
+<DIR>
+<LI><A HREF=tclPgplotVerbs2.html#pgEtxt>pgEtxt</A> Erase only the text.
+<LI><A HREF=tclPgplotVerbs2.html#pgIden>pgIden</A> Write id information on the plot.
+<LI><A HREF=tclPgplotVerbs2.html#pgLdev>pgLdev</A> List all known device types.
+<LI><A HREF=tclPgplotVerbs2.html#pgNumb>pgNumb</A> Convert a number to a character.
+<LI><A HREF=tclPgplotVerbs2.html#pgRnd>pgRnd</A> Find smallest round number.
+<LI><A HREF=tclPgplotVerbs2.html#pgRnge>pgRnge</A> Choose plotting limits.
+</DIR>
+<LISTING>
+
+
+</LISTING>
+<H2>PRINTING verbs</H2>
+<DIR>
+<LI><A HREF=tclPgplotVerbs2.html#pgPrinter>pgPrinter</A> Choose the printer command.
+<LI><A HREF=tclPgplotVerbs2.html#pgDump>pgDump</A> Create a postscript bitmap of plot.
+</DIR>
+<LISTING>
+
+
+
+
+
+
+
+</LISTING>
+
+<H2><A NAME=C-Binding>C Binding Rules</A></H2>
+<P>The following rules should be followed:
+<LISTING>
+      o Routines should be called using lower case letters.
+
+      o User supplied function arguments returning a value should be declared
+        to return the appropriate value type and accept as arguments pointers
+        of appropriate type as described in the PGPLOT manual.
+
+        For example to call: 
+
+                  SUBROUTINE PGFUNX (FY, N, XMIN, XMAX, PGFLAG)
+
+        the C calling sequence should be:
+
+                  float myfy (float *x) { return (*x * 2.); }
+
+                  main ()
+                  {
+                      .....
+                      pgplot_pgfunx (myfy, &amp;n, &amp;xmin, &amp;xmax, &amp;pgflag);
+                      .....
+                  }
+
+
+
+
+
+
+</LISTING>
+
+
+
+
+
+
+
+
+
+

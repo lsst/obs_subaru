@@ -1,0 +1,871 @@
+<HTML>
+<HEAD>
+<!-- *********************************************************************** -->
+<!-- *++
+<!-- * FACILITY:	Dervish
+<!-- *			Documentation
+<!-- *
+<!-- * ABSTRACT:	Dervish Tables: C API.
+<!-- *
+<!-- * ENVIRONMENT:	HTML (HyperText Markup Language).
+<!-- *			shTbl.html
+<!-- *
+<!-- * AUTHOR:		Tom Nicinski, Creation date: 12-Jan-1994
+<!-- *--
+<!-- *********************************************************************** -->
+
+<TITLE>Tables Under Dervish: C API</TITLE>
+
+<H1>Tables Under Dervish: C API</H1>
+
+<P>
+Procedures for creating, accessing, and manipulating
+<A HREF="dervish.fitsio.html#tblcol">Dervish Tables</A> are provided:
+
+<DIR>
+<LI>	<A HREF="#shTblColCreate"><B>shTblColCreate</B></A>
+<LI>	<A HREF="#shTblFldAdd"><B>shTblFldAdd</B></A>
+<LI>	<A HREF="#shTblFldLoc"><B>shTblFldLoc</B></A>
+<LI>	<A HREF="#shTblFldHeapAlloc"><B>shTblFldHeapAlloc</B></A>
+<LI>	<A HREF="#shTblFldHeapFree"><B>shTblFldHeapFree</B></A>
+<LI>	<A HREF="#shTblTBLFLDlink"><B>shTblTBLFLDlink</B></A>
+<LI>	<A HREF="#shTblTBLFLDclr"><B>shTblTBLFLDclr</B></A>
+<LI>	<A HREF="#shTblTBLFLDsetWithAscii"><B>shTblTBLFLDsetWithAscii</B></A>
+<LI>	<A HREF="#shTblTBLFLDsetWithDouble"><B>shTblTBLFLDsetWithDouble</B></A>
+<LI>	<A HREF="#shTblTBLFLDsetWithInt"><B>shTblTBLFLDsetWithInt</B></A>
+<LI>	<A HREF="#shTblcolNew"><B>shTblcolNew</B></A>
+<LI>	<A HREF="#shTblcolDel"><B>shTblcolDel</B></A>
+<LI>	<A HREF="#shTblfldNew"><B>shTblfldNew</B></A>
+<LI>	<A HREF="#shTblfldDel"><B>shTblfldDel</B></A>
+</DIR>
+
+<P>
+Users should be careful to understand the
+<A HREF="dervish.fitsio.html#Dervish vs. FITS">differences in nomencalture</A>
+between Dervish and FITS.
+
+<!-- *********************************************************************** -->
+
+<!-- *********************************************************************** -->
+
+<H2><A NAME="shTblColCreate">shTblColCreate</A></H2>
+
+<LISTING>
+_______________________________________________________________________________
+
+NAME
+     shTblColCreate  -  Create a skeleton TBLCOL Table
+
+SYNOPSIS (C Syntax)
+     #include "shCTbl.h"
+
+     RET_CODE  shTblColCreate
+     (
+                    int    rowCnt,     /* IN:    Number of rows   in Table   */
+                    int    fldCnt,     /* IN:    Number of fields in Table   */
+                    int    tblFldPres, /* IN:    Boolean: TBLFLD too?        */
+     TBLCOL              **tblCol      /* OUT:   Pointer to Table descriptor */
+     )
+
+RETURN VALUES
+     SH_SUCCESS		Success.  The skeleton TBLCOL Table was created.
+
+     SH_INVARG		Failure.  The row or field count was less than zero (0)
+			or the tblCol argument was not passed.
+
+     SH_MALLOC_ERR	Failure.  Space for the TBLCOL or its associated struc-
+			tures could not be allocated.
+_______________________________________________________________________________
+
+DESCRIPTION
+</LISTING>
+
+<P>
+A skeleton of a Table with the specified number of rows and fields is created.
+All necessary data structures are allocated and filled appropriately.
+Zero (0) rows (<VAR>rowCnt</VAR>) is valid, indicating an empty Table with
+fields (no data within it).
+It's also possible to have zero (0) fields (<VAR>fldCnt</VAR>), where
+<A HREF="#shTblFldAdd"><B>shTblFldAdd</B></A> can be used to add fields later.
+The <A HREF="shTblAccess.html#TBLCOL"><SAMP>TBLCOL</SAMP></A> structure heads
+the <A HREF="shChain.html"><SAMP>CHAINS</SAMP></A> of
+<A HREF="dervish.array.html#ARRAY"><SAMP>ARRAY</SAMP>s</A>
+
+<UL>
+<LI>	<A HREF="shTblAccess.html#TBLCOL"><CODE>tblCol->rowCnt</CODE></A>
+	indicates the number of rows.
+</UL>
+
+For each <SAMP>ARRAY</SAMP> (one per field), the following fields are also
+initialized:
+
+<UL>
+<LI>	<A HREF="dervish.array.html#ARRAY"><CODE>array->dimCnt</CODE></A> is set
+	to one (1).
+<LI>	<A HREF="dervish.array.html#ARRAY"><CODE>array->dim[0]</CODE></A> is set
+	to the number of rows (<CODE>tblCol->rowCnt</CODE>).
+<LI>	<A HREF="dervish.array.html#ARRAY"><CODE>array->nStar</CODE></A> is set
+	to zero (0) to indicate that the <SAMP>ARRAY</SAMP> data area will
+	contain the data (rather than pointers to it).
+</UL>
+
+<P>
+Additionally, each field (<SAMP>ARRAY</SAMP>) can have a
+<A HREF="shTblAccess.html#TBLFLD"><SAMP>TBLFLD</SAMP></A>
+allocated (if the <VAR>tblFldPres</VAR> argument is set to be non-zero).
+The <SAMP>TBLFLD</SAMP> is initialized to indicate it contains no additional
+information.
+
+<P>
+The Table can then be <A HREF="shTblAccess.html#Creating a Table">filled with
+additional per-field information and data.</A>
+
+<!-- *********************************************************************** -->
+
+<!-- *********************************************************************** -->
+
+<H2><A NAME="shTblFldAdd">shTblFldAdd</A></H2>
+
+<LISTING>
+_______________________________________________________________________________
+
+NAME
+     shTblFldAdd  -  Add a field to a TBLCOL Table (at the end)
+
+SYNOPSIS (C Syntax)
+     #include "shCArray.h"
+     #include "shCTbl.h"
+
+     RET_CODE  shTblFldAdd
+     (
+     TBLCOL               *tblCol,       /* INOUT: Table descriptor          */
+                    int    tblFldPres,   /* IN:    Boolean: TBLFLD too?      */
+     ARRAY               **array,        /* OUT:   ARRAY  field descriptor   */
+     TBLFLD              **tblFld,       /* OUT:   TBLFLD field descriptor   */
+                    int   *tblFldIdx     /* OUT:   Field index (0-indexed)   */
+     )
+
+RETURN VALUES
+     SH_SUCCESS		Success.  The field was added at the end of the extant
+			fields.
+
+     SH_INVARG		Failure.  The TBLCOL Table is not valid.
+
+     SH_MALLOC_ERR	Failure.  Space for the field or its associated struc-
+			tures could not be allocated.
+_______________________________________________________________________________
+
+DESCRIPTION
+</LISTING>
+
+<P>
+Add a new field to an existing Table.  The added field will be the last field
+in the Table.
+<B>shTblFldAdd</B> initializes the <SAMP>ARRAY</SAMP> allocated for this filed
+in the same manner as <A HREF="#shTblColCreate"><B>shTblColCreate</B></A>:
+
+<P>
+<UL>
+<LI>	<A HREF="dervish.array.html#ARRAY"><CODE>array->dimCnt</CODE></A> is set
+	to one (1).
+<LI>	<A HREF="dervish.array.html#ARRAY"><CODE>array->dim[0]</CODE></A> is set
+	to the number of rows (<CODE>tblCol->rowCnt</CODE>).
+<LI>	<A HREF="dervish.array.html#ARRAY"><CODE>array->nStar</CODE></A> is set
+	to zero (0) to indicate that the <SAMP>ARRAY</SAMP> data area will
+	contain the data (rather than pointers to it).
+</UL>
+
+<P>
+Space for data within the field is <EM>not</EM> allocated.
+
+<P>
+Additionally, the field (<SAMP>ARRAY</SAMP>) can have a
+<A HREF="shTblAccess.html#TBLFLD"><SAMP>TBLFLD</SAMP></A>
+allocated (if the <VAR>tblFldPres</VAR> argument is set to be non-zero).
+The <SAMP>TBLFLD</SAMP> is initialized to indicate it contains no additional
+information.
+
+<P>
+The field can then be <A HREF="shTblAccess.html#Creating a Table">filled with
+additional per-field information and data.</A>
+
+<P>
+<VAR>array</VAR>, <VAR>tblFld</VAR>, and <VAR>tblFldIdx</VAR>
+are optional arguments.  If a null address is passed, no value is returned.
+
+<!-- *********************************************************************** -->
+
+<!-- *********************************************************************** -->
+
+<H2><A NAME="shTblFldLoc">shTblFldLoc</A></H2>
+
+<LISTING>
+_______________________________________________________________________________
+
+NAME
+     shTblFldLoc  -  Locate a field in a TBLCOL Table
+
+SYNOPSIS (C Syntax)
+     #include "shCArray.h"
+     #include "shCTbl.h"
+
+     RET_CODE  shTblFldLoc
+     (
+     TBLCOL               *tblCol,       /* IN:    Table descriptor          */
+                    int    tblFldWanted, /* IN:    Field index (0-indexed)   */
+                    char  *tblFldName,   /* IN:    Field name                */
+                    int    tblFldNamePos,  /* IN:  Field name pos (0-indexed)*/
+     SHCASESENSITIVITY     tblFldNameCase, /* IN:  Case sensitive cmp?       */
+     ARRAY               **array,        /* OUT:   ARRAY  field descriptor   */
+     TBLFLD              **tblFld,       /* OUT:   TBLFLD field descriptor   */
+                    int   *tblFldIdx     /* OUT:   Field index (0-indexed)   */
+     )
+
+RETURN VALUES
+     SH_SUCCESS		Success.  The field was located.
+
+     SH_MISARG		Failure.  Neither the field position, tblFldWanted, or
+			field name, tblFldName, was passed.
+
+     SH_CONFLICT_ARG	Failure.  Both tblFldWanted and tblFldName were passed.
+			No field was search for.
+
+     SH_NOEXIST		Failure.  The specified field does not exist.
+_______________________________________________________________________________
+
+DESCRIPTION
+</LISTING>
+
+<P>
+Locate a Table field.  Either the field position (0-indexed) or the field
+name can be specified as the search criteria.  Field names are contained in
+<A HREF="shTblAccess.html#TBLFLD"><SAMP>TBLFLD</SAMP>'s</A>
+<CODE>TTYPE</CODE> member (which is only valid if <CODE>shTypeTTYPE</CODE>
+is set in <SAMP>TBLFLD</SAMP>'s <CODE>Tpres</CODE> member).
+
+<P>
+<VAR>tblFldWanted</VAR> and <VAR>tblFldName</VAR> must be passed in a manner
+which leaves no ambiguity as to which search criteria will be used.
+To search for a field by position, <VAR>tblFldWanted</VAR> should specify
+the position (0-indexed) and <VAR>tblFldName</VAR> must be a zero pointer
+(not just a pointer to an empty string).
+
+<P>
+To search for a field by name, <VAR>tblFldName</VAR> should point to a
+character string and <VAR>tblFldWanted</VAR> should be set to a negative number.
+The <VAR>tblFldNamePos</VAR>'th field (0-indexed) whose valid <CODE>TTYPE</CODE>
+matches <VAR>tblFldName</VAR> will be returned.
+Therefore, if more than one field has the same <CODE>TTYPE</CODE> name,
+each can be located with this search criteria.
+If a field does not have a <CODE>TTYPE</CODE> name associated with it
+(either the field does not have a <SAMP>TBLFLD</SAMP> associated with it, or
+the <CODE>TTYPE</CODE> member is not used), it is considered a mismatch
+(even if the <VAR>tblFldName</VAR> is an empty string).
+The case sensitivity of the string comparisions is controlled by
+<VAR>tblFldNameCase</VAR> (either <CODE>SH_CASE_SENSITIVE</CODE> or
+<CODE>SH_CASE_INSENSITIVE</CODE>).
+
+<P>
+If the field is located, the <SAMP>ARRAY</SAMP> address and field position are
+returned.  If the field has a <SAMP>TBLFLD</SAMP> associated with it, that
+address is also returned.
+
+<P>
+<VAR>array</VAR>, <VAR>tblFld</VAR>, and <VAR>tblFldIdx</VAR>
+are optional arguments.  If a null address is passed, no value is returned.
+
+<!-- *********************************************************************** -->
+
+<!-- *********************************************************************** -->
+
+<H2><A NAME="shTblFldHeapAlloc">shTblFldHeapAlloc</A></H2>
+
+<LISTING>
+_______________________________________________________________________________
+
+NAME
+     shTblFldHeapAlloc  -  Allocate heap area for a Table field
+
+SYNOPSIS (C Syntax)
+     #include "shCTbl.h"
+
+     RET_CODE *shTblFldHeapAlloc
+     (
+     ARRAY                *array,        /* INOUT: Array to alloc space for  */
+                    char  *schemaName    /* IN:    Object schema name        */
+              long  int    extraCnt,     /* IN:    Additional objs to alloc  */
+     unsigned       char **extra         /* OUT:   Where extra space starts  */
+     )
+
+RETURN VALUES
+     SH_SUCCESS		Success.  Space for the heap data area was allocated.
+
+     SH_NOT_SUPPORTED	Failure.  The object schema name is unknown.  The ARRAY
+			is not 1-dimensional or the data is indirect (nStar is
+			non-zero).  No heap space was allocated.
+
+     SH_INVOBJ		Failure.  The ARRAY info member does not point to a
+			TBLFLD and/or the ARRAY does not contain heap descrip-
+			tors (TBLHEAPDSC object schemas).
+
+     SH_ALREXIST	Failure.  Heap space is already allocated for the
+			TBLFLD.
+
+     SH_MALLOC_ERR	Failure.  Space could not be allocated for the heap.
+_______________________________________________________________________________
+
+DESCRIPTION
+</LISTING>
+
+<P>
+Space for the heap space to be associated with an
+<A HREF="dervish.array.html#intro"><SAMP>ARRAY</SAMP></A>'s
+<A HREF="shTblAccess.html#TBLFLD"><SAMP>TBLFLD</SAMP></A> is allocated.
+The amount of space required is based on the
+<A HREF="shTblAccess.html#TBLHEAPDSC"><SAMP>TBLHEAPDSC</SAMP></A> heap
+descriptors in the <SAMP>ARRAY</SAMP> data area and the object schema type
+that the heap area will contain.
+
+<P>
+The <SAMP>ARRAY</SAMP> must describe heap data, that is, it's data type
+(<CODE>data.schemaType</CODE>) must be <SAMP>TBLHEAPDSC</SAMP>.
+The number of <SAMP>ARRAY</SAMP> dimensions (<CODE>dimCnt</CODE>) <EM>must</EM>
+be 1 and the amount of <A HREF="dervish.array.html#nStar">data indirection</A>
+must be zero (0).
+The heap descriptors
+(<A HREF="shTblAccess.html#TBLHEAPDSC"><SAMP>TBLHEAPDSC</SAMP></A>)
+in the <A HREF="dervish.array.html#ARRAY"><SAMP>ARRAY</SAMP></A> data area must be
+filled <EM>prior</EM> to calling <B>shTblFldHeapAlloc</B>:
+
+<UL>
+<LI>	If the heap pointer (<SAMP>TBLHEAPDSC</SAMP> <CODE>ptr</CODE> member)
+	is non-zero, the heap descriptor is ignored (as it already points to
+	existing data outside the <SAMP>TBLFLD</SAMP> heap area).
+<P>
+<LI>	If the heap count (<SAMP>TBLHEAPDSC</SAMP> <CODE>cnt</CODE> member)
+	is zero or negative, the heap descriptor is ignored.
+<P>
+<LI>	All remaining heap descriptors are counted towards the space needed
+	for the heap area.
+</UL>
+
+<P>
+The <A HREF="dervish.dump.html#diskio">object schema</A> which will fill the heap
+must be a known type.
+If the heap data is to be written to a FITS Binary Table, other
+<A HREF="shTblAccess.html#Keeping Tables FITS Compliant">restrictions</A> apply.
+Additionally, a <VAR>schemaName</VAR> of `<SAMP>UNKNOWN</SAMP>' is
+permitted.  In that case, all operations are performed as if the heap
+data type were unsigned bytes.
+
+<P>
+Some peculiar behaviour to be aware of:
+
+<UL>
+<LI>	If the <SAMP>ARRAY</SAMP>'s <SAMP>TBLFLD</SAMP> heap area already has
+	space allocated to it, this operation is aborted.
+<P>
+<LI>	If the <SAMP>ARRAY</SAMP> does not have a <SAMP>TBLFLD</SAMP>
+	associated with it (and it does not have any other optional information
+	associated with it through its <CODE>info</CODE> member), a
+	<SAMP>TBLFLD</SAMP> is associated with the <SAMP>ARRAY</SAMP>.
+<P>
+<LI>	If the object schema is not a recognized type (the primitive data
+	types defined in
+	<A HREF="../../include/shCAlign.h"><B>shCAlign.h</B></A>, then
+
+	<UL>
+	<P>
+	<LI>	The size of the object schema is used as the best guess for
+		the address increment.  This should be a perfectly valid
+		assumption, since <B>sizeof</B> is supposed to (according to
+		the ANSI C standard) return the size of the object plus any
+		padding before and after the object.
+	<P>
+	<LI>	The worst case (largest) alignment factor is used.
+	</UL>
+<P>
+<LI>	The data area is zeroed out.
+<P>
+<LI>	Character strings (object schema type of <SAMP>STR</SAMP>) are
+	allocated as an array of characters, rather than pointers to
+	strings.  Still, the <SAMP>STR</SAMP> data type is used to
+	<A HREF="dervish.array.html#Data Type Conventions">distinguish
+	character strings from byte arrays</A>.
+	The counts in the heap descriptors <EM>must</EM> already reflect
+	the <A HREF="shTblRead.html#Beyond the FITS Standard">additional
+	character</A> expected for guaranteed null-termination.
+</UL>
+
+<P>
+The space allocated is based not only on the object schema count from the
+heap descriptors, but also on the alignment space needed between data elements.
+Space is allocated such that each element is aligned `naturally' for the
+platform on which Dervish is running.
+
+<P>
+After the space is allocated, any heap descriptors that contributed to the
+heap space needs have their pointers filled to the appropriate areas in the
+heap.
+
+<P>
+<VAR>extra</VAR>
+is an optional argument.  If a null address is passed, no value is returned.
+
+<!-- *********************************************************************** -->
+
+<!-- *********************************************************************** -->
+
+<H2><A NAME="shTblFldHeapFree">shTblFldHeapFree</A></H2>
+
+<LISTING>
+_______________________________________________________________________________
+
+NAME
+     shTblFldHeapFree  -  Free heap data area for a Table field
+
+SYNOPSIS (C Syntax)
+     #include "shCTbl.h"
+
+     RET_CODE *shTblFldHeapFree
+     (
+     ARRAY                *array         /* INOUT: Array to deallocate from  */
+     )
+
+RETURN VALUES
+     SH_SUCCESS		Success.  Space from the ARRAY data area was freed.
+
+     SH_INVOBJ		Failure.  The ARRAY does not have an associated TBLFLD.
+_______________________________________________________________________________
+
+DESCRIPTION
+</LISTING>
+
+<P>
+The heap space used by the
+<A HREF="shTblAccess.html#TBLFLD"><SAMP>TBLFLD</SAMP></A> associated with the
+passed <A HREF="dervish.array.html#intro"><SAMP>ARRAY</SAMP></A> is freed.
+For safety, this heap area should have been allocated by
+<A HREF="#shTblFldHeapAlloc"><B>shTblFldHeapAlloc</B></A>.
+
+<P>
+Any memory pointed to by the heap data (some object schemas may do this)
+is <EM>not</EM> freed.  The user must insure that it is not lost inadvertently
+(memory leaks) by the freeing of the <SAMP>TBLFLD</SAMP> heap area.
+Also, any heap descriptors
+(<A HREF="shTblAccess.html#TBLHEAPDSC"><SAMP>TBLHEAPDSC</SAMP></A>)
+in the <SAMP>ARRAY</SAMP> data area pointing to the <SAMP>TBLFLD</SAMP> heap
+are <EM>not</EM> invalidated.  Again, the user must insure that these pointers
+are handled appropriately so heap accesses through dangling pointers are not
+made.
+
+<!-- *********************************************************************** -->
+
+<!-- *********************************************************************** -->
+
+<H2><A NAME="shTblTBLFLDlink">shTblTBLFLDlink</A></H2>
+
+<LISTING>
+_______________________________________________________________________________
+
+NAME
+     shTblTBLFLDlink  -  Allocate and link a TBLFLD to a field
+
+SYNOPSIS (C Syntax)
+     #include "shCTbl.h"
+
+     RET_CODE *shTblTBLFLDlink
+     (
+     ARRAY                *array,        /* INOUT: Array to link TBLFLD to   */
+     TBLFLD              **tblFld        /* OUT:   Resulting TBLFLD          */
+     )
+
+RETURN VALUES
+     SH_SUCCESS		Success.  The TBLFLD was allocated (or already exists)
+			and linked to the field (ARRAY).
+
+     SH_ALREXIST	Failure.  The field (ARRAY) already has a different
+			informative structure (not a TBLFLD) hung off of it.
+
+     SH_MALLOC_ERR	Failure.  Space could not be allocated for the TBLFLD.
+
+     SH_INVOBJ		Failure.  The ARRAY object is not valid.
+_______________________________________________________________________________
+
+DESCRIPTION
+</LISTING>
+
+<P>
+If the field description, provided through the
+<A HREF="dervish.array.html#ARRAY"><SAMP>ARRAY</SAMP></A> structure, does not have
+a <A HREF="shTblAccess.html#TBLFLD"><SAMP>TBLFLD</SAMP></A> structure associated
+with it, one is allocated and linked off the <SAMP>ARRAY</SAMP>.
+The <SAMP>TBLFLD</SAMP> is properly initialized to contain no additional
+information.
+If a <SAMP>TBLFLD</SAMP> structure already exists, <B>shTblTBLFLDlink</B>
+returns successfully, without reinitializing the <SAMP>TBLFLD</SAMP>.
+But, if the <SAMP>ARRAY</SAMP> has a different information structure hung off
+of it (through its <CODE>info</CODE> member), <B>shTblTBLFLDlink</B> fails.
+
+<P>
+<VAR>tblFld</VAR>
+is an optional argument.  If a null address is passed, no value is returned.
+
+<!-- *********************************************************************** -->
+
+<!-- *********************************************************************** -->
+
+<H2><A NAME="shTblTBLFLDclr">shTblTBLFLDclr</A></H2>
+
+<LISTING>
+_______________________________________________________________________________
+
+NAME
+     shTblTBLFLDclr  -  Clear a TBLFLD member
+
+SYNOPSIS (C Syntax)
+     #include "shCTbl.h"
+
+     RET_CODE *shTblTBLFLDclr
+     (
+     ARRAY                *array,        /* INOUT: Array to link TBLFLD to   */
+     TBLFLD_KEYWORDS       tblKeyFld,    /* IN:    TBLFLD member to clear    */
+     TBLFLD              **tblFld        /* OUT:   Resulting TBLFLD          */
+     )
+
+RETURN VALUES
+     SH_SUCCESS		Success.  The TBLFLD member was cleared.
+
+     SH_INVARG		Failure.  The TBLFLD member indicator is invalid (does
+			not exist or its value cannot be cleared).
+
+     SH_ALREXIST	Failure.  The field (ARRAY) has a different informative
+			structure (not a TBLFLD) hung off of itself.
+
+     SH_MALLOC_ERR	Failure.  Space for hte TBLFLD could not be allocated.
+
+     SH_INVOBJ		Failure.  The ARRAY object is not valid.
+_______________________________________________________________________________
+
+DESCRIPTION
+</LISTING>
+
+<P>
+Clear the specified <A HREF="shTblAccess.html#TBLFLD"><SAMP>TBLFLD</SAMP></A>
+member.
+This makes the <SAMP>TBLFLD</SAMP> not present (by clearing <VAR>tblKeyFld</VAR>
+in the <SAMP>TBLFLD</SAMP>'s <CODE>Tpres</CODE> member).
+Any previous value is destroyed (character strings are set to null strings and
+numeric values are set to zero).
+<VAR>tblKeyFld</VAR> can specify the following <SAMP>TBLFLD</SAMP> members:
+<DIR>
+<LI>	<SAMP>SH_TBL_TTYPE</SAMP>
+<LI>	<SAMP>SH_TBL_TUNIT</SAMP>
+<LI>	<SAMP>SH_TBL_TNULLSTR</SAMP>
+<LI>	<SAMP>SH_TBL_TNULLINT</SAMP>
+<LI>	<SAMP>SH_TBL_TDISP</SAMP>
+<LI>	<SAMP>SH_TBL_TSCAL</SAMP>
+<LI>	<SAMP>SH_TBL_TZERO</SAMP>
+</DIR>
+
+<P>
+If the field, respresented by the
+<A HREF="dervish.array.html#ARRAY"><SAMP>ARRAY</SAMP></A> structure
+(<VAR>array</VAR> parameter), does not have an associated <SAMP>TBLFLD</SAMP>,
+a <SAMP>TBLFLD</SAMP> is allocated first.
+
+<P>
+<VAR>tblFld</VAR>
+is an optional argument.  If a null address is passed, no value is returned.
+
+<!-- *********************************************************************** -->
+
+<!-- *********************************************************************** -->
+
+<H2>
+<A NAME="shTblTBLFLDsetWithAscii">shTblTBLFLDsetWithAscii</A>,
+<A NAME="shTblTBLFLDsetWithDouble">shTblTBLFLDsetWithDouble</A>,
+<A NAME="shTblTBLFLDsetWithInt">shTblTBLFLDsetWithInt</A>
+</H2>
+
+<LISTING>
+_______________________________________________________________________________
+
+NAME
+     shTblTBLFLDsetWithAscii   -  Set TBLFLD member value with character string
+     shTblTBLFLDsetWithDouble  -  Set TBLFLD member value with a double
+     shTblTBLFLDsetWithInt     -  Set TBLFLD member value with a signed integer
+
+SYNOPSIS (C Syntax)
+     #include "shCTbl.h"
+
+     RET_CODE *shTblTBLFLDsetWithAscii
+     (
+     ARRAY                *array,        /* INOUT: Array to link TBLFLD to   */
+     TBLFLD_KEYWORDS       tblKeyFld,    /* IN:    TBLFLD member to clear    */
+                    char  *tblKeyVal,    /* IN:    TBLFLD member value       */
+     TBLFLD              **tblFld        /* OUT:   Resulting TBLFLD          */
+     )
+
+     RET_CODE *shTblTBLFLDsetWithDouble
+     (
+     ARRAY                *array,        /* INOUT: Array to link TBLFLD to   */
+     TBLFLD_KEYWORDS       tblKeyFld,    /* IN:    TBLFLD member to clear    */
+     double                tblKeyVal,    /* IN:    TBLFLD member value       */
+     TBLFLD              **tblFld        /* OUT:   Resulting TBLFLD          */
+     )
+
+     RET_CODE *shTblTBLFLDsetWithInt
+     (
+     ARRAY                *array,        /* INOUT: Array to link TBLFLD to   */
+     TBLFLD_KEYWORDS       tblKeyFld,    /* IN:    TBLFLD member to clear    */
+                    int    tblKeyVal,    /* IN:    TBLFLD member value       */
+     TBLFLD              **tblFld        /* OUT:   Resulting TBLFLD          */
+     )
+
+RETURN VALUES
+     SH_SUCCESS		Success.  The TBLFLD member was cleared.
+
+     SH_TRUNC		Success.  The ASCII character string was too long and
+			therefore truncated.
+
+     SH_INVARG		Failure.  The TBLFLD member indicator is invalid (does
+			not exist or does not accept ASCII/double/signed inte-
+			ger value).
+
+     SH_ALREXIST	Failure.  The field (ARRAY) has a different informative
+			structure (not a TBLFLD) hung off of itself.
+
+     SH_MALLOC_ERR	Failure.  Space for hte TBLFLD could not be allocated.
+
+     SH_INVOBJ		Failure.  The ARRAY object is not valid.
+_______________________________________________________________________________
+
+DESCRIPTION
+</LISTING>
+
+<P>
+Set the specified <A HREF="shTblAccess.html#TBLFLD"><SAMP>TBLFLD</SAMP></A>
+member.
+This makes the <SAMP>TBLFLD</SAMP> present (by setting <VAR>tblKeyFld</VAR>
+in the <SAMP>TBLFLD</SAMP>'s <CODE>Tpres</CODE> member).
+Any previous value is destroyed.
+
+<P>
+<B>shTblTBLFLDsetWithAscii</B> can set these <SAMP>TBLFLD</SAMP> members
+(through <VAR>tblKeyFld</VAR>):
+<DIR>
+<LI>	<SAMP>SH_TBL_TTYPE</SAMP>
+<LI>	<SAMP>SH_TBL_TUNIT</SAMP>
+<LI>	<SAMP>SH_TBL_TNULLSTR</SAMP>
+<LI>	<SAMP>SH_TBL_TDISP</SAMP>
+</DIR>
+
+<P>
+<B>shTblTBLFLDsetWithDouble</B> can set these <SAMP>TBLFLD</SAMP> members
+(through <VAR>tblKeyFld</VAR>):
+<DIR>
+<LI>	<SAMP>SH_TBL_TSCAL</SAMP>
+<LI>	<SAMP>SH_TBL_TZERO</SAMP>
+</DIR>
+
+<P>
+<B>shTblTBLFLDsetWithInt</B> can set these <SAMP>TBLFLD</SAMP> members
+(through <VAR>tblKeyFld</VAR>):
+<DIR>
+<LI>	<SAMP>SH_TBL_TNULLINT</SAMP>
+</DIR>
+
+<P>
+If the field, respresented by the
+<A HREF="dervish.array.html#ARRAY"><SAMP>ARRAY</SAMP></A> structure
+(<VAR>array</VAR> parameter), does not have an associated <SAMP>TBLFLD</SAMP>,
+a <SAMP>TBLFLD</SAMP> is allocated first.
+
+<P>
+<VAR>tblFld</VAR>
+is an optional argument.  If a null address is passed, no value is returned.
+
+<!-- *********************************************************************** -->
+
+<!-- *********************************************************************** -->
+
+<H2><A NAME="shTblcolNew">shTblcolNew</A></H2>
+
+<LISTING>
+_______________________________________________________________________________
+
+NAME
+     shTblcolNew  -  Construct an instance of a TBLCOL object schema
+
+SYNOPSIS (C Syntax)
+     #include "shCTbl.h"
+
+     TBLCOL   *shTblcolNew
+     (
+     void
+     )
+
+RETURN VALUES
+     TBLCOL *		Success.  The address of the TBLCOL object.
+
+     0			Failure.  The constructor function failed.
+_______________________________________________________________________________
+
+DESCRIPTION
+</LISTING>
+
+<P>
+<B>shTblcolNew</B> is the constructor function for a
+<A HREF="shTblAccess.html#TBLCOL"><SAMP>TBLCOL</SAMP></A>
+object <A HREF="dervish.dump.html#diskio">schema</A>.
+It allocates space for a <SAMP>TBLCOL</SAMP> object and intializes its
+fields for any empty Table.
+
+<P>
+This is the constructor function used by the <A HREF="handle.html">handle</A>
+mechanism, such as the Tcl command
+<A HREF="tclHandle.html#handleNewFromType"><B>handleNewFromType</B></A>.
+
+<!-- *********************************************************************** -->
+
+<!-- *********************************************************************** -->
+
+<H2><A NAME="shTblcolDel">shTblcolDel</A></H2>
+
+<LISTING>
+_______________________________________________________________________________
+
+NAME
+     shTblcolDel  -  Destroy an instance of a TBLCOL object schema
+
+SYNOPSIS (C Syntax)
+     #include "shCTbl.h"
+
+     void      shTblcolDel
+     (
+     TBLCOL               *tblCol,       /* IN:    Table descriptor          */
+     )
+
+RETURN VALUES
+     none
+_______________________________________________________________________________
+
+DESCRIPTION
+</LISTING>
+
+<P>
+<B>shTblcolDel</B> is the destructor function for a
+<A HREF="shTblAccess.html#TBLCOL"><SAMP>TBLCOL</SAMP></A>
+object <A HREF="dervish.dump.html#diskio">schema</A>.
+It deallocates space for a <SAMP>TBLCOL</SAMP> object, along with any data
+structures (objects) that the <SAMP>TBLCOL</SAMP> owns, including
+<A HREF="shTblAccess.html#Heap">heap storage</A>.
+Heap storage <EM>not</EM> owned by the <SAMP>TBLCOL</SAMP>'s
+<A HREF="shTblAccess.html#TBLFLD"><SAMP>TBLFLD</SAMP>s</A> should be freed
+prior to deleting the Table, otherwise, that memory may become "lost"
+(a memory leak).
+
+<P>
+This is the destructor function used by the <A HREF="handle.html">handle</A>
+mechanism, such as the Tcl command
+<A HREF="tclHandle.html#handleDelFromType"><B>handleDelFromType</B></A>
+(<A HREF="tclHandle.html#handleDel"><B>handleDel</B></A> only frees the handle
+memory and does <EM>not</EM> call <B>shTblcolDel</B> to free the memory used
+by the Table).
+
+<!-- *********************************************************************** -->
+
+<!-- *********************************************************************** -->
+
+<H2><A NAME="shTblfldNew">shTblfldNew</A></H2>
+
+<LISTING>
+_______________________________________________________________________________
+
+NAME
+     shTblfldNew  -  Construct an instance of a TBLFLD object schema
+
+SYNOPSIS (C Syntax)
+     #include "shCTbl.h"
+
+     TBLFLD   *shTblfldNew
+     (
+     void
+     )
+
+RETURN VALUES
+     TBLFLD *		Success.  The address of the TBLFLD object.
+
+     0			Failure.  The constructor function failed.
+_______________________________________________________________________________
+
+DESCRIPTION
+</LISTING>
+
+<P>
+<B>shTblfldNew</B> is the constructor function for a
+<A HREF="shTblAccess.html#TBLCOL"><SAMP>TBLFLD</SAMP></A>
+object <A HREF="dervish.dump.html#diskio">schema</A>.
+It allocates space for a <SAMP>TBLFLD</SAMP> object and intializes its
+fields for any empty Table field.
+
+<P>
+This is the constructor function used by the <A HREF="handle.html">handle</A>
+mechanism, such as the Tcl command
+<A HREF="tclHandle.html#handleNewFromType"><B>handleNewFromType</B></A>.
+
+<!-- *********************************************************************** -->
+
+<!-- *********************************************************************** -->
+
+<H2><A NAME="shTblfldDel">shTblfldDel</A></H2>
+
+<LISTING>
+_______________________________________________________________________________
+
+NAME
+     shTblfldDel  -  Destroy an instance of a TBLFLD object schema
+
+SYNOPSIS (C Syntax)
+     #include "shCTbl.h"
+
+     void      shTblfldDel
+     (
+     TBLFLD               *tblFld,       /* IN:    Table field descriptor    */
+     )
+
+RETURN VALUES
+     none
+_______________________________________________________________________________
+
+DESCRIPTION
+</LISTING>
+
+<P>
+<B>shTblfldDel</B> is the destructor function for a
+<A HREF="shTblAccess.html#TBLFLD"><SAMP>TBLFLD</SAMP></A>
+object <A HREF="dervish.dump.html#diskio">schema</A>.
+It deallocates space for a <SAMP>TBLFLD</SAMP> object, along with any data
+structures (objects) that the <SAMP>TBLFLD</SAMP> owns, such as
+<A HREF="shTblAccess.html#Heap">heap storage</A>.
+Heap storage <EM>not</EM> owned by the <SAMP>TBLFLD</SAMP> should be freed
+prior to deleting the field, otherwise, that memory may become "lost"
+(a memory leak).
+
+<P>
+This is the destructor function used by the <A HREF="handle.html">handle</A>
+mechanism, such as the Tcl command
+<A HREF="tclHandle.html#handleDelFromType"><B>handleDelFromType</B></A>
+(<A HREF="tclHandle.html#handleDel"><B>handleDel</B></A> only frees the handle
+memory and does <EM>not</EM> call <B>shTblfldDel</B> to free the memory used by
+the <SAMP>TBLFLD</SAMP>).
+
+<!-- *********************************************************************** -->
+
+</BODY>
+
+<HR>
+<ADDRESS><A HREF="dervish.authors.html#Nicinski">Tom Nicinski</A></ADDRESS>
+
+</HTML>

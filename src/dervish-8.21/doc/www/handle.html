@@ -1,0 +1,152 @@
+<HTML>
+<TITLE>Handle Routines for TCL Extensions</TITLE>
+<H1>Handle Routines</H1>
+
+<P>
+These routines are handle related routines useful for developing TCL 
+Extensions.
+
+<DIR>
+<LI><A HREF=handle.html#shTclListHandleNew>shTclListHandleNew</A>
+<LI><A HREF=handle.html#shTclHandleNew>shTclHandleNew</A>
+<LI><A HREF=handle.html#shTclListAddrGetFromName>shTclListAddrGetFromName</A>
+<LI><A HREF=handle.html#shTclAddrGetFromName>shTclAddrGetFromName</A>
+<LI><A HREF=handle.html#shTclHandleGetFromName>shTclHandleGetFromName</A>
+<LI><A HREF=handle.html#shHandleWalk>shHandleWalk</A>
+</DIR>
+
+<H2><A NAME="shTclListHandleNew">shTclListHandleNew</A></H2>
+<P>
+Get a handle to new list of types.  The 'listName' character array must be
+allocated by the calling routine and be large enough to contain the entire
+handle name.
+
+<LISTING>
+C SYNTAX:
+   int shTclListHandleNew 
+   (
+   Tcl_Interp *interp,  /* MOD: TCL Interp structure */
+   char *listName,      /* OUT: handlename, like h0 */
+   char *strType,       /* IN : type of list to make, e.g. FOO */
+   LIST **list          /* OUT: return C struct */
+   )
+
+RETURNS:
+   TCL_OK
+   TCL_ERROR
+</LISTING>
+
+<H2><A NAME="shTclHandleNew">shTclHandleNew</A></H2>
+<P>
+Bind a new struct to a handle.  The 'name' character array must be allocated by
+the calling routine and be large enough to contain the entire handle name.
+
+<LISTING>
+C SYNTAX:
+   int shTclHandleNew
+   (
+   Tcl_Interp *interp,  /* MOD: TCL Interp structure */
+   char *name,		/* OUT: name of handle created, like h0 */
+   char *strType,	/* IN : Type of thing to make a handle for,
+ 			        like FOO */
+   void *thing		/* IN : pointer to the thing to be bound to the handle.
+                                This must already have been created */
+   )
+
+RETURNS:
+   TCL_OK
+   TCL_ERROR
+</LISTING>
+
+<H2><A NAME="shTclListAddrGetFromName">shTclListAddrGetFromName</A></H2>
+<P>
+Translate the handle to a LIST.
+
+<LISTING>
+C SYNTAX:
+   int shTclListAddrGetFromName 
+   (
+   Tcl_Interp *interp,  /* MOD: TCL Interp structure */
+   char *name,		/* IN: handle name to translate, like h0 */
+   char *strType,	/* IN: checks to see that the list is of this
+                               type, like FOO */
+   LIST **list		/* OUT: a C-accessible list */
+   )
+
+RETURNS:
+   TCL_OK
+   TCL_ERROR
+</LISTING>
+
+<H2><A NAME="shTclAddrGetFromName">shTclAddrGetFromName</A></H2>
+<P>
+Get struct address given handle name.
+
+<LISTING>
+C SYNTAX:
+   int shTclAddrGetFromName 
+   (
+   Tcl_Interp *interp,  /* MOD: TCL Interp structure */
+   char *name,		/* IN: name of the handle to be translated, like h0 */
+   void **address,	/* OUT: C-accessible structure */
+   char *strType	/* IN: checks to make sure structure is of this
+			       type, like FOO */
+   )
+
+RETURNS:
+   TCL_OK
+   TCL_ERROR
+</LISTING>
+
+<H2><A NAME="shTclHandleGetFromName">shTclHandleGetFromName</A></H2>
+<P>
+Get handle address given handle name.  The handle structure is passed in to
+the routine through the pointer <EM>handle</EM>.  This structure is filled
+in with the information pertaining to the handle specified in <EM>name</EM>.
+
+<LISTING>
+C SYNTAX:
+   int shTclHandleGetFromName
+   (
+   Tcl_Interp *interp,  /* MOD: TCL Interp structure */
+   char *name,		/* IN : Name of handle to be translated, like h0 */
+   HANDLE *handle	/* MOD: Pointer to the handle - the structure is
+                           handle->ptr, and the type is handle->type.  This
+                           is not normally used in coding - it can be used in
+                           error situations if you want to know what type the
+                           structure is anyway, if you just found out it is
+                           not a TYPE_FOO like you thought. */
+   )
+
+RETURNS:
+   TCL_OK
+   TCL_ERROR
+</LISTING>
+
+<H2><A NAME="shHandleWalk">shHandleWalk</A></H2>
+<P>
+This routine provides a convenient API to traverse all currently bound handles.
+
+<LISTING>
+C SYNTAX:
+   HANDLE *shHandleWalk(void)
+
+RETURNS:
+   Pointer to a handle structure, or NULL on reaching the end of the handle 
+   list.
+
+EXAMPLE:
+   HANDLE *pHandle;
+   ...
+   while ((pHandle = shHandleWalk()) != NULL)  {
+       /*
+        * Do something with pHandle.
+        */
+       ;
+   }
+   
+</LISTING>
+
+</HTML>
+
+

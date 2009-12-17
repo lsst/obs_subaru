@@ -1,0 +1,6 @@
+hdrInsWithAscii $hdr  NAME PAMELA name
+hdrInsWithAscii $hdr  MIDINT R middleinit 
+hdrInsWithAscii $hdr  LAST HUSBAND lastname
+hdrInsWithAscii $hdr  SEX FEMALE sex 
+hdrInsWithAscii $hdr  TITLE TECHII title
+

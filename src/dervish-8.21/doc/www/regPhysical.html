@@ -1,0 +1,168 @@
+<HTML>
+<TITLE>regPhysical</TITLE>
+<H1>regPhysical "C" Routines</H1>
+
+<P>
+For those writing applications using physical regions, only the following
+routine is currently available in Dervish (several routines must also be provided
+by the user - see below).  All manipulations of physical regions are deferred to
+the TCL level where many virtual region verbs apply to physical regions as well
+(except those that modify the image or header).  See the 
+<A HREF="dervish.region.html#physical region description">region features</A>
+description for more information.
+
+<PRE></PRE>
+<H2><A NAME="shPhysRegConfig">shPhysRegConfig</A></H2>
+<P>
+Initialize physical configuration structures so that images located in physical
+memory may be manipulated (at TCL level) similar to virtual regions.  This
+routine must be called by the user's main program in order to utilize the TCL
+commands available for physical regions.
+
+<P>
+A successful completion of this routine will result in configuration of the
+specified number of physical structures.  These structures will be identified by
+a physical ID number in the range 0 to n-1, where n is the specfied number of
+regions.  The physical ID will also be passed to the user supplied routines
+(described below) when invoked and will serve as a means for the user to
+identify the appropriate physical region.  It is up to the user to make the
+associations between this ID and the region in physical memory.
+
+<P>
+A requisite for the user calling shPhysRegConfig is to provide five specific 
+"access" routines, whose pointers are passed as parameters.  This mechanism
+eliminates the circular dependency that would arise if Dervish instead depended on
+the user routines directly.
+
+<P>
+Two of the routines simply return (physical memory) pointers to the pixel image
+data and the image header, while two other routines "free" the image and header
+data. In most cases the "free" routines do not need to do any actual freeing,
+they are merely invoked for the user's benefit to indicate when dervish is done
+with a particular physical region (i.e., it's up to the user to decide whether
+or not to do anything).
+
+<P>
+The last routine that must be provided is one which will fill the physical
+memory with the appropriate image and header data.
+
+<LISTING>
+C SYNTAX:
+   RET_CODE shPhysRegConfig
+   (
+   int	a_numregions,	    /* IN: Number of regions to configure */
+   char *(*a_pixelCall)(),  /* IN: Routine called to get pixel data pointer */
+   void (*a_pixelFree)(),   /* IN: Routine called when done with pixel data */
+   char	*(*a_hdrCall)(),    /* IN: Routine called to get header data pointer */
+   void (*a_hdrFree)(),	    /* IN: Routine called when done with header data */
+   int	(*a_fillCall)()     /* IN: Routine called to fill region with a frame */
+   )   
+
+RETURNS:
+   SH_SUCCESS		-  Successful completion.
+   SH_NO_PHYS_REG	-  Physical region configuration limit exceeded.
+</LISTING>
+
+<PRE></PRE>
+<H2><A NAME="physPixAlloc">User supplied pixel allocation routine</A></H2>
+<P>
+This user written routine is required to return the pointer to the pixel
+image in physical memory if it is large enough to contain the number of bytes
+specified.  It should return a NULL pointer otherwise.
+
+<LISTING>
+C SYNTAX:
+   char *userPixelCall
+   (
+   int	a_physIndex,	/* IN: Physical region identifier */
+   int  a_numBytes	/* IN: Expected size (in bytes) of the image */
+   )   
+
+RETURNS:
+   non-zero		-  Pointer to pixel image in physical memory
+   NULL			-  Failure
+</LISTING>
+
+<PRE></PRE>
+<H2><A NAME="physPixFree">User supplied pixel free routine</A></H2>
+<P>
+This user written routine has no requirements.  It is called only for the user's
+benefit, should he need to know when Dervish is finished with a pixel image in
+physical memory.
+
+<LISTING>
+C SYNTAX:
+   void userPixelFree
+   (
+   int	a_physIndex,	/* IN: Physical region identifier */
+   char *a_pixPtr	/* IN: Pointer to pixel image in physical memory */
+   )   
+
+RETURNS:
+   N/A
+</LISTING>
+
+<PRE></PRE>
+<H2><A NAME="physPixAlloc">User supplied header allocation routine</A></H2>
+<P>
+This user written routine is required to return the pointer to the image 
+header in physical memory if it is large enough to contain the number of bytes
+specified.  It should return a NULL pointer otherwise.
+
+<LISTING>
+C SYNTAX:
+   char *userHdrCall
+   (
+   int	a_physIndex,	/* IN: Physical region identifier */
+   int  a_numBytes	/* IN: Expected size (in bytes) of the header */
+   )   
+
+RETURNS:
+   non-zero		-  Pointer to image header in physical memory
+   NULL			-  Failure
+</LISTING>
+
+<PRE></PRE>
+<H2><A NAME="physHdrFree">User supplied header free routine</A></H2>
+<P>
+This user written routine has no requirements.  It is called only for the user's
+benefit, should he need to know when Dervish is finished with an image header in
+physical memory.
+
+<LISTING>
+C SYNTAX:
+   void userHdrFree
+   (
+   int	a_physIndex,	/* IN: Physical region identifier */
+   char *a_hdrPtr	/* IN: Pointer to image header in physical memory */
+   )   
+
+RETURNS:
+   N/A
+</LISTING>
+
+<PRE></PRE>
+<H2><A NAME="physFillCall">User supplied region fill routine</A></H2>
+<P>
+This user written routine is required to fill the appropriate region in 
+physical memory with the the specified frame. If errors are encountered, it
+should return a 0 and describe the error in the ASCII string parameter.
+For successful completion, a non-zero value should be returned.  The
+'a_fillErr' character array is allocated by the calling routine.
+
+<LISTING>
+C SYNTAX:
+   int userFillCall
+   (
+   int	a_physIndex,	/* IN:  Physical region identifier */
+   char *a_frameName,	/* IN:  ASCII name of frame to fill physical memory */
+   char *a_fillErr	/* OUT: 130 character string for error description */
+   )   
+
+RETURNS:
+   non-zero		-  Success
+   0			-  Failure
+</LISTING>
+<PRE></PRE>
+
+</HTML>
