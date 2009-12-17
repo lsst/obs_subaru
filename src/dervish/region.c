@@ -123,3 +123,26 @@ shRegDel(REGION *reg)
    return(ret_code);
 }
 
+/*
+ * ROUTINE: p_shRegRowsFree
+ *
+ * Given a region structure, free the pixel data storage itself.
+ *
+ * RETURN VALUES:
+ *	NONE 
+ */
+void
+p_shRegRowsFree(
+		REGION *reg
+		)
+{
+   if(reg->prvt->parent == NULL) {
+      shFree((char *)reg->prvt->pixels);
+      reg->prvt->pixels = NULL;
+   } else {
+      reg->prvt->parent->prvt->nchild--;
+      reg->prvt->parent->prvt->children = shTreeKeyDel (reg->prvt->parent->prvt->children, (IPTR)reg);
+      shAssert(reg->prvt->parent->prvt->nchild >= 0);
+   }
+}
+

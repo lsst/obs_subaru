@@ -26,6 +26,7 @@ env.SharedLibrary(
 	'shHash',
 
 	'region',
+	'hdr',
 	]]
 	#glob.glob("../src/photo/*.c"),
 	,
