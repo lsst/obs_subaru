@@ -38,6 +38,40 @@
 
 /*****************************************************************************/
 /*
+ * Find the median of a set of PIX data
+ */
+/*
+ * sort a PIX array in place using Shell's method
+ */
+static void
+shshsort(PIX *arr, int n)
+{
+    unsigned int i, j, inc;
+    PIX t;
+    
+    inc=1;
+    do{
+        inc *= 3;
+        inc++;
+    }while(inc <= n);
+    do{
+        inc /= 3;
+        for(i=inc;i<n;i++){
+            t = arr[i];
+            j=i;
+            while(arr[j-inc] > t){
+                arr[j] = arr[j-inc];
+                j -= inc;
+                if(j<inc) break;
+            }
+            arr[j] = t;
+        }
+    } while(inc > 1);
+}
+
+
+/*****************************************************************************/
+/*
  * Allocate some memory that can be made available in extremis.  This is
  * achieved via a shMemEmptyCB callback
  */
