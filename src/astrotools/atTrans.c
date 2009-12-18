@@ -68,6 +68,19 @@
 #include "atTrans.h"
 #include "atConversions.h"
 
+
+// dstn -- FAKE slalib
+#include <stdio.h>
+void slaInvf(double* tr, double* inv, int* flag) {
+	printf("Faking slaInvf().\n");
+	memcpy(inv, tr, 6*sizeof(double));
+	*flag = 0;
+}
+
+
+
+
+
 const char *atFilternames = "ugrizolts"; /* names of valid filters */
 
 static float cosmicMag[AT_NBAND] = {	/* default cosmic magnitudes */
@@ -124,6 +137,8 @@ atCosmicMagScatterSet(const float *magScatter)
 
    return(old);
 }
+
+
 
 /*----------------------------------------------------------------------------*/
 /*<AUTO EXTRACT>
@@ -187,6 +202,7 @@ atCosmicMagScatterSet(const float *magScatter)
 
     }  /* Function atTransNew */
 
+
 /*----------------------------------------------------------------------------*/
 
 /*<AUTO EXTRACT>
@@ -215,6 +231,7 @@ atCosmicMagScatterSet(const float *magScatter)
     return SH_SUCCESS;
 
     }  /* Function atTransDel */
+
 
 /*****************************************************************************/
 /*
@@ -261,7 +278,6 @@ get_filter_indices(const char filter,	/* name of filter, e.g. 'r' */
 }
 
 /*----------------------------------------------------------------------------*/
-
 /*
  * <AUTO EXTRACT>
  *
@@ -448,7 +464,6 @@ atTransApply(const TRANS *trans,	/* TRANS structure for the frame */
   return (status);
 }
 
-/*----------------------------------------------------------------------------*/
 
 /*<AUTO EXTRACT>
 

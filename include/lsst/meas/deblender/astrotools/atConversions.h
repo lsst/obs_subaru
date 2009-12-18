@@ -4,7 +4,9 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include <smaValues.h>   /* This is where we get the value M_PI */
+//dstn
+//#include <smaValues.h>   /* This is where we get the value M_PI */
+#include <math.h>
 
   /* NOTE:  these values are SET in atExternalSet.c */
 
