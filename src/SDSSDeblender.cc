@@ -38,6 +38,27 @@ deblender::SDSSDeblender<ImageT>::deblend(std::vector<typename ImageT::Ptr> &ima
     photo::OBJC* objc = photo::phObjcNew(images.size());
     photo::FIELDPARAMS* fp = photo::phFieldparamsNew(filters);
 
+    // Find peaks in the image...
+    // requires:
+    //  --image noise estimate
+    //  --background-subtraction/sky estimate
+    //  --PSF model
+
+    /*
+     for(i = 0;i < objc->peaks->npeak;i++) {
+     cpeak = objc->peaks->peaks[i];
+     (void)phObjcChildNew(objc, cpeak, fiparams, 1);
+     }
+     */
+
+    // objc->peaks is a PEAKS*
+    //photo::phObjcChildNew(objc, 
+
+    std::cout << "phObjcMakeChildren..." << std::endl;
+    photo::phObjcMakeChildren(objc, fp);
+
+    std::cout << "Objc to be deblended:" << std::endl;
+    photo::phObjcPrintPretty(objc, "");
 
 	int res = photo::phObjcDeblend(objc, fp);
 

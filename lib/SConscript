@@ -19,7 +19,7 @@ env.SharedLibrary(
 	'objc',
 	'object1',
 	'phSpanUtil',
-	'finder-peaks',
+	'finder',
 	'atlasImages',
 	'random-fake',
 	'utils',

@@ -26,8 +26,10 @@ phVelocityFind(OBJC *objc,		/* OBJC whose velocity is desired */
 	       float *colErr,		/* errors in col, or NULL */
 	       float *rchisq);		/* reduced chi^2, or NULL */
 
+int phObjcMakeChildren(OBJC *objc,		/* give this OBJC a family */
+		       const FIELDPARAMS *fiparams); /* misc. parameters */
 
-#if 0
+#if defined(NOPE)
 /*
  * The current best estimate of the PSF
  */
@@ -75,7 +77,7 @@ phMeasureObjc(OBJC *objc,		/* the OBJC to measure */
 	      int fit_models);		/* should we fit models to objects? */
 
 void phFieldstatSetFromMO(FIELDSTAT *fieldstat);
-#endif
+#endif // NOPE
 
 
 /*
@@ -83,7 +85,7 @@ void phFieldstatSetFromMO(FIELDSTAT *fieldstat);
  * public, but they are not strictly private either; so I'll put them
  * in the public .h file with some misgivings
  */
-#if 0
+#if defined(NOPE)
 void phObjcCenterCalc(OBJC *objc, const FIELDPARAMS *fparams, int use_color);
 
 float
@@ -146,8 +148,6 @@ OBJC *phObjcChildNew(OBJC *objc,	/* the parent */
 		     const FIELDPARAMS *fparams, /* gain, soft_bias, etc. */
 		     int is_child);	/* make new OBJC a child, not a sibb */
 void phObjcChildDel(OBJC *child);	/* the child to destroy */
-int phObjcMakeChildren(OBJC *objc,		/* give this OBJC a family */
-		       const FIELDPARAMS *fiparams); /* misc. parameters */
 void phObjcChildrenDel(OBJC *objc);	/* the object whose children are
 					   to be destroyed */
 
@@ -179,6 +179,6 @@ void
 phSaturSetInObject1Chain(const REGION *reg, /* region containing objects */
 			 CHAIN *objs);	/* chain of objects */
 
-#endif
+#endif // NOPE
 
 #endif
