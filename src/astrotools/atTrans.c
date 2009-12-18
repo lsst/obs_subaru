@@ -66,10 +66,10 @@
 #include <math.h>
 #include <string.h>
 #include "atTrans.h"
-#include "slalib.h"
 #include "atConversions.h"
 
 const char *atFilternames = "ugrizolts"; /* names of valid filters */
+
 static float cosmicMag[AT_NBAND] = {	/* default cosmic magnitudes */
    3.05, 1.03, 0.33, 0.11, 0.00		/* for a K3V star from Gunn-Stryker */
 };

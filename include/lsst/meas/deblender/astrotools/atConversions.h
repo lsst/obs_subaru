@@ -6,7 +6,6 @@ extern "C" {
 #endif
 #include <smaValues.h>   /* This is where we get the value M_PI */
 
-
   /* NOTE:  these values are SET in atExternalSet.c */
 
   /*To convert from a number, multiply by one of the following constants.
