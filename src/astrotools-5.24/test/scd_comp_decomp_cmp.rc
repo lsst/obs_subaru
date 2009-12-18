@@ -1,0 +1,15 @@
+#!/bin/sh
+
+# compare two files and print error message if different
+test_result() { 
+  cmp  $1 $2 
+  if [ $? != 0 ] 
+  then 
+     echo "***************** TEST FAILED *******************" 
+  fi
+}
+
+#compress and decompress a file and compare results
+echo $1
+../bin/sdsscompress -v -c $1 | ../bin/sdssdecompress | test_result -  $1
+../bin/sdsscompress -v -m -c $1 | ../bin/sdssdecompress | test_result -  $1

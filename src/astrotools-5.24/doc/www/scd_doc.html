@@ -1,0 +1,218 @@
+<HTML>
+<TITLE>sdsscompress, sdssdecompress</TITLE>
+<H1>compress/decompress FITS 16 bit pixel files</H1>
+<p>
+<H2>SYNOPSIS</H2>
+<PRE>
+
+   sdsscompress [-Vvacmf] [-b bits] [file...]
+
+   sdssdecompress [-Vvcf]  [file...]
+
+<H2>OPTIONS</H2>
+    -V   Show version
+
+    -v   Verbose - show  input and out file names and the ratio of 
+         output to input file size
+
+    -a   Show compression estimate calculations
+
+    -c   Pass compressed/uncompressed output to stdout
+
+    -m   Use the mode estimated in the first block to produce 
+         comma codes.  Default is to use the difference from the 
+         previous pixel. compress only
+
+    -f   Force overwrite of output file if estimated or actual
+         compressed size are not less that the input size or if
+         the files already exist.  If the program is run in background
+         -f is the default.   In foreground with out -f the user is
+         prompted about overwriting files.
+
+    -b   Force b significant bit coding. compress only
+</PRE>
+
+
+<H2>DESCRIPTION</H2>
+<H3>sdsscompress</H3>
+sdsscompress input files must be FITS files with 16-bit pixels. 
+<p>
+The input may be either stdin (default) or a list of files.
+If it is stdin then compressed output is written to stdout.  If it
+is a list of files then each of the files is rewritten compressed,
+a .R is appended to the file name,  and the input file is deleted.
+So, there must be room for both copies of the largest file.
+<p>
+If the estimated or actual compression are larger than the input file
+the output file is not written.  You can force the writing of the output
+file with the -f option.   This should not normally be used because
+sdssdecompress filename checks for a filename.R file for its input.
+<H3>sdssdecompress</H3>
+<p>
+sdssdecompress input may be either stdin or a list of files.
+If it is stdin then compressed output is written to stdout.
+If it
+is a list of files then each of the files is rewritten compressed.
+If a file in the list of files does not have a trailing .R then
+if there is a file with a trailing .R it is used as the put file.
+The .R is removed from the output file name.
+<H3>Pipes</H3>
+If no files are specified then stdin is passed to stdout.
+If -c option is specified then compressed/decompressed output is 
+written to stdout.
+<H3>File headers</H3>
+<p>
+The output file maintains the FITS header,
+permission modes, and access and modification times of the input file.
+<p>
+The FITS header is copied in 2880 byte blocks with the last
+block determined by "END      " in columns 1-9 of a 80 character
+header record.  
+<p>
+During compression if the value in column 10 of the "SIMPLE" record is a 'T' 
+it is changed to '1' and if it is a 'F' it is changed to '0'.  This makes
+the file non Fits standard.   During decompression those values are restored.
+<p>
+The compression version number and number of compression bits are written
+in the first two bytes after the FITS header in compressed files.
+
+<H2>ALGORITHM</H2>
+<p>
+The algorithm is based on an algorithm suggested by Robert F. Rice
+and James R. Plaunt in "Adaptive Variable-Length Coding for Efficient
+Compression of Spacecraft Television Data"; IEEE Transactions on Communication
+Technology; Vol 19, No 6, December 1971. 
+<p>
+Pixels are split into the n most significant bits, MSB, which are assumed to
+be Laplacian distributed and the 16-n least significant bits, LSB, which
+are assumed to be uniformly distributed so they have very high entropy
+and contribute nothing to the compression.
+<p>
+The program uses a comma code to compress the MSB of the pixels.  The 
+compressed 
+value is the difference between the pixel and the previous pixel or 
+if the -m option is specified between the pixel and estimated mode of the data. 
+The mode of the file is estimated from the first 8192 pixels.
+<p>
+The comma codes are as follows:
+<pre>
+     difference    bit code
+          0           1
+          1           01
+         -1           001
+          2           0001
+         -2           00001
+          3           000001
+         -3           0000001
+          4           00000001
+         -4           000000001
+          5           0000000001
+         -5           00000000001
+       outlyer        000000000001
+          6           0000000000001
+         -6           00000000000001
+          7           000000000000001
+         -7           0000000000000001
+          8           00000000000000001
+         -8           000000000000000001
+          9           0000000000000000001
+         -9           00000000000000000001
+         10           000000000000000000001
+        -10           0000000000000000000001
+         11           00000000000000000000001
+        -11           000000000000000000000001
+         12           0000000000000000000000001
+        -12           00000000000000000000000001
+<p>
+</pre>
+Outlyers with an absolute difference greater than 12 are coded with a 
+comma code equal to 10 followed by the actual pixal.
+<p>
+The program estimates the number of compressable bits in the 
+data from the first 8192 calculating the compression 
+compression using 16 through 1 MSB until the compressing increases.
+It uses the number of MSB that produces the best 
+estimated compression.   
+
+<H2>EXAMPLES</H2>
+<p>
+The first example compresses a file and then decompresses it:
+<PRE>
+
+ SDSSDP2&GT; sdsscompress   idR-000581-31-0015.fit
+ SDSSDP2&GT; ls -l idR-000581-31-0015.fit*
+ -rw-r--r--   1 kurt     system   1708491 Dec 11 19:13 idR-000581-31-0015.fit.R
+ SDSSDP2&GT; sdssdecompress idR-000581-31-0015.fit
+ SDSSDP2&GT; ls -l idR-000581-31-0015.fit*
+ -rw-r--r--   1 kurt     system   5768640 Dec 11 19:13 idR-000581-31-0015.fit
+
+</PRE>
+
+<p>
+This example attempts to compress two files.  The first is successfully
+compressed and is given a .R suffix.   The second does not obtain
+smaller compression so is not rewritten.  The decompression attempts
+to do both files.  The first is successfully decompressed.  The second
+since it was never compressed is also not decompressed.
+The -v options prints the compression ratio.
+<PRE>
+     SDSSDP2&GT; sdsscompress -v z.fits uncompressable.fits
+     z.fits: 
+     26.88% -- replaced with z.fits.R
+     uncompressable.fits: 
+     137.00% -- Negative compression, file unchanged
+     
+     SDSSDP2&GT; sdssdecompress -v z.fits uncompressable.fits
+     z.fits.R: SDSS compress version 1 compressed with 2 LSB
+     374.21% -- replaced with z.fits
+     uncompressable.fits.R: No such file or directory
+
+</PRE>
+<p>
+This example uses the -c option to compress a file to stdout; 
+decompresses stdout; and compares that result to the original.
+<PRE>
+     SDSSDP2: sdsscompress -c bigdata.fits  \ 
+     &GT;            | sdssdecompress | cmp - bigdata.fits
+</PRE>
+
+
+
+<H2>RETURNS</H2>
+<PRE>
+     0   Successful compression/decompression
+
+     1   An error occurred and a message is printed
+
+     2   The compression did not reduce the size of the file
+</PRE>
+
+<H2>DIAGNOSTICS</H2>
+<p>
+The programs report the following errors:
+<PRE>
+
+   not a regular file: unchanged
+
+      The input file is not a unix data file. Return status 1.
+
+   has %d other links: unchanged
+
+      The input file has links pointing to it and is not removed.
+      Return status 1.
+
+   fits file invalid naxis
+
+      The input file does not have NAXIS = 2 in the fits header.
+      Return status 1.
+
+   fits file invalid bitpix
+
+      The input file does not have BITPIX = 16 in the fits header.
+      Return status 1.
+
+   Negative compression, file unchanged
+
+      The estimated or actual compression ratio is greater than  1.
+      Return status 2.
+</PRE>

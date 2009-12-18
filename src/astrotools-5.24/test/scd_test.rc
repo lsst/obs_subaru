@@ -1,0 +1,85 @@
+#!/bin/sh
+
+# run tests that use all of the options in the sdss compress/decompress util
+
+bailout() {
+ echo "$TESTNAME faile ******"
+ exit 1
+}
+announce_test() {
+#  echo "TEST $1"
+  TESTNAME=$1
+}
+ 
+test_result() { 
+  if [ $3 != 0 ]
+  then
+      echo "TEST $TESTNAME FAILED - RESULT = $3 "
+      bailout
+  fi
+  cmp  $1 $2 
+  if [ $? != 0 ] 
+  then 
+      echo "TEST $TESTNAME FAILED FILE COMPARE "
+      bailout
+  fi
+}
+
+#
+# Run the tests
+#
+
+announce_test "force option"
+../bin/sdsscompress -c -f uncompressable.fits | ../bin/sdssdecompress -c > test.fits
+
+announce_test "PipeThru"
+cat test.fits| ../bin/sdsscompress | ../bin/sdssdecompress | test_result - test.fits $?
+
+announce_test "multiple files"
+../bin/sdsscompress -f  test.fits uncompressable.fits
+../bin/sdssdecompress    test.fits uncompressable.fits
+test_result uncompressable.fits test.fits $?
+
+announce_test "force b1" 
+../bin/sdsscompress -b1  -c test.fits| ../bin/sdssdecompress | test_result - test.fits $?
+announce_test "force b4" 
+../bin/sdsscompress -b4  -c test.fits| ../bin/sdssdecompress | test_result - test.fits $?
+announce_test "force b8" 
+../bin/sdsscompress -b8  -c test.fits| ../bin/sdssdecompress | test_result - test.fits $?
+announce_test "force b12" 
+../bin/sdsscompress -b12 -c test.fits| ../bin/sdssdecompress | test_result - test.fits $?
+announce_test "force b16" 
+../bin/sdsscompress -b16 -c test.fits| ../bin/sdssdecompress | test_result - test.fits $?
+
+announce_test "force -m  b1" 
+../bin/sdsscompress -b1  -m -c test.fits| ../bin/sdssdecompress | test_result - test.fits $?
+announce_test "force -m  b4" 
+../bin/sdsscompress -b4  -m -c test.fits| ../bin/sdssdecompress | test_result - test.fits $?
+announce_test "force -m  b8" 
+../bin/sdsscompress -b8  -m -c test.fits| ../bin/sdssdecompress | test_result - test.fits $?
+announce_test "force -m  b12" 
+../bin/sdsscompress -b12 -m -c test.fits| ../bin/sdssdecompress | test_result - test.fits $?
+announce_test "force -m  b16" 
+../bin/sdsscompress -b16 -m -c test.fits| ../bin/sdssdecompress | test_result - test.fits $?
+
+announce_test "list current version"
+../bin/sdsscompress -V -c test.fits > /dev/null 2> /dev/null
+
+announce_test "null file - invalid naxis error expected"
+../bin/sdsscompress -c nullfile.fits > /dev/null 2> /dev/null
+STAT=$?
+if [ $STAT != 1 ]
+  then
+     echo "TEST $TESTNAME should report  fits file invalid naxis"
+     bailout
+  fi
+
+announce_test "negative compressions expected"
+../bin/sdsscompress -v -m test.fits 2> /dev/null
+STAT=$?
+if [ $STAT != 2 ]
+  then
+     echo "TEST $TESTNAME should report  Negative compression"
+     bailout
+  fi
+echo "ALL TESTS PASSED"

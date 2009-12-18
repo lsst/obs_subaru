@@ -1,0 +1,75 @@
+<HTML><HEAD><TITLE>WCS</TITLE>
+</HEAD><BODY>
+<H1>WCS</H1>
+ABSTRACT:
+Routines to put WCS FITS header keyword/value pairs into a header. 
+<HR><MENU>
+<LI><A HREF="#atWcsAddToHdr">atWcsAddToHdr</A>
+<LI><A HREF="#atReadTrans">atReadTrans</A>
+</MENU>
+<HR><H2><A NAME="atWcsAddToHdr">atWcsAddToHdr</A></H2>
+
+Calculate and put FITS header keyword/value pairs for World Coordinate System
+(WCS) into a header.
+<PRE>
+   TCL VERB: atWcsAddToHdr  trans hdr node incl
+
+   Computes appropriate WCS header lines from a field's astrometric solution and writes them into a header.
+
+   Required arguments:
+      trans (string - Handle to the field's TRANS struct)
+      hdr   (string - Handle to the relevant HEADER)
+      node  (double - Node of the great circle scanned)
+      incl  (double - Inclination of the great circle scanned)
+
+Caveats:  this procedure applies the astrom solution TRANS values to
+    determine RA/DEC WCS header info for a field.  It is designed
+    to be appropriate for SDSS frames which have 1361 rows and
+    2048 columns.  It will work pretty well for corrected frames
+    which are 1489 rows and 2048 columns, but it will be grossly in
+    error for raw idR frames which are 1361 rows and 2128 columns
+    (since it expects that pixel [0,0] is the first pixel of the
+    imaged frame, i.e. there are no over- or under-scan columns).
+    
+    It is worth noting that asTrans structs are tagged to FIELD
+    number, just as correct frames (fpC) are.  (Note that idR frames
+    are tagged to FRAME number, not FIELD number.)
+
+    The asTrans file is composed of numerous HDU's.  Best practice is to
+    use <A HREF="#atReadTrans">atReadTrans</A> to be certain that you get the proper info.
+    Executing
+       
+    astls> atReadTrans $transfile $ccd
+   
+    will return several things in a keyed list:
+       1. chain -  the chain of TRANS structs for this run/ccd
+       2. node  -  the node of the greact circle scanned
+       3. incl  -  the inclination of the greact circle scanned
+       4. equinox - equinox of the TRANS corrdinates
+       5. field0 - first field in the trans chain
+       6. nfields - number of fields in the chain
+  
+    so, to be sure you get the right TRANS struct:
+       astls> set stuff [atReadTrans $transfile $ccd] 
+       astls> set transChain [keylget stuff chain]
+       astls> set node [keylget stuff node]
+       astls> set incl [keylget stuff incl]
+       astls> set smallChain [chainSearch $transChain "{ id == $field }"]
+       (if [chainSize $smallChain isn't == 1, there's a problem)
+       astls> set trans [chainElementGetByPos $smallChain HEAD}
+
+
+</PRE>
+<HR><H2><A NAME="atReadTrans">atReadTrans</A></H2>
+ Read the TRANS structures for a single CCD from an asTrans file.
+<PRE>   
+   TCL VERB: atReadTrans transfile ccd
+
+ Read the TRANS structures for a single CCD from an asTrans file.  Returns
+ a keyed list of variables including the chain of TRANS structures, node,
+ inclination, equinox, first field and number of fields in the chain.
+
+   Required Arguments:
+      file (string -  path/name of the asTrans-$run.fit file)
+      ccd  (int    -  CCD for which the trans struct is needed)
+</PRE>

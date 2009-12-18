@@ -1,0 +1,653 @@
+%****************************** Copyright Notice *******************************
+%                                                                              *
+%  Copyright (c) 1992 Universities Research Association, Inc.                  *
+%                All Rights Reserved.                                          *
+%                                                                              *
+%*******************************************************************************
+%++
+% FACILITY:	LaTeX
+%
+% ABSTRACT:	A template document for technical notes and manuals.
+%
+%		%|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+%		%                                                              |
+%		%  Sections modified by users are boxed in with vertical bars  |
+%		%  (as this box is).   The section is described and then fol-  |
+%		%  lowed by left and right angle brackets together:            |
+%		%                                                              |
+%		%<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>|
+%		%                                                              |
+%		%  These can be searched for to locate where  LaTeX  commands  |
+%		%  and/or text can be changed and/or added.                    |
+%		%                                                              |
+%		%|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+%
+%		NOTE:	You should use \rightfacing before the following section
+%			commands that cause pagination:
+%
+%			\part		\chapter
+%
+%			It will keep page numbers correct such that right facing
+%			pages will have an odd number. If \userblankpages is set
+%			to 1, blank pages will be inserted as necessary if the
+%			document is to be photocopied onto double-sided pages.
+%
+% ENVIRONMENT:	LaTeX source.  UNIX.
+%		template.tex
+%
+% AUTHOR:	Author, Creation Date: 14-Feb-1991
+%
+% MODIFIED BY:
+%
+%	V01-000	AUT		Author				14-Feb-1991
+%		Initial entry.
+%--
+%*******************************************************************************
+%
+%
+%|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+%                                                                              |
+% Define the document's look.                                                  |
+%                                                                              |
+% User macros indicate which portions of the document are to be present:       |
+%                                                                              |
+%    o   Zero (0) indicates that the portion is to be missing.                 |
+%    o   One  (1) indicates that the portion is to be included.                |
+%                                                                              |
+% NOTE:  Do not delete any of the \def lines.                                  |
+%                                                                              |
+% NOTE:  \usercopyrightext contains the actual copyright message, not 0 or 1.  |
+%                                                                              |
+% NOTE:  The following portions are not supported yet.  Please set their \def  |
+%        to zero (0):                                                          |
+%                                                                              |
+%           \userlof                                                           |
+%           \userlot                                                           |
+%           \userindex                                                         |
+%                                                                              |
+% Also, the \documentstyle can be changed.                                     |
+%                                                                              |
+%    o   The style (such as article and report) can be changed. The following  |
+%        style parameters can be changed:                                      |
+%                                                                              |
+%           \bibindent                                                         |
+%           \mathindent                                                        |
+%                                                                              |
+%        It is recommended that only the report and article styles be used. If |
+%        the article style is used, it is strongly recommended that the table  |
+%        of contents, list of figures, list of tables, and acknowledgement     |
+%        sections be not included.                                             |
+%                                                                              |
+%    o   The options can be changed slightly.  The point size should not be    |
+%        changed to maintain consistency between our documentation.   Other    |
+%        options can be changed:                                               |
+%                                                                              |
+%           openbib                                                            |
+%           leqno                                                              |
+%           fleqn                                                              |
+%                                                                              |
+%           twoside     is strongly recommended, especially if \userblankpages |
+%                       is used.                                               |
+%                                                                              |
+%   o    The following styles have been added (are not part of LaTeX):         |
+%                                                                              |
+%           draftee     will change how page footers are displayed.  The macro |
+%                       \userdraft is also defined and can be tested for with: |
+%                                                                              |
+%                           \ifx\userdraft\undefined\else DO DRAFT STUFF \fi   |
+%                                                                              |
+%<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>|
+%                                                                              |
+\documentstyle[11pt,twoside]{report}
+%\documentstyle[11pt,twoside,draftee]{report}
+\setcounter{secnumdepth}{4}
+\setcounter{tocdepth}{4}
+%                                                                              |
+\def\userblankpages	{1}	% Use blank pages for double sided photocopying|
+%                                                                              |
+\def\userabstract	{1}	% Title page: abstract                         |
+\def\userkeywords	{1}	% Title page: keywords list                    |
+\def\usersoftware	{0}	% Title page: software description             |
+\def\usercopyright	{0}	% Title page: copyright                        |
+\def\usercopyrightext   {1992 by Universities Research Association, Inc.}
+\def\usertoc		{1}	% Table of contents                            |
+\def\userlof		{0}	% List of Figures                              |
+\def\userlot		{0}	% List of Tables                               |
+\def\useracknowledge	{0}	% Acknowledgements                             |
+\def\userindex		{0}	% Index                                        |
+%                                                                              |
+%|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+%                                                                              |
+% TeX and LaTeX include files.                                                 |
+%                                                                              |
+% These files may not be all available or necessarily useful.  If this is the  |
+% case, then the appropriate \input lines should be commented out (with a per- |
+% cent sign (%)) or commented in.                                              |
+%                                                                              |
+%<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>|
+%                                                                              |
+\input{epsf}			% \special and Encapsulated PostScript macros
+%                                                                              |
+%|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+%
+%
+%\ifodd\userindex
+%   \makeindex
+%\fi
+%
+% To avoid awkward vertical spacing between text while in \flushbottom mode,
+% \raggedbottom is used.  But, footnotes will not always appear at the very
+% bottom of the page.  To fix this, \skip\footins is redefined to do some
+% filling.  In turn, this causes a problem where \section or other commands
+% may go onto the next page prematurely.  This occurs because \skip\footins'
+% filling took away space from the page goal, even though the filling is a
+% rubber length.  To counteract this problem, \count\footins was changed to
+% 250 (from 1000).  Basically, the output routine thinks that footnotes take
+% up less space than they really do. This appears to work in most situations.
+%
+\raggedbottom
+\skip\footins=  0.10in plus 1fil\relax	% Force footnotes to be \flushbottom
+\count\footins=  250			% Undo loss of regular text to next page
+%
+\textheight=    8.25in
+\textwidth=     6.00in
+\oddsidemargin=   18pt
+\evensidemargin=  18pt
+\marginparwidth= 0.7in
+\topmargin=        0pt
+\parskip=          1ex
+%
+%
+%*******************************************************************************
+%
+%
+% Define macros.
+%
+%- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+%
+% \begin{indpar}{leftindent}{rightindent}%
+% \end{indpar}
+%
+% Provide a paragraphing environment where the left and/or right margin are
+% indented.  Both values must be positive length specifications (thus enter
+% 0pt, not just 0).  The left margin is indented by LEFTINDENT units and the
+% right margin is indented by RIGHTINDENT units.
+%
+% NOTE: The comment character (%) should be placed immediately after the right
+%       indentation specification.  This prevents a small amount of indentation
+%       from being made on the first line within the indpar environment.
+%
+\newlength{\indparwidth}		% Define globally
+\newlength{\indparindent}		% Define globally
+\newlength{\indparskip}			% Define globally
+%
+\newenvironment{indpar}[2]%
+{%
+\setlength{\indparwidth}{\textwidth}%
+\advance\indparwidth by -#1\relax%
+\advance\indparwidth by -#2\relax%
+\setlength{\indparindent}{\parindent}%
+\setlength{\indparskip}{\parskip}%
+\hspace*{#1}\begin{minipage}{\indparwidth}%
+\setlength{\parindent}{\indparindent}%
+\setlength{\parskip}{\indparskip}%
+\par\noindent%
+}%
+{%
+\end{minipage}%
+}
+%
+%- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+%
+% Changebars.
+%
+% Changebars are not well thought out, even to the extent whether they form an
+% environment (a TeX group) or just simple commands (definitions).  For now,
+% they will be definitions which in the future can expand out to a group if
+% necessary.
+%
+% NOTE: Because margin notes are used, there are no guarantees about system
+%       performance.  The "LaTeX User's Guide and Reference Manual" by Leslie
+%       Lamport cautions against more than 5 margin notes per page (it's
+%
+\def\changebar%
+{%
+\marginpar{\bf$\bigtriangledown$}%
+}
+%
+\def\changeend%
+{%
+\marginpar{\bf$\bigtriangleup$}%
+}
+%
+%- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+%
+% \rightfacing
+%
+% Determine whether we're on an odd page.  If so, generate a blank page or at
+% least bump up the page number.  This macro is useful at the beginning of
+% chapters (before the \chapter command), etc. to force the page to be right
+% facing.
+%
+\newcommand{\rightfacing}%
+{%
+\clearpage%
+\ifodd\count0\else%
+   \ifodd\userblankpages%
+      \thispagestyle{empty}\mbox{}\clearpage%
+   \else%
+      \addtocounter{page}{1}%
+   \fi%
+\fi%
+}
+%
+%- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+%
+% \epsfigure{file}{title}{ref-label}
+%
+% Include an Encapsulated PostScript file containing a figure into the document.
+% The FILE specification, a TITLE, and a REFerence LABEL must be provided.  The
+% reference label can be used within the text as such:
+%
+%   Figure \ref{REF-LABEL} shows ...
+%
+% NOTE:	There was a problem in using the figure environment when \raggedbottom
+%	is used along with the \skip\footins and \count\footins redefinitions.
+%	Captions are placed in a figure environment that must go HERE!  But,
+%	when the figure is near the bottom of the page, and there are footnotes
+%	present, it determines that there really is not enough space. Thus, the
+%	caption gets to go onto its own page (the page of floats stuff)!
+%
+\def\epsfigure#1#2#3%
+{%
+\epsfxsize=0.98\textwidth%
+\vskip 0.25in%
+\goodbreak%
+{%
+\samepage%
+\epsfbox{#1}%
+\vskip -1.6ex%			% Prevent \caption ending up on a page of floats
+\nopagebreak%
+\begin{figure}[h]
+\caption{#2}%
+\label{#3}%
+\end{figure}%
+}%
+}
+%
+%- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+%
+% Trademarks, etc.
+%
+% In general, you should:
+%
+%     We usually print \mbox{PostScript\upRegistered}\/ files.
+%
+%     Our CASE tool includes \mbox{\teamwork/SIM\upTM}.
+%     We also use additional \mbox{\teamwork\upRegistered}\/ tools.
+%
+% Note the use of \/ for a touch of additional space after the trademark logos.
+%
+% NOTE:	LaTeX does not work well with these macros if they are included in any
+%	of the sectioning commands.  So, avoid them there!
+%
+\def\upTM{{\tiny\raisebox{1ex}{TM}}}
+\def\upRegistered{{\footnotesize\raisebox{1ex}{$\bigcirc\hspace*{-1.8ex}$\tiny R}}}
+%
+% Some registered software.
+%
+\def\teamwork{{\bf team\/}{\em work\/}}
+\def\Teamwork{{\bf Team\/}{\em work\/}}
+\def\YOURDON{YOURD\hspace*{-0.4em}ON}
+%
+%
+%*******************************************************************************
+%
+%*******************************************************************************
+%
+%
+\begin{document}
+\begingroup\thispagestyle{empty}%
+\hfill%
+%
+%|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+%                                                                              |
+% Document Type and Number.                                                    |
+%                                                                              |
+%<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>|
+%                                                                              |
+  DSS ???
+%                                                                              |
+%|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+%
+\\%
+%
+\ifx\userdraft\undefined\else%
+\vspace*{-9.2ex}%
+\begin{center}%
+{\Huge\fbox{DRAFT}}%
+\end{center}%
+\vspace*{1ex}%
+\fi%
+%
+%
+% Title.
+%
+\vspace*{2ex}
+\begin{center}
+   \LARGE\bf
+%
+%|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+%                                                                              |
+% Title.                                                                       |
+%                                                                              |
+% NOTE:  Each line should be ended with two backslashes (\\).                  |
+%                                                                              |
+%<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>|
+%                
+sdssutil
+%                                                                              |
+%|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+%
+\end{center}
+%
+%
+% Author(s).
+%
+\vspace*{1ex}
+\vspace{4ex}
+\begin{center}
+%
+%|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+%                                                                              |
+% Author(s).                                                                   |
+%                                                                              |
+% NOTE:  Each line should be ended with two backslashes (\\).                  |
+%                                                                              |
+%<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>|
+%                                                                              |
+Me\\
+\ \\
+{\bf Institute of Many Documents}\\
+\today
+%                                                                              |
+%|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+%
+\end{center}
+%
+%
+% Abstract.
+%
+\ifodd\userabstract
+\vspace*{2ex}
+\vspace{7ex}
+{
+   \small
+   \begin{center}
+      \bf Abstract
+   \end{center}
+   \begin{indpar}{0.625in}{0.625in}%
+%
+%|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+%                                                                              |
+% Abstract.                                                                    |
+%                                                                              |
+%<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>|
+%                                                                              |
+This document describes the sdssutil product.
+%                                                                              |
+%|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+%
+   \end{indpar}
+}
+\fi					% \ifodd\userabstract
+%
+%
+% Keywords and Software information.
+%
+\vspace*{3ex}
+\vfill
+%
+%   o	Determine whether anything is going to be shown in this section.
+%
+\def\usermisc	{0}
+\ifodd\userkeywords\def\usermisc{1}\fi
+\ifodd\usersoftware\def\usermisc{1}\fi
+%
+\ifodd\usermisc
+\begin{list}{}{%
+   \setlength{\itemindent}{0pt}
+   \setlength{\labelwidth}{5em}
+   \setlength{\leftmargin}{\labelwidth} \addtolength{\leftmargin}{\labelsep}
+                                        \addtolength{\leftmargin}{\itemindent}
+   }
+%
+%|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+%                                                                              |
+% Keywords and Software information.                                           |
+%                                                                              |
+%<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>|
+%                                                                              |
+   \ifodd\userkeywords
+   \item [Keywords:\hfill] SDSS
+   \fi
+%
+   \ifodd\usersoftware
+   \item [Software:\hfill] None
+   \fi
+%                                                                              |
+%|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+\end{list}
+\fi					% \ifodd\usermisc
+%
+%
+% Miscellaneous information.
+%
+\ifodd\usercopyright
+\vspace*{-3ex}
+\par\noindent
+\rule{\hsize}{0.3mm}
+%
+%|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+%                                                                              |
+% Copyright.                                                                   |
+%                                                                              |
+%<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>|
+%                                                                              |
+{\small Copyright \copyright\  \usercopyrightext}
+%                                                                              |
+%|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+%
+\fi					% \ifodd\usercopyright
+\endgroup
+\clearpage
+%
+%
+%*******************************************************************************
+%
+%*******************************************************************************
+%
+%
+% The legalities page.
+%
+\thispagestyle{empty}
+%
+{
+\small
+\parskip=0pt
+\parindent=0pt
+%
+%
+%
+\par\noindent
+This documentation was prepared with \LaTeX.
+%
+%
+%
+\par\noindent
+\mbox{}
+\vspace*{2in}
+%
+\ifx\userdraft\undefined\else
+\par\noindent {\em DRAFT printing}: \today.
+\vspace*{1ex}
+\fi
+%
+\vspace*{1ex}
+%
+\ifodd\usercopyright
+\par\noindent
+Copyright \copyright\  \usercopyrightext
+\vspace*{1ex}
+\par\noindent All rights reserved.
+\fi
+%
+\vspace*{1in}
+\par\noindent
+This document was prepared as an account of work sponsored by an agency of the
+United States Government.  Neither the United States Government nor any agency
+thereof, nor any of their employees, makes any warranty, express or implied,
+or assumes any legal liability or responsibility for the accuracy, completeness,
+or usefulness of any information, apparatus, product, or process disclosed, or
+represents that its use would not infringe privately owned rights.  Reference
+herein to any specific commercial product, process, or service by trade name,
+trademark, manufacturer, or otherwise, does not necessarily constitute or imply
+its endorsement, recommendation, or favoring by the United States Government or
+any agency thereof.  The views and opinions of authors expressed herein do not
+necessarily state or reflect those of the United States Government or any agency
+thereof.
+%
+%
+%
+\vfill
+{
+\footnotesize
+%
+%|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+%                                                                              |
+% Trademark notices, etc.                                                      |
+%                                                                              |
+% Comment out the ones you don't need.                                         |
+%                                                                              |
+%<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>|
+%                                                                              |
+%%%\par\noindent DEC and DIGITAL are registered trademarks of Digital Equipment Corporation.
+%%%\par\noindent DEC/CMS is a trademark of Digital Equipment Corporation.
+%%%\par\noindent IRIX is a registered trademark of Silicon Graphics, Inc.
+%%%\par\noindent Macintosh is a trademark of McIntosh Laboratory, Inc. licenses to Apple Computer, Inc.
+%%%\par\noindent MacPaint is a registered trademark of Apple Computer, Inc.
+%%%\par\noindent MS-DOS is a registered trademark of Microsoft, Inc.
+%%%\par\noindent OPEN LOOK is a trademark of AT~\&~T.
+%%%\par\noindent Open Software Foundation, OSF, OSF/1, OSF/Motif, and Motif are trademarks of the Open Software Foundation, Inc.
+%%%\par\noindent PostScript is a registered trademark of Adobe Systems Incorporated.
+%%%\par\noindent Sun Microsystems, Sun Workstation, NFS, and TOPS are registered trademarks of Sun Microsystems, Inc.
+%%%\par\noindent Sun, Sun-2, Sun-3, Sun-4, Sun386{\em i}, SPARCstation, SPARCserver, NeWS, NSE,
+%%%OpenWindows, SPARC, SunInstall, SunLink, SunNet, SunOS, SunPro, and SunView are trademarks of Sun Microsystems, Inc.
+   \par\noindent\TeX\/ is a trademark of the American Mathematical Society.
+%%%\par\noindent\teamwork\/ is a registered trademark of Cadre Technologies, Inc.
+%%%\par\noindent\teamwork/SIM is a trademark of Cadre Technologies, Inc.
+%%%\par\noindent UNIX is a registered trademark of AT~\&~T.
+%%%\par\noindent VAX, VAXcluster, and VMS are trademarks of Digital Equipment Corporation.
+%%%\par\noindent X Window System is a trademark of the Massachusetts Institute of Technology.
+%                                                                              |
+%|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+%
+}
+}
+%
+%
+%*******************************************************************************
+%
+%*******************************************************************************
+%
+%
+% Table of contents, etc.
+%
+\rightfacing
+\pagenumbering{roman}
+\setcounter{page}{3}
+%
+\ifodd\usertoc
+   \tableofcontents
+   \clearpage
+\fi					% \ifodd\usertoc
+%
+%
+%\ifodd\userlof
+%   \listoffigures
+%   \clearpage
+%\fi					% \ifodd\userlof
+%
+%
+%\ifodd\userlot
+%   \listoftables
+%   \clearpage
+%\fi					% \ifodd\userlot
+%
+%
+%*******************************************************************************
+%
+%*******************************************************************************
+%
+%
+% Acknowledgements.
+%
+\ifodd\useracknowledge
+\rightfacing
+\vspace*{62pt}
+\par\noindent
+{\Huge\bf Acknowledgements}\hfill
+\vspace*{9ex}
+\begin{indpar}{0.1875in}{0in}%
+%
+%|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+%                                                                              |
+% Acknowledgements.                                                            |
+%                                                                              |
+%<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>|
+%                                                                              |
+%                                                                              |
+%|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+%
+\end{indpar}
+\clearpage
+\fi					% \ifodd\useracknowledge
+%
+%
+%*******************************************************************************
+%
+%*******************************************************************************
+%
+%
+\rightfacing
+\pagenumbering{arabic}
+\noindent
+%
+%
+%|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+%                                                                              |
+% The text!                                                                    |
+%                                                                              |
+%<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>|
+%                                                                              |
+
+%\rightfacing\input{}
+
+%                                                                              |
+%                                                                              |
+%|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+%*******************************************************************************
+%
+%*******************************************************************************
+%
+%
+% Trailing information.
+%
+%\ifodd\userindex
+%\fi
+%
+%
+\end{document}
+%
+%
+%*******************************************************************************

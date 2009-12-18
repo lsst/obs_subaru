@@ -1,0 +1,11 @@
+source [envscan \$ASTROTOOLS_DIR]/etc/atUtils.tcl
+source [envscan \$ASTROTOOLS_DIR]/etc/atSurveyGeom.tcl
+source [envscan \$ASTROTOOLS_DIR]/etc/atRegContourPlot.tcl
+source [envscan \$ASTROTOOLS_DIR]/etc/atPhotometry.tcl
+source [envscan \$ASTROTOOLS_DIR]/etc/atNextNewMoonLocal.tcl
+source [envscan \$ASTROTOOLS_DIR]/etc/atHgMath.tcl
+source [envscan \$ASTROTOOLS_DIR]/etc/atRaDecToField.tcl
+source [envscan \$ASTROTOOLS_DIR]/etc/atTelescopeAxes.tcl
+source [envscan \$ASTROTOOLS_DIR]/etc/atWcs.tcl
+source [envscan \$ASTROTOOLS_DIR]/etc/atFixfpCHdr.tcl
+source [envscan \$ASTROTOOLS_DIR]/etc/atFixfpBHdr.tcl

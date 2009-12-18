@@ -1,0 +1,37 @@
+<HTML><HEAD><TITLE>telescopeAxes</TITLE>
+</HEAD><BODY>
+<H1>telescopeAxes</H1>
+<PRE>ABSTRACT:
+</PRE>   Routine to plot telescope axis rates and tracks
+
+<PRE></PRE>
+<HR><MENU>
+<LI><A HREF="#stripeAxisRates">stripeAxisRates</A>
+</MENU>
+<HR><H2><A NAME="stripeAxisRate">stripeAxisRates</A></H2>
+
+Calculate and plot the telescope axis rates required for a scan.
+<PRE>
+   TCL VERB: stripeAxisRates stripe utStart -mjd -startLambda -endLambda -file -polar
+
+
+   Calculates and plots the telescope axis rates which will be encountered
+      during the course of a scan, given a stripe number and a starting
+      time.
+
+   Required arguments:
+      stripe  (integer 1 -- 45)
+      utStart (string HH:MM)
+
+   Optional arguments, switches:
+      -mjd         (integer day, defaults to today)
+      -startLambda (double, defaults to lambdaMin for the stripe)
+      -endLambda   (double, defaults to lambdaMax for the stripe)
+      -file        (string, the name of a Postscript file for the
+                    plot. If not present, plots to XWIN)
+      -polar       (No argument. If this switch is present, the plot will
+                    be a polar plot of the telescope track, with the zenith
+                    at the pole, otherwise the default plot is a Cartesian
+                    plot of the three telescope axis rates versus lambda/ 
+                    survey longitude)
+</PRE>

@@ -1,0 +1,75 @@
+# Definition of end-points of survey stripes
+# ellipse parameters 65, 55, 20
+
+#
+# This file was added in support of SDSS Southern
+# Survey programs that want to image outsize
+# survey boundries.
+# It was created using 
+#	astls> loop i 46 100 { echo stripedef $i [etaFromStripeNumber $i] -180 180 }
+# removing 76,82,86
+#
+# It is meant to be loaded with loadStripeLimits -extended.
+#
+#	Jim Annis 
+#	Jan 2003
+#
+
+typedef struct {
+	int stripeNumber;
+	float eta;
+	float lambdaMin;
+	float lambdaMax;
+} STRIPEDEF;
+
+stripedef 46 57.5 -180 180
+stripedef 47 -120.0 -180 180
+stripedef 48 -117.5 -180 180
+stripedef 49 -115.0 -180 180
+stripedef 50 -112.5 -180 180
+stripedef 51 -110.0 -180 180
+stripedef 52 -107.5 -180 180
+stripedef 53 -105.0 -180 180
+stripedef 54 -102.5 -180 180
+stripedef 55 -100.0 -180 180
+stripedef 56 -97.5 -180 180
+stripedef 57 -95.0 -180 180
+stripedef 58 -92.5 -180 180
+stripedef 59 -90.0 -180 180
+stripedef 60 -87.5 -180 180
+stripedef 61 -85.0 -180 180
+stripedef 62 -82.5 -180 180
+stripedef 63 -80.0 -180 180
+stripedef 64 -77.5 -180 180
+stripedef 65 -75.0 -180 180
+stripedef 66 -72.5 -180 180
+stripedef 67 -70.0 -180 180
+stripedef 68 -67.5 -180 180
+stripedef 69 -65.0 -180 180
+stripedef 70 -62.5 -180 180
+stripedef 71 -60.0 -180 180
+stripedef 72 -57.5 -180 180
+stripedef 73 -55.0 -180 180
+stripedef 74 -52.5 -180 180
+stripedef 75 -50.0 -180 180
+stripedef 77 -45.0 -180 180
+stripedef 78 -42.5 -180 180
+stripedef 79 -40.0 -180 180
+stripedef 80 -37.5 -180 180
+stripedef 81 -35.0 -180 180
+stripedef 83 -30.0 -180 180
+stripedef 84 -27.5 -180 180
+stripedef 85 -25.0 -180 180
+stripedef 87 -20.0 -180 180
+stripedef 88 -17.5 -180 180
+stripedef 89 -15.0 -180 180
+stripedef 90 -12.5 -180 180
+stripedef 91 -10.0 -180 180
+stripedef 92 -7.5 -180 180
+stripedef 93 -5.0 -180 180
+stripedef 94 -2.5 -180 180
+stripedef 95 0.0 -180 180
+stripedef 96 2.5 -180 180
+stripedef 97 5.0 -180 180
+stripedef 98 7.5 -180 180
+stripedef 99 10.0 -180 180

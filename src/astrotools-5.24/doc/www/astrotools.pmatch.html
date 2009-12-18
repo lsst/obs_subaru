@@ -1,0 +1,390 @@
+<HTML>
+<HEAD>
+<COMMENT ************************************************************></COMMENT>
+<COMMENT *
+<COMMENT * PRODUCT:	ASTROTOOLS
+<COMMENT *
+<COMMENT * ABSTRACT:	Michael's Matching routines -- TCL bindings
+<COMMENT *
+<COMMENT * ENVIRONMENT:	HTML (Hypertext Markup Language).
+<COMMENT *		astrotools.pmatch.html
+<COMMENT *
+<COMMENT * AUTHOR:	Michael Richmond, Creation date:  1/23/96
+<COMMENT *         	added comments about optional args.  MWR 3/2/97
+<COMMENT *
+<COMMENT ************************************************************></COMMENT>
+
+<TITLE>Match Lists of Objects using FOCAS Algorithm</TITLE>
+<BODY>
+
+<H1>Match Lists of Objects using FOCAS Algorithm</H1>
+
+<P>
+This file contains documentation for a set of
+routines which allow the user to match up two sets
+of objects -- say, from two different images
+of the same field, or from a catalog and an image.
+The code which determines the transformation
+from one coordinate system to the other is based on
+the FOCAS Automatic Catalog Matching Algorithm,
+described in PASP 107, 1119 (1995).
+
+<P>
+One difference between the matching routines described here and 
+<a href="tclMatch.html">other ASTROTOOLS matching routines</a>
+is that the routines here not only find the transformation
+between two coordinate systems, but also create new CHAINs of matched 
+pairs of objects.  The 
+<a href="atPMatch.html#atMatchChains">atMatchChains</a>
+routine employs an
+<i>exclusive matching</i> 
+algorithm, which prevents any object 
+from being part of more than a single matched pair.
+
+<P>
+The C bindings for these routines are in
+<a href="atPMatch.html">atPMatch.html</a>,
+and the TCL bindings in
+<A HREF="tclPMatch.html">tclPMatch.html</A>.
+
+<UL>
+<LI><a href="#example">An example of using the routines</a>
+<LI><A HREF="atPMatch.html#atFindTrans">atFindTrans</A>
+<LI><A HREF="atPMatch.html#atApplyTrans">atApplyTrans</A>
+<LI><A HREF="atPMatch.html#atMatchChains">atMatchChains</A>
+</UL>
+
+<h2><a name="example">An example of using the routines</a></h2>
+<P>
+In order to use the matching routines described herein,
+one must have the items to be matched in the form of
+a pair of 
+<a href="http://www-sdss.fnal.gov:8000/dervish/doc/www/dervish.chain.html">CHAINs.</a>
+Each CHAIN can have a different type of items, and a different
+number of entries.  
+Let's first discuss the manner in which one can turn catalogs
+into CHAINs.
+
+<P>
+If the catalog is a FITS binary table, then one can simply
+use the 
+<a href="http://www-sdss.fnal.gov:8000/dervish/contrib/www/fits2Schema.html#fits2Schema">fits2Schema</a>
+routine to read the table and automatically create a CHAIN.
+In this case, the elements of the CHAIN will have names
+supplied by the FITS table.
+
+<P>
+If the catalog is in ASCII text format, one can edit it
+slightly and then use the param2Chain tool in DERVISH.
+Suppose that there is a catalog of stars in an ASCII file, 
+<b>starcat.txt</b>, with entries like this:
+<pre>
+    HD_2234    12.34564  +22.23542  1950  9.95  0.04 0.00 
+    HD_2235    12.36042  -03.09953  1950 10.12  0.45 1.45 
+    HD_2236    12.37023  +09.88432  1950  8.85  0.33 0.88 
+</pre>
+in which the second and third items in each line are the
+RA and Dec, and the fifth item is a magnitude.  
+One can edit <b>starcat.txt</b>, adding a <i>header</i>
+which describes its format, and then inserting a
+type identifier (<b>CATSTAR</b>, in the example below)
+at the start of each line in the file.  After editing
+the file, it might look like this:
+<pre>
+typedef struct {
+  char name[20];
+  double ra;
+  double dec;
+  float epoch;
+  float mag;
+  float bv;
+  float ub;
+} CATSTAR;
+  
+CATSTAR    HD_2234    12.34564  +22.23542  1950  9.95  0.04 0.00 
+CATSTAR    HD_2235    12.36042  -03.09953  1950 10.12  0.45 1.45 
+CATSTAR    HD_2236    12.37023  +09.88432  1950  8.85  0.33 0.88 
+</pre>
+One can now call the function param2Chain (now in DERVISH)
+to turn the text file into a CHAIN of type <b>CATSTAR</b>:
+<LISTING>
+astls> set ch [param2Chain catstar.txt hdr]
+h2
+astls> set el [chainElementGetByPos $ch 0]
+h3
+astls> exprGet el.ra
+12.34564
+</LISTING>
+
+
+<P>
+In order to use the matching routines described here, each 
+CHAIN must contain items which have (among others) fields 
+corresponding to
+<UL>
+<LI> <b>x</b> A position in some cartesian coordinate system
+<LI> <b>y</b> The position in a perpendicular direction in the
+              same cartesian coordinate system
+<LI> <b>mag</b> A measurement of brightness; beware magnitudes,
+              for they cause <i>bright</i> objects to have <i>small</i>
+              values.  This can cause problems if one catalog has
+              magnitude-like units, and another has intensity-like
+              units, in which case sorting by "mag" will place the
+              truly brightest objects at the top of one list and
+              at the bottom the other!
+</UL>
+Note that the fields do not have to be called "x", "y" and "mag".
+There is no provision for correcting non-cartesian coordinates
+of objects, so if one uses Right Ascension and Declination,
+one will have to restrict the area of interest to a small
+enough patch of the sky that there is little spherical curvature.
+
+<P>
+<i>Warning!</i> 
+I have discovered that one should be careful in providing
+<b>x</b> and <b>y</b> values.  If the dynamic range of the
+coordinates is too large, the matching routines can fail
+to find a proper transformation.  For example, if one is
+trying to match a small field (10 by 10 arcmin), it is much
+better to provide coordinates in "small" units (arcsec, or
+pixels), than "big" units (degrees or radians).  In other
+words,
+<pre>
+    this is a good set:        12.2, -8.3, 100.0
+    this is a good set:        1510, -2000, 830
+    this is not a good set:    180.0123, 180.0234, 180.0567
+</pre>
+Subtracting a constant from "large" coordinate values
+can help prevent errors. 
+
+<P>
+To continue with our example, let us suppose that one
+has run a program which finds objects in an image and
+measures their properties, creating a CHAIN of the following
+<b>OBJ</b> structures:
+<LISTING>
+  struct {
+    float row;         /* centroid in the row direction, in pixels */
+    float col;         /* centroid in the column direction, in pixels */
+    float rowWidth;    /* extent in row direction, in pixels */
+    float colWidth;    /* extent in column direction, in pixels */
+    float apCounts;    /* sum of counts inside an aperture */
+    float apMag;       /* apCounts, converted to a magnitude via */
+                       /*     apMag = 30 - 2.5*log10(apCounts);
+  } OBJ;
+</LISTING>
+Note that one cannot use the <i>apCounts</i> field to compare
+this set of <b>OBJs</b> against the set of <b>CATSTARS</b>,
+since bright stars will have large values of <i>apCounts</i>,
+but small values of <i>mag</i> in the catalog. 
+
+<P>
+<BLOCKQUOTE>
+<i>The matching code can understand a single level of indirection in 
+    structure field names.  Therefore, given a structure like this:
+    <LISTING>
+    struct {
+      float row; 
+      float col;   
+      float apMag[5];  /* aperture mag in u, g, r, i, z */
+    }
+    </LISTING>
+    the user may indicate that he wishes to use the 3'rd element
+    of the "apMag" field for matching purposes.  As usual, one must
+    use angled brackets to indicate subscripts at the TCL level.
+    Thus, to use an element of an array in the matching process,
+    one might type
+    <LISTING>
+    astls> atFindTrans $ch1 row col apMag<3> $ch2 row col mag
+    </LISTING>
+</i>
+</BLOCKQUOTE>
+
+<P>
+Suppose, then, that one has
+<UL>
+<LI> <b>cat_chain</b> a CHAIN of CATSTARs from the stellar catalog
+<LI> <b>obj_chain</b> a CHAIN of OBJs returned by the object-finding program
+</UL>
+
+<h4>Step 1: Finding the TRANS which matches two set of objects</h4>
+<P>
+The first step is to find a coordinate transformation which
+brings the two sets of items into a common coordinate 
+system.  We assume that the two can be connected via a
+transformation of the form
+<pre>
+          x' = A + Bx + Cy
+          y' = D + Ex + Fy
+</pre>
+which allows for a simple translation in each direction, a rotation,
+and a scale change.  The coefficients A,B,C,D,E,F of these equations
+can be stored in a 
+<A href="atTrans.html">
+TRANS structure</a>.
+We will call a TCL verb which returns such a structure.
+
+<P>
+With a few caveats (there must be at least 6 objects in each
+list, and no objects can be NULL), we can find the required
+coordinate transformation like so:
+<LISTING>
+astls> set trans [atFindTrans $cat_chain ra dec mag $obj_chain x y apMag]
+h7
+</LISTING>
+The returned TRANS will transform the coordinates of the
+<i>first</i> CHAIN of objects ("$cat_chain" in the example
+above) into those of the second CHAIN ("$obj_chain").
+
+<P>
+The user can find default values for the optional 
+<b>radius</b>,
+<b>maxdist</b>,
+and <b>nobj</b> 
+arguments in the file
+<a href="../../include/atPMatch.h">atPMatch.h</a>.
+<UL>
+<LI> The #define'd value AT_MATCH_RADIUS corresponds to <b>radius.</b>
+         This is the maximum allowed distance in <i>triangle space</i> 
+         between two triangles for them to be considered matching.
+         Decreasing this from its default value will force triangles
+         formed from each coordinate list to have shapes which
+         match more exactly, decreasing the overall number of 
+         corresponding triangles between the two coordinate lists.
+<LI> The #define'd value AT_MATCH_MAXDIST corresponds to <b>maxdist.</b>
+         After making a first pass through the two coordinate lists
+         to find similar triangles, the code creates a preliminary
+         TRANS to connect them.  It then applies the TRANS to coordinates
+         in list A and looks for points in A which are close to points
+         in list B.  This variable is the maximum distance (in the 
+         coordinate system of list B) between a
+         transformed point in A and a point in B which is allowed to
+         count as a possible match.
+<LI> The #define'd value AT_MATCH_NBRIGHT corresponds to <b>nobj.</b>
+         Only the brightest <b>nobj</b> objects from each list are
+         considered in the matching process.
+</UL>
+
+<P>
+In addition, there is another optional argument, <b>scale</b>.
+This is the ratio of the size of coordinates in list B to coordinates
+in list A; i.e., if we have points
+<UL>
+<LI>(0, 0) and (1, 1) in list A
+<LI>(0, 0) and (5, 5) in list B
+</UL>
+then this ratio is 5.0.
+If the user supplies a value, only similar triangles with a ratio of
+sizes within 10 percent of <b>scale</b> will be counted as "matches."
+
+
+<P>
+As the paper by Valdes et al. describes, this algorithm attempts
+to find a transformation using only the <b>nobj</b> brightest
+items from each catalog.  The user must be sure that there are
+at least 6 matches between these <b>nobj</b> brightest
+objects.  If, for example, one set of stars is the Yale
+Bright Star Catalog, which spans the range -2 < mag < 6,
+and the other set of stars is from a survey which spans
+the range 4 < mag < 10, then it's possible that the
+brightest objects in each set are disjoint.  It may
+help to select only those objects from a catalog which
+are precisely within the area covered by an image,
+or to prune from one set of stars all objects outside
+the magnitude range of the other.
+
+<P>
+There are several #define'd values in 
+<a href="../../include/atPMatch.h">atPMatch.h</a>
+which can alter the behavior of the matching algorithm.
+If the routines fail repeatedly, it might be worthwhile
+to fiddle with them.  Read the comments in 
+<a href="../../include/atPMatch.h">atPMatch.h</a>
+concerning
+<UL>
+<LI> AT_MATCH_FRACTION (disqualifies obviously spurious matches)
+<LI> AT_MATCH_RATIO (ignores the myriad very long, skinny triangles)
+<LI> AT_MATCH_PERCENTILE (determines "sigma" used for clipping the
+         worst pairs after each iteration)
+</UL>
+
+
+<h4>Step 2: Applying the TRANS to one set of objects </h4>
+<P>
+The next step is to apply this TRANS to the coordinates of
+each element in one of the CHAINs, so that both sets of objects
+have coordinates in the same system.  It will then be easy to
+find matching pairs.  
+Since we gave "$cat_chain" as the first argument to
+<a href="atPMatch.html#atFindTrans">atFindTrans</a> in our example
+above, we must apply the returned TRANS structure
+to "$cat_chain", like so:
+
+<LISTING>
+astls> atApplyTrans $cat_chain ra dec $trans
+</LISTING>
+
+<P>
+The elements of structures in the <b>chain</b>
+specified by the
+<b>xname</b> and <b>yname</b> arguments
+may have types
+<i>int</i>, <i>float</i>, or <i>double</i>.
+All values are read internally into variables of type
+<i>float</i> for calculations.
+
+<h4>Step 3: Finding matched pairs of objects</h4>
+<P>
+Finally, we are ready to find matching pairs of objects, since
+now the items on both CHAINs have coordinates which are
+similar.  Recall that this is the coordinate system
+of the <b>OBJs,</b> so the units are those of the
+<b>OBJ</b> structure (pixels).
+We must choose a maximum difference in coordinates allowed
+for matching objects; suppose we let <b>radius</b> = 5 pixels.
+We must supply the names of the 2 CHAINs, and the names of the
+fields within each that specify the "x" and "y" coordinates,
+to the 
+<a href="atPMatch.html#atMatchChains">atMatchChains</a> verb.
+<LISTING>
+astls> chainSize $cat_chain
+103
+astls> chainSize $obj_chain
+45
+astls> atMatchChains $cat_chain ra dec $obj_chain x y 5 mcat mobj ucat uobj
+astls> chainSize $mcat
+39
+astls> chainSize $mobj
+39
+astls> chainSize $ucat
+64
+astls> chainSize $mcat
+6
+</LISTING>
+The output CHAINs contain the following information:
+<UL>
+<LI> <b>mcat</b> items in $cat_chain which were part of a match
+<LI> <b>mobj</b> items in $obj_chain which were part of a match
+<LI> <b>ucat</b> items in $cat_chain which were unmatched
+<LI> <b>uobj</b> items in $obj_chain which were unmatched
+</UL>
+<P>
+Since the 
+<a href="atPMatch.html#atMatchChains">atMatchChains</a>
+function enforces <i>exclusive matching</i>,
+each item can be part of a single match, or it must be unmatched.
+Therefore,
+the sizes of <b>mcat</b> and <b>ucat</b> add up
+to that of "$cat_chain", and the sizes of <b>ucat</b>
+and <b>uobj</b> add up to that of "$obj_chain". 
+And, of course, the sizes of <b>mcat</b> and <b>mobj</b>
+must be equal.
+
+<P>
+Beware the properties of the output CHAINs: each
+contains pointers to the very same objects which are
+included in the original, input CHAINs.  Therefore, 
+if one deletes the items in the input CHAINs, one will
+lose the information in the output CHAINs as well.
+
+

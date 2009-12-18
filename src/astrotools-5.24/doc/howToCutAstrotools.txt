@@ -1,0 +1,270 @@
+Lets Cut A New Version of Astrotools!  
+(rik 17Apr98)
+
+In this example are creating v2_10.
+
+0) Check out the current version of astrotools
+
+   > setup sdsscvs
+   > cvs co astrotools                    % e.g., creates 
+                                            /usrdevel/s1/rik/Dev/astrotools
+   > cd astrotools
+
+1) Update release notes
+
+   Make sure new additions are at least mentioned in the release notes
+   Can check for differences between versionsa
+
+   > cd  /usrdevel/s1/rik/Dev/astrotools  % goto local directory where astrotools 
+                                            was checked out
+   > cvs diff                             % compares with current version
+       or
+   > cvs diff -r v2_9                     % force comparison with specific version
+
+2) commit all files
+
+   >sdssmake make                         % in src directory on one platform
+
+   > cvs commit      
+
+3) lock the directory                     % don't do this yet
+
+4) Declare the product version and update ups
+
+   > setup sdsstools
+   > cups astrotools v2_9 v2_10          % this will list the dependencies of 
+                                           the old version which may need updating
+
+   > $UPS_DIR/bin/ups declare -z /p/cluster_disk/ups_database/declared -f Linux -r 
+     /p/Linux/astrotools/v2_9   -u "= fslalib v1_0 Linux,= sdssmath v3_4l Linux,= 
+     sdsstools v3_0 Linux"  astrotools v2_10
+
+   but note that more recent versions of astrotools do not depend on sdsstools.
+
+   Copy and edit the arguments to the ups command to take into account 
+   any new dependencies.  In this example:
+   *  Update version sdssmath from v3_4l to v3_5, sdsstools from v3_0 to v3_1.  
+   *  Change the directory specified for the -r switch from .../v2_9 to ../v2_10.
+
+   Therefore, use this ( all on one line ):
+
+   > $UPS_DIR/bin/ups declare -z /p/cluster_disk/ups_database/declared -f Linux -r 
+     /p/Linux/astrotools/v2_10   -u "= fslalib v1_0 Linux,= sdssmath v3_5 Linux,= 
+    sdsstools v3_1 Linux"  astrotools v2_10
+
+   This step makes it unneccessary to setup sdssmath, fslalib, sdsstools but still 
+   need to setup tex
+
+   For the devel version don't declare, but must modify, so use:
+
+   > cups astrotools devel devel
+
+   and make sure that dependencies are all with devel version of other products,
+   if thats possible.  Probably will need to modify the devel version since
+   it will likely already exist.
+  
+   Update the ups directory by using 'ups modify' instead of 'ups declare'
+   and include everything after the -f switch, although the -r and directory are
+   optional since, presumably they haven't changed.
+
+   > ups modify -f Linux -r /p/Linux/astrotools/v2_10   -u "= fslalib v1_0 Linux,= 
+     sdssmath v3_5 Linux,=  sdsstools v3_1 Linux"  astrotools v2_10
+
+5) Build Astrotools
+
+   > setup -r /usrdevel/s1/rik/astrotools astrotools v2_10   % use new version
+   > cd /usrdevel/s1/rik/Dev/astrotools                      % goto local directory
+
+   > setup sdssmath                                % don't need to do this if have 
+   > setup fslalib                                   changed the declaration in ups
+
+   > setup tex                                
+   > setup tex_files                               % use this for Linux
+
+   Now actually compile the local version
+     ( make sure $ASTROTOOL_DIR = /usrdevel/s1/rik/Dev/astrotools )
+
+   > sdssmake all
+
+6) Fix problems related to any compiler warnings
+
+
+7) Install the new version
+
+   Now actually install the new version for this platform 
+
+   > mkdir /p/Linux/astrotools/v2_10       
+   > setenv ASTROTOOLS_INSTALL_DIR /p/Linux/astrotools/v2_10  
+   > sdssmake install
+
+   Declare this version as the current version on this platform
+
+   > ups declare -c astrotools v2_10
+
+   Verify that all the files are there and the documentation works.
+
+   Change the protections to keep out the riff-raff, and clean up
+   This will change the protections in ASTROTOOLS_INSTALL_DIR
+
+   > sdssmake protect
+
+   This doesn't seem to work for Linux, need to use chgrp manually.
+
+8)  From the other platforms, Build and Install astrotools
+
+9)  Create devel versions on each platform
+    Change previous devel version to devel.Old
+
+    > sdssmake -debug all
+
+10) Tag the repository
+
+    only need to do this on one platform
+
+    > cd /usrdevel/s1/rik/Dev/astrotools      % from local directory
+    > cvs tag v2_10
+
+11)  Update UPR
+
+    send e-mail to: upr@sdss (probably wise to tell Eileen Berman too)
+
+12) Finished
+
+    Unlock the repository                     % do this in the future ?
+    e-mail: sdss-general@astro.princeton.edu
+      indicate that new version has been cut, include the release notes
+
+
+
+Random useful CVS, UPS commands:
+
+To get list of options:
+
+    > cvs --help
+
+To check CVS log for changes, also to see tags and internal cvs versions
+
+    > cvs log file.c
+
+To compare local version of file with checked in version:
+
+   >  cvs diff file.c
+
+To compare local file with previous version:
+
+   > cvs diff -r 1.3 file.c
+
+   Revision number is cvs number (check cvs log), not tag (i.e., v2_10)
+
+
+
+To see all current products:
+
+   > ups list
+
+To check current version of a product on a given platform:
+
+   > ups list astrotools
+
+To check current version and use requirements:
+
+   > ups list -v astrotools
+
+
+
+To setup one product but not those that it depends on
+
+   >setup -j -r local/directory product
+
+To setup without having cvs confirm everything is tagged (?)
+  (This seems to only apply to dervish itself)
+
+  >setup -nocvscheck product
+
+
+
+Summary:
+
+> cvs co astrotools
+>sdssmake make; cvs ci src/Makefile
+
+> cups astrotools v2_9 v2_10
+> $UPS_DIR/bin/ups declare -z ...               % edited from cups
+> ups modify -f Linux ...                       % edited from cups
+
+>setup -r /local_dir/astrotools astrotools v2_10
+>sdssmake all astrotools
+
+>setenv ASTROTOOLS_INSTALL_DIR /p/Linux/astrotools/v2_10
+>sdssmake install
+>sdssmake protect
+
+>ups declare -c astrotools v2_10
+
+>sdssmake clean
+>sdssmake -debug all
+>setenv ASTROTOOLS_INSTALL_DIR /p/Linux/astrotools/devel
+>sdssmake install
+
+>cvs tag v2_10
+
+e-mail upr
+
+e-mail sdss-general
+
+
+Summary for cutting SDSSTOOLS:
+
+> cvs co sdsstools
+> setup -r temp/local/sdsstools sdsstools
+> mkdir /p/IRIX/sdsstools/v3_10
+> setenv SDSSTOOLS_INSTALL_DIR /p/IRIX/sdsstools/v3_10
+> sdssmake install
+> cvs tag v3_10
+> cups sdsstools v3_9 v3_10
+> ---> edited command from cups
+> ups declare -c sdsstools v3_10
+
+> setenv SDSSTOOLS_INSTALL_DIR /p/IRIX/sdsstools/devel
+> sdssmake install
+
+
+Extra things to be aware of while cutting SDSSTOOLS:
+
+Nothing is compiled so can skip 'sdssmake all'
+No way to test to make sure its working without running a higher level product
+
+
+Summary for cutting DERVISH:
+
+> setup sdsscvs
+> setup sdsstools
+> cvs co all_dervish
+> mkdir /p/IRIX/dervish/v6_10
+> cups dervish v6_9 v6_10
+> setup dervish -r /temp/local/dervish dervish v6_10
+> sdssmake all
+> setenv DERVISH_INSTALL_DIR /p/IRIX/dervish/v6_10
+> sdssmake -nocvscheck install
+> ups declare -c dervish v6_10
+> cvs tag v6_10   (only do this on one platform)
+
+> setup dss       (must be one sdss)
+>cd $DSS_DIR/www_server
+> restart_sdssgate
+
+> mkdir /p/IRIX/dervish/devel
+> sdssmake clean
+> sdssmake all -debug
+> setenv DERVISH_INSTALL_DIR /p/IRIX/dervish/devel
+> sdssmake -nocvscheck install
+
+
+Extra things to be aware of while cutting Dervish:
+
+Checking out Dervish:  cvs co all_dervish
+
+cups and Dervish: make sure change both build and use requirements
+   when edit the returned command from cups
+
+Installing Dervish:  sdssmake -nocvscheck install
