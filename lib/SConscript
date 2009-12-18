@@ -10,6 +10,7 @@ env.SharedLibrary(
 	['../src/photo/'+x+'.c' for x in [
 	#'deblend',
 	'framestat',
+	'brightObjects',
 	'sky',
 	'measureObj',
 	'objc',
