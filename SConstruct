@@ -30,6 +30,7 @@ env.libs["deblender"] += env.getlibs("pex_exceptions afw boost utils daf_base da
 
 env.Append(CPPPATH = Dir("include/lsst/meas/deblender/photo"))
 env.Append(CPPPATH = Dir("include/lsst/meas/deblender/dervish"))
+env.Append(CPPPATH = Dir("include/lsst/meas/deblender/astrotools"))
 env.Append(CCFLAGS = ['-DNOTCL'])
 # for dervish/shGarbage.c
 #env.Append(CCFLAGS = ['-DNDEBUG'])

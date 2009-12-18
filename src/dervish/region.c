@@ -59,6 +59,7 @@
 #include "prvt/region_p.h"
 #include "shTclTree.h"
 
+static REGION *makeRegion(const char *name, int ncol, PIXDATATYPE type);
 
 /*****************************************************************************/
 /*
@@ -343,5 +344,228 @@ p_shMaskVectorFree(
 {
    shFree((char *)mask->rows);
    mask->rows = NULL;
+}
+
+/*****************************************************************************/
+/*
+ * ROUTINE: shRegNew
+ *
+ * Create an image with the given number of rows and columns -
+ * allocate all the memory necessary and return a pointer to the image
+ * structure.  If we can't get enough memory, call shFatal()
+ *
+ * If the product nrow*ncol is 0, don't try to allocate pixel data or row
+ * pointers
+ *
+ * RETURN VALUES:
+ *	pointer to new region		all went well
+ *	NULL				otherwise
+ */
+REGION *
+shRegNew(const char *name, int nrow, int ncol, PIXDATATYPE type)
+{
+   REGION *regnew;
+   
+   if((regnew = makeRegion(name,nrow,type)) == NULL) {
+      shFatal("shRegNew: Can't make subregion");
+   }
+
+   if (p_shRegRowsGet(regnew, nrow, ncol, type) == (int )NULL) {
+      return(NULL);
+   }
+
+   regnew->row0 = 0;
+   regnew->col0 = 0;
+   
+   return(regnew);
+}
+
+/*****************************************************************************/
+/*
+ * A static function to make and partially initialise a REGION
+ */
+static REGION *
+makeRegion(const char *name, int nrow, PIXDATATYPE type)
+{
+   REGION *regnew;
+   
+   if((regnew = (REGION *)shMalloc(sizeof(REGION))) == NULL) {
+      shFatal("makeRegion: can't alloc for new region");
+   }
+   
+   if (p_shRegVectorGet(regnew, nrow, type) == (int )NULL) {
+      return(NULL);
+   }
+
+   if(name == NULL) name = "";		/* be nice */
+   if((regnew->name = (char *)shMalloc(strlen(name) + 1)) == NULL) {
+      shFatal("makeRegion: can't alloc for name");
+   }
+   strcpy(regnew->name,name);
+
+   regnew->mask = NULL;
+   /*
+    * Finally set the prvt struct
+    */
+   if((regnew->prvt = (struct region_p *)shMalloc(sizeof(struct region_p)))
+      == NULL) {
+      shFatal("shSubRegNew: can't alloc REGION's prvt struct");
+   }
+   regnew->hdr.hdrVec = NULL;
+   regnew->hdr.modCnt = 0;
+   regnew->prvt->type = SHREGINVALID;
+   regnew->prvt->flags = 0;
+   regnew->prvt->crc = 0;
+   regnew->prvt->parent = NULL;
+   regnew->prvt->col0 = regnew->prvt->row0 = 0;
+   regnew->prvt->pixels = NULL;
+   regnew->prvt->nchild = 0;
+   regnew->prvt->children = NULL;
+   regnew->prvt->ModCntr = 0;
+   
+   regnew->prvt->phys = NULL;
+   
+   return(regnew);
+}
+
+/*
+ * ROUTINE: p_shRegVectorGet
+ *
+ * Given a region structure and the number of rows in the region, malloc the
+ * region vector array that will point to each of the rows.
+ *
+ * RETURN VALUES:
+ *	NULL       There was an error getting the pixel type.
+ *      1          Everything went ok.
+ *	(shFatal is called if there is a mallocing error.)
+ */
+int
+p_shRegVectorGet(
+		 REGION *reg,
+		 int         nrow,
+		 PIXDATATYPE type
+		 )
+{
+   int rstatus = 1;
+   int i;
+   void **rows = NULL;			/* generic pointer to pointer to rows*/
+
+   reg->rows_u8 = NULL;		/* all but one of these will be NULL */
+   reg->rows_s8 = NULL;
+   reg->rows_u16 = NULL;
+   reg->rows_s16 = NULL;
+   reg->rows_u32 = NULL;
+   reg->rows_s32 = NULL;
+   reg->rows_fl32 = NULL;
+   
+   if(nrow == 0) {
+      reg->rows = NULL;
+   } else {
+      rows = (void **)reg;		/* just a marker for a missing case */
+      switch (type) {
+       case TYPE_U8:
+	 reg->rows_u8 = (U8 **)shMalloc(nrow*sizeof(U8 *));
+	 rows = (void **)reg->rows_u8;
+	 break;
+       case TYPE_S8:
+	 reg->rows_s8 = (S8 **)shMalloc(nrow*sizeof(S8 *));
+	 rows = (void **)reg->rows_s8;
+	 break;
+       case TYPE_U16:
+	 reg->rows_u16 = (U16 **)shMalloc(nrow*sizeof(U16 *));
+	 rows = (void **)reg->rows_u16;
+	 break;
+       case TYPE_S16:
+	 reg->rows_s16 = (S16 **)shMalloc(nrow*sizeof(S16 *));
+	 rows = (void **)reg->rows_s16;
+	 break;
+       case TYPE_U32:
+	 reg->rows_u32 = (U32 **)shMalloc(nrow*sizeof(U32 *));
+	 rows = (void **)reg->rows_u32;
+	 break;
+       case TYPE_S32:
+
+	 reg->rows_s32 = (S32 **)shMalloc(nrow*sizeof(S32 *));
+	 rows = (void **)reg->rows_s32;
+	 break;
+       case TYPE_FL32:
+	 reg->rows_fl32 = (FL32 **)shMalloc(nrow*sizeof(FL32 *));
+	 rows = (void **)reg->rows_fl32;
+	 break;
+       default:
+         /* We need a default statement since certain pixel types are
+            not allowed by this function */
+         shFatal("makeRegion: pixel type %d is not handled", (int)type);
+         break;
+      }
+
+      if(rows == NULL) {
+         shFatal("makeRegion: can't alloc for rows");
+      } else if(rows == (void **)reg) {
+	 shError("makeRegion: Unknown PIXDATATYPE: %d",(int)type);
+	 shFree((void *)reg);
+	 return((int )NULL);
+      }
+      reg->rows = (type == TYPE_U16) ? (U16 **)rows : NULL;
+   }
+
+   *(PIXDATATYPE *)&reg->type = type;	/* cast away const */
+   reg->nrow = nrow;
+   reg->ncol = 0;
+   reg->row0 = reg->col0 = 0;
+   if(rows != NULL) {
+      for(i = 0; i < nrow; i++) {
+	 rows[i] = NULL;
+      }
+   }
+
+   return(rstatus);
+}
+
+/*
+ * ROUTINE: p_shRegRowsGet
+ *
+ * Given a region structure and the number of rows and columns in the region,
+ * malloc the space for the region pixels themselves.
+ *
+ * RETURN VALUES:
+ *	NULL       There was an error getting the pixel type.
+ *      1          Everything went ok.
+ */
+int
+p_shRegRowsGet(
+	       REGION      *reg,
+	       int         nrow,
+	       int         ncol,
+	       PIXDATATYPE type
+	       )
+{
+   int rstatus = 1;
+   int i;
+
+   if(ncol*nrow != 0) {			/* allocate pixel memory */
+      void **rows = NULL;		/* a generic pointer to rows */
+      int data_size;			/* sizeof for requested data type */
+
+      *(PIXDATATYPE *)&reg->type = type;	/* cast away const */
+      if((rows = p_shRegPtrGet(reg,&data_size)) == NULL) {
+	 shError("p_shRegRowsGet: Unknown PIXDATATYPE: %d",(int)type);
+	 shRegDel(reg);
+	 return((int )NULL);
+      }      
+
+      if((rows[0] = shMalloc(nrow*ncol*data_size)) == NULL) {
+         shFatal("p_shRegRowsGet: can't alloc for rows");
+      }
+      reg->prvt->pixels = rows[0];
+      
+      for(i = 0;i < nrow;i++) {
+         rows[i] = (char *)rows[0] + i*ncol*data_size;
+      }
+      reg->ncol = ncol;
+      reg->prvt->type = SHREGVIRTUAL;
+   }
+
+   return(rstatus);
 }
 

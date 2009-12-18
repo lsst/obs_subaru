@@ -12,10 +12,15 @@ env.SharedLibrary(
 	'objc',
 	'object1',
 	'phSpanUtil',
-	'utils',
 	'finder-peaks',
 	'atlasImages',
 	'random-fake',
+	'utils',
+	'offset',
+	]]
+	+
+	['../src/astrotools/'+x+'.c' for x in [
+	'atTrans',
 	]]
 	+
 	['../src/dervish/'+x+'.c' for x in [
