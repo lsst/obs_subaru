@@ -9,6 +9,9 @@ env.SharedLibrary(
 	glob.glob("../src/*.cc") +
 	['../src/photo/'+x+'.c' for x in [
 	#'deblend',
+	'framestat',
+	'sky',
+	'measureObj',
 	'objc',
 	'object1',
 	'phSpanUtil',
