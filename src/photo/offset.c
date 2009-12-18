@@ -114,6 +114,8 @@ phOffsetDo(const FIELDPARAMS *fiparams,	/* describe field, incl. astrometry */
 				      fiparams->frame[band0].astrom_dcol_left :
 				      fiparams->frame[band0].astrom_dcol_right;
 
+   shAssert(fiparams->frame[band0].toGCC);
+
    atTransApply(fiparams->frame[band0].toGCC, cband0,
 		row0, 0, col0_for_trans, 0, mag, magErr,
 		&mu, &muErr, &nu, &nuErr);

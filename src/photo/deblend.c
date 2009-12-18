@@ -162,10 +162,17 @@ maybe_deblend_at_edge(OBJC *objc,		/* object to deblend */
    int edge_in_all;			/* will object always touch edge? */
    int fuzz;				/* fuzz in whether objects touch edge*/
    OBJMASK *mmask;			/* == objc->aimage->master_mask */
-   const int ncol = fiparams->frame[0].data->ncol;
-   const int nrow = fiparams->frame[0].data->nrow;
-   int run_overlap = fiparams->run_overlap; /* side-to-side overlap */
-   int scan_overlap = fiparams->scan_overlap; /* top-to-bottom overlap */
+   int ncol;
+   int nrow;
+   int run_overlap;
+   int scan_overlap;
+
+   shAssert(fiparams);
+   shAssert(fiparams->frame[0].data);
+   ncol = fiparams->frame[0].data->ncol;
+   nrow = fiparams->frame[0].data->nrow;
+   run_overlap = fiparams->run_overlap; /* side-to-side overlap */
+   scan_overlap = fiparams->scan_overlap; /* top-to-bottom overlap */
 /*
  * does the object touch both sides of an overlap region in some band?
  *
