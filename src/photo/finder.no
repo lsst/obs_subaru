@@ -116,36 +116,6 @@ phObjectDel(OBJECT *obj)
    shFree(obj);
 }
 
-/*****************************************************************************/
-/*
- * <AUTO EXTRACT>
- *
- * Create a new PEAK
- */
-PEAK *
-phPeakNew(void)
-{
-   static int id = 0;			/* unique ID for a peak */
-   PEAK *peak;
-
-   if(peak_freelist != NULL) {
-      peak = peak_freelist;
-      peak_freelist = (PEAK *)peak_freelist->next;
-   } else {
-      peak = shMalloc(sizeof(PEAK));
-   }
-   
-   *(int *)&peak->id = id++;		/* cast away const */
-   peak->catID = 0;
-   peak->flags = PEAK_NOFLAGS;
-   peak->peak = VALUE_IS_BAD;
-   peak->rpeak = peak->cpeak = VALUE_IS_BAD;
-   peak->rowc = peak->colc = VALUE_IS_BAD;
-   peak->rowcErr = peak->colcErr = VALUE_IS_BAD;
-   peak->next = NULL;
-
-   return(peak);
-}
 /*
  * <AUTO EXTRACT>
  *
@@ -157,125 +127,6 @@ phPeakNewFromPeak(const PEAK *opeak)
    return(phPeakCopy(phPeakNew(), opeak));
 }
 
-/*****************************************************************************/
-/*
- * <AUTO EXTRACT>
- *
- * Make peak1 a copy of peak2, returning peak1
- */
-PEAK *
-phPeakCopy(PEAK *peak1, const PEAK *peak2)
-{
-   const int id1 = peak1->id;
-   memcpy(peak1, peak2, sizeof(PEAK));
-   *(int *)&peak1->id = id1;		/* cast away const */
-
-   return(peak1);
-}
-
-/*****************************************************************************/
-/*
- * <AUTO EXTRACT>
- *
- * Create a new PEAKS
- */
-PEAKS *
-phPeaksNew(int n)			/* initial number of PEAKs */
-{
-   int i;
-   
-   PEAKS *peaks = shMalloc(sizeof(PEAKS));
-
-   peaks->size = n;
-   if(n == 0) {
-      peaks->peaks = NULL;
-   } else {
-      peaks->peaks = shMalloc(peaks->size*sizeof(PEAK *));
-      for(i = 0;i < peaks->size;i++) {
-	 peaks->peaks[i] = phPeakNew();
-      }
-   }
-   peaks->npeak = 0;
-
-   return(peaks);
-}
-
-/*****************************************************************************/
-/*
- * Workhorse for phPeaksRealloc/phPeaksRenew
- */
-static void
-realloc_peaks(PEAKS *peaks,		/* PEAKS to expand/contract */
-	      int n,			/* desired number of peaks */
-	      int keep_next)		/* should we keep the ->next chains? */
-{
-   int i;
-
-   shAssert(peaks != NULL);
-
-   if(peaks->size == 0) {
-      if(peaks->peaks == NULL) {
-	 peaks->peaks = shMalloc(n*sizeof(PEAK *));
-      } else {
-	 peaks->peaks = shRealloc(peaks->peaks, n*sizeof(PEAK *));
-      }
-   } else {
-      /* free unwanted PEAKs, if any */
-      if(keep_next) {
-	 for(i = n;i < peaks->size;i++) {
-	    phPeakDel(peaks->peaks[i]);
-	 }
-      } else {
-	 for(i = 0;i < peaks->size;i++) {
-	    if(i < n) {
-	       shAssert(peaks->peaks[i] != NULL);
-	       if(peaks->peaks[i]->next != NULL) {
-		  ((PEAK *)(peaks->peaks[i]->next))->flags &= ~PEAK_DANGLING;
-		  phPeakDel((PEAK *)peaks->peaks[i]->next);
-		  peaks->peaks[i]->next = NULL;
-	       }
-	    } else {
-	       phPeakDel(peaks->peaks[i]);
-	    }
-	 }
-      }
-
-      if(n == 0) {
-	 shFree(peaks->peaks); peaks->peaks = NULL; peaks->size = 0;
-      } else {
-	 peaks->peaks = shRealloc(peaks->peaks,n*sizeof(PEAK *));
-      }
-   }
-   
-   for(i = peaks->size;i < n;i++) {	/* allocate new ones */
-      peaks->peaks[i] = phPeakNew();
-   }
-   
-   peaks->size = n;
-
-   if(peaks->npeak > n) {
-      peaks->npeak = n;			/* we freed the rest */
-   }
-}
-
-/*
- * <AUTO EXTRACT>
- * De/Increase the number of PEAKs in a PEAKS
- *
- * If npeak < size, we must ensure that any ->next chains are deleted in
- * PEAKs that are to be reused.
- *
- * Note that you should only use this function if you want to keep (some
- * of) the old peaks. If you want to say, "Now make this PEAKS contain n
- * PEAKs for me to set at my whim", use phPeaksRenew(). The difference is
- * that this function preserves ->next chains, while phPeaksRenew frees them
- */
-void
-phPeaksRealloc(PEAKS *peaks,		/* PEAKS to expand/contract */
-	       int n)			/* desired number of peaks */
-{
-   realloc_peaks(peaks, n, 1);
-}
 
 /*
  * <AUTO EXTRACT>
@@ -289,31 +140,6 @@ phPeaksRenew(PEAKS *peaks,		/* PEAKS to expand/contract */
 	     int n)			/* desired number of peaks */
 {
    realloc_peaks(peaks, n, 0);
-}
-
-/*****************************************************************************/
-/*
- * Return the band that a peak was found in
- */
-int
-phPeakBand(const PEAK *peak)
-{
-   int c;
-   
-   switch (peak->flags & PEAK_BANDMASK) {
-    case PEAK_BAND0: c = 0; break;
-    case PEAK_BAND1: c = 1; break;
-    case PEAK_BAND2: c = 2; break;
-    case PEAK_BAND3: c = 3; break;
-    case PEAK_BAND4: c = 4; break;
-    default:
-      shFatal("phPeakBand: "
-	      "Impossible value of peak->flags & BANDMASK: 0x%x",
-	      peak->flags & PEAK_BANDMASK);
-      return(0);			/* NOTREACHED */
-   }
-   
-   return(c);
 }
 
 /*****************************************************************************/

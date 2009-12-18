@@ -1,4 +1,4 @@
-all: libdeblender.dylib ../tests/Deblender
+all: ../lib/libdeblender.dylib Deblender
 
 
 
@@ -16,8 +16,8 @@ LIB +=  -L/usr/local/lsst-sandbox/DarwinX86/pex_policy/3.4.1/lib
 LIB +=  -L/usr/local/lsst-sandbox/DarwinX86/daf_persistence/3.3.7/lib
 LIB +=  -L/usr/local/lsst-sandbox/DarwinX86/daf_data/3.2.3/lib
 LIB +=  -L/usr/local/lsst-sandbox/DarwinX86/afw/3.3.18/lib
-#LIB +=  -L../lib
-LIB +=  -L.
+LIB +=  -L../lib
+#LIB +=  -L.
 LIB +=  -lpex_exceptions -lafw -lboost_system-xgcc40-mt 
 LIB +=  -lboost_unit_test_framework-xgcc40-mt -lutils -ldaf_base -ldaf_data 
 LIB +=  -ldaf_persistence -lpex_logging -lpex_policy -lsecurity
@@ -31,18 +31,19 @@ COBJS := photo/deblend.os \
 	photo/utils.os photo/offset.os \
 	astrotools/atTrans.os astrotools/atExternalSet.os \
 	dervish/shChain.os dervish/shGarbage.os dervish/schema.os dervish/utils.os dervish/errStack.os \
-	dervish/diskio.os dervish/vecOps.os dervish/shHash.os dervish/region.os dervish/hdr.os dervish/tree.os
+	dervish/diskio.os dervish/vecOps.os dervish/shHash.os dervish/region.os dervish/hdr.os dervish/tree.os \
+	dervish/maskUtils.os
 
 OBJS := $(CPPOBJS) $(COBJS)
 
-MYLIB := libdeblender.dylib
+MYLIB := ../lib/libdeblender.dylib
 
 $(MYLIB): $(OBJS)
 	g++ -o $@ -dynamiclib -Wl,-install_name -Wl,libdeblender.dylib \
 		$(OBJS) $(LIB)
 
-TAGS:
-	etags $(find src/ include/ -name *.c -o -name *.h -o -name *.cc -o -name *.no)
+#TAGS:
+#	etags $(shell find src/ include/ -name *.c -o -name *.h -o -name *.cc -o -name *.no)x3
 
 $(CPPOBJS): %.os: %.cc
 	g++ -o $@ -c $(CFLAGS) $(INC) $<
@@ -55,9 +56,9 @@ TOBJS := ../tests/Deblender.o
 $(TOBJS): %.o: %.cc
 	g++ -o $@ -c $(CFLAGS) $(INC) $<
 
-TEXEC := ../tests/Deblender
+TEXEC := Deblender
 
 $(TEXEC): $(TOBJS) $(MYLIB)
-	g++ -o $@ $(LIB) $^
+	g++ -o $@ $(LIB) $^ -ldeblender
 
 

@@ -17,11 +17,36 @@
 #include "phMathUtils.h"
 #include "phCellFitobj.h"
 //#include "phMergeColors.h"
+#include "phOffset.h"
 
 static REGION *scr0 = NULL;
 static REGION *scr1 = NULL;
 static REGION *scr2 = NULL;
 static MASK *mscr0 = NULL;
+
+void
+phObjcCenterCalc(OBJC *objc,		/* the object in question */
+		 const FIELDPARAMS *fparams, /* properties of field */
+		 int use_color)		/* use colour information? */
+	;
+
+OBJC *
+phObjcChildNew(OBJC *objc,		/* the parent */
+	       const PEAK *peak,	/* which peak? */
+	       const FIELDPARAMS *fiparams, /* gain etc. */
+	       int is_child)		/* make new OBJC a child, not a sibb */
+	;
+
+static void
+average_peak_centers(const PEAK *peak1,	/* the peaks */
+		     const PEAK *peak2,	/*         in question */
+		     float *rowc, float *colc)	/* mean position */
+	;
+
+static void
+merge_peaks(PEAK *peak_i,
+	    PEAK *peak_j)
+	;
 
 static float
 assign_missing_flux(const OBJC **children, /* the children in question */
@@ -405,6 +430,8 @@ phObjcDeblend(OBJC *objc,		/* object to deblend */
 	 return(-1);
       }
    }
+
+   printf("Bailing out of deblending...\n");
 
 #if defined(NOPE)
 
@@ -1714,7 +1741,9 @@ phObjcMakeChildren(OBJC *objc,		/* give this OBJC a family */
    } else if(nchild > 1) {
       int ndetect = 0;			/* number of single-band detections */
       int ndetect_min = 2;		/* must be seen at least this many
-					   times in different bands */
+								 times in different bands */
+	  printf("deblend.c: changing ndetect_min from 2 to 1\n");
+	  ndetect_min = 1;
 
       for(i = 0; i < objc->ncolor; i++) {
 	 mpeaks[i] = NULL;
@@ -1929,3 +1958,301 @@ phObjcMakeChildren(OBJC *objc,		/* give this OBJC a family */
 
    return(objc->peaks->npeak + ((objc->sibbs != NULL) ? 1 : 0));
 }
+
+/*****************************************************************************/
+/*
+ * Merge peak_j into peak_i, including processing their ->next chains
+ */
+static void
+merge_peaks(PEAK *peak_i,
+	    PEAK *peak_j)
+{
+   int flagi = 0, flagj = 0;		/* union of [ij] flags */
+   int i, j;
+   int npeak_i, npeak_j;
+   PEAK *peaki, *peakj;			/* pointers to peak_[ij]->next chains*/
+   PEAK **peaklist_i, **peaklist_j;		/* unpacked [ij] chains */
+/*
+ * Count the ->next peaks, and OR together their flags
+ */
+   for(npeak_i = 0, peaki = peak_i; peaki != NULL;
+						 peaki = (PEAK *)peaki->next) {
+      shAssert((flagi & peaki->flags) == 0); /* no duplicates within chain */
+      flagi |= (peaki->flags & PEAK_BANDMASK);
+      npeak_i++;
+   }
+
+   for(npeak_j = 0, peakj = peak_j; peakj != NULL;
+						 peakj = (PEAK *)peakj->next) {
+      shAssert((flagj & peakj->flags) == 0); /* no duplicates within chain */
+      flagj |= (peakj->flags & PEAK_BANDMASK);
+      npeak_j++;
+   }
+/*
+ * look for peaks on the two chains that are in the same band;
+ * we can easily detect the simple no-duplicates case
+ */
+   if((flagi & flagj) == 0) {		/* no duplicates */
+      for(peaki = peak_i; peaki->next != NULL; peaki = (PEAK *)peaki->next) {
+	 ;
+      }
+      peaki->next = peak_j;
+      peak_j->flags |= PEAK_DANGLING;
+
+      return;
+   }
+/*
+ * unpack the ->next chains.  This makes removing PEAKs from the middle
+ * of the (singly-linked) lists much easier
+ */
+   peaklist_i = alloca(npeak_i*sizeof(PEAK *));
+   for(i = 0, peaki = peak_i; peaki != NULL; peaki = (PEAK *)peaki->next) {
+      peaklist_i[i++] = peaki;
+   }
+   peaklist_j = alloca(npeak_j*sizeof(PEAK *));
+   for(j = 0, peakj = peak_j; peakj != NULL; peakj = (PEAK *)peakj->next) {
+      peaklist_j[j++] = peakj;
+   }
+/*
+ * look for multiple detections in the same band
+ */
+   for(i = 0; i < npeak_i; i++) {
+      peaki = peaklist_i[i];
+      
+      for(j = 0; j < npeak_j; j++) {
+	 peakj = peaklist_j[j];
+
+	 if(peakj == NULL) {		/* already merged */
+	    continue;
+	 }
+
+	 if(phPeakBand(peaki) == phPeakBand(peakj)) {
+	    average_peak_centers(peaki, peakj, &peaki->rowc, &peaki->colc);
+	    peakj->flags &= ~PEAK_DANGLING; peakj->next = NULL;
+	    phPeakDel(peakj);
+	    peaklist_j[j] = NULL;
+	    if(j > 0 && peaklist_j[j - 1] != NULL) {
+	       peaklist_j[j - 1]->next = NULL;
+	    }
+	    break;
+	 }
+      }
+   }
+/*
+ * Add the surviving peak_j peaks to peak_i
+ */
+   peaki = peaklist_i[npeak_i - 1];	/* end of ->next chain */
+   for(j = 0; j < npeak_j; j++) {
+      peakj = peaklist_j[j];
+      
+      if(peakj == NULL) {		/* already merged */
+	 continue;
+      }
+
+      peaki->next = peakj;
+      peakj->flags |= PEAK_DANGLING;
+      
+      peaki = (PEAK *)peaki->next;
+   }
+}
+
+/*****************************************************************************/
+/*
+ * Average together the positions of two peaks
+ */
+static void
+average_peak_centers(const PEAK *peak1,	/* the peaks */
+		     const PEAK *peak2,	/*         in question */
+		     float *rowc, float *colc)	/* mean position */
+{
+   const float val1 = peak1->peak; const float val2 = peak2->peak;
+   const float rowc1 = peak1->rowc; const float rowc2 = peak2->rowc;
+   const float colc1 = peak1->colc; const float colc2 = peak2->colc;
+
+   shAssert(val1 + val2 != 0);
+   shAssert(val1 > -9998.0 && val2 > -9998.0);
+
+   *rowc = (val1*rowc1 + val2*rowc2)/(val1 + val2);
+   *colc = (val1*colc1 + val2*colc2)/(val1 + val2);
+}
+
+
+/*****************************************************************************/
+/*
+ * Given an OBJC, create a child from OBJC->peaks->peaks[n], link it into
+ * OBJC->children or OBJC->sibbs, and copy appropriate fields
+ */
+OBJC *
+phObjcChildNew(OBJC *objc,		/* the parent */
+	       const PEAK *peak,	/* which peak? */
+	       const FIELDPARAMS *fiparams, /* gain etc. */
+	       int is_child)		/* make new OBJC a child, not a sibb */
+{
+   OBJC *child;				/* the desired child */
+   int c;				/* a color index */
+   OBJECT1 *cobj1;			/* an OBJECT1 in child */
+   PEAK *cpeak;				/* == cobj1->peaks->peaks[0] */
+   float drow, dcol;			/* offsets from reference colour */
+   float drowErr, dcolErr;		/* errors in drow, dcol */
+   int i;
+   const OBJECT1 *obj1;			/* an OBJECT1 in objc */
+   SPANMASK *sm;			/* == obj1->region->mask */
+   
+   shAssert(objc != NULL && objc->peaks != NULL);
+   shAssert(peak != NULL);
+
+   objc->nchild++;
+   child = phObjcNew(objc->ncolor);
+   child->parent = objc; shMemRefCntrIncr(child->parent);
+   child->flags = objc->flags & (OBJECT1_EDGE |
+				 OBJECT1_INTERP |
+				 OBJECT1_NOTCHECKED |
+				 OBJECT1_SUBTRACTED);
+   child->flags |= OBJECT1_CHILD;
+   if(peak->flags & PEAK_MOVED) {
+      child->flags |= OBJECT1_MOVED;
+   }
+   child->flags3 = objc->flags3 & OBJECT3_GROWN_MERGED;
+/*
+ * link new child as a sibling of objc->children or objc->sibbs according
+ * to the value of is_child
+ */
+   if(is_child) {
+      if(objc->children == NULL) {
+	 objc->children = child;
+      } else {
+	 OBJC *tmp = objc->children;
+
+	 while(tmp->sibbs != NULL) tmp = tmp->sibbs;
+	 tmp->sibbs = child;
+      }
+   } else {
+      if(objc->sibbs == NULL) {
+	 objc->sibbs = child;
+      } else {
+	 OBJC *tmp = objc->sibbs;
+
+	 while(tmp->sibbs != NULL) tmp = tmp->sibbs;
+	 tmp->sibbs = child;
+      }
+   }
+/*
+ * and set fields from the parent
+ */
+   for(i = 0;i < objc->ncolor;i++) {
+      obj1 = objc->color[i];
+      cobj1 = child->color[i] = phObject1New();
+      shAssert(obj1 != NULL && obj1->mask != NULL);
+      shAssert(obj1->region != NULL && obj1->region->mask != NULL);
+      sm = (SPANMASK *)obj1->region->mask;
+      shAssert(sm != NULL && sm->cookie == SPAN_COOKIE);
+
+      cobj1->flags = obj1->flags & (OBJECT1_CANONICAL_CENTER |
+				    OBJECT1_EDGE |
+				    OBJECT1_NOTCHECKED |
+				    OBJECT1_SUBTRACTED);
+      cobj1->flags |= OBJECT1_CHILD;
+      cobj1->flags2 = obj1->flags2 & OBJECT2_LOCAL_EDGE;
+      cobj1->flags3 = obj1->flags3 & OBJECT3_GROWN_MERGED;
+
+      cobj1->region = shSubRegNew("",obj1->region,
+				  obj1->region->nrow, obj1->region->ncol,
+				  0, 0, NO_FLAGS);
+      shAssert(cobj1->region != NULL);
+      cobj1->region->row0 = obj1->region->row0;
+      cobj1->region->col0 = obj1->region->col0;
+      cobj1->region->mask = (MASK *)phSubSpanmaskNew(sm);
+
+      cobj1->mask = NULL;
+
+      cobj1->sky = obj1->sky; cobj1->skyErr = obj1->skyErr;
+   }
+/*
+ * and copy the master_mask to the children
+ */
+   shAssert(objc->aimage->master_mask != NULL);
+   child->aimage->master_mask =
+     phObjmaskCopy(objc->aimage->master_mask, 0, 0);
+/*
+ * now set the centres from the peaks list. We label it BINNED1 for now,
+ * although we'll reconsider this when deblending
+ */
+   do {
+      c = phPeakBand(peak);
+      shAssert(c < objc->ncolor);
+      cobj1 = child->color[c];
+
+      shAssert(cobj1->peaks == NULL);	/* only one peak in each band */
+      cobj1->peaks = phPeaksNew(1);
+      cobj1->peaks->npeak++;
+      cpeak = cobj1->peaks->peaks[0];
+      phPeakCopy(cpeak, peak);
+
+      if(peak->flags & PEAK_CANONICAL) {
+	 phOffsetDo(fiparams, peak->rowc, peak->colc, 
+		    fiparams->ref_band_index, c,
+		    1, NULL, NULL, &drow, &drowErr, &dcol, &dcolErr);
+	 cpeak->rowc += drow;
+	 cpeak->colc += dcol;
+	 cpeak->flags &= ~PEAK_CANONICAL; /* it no longer is*/
+      }
+      if (peak->flags & PEAK_REAL) {	/* our position was derived in this band */
+	  drowErr = dcolErr = 0;	/*   => no added error; PR 6747 */
+      }
+
+      cpeak->next = NULL;
+      cpeak->flags &= ~PEAK_DANGLING;	/* it no longer is */
+
+      if(cobj1->rowcErr < -900) {	/* not yet set */
+	 cobj1->rowc = cpeak->rowc;
+	 cobj1->rowcErr = sqrt(pow(cpeak->rowcErr,2) + pow(drowErr,2));
+	 cobj1->colc = cpeak->colc;
+	 cobj1->colcErr = sqrt(pow(cpeak->colcErr,2) + pow(dcolErr,2));
+
+	 cobj1->flags |= OBJECT1_BINNED1;
+      }
+
+      if(cpeak->flags & PEAK_PEAKCENTER) { /* used pixel center as peak */
+	 child->flags |= OBJECT1_PEAKCENTER;
+	 cobj1->flags |= OBJECT1_PEAKCENTER;
+      }
+      if(cpeak->flags & PEAK_SATUR) {	/* a saturated peak */
+	 cobj1->flags |= OBJECT1_SATUR;
+      }
+
+      cobj1->profMean[0] = cpeak->peak;
+      /*
+       * deal with known objects
+       */
+      if (cpeak->catID != 0 && child->catID != peak->catID) {
+	  if (child->catID != 0) {
+	      fprintf(stderr,"Replacing catID %d with %d\n", child->catID, peak->catID);
+	  }
+	  child->catID = peak->catID;
+      }
+
+      peak = (PEAK *)peak->next;
+   } while(peak != NULL);
+/*
+ * if the OBJECT1 in some band still has no centre, generate one from the
+ * canonical centre
+ */
+   phObjcCenterCalc(child, fiparams, 0); /* find canonical centre */
+   for(c = 0;c < child->ncolor;c++) {
+      cobj1 = child->color[c];
+      
+      if(!(cobj1->flags & OBJECT1_DETECTED)) { /* no peak, so no centre */
+	 phOffsetDo(fiparams, child->rowc, child->colc, 
+		    fiparams->ref_band_index, c,
+		    0, NULL, NULL, &drow, &drowErr, &dcol, &dcolErr);
+	 cobj1->rowc = child->rowc + drow;
+	 cobj1->rowcErr = sqrt(pow(child->rowcErr,2) + pow(drowErr,2));
+	 cobj1->colc = child->colc + dcol;
+	 cobj1->colcErr = sqrt(pow(child->colcErr,2) + pow(dcolErr,2));
+	 cobj1->flags |= OBJECT1_CANONICAL_CENTER;
+      }
+   }
+   
+   return(child);
+}
+

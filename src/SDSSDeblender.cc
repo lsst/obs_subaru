@@ -12,6 +12,10 @@
 namespace lsst { namespace meas { namespace deblender { namespace photo {
 extern "C" {
 #include "phMeasureObj.h"
+#include "phPeaks.h"
+#include "phObjc.h"
+#include "phSpanUtil.h"
+#include "region.h"
 }
 }}}}
 
@@ -21,16 +25,19 @@ namespace photo = lsst::meas::deblender::photo;
 //namespace ex    = lsst::pex::exceptions;
 
 
+static void printObjc(photo::OBJC* o) {
+    std::printf("Objc:\n  parent %p\n  children %p\n  sibbs %p\n",
+                o->parent, o->children, o->sibbs);
+    std::printf("  ncolor %i\n", o->ncolor);
+}
+
 template<typename ImageT>
 std::vector<typename ImageT::Ptr>
 deblender::SDSSDeblender<ImageT>::deblend(std::vector<typename ImageT::Ptr> &images) {
 	std::vector<typename ImageT::Ptr> children;
 
-    //photo::OBJC myobjc;
-    //photo::FIELDPARAMS myfp;
-    //photo::OBJC* objc = &myobjc;
-    //photo::FIELDPARAMS* fp = &myfp;
     char* filters = new char[images.size()+1];
+    int i;
     for (size_t i=0; i<images.size(); i++)
         filters[i] = 'r';
     filters[images.size()] = '\0';
@@ -44,18 +51,55 @@ deblender::SDSSDeblender<ImageT>::deblend(std::vector<typename ImageT::Ptr> &ima
     //  --background-subtraction/sky estimate
     //  --PSF model
 
-    /*
-     for(i = 0;i < objc->peaks->npeak;i++) {
-     cpeak = objc->peaks->peaks[i];
-     (void)phObjcChildNew(objc, cpeak, fiparams, 1);
-     }
-     */
+    // "detect" two peaks in each image.
+    photo::PEAKS* peaks = photo::phPeaksNew(2);
+    peaks->npeak = 2;
+    for (i=0; i<peaks->npeak; i++) {
+            photo::PEAK* pk = photo::phPeakNew();
+            pk->flags |= (PEAK_BAND0 | PEAK_CANONICAL);
+            /*
+             PEAK_BAND1 | 
+             PEAK_BAND2 | 
+             PEAK_BAND3 | 
+             PEAK_BAND4);
+             */
+            peaks->peaks[i] = pk;
+            std::printf("Set peak %i to %p\n", i, peaks->peaks[i]);
+        }
+    objc->peaks = peaks;
 
-    // objc->peaks is a PEAKS*
-    //photo::phObjcChildNew(objc, 
+         std::FILE* fid = stdout;
+
+    for (size_t i=0; i<images.size(); i++) {
+            int W = images[i]->getWidth();
+            int H = images[i]->getHeight();
+            photo::OBJECT1* o1 = photo::phObject1New();
+            std::printf("Object1 %i:\n", (int)i);
+            photo::phObject1PrintPretty(o1, fid);
+            // OBJMASK* (arg: number of spans)
+            //o1->mask = phObjmaskNew(1);
+            o1->mask = photo::phObjmaskFromRect(0, 0, W, H);
+            // "makeRegion" can't handle TYPE_FL64
+            o1->region = photo::shRegNew("", H, W, photo::TYPE_FL32);
+            //o1->region->mask = photo::shMaskNew("", H, W);
+            // MUST be a SPANMASK*
+            o1->region->mask = (photo::MASK*)photo::phSpanmaskNew(H, W);
+            objc->color[i] = o1;
+        }
+
+    printObjc(objc);
+
 
     std::cout << "phObjcMakeChildren..." << std::endl;
     photo::phObjcMakeChildren(objc, fp);
+
+    /*
+     for(i = 0; i < peaks->npeak; i++) {
+     photo::phObjcChildNew(objc, peaks->peaks[i], fp, 1);
+     photo::phObjcChildNew(objc, peaks->peaks[i], fp, 1);
+     }
+     */
+    printObjc(objc);
 
     std::cout << "Objc to be deblended:" << std::endl;
     photo::phObjcPrintPretty(objc, "");
@@ -73,14 +117,5 @@ deblender::SDSSDeblender<ImageT>::deblend(std::vector<typename ImageT::Ptr> &ima
  * Explicit Instantiations
  *
  */
-/*
-#define INSTANTIATE_DEBLENDER(TYPE) \
-    template std::vector<image::Image<TYPE>::Ptr> \
-	deblender::SDSSDeblender<image::Image<TYPE> >( \
-            std::vector<image::Image<TYPE>::Ptr > &images);
-INSTANTIATE_DEBLENDER(double);
-INSTANTIATE_DEBLENDER(float);
- */
-
 template class deblender::SDSSDeblender<image::Image<double> >;
 template class deblender::SDSSDeblender<image::Image<float > >;

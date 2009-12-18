@@ -40,10 +40,10 @@ env.SharedLibrary(
 	'diskio',
 	'vecOps',
 	'shHash',
-
 	'region',
 	'hdr',
 	'tree',
+	'maskUtils',
 	]]
 	#glob.glob("../src/photo/*.c"),
 	,

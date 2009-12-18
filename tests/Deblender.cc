@@ -44,6 +44,8 @@ BOOST_AUTO_TEST_CASE(TwoStarDeblend) {
     img->writeFits("test2.fits");
 
     std::vector<ImageF::Ptr> imgList;
+    // two bands...
+    //imgList.push_back(img);
     imgList.push_back(img);
 
     /// do detection, build region masks, ...

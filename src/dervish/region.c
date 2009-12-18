@@ -885,3 +885,56 @@ shRegClear(REGION *region)
    }
 }
 
+/*****************************************************************************/
+/*
+ * create a MASK structure with the given number of rows and columns.
+ * fill the array with 0s, and place the appropriate values into
+ * the 'nrow', 'ncol', fields.  set the 'parent' and 'prvt' fields
+ * to NULL.
+ *
+ * RETURN VALUE:
+ *	a pointer to the mask, or NULL on error
+ */
+MASK *
+shMaskNew(const char *name, int nrow, int ncol)
+{
+   MASK *masknew;
+   
+   masknew = makeMask(name,nrow);
+
+   p_shMaskRowsGet(masknew, nrow, ncol);
+
+   return(masknew);
+}
+
+/*
+ * ROUTINE: p_shMaskRowsGet
+ *
+ * Given a mask structure and the number of rows and columns in the mask,
+ * malloc the space for the mask itself.
+ *
+ * RETURN VALUES:
+ *	NONE (shFatal is called if there is a mallocing error.)
+ */
+void
+p_shMaskRowsGet(
+		MASK *mask,
+		int  nrow,
+		int  ncol
+		)
+{
+   int i;
+
+   if(nrow*ncol != 0) {
+      if((mask->rows[0] = (unsigned char *)shMalloc(nrow*ncol)) == NULL) {
+         shFatal("p_shMaskRowsGet: Can't allocate storage for rows");
+      }
+      for(i = 0;i < nrow;i++) {
+	 mask->rows[i] = mask->rows[0] + i*ncol;
+      }
+      mask->ncol = ncol;
+   }
+
+   shMaskClear(mask);
+}
+

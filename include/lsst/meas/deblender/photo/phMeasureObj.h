@@ -29,6 +29,11 @@ phVelocityFind(OBJC *objc,		/* OBJC whose velocity is desired */
 int phObjcMakeChildren(OBJC *objc,		/* give this OBJC a family */
 		       const FIELDPARAMS *fiparams); /* misc. parameters */
 
+OBJC *phObjcChildNew(OBJC *objc,	/* the parent */
+		     const PEAK *peak,	/* which peak? */
+		     const FIELDPARAMS *fparams, /* gain, soft_bias, etc. */
+		     int is_child);	/* make new OBJC a child, not a sibb */
+
 #if defined(NOPE)
 /*
  * The current best estimate of the PSF
@@ -143,10 +148,6 @@ phStokesParamEval(const REGION *reg,	/* input data */
 		  int which,		/* 'Q' or 'U' */
 		  int normalise,	/* if true, normalise the answer */
 		  float *val);		/* the answer */
-OBJC *phObjcChildNew(OBJC *objc,	/* the parent */
-		     const PEAK *peak,	/* which peak? */
-		     const FIELDPARAMS *fparams, /* gain, soft_bias, etc. */
-		     int is_child);	/* make new OBJC a child, not a sibb */
 void phObjcChildDel(OBJC *child);	/* the child to destroy */
 void phObjcChildrenDel(OBJC *objc);	/* the object whose children are
 					   to be destroyed */
