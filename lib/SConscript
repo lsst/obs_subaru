@@ -21,6 +21,7 @@ env.SharedLibrary(
 	+
 	['../src/astrotools/'+x+'.c' for x in [
 	'atTrans',
+	'atExternalSet',
 	]]
 	+
 	['../src/dervish/'+x+'.c' for x in [
