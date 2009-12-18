@@ -11,6 +11,8 @@ env.SharedLibrary(
 	#'deblend',
 	'framestat',
 	'brightObjects',
+	'variablePsf',
+	'meschach',
 	'sky',
 	'measureObj',
 	'objc',

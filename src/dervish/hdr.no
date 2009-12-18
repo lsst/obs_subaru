@@ -37,43 +37,6 @@ static RET_CODE shHdrInit(HDR *a_hdr)
    return SH_SUCCESS;
 }
 
-/*============================================================================
- * ROUTINE: p_shHdrMallocForVec
- *
- * DESCRIPTION:
- *   Routine to allocate the base memory for a header vector
- *
- * CALL:
- *   (void) p_shHdrMallocForVec(HDR *a_hdr);
- *          a_hdr    - pointer to the header structure
- *
- * CALLS TO:
- *   shMalloc()
- *   p_shHdrCntrIncrement()
- *
- * RETURN VALUES:
- *   Nothing
- *============================================================================
- */
-void p_shHdrMallocForVec(HDR *a_hdr)
-{
-   int i;
-
-   /*
-    * shMalloc aborts if there is no memory on the heap. So, don't bother
-    * with sending a return value if a_hdr->hdrVec is NULL after a call to
-    * shMalloc()
-    */
-   a_hdr->hdrVec = ((HDR_VEC *)shMalloc((MAXHDRLINE + 1) * sizeof(HDR_VEC)));
-
-   for (i = 0; i <= MAXHDRLINE; i++)
-        a_hdr->hdrVec[i] = NULL;
-
-   p_shHdrCntrIncrement(a_hdr);
-
-   return;
-}
-
 
 void		 p_shHdrPrint
    (
@@ -990,56 +953,6 @@ RET_CODE shHdrReplaceLine(HDR *a_hdr, const int a_lineNo,
        return SH_GENERIC_ERROR;
 
    p_shHdrCntrIncrement(a_hdr);
-
-   return SH_SUCCESS;
-}
-
-/*============================================================================
- * ROUTINE: shHdrCopy
- *
- * DESCRIPTION:
- *   This function is responsible for copying one header to another.  If a_inHdr
- *   is NULL, there's nothing much it can do except return an error code.
- *   If a_outHdr's header vector is NULL, memory is allocated as needed.
- *   If a_outHdr's header vector is NOT null, it is wiped out.  Thus it is
- *   the caller's responsibility to make sure that they have saved the contents
- *   of a_outHdr's header if needed.
- *
- * CALL:
- *   (RET_CODE) shHdrInsertLine(const HDR *a_inHdr, HDR *a_outHdr);
- *              a_inHdr  - header to copy from
- *              a_outHdr - header to copy to
- *   
- *
- * CALLS TO:
- *   f_hlrep()
- *   p_shHdrCntrIncrement()
- *
- * RETURN VALUES:
- *   SH_SUCCESS        - on success
- *   SH_HEADER_IS_NULL - if header has not been allocated
- *============================================================================
- */
-RET_CODE shHdrCopy(const HDR *a_inHdr, HDR *a_outHdr)
-{
-   int i;
-
-   if (a_inHdr->hdrVec == NULL)          /* Source header is null, nothing */
-       return SH_HEADER_IS_NULL;         /* to copy from */
-
-   if (a_outHdr->hdrVec == NULL)   /* Destination header is null, */
-       p_shHdrMallocForVec(a_outHdr); /* allocate memory for it */
-   else                                  /* If it's not null, free what it's */
-       p_shHdrFree(a_outHdr);         /* currently pointing to */
-
-   for (i = 0; i < MAXHDRLINE; i++)
-        if (a_inHdr->hdrVec[i] != NULL)  {
-            a_outHdr->hdrVec[i] = 
-                 (char *)shMalloc(strlen(a_inHdr->hdrVec[i]) + 1);
-            strcpy(a_outHdr->hdrVec[i], a_inHdr->hdrVec[i]);
-        }
-
-   p_shHdrCntrIncrement(a_outHdr);
 
    return SH_SUCCESS;
 }

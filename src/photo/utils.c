@@ -676,3 +676,204 @@ shRegIntCopy(REGION *out,		/* output region */
    return(SH_SUCCESS);
 }
 
+/*****************************************************************************/
+/*
+ * Calculate the linear combination of two images, specifically given
+ * regions reg1 and reg2, and three constants a, b, and c, carry out
+ *   reg1 = a + b*reg1 + c*reg2
+ * If c is 0, reg2 may be NULL
+ *
+ * return: reg1 (or a new region if how == 2)
+ *         NULL	otherwise
+ */
+REGION *
+shRegIntLincom(REGION *reg1,
+	       const REGION *reg2,
+	       float a,
+	       float b,
+	       float c,
+	       LINCOM_FLAGS flag)	/* How to handle non-identical REGIONS:
+					   LINCOM_EXACT:     fail
+					   LINCOM_INTERSECT: add the intersection of regions
+					   LINCOM_UNION:     grow reg1 to contain union of regions */
+{
+   int i, j;
+   int ncol,nrow;			/* unpacked from reg1 */
+   int val;
+
+   shAssert(reg1 != NULL && (c == 0.0 || reg2 != NULL));
+   /*
+    * Do we need to find just the overlapping parts of the REGIONs?
+    */
+   if(flag != LINCOM_EXACT && reg2 != NULL) {	/* flag is irrelevant if !reg2 */
+      const int row0_1 = reg1->row0;
+      const int col0_1 = reg1->col0;
+      const int row1_1 = reg1->row0 + reg1->nrow - 1;
+      const int col1_1 = reg1->col0 + reg1->ncol - 1;
+      const int row0_2 = reg2->row0;
+      const int col0_2 = reg2->col0;
+      const int row1_2 = reg2->row0 + reg2->nrow - 1;
+      const int col1_2 = reg2->col0 + reg2->ncol - 1;
+
+      if(flag == LINCOM_INTERSECT) {	/* intersection */
+	  /*
+	   * Figure out boundary of intersect in absolute coordinates
+	   */
+	  const int row0 = (row0_1 > row0_2) ? row0_1 : row0_2;
+	  const int col0 = (col0_1 > col0_2) ? col0_1 : col0_2;
+	  const int row1 = (row1_1 < row1_2) ? row1_1 : row1_2;
+	  const int col1 = (col1_1 < col1_2) ? col1_1 : col1_2;
+	  
+	  if(row1 >= row0 && col1 >= col0) {
+	      const int nrow = row1 - row0 + 1;
+	      const int ncol = col1 - col0 + 1;
+	      REGION *sreg1 = shSubRegNew("", reg1, nrow, ncol,
+					  row0 - row0_1, col0 - col0_1, 0);
+	      REGION *sreg2 = shSubRegNew("", reg2, nrow, ncol,
+					  row0 - row0_2, col0 - col0_2, 0);
+	      
+	      REGION *ret = shRegIntLincom(sreg1, sreg2, a, b, c, LINCOM_EXACT);
+	      
+	      shRegDel(sreg1);
+	      shRegDel(sreg2);
+
+	      return (ret == NULL) ? NULL : reg1;
+	  } else {
+	      ;				/* no intersection */
+	  }
+      } else if(flag == LINCOM_UNION) {		/* calculate Union */
+	  /*
+	   * Figure out bounding box of reg1 & reg2 in absolute coordinates
+	   */
+	  const int row0 = (row0_1 < row0_2) ? row0_1 : row0_2;
+	  const int col0 = (col0_1 < col0_2) ? col0_1 : col0_2;
+	  const int row1 = (row1_1 > row1_2) ? row1_1 : row1_2;
+	  const int col1 = (col1_1 > col1_2) ? col1_1 : col1_2;
+	  
+	  const int nrow = row1 - row0 + 1;
+	  const int ncol = col1 - col0 + 1;
+	  if (nrow == reg1->nrow && ncol == reg1->ncol) { /* a perfect fit */
+	      return(shRegIntLincom(reg1, reg2, a, b, c, LINCOM_INTERSECT));
+	  } else {
+	      REGION *out = shRegNew("union", nrow, ncol, reg1->type);
+	      shRegIntSetVal(out, a);
+	      out->row0 = row0; out->col0 = col0;
+	      
+	      if(shRegIntLincom(out, reg1, a, b, c, LINCOM_INTERSECT) == NULL ||
+		 shRegIntLincom(out, reg2, a, b, c, LINCOM_INTERSECT) == NULL) {
+		  shRegDel(out);
+
+		  return(NULL);
+	      }
+
+	      out->mask = NULL;		/* XXX should be union of input masks */
+	      phSpanmaskDel((SPANMASK *)reg1->mask); reg1->mask = NULL;
+	      shRegDel(reg1);
+
+	      return(out);
+	  }
+      } else {
+	  shFatal("shRegIntLincom: Illegal value of flag: %d\n", flag);
+      }
+       
+      return(reg1);
+   }
+
+   ncol = reg1->ncol;
+   nrow = reg1->nrow;
+
+   if(reg2 != NULL && (reg2->ncol != ncol || reg2->nrow != nrow)) {
+      shError("shRegIntLincom: region sizes differ\n");
+      return(NULL);
+   }
+
+   if(reg1->type == TYPE_U16) {
+      U16 **rrow1 = reg1->rows_u16;
+      U16 **rrow2 = (reg2 == NULL) ? NULL : reg2->rows_u16;
+      U16 *row1, *row2;
+
+      if(reg2 != NULL && reg1->type != reg2->type) {
+	 shError("shRegIntLincom: region types differ\n");
+	 return(NULL);
+      }
+      
+      for(i = 0;i < nrow;i++) {
+	 row1 = rrow1[i];
+	 if(reg2 == NULL) {
+	    for(j = 0;j < ncol;j++) {
+	       val = a + b*row1[j] + 0.5;
+	       row1[j] = val < 0 ? 0 : (val > MAX_U16 ? MAX_U16 : val);
+	    }
+	 } else {
+	    row2 = rrow2[i];
+	    for(j = 0;j < ncol;j++) {
+	       val = a + b*row1[j] + c*row2[j] + 0.5;
+	       row1[j] = val < 0 ? 0 : (val > MAX_U16 ? MAX_U16 : val);
+	    }
+	 }
+      }
+   } else if(reg1->type == TYPE_S32) {
+      S32 **rrow1 = reg1->rows_s32;
+      S32 **rrow2 = (reg2 == NULL) ? NULL : reg2->rows_s32;
+      S32 *row1, *row2;
+      
+      if(reg2 != NULL && reg1->type != reg2->type) {
+	 shError("shRegIntLincom: region types differ\n");
+	 return(NULL);
+      }
+      
+      for(i = 0;i < nrow;i++) {
+	 row1 = rrow1[i];
+	 if(reg2 == NULL) {
+	    for(j = 0;j < ncol;j++) {
+	       row1[j] = a + b*row1[j] + 0.5;
+	    }
+	 } else {
+	    row2 = rrow2[i];
+	    for(j = 0;j < ncol;j++) {
+	       row1[j] = a + b*row1[j] + c*row2[j] + 0.5;
+	    }
+	 }
+      }
+   } else if(reg1->type == TYPE_FL32) {
+      FL32 **rrow1 = reg1->rows_fl32, *row1;
+      
+      if(reg2 == NULL) {
+	 for(i = 0;i < nrow;i++) {
+	    row1 = rrow1[i];
+	    for(j = 0;j < ncol;j++) {
+	       row1[j] = a + b*row1[j];
+	    }
+	 }
+      } else if(reg2->type == TYPE_U16) {
+	 U16 **rrow2 = reg2->rows_u16, *row2;
+
+	 for(i = 0;i < nrow;i++) {
+	    row1 = rrow1[i];
+	    row2 = rrow2[i];
+	    for(j = 0;j < ncol;j++) {
+	       row1[j] = a + b*row1[j] + c*(row2[j] - SOFT_BIAS);
+	    }
+	 }
+      } else if(reg2->type == TYPE_FL32) {
+	 FL32 **rrow2 = reg2->rows_fl32, *row2;
+
+	 for(i = 0;i < nrow;i++) {
+	    row1 = rrow1[i];
+	    row2 = rrow2[i];
+	    for(j = 0;j < ncol;j++) {
+	       row1[j] = a + b*row1[j] + c*row2[j];
+	    }
+	 }
+      } else {
+	 shError("shRegIntLincom: region types are incompatible\n");
+	 return(NULL);
+      }
+   } else {
+      shError("shRegIntLincom "
+	      "doesn't handle regions of type %d\n", reg1->type);
+      return(NULL);
+   }
+
+   return(reg1);
+}

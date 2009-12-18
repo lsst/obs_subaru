@@ -12,154 +12,6 @@ static int subMaskIndex;        /*Use to suff teh array subMasks.*/
 static void loadSubRegAddress ( const IPTR key, const IPTR val, void *subRegArray);
 static void loadSubMaskAddress ( const IPTR key, const IPTR val, void *subMaskArray);
 
-/*
- * ROUTINE: shSubRegNew
- *
- * Given a region, and a set of parameters specifying some subset of
- * that region (row, col and number of rows and cols), return
- * a pointer to a new region which consists of the subset alone.  This
- * routine allocates no new pixel memory itself.
- *
- * If the subset parameters are invalid (row < 0, number of cols larger
- * than in image, etc.), it examines the region's parent to see if the
- * pixels requested actually exist. If so it'll grow the region, otherwise
- * it returns NULL.
- *
- * As always, row and col numbering of the pixels in a region begins
- * at 0, not 1.  Also, note that the new, "child" region will have the
- * passed region as its "parent" (or, more precisely, the passed region's
- * ultimate ancestor as its parent).
- *
- * RETURN VALUES:
- *	pointer to new region		all went well
- *	NULL				otherwise
- */
-REGION *
-shSubRegNew(
-	     const char *name,		/* non-NULL name of REGION ("" is OK)*/
-	     const REGION *region,	/* parent REGION */
-	     int nrow,			/* number of rows */
-	     int ncol,			/* number of columns */
-	     int row0,			/* starting row number in parent */
-	     int col0,			/* and starting column number */
-	     REGION_FLAGS flags		/* flags as defined above */
-	     )
-{
-   int data_size;
-   int i;
-   REGION *regnew;
-   void **rows = NULL;			/* rows pointer in parent, */
-   void **nrows;			/* and in child */
-
-   if(region == NULL) {
-      shErrStackPush("shSubRegNew: given a NULL region");
-      return(NULL);
-   }
-/* 
- * The following is in two parts:
- *
- *     a) initialization involving the 'ultimate parent'
- *     b) initialization involving the immediate parent or
- *        no parent at all.
- *
- *     a) is done in a recursive way.
- *     b) should be done in a recursive way.
- */
-
-/*
- * Try to get subregion from parent if it exists; this allows shSubRegNew
- * to be used to grow subregions
- */
-   if(region->prvt->parent != NULL) {	/* get it from parent */
-      regnew = shSubRegNew(name,region->prvt->parent,nrow,ncol,
-			   region->prvt->row0 + row0,region->prvt->col0 + col0,
-			   flags);
-      if(regnew == NULL) {
-	 return(NULL);
-      }
-
-      regnew->col0 = col0; regnew->row0 = row0;
-      if(regnew->mask != NULL) {
-	 regnew->mask->col0 = col0; regnew->mask->row0 = row0;
-      }
-   }
-   else {
-     /*
-      * check to make sure that this makes sense
-      */
-     if ((row0 < 0) || (row0 >= region->nrow) ||
-	 (col0 < 0) || (col0 >= region->ncol)) {
-       shErrStackPush("shSubRegNew: subregion row/col out of bounds");
-       return(NULL);
-     }
-     if ((row0 + nrow > region->nrow) || (col0 + ncol > region->ncol)) {
-       shErrStackPush("shSubRegNew: ending row/col out of bounds");
-       return(NULL);
-     }
-     /*
-      * subregion fits in new parent; build the new region. If the new parent
-      * has a living parent, try to get the subregion from there so as to
-      * keep subregions as close to the top of the region pile as possible
-      */
-   
-     if((regnew = makeRegion(name,nrow,region->type)) == NULL) {
-       shFatal("shSubRegNew: Can't make region");
-     }
-     regnew->prvt->type = SHREGVIRTUAL;	/* this is true even if the parent
-					   is a physical region */
-     /*
-      * now set the region pointers
-      */
-     if((rows = p_shRegPtrGet(region,&data_size)) == NULL) {
-       shError("shSubRegNew: Pixel data is NULL");
-       return(NULL);
-     }
-     nrows = p_shRegPtrGet(regnew,&data_size); /* this can't fail if previous
-					     call succeeded */
-
-     for(i = 0;i < nrow;i++) {
-       nrows[i] = (char *)rows[0] + ((i + row0)*region->ncol + col0)*data_size;
-     }
-     regnew->ncol = ncol;
-     regnew->prvt->parent = (REGION *)region;
-     
-     /* Build record of child in parent*/
-     region->prvt->nchild++;
-     region->prvt->children =  shTreeKeyInsert (region->prvt->children, (IPTR)regnew, (IPTR)0);
-     regnew->row0 = row0; regnew->col0 = col0;
-     regnew->prvt->row0 = row0; regnew->prvt->col0 = col0;
-
-   }
-
-/*
- * Now the initialization involving the 'direct' parent
- */
-
-   if((flags & COPY_MASK) && region->mask != NULL) {
-      if((regnew->mask =
-	  shSubMaskNew(name,region->mask,nrow,ncol,row0,col0,flags)) == NULL) {
-	 shErrStackPush("shSubRegNew: Can't copy mask");
-      }
-   } else {
-      regnew->mask = NULL;
-   }
-/*
-**	Copy the header if necessary
-*/
-   if ((flags & COPY_HEADER_DEEP) && region->hdr.hdrVec != NULL) {
-      if (shHdrCopy (&region->hdr, &regnew->hdr) != SH_SUCCESS) {
-	 shErrStackPush("shSubRegNew: Can't copy region header");
-      }
-   } else {
-      regnew->hdr.hdrVec = NULL;
-   }
-
-   regnew->prvt->crc = p_shGetRegionCheck(regnew);
-   if(flags & READ_ONLY) regnew->prvt->flags |= READ_ONLY;
-   
-   return(regnew);
-}
-
 /*****************************************************************************/
 /*
  * return a pointer to the parent of the given region
@@ -173,32 +25,6 @@ parentRegion(const REGION *region)
    return(region == NULL ? NULL : region->prvt->parent);
 }
 
-
-/*****************************************************************************/
-/*
- * Clear a region, setting all pixels to 0
- *
- * RETURN VALUE:
- *	none
- */
-void
-shRegClear(REGION *region)
-{
-   int data_size;			/* sizeof for requested data type */
-   int i;
-   void **rows = NULL;
-   
-   if(region == NULL || region->nrow <= 0 || region->ncol <= 0) return;
-   
-   if((rows = p_shRegPtrGet(region,&data_size)) == NULL) {
-      shError("shSubClear: Unknown PIXDATATYPE: %d",(int)region->type);
-      return;
-   }
-   memset(rows[0],'\0',region->ncol*data_size);
-   for(i = 1;i < region->nrow;i++) {
-      memcpy(rows[i], rows[0], region->ncol*data_size);
-   }
-}
 
 /*****************************************************************************/
 /*
@@ -236,70 +62,6 @@ shMaskNew(const char *name, int nrow, int ncol)
    masknew = makeMask(name,nrow);
 
    p_shMaskRowsGet(masknew, nrow, ncol);
-
-   return(masknew);
-}
-
-/*****************************************************************************/
-/*
- * Return a sub-mask to the mask provided.
- *
- * RETURN VALUE:
- *	the sub-mask, or NULL on error
- */
-MASK *
-shSubMaskNew(
-	   const char *name,		/* name of MASK; non-null (but "" OK)*/
-	   const MASK *mask,		/* parent MASK */
-	   int nrow,			/* number of rows */
-	   int ncol,			/* number of columns */
-	   int row0,			/* starting row number in parent */
-	   int col0,			/* and starting column number */
-	   REGION_FLAGS flags		/* flags as defined above */
-	   )
-{
-   int i;
-   MASK *masknew;
-   
-   /* check to make sure that this makes sense */
-   if (mask == NULL) {
-      shError("shSubMaskNew: given a NULL mask");
-      return(NULL);
-   }
-   if ((row0 < 0) || (row0 >= mask->nrow) ||
-       (col0 < 0) || (col0 >= mask->ncol)) {
-      shError("shSubMaskNew: submask row/col out of bounds");
-      return(NULL);
-   }
-   if ((row0 + nrow > mask->nrow) || (col0 + ncol > mask->ncol)) {
-      shError("shSubMaskNew: ending row/col out of bounds");
-      return(NULL);
-   }
-/*
- * submask fits in new parent; build the new mask. If the new parent
- * has a living parent, try to get the submask from there so as to
- * keep submasks as close to the top of the mask pile as possible
- */
-   if(mask->prvt->parent != NULL) {		/* get it from parent */
-      masknew = shSubMaskNew(name,mask->prvt->parent,nrow,ncol,
-		       	mask->prvt->row0 + row0,mask->prvt->col0 + col0,flags);
-      masknew->col0 = col0; masknew->row0 = row0;
-      return(masknew);
-   }
-   masknew = makeMask(name,nrow);
-   masknew->prvt->parent = (MASK *)mask;
-   mask->prvt->nchild++;
-   mask->prvt->children = shTreeKeyInsert(mask->prvt->children, (IPTR) masknew,
-                                          (IPTR) 0); /* vkg */
-   masknew->ncol = ncol;
-   masknew->row0 = row0; masknew->col0 = col0;
-   masknew->prvt->row0 = row0; masknew->prvt->col0 = col0;
-   for (i = 0; i < nrow; i++) {
-      masknew->rows[i] = &mask->rows[row0 + i][col0];
-   }
-
-   masknew->prvt->crc = p_shGetMaskCheck(masknew);
-   if(flags & READ_ONLY) masknew->prvt->flags |= READ_ONLY;
 
    return(masknew);
 }
@@ -514,50 +276,7 @@ exitit:
 
 
 /*****************************************************************************/
-/*
- * a static function to initialise most of a MASK
- */
-static MASK *
-makeMask(
-	 const char *name,		/* name of MASK; non-null (but "" OK)*/
-	 int nrow			/* number of rows */
-	 )
-{
-   MASK *masknew;
-   
-   if((masknew = (MASK *)shMalloc(sizeof(MASK))) == NULL) {
-      shFatal("makeMask: can't alloc for new mask");
-   }
 
-   p_shMaskVectorGet(masknew, nrow);
-
-   if(name == NULL) name = "";		/* be nice */
-   if((masknew->name = (char *)shMalloc(strlen(name) + 1)) == NULL) {
-      shFatal("makeMask: can't alloc for name");
-   }
-   strcpy(masknew->name,name);
-
-   if((masknew->prvt = (struct mask_p *)shMalloc(sizeof(struct mask_p)))==NULL){
-      shFatal("shSubMaskNew: Can't create prvt struct");
-   }
-   masknew->prvt->flags = 0;
-   masknew->prvt->crc = 0;
-   masknew->prvt->nchild = 0;
-   masknew->prvt->children = NULL;  /* vkg */
-   masknew->prvt->parent = NULL;
-   masknew->prvt->col0 = masknew->prvt->row0 = 0;
-
-   return(masknew);
-}
-
-/*****************************************************************************/
-
-
-/*
- * These are needed until real crc stuff gets in
- */
-int p_shGetRegionCheck(REGION *region) { return(0); }
-int p_shGetMaskCheck(MASK *mask) { return(0); }
 
 /*============================================================================
  * ROUTINE: p_shRegCntrIncrement
@@ -579,38 +298,6 @@ void p_shRegCntrIncrement(REGION *a_reg)
    return;
 }
 
-/*
- * ROUTINE: p_shMaskVectorGet
- *
- * Given a mask structure and the number of rows in the mask, malloc the mask
- * vector array that will point to each of the rows.
- *
- * RETURN VALUES:
- *	NONE (shFatal is called if there is a mallocing error.)
- */
-void
-p_shMaskVectorGet(
-		  MASK *mask,
-		  int  nrow
-		  )
-{
-   int i;
-
-   if(nrow == 0) {
-      mask->rows = NULL;
-   } else {
-      if((mask->rows = (unsigned char **)shMalloc(nrow*sizeof(unsigned char *))) == NULL) {
-         shFatal("p_shMaskVectorGet: can't alloc for rows");
-      }
-   }
-
-   mask->nrow = nrow;
-   mask->ncol = 0;
-   for(i = 0;i < nrow;i++) {
-      mask->rows[i] = NULL;
-   }
-   mask->row0 = mask->col0 = 0;
-}
 
 /*
  * ROUTINE: p_shMaskRowsGet
