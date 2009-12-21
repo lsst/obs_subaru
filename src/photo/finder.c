@@ -256,3 +256,17 @@ phPeaksNew(int n)			/* initial number of PEAKs */
    return(peaks);
 }
 
+/*
+ * <AUTO EXTRACT>
+ * De/Increase the number of PEAKs in a PEAKS
+ *
+ * See description of phPeaksRealloc() for the difference between the
+ * two functions.
+ */
+void
+phPeaksRenew(PEAKS *peaks,		/* PEAKS to expand/contract */
+	     int n)			/* desired number of peaks */
+{
+   realloc_peaks(peaks, n, 0);
+}
+
