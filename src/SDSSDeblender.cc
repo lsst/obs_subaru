@@ -17,6 +17,7 @@ extern "C" {
 #include "phSpanUtil.h"
 #include "region.h"
 #include "phObjc_p.h"
+#include "phCellFitobj.h"
 }
 }}}}
 
@@ -45,6 +46,8 @@ deblender::SDSSDeblender<ImageT>::deblend(std::vector<typename ImageT::Ptr> &ima
 
     // Photo init.
     photo::initSpanObjmask();
+    int use_median = 1;
+    photo::phInitCellFitobj("cellprof.dat", images.size(), use_median);
 
     photo::OBJC* objc = photo::phObjcNew(images.size());
     photo::FIELDPARAMS* fp = photo::phFieldparamsNew(filters);
@@ -68,6 +71,12 @@ deblender::SDSSDeblender<ImageT>::deblend(std::vector<typename ImageT::Ptr> &ima
              PEAK_BAND2 | 
              PEAK_BAND3 | 
              PEAK_BAND4);
+             */
+            /*
+             pk->rowc = ...;
+             pk->colc = ...;
+             pk->rowcErr = ...;
+             pk->colcErr = ...;
              */
             peaks->peaks[i] = pk;
             std::printf("Set peak %i to %p\n", i, peaks->peaks[i]);
@@ -94,6 +103,7 @@ deblender::SDSSDeblender<ImageT>::deblend(std::vector<typename ImageT::Ptr> &ima
             //o1->region->mask = photo::shMaskNew("", H, W);
             // MUST be a SPANMASK*
             o1->region->mask = (photo::MASK*)photo::phSpanmaskNew(H, W);
+            printf("Default flags: 0x%x\n", o1->flags);
             objc->color[i] = o1;
         }
 
@@ -107,6 +117,8 @@ deblender::SDSSDeblender<ImageT>::deblend(std::vector<typename ImageT::Ptr> &ima
 
          fp->ref_band_index = 0;
          fp->canonical_band_index = 0;
+          // max # of children to deblend
+          fp->nchild_max = 1000;
          for (size_t i=0; i<images.size(); i++) {
              fp->frame[i].colBinning = 1;
              fp->frame[i].rowBinning = 1;
@@ -121,7 +133,6 @@ deblender::SDSSDeblender<ImageT>::deblend(std::vector<typename ImageT::Ptr> &ima
                      row[k] = (*images[i])(k,j);
                  }
              }
-
              fp->frame[i].psf = photo::phDgpsfNew();
          }
          fp->deblend_psf_Lmin = 0;
@@ -131,9 +142,13 @@ deblender::SDSSDeblender<ImageT>::deblend(std::vector<typename ImageT::Ptr> &ima
          std::printf("  filters %s\n", fp->filters);
          std::printf("  ref_band_index %i\n", fp->ref_band_index);
          std::printf("  canonical_band_index %i\n", fp->canonical_band_index);
-
-    std::cout << "phObjcMakeChildren..." << std::endl;
-    photo::phObjcMakeChildren(objc, fp);
+          
+          /*
+           std::cout << "phObjcMakeChildren..." << std::endl;
+           photo::phObjcMakeChildren(objc, fp);
+           */
+          std::cout << "phObjcMakeChildrenFAKE..." << std::endl;
+          photo::phObjcMakeChildrenFake(objc, fp);
 
     /*
      for(i = 0; i < peaks->npeak; i++) {
@@ -141,6 +156,7 @@ deblender::SDSSDeblender<ImageT>::deblend(std::vector<typename ImageT::Ptr> &ima
      photo::phObjcChildNew(objc, peaks->peaks[i], fp, 1);
      }
      */
+          std::printf("after phObjcMakeChildren:\n");
     printObjc(objc);
 
     std::cout << "Objc to be deblended:" << std::endl;

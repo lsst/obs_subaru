@@ -16,6 +16,8 @@
 #include "phUtils.h"
 #include "phObjectCenter.h"
 
+#include "shCFitsIo.h"
+
 #define SQRT3 1.732050808		/* sqrt(3) */
 
 /* header of model catalogue file. */
@@ -354,7 +356,7 @@ read_model(const MODEL_PARAMS *p)
        return(NULL);
     }
 
-    switch (p->class) {
+    switch (p->clazz) {
      case PSF_MODEL:			/* always the first model */
        index = 0; break;
      case DEV_MODEL:
@@ -362,7 +364,7 @@ read_model(const MODEL_PARAMS *p)
      case EXP_MODEL:
        index = exp_param_to_index(p); break;
      default:
-       shErrStackPush("read_model: unable to set index for class %d",p->class);
+       shErrStackPush("read_model: unable to set index for class %d",p->clazz);
        return(NULL);
     }
 
@@ -407,7 +409,7 @@ phAnyModelMake(const MODEL_PARAMS *p, 	/* parameters of model to create */
 
     smmax = pro_cheader.proc_smmax;
     
-    if(p->class == PSF_MODEL || p->exact) {
+    if(p->clazz == PSF_MODEL || p->exact) {
        qreg = p_phMakeExactModel(p);
     } else {
        qreg = read_model(p);
@@ -653,14 +655,14 @@ phAnyModelMake(const MODEL_PARAMS *p, 	/* parameters of model to create */
  * Compare with expected model value
  */
 #if 0
-       if(p->class != PSF_MODEL) {
+       if(p->clazz != PSF_MODEL) {
 	  float model_flux = *scale*phFluxGetFromModel(p);
 	  
 	  if(model_flux != 0) {
 	     if(fabs(*flux/model_flux - 1) > 2e-2) {
 		fprintf(stderr,"class = %d aratio = %.3f rsize = %7.3f "
 			"flux = %g model_flux = %g rat = %g\n",
-			p->class, p->aratio, p->rsize,
+			p->clazz, p->aratio, p->rsize,
 			*flux, model_flux, *flux/model_flux);
 	     }
 	  }
@@ -1663,7 +1665,7 @@ phCellMakeProfCat(char *outfile,	/* cell catalog file */
 	      p.psf->b = 0.0;
 
 	for(imodel = 0; imodel < pro_cheader.proc_maxscat; imodel++) {
-	    p.class = pro_cheader.proc_catentry[imodel]->scat_class;
+	    p.clazz = pro_cheader.proc_catentry[imodel]->scat_class;
 	    p.rsize = pro_cheader.proc_catentry[imodel]->scat_reff;
 	    p.aratio = pro_cheader.proc_catentry[imodel]->scat_axr;
 
@@ -1671,8 +1673,8 @@ phCellMakeProfCat(char *outfile,	/* cell catalog file */
 	    if(show_progress) {
 	       fprintf(stderr,
 		       "\rmodel %s %6d (%6.2f%%): %10g %10g %6.2f %6.2f %7.4f",
-		       (p.class == PSF_MODEL ? "psf" :
-			p.class == DEV_MODEL ? "deV" : "exp"), nmade,
+		       (p.clazz == PSF_MODEL ? "psf" :
+			p.clazz == DEV_MODEL ? "deV" : "exp"), nmade,
 		       (float)100*nmade/nmodel, p.aratio, p.rsize,
 		       p.psf->sigmax1, p.psf->sigmax2, p.psf->b);
 	       fflush(stderr);
@@ -1746,7 +1748,7 @@ phTotalFluxGet(const CELL_STATS *cstats,
 
 #if CORRECT_MODEL_FLUX
    if(p != NULL) {
-      switch (p->class) {
+      switch (p->clazz) {
        case EXP_MODEL:
 	 flux *= TOTFLUX_EXP/TOTFLUX_CUTOFF_EXP;
 	 break;
@@ -1756,7 +1758,7 @@ phTotalFluxGet(const CELL_STATS *cstats,
        case PSF_MODEL:
 	 break;
        default:
-	 shFatal("phTotalFluxGet: unknown object class: %d",p->class);
+	 shFatal("phTotalFluxGet: unknown object class: %d",p->clazz);
       }
    }
 #endif

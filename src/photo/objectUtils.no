@@ -623,41 +623,6 @@ phObjectToObject1ChainConvert(CHAIN *chain, /* chain of OBJECTs */
 
 
 
-/*****************************************************************************/
-/*
- * <AUTO EXTRACT>
- *
- * Find the centre of an OBJECT (see also phObject1CenterFit)
- *
- * If the object contains saturated pixels, use phSaturatedStarCentroid;
- * otherwise find the position of the image's maximum.
- *
- * It is expected that this routine be used on a _smoothed_ region; in
- * the case that the region has been smoothed with the PSF this is equivalent
- * to a MLE fit for the centre using the PSF, if the peak counts are less
- * than sky
- *
- * When the object's peak is in an edge pixel we are unable to fit, so the
- * centre of the peak pixel is found; this is also what we do when the
- * reported peak pixel is not the highest in its vicinity --- something
- * that can happen if some of the pixels are masked
- */
-void
-phObjectCenterFit(OBJECT *obj,		/* the OBJECT in question */
-		  const REGION *in,	/* region containing obj */
-		  const FRAMEPARAMS *fparams, /* gain etc. */
-		  CENTROID_FLAGS cflags)	/* control the centroiding */
-{
-   int use_mean = 1;			/* XXX */
-   shAssert(obj != NULL && obj->peaks != NULL && obj->peaks->peaks[0] != NULL);
-
-   object_center_fit(obj->peaks->peaks[0],
-		     &obj->flags, &obj->flags2, obj->sv[0],
-		     &obj->rowc, &obj->rowcErr,
-		     &obj->colc, &obj->colcErr, in, fparams, 32,
-		     use_mean, cflags);
-}
-
 /*
  * <AUTO EXTRACT>
  *

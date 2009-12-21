@@ -194,206 +194,13 @@ average_templates(OBJC *child)
 	;
 
 
-/*****************************************************************************/
-/*
- * Look at an object with the EDGE flag set and determine if it'll be
- * EDGE objects on the neighbouring frame too; if so, take heroic measures
- * to split it enough to be deblended
- *
- * Return 0 if the deblender can proceed, or -1 if it's hopeless
- */
-static int
-maybe_deblend_at_edge(OBJC *objc,		/* object to deblend */
-					  const FIELDPARAMS *fiparams, /* gain etc. */
-					  int filtsize)		   /* smoothing filter size */
-{
-	int aimage_drow, aimage_dcol;	/* == objc->aimage->d{row,col}*/
-	int c;				/* colour counter */
-	int cmin, cmax, rmin, rmax;		/* corner of master_mask, as corrected
-									 by objc->aimage->d{row,col}[] */
-	int rmin_max, cmin_max, rmax_min, cmax_min; /* {min,max} allowable values
-												 of mmask's bounding box */
-	int edge_in_all;			/* will object always touch edge? */
-	int fuzz;				/* fuzz in whether objects touch edge*/
-	OBJMASK *mmask;			/* == objc->aimage->master_mask */
-	int ncol;
-	int nrow;
-	int run_overlap;
-	int scan_overlap;
-
-	shAssert(fiparams);
-	shAssert(fiparams->frame[0].data);
-	ncol = fiparams->frame[0].data->ncol;
-	nrow = fiparams->frame[0].data->nrow;
-	run_overlap = fiparams->run_overlap; /* side-to-side overlap */
-	scan_overlap = fiparams->scan_overlap; /* top-to-bottom overlap */
-	/*
-	 * does the object touch both sides of an overlap region in some band?
-	 *
-	 * Due to smoothing, an object needn't actually touch the edge of
-	 * the frame to be EDGE, so merely require that one corner of its
-	 * mask be within the edge region and one without
-	 */
-	mmask = objc->aimage->master_mask;
-	shAssert(mmask != NULL);
-
-	cmin = cmax = rmin = rmax = 0;	/* make gcc happy */
-
-	rmin_max = mmask->rmin;
-	cmin_max = mmask->cmin;
-	rmax_min = mmask->rmax;
-	cmax_min = mmask->cmax;
-   
-	fuzz = 0;
-	for(c = 0; c < objc->ncolor; c++) {
-		if(fabs(objc->aimage->drow[c]) > fuzz) {
-			fuzz = fabs(objc->aimage->drow[c]);
-		}
-		if(fabs(objc->aimage->dcol[c]) > fuzz) {
-			fuzz = fabs(objc->aimage->dcol[c]);
-		}
-	}
-	/*
-	 * If we're binned, and some of the chips are 1-amp and some are 2-amp
-	 * there are "missing pixels" between the left and the right half of
-	 * the data in 2-amp CCDs. If some of the bands use 1-amp and some 2-amp
-	 * chips, this leads to an extra offset of (I think) 2*(bin - 1)/bin
-	 * binned pixels; certainly the value is 1.5 for bin == 4.
-	 *
-	 * Actually, bin == 2 is OK as we can recover the missing 1 column from
-	 * the overclock/serial data, but let's not assume that this has been done
-	 *
-	 * Rather than deal with this carefully, simply increase the fuzz by
-	 * a suitable amount
-	 */
-	if (fiparams->frame[0].colBinning > 1) {
-		fuzz += 2*(fiparams->frame[0].colBinning - 1)/
-			(float)fiparams->frame[0].colBinning + 0.9999;
-	}
-
-	edge_in_all = 0;
-	for(c = 0; c < objc->ncolor; c++) {
-		aimage_drow = objc->aimage->drow[c];
-		aimage_dcol = objc->aimage->dcol[c];
-		cmin = mmask->cmin + aimage_dcol;
-		rmin = mmask->rmin + aimage_drow;
-		cmax = mmask->cmax + aimage_dcol;
-		rmax = mmask->rmax + aimage_drow;
-
-		if(rmin < fuzz && rmax > scan_overlap - fuzz) {
-			edge_in_all++;
-			if(fuzz - aimage_drow > rmin_max) {
-				rmin_max = fuzz - aimage_drow;
-			}
-		}
-		if(rmin < nrow - scan_overlap + fuzz && rmax >= nrow - 1 - fuzz) {
-			edge_in_all++;
-			if((nrow - 1 - fuzz) - aimage_drow < rmax_min) {
-				rmax_min = (nrow - 1 - fuzz) - aimage_drow;
-			}
-		}
-		if(cmin < fuzz && cmax > run_overlap - fuzz) {
-			edge_in_all++;
-			if(fuzz - aimage_dcol > cmin_max) {
-				cmin_max = fuzz - aimage_dcol;
-			}
-		}
-		if(cmin < ncol - run_overlap + fuzz && cmax >= ncol - 1 - fuzz) {
-			edge_in_all++;
-			if((ncol - 1 - fuzz) - aimage_dcol < cmax_min) {
-				cmax_min = (ncol - 1 - fuzz) - aimage_dcol;
-			}
-		}
-	}
-	/*
-	 * Will this object be deblended in some other fields/strips?
-	 * If so, give up now
-	 */
-#define ALWAYS_DEBLEND 1
-#if !ALWAYS_DEBLEND
-	if(edge_in_all == 0) {		/* not an edge object in all fields */
-		return(-1);
-	}
-#endif
-	/*
-	 * The object will be rejected wherever it's found. Do the work required to
-	 * make it deblendable in this frame
-	 *
-	 * We've just pasted the original object into the frame, so if we trim
-	 * the atlas image's master_mask some pixels will be left behind when
-	 * we proceed to the next object.  To fix this, remove it now and
-	 * reinstate it after trimming
-	 */
-#if ALWAYS_DEBLEND
-	{
-		int margin = filtsize + fuzz;
-      
-		for(c = 0; c < objc->ncolor; c++) {
-			aimage_drow = objc->aimage->drow[c];
-			aimage_dcol = objc->aimage->dcol[c];
-			if(c == 0 || mmask->cmin + aimage_dcol < cmin) {
-				cmin = mmask->cmin + aimage_dcol;
-			}
-			if(c == 0 || mmask->rmin + aimage_drow < rmin) {
-				rmin = mmask->rmin + aimage_drow;
-			}
-			if(c == 0 || mmask->cmax + aimage_dcol > cmax) {
-				cmax = mmask->cmax + aimage_dcol;
-			}
-			if(c == 0 || mmask->rmax + aimage_drow > rmax) {
-				rmax = mmask->rmax + aimage_drow;
-			}
-		}
-
-		rmin_max = (rmin <= margin) ? margin + 1 : rmin;
-		cmin_max = (cmin <= margin) ? margin + 1 : cmin;
-		rmax_min = (rmax >= nrow - margin) ? nrow - margin - 1 : rmax;
-		cmax_min = (cmax >= ncol - margin) ? ncol - margin - 1 : cmax;
-
-		if(rmin_max == mmask->rmin && cmin_max == mmask->cmin &&
-		   rmax_min == mmask->rmax && cmax_min == mmask->cmax) {
-			return 0;			/* no need to trim object */
-		}
-
-		if (rmin_max > rmax_min || cmin_max > cmax_min) {	/* no pixels left */
-#if 0
-			shError("all pixels in object at edge were trimmed while attempting to deblend");
-#endif
-			return -1;
-		}
-	}
-#endif
-	/*
-	 * Set DEBLENDED_AT_EDGE iff we touch the edge
-	 */
-	for(c = 0; c < objc->ncolor; c++) {
-		if (objc->color[c]->flags & OBJECT1_EDGE) {
-			objc->flags2 |= OBJECT2_DEBLENDED_AT_EDGE;
-			break;
-		}
-	}
-
-#if 1
-	phRemoveAtlasImage(objc, fiparams);
-	if (phAtlasImageTrimToRect(objc, rmin_max, cmin_max, rmax_min, cmax_min) < 0) {
-		objc->flags |= OBJECT1_NODEBLEND;
-		return(-1);
-	}
-
-	phInsertAtlasImage(objc, fiparams);
-
-	{
-		OBJC *child;			/* trim children too */
-		(void)phObjcDescendentNext(objc);	/* returns objc */
-		while((child = phObjcDescendentNext(NULL)) != NULL) {
-			const int i = phAtlasImageTrimToRect(child, rmin_max, cmin_max, rmax_min, cmax_min);
-			shAssert(i == 0);
-			child->flags2 |= OBJECT2_DEBLENDED_AT_EDGE;
-		}
-	}
-#endif
-   
-	return(0);
+#include <stdarg.h>
+static void trace(const char* fmt, ...) {
+    va_list lst;
+	printf("%s:%i ", __FILE__, __LINE__);
+    va_start(lst, fmt);
+	vprintf(fmt, lst);
+    va_end(lst);
 }
 
 
@@ -488,9 +295,12 @@ phObjcDeblend(OBJC *objc,		/* object to deblend */
 
 		if(flags & (OBJECT1_EDGE | OBJECT1_NODEBLEND)) {
 			objc->flags |= OBJECT1_EDGE | OBJECT1_NODEBLEND;
+			trace("Not deblending: too close to edge\n");
 			return(-1);
 		}
 	}
+
+	trace("objc.nchild %i\n", objc->nchild);
 
 	/*
 	 * Put pointers to the descendents into an array, children[], for the
@@ -510,6 +320,7 @@ phObjcDeblend(OBJC *objc,		/* object to deblend */
 	 * are, deblend them as such
 	 */
 	if(objc->flags & OBJECT1_MOVED) {	/* there may be a moving child */
+		trace("Checking moving child (flags=0x%x)...\n", objc->flags);
 		for(i = 0;i < nchild;i++) {
 			child = children[i];
 	 
@@ -553,6 +364,8 @@ phObjcDeblend(OBJC *objc,		/* object to deblend */
 		}
 		nchild = j;
 	}
+
+	trace("nchild %i\n", nchild);
 
 	/*
 	 * find the centre of the object after median smoothing. We use this to try
@@ -655,6 +468,7 @@ phObjcDeblend(OBJC *objc,		/* object to deblend */
       
 		peak->rpeak = sub->row0 + (peak->rowc - 0.5)*binreg->bin_row;
 		peak->cpeak = sub->col0 + (peak->colc - 0.5)*binreg->bin_col;
+		trace("Peak r,c (%i,%i)\n", peak->rpeak, peak->cpeak);
 		/*
 		 * Find the highest peak within +- bin_{col,row}/3 of that point, and
 		 * centroid it
@@ -674,9 +488,12 @@ phObjcDeblend(OBJC *objc,		/* object to deblend */
 			phRegIntMaxPixelFind(fiparams->frame[c].data,0, rmin, cmin, rmax, cmax,
 								 &peak->rpeak, &peak->cpeak, NULL, NULL);
 		}
+		trace("Highest nearby peak r,c (%i,%i)\n", peak->rpeak, peak->cpeak);
 
 		phPeakCenterFit(peak, fiparams->frame[c].data,
 						NULL, &fiparams->frame[c], bin/2, ALWAYS_SMOOTH);
+
+		trace("Peak center (%g,%g)\n", peak->rowc, peak->colc);
 
 		shRegDel(sub);
 		phBinregionDel(binreg);
@@ -791,6 +608,7 @@ phObjcDeblend(OBJC *objc,		/* object to deblend */
 		 */
 		if(i == central_child) {
 			is_psf = 0;			/* don't treat brightest peak as PSF*/
+			trace("child %i: Not treating brightest peak as PSF\n", i);
 		} else {
 			is_psf = 0;			/* we don't yet know what it is */
 			for(c = 0; c < objc->ncolor; c++) {
@@ -827,6 +645,7 @@ phObjcDeblend(OBJC *objc,		/* object to deblend */
 		 * If it's a PSF, subtract it, and prepare to deblend it AS_PSF
 		 */
 		if(is_psf) {
+			trace("child %i is PSF\n", i);
 			for(c = 0; c < objc->ncolor; c++) {
 				if(!psf_props[c].satur && psf_props[c].I0 > 0) {
 					const float colc = child->color[c]->colc;
@@ -1792,6 +1611,7 @@ phObjcMakeChildren(OBJC *objc,		/* give this OBJC a family */
 			if(mpeaks[j] == NULL) {
 				mpeaks[j] = peak;
 			} else {
+				trace("Two detections in the same band\n");
 				break;			/* two detections in the same band */
 			}
 		}
@@ -1809,7 +1629,7 @@ phObjcMakeChildren(OBJC *objc,		/* give this OBJC a family */
 		int ndetect = 0;			/* number of single-band detections */
 		int ndetect_min = 2;		/* must be seen at least this many
 									 times in different bands */
-		printf("deblend.c: changing ndetect_min from 2 to 1\n");
+		trace("deblend.c: changing ndetect_min from 2 to 1\n");
 		ndetect_min = 1;
 
 		for(i = 0; i < objc->ncolor; i++) {
@@ -4048,4 +3868,343 @@ find_Isigma2(const OBJC *objc,		/* the object in question */
    }
 
    return(sum);
+}
+
+/*****************************************************************************/
+/*
+ * Look at an object with the EDGE flag set and determine if it'll be
+ * EDGE objects on the neighbouring frame too; if so, take heroic measures
+ * to split it enough to be deblended
+ *
+ * Return 0 if the deblender can proceed, or -1 if it's hopeless
+ */
+static int
+maybe_deblend_at_edge(OBJC *objc,		/* object to deblend */
+					  const FIELDPARAMS *fiparams, /* gain etc. */
+					  int filtsize)		   /* smoothing filter size */
+{
+	int aimage_drow, aimage_dcol;	/* == objc->aimage->d{row,col}*/
+	int c;				/* colour counter */
+	int cmin, cmax, rmin, rmax;		/* corner of master_mask, as corrected
+									 by objc->aimage->d{row,col}[] */
+	int rmin_max, cmin_max, rmax_min, cmax_min; /* {min,max} allowable values
+												 of mmask's bounding box */
+	int edge_in_all;			/* will object always touch edge? */
+	int fuzz;				/* fuzz in whether objects touch edge*/
+	OBJMASK *mmask;			/* == objc->aimage->master_mask */
+	int ncol;
+	int nrow;
+	int run_overlap;
+	int scan_overlap;
+
+	shAssert(fiparams);
+	shAssert(fiparams->frame[0].data);
+	ncol = fiparams->frame[0].data->ncol;
+	nrow = fiparams->frame[0].data->nrow;
+	run_overlap = fiparams->run_overlap; /* side-to-side overlap */
+	scan_overlap = fiparams->scan_overlap; /* top-to-bottom overlap */
+	/*
+	 * does the object touch both sides of an overlap region in some band?
+	 *
+	 * Due to smoothing, an object needn't actually touch the edge of
+	 * the frame to be EDGE, so merely require that one corner of its
+	 * mask be within the edge region and one without
+	 */
+	mmask = objc->aimage->master_mask;
+	shAssert(mmask != NULL);
+
+	cmin = cmax = rmin = rmax = 0;	/* make gcc happy */
+
+	rmin_max = mmask->rmin;
+	cmin_max = mmask->cmin;
+	rmax_min = mmask->rmax;
+	cmax_min = mmask->cmax;
+   
+	fuzz = 0;
+	for(c = 0; c < objc->ncolor; c++) {
+		if(fabs(objc->aimage->drow[c]) > fuzz) {
+			fuzz = fabs(objc->aimage->drow[c]);
+		}
+		if(fabs(objc->aimage->dcol[c]) > fuzz) {
+			fuzz = fabs(objc->aimage->dcol[c]);
+		}
+	}
+	/*
+	 * If we're binned, and some of the chips are 1-amp and some are 2-amp
+	 * there are "missing pixels" between the left and the right half of
+	 * the data in 2-amp CCDs. If some of the bands use 1-amp and some 2-amp
+	 * chips, this leads to an extra offset of (I think) 2*(bin - 1)/bin
+	 * binned pixels; certainly the value is 1.5 for bin == 4.
+	 *
+	 * Actually, bin == 2 is OK as we can recover the missing 1 column from
+	 * the overclock/serial data, but let's not assume that this has been done
+	 *
+	 * Rather than deal with this carefully, simply increase the fuzz by
+	 * a suitable amount
+	 */
+	if (fiparams->frame[0].colBinning > 1) {
+		fuzz += 2*(fiparams->frame[0].colBinning - 1)/
+			(float)fiparams->frame[0].colBinning + 0.9999;
+	}
+
+	edge_in_all = 0;
+	for(c = 0; c < objc->ncolor; c++) {
+		aimage_drow = objc->aimage->drow[c];
+		aimage_dcol = objc->aimage->dcol[c];
+		cmin = mmask->cmin + aimage_dcol;
+		rmin = mmask->rmin + aimage_drow;
+		cmax = mmask->cmax + aimage_dcol;
+		rmax = mmask->rmax + aimage_drow;
+
+		if(rmin < fuzz && rmax > scan_overlap - fuzz) {
+			edge_in_all++;
+			if(fuzz - aimage_drow > rmin_max) {
+				rmin_max = fuzz - aimage_drow;
+			}
+		}
+		if(rmin < nrow - scan_overlap + fuzz && rmax >= nrow - 1 - fuzz) {
+			edge_in_all++;
+			if((nrow - 1 - fuzz) - aimage_drow < rmax_min) {
+				rmax_min = (nrow - 1 - fuzz) - aimage_drow;
+			}
+		}
+		if(cmin < fuzz && cmax > run_overlap - fuzz) {
+			edge_in_all++;
+			if(fuzz - aimage_dcol > cmin_max) {
+				cmin_max = fuzz - aimage_dcol;
+			}
+		}
+		if(cmin < ncol - run_overlap + fuzz && cmax >= ncol - 1 - fuzz) {
+			edge_in_all++;
+			if((ncol - 1 - fuzz) - aimage_dcol < cmax_min) {
+				cmax_min = (ncol - 1 - fuzz) - aimage_dcol;
+			}
+		}
+	}
+	/*
+	 * Will this object be deblended in some other fields/strips?
+	 * If so, give up now
+	 */
+#define ALWAYS_DEBLEND 1
+#if !ALWAYS_DEBLEND
+	if(edge_in_all == 0) {		/* not an edge object in all fields */
+		return(-1);
+	}
+#endif
+	/*
+	 * The object will be rejected wherever it's found. Do the work required to
+	 * make it deblendable in this frame
+	 *
+	 * We've just pasted the original object into the frame, so if we trim
+	 * the atlas image's master_mask some pixels will be left behind when
+	 * we proceed to the next object.  To fix this, remove it now and
+	 * reinstate it after trimming
+	 */
+#if ALWAYS_DEBLEND
+	{
+		int margin = filtsize + fuzz;
+      
+		for(c = 0; c < objc->ncolor; c++) {
+			aimage_drow = objc->aimage->drow[c];
+			aimage_dcol = objc->aimage->dcol[c];
+			if(c == 0 || mmask->cmin + aimage_dcol < cmin) {
+				cmin = mmask->cmin + aimage_dcol;
+			}
+			if(c == 0 || mmask->rmin + aimage_drow < rmin) {
+				rmin = mmask->rmin + aimage_drow;
+			}
+			if(c == 0 || mmask->cmax + aimage_dcol > cmax) {
+				cmax = mmask->cmax + aimage_dcol;
+			}
+			if(c == 0 || mmask->rmax + aimage_drow > rmax) {
+				rmax = mmask->rmax + aimage_drow;
+			}
+		}
+
+		rmin_max = (rmin <= margin) ? margin + 1 : rmin;
+		cmin_max = (cmin <= margin) ? margin + 1 : cmin;
+		rmax_min = (rmax >= nrow - margin) ? nrow - margin - 1 : rmax;
+		cmax_min = (cmax >= ncol - margin) ? ncol - margin - 1 : cmax;
+
+		if(rmin_max == mmask->rmin && cmin_max == mmask->cmin &&
+		   rmax_min == mmask->rmax && cmax_min == mmask->cmax) {
+			return 0;			/* no need to trim object */
+		}
+
+		if (rmin_max > rmax_min || cmin_max > cmax_min) {	/* no pixels left */
+#if 0
+			shError("all pixels in object at edge were trimmed while attempting to deblend");
+#endif
+			return -1;
+		}
+	}
+#endif
+	/*
+	 * Set DEBLENDED_AT_EDGE iff we touch the edge
+	 */
+	for(c = 0; c < objc->ncolor; c++) {
+		if (objc->color[c]->flags & OBJECT1_EDGE) {
+			objc->flags2 |= OBJECT2_DEBLENDED_AT_EDGE;
+			break;
+		}
+	}
+
+#if 1
+	phRemoveAtlasImage(objc, fiparams);
+	if (phAtlasImageTrimToRect(objc, rmin_max, cmin_max, rmax_min, cmax_min) < 0) {
+		objc->flags |= OBJECT1_NODEBLEND;
+		return(-1);
+	}
+
+	phInsertAtlasImage(objc, fiparams);
+
+	{
+		OBJC *child;			/* trim children too */
+		(void)phObjcDescendentNext(objc);	/* returns objc */
+		while((child = phObjcDescendentNext(NULL)) != NULL) {
+			const int i = phAtlasImageTrimToRect(child, rmin_max, cmin_max, rmax_min, cmax_min);
+			shAssert(i == 0);
+			child->flags2 |= OBJECT2_DEBLENDED_AT_EDGE;
+		}
+	}
+#endif
+   
+	return(0);
+}
+
+//#include "deblend-fake.c"
+
+/*****************************************************************************/
+/*
+ * <AUTO EXTRACT>
+ *
+ * Make an OBJC's children, returning the number created (may be 0)
+ *
+ * Once an OBJC has been through phObjcMakeChildren() it has a non-NULL
+ * children field which points at one of its children; in addition its
+ * OBJECT1_BLENDED bit is set, and nchild is one or more.
+ *
+ * Each child has a non-NULL parent field which points to its parent, and may
+ * have a sibbs field too. It has its OBJECT1_CHILD bit set.
+ */
+int
+phObjcMakeChildrenFake(OBJC *objc,		/* give this OBJC a family */
+					   const FIELDPARAMS *fiparams) /* misc. parameters */
+{
+	const PEAK *cpeak;			/* == objc->peaks->peaks[] */
+	int i, j;
+	int nchild;				/* number of children created */
+	PEAK *peak;				/* a PEAK in the OBJC */
+	float min_peak_spacing;
+
+	shAssert(objc != NULL && objc->peaks != NULL && fiparams != NULL);
+	min_peak_spacing = fiparams->deblend_min_peak_spacing;
+	nchild = objc->peaks->npeak;
+	/*
+	 * Done with moving objects. See if any of the surviving peaks are
+	 * too close
+	 */
+	trace("objc->peaks->npeak %i\n", objc->peaks->npeak);
+	for(i = 0; i < objc->peaks->npeak; i++) {
+		PEAK *const peak_i = objc->peaks->peaks[i];
+		PEAK *peak_j;
+		float rowc_i, colc_i;		/* == peak_i->{col,row}c */
+		float rowcErr_i, colcErr_i;	/* == peak_i->{col,row}cErr */
+		float rowc_j, colc_j;		/* == peak_j->{col,row}c */
+		float rowcErr_j, colcErr_j;	/* == peak_j->{col,row}cErr */
+
+		if(peak_i == NULL) {
+			continue;
+		}
+		shAssert(peak_i->flags & PEAK_CANONICAL);
+      
+		rowc_i = peak_i->rowc;
+		colc_i = peak_i->colc;
+		rowcErr_i = peak_i->rowcErr;
+		colcErr_i = peak_i->colcErr;
+		for(j = i + 1; j < objc->peaks->npeak; j++) {
+			if(objc->peaks->peaks[j] == NULL) {
+				continue;
+			}
+
+			peak_j = objc->peaks->peaks[j];
+			rowc_j = peak_j->rowc;
+			colc_j = peak_j->colc;
+			rowcErr_j = peak_j->rowcErr;
+			colcErr_j = peak_j->colcErr;
+			if(pow(fabs(rowc_i - rowc_j) - rowcErr_i - rowcErr_j, 2) +
+			   pow(fabs(colc_i - colc_j) - colcErr_i - colcErr_j, 2) <
+			   min_peak_spacing*min_peak_spacing) {
+				objc->flags2 |= OBJECT2_PEAKS_TOO_CLOSE;
+				/*
+				 * If the two peaks are in the same band, delete peak_j otherwise add
+				 * it to peak_i's ->next list.  If there's already a peak on the ->next
+				 * list in the same band, average their positions
+				 */
+				merge_peaks(peak_i, peak_j);
+
+				objc->peaks->peaks[j] = NULL;
+				nchild--;
+
+				i--;			/* reconsider the i'th peak */
+				break;
+			}
+		}
+	}
+	/*
+	 * We demand that the children are detected in at least deblend_min_detect
+	 * bands; reject peaks that fail this test
+	 */
+	trace("objc->peaks->npeak %i\n", objc->peaks->npeak);
+	for(i = 0; i < objc->peaks->npeak; i++) {
+		int n;				/* number of detections */
+
+		if(objc->peaks->peaks[i] == NULL) {
+			continue;
+		}
+
+		for(n = 0, peak = objc->peaks->peaks[i]; peak != NULL;
+			peak = (PEAK *)peak->next) {
+			n++;
+		}
+		if(n < fiparams->deblend_min_detect) {
+			objc->flags2 |= OBJECT2_TOO_FEW_DETECTIONS;
+	 
+			phPeakDel(objc->peaks->peaks[i]);
+			objc->peaks->peaks[i] = NULL;
+			nchild--;
+		}
+	}
+	/*
+	 * condense the peaks list
+	 */
+	trace("objc->peaks->npeak %i\n", objc->peaks->npeak);
+	if(nchild != objc->peaks->npeak) {
+		for(i = j = 0; i < objc->peaks->npeak; i++) {
+			if(objc->peaks->peaks[i] != NULL) {
+				objc->peaks->peaks[j++] = objc->peaks->peaks[i];
+			}
+		}
+		shAssert(j == nchild);
+		for(i = nchild; i < objc->peaks->npeak; i++) {
+			objc->peaks->peaks[i] = NULL;	/* it's been moved down */
+		}
+		phPeaksRealloc(objc->peaks, nchild);
+	}
+	/*
+	 * and create the desired children
+	 */
+	trace("objc->peaks->npeak %i\n", objc->peaks->npeak);
+	if(objc->peaks->npeak > fiparams->nchild_max) { /* are there too many? */
+		objc->flags |= OBJECT1_DEBLEND_TOO_MANY_PEAKS;
+		phPeaksRealloc(objc->peaks, fiparams->nchild_max);
+	}
+
+	trace("objc->peaks->npeak %i\n", objc->peaks->npeak);
+	for(i = 0;i < objc->peaks->npeak;i++) { /* create children */
+		cpeak = objc->peaks->peaks[i];
+		(void)phObjcChildNew(objc, cpeak, fiparams, 1);
+	}
+
+	return(objc->peaks->npeak + ((objc->sibbs != NULL) ? 1 : 0));
 }

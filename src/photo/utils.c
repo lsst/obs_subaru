@@ -922,3 +922,41 @@ phRegIntClipValInObjmask(REGION *reg,	/* clip all pixels in this region ...*/
       }
    }
 }
+
+/////////////// reading catalog
+#define BUFSIZE 4096
+
+long
+phCrcCalcFromFile(const char *file,	/* file to be CRCed */
+		  int nbyte)		/* number of chars to process */
+{
+   char buff[BUFSIZE];			/* input buffer */
+   long crc = 0;			/* desired CRC */
+   FILE *fil;				/* FILE pointer for file in question */
+   int nread;				/* number of bytes read */
+
+   if(nbyte <= 0) {
+      nbyte = -1;
+   }
+
+   if((fil = fopen(file,"r")) == NULL) {
+      return(0);
+   }
+
+   crc = 0;
+   while(nbyte != 0 && (nread = fread(buff,1,BUFSIZE,fil)) > 0) {
+      if(nbyte > 0 && nbyte < nread) {
+	 nread = nbyte;
+      }
+
+      crc = phCrcCalc(crc, buff, nread);
+
+      nbyte -= nread;
+   }
+   fclose(fil);
+
+   crc &= 0xFFFF;
+
+   return(crc);
+}
+

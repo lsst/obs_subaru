@@ -1521,7 +1521,6 @@ REGION* shRegFlip (REGION *reg)
  *	- Flipping a subregion flips the corespondingbits in the parent.
  * 	- This is symmetric with flipping columns.
  */    
-
 void shRegRowFlip (REGION *reg)
 {   
    double tmp;
