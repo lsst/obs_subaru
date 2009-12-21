@@ -17,6 +17,8 @@
 #include "phSkyUtils.h"
 #include "phObjects.h"
 
+#include "shCFitsIo.h"
+
 /*
  * BUGS: the model moments are placeholders; some research needs to be
  * done to discover what weighting is best, and in any case normalized

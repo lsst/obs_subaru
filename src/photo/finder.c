@@ -6,6 +6,7 @@
 #include "phSkyUtils.h"
 #include "phPeaks.h"
 #include "phConsts.h"
+#include "phObjects.h"
 
 /*
  * Maintain a special freelist for PEAKs
@@ -268,5 +269,60 @@ phPeaksRenew(PEAKS *peaks,		/* PEAKS to expand/contract */
 	     int n)			/* desired number of peaks */
 {
    realloc_peaks(peaks, n, 0);
+}
+
+/*****************************************************************************/
+/*
+ * <AUTO EXTRACT>
+ * Delete an OBJECT
+ */
+void
+phObjectDel(OBJECT *obj)
+{
+   int lev;
+
+   if(obj == NULL) return;
+
+   if(obj->size > 0) {
+      for(lev = 0;lev < obj->size;lev++) {
+	 phObjmaskDel(obj->sv[lev]);
+      }
+      shFree(obj->sv);
+   }
+   phPeaksDel(obj->peaks);
+
+   shFree(obj);
+}
+
+/*****************************************************************************/
+/*
+ * <AUTO>
+ * Make a new OBJECT
+ * </AUTO>
+ */
+OBJECT *
+phObjectNew(
+	    int nlevel			/* number of levels */
+	    )
+{
+   int i;
+   OBJECT *new;
+
+   new = shMalloc(sizeof(OBJECT));
+   if(nlevel == 0) {
+      new->sv = NULL;
+   } else {
+      new->sv = shMalloc(nlevel*sizeof(OBJMASK *));
+      for(i = 0;i < nlevel;i++) {
+	 new->sv[i] = phObjmaskNew(0);
+      }
+   }
+   new->flags = new->flags2 = new->flags3 = 0x0;
+   new->size = new->nlevel = nlevel;
+   new->rowc = new->colc = VALUE_IS_BAD;
+   new->rowcErr = new->colcErr = VALUE_IS_BAD;
+   new->peaks = phPeaksNew(1);
+   
+   return(new);
 }
 

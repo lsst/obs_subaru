@@ -9,7 +9,6 @@
 #include "dervish.h"
 #include "atConversions.h"		/* for M_PI, M_SQRT2 */
 #include "phSignals.h"
-#include "phObjects.h"
 #include "phMaskbittype.h"
 #include "phSkyUtils.h"
 
@@ -59,61 +58,6 @@ growspanvec(OBJMASK *spans, int **plist, int *maxspans)
   *maxspans = *maxspans*M_SQRT2 + 1;	/* "+1" so maxspans is increased even in <= 2 */
   spans->s = shRealloc(spans->s, *maxspans*sizeof(*(spans->s)));
   *plist = shRealloc(*plist, *maxspans*sizeof(**plist));
-}
-
-/*****************************************************************************/
-/*
- * <AUTO>
- * Make a new OBJECT
- * </AUTO>
- */
-OBJECT *
-phObjectNew(
-	    int nlevel			/* number of levels */
-	    )
-{
-   int i;
-   OBJECT *new;
-
-   new = shMalloc(sizeof(OBJECT));
-   if(nlevel == 0) {
-      new->sv = NULL;
-   } else {
-      new->sv = shMalloc(nlevel*sizeof(OBJMASK *));
-      for(i = 0;i < nlevel;i++) {
-	 new->sv[i] = phObjmaskNew(0);
-      }
-   }
-   new->flags = new->flags2 = new->flags3 = 0x0;
-   new->size = new->nlevel = nlevel;
-   new->rowc = new->colc = VALUE_IS_BAD;
-   new->rowcErr = new->colcErr = VALUE_IS_BAD;
-   new->peaks = phPeaksNew(1);
-   
-   return(new);
-}
-
-/*****************************************************************************/
-/*
- * <AUTO EXTRACT>
- * Delete an OBJECT
- */
-void
-phObjectDel(OBJECT *obj)
-{
-   int lev;
-
-   if(obj == NULL) return;
-
-   if(obj->size > 0) {
-      for(lev = 0;lev < obj->size;lev++) {
-	 phObjmaskDel(obj->sv[lev]);
-      }
-      shFree(obj->sv);
-   }
-   phPeaksDel(obj->peaks);
-
-   shFree(obj);
 }
 
 /*
