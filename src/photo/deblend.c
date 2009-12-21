@@ -645,10 +645,6 @@ phObjcDeblend(OBJC *objc,		/* object to deblend */
       phPeaksDel(peaks);
    }
 
-   printf("Bailing out of deblending...\n");
-
-#if defined(NOPE)
-
 
 /*
  * Find all the peaks that are consistent with being PSFs, and do a crude
@@ -809,6 +805,12 @@ phObjcDeblend(OBJC *objc,		/* object to deblend */
 	 }
       }
    }
+
+   printf("Bailing out of deblending...\n");
+
+#if defined(NOPE)
+
+
 /*
  * Dump a region for debugging?
  */
