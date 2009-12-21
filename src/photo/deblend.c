@@ -438,11 +438,6 @@ phObjcDeblend(OBJC *objc,		/* object to deblend */
       }
    }
 
-   printf("Bailing out of deblending...\n");
-
-#if defined(NOPE)
-
-
 /*
  * Put pointers to the descendents into an array, children[], for the
  * convenience of this routine
@@ -455,6 +450,7 @@ phObjcDeblend(OBJC *objc,		/* object to deblend */
       children[nchild++] = child;
    }
    shAssert(nchild == objc->nchild);
+
 /*
  * decide whether any possible moving objects are really moving; if they
  * are, deblend them as such
@@ -503,6 +499,11 @@ phObjcDeblend(OBJC *objc,		/* object to deblend */
       }
       nchild = j;
    }
+
+   printf("Bailing out of deblending...\n");
+
+#if defined(NOPE)
+
 /*
  * find the centre of the object after median smoothing. We use this to try
  * to ensure that the centres of big bright galaxies aren't deblended as PSFs
@@ -2263,3 +2264,143 @@ phObjcChildNew(OBJC *objc,		/* the parent */
    return(child);
 }
 
+/*****************************************************************************/
+/*
+ * <AUTO EXTRACT>
+ *
+ * delete an OBJC which is a descendent of some other OBJC
+ */
+void
+phObjcChildDel(OBJC *child)		/* the child to destroy */
+{
+   OBJC *objc;
+   OBJC *parent;
+   
+   shAssert(child != NULL && child->children == NULL);
+   parent = child->parent;
+   shAssert(parent != NULL && parent->nchild > 0);
+   shAssert(parent->children != NULL || parent->sibbs != NULL);
+   parent->nchild--;
+ 
+   if(parent->sibbs == child) {		/* at start of parent's sibbs chain*/
+      parent->sibbs = child->sibbs;
+      phObjcDel(child, 0);
+      
+      return;
+   }
+
+   if(parent->children == child) {	/* at start of childrens' sibbs chain*/
+      parent->children = child->sibbs;
+      phObjcDel(child, 0);
+      
+      return;
+   }
+
+   for(objc = parent->children;objc != NULL;objc = objc->sibbs) {
+      if(objc->sibbs == child) {	/* a sibbling not at start of chain */
+	 objc->sibbs = child->sibbs;
+	 phObjcDel(child, 0);
+
+	 return;
+      }
+   }
+   shFatal("phObjcChildDel: Cannot find the child's family");
+}
+
+
+   
+/*****************************************************************************/
+/*
+ * Given an OBJC that is thought to be moving, generate proper centres
+ * and atlas images
+ *
+ * Return 0 if OK, -1 in case of trouble; in this case, the object is
+ * deleted
+ */
+int
+phObjcDeblendMovingChild(OBJC *objc,	/* OBJC to deblend */
+			 const FIELDPARAMS *fiparams) /* info about frame */
+
+{
+   float col[NCOLOR], colErr[NCOLOR];	/* estimated col centre in each band */
+   float drow, dcol;			/* offset from canonical band */
+   float drowErr, dcolErr;		/* errors in drow, dcol */
+   int flags2;				/* flags2 bits set in velocity fit */
+   int i;
+   OBJECT1 *obj1;			/* == objc->color[] */
+   int ndetect;				/* how many times was object found? */
+   float row[NCOLOR], rowErr[NCOLOR];	/* estimated row centre in each band */
+
+   shAssert(objc != NULL && (objc->flags2 & OBJECT2_DEBLENDED_AS_MOVING));
+   shAssert(objc->parent != NULL && objc->parent->aimage != NULL);
+   shAssert(fiparams != NULL);
+/*
+ * In how many bands was the object detected? Was this enough?
+ */
+   ndetect = 0;
+   for(i = 0; i < objc->ncolor; i++) {
+      if(objc->color[i]->flags & OBJECT1_BINNED1) {
+	 ndetect++;
+      }
+   }
+   if(ndetect <= 2) {
+      objc->parent->flags2 |= (OBJECT2_TOO_FEW_DETECTIONS |
+			       OBJECT2_NODEBLEND_MOVING);
+      objc->parent->flags2 &= ~OBJECT2_DEBLENDED_AS_MOVING;
+      phObjcChildDel(objc);
+      
+      return(-1);
+   }
+/*
+ * estimate the velocity
+ */
+   flags2 = phVelocityFind(objc, fiparams, row, rowErr, col, colErr, NULL);
+
+   if(flags2 & OBJECT2_TOO_FEW_GOOD_DETECTIONS) { /* too few good detections */
+      objc->parent->flags2 |= (OBJECT2_TOO_FEW_GOOD_DETECTIONS |
+			       OBJECT2_NODEBLEND_MOVING);
+      objc->parent->flags2 &= ~OBJECT2_DEBLENDED_AS_MOVING;
+      phObjcChildDel(objc);
+      
+      return(-1);
+   } else if(flags2 & OBJECT2_BAD_MOVING_FIT) {
+      objc->parent->flags2 |= (OBJECT2_BAD_MOVING_FIT_CHILD |
+			       OBJECT2_NODEBLEND_MOVING);
+      objc->parent->flags2 &= ~OBJECT2_DEBLENDED_AS_MOVING;
+      phObjcChildDel(objc);
+      
+      return(-1);
+   }
+/*
+ * If the velocity is consistent with zero, don't deblend as moving
+ */
+   if(flags2 & OBJECT2_STATIONARY) {
+      objc->parent->flags2 |= (OBJECT2_STATIONARY |
+			       OBJECT2_NODEBLEND_MOVING);
+      objc->parent->flags2 &= ~OBJECT2_DEBLENDED_AS_MOVING;
+      phObjcChildDel(objc);
+      
+      return(-1);
+   }
+/*
+ * The positions in bands that weren't detected should be those from
+ * the velocity fit, suitably transformed, rather than a suitably
+ * transformed canonical centre
+ */
+   for(i = 0; i < objc->ncolor; i++) {
+      obj1 = objc->color[i];
+      shAssert(obj1 != NULL);
+      
+      if(obj1->flags & OBJECT1_CANONICAL_CENTER) {
+	 phOffsetDo(fiparams, objc->rowc, objc->colc, 
+		    fiparams->ref_band_index, i,
+		    0, NULL, NULL, &drow, &drowErr, &dcol, &dcolErr);
+	 obj1->colc = col[i] + dcol;
+	 obj1->colcErr = sqrt(pow(colErr[i],2) + pow(dcolErr,2));
+	 obj1->rowc = row[i] + drow;
+	 obj1->rowcErr = sqrt(pow(rowErr[i],2) + pow(drowErr,2));
+      }
+   }
+
+   return(0);
+}
