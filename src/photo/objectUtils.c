@@ -4,14 +4,14 @@
 #include <math.h>
 #include <alloca.h>
 #include "dervish.h"
-#include "phSignals.h"
+//#include "phSignals.h"
 #include "phObjects.h"
 #include "phMaskbittype.h"
 #include "phExtract.h"
-#include "phBrightObjects.h"
+//#include "phBrightObjects.h"
 #include "phSkyUtils.h"
 #include "phObjectCenter.h"
-#include "phMergeColors.h"
+//#include "phMergeColors.h"
 #include "phConsts.h"
 
 /*****************************************************************************/

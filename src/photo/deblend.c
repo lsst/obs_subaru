@@ -18,6 +18,7 @@
 #include "phCellFitobj.h"
 //#include "phMergeColors.h"
 #include "phOffset.h"
+#include "shCFitsIo.h"
 
 static REGION *scr0 = NULL;
 static REGION *scr1 = NULL;
@@ -500,10 +501,6 @@ phObjcDeblend(OBJC *objc,		/* object to deblend */
       nchild = j;
    }
 
-   printf("Bailing out of deblending...\n");
-
-#if defined(NOPE)
-
 /*
  * find the centre of the object after median smoothing. We use this to try
  * to ensure that the centres of big bright galaxies aren't deblended as PSFs
@@ -647,6 +644,12 @@ phObjcDeblend(OBJC *objc,		/* object to deblend */
 
       phPeaksDel(peaks);
    }
+
+   printf("Bailing out of deblending...\n");
+
+#if defined(NOPE)
+
+
 /*
  * Find all the peaks that are consistent with being PSFs, and do a crude
  * job of subtracting a PSF from each. Note that the resulting values are

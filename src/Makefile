@@ -28,11 +28,11 @@ COBJS := photo/deblend.os \
 	photo/framestat.os photo/sky.os photo/measureObj.os photo/brightObjects.os \
 	photo/variablePsf.os photo/meschach.os photo/convolve.os photo/objc.os photo/object1.os \
 	photo/phSpanUtil.os photo/finder.os photo/atlasImages.os photo/random-fake.os \
-	photo/utils.os photo/offset.os photo/mathUtils.os \
+	photo/utils.os photo/offset.os photo/mathUtils.os photo/objectUtils.os \
 	astrotools/atTrans.os astrotools/atExternalSet.os \
 	dervish/shChain.os dervish/shGarbage.os dervish/schema.os dervish/utils.os dervish/errStack.os \
 	dervish/diskio.os dervish/vecOps.os dervish/shHash.os dervish/region.os dervish/hdr.os dervish/tree.os \
-	dervish/maskUtils.os
+	dervish/maskUtils.os dervish/fake-fitsio.os
 
 OBJS := $(CPPOBJS) $(COBJS)
 

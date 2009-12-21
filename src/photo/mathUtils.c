@@ -8,7 +8,7 @@
 #include <float.h>
 #include <alloca.h>
 #include "dervish.h"
-#include "astrotools.h"			/* for M_PI */
+//#include "astrotools.h"			/* for M_PI */
 #include "phMathUtils.h"
 #include "phConsts.h"
 
