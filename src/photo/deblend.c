@@ -895,11 +895,6 @@ phObjcDeblend(OBJC *objc,		/* object to deblend */
       }
    }
 
-   printf("Bailing out of deblending...\n");
-
-#if defined(NOPE)
-
-
 /*
  * We've got all the templates, so it's time to reconsider some of those
  * choices of DEBLENDED_AS_PSF.  In particular, if we created a PSF
@@ -978,6 +973,7 @@ phObjcDeblend(OBJC *objc,		/* object to deblend */
 	    }
 	 }
       }
+
 /*
  * Re-extract templates if we cleared the OBJECT1_DEBLENDED_AS_PSF bit
  */
@@ -1041,6 +1037,7 @@ phObjcDeblend(OBJC *objc,		/* object to deblend */
 	   (children[i]->color[c]->flags & OBJECT1_DEBLENDED_AS_PSF);
       }
    }
+
 /*
  * when debugging, set the SUBTRACTED bits in the data region where
  * we ignored pixels as PSF contaminated. If skip_deblend is 1,
@@ -1059,6 +1056,7 @@ phObjcDeblend(OBJC *objc,		/* object to deblend */
 	 }
       }
    }
+
 /*
  * done with psfmasks and the PSF-subtracted data
  */
@@ -1116,6 +1114,7 @@ phObjcDeblend(OBJC *objc,		/* object to deblend */
       shFree(smoothed_ai);
       return(-1);
    }
+
 /*
  * Average the per-band templates.
  */
@@ -1124,6 +1123,15 @@ phObjcDeblend(OBJC *objc,		/* object to deblend */
 	   average_templates(children[i]);
        }
    }
+
+
+
+   printf("Bailing out of deblending...\n");
+
+#if defined(NOPE)
+
+
+
 /*
  * and now set up the normal equations for the least squares problem
  */
@@ -3283,5 +3291,72 @@ copy_region_within_mask(REGION *out,	/* region to copy to */
       memcpy(&out->ROWS[y][x1], &in->ROWS[y - rmin][x1 - cmin],
 						    (x2 - x1 + 1)*sizeof(PIX));
    }
+}
+
+/*****************************************************************************/
+/*
+ * If we are reduced to only a single child, make sure that the parent
+ * has the child's positions in all bands; as the parent was a deblend
+ * candidate it may have a mixture of the candidate peaks
+ */
+static void
+set_parent_position_from_child(OBJC *objc,
+			       const OBJC *child)
+{
+   int c;
+
+   objc->flags &= ~OBJECT1_CANONICAL_CENTER;
+   objc->flags |= (child->flags & OBJECT1_CANONICAL_CENTER);
+   objc->rowc = child->rowc;
+   objc->rowcErr = child->rowcErr;
+   objc->colc = child->colc;
+   objc->colcErr = child->colcErr;
+   
+   for(c = 0; c < objc->ncolor; c++) {
+      objc->color[c]->flags &= ~OBJECT1_CANONICAL_CENTER;
+      objc->color[c]->flags |=
+	(child->color[c]->flags & OBJECT1_CANONICAL_CENTER);
+      objc->color[c]->rowc = child->color[c]->rowc;
+      objc->color[c]->rowcErr = child->color[c]->rowcErr;
+      objc->color[c]->colc = child->color[c]->colc;
+      objc->color[c]->colcErr = child->color[c]->colcErr;
+   }
+}
+
+
+/*****************************************************************************/
+/*
+ * Average the per-band templates.
+ *
+ * This is a bit of a pain... First set the pixels outside the detection footprint to SOFT_BIAS (not 0),
+ * then add a fraction 1/ncolor of each template to the 0th (also scaled down by 1/ncolor); this scaling
+ * avoids overflows.  Then clip the resulting mean template to the union of the input masks, and copy
+ * it back into the per-band templates.
+ */
+static void
+average_templates(OBJC *child)
+{
+    int c;
+    OBJMASK *mask = phObjmaskCopy(child->color[0]->mask, 0, 0);
+    
+    for(c = 0; c < child->ncolor;c++) {
+	OBJECT1 *obj1 = child->color[c];
+	phAtlasImageSetIfNotInObjmask(child->aimage, c, obj1->mask, SOFT_BIAS);
+
+	phAtlasImagesTimesEquals(child->aimage, c, 1/(float)child->ncolor);
+	if (c > 0) {
+	    phObjmaskOrObjmask(mask, child->color[c]->mask);
+	    phAtlasImagesPlusEquals(child->aimage, 0, child->aimage, c, 0);
+	}
+    }
+	   
+    for(c = 0; c < child->ncolor;c++) {
+	phAtlasImageSetIfNotInObjmask(child->aimage, c, mask, 0);
+	if (c > 0) {
+	    phAtlasImagesPixelsCopy(child->aimage, c, child->aimage, 0);
+	}
+    }
+
+    phObjmaskDel(mask);
 }
 
