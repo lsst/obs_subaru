@@ -1272,50 +1272,6 @@ phRegIntSetValInObjmask(REGION *reg,	/* set all pixels in this region ... */
    }
 }
 
-/***************************************************************************
- * <AUTO EXTRACT>
- *
- * Clip all the values of a region (currently only PIX) within a mask
- * to lie at or below a specified value
- *
- * The mask must be wholly enclosed within the region
- */
-void
-phRegIntClipValInObjmask(REGION *reg,	/* clip all pixels in this region ...*/
-			 const OBJMASK *om, /* within this mask... */
-			 const int drow, const int dcol, /* offset om by (drow, dcol) */
-			 const int val)	/* to lie at or below this value */
-{
-   int i, j;
-   int j0, j1;				/* range of j values in a row */
-   int nspan;				/* == om->nspan */
-   int row0, col0;			/* == reg->{row,col}0 */
-   PIX **rows, *row;			/* == reg->ROWS, reg->ROWS[] */
-   SPAN *s;				/* a span of om */
-   int y, x1, x2;			/* unpacked from s */
-
-   shAssert(reg != NULL && reg->type == TYPE_PIX);
-   rows = reg->ROWS; row0 = reg->row0 - drow; col0 = reg->col0 - dcol;
-   shAssert(om != NULL);
-   nspan = om->nspan;
-
-   for(i = 0; i < nspan; i++) {
-      s = &om->s[i];
-      y = s->y; x1 = s->x1; x2 = s->x2;
-      if(y - row0 < 0 || y - row0 >= reg->nrow) {
-	  continue;
-      }
-      row = rows[y - row0];
-      j0 = x1 - col0; j1 = x2 - row0 + 1;
-      if(j0 < 0) j0 = 0;
-      if(j1 > reg->ncol) j1 = reg->ncol;
-      for(j = j0; j < j1; j++) {
-	 if(row[j] > val) {
-	    row[j] = val;
-	 }
-      }
-   }
-}
 
 /***************************************************************************
  * <AUTO EXTRACT>

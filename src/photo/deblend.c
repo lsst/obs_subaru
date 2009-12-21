@@ -25,6 +25,41 @@ static REGION *scr1 = NULL;
 static REGION *scr2 = NULL;
 static MASK *mscr0 = NULL;
 
+static OBJMASK *
+find_maximal_objmask(const REGION *reg,	/* region that object exists in */
+		     const OBJMASK *om,	/* mask of possible pixels */
+		     int rin, int cin,	/* peak to be included */
+		     int rout, int cout, /* peak to be excluded */
+		     int low, int high,	/* range of thresholds to consider */
+		     int ngrow,	 	/* number of pixels to grow mask */
+		     int *critical)	/* critical threshold */
+	;
+
+static void
+copy_region_within_mask(REGION *out,	/* region to copy to */
+			const REGION *in, /* input region */
+			const OBJMASK *mask, /* the mask to use */
+			int drow, int dcol) /* offset to apply to mask */
+	;
+
+static OBJMASK *
+improve_template(const OBJMASK *mask,	/* OBJC's master_mask */
+		 int band,		/* which band are we processing? */
+		 int rpeak, int cpeak,	/* position of peak of object */
+		 REGION *data,		/* region specifying template */
+		 int drow,		/* offset of mask to convert to */
+		 int dcol,		/*     this band's coordinate system */
+		 REGION *scra, REGION *smoothed, /* two buffers for smoothing*/
+		 int rsize, int csize,	/* size of smoothing buffers */
+		 float sigma,		/* s.d. of smoothing filter */
+		 int filtsize,		/* size of smoothing filter */
+		 int npeak_max,         /* max number of peaks/object */
+		 ATLAS_IMAGE **smoothed_ai, /* ATLAS_IMAGE containing smoothed
+					      templates */
+		 int threshold,		/* object finding threshold */
+		 int ngrow)		/* how far to grow objects */
+	;
+
 void
 phObjcCenterCalc(OBJC *objc,		/* the object in question */
 		 const FIELDPARAMS *fparams, /* properties of field */
@@ -806,10 +841,6 @@ phObjcDeblend(OBJC *objc,		/* object to deblend */
       }
    }
 
-   printf("Bailing out of deblending...\n");
-
-#if defined(NOPE)
-
 
 /*
  * Dump a region for debugging?
@@ -823,6 +854,7 @@ phObjcDeblend(OBJC *objc,		/* object to deblend */
 	   dump_filename = NULL;
        }
    }
+
 /*
  * we need a copy of the pixel values in the object after we subtracted
  * all objects deemed to be PSFs. The resulting subtracted image is used
@@ -862,6 +894,12 @@ phObjcDeblend(OBJC *objc,		/* object to deblend */
 	 return(-1);
       }
    }
+
+   printf("Bailing out of deblending...\n");
+
+#if defined(NOPE)
+
+
 /*
  * We've got all the templates, so it's time to reconsider some of those
  * choices of DEBLENDED_AS_PSF.  In particular, if we created a PSF
@@ -2409,3 +2447,841 @@ phObjcDeblendMovingChild(OBJC *objc,	/* OBJC to deblend */
 
    return(0);
 }
+
+
+
+/*****************************************************************************/
+/*
+ * Find an object's deblend template.
+ *
+ * It's stored in the OBJC's ATLAS_IMAGE, as there exists convenient code
+ * to do so. While this routine is running, however, the template is
+ * accumulated in a scratch region (sym), and then within the parent
+ * data region. The original pixels are preserved in the parent's
+ * atlas image structure, so this is OK.
+ *
+ * N.b. The amplitude of the PSF fit is in objc->color[c]->profMean[0],
+ * the value of the template at the original peak is in profMean[1],
+ * the maximum value of the template is in profMean[2], and the amplitude
+ * of the pedestal in profMean[3]
+ */
+#define DONT_USE_SUBTRACTED 0		/* don't use PSF-subtracted pixels */
+#define MISSING_TEMPLATES_ARE_PSF 0	/* objects with no template are
+					   taken to be PSFs */
+
+static int
+deblend_template_find(OBJC *objc,	/* the OBJC in question */
+		      OBJMASK **psfmasks, /* masks for pixels in PSFs */
+		      const FIELDPARAMS *fiparams, /* gain etc. */
+		      ATLAS_IMAGE **smoothed_ai, /* ATLAS_IMAGE containing
+						   smoothed templates */
+		      int filtsize,	/* size of smoothing filter */
+		      int ngrow)	/* how many pixels to grow objects */
+{
+   int aimage_drow, aimage_dcol;	/* ==objc->parent->aimage->d{row,col}*/
+   int bias;				/* bias in sky level */
+   int bkgd;				/* == bkgd from fiparams + SOFT_BIAS */
+   int c;				/* counter in colour */
+   int cmin, rmin;			/* origin of master_mask, as corrected
+					   by aimage->d{row,col}[] */
+   int csize, rsize;			/* size of master_mask's BBox */
+   REGION *data;			/* fiparams->frame[].data */
+   int i;
+   OBJMASK *mmask;			/* objc->parent->aimage->master_mask */
+   int my, mx1, mx2;			/* mirrored values of y, x2, x1 */
+   int nrow = 0, ncol = 0;		/* == data->n{row,col} */
+   int npeak_max = 10;			/* max number of peaks per object */
+   OBJECT1 *obj1;			/* == objc->color[c] */
+   MASK *psfmask;			/* MASK equiv to psfmasks[c] */
+#if DONT_USE_SUBTRACTED
+   unsigned char *psfrow, *mpsfrow;	/* psfmask->rows[] and its mirror */
+#endif
+   PIX *row, *mrow;			/* data[]->ROWS[] and its mirror */
+   int rowc, colc;			/* centre of object */
+   int ncolor;				/* == objc->ncolor */
+   REGION *scra, *scrb;			/* two buffers for smoothing */
+   PIX *srow;				/* sym->ROWS[] */
+   REGION *sym;				/* symmetrised object */
+   int template_max;			/* maximum allowed value of template */
+   PIX val, mval;			/* data[]->ROWS[][] and its mirror */
+   PIX tval;				/* value of template */
+   int x, mx;				/* column counters */
+   int y, x1, x2;			/* unpacked from mmask->s[] */
+
+   shAssert(scr0 != NULL && scr1 != NULL && mscr0 != NULL);
+   shAssert(fiparams != NULL);
+   shAssert(objc->parent != NULL && objc->parent->aimage != NULL);
+   shAssert(smoothed_ai != NULL);
+   ncolor = objc->ncolor;
+   mmask = objc->parent->aimage->master_mask;
+   shAssert(mmask != NULL);
+/*
+ * set up the buffers for smoothing the initial estimates of the deblended
+ * children
+ */
+   rsize = (mmask->rmax - mmask->rmin + 1);
+   csize = (mmask->cmax - mmask->cmin + 1);
+   
+   if(rsize + filtsize > scr0->nrow || csize + filtsize > scr0->ncol ||
+      (fiparams->deblend_npix_max > 0 && mmask->npix > fiparams->deblend_npix_max)) {
+      objc->parent->flags |= OBJECT1_TOO_LARGE;	/* too large to process */
+      return(-1);
+   } 
+/*
+ * if the object hangs over the edge of the data region in any band,
+ * give up now
+ */
+   for(c = 0;c < ncolor;c++) {
+      if(c == 0) {
+	 nrow = fiparams->frame[c].data->nrow;
+	 ncol = fiparams->frame[c].data->ncol;
+      } else {
+	 shAssert(nrow == fiparams->frame[c].data->nrow);
+	 shAssert(ncol == fiparams->frame[c].data->ncol);
+      }
+
+      cmin = mmask->cmin + objc->parent->aimage->dcol[c];
+      rmin = mmask->rmin + objc->parent->aimage->drow[c];
+      if(rmin < filtsize/2 + 1 || rmin + rsize - 1 + filtsize/2 + 1 >= nrow ||
+	 cmin < filtsize/2 + 1 || cmin + csize - 1 + filtsize/2 + 1 >= ncol) {
+	 objc->parent->flags |= OBJECT1_EDGE;
+	 if(objc->parent->flags2 & OBJECT2_DEBLENDED_AT_EDGE) {
+	    objc->parent->flags2 &= ~OBJECT2_DEBLENDED_AT_EDGE; /* it wasn't */
+	 }
+	 return(-1);
+      }
+   }
+/*
+ * create scratch buffers, and a region into which we symmetrise the
+ * original data.
+ *
+ * We also need an atlas image in which to save the smoothed template,
+ * so make that now
+ */
+   scra = shSubRegNew("scra", scr0, rsize + filtsize, csize + filtsize,
+		      0, 0, NO_FLAGS);
+   scrb = shSubRegNew("scrb", scr1, rsize + filtsize, csize + filtsize,
+		      0, 0, NO_FLAGS);
+   sym = shSubRegNew("symmetrised", scra, rsize, csize, 0, 0, NO_FLAGS);
+   psfmask = shSubMaskNew("psfmask", mscr0, rsize, csize, 0, 0, NO_FLAGS);
+   
+   if(*smoothed_ai != NULL) {
+      phAtlasImageDel(*smoothed_ai, 0);
+      for(c = 0; c < ncolor; c++) {
+	 phObjmaskDel(objc->aimage->mask[c]);
+	 phObjmaskDel(objc->color[c]->mask);
+	 objc->aimage->mask[c] = objc->color[c]->mask = NULL;
+      }
+   }
+
+   *smoothed_ai = phAtlasImageCopy(objc->parent->aimage, 0);
+/*
+ * now go through each colour and construct the first estimate of the
+ * deblended image, based on the minimum value of pairs of pixels (unless
+ * we think that it is a PSF, in which case use that)
+ *
+ * If it wasn't detected in this band (i.e. there was no peak), don't generate
+ * a template here. We'll deal with missing templates later.
+ */
+   for(c = 0;c < ncolor;c++) {
+      if(!(objc->color[c]->flags & OBJECT1_DETECTED)) {
+	 continue;
+      }
+      
+      data = (REGION *)fiparams->frame[c].data;
+
+      bkgd = fiparams->frame[c].bkgd + SOFT_BIAS;
+      {
+	  shAssert(objc->color[c] != NULL);
+	  const float gain = phGain(&fiparams->frame[c], objc->color[c]->rowc, objc->color[c]->colc);
+	  const float dark_variance = phDarkVariance(&fiparams->frame[c], objc->color[c]->rowc, objc->color[c]->colc);
+	  bias =				/* n.b. bias is -ve, hence "- 0.5" */
+	      MIN_2N_BIAS*sqrt(objc->parent->color[c]->sky/gain + dark_variance) - 0.5;
+      }
+      shRegIntSetVal(sym, bkgd);
+
+      aimage_drow = objc->parent->aimage->drow[c];
+      aimage_dcol = objc->parent->aimage->dcol[c];
+      cmin = mmask->cmin + aimage_dcol;
+      rmin = mmask->rmin + aimage_drow;
+/*
+ * unpack OBJMASK psfmasks[c] bits into MASK psfmask, as it's simpler
+ * than using the OBJMASK directly
+ */
+      psfmask->row0 = rmin; psfmask->col0 = cmin;
+      shMaskClear(psfmask);
+      phMaskSetFromObjmask(psfmasks[c], psfmask, 1);
+	   
+/*
+ * Find which pixel that peak lies in, so (40.6, 40.5) --> (40, 40)
+ * (adding 0.5 and truncating is the wrong thing to do)
+ */
+      rowc = objc->color[c]->rowc;
+      colc = objc->color[c]->colc;
+/*
+ * done with checks and unpacking. To work.
+ *
+ * If the object is consistent with being a PSF use a PSF as the template,
+ * otherwise use the minimum-of-pixel-pair method.
+ *
+ * Set the amplitude of the PSF to a bit more than the expected deblended
+ * amplitude, so that the best-fit coeffs will be of order unity, but
+ * truncation errors in the template won't be too bad
+ */
+      if(objc->color[c]->flags & OBJECT1_DEBLENDED_AS_PSF) {
+	 int rad;			/* radius to mask */
+
+	 i = rowc - rmin;
+	 if(rowc < rmin) {		/* something's rotten in the state
+					   of the astrometry */
+	    i = 0;
+	 } else if(rowc >= rmin + rsize) { /* something's wrong here too */
+	    i = rsize - 1;
+	 }
+	 row = sym->ROWS[i];
+
+	 template_max = objc->color[c]->profMean[0] + 100;
+	 objc->color[c]->profMean[2] = template_max;
+
+	 rad = 0.5*((rsize < csize) ? rsize : csize);
+	 if(rowc - rmin <= 0 || rowc - rmin >= sym->nrow - 1 ||
+	    colc - cmin <= 0 || colc - cmin >= sym->ncol - 1) {
+	    objc->parent->flags2 |= OBJECT2_CENTER_OFF_AIMAGE;
+	    objc->parent->color[c]->flags2 |= OBJECT2_CENTER_OFF_AIMAGE;
+	    objc->flags &= ~OBJECT1_DETECTED; /* it'll be deleted later */
+
+	    shMaskDel(psfmask);
+	    phAtlasImageDel(*smoothed_ai, 0); *smoothed_ai = NULL;
+	    shRegDel(scra);
+	    shRegDel(scrb);
+	    shRegDel(sym);
+	    
+	    return(0);
+	 }
+
+	 phDgpsfAdd(sym, fiparams->frame[c].psf, rad,
+		    rowc - rmin, colc - cmin, template_max);
+	 
+	 if(objc->color[c]->mask != NULL) {
+	    phObjmaskDel(objc->color[c]->mask);
+	 }
+
+	 rad = phDgpsfSize(fiparams->frame[c].psf, template_max, 1);
+	 objc->color[c]->mask = phObjmaskFromCircle(rowc, colc, rad);
+	 template_max += SOFT_BIAS;
+      } else {				/* not a PSF; symmetrise image */
+	 template_max = objc->color[c]->profMean[2]; /* max. val. of template*/
+	 template_max += SOFT_BIAS;
+
+	 for(i = 0;i < mmask->nspan;i++) {
+	    y = mmask->s[i].y + aimage_drow;
+	    x1 = mmask->s[i].x1 + aimage_dcol;
+	    x2 = mmask->s[i].x2 + aimage_dcol;
+	    if(y < 0 || y >= nrow) {
+	       continue;
+	    }
+	    if(x1 < 0) x1 = 0;
+	    if(x2 >= ncol) x2 = ncol - 1;
+	    
+	    my = rowc + (rowc - y);
+	    mx1 = colc + (colc - x2); mx2 = colc + (colc - x1); /* mx1 <= mx2*/
+/*
+ * check if the mirrored span lies outside mmask's bounding box; if so, leave
+ * sym at the background level
+ */
+	    if(my < rmin || my >= rmin + rsize ||
+	       mx2 < cmin || mx1 >= cmin + csize) {
+	       continue;
+	    }
+	    
+	    if(mx1 < cmin) {		/* partially outside psfmask */
+	       mx1 = cmin;
+	       x2 = colc - (mx1 - colc);
+	    }
+	    if(mx2 >= cmin + csize) {	/* partially outside psfmask */
+	       mx2 = cmin + csize - 1;
+	       x1 = colc - (mx2 - colc);
+	    }
+/*
+ * OK, everything's in range. Time to take the minimum of the pixel and
+ * its mirror. The minimum of two N(0,1) variates is biased by MIN_2N_BIAS,
+ * so correct for this effect in the sky level.
+ */
+	    shAssert(y - rmin >= 0 && y - rmin < rsize);
+	    shAssert(y >= 0 && y < nrow && my >= 0 && my < nrow);
+	    row = data->ROWS[y];
+	    mrow = data->ROWS[my];
+#if DONT_USE_SUBTRACTED			/* don't use PSF-subtracted pixels */
+	    psfrow = psfmask->rows[y - rmin];
+	    mpsfrow = psfmask->rows[my - rmin];
+#endif
+	    srow = sym->ROWS[y - rmin];
+	    for(x = x1, mx = mx2;x <= x2;x++, mx--) {
+	       shAssert(x - cmin >= 0 && x - cmin < csize);
+	       shAssert(x >= 0 && x < ncol && mx >= cmin && mx < cmin + csize);
+	       val = row[x];
+	       mval = mrow[mx];
+#if DONT_USE_SUBTRACTED			/* don't use PSF-subtracted pixels */
+	       if(psfrow[x - cmin] != 0) { /* pixel is part of a PSF object */
+		  if(mpsfrow[mx - cmin] != 0) {	/* so is mirror pixel */
+		     tval = 0.5*(val + mval);
+		  } else {
+		     tval = mval;
+		  }
+	       } else if(mpsfrow[mx - cmin] != 0) {
+		  tval = val;
+	       } else {
+		  tval = (val < mval ? val : mval) - bias;
+	       }
+#else
+	       tval = (val < mval ? val : mval) - bias;
+#endif
+#if 0
+	       srow[x - cmin] = (tval < template_max) ? tval : template_max;
+#else
+	       srow[x - cmin] = tval;
+#endif
+	    }
+	 }
+      }
+/*
+ * copy the symmetrised image back to the original data region, where
+ * it will become the deblending template (the original pixel values
+ * are preserved in the parent's atlas image).
+ *
+ * We must of course only do this within the master_mask
+ */
+      copy_region_within_mask((REGION *)data, sym, mmask,
+						     aimage_drow, aimage_dcol);
+/*
+ * Possibly dump image for debugging
+ */
+      {
+	  static char *dump_filename = NULL; /* write data to this file?
+						For use from gdb */
+	  if(dump_filename != NULL) {
+	      shRegWriteAsFits(data,
+			       dump_filename, STANDARD, 2,DEF_NONE,NULL,0);
+	      dump_filename = NULL;
+	  }
+      }
+/*
+ * we next want to run the object finder on that symmetrised image; the image
+ * is smoothed, and extra peaks rejected --- see improve_template() for details
+ */
+      obj1 = objc->color[c];
+      if(obj1->flags & OBJECT1_DEBLENDED_AS_PSF) {
+/*
+ * no need to check template, as we created it as a multiple of PSF
+ */
+      } else {
+	 float sigma = 4*fiparams->frame[c].smooth_sigma; /* smoothing sigma XXX multiplier */
+	 float threshold = fiparams->frame[c].ffo_threshold; /* XXX Reconsider this threshold */
+	 if (sigma != 0.0) {
+	     threshold /= sigma;
+	 }
+
+	 shAssert(obj1->mask == objc->aimage->mask[c]);
+	 phObjmaskDel(obj1->mask); objc->aimage->mask[c] = NULL;
+	 obj1->mask = 
+	   improve_template(mmask, c, rowc,colc, data, aimage_drow,aimage_dcol,
+			    scra, scrb, rsize + filtsize, csize + filtsize,
+			    sigma, filtsize, npeak_max, smoothed_ai, threshold, ngrow);
+
+	 if(obj1->mask == NULL) {
+	    objc->flags &= ~OBJECT1_DETECTED;
+	    obj1->flags &= ~OBJECT1_DETECTED;
+	 }
+      }
+   }
+/*
+ * Possibly dump image for debugging
+ */
+   for(c = 0; c < ncolor; c++) {
+       static char *dump_filename = NULL; /* write data to this file?
+					     For use from gdb */
+       if(dump_filename != NULL) {
+	   shRegWriteAsFits((REGION *)fiparams->frame[c].data,
+			    dump_filename, STANDARD, 2,DEF_NONE,NULL,0);
+	   dump_filename = NULL;
+       }
+   }
+/*
+ * we've found the templates in all colours. They are represented by the
+ * pixels in the original data region, within the OBJECT1->mask
+ *
+ * Now go through them looking for objects which we didn't detect
+ * in any band; in this case, the object wouldn't have been found at all
+ * if it wasn't part of a blend, so dump it.
+ *
+ * Actually we cannot just dump it here as we've got an array with all the
+ * children in it, and we'd have to move the others down. Instead, mark
+ * the entire OBJC as not DETECTED, and we'll dump it when we get a chance.
+ */
+   for(c = 0;c < ncolor;c++) {
+      objc->flags |= (objc->color[c]->flags & OBJECT1_DETECTED);
+   }
+   if(phStrategicMemoryReserveIsEmpty() ||
+      !(objc->flags & OBJECT1_DETECTED)) { /* not detected in any band */
+      phAtlasImageDel(*smoothed_ai, 0); *smoothed_ai = NULL;
+      shRegDel(scra);
+      shRegDel(scrb);
+      shRegDel(sym);
+      shMaskDel(psfmask);
+
+      return(0);
+   }
+#if MISSING_TEMPLATES_ARE_PSF == 1
+/*
+ * create minimal templates in the bands where we failed to detect
+ * the object; we need these to define the deblended objects, and
+ * to cut atlas images. See note above call to copy_region_within_mask()
+ * as to why it's OK to cast away the const for fiparams->frame[c].data
+ */
+   for(c = 0;c < ncolor;c++) {
+      obj1 = objc->color[c];
+
+      if(!phStrategicMemoryReserveIsEmpty() && obj1->mask == NULL) {
+	 obj1->mask = phObjmaskFromCircle(obj1->rowc, obj1->colc, 2 + ngrow);
+	 obj1->flags |= OBJECT1_DEBLENDED_AS_PSF;
+	 phRegIntSetValInObjmask((REGION *)fiparams->frame[c].data,
+				 obj1->mask, bkgd);
+	 phDgpsfAdd((REGION *)fiparams->frame[c].data, fiparams->frame[c].psf,
+		    0.5*((rsize < csize) ? rsize : csize),
+		    obj1->rowc, obj1->colc, 100);
+      }
+   }
+#endif
+/*
+ * Time to cut an "atlas image"; it's actually the templates in each band
+ */
+   phAtlasImageCut(objc, -1, fiparams, -1, -1, NULL);
+
+#if MISSING_TEMPLATES_ARE_PSF == 0
+/*
+ * We may not have templates in some bands; go ahead and make them from the
+ * average of the bands where we _do_ have them
+ */
+   for(c = 0;c < ncolor;c++) {
+      if(objc->color[c]->mask == NULL) {
+	 break;
+      }
+   }
+
+   if(!phStrategicMemoryReserveIsEmpty() && c != ncolor) { /* at least one missing template */
+      const int missing0 = c;		/* first missing template */
+      int ngood = 0;			/* number of good templates */
+      OBJMASK *uni = NULL;		/* union of all non-NULL obj1->masks,
+					   in canonical coordinates */
+      
+      phAtlasImageConstSet(objc->aimage, missing0, SOFT_BIAS);
+      
+      for(c = 0;c < ncolor;c++) {
+	 if(objc->color[c]->mask != NULL) {
+	    ngood++;
+
+	    uni = phObjmaskMerge(uni, objc->color[c]->mask, 
+				 -objc->parent->aimage->drow[c],
+				 -objc->parent->aimage->dcol[c]);
+	    
+
+	    phAtlasImagesPlusEquals(objc->aimage, missing0, objc->aimage, c, 0);
+	 }
+      }
+/*
+ * subtract bias from templates. They are scaled up by a factor of ngood,
+ * but that doesn't really matter (their fitted amplitudes will be smaller)
+ */
+      phAtlasImageConstAdd(objc->aimage, missing0, -SOFT_BIAS*ngood, 0);
+/*
+ * Generate the correct masks in each missing band and copy over the
+ * average template
+ */
+      shAssert(uni != NULL);
+      (void)phObjmaskAndObjmask(uni, objc->parent->aimage->master_mask);
+
+      for(c = missing0; c < ncolor; c++) {
+	 if(objc->color[c]->mask == NULL) {
+	    objc->color[c]->mask =
+	      phObjmaskCopy(uni, objc->parent->aimage->drow[c],
+			         objc->parent->aimage->dcol[c]);
+
+	    phAtlasImagesPixelsCopy(objc->aimage, c, objc->aimage, missing0);
+	 }
+      }
+
+      phObjmaskDel(uni);
+   }
+#endif
+/*
+ * Did we give up?
+ */
+   if(phStrategicMemoryReserveIsEmpty()) {
+       shRegDel(scra);
+       shRegDel(scrb);
+       shRegDel(sym);
+       shMaskDel(psfmask);
+       
+       return(-1);
+   }
+/*
+ * We need smoothed templates too, even for DEBLENDED_AS_PSF objects.
+ * The unsmoothed one is noise-free, so we don't really need to smooth,
+ * and it's simpler not to bother
+ */
+   for(c = 0;c < ncolor;c++) {
+      if(objc->color[c]->flags & OBJECT1_DEBLENDED_AS_PSF) {
+	  phAtlasImagesPixelsCopy(*smoothed_ai, c, objc->aimage, c);
+      }
+   }
+/*
+ * Remove the background from the templates (we leave in the SOFT_BIAS)
+ */
+   for(c = 0;c < ncolor;c++) {
+      phAtlasImageConstAdd(objc->aimage, c, -fiparams->frame[c].bkgd, 0);
+      phAtlasImageConstAdd(*smoothed_ai, c, -fiparams->frame[c].bkgd, 0);
+   }   
+/*
+ * Set the parts of the template that aren't in obj1->mask to 0
+ */      
+   for(c = 0;c < ncolor;c++) {
+      obj1 = objc->color[c];
+
+      phAtlasImageSetIfNotInObjmask(objc->aimage, c, obj1->mask, 0);
+
+      phAtlasImageSetIfNotInObjmask(*smoothed_ai, c, obj1->mask, 0);
+   }
+/*
+ * and clean up
+ */
+   shRegDel(scra);
+   shRegDel(scrb);
+   shRegDel(sym);
+   shMaskDel(psfmask);
+
+   return(0);				/* OK */
+}
+
+
+
+/*****************************************************************************/
+/*
+ * return a better estimate of a deblending template. The template is
+ * specified as the values of the data region, within the master_mask
+ *
+ * We pass in the scratch buffers purely for efficiency; that way we
+ * can allocate them once per object rather than once per colour
+ *
+ * If no template is detected after smoothing, return NULL. Otherwise
+ * return the mask of pixels in the template
+ */
+static OBJMASK *
+improve_template(const OBJMASK *mask,	/* OBJC's master_mask */
+		 int band,		/* which band are we processing? */
+		 int rpeak, int cpeak,	/* position of peak of object */
+		 REGION *data,		/* region specifying template */
+		 int drow,		/* offset of mask to convert to */
+		 int dcol,		/*     this band's coordinate system */
+		 REGION *scra, REGION *smoothed, /* two buffers for smoothing*/
+		 int rsize, int csize,	/* size of smoothing buffers */
+		 float sigma,		/* s.d. of smoothing filter */
+		 int filtsize,		/* size of smoothing filter */
+		 int npeak_max,         /* max number of peaks/object */
+		 ATLAS_IMAGE **smoothed_ai, /* ATLAS_IMAGE containing smoothed
+					      templates */
+		 int threshold,		/* object finding threshold */
+		 int ngrow)		/* how far to grow objects */
+{
+   int i;
+   unsigned short levels[1];		/* thresholds for object finder */
+   int nobj;				/* number of objects detected */
+   CHAIN *objs;				/* all objects in mask above levels */
+   OBJECT *obj = NULL;			/* an object on the objs list */
+   OBJMASK *objmask;			/* OBJMASK of desired object */
+   int r0, c0;				/* origin of subdata in data */
+   REGION *subdata;			/* subregion around peak */
+   
+   c0 = mask->cmin + dcol - filtsize/2;
+   r0 = mask->rmin + drow - filtsize/2;
+   shAssert(r0 >= 0 && r0 + rsize - 1 < data->nrow);
+   shAssert(c0 >= 0 && c0 + csize - 1 < data->ncol);
+/*
+ * smooth the input data. Note that we don't own smoothed, so no memory
+ * leak is occuring when we set it to a subregion of itself
+ */
+   subdata = shSubRegNew("", data, rsize, csize, r0, c0, NO_FLAGS);
+   if(sigma <= 0) {
+      smoothed = (REGION *)subdata;
+   } else {
+      phConvolveWithGaussian(smoothed, subdata, scra, filtsize, sigma,
+			     0, CONVOLVE_ANY);
+   }
+   smoothed = shSubRegNew("", smoothed, rsize - filtsize, csize - filtsize,
+			  filtsize/2, filtsize/2, NO_FLAGS);
+   smoothed->row0 = mask->rmin; smoothed->col0 = mask->cmin;
+/*
+ * save the smoothed image in an atlas image of its own. We'll use this
+ * for assigning the light in pixels with very low S/N per pixel
+ */
+   {
+      const int s_drow = (*smoothed_ai)->drow[band];
+      const int s_dcol = (*smoothed_ai)->dcol[band];
+
+      (*smoothed_ai)->drow[band] = (*smoothed_ai)->dcol[band] = 0;
+      phAtlasImageSetFromRegion(*smoothed_ai, band, smoothed);
+      (*smoothed_ai)->drow[band] = s_drow; (*smoothed_ai)->dcol[band] = s_dcol;
+   }
+/*
+ * set a suitable set of thresholds
+ */
+   levels[0] = SOFT_BIAS + threshold;
+/*
+ * now look for objects. Note that the mask is the object's master_mask,
+ * and is therefore in canonical coordinates. We faked the origin of
+ * smoothed to allow for this, but as a consequence the detected objects
+ * are also in the canonical coordinate system. For simplicity, we'll
+ * convert cpeak and rpeak too
+ */
+   rpeak -= drow; cpeak -= dcol;
+
+   objs = phObjectsFindInObjmask(smoothed, mask, 1, levels, -1, 0, 100*npeak_max); /* XXX 100 */
+   shAssert(objs != NULL);
+   nobj = objs->nElements;
+/*
+ * Dump a region for debugging?
+ */
+   {
+       static char *dump_filename = NULL; /* write data to this file?
+					     For use from gdb */
+       if(dump_filename != NULL) {
+	   shRegWriteAsFits(smoothed,
+			    dump_filename, STANDARD, 2,DEF_NONE,NULL,0);
+	   dump_filename = NULL;
+       }
+   }
+/*
+ * Look for the peak that led to this template
+ */
+   for(i = 0;i < nobj;i++) {
+      obj = shChainElementRemByPos(objs,HEAD);
+/*
+ * is this our object, that is, does it contain our peak?
+ */
+      if(phPixIntersectObjmask(obj->sv[0], cpeak, rpeak)) {
+	 i++;
+	 break;
+      }
+      phObjectDel(obj); obj = NULL;
+   }
+   for(;i < nobj;i++) {			/* destroy all unwanted objects */
+      phObjectDel(shChainElementRemByPos(objs, HEAD));
+   }
+   shChainDel(objs);
+/*
+ * Correct the peaks for smoothed's origin ; this should really be done by
+ * phObjectsFindInObjmask()
+ */
+   if(obj != NULL) {
+      for(i = 0; i < obj->peaks->npeak; i++) {
+	 obj->peaks->peaks[i]->rpeak += smoothed->row0;
+	 obj->peaks->peaks[i]->rowc += smoothed->row0;
+	 obj->peaks->peaks[i]->cpeak += smoothed->col0;
+	 obj->peaks->peaks[i]->colc += smoothed->col0;
+      }
+   }
+/*
+ * process our object. We found it with a variety of different thresholds,
+ * and in general the higher detection thresholds will lead to non-simply-
+ * -connected OBJMASKs. If this is the case (i.e. if it has more than one
+ * peak) we now remove the non-connected parts from the template.
+ */
+   if(obj == NULL) {
+      objmask = NULL;
+   } else {
+      OBJMASK *clipped = phObjmaskNew(0); /* which pixels have been clipped */
+      int critical = 0;			/* critical threshold to split peaks */
+      OBJMASK *max_mask;		/* maximal mask including a peak,
+					   but excluding main peak */
+      PEAK *peak;			/* a peak in the object */
+
+      if(obj->peaks->npeak > 1) {
+	 for(i = 0; i < obj->peaks->npeak; i++) {
+	    peak = obj->peaks->peaks[i];
+/*
+ * find the lowest threshold that includes peak->[cr]peak but not [cr]peak.
+ */
+	    max_mask = find_maximal_objmask(smoothed, obj->sv[0],
+					    peak->rpeak, peak->cpeak,
+					    rpeak, cpeak,
+					    SOFT_BIAS, SOFT_BIAS + peak->peak,
+					    ngrow, &critical);
+#if 0
+	    if(max_mask != NULL && max_mask->npix > 2) { /* XXX */
+	       phObjmaskAndNotObjmask(max_mask, clipped);
+	       phRegIntClipValInObjmask(data, max_mask, 0, 0, critical);
+	       phRegIntClipValInObjmask(data, max_mask, 0, 0, SOFT_BIAS);
+	       phObjmaskOrObjmask(clipped, max_mask);
+	    }
+#else
+	    if(max_mask != NULL && max_mask->nspan > 0) {
+	       OBJMASK *grown = phObjmaskGrow(max_mask, smoothed, ngrow);
+	       phObjmaskAndNotObjmask(grown, clipped);
+	       phRegIntClipValInObjmask(data, grown, 0, 0, critical);
+	       phObjmaskOrObjmask(clipped, grown);
+	       phObjmaskDel(grown);
+	    }
+#endif
+	    phObjmaskDel(max_mask);	/* may be NULL */
+	 }
+      }
+      phObjmaskDel(clipped);
+/*
+ * grow the original mask, and convert to object's coordinate system
+ */
+      {
+	  OBJMASK *grown = phObjmaskGrow(obj->sv[0], smoothed, ngrow);
+	  objmask = phObjmaskCopy(grown, drow, dcol);
+	  phObjmaskDel(grown);
+      }
+
+      phObjectDel(obj);
+   }
+/*
+ * clean up
+ */
+   shRegDel(subdata);
+   if(smoothed != data) {
+      shRegDel(smoothed);
+   }
+   
+   return(objmask);
+}
+
+/*****************************************************************************/
+/*
+ * Find the largest objmask that _excludes_ the point (rout, cout)
+ * but _includes_ (rin, cin) in the mask om
+ */
+static OBJMASK *
+find_maximal_objmask(const REGION *reg,	/* region that object exists in */
+		     const OBJMASK *om,	/* mask of possible pixels */
+		     int rin, int cin,	/* peak to be included */
+		     int rout, int cout, /* peak to be excluded */
+		     int low, int high,	/* range of thresholds to consider */
+		     int ngrow,	 	/* number of pixels to grow mask */
+		     int *critical)	/* critical threshold */
+{
+   OBJMASK *highmask = NULL;		/* mask corresponding to level high */
+   int mid;				/* intermediate threshold */
+   const OBJMASK *mask = om;		/* desired mask */
+   OBJMASK *midmask = NULL;		/* mask corresponding to level mid */
+/*
+ * find critical threshold by binary search
+ */
+   for(;;) {
+      mid = (low + high)/2;
+      if(mid == low) {			/* got it */
+	 break;
+      }
+
+      midmask = phObjmaskFindInObjmask(reg, mask, rin, cin, mid);
+      if(midmask == NULL) {
+	 high = mid;
+      } else {
+	 if(phPixIntersectObjmask(midmask, cout, rout)) {
+	    low = mid;
+	    if(mask != om) {
+	       phObjmaskDel((OBJMASK *)mask);
+	    }
+	    mask = midmask; midmask = NULL;
+	 } else {
+	    high = mid;
+	    phObjmaskDel(highmask);
+	    highmask = midmask; midmask = NULL;
+	 }
+      }
+   }
+   phObjmaskDel(midmask);
+/*
+ * find the mask that didn't _quite_ contain both peaks. If highmask is
+ * NULL it must because the original high threshold was never used, so
+ * use it now and see if it includes (rout, cout)
+ */
+   if(highmask == NULL) {
+      if(high == low) high++;
+      
+      highmask = phObjmaskFindInObjmask(reg, mask, rin, cin, high);
+      if(highmask != NULL && phPixIntersectObjmask(highmask, cout, rout)) {
+	 phObjmaskDel(highmask);
+	 highmask = NULL;
+      }
+   }
+   shAssert(highmask == NULL || !phPixIntersectObjmask(highmask,cout,rout));
+#if 1
+/*
+ * grow highmask, but not into object containing (rout, cout)
+ */
+   if(ngrow > 0 && highmask != NULL && highmask->npix > 2) { /* npix XXX */
+       OBJMASK *grown = phObjmaskGrow(highmask, reg, ngrow);
+       OBJMASK *out_mask;	 /* pixels above critical containing (rout, cout) */
+       phObjmaskDel(highmask);
+       out_mask = phObjmaskFindInObjmask(reg, mask, rout, cout,
+					 SOFT_BIAS + 4*(*critical - SOFT_BIAS));
+       if(out_mask != NULL) {	 /* grow object containing desired peak, (rout,cout) */
+	   OBJMASK *gout_mask = phObjmaskGrow(out_mask, reg, ngrow);
+	   phObjmaskDel(out_mask);
+	   out_mask = gout_mask;
+       }
+       highmask = phObjmaskAndNotObjmask(grown, out_mask);
+       phObjmaskDel(out_mask);
+   }
+#endif
+/*
+ * clean up
+ */
+   if(mask != om) {
+      phObjmaskDel((OBJMASK *)mask);
+   }
+/*
+ * return desired mask and threshold
+ */
+   if(critical != NULL) {
+      *critical = mid;
+   }
+
+   return(highmask);
+}
+
+/*****************************************************************************/
+/*
+ * copy the pixels in <in> to <out> within the <mask>
+ *
+ * The region <in> is supposed to have its origin at the point (rmin,cmin)
+ */
+static void
+copy_region_within_mask(REGION *out,	/* region to copy to */
+			const REGION *in, /* input region */
+			const OBJMASK *mask, /* the mask to use */
+			int drow, int dcol) /* offset to apply to mask */
+{
+   int i;
+   const int nrow = out->nrow;
+   const int ncol = out->ncol;
+   const int cmin = mask->cmin + dcol;
+   const int rmin = mask->rmin + drow;
+   int x1, x2, y;			/* unpacked from a span */
+   
+   for(i = 0;i < mask->nspan;i++) {
+      y = mask->s[i].y + drow;
+      x1 = mask->s[i].x1 + dcol; x2 = mask->s[i].x2 + dcol;
+      if(y < 0 || y >= nrow) {
+	 continue;
+      }
+      if(x1 < 0) x1 = 0;
+      if(x2 >= ncol) x2 = ncol - 1;
+      
+      memcpy(&out->ROWS[y][x1], &in->ROWS[y - rmin][x1 - cmin],
+						    (x2 - x1 + 1)*sizeof(PIX));
+   }
+}
+

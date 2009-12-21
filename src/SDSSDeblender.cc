@@ -122,6 +122,7 @@ deblender::SDSSDeblender<ImageT>::deblend(std::vector<typename ImageT::Ptr> &ima
                  }
              }
 
+             fp->frame[i].psf = photo::phDgpsfNew();
          }
          fp->deblend_psf_Lmin = 0;
          
