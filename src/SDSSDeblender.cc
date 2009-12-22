@@ -17,11 +17,8 @@ extern "C" {
 #include "phSpanUtil.h"
 #include "region.h"
 #include "phObjc_p.h"
-
-int
-phObjcMakeChildrenFake(OBJC *objc,		/* give this OBJC a family */
-					   const FIELDPARAMS *fiparams) /* misc. parameters */
-    ;
+#include "phFake.h"
+#include "phDgpsf.h"
 }
 }}}}
 
@@ -50,6 +47,7 @@ deblender::SDSSDeblender<ImageT>::deblend(std::vector<typename ImageT::Ptr> &ima
 
     // Photo init.
     photo::initSpanObjmask();
+    photo::phInitProfileExtract();
 
     photo::OBJC* objc = photo::phObjcNew(images.size());
     photo::FIELDPARAMS* fp = photo::phFieldparamsNew(filters);
@@ -136,8 +134,18 @@ deblender::SDSSDeblender<ImageT>::deblend(std::vector<typename ImageT::Ptr> &ima
                  }
              }
              fp->frame[i].psf = photo::phDgpsfNew();
+             ((photo::DGPSF*)fp->frame[i].psf)->width = 1.0;
+             std::printf("  set psf.width to %g (arcsec FWHM)\n", fp->frame[i].psf->width);
          }
-         fp->deblend_psf_Lmin = 0;
+              /* from fpParam.par: */
+              fp->deblend_min_peak_spacing = 2;
+          fp->deblend_psf_Lmin = 2;
+          fp->deblend_psf_nann = 3;
+          fp->deblend_psf_rad_max = 12;
+          fp->deblend_npix_max = 0;
+          fp->deblend_inner_max	= 0.5;
+
+
          
 
          std::printf("fp->ncolor %i\n", fp->ncolor);

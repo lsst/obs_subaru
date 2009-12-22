@@ -67,9 +67,9 @@ static float model_ampErr;		/* error in amplitude */
 static float model_phiErr;		/* error in position angle */
 
 static float rsize_min, rsize_max;	/* extremal values of rsize for
-							    available models */
+									 available models */
 static float aratio_min;		/* minimum value of rsize for
-							    available models */
+								 available models */
 
 /*
  * Cos and sin coefficients for Fourier expansion of sum(data*model/sigma^2)
@@ -84,13 +84,13 @@ static double A[NSEC/2], B[NSEC/2];
  */
 static COMP_CSTATS *model_cache = NULL;
 static int cache_size = -1;		/* size of model cache;
-					   also no. of models for each seeing*/
+								 also no. of models for each seeing*/
 
 typedef struct {			/* PSF cache */
-   float *model[2];			/* values of PSF; c.f. fit_ctx.data
-					   (i == 0) ? double : single */
-   float sigma2[2];			/* second moment of PSFs */
-   float totflux[2];			/* total flux in PSFs */
+	float *model[2];			/* values of PSF; c.f. fit_ctx.data
+								 (i == 0) ? double : single */
+	float sigma2[2];			/* second moment of PSFs */
+	float totflux[2];			/* total flux in PSFs */
 } PSF_CACHE;
 
 static PSF_CACHE *psf_cache = NULL;	/* cached PSFs from catalogue */
@@ -114,8 +114,8 @@ cell_fit_model(
     );
 static void
 mod_param_to_index0(const MODEL_PARAMS *p,
-		    const MODEL_ENTRIES *entries,
-		    struct p_model *index)
+					const MODEL_ENTRIES *entries,
+					struct p_model *index)
 	;
 static COMP_CSTATS *
 convolved_model_get(const int index0)	/* index of model to return */
@@ -129,13 +129,13 @@ find_outer(OBJECT1* obj)
 	;
 static COMP_CSTATS *
 find_phi(COMP_CSTATS *stats_model0,	/* model at 0 degrees */
-	 int nannuli,			/* dimension of data[], sig[] */
-	 float *data,			/* object's profile */
-	 float *sig);			/* errors in data */
+		 int nannuli,			/* dimension of data[], sig[] */
+		 float *data,			/* object's profile */
+		 float *sig);			/* errors in data */
 static void
 expand_model(float phi,			/* desired position angle */
-	     float *model,		/* model to expand */
-	     int nannuli)		/* number of annuli in model */
+			 float *model,		/* model to expand */
+			 int nannuli)		/* number of annuli in model */
 	;
 static void
 mod_re_to_isize(
@@ -151,15 +151,15 @@ mod_aratio_to_iinc(
 	);
 static COMP_CSTATS *
 model_read(FILE *fd,			/* file to read */
-	   const int index,		/* index of model to read */
-	   int normalize,		/* normalise profile? */
-	   COMP_CSTATS *cs)		/* a COMP_CSTATS with least MAXCELLS,
-					   or NULL */
+		   const int index,		/* index of model to read */
+		   int normalize,		/* normalise profile? */
+		   COMP_CSTATS *cs)		/* a COMP_CSTATS with least MAXCELLS,
+								 or NULL */
 	;
 
 static double
 eval_fourier(double phi,
-	     const void *user)		/* NOTUSED */
+			 const void *user)		/* NOTUSED */
 	;
 
 /*****************************************************************************/
@@ -168,18 +168,18 @@ eval_fourier(double phi,
  */
 static void
 setup_cell_data(const CELL_STATS *stats_obj, /* cell array info */
-		int median,		/* use median profile? */
-		double sky,		/* sky level */
-		double gain,		/* gain of chip */
-		double dark_variance,	/* background variance */
-		double sigma,		/* sigma of PSF */
-		double posErr,		/* centering error */
-		int use_difference,	/* include difference of cell
-					   pairs in variance? */
-		int sky_noise_only)	/* only include sky noise */
+				int median,		/* use median profile? */
+				double sky,		/* sky level */
+				double gain,		/* gain of chip */
+				double dark_variance,	/* background variance */
+				double sigma,		/* sigma of PSF */
+				double posErr,		/* centering error */
+				int use_difference,	/* include difference of cell
+									 pairs in variance? */
+				int sky_noise_only)	/* only include sky noise */
 {
-   phCellProfSet(&fit_ctx, stats_obj, median, sky, gain, dark_variance,
-				sigma, posErr, use_difference, sky_noise_only);
+	phCellProfSet(&fit_ctx, stats_obj, median, sky, gain, dark_variance,
+				  sigma, posErr, use_difference, sky_noise_only);
 }
 
 /*****************************************************************************/
@@ -189,8 +189,8 @@ setup_cell_data(const CELL_STATS *stats_obj, /* cell array info */
  */
 static COMP_CSTATS *
 model_cells_make(const MODEL_PARAMS *p, /* parameters of model to create */
-		 const MODEL_ENTRIES *mod_entries
-	        )
+				 const MODEL_ENTRIES *mod_entries
+	)
 {
     struct p_model index[IORDER_INC*IORDER_SIZE];
     COMP_CSTATS *cs;
@@ -210,11 +210,11 @@ model_cells_make(const MODEL_PARAMS *p, /* parameters of model to create */
     cs = model_cs;			/* the global scratch COMP_CSTATS */
 
     if(use_median) {
-       cs_model = cs->median = cs->mem;
-       cs->mean = NULL;
+		cs_model = cs->median = cs->mem;
+		cs->mean = NULL;
     } else {
-       cs_model = cs->mean = cs->mem;
-       cs->median = NULL;
+		cs_model = cs->mean = cs->mem;
+		cs->median = NULL;
     }
     
 #if USE_MODEL_SIG
@@ -232,22 +232,22 @@ model_cells_make(const MODEL_PARAMS *p, /* parameters of model to create */
     
     for(im = 0; im < IORDER_INC*IORDER_SIZE; im++) {
         if((w = index[im].w) == 0.0) {
-	   continue;
-	}
-	cstmp = convolved_model_get(index[im].i);
-	cstmp_model = median ? cstmp->median : cstmp->mean;
+			continue;
+		}
+		cstmp = convolved_model_get(index[im].i);
+		cstmp_model = median ? cstmp->median : cstmp->mean;
 #if USE_MODEL_SIG
-	cstmp_sig = cstmp->sig;
+		cstmp_sig = cstmp->sig;
 #endif
-	if(cstmp->ncells > cs->ncells) cs->ncells = cstmp->ncells;
+		if(cstmp->ncells > cs->ncells) cs->ncells = cstmp->ncells;
 
-	cs->totflux += w*cstmp->totflux;
-	for(i = cstmp->ncells - 1;i >= 0; i--) {
-	    cs_model[i] += cstmp_model[i]*w;
+		cs->totflux += w*cstmp->totflux;
+		for(i = cstmp->ncells - 1;i >= 0; i--) {
+			cs_model[i] += cstmp_model[i]*w;
 #if USE_MODEL_SIG
-	    cs_sig[i] += cstmp_sig[i]*w;
+			cs_sig[i] += cstmp_sig[i]*w;
 #endif
-	}
+		}
     }
 
     return cs;
@@ -256,23 +256,23 @@ model_cells_make(const MODEL_PARAMS *p, /* parameters of model to create */
 static COMP_CSTATS *
 psf_cells_make(const MODEL_PARAMS *p)	/* parameters of model to create */
 {
-   return model_cells_make(p, &psf_entries);
+	return model_cells_make(p, &psf_entries);
 }
 
 static COMP_CSTATS *
 dev_cells_make(
-	       const MODEL_PARAMS *p /* parameters of model to create */
-	       )
+	const MODEL_PARAMS *p /* parameters of model to create */
+	)
 {
-   return model_cells_make(p, &dev_entries);
+	return model_cells_make(p, &dev_entries);
 }
 
 static COMP_CSTATS *
 exp_cells_make(
-	       const MODEL_PARAMS *p /* parameters of model to create */
-	       )
+	const MODEL_PARAMS *p /* parameters of model to create */
+	)
 {
-   return model_cells_make(p, &exp_entries);
+	return model_cells_make(p, &exp_entries);
 }
 
 
@@ -332,36 +332,36 @@ cell_fit_exp(
  */
 int
 phFitCellAsPsf(OBJC *objc,		/* Object to fit */
-	       int color,		/* color of object */
-	       const CELL_STATS *cstats, /* cell array */
-	       const FIELDPARAMS *fiparams, /* describe field */
-	       int nannuli,		/* number of annuli to use */
-	       int sky_noise_only,	/* cell variance == sky noise? */
-	       float *I0,		/* central intensity; can be NULL */
-	       float *sky)		/* the sky level; can be NULL */
+			   int color,		/* color of object */
+			   const CELL_STATS *cstats, /* cell array */
+			   const FIELDPARAMS *fiparams, /* describe field */
+			   int nannuli,		/* number of annuli to use */
+			   int sky_noise_only,	/* cell variance == sky noise? */
+			   float *I0,		/* central intensity; can be NULL */
+			   float *sky)		/* the sky level; can be NULL */
 {
-   OBJECT1 *const obj1 = objc->color[color];
-   int use_difference = 0;		/* include difference of cell pairs
-					   in cell variance */
+	OBJECT1 *const obj1 = objc->color[color];
+	int use_difference = 0;		/* include difference of cell pairs
+								 in cell variance */
 
-   if((obj1->chisq_star =
-       phFitCellAsKnownModel(objc, color, cstats, fiparams, nannuli, PSF_MODEL,
-			     0.0, 0.0, 0.0, use_difference, sky_noise_only,
-			     NULL, NULL, sky, &obj1->nu_star)) == -1) {
-      if(I0 != NULL) {
-	 *I0 = 0;
-      }
-      return(2e9);
-   }
+	if((obj1->chisq_star =
+		phFitCellAsKnownModel(objc, color, cstats, fiparams, nannuli, PSF_MODEL,
+							  0.0, 0.0, 0.0, use_difference, sky_noise_only,
+							  NULL, NULL, sky, &obj1->nu_star)) == -1) {
+		if(I0 != NULL) {
+			*I0 = 0;
+		}
+		return(2e9);
+	}
    
-   obj1->star_lnL = phChisqProb(obj1->chisq_star, obj1->nu_star, 1);
-   obj1->star_L = exp(obj1->star_lnL);
+	obj1->star_lnL = phChisqProb(obj1->chisq_star, obj1->nu_star, 1);
+	obj1->star_L = exp(obj1->star_lnL);
 
-   if(I0 != NULL) {
-      *I0 = model_amp;
-   }
+	if(I0 != NULL) {
+		*I0 = model_amp;
+	}
 
-   return(obj1->chisq_star/obj1->nu_star);
+	return(obj1->chisq_star/obj1->nu_star);
 }
 
 /*****************************************************************************/
@@ -383,136 +383,136 @@ phFitCellAsPsf(OBJC *objc,		/* Object to fit */
  */
 float
 phFitCellAsKnownModel(OBJC *objc,		/* Object to fit */
-		      int color,               /* color of object */
-		      const CELL_STATS *cstats, /* object's cell array */
-		      const FIELDPARAMS *fiparams, /* describe field */
-		      int nannuli,	/* number of annuli to use */
-		      int class,	/* desired class of model */
-		      float ab,		/* model axis ratio */
-		      float phi,	/* model p.a. (degrees) */
-		      float re,		/* model r_effective */
-		      int use_difference, /* include difference of cell
-					     pairs when estimating variance? */
-		      int sky_noise_only, /* only include sky noise in var. */
-		      float *counts, float *countsErr, /* counts & error */
-		      float *sky,	/* estimated sky level, or NULL */
-		      int *nu)		/* number of degrees of freedom */
+					  int color,               /* color of object */
+					  const CELL_STATS *cstats, /* object's cell array */
+					  const FIELDPARAMS *fiparams, /* describe field */
+					  int nannuli,	/* number of annuli to use */
+					  int class,	/* desired class of model */
+					  float ab,		/* model axis ratio */
+					  float phi,	/* model p.a. (degrees) */
+					  float re,		/* model r_effective */
+					  int use_difference, /* include difference of cell
+										   pairs when estimating variance? */
+					  int sky_noise_only, /* only include sky noise in var. */
+					  float *counts, float *countsErr, /* counts & error */
+					  float *sky,	/* estimated sky level, or NULL */
+					  int *nu)		/* number of degrees of freedom */
 {
-   void (*cell_fit_func)(int, int, double *, double *, int *) = NULL;
-   float chisq;
-   const FRAMEPARAMS *fparams;		/* unpacked from fiparams */
-   double *fvec;			/* residuals for cells */
-   int i;
-   OBJECT1 *obj;			/* object in question */
-   double p[NPARAM];			/* model parameters */
-   int npar = 0;			/* number of parameters in p */
-   float posErr;			/* error in position */
-   const REGION *reg;			/* unpacked from fparams */
+	void (*cell_fit_func)(int, int, double *, double *, int *) = NULL;
+	float chisq;
+	const FRAMEPARAMS *fparams;		/* unpacked from fiparams */
+	double *fvec;			/* residuals for cells */
+	int i;
+	OBJECT1 *obj;			/* object in question */
+	double p[NPARAM];			/* model parameters */
+	int npar = 0;			/* number of parameters in p */
+	float posErr;			/* error in position */
+	const REGION *reg;			/* unpacked from fparams */
    
-   shAssert(model_off != NULL);		/* we're initialised */
-   shAssert(seeing_ind != NULL);	/* with a PSF selected */
-   shAssert(fiparams != NULL && objc != NULL);
-   shAssert(color >= 0 && color < fiparams->ncolor && color < objc->ncolor);
-   fparams = &fiparams->frame[color];
-   shAssert(fparams != NULL && fparams->data != NULL && fparams->psf != NULL);
-   obj = objc->color[color];
-   shAssert(obj != NULL);
+	shAssert(model_off != NULL);		/* we're initialised */
+	shAssert(seeing_ind != NULL);	/* with a PSF selected */
+	shAssert(fiparams != NULL && objc != NULL);
+	shAssert(color >= 0 && color < fiparams->ncolor && color < objc->ncolor);
+	fparams = &fiparams->frame[color];
+	shAssert(fparams != NULL && fparams->data != NULL && fparams->psf != NULL);
+	obj = objc->color[color];
+	shAssert(obj != NULL);
 
-   reg = fparams->data;
+	reg = fparams->data;
    
-   fit_phi = 0; model_phi = phi*M_PI/180;
-   switch (class) {
+	fit_phi = 0; model_phi = phi*M_PI/180;
+	switch (class) {
     case PSF_MODEL:
-      set_rsize_limits(&psf_entries);
-      cell_fit_func = cell_fit_psf;
-      break;
+		set_rsize_limits(&psf_entries);
+		cell_fit_func = cell_fit_psf;
+		break;
     case DEV_MODEL:
-      set_rsize_limits(&dev_entries);
-      cell_fit_func = cell_fit_dev;
-      p[npar++] = ab;
-      p[npar++] = re;
-      break;
+		set_rsize_limits(&dev_entries);
+		cell_fit_func = cell_fit_dev;
+		p[npar++] = ab;
+		p[npar++] = re;
+		break;
     case EXP_MODEL:
-      set_rsize_limits(&exp_entries);
-      cell_fit_func = cell_fit_exp;
-      p[npar++] = ab;
-      p[npar++] = re;
-      break;
+		set_rsize_limits(&exp_entries);
+		cell_fit_func = cell_fit_exp;
+		p[npar++] = ab;
+		p[npar++] = re;
+		break;
     default:
-      shFatal("phFitCellAsKnownModel: unknown galaxy class %d",class);
-   }
-   shAssert(npar <= NPARAM);
+		shFatal("phFitCellAsKnownModel: unknown galaxy class %d",class);
+	}
+	shAssert(npar <= NPARAM);
 
-   if(cstats == NULL) {
-      cstats = (const CELL_STATS *)
-	phProfileExtract(-1, -1, reg, obj->rowc, obj->colc, find_outer(obj),
-			 SOFT_BIAS + fparams->bkgd, obj->skyErr, 0);
-      if(cstats == NULL || cstats->syncreg == NULL) {
-	 shErrStackPush("phFitCellAsKnownModel: "
-			"object is too close to edge (%.3f, %.3f)",
-			obj->rowc, obj->colc);
-	 if(nu != NULL) {		/* avoid division by 0 */
-	    *nu = 1;
-	 }
-	 if(sky != NULL) {
-	    *sky = 0;
-	 }
-	 return(-1);
-      }
+	if(cstats == NULL) {
+		cstats = (const CELL_STATS *)
+			phProfileExtract(-1, -1, reg, obj->rowc, obj->colc, find_outer(obj),
+							 SOFT_BIAS + fparams->bkgd, obj->skyErr, 0);
+		if(cstats == NULL || cstats->syncreg == NULL) {
+			shErrStackPush("phFitCellAsKnownModel: "
+						   "object is too close to edge (%.3f, %.3f)",
+						   obj->rowc, obj->colc);
+			if(nu != NULL) {		/* avoid division by 0 */
+				*nu = 1;
+			}
+			if(sky != NULL) {
+				*sky = 0;
+			}
+			return(-1);
+		}
       
-      obj->profMean[0] = phProfileMean(cstats, 0, 0, 1, NULL);
-      obj->nprof = cstats->nannuli_c;
-   }
+		obj->profMean[0] = phProfileMean(cstats, 0, 0, 1, NULL);
+		obj->nprof = cstats->nannuli_c;
+	}
 
-   if(obj->rowcErr < 0) {
-      posErr = 1;
-   } else {
-      posErr = sqrt(pow(obj->rowcErr,2) + pow(obj->colcErr,2));
-   }
+	if(obj->rowcErr < 0) {
+		posErr = 1;
+	} else {
+		posErr = sqrt(pow(obj->rowcErr,2) + pow(obj->colcErr,2));
+	}
 
-   setup_cell_data(cstats, use_median, obj->sky,
-		   phGain(fparams, obj->rowc, obj->colc),
-		   phDarkVariance(fparams, obj->rowc, obj->colc),
-		   fparams->psf->width, posErr, use_difference, sky_noise_only);
+	setup_cell_data(cstats, use_median, obj->sky,
+					phGain(fparams, obj->rowc, obj->colc),
+					phDarkVariance(fparams, obj->rowc, obj->colc),
+					fparams->psf->width, posErr, use_difference, sky_noise_only);
 
-   if(nannuli > 0) {
-      int ncell = 1 + (nannuli - 1)*(NSEC/2);
-      if(fit_ctx.ncell > ncell) {
-	 fit_ctx.ncell = ncell;
-      }
-   }
+	if(nannuli > 0) {
+		int ncell = 1 + (nannuli - 1)*(NSEC/2);
+		if(fit_ctx.ncell > ncell) {
+			fit_ctx.ncell = ncell;
+		}
+	}
 /*
  * find the residuals vector, optionally fitting a sky level
  */
-   fit_sky_level = (sky == NULL) ? 0 : 1;
-   fvec = alloca(fit_ctx.ncell*sizeof(double));
-   i = 0; cell_fit_func(fit_ctx.ncell, npar, p, fvec, &i);
+	fit_sky_level = (sky == NULL) ? 0 : 1;
+	fvec = alloca(fit_ctx.ncell*sizeof(double));
+	i = 0; cell_fit_func(fit_ctx.ncell, npar, p, fvec, &i);
 /*
  * set return variables, if so desired
  */
-   if(sky != NULL) {
-      *sky = sky_level;
-   }
-   if(counts != NULL) {
-      *counts = totflux;
-   }
-   if(countsErr != NULL) {
-      *countsErr = totfluxErr;
-   }
+	if(sky != NULL) {
+		*sky = sky_level;
+	}
+	if(counts != NULL) {
+		*counts = totflux;
+	}
+	if(countsErr != NULL) {
+		*countsErr = totfluxErr;
+	}
 /*
  * Evaluate chi^2
  */
-   chisq = 0.0;
-   for(i = 0; i < fit_ctx.ncell; i++) {
-      chisq += fvec[i]*fvec[i];
-   }
+	chisq = 0.0;
+	for(i = 0; i < fit_ctx.ncell; i++) {
+		chisq += fvec[i]*fvec[i];
+	}
 
-   if(nu != NULL) {
-      *nu = fit_ctx.ncell - 1;		/* we _didn't_ fit npar parameters */
-      if(fit_sky_level) (*nu)--;
-   }
+	if(nu != NULL) {
+		*nu = fit_ctx.ncell - 1;		/* we _didn't_ fit npar parameters */
+		if(fit_sky_level) (*nu)--;
+	}
 
-   return(chisq);
+	return(chisq);
 }
 
 static void
@@ -530,7 +530,7 @@ cell_fit_model(
 #endif
     float *data;			/* mean or median */
     float fiddle_fac;			/* amount to fiddle chisq due to
-					   parameters being out of bounds */
+								 parameters being out of bounds */
     const int fit_sky = fit_sky_level;	/* a local copy for optimiser */
     int i;
     int idata;
@@ -542,7 +542,7 @@ cell_fit_model(
     float *model;			/* mean or median */
     float mod;				/* model[sector]; unpacked for speed */
     float mod_ivar;			/* == mod/sigma^2;
-					   unpacked for speed */
+							 unpacked for speed */
     MODEL_PARAMS mp;
     float residual_flux;		/* flux in residual table */
     float sigma;			/* model-reduced sigma for a point */
@@ -566,12 +566,12 @@ cell_fit_model(
     mp.aratio = 1.0;
     mp.rsize = rsize_max;
     if(nparam >= 1) {
-       shAssert(p[0] == p[0]);		/* i.e. not a NaN */
-       mp.aratio = p[0];
-       if(nparam >= 2) {
-	  shAssert(p[1] == p[1]);
-	  mp.rsize = p[1];
-       }
+		shAssert(p[0] == p[0]);		/* i.e. not a NaN */
+		mp.aratio = p[0];
+		if(nparam >= 2) {
+			shAssert(p[1] == p[1]);
+			mp.rsize = p[1];
+		}
     }
 /*
  * see if any parameters are out of range; if so set them to their limits,
@@ -580,19 +580,19 @@ cell_fit_model(
     fiddle_fac = 1.0;
 
     if(mp.aratio < aratio_min) {
-       fiddle_fac *= 1 + pow(aratio_min - mp.aratio,2);
-       mp.aratio = aratio_min;
+		fiddle_fac *= 1 + pow(aratio_min - mp.aratio,2);
+		mp.aratio = aratio_min;
     }
     if(mp.aratio > 1) {			/* minimiser can choose a better phi */
-       fiddle_fac *= pow(mp.aratio,2);
-       mp.aratio = 1;
+		fiddle_fac *= pow(mp.aratio,2);
+		mp.aratio = 1;
     }    
     if(mp.rsize > rsize_max) {
-       fiddle_fac *= pow(mp.rsize/rsize_max,2);
-       mp.rsize = rsize_max;
+		fiddle_fac *= pow(mp.rsize/rsize_max,2);
+		mp.rsize = rsize_max;
     } else if(mp.rsize < rsize_min) {
-       fiddle_fac *= pow((mp.rsize - 1)/(rsize_min - 1),2);
-       mp.rsize = rsize_min;
+		fiddle_fac *= pow((mp.rsize - 1)/(rsize_min - 1),2);
+		mp.rsize = rsize_min;
     }
 /*
  * Build the model
@@ -604,7 +604,7 @@ cell_fit_model(
     ncells = stats_model->ncells;
     ncells = ncells < ndata ? ncells : ndata;
     if(ncells == 0) {
-       return;
+		return;
     }
     nannuli = (ncells - 1)/(NSEC/2) + 1;
 
@@ -620,12 +620,12 @@ cell_fit_model(
  * find the best position angle, if so desired
  */
     if(fit_phi) {
-       stats_model = find_phi(stats_model, nannuli, data, sig);
-       shAssert(stats_model != NULL);	/* phi determination converged */
+		stats_model = find_phi(stats_model, nannuli, data, sig);
+		shAssert(stats_model != NULL);	/* phi determination converged */
 
-       model = use_median ? stats_model->median : stats_model->mean;
+		model = use_median ? stats_model->median : stats_model->mean;
     } else {
-       expand_model(model_phi, model, nannuli);
+		expand_model(model_phi, model, nannuli);
     }
 /*
  * correct for the known discrepancy between the psf and our best
@@ -633,16 +633,16 @@ cell_fit_model(
  */
     residual_flux = 0;
     if(seeing_ind != NULL) {		/* we have a model for the PSF */
-       const float I0 = model[0];	/* central value of model */
-       const float *area = seeing_ind->residuals.area;
-       float *residuals = seeing_ind->residuals.data;
-       int nresid = (ncells < seeing_ind->residuals.ncell) ?
-				      ncells : seeing_ind->residuals.ncell;
-       for(i = 0;i < nresid;i++) {
-	  model[i] += I0*residuals[i];
-	  residual_flux += area[i]*residuals[i];
-       }
-       residual_flux *= I0;
+		const float I0 = model[0];	/* central value of model */
+		const float *area = seeing_ind->residuals.area;
+		float *residuals = seeing_ind->residuals.data;
+		int nresid = (ncells < seeing_ind->residuals.ncell) ?
+			ncells : seeing_ind->residuals.ncell;
+		for(i = 0;i < nresid;i++) {
+			model[i] += I0*residuals[i];
+			residual_flux += area[i]*residuals[i];
+		}
+		residual_flux *= I0;
     }
 /*
  * calculate best-fitting amplitude; if fit_sky is true, solve
@@ -652,11 +652,11 @@ cell_fit_model(
     sigma = sig[idata];
     ivar = 1/(sigma*sigma);
     if(fit_sky) {
-       sum_d = data[idata]*ivar;
-       sum_m = model[idata]*ivar;
-       sum = ivar;
+		sum_d = data[idata]*ivar;
+		sum_m = model[idata]*ivar;
+		sum = ivar;
     } else {
-      sum = sum_m = sum_d = 0;		/* make compilers happy */
+		sum = sum_m = sum_d = 0;		/* make compilers happy */
     }
     sum_dm = data[idata]*model[idata]*ivar;
     sum_mm = model[idata]*model[idata]*ivar;
@@ -664,42 +664,42 @@ cell_fit_model(
     idata++;
 
     for(sect0 = iann = 1; iann < nannuli; iann++, sect0 += NSEC/2) {
-	for(isect = 0; isect < NSEC/2; isect++) {
-	    mod = model[sect0 + isect];
-	    sigma = sig[idata];
+		for(isect = 0; isect < NSEC/2; isect++) {
+			mod = model[sect0 + isect];
+			sigma = sig[idata];
 
-	    ivar = 1/(sigma*sigma);
-	    mod_ivar = mod*ivar;
-	    if(fit_sky) {
-	       sum_d += data[idata]*ivar;
-	       sum_m += mod_ivar;
-	       sum += ivar;
-	    }
-	    sum_dm += data[idata]*mod_ivar;
-	    sum_mm += mod*mod_ivar;
+			ivar = 1/(sigma*sigma);
+			mod_ivar = mod*ivar;
+			if(fit_sky) {
+				sum_d += data[idata]*ivar;
+				sum_m += mod_ivar;
+				sum += ivar;
+			}
+			sum_dm += data[idata]*mod_ivar;
+			sum_mm += mod*mod_ivar;
 
-	    ++idata;
-	}
+			++idata;
+		}
     }
     shAssert(idata == ncells);
 
     if(fit_sky) {
-       double det = sum*sum_mm - sum_m*sum_m;
+		double det = sum*sum_mm - sum_m*sum_m;
 
-       shAssert(det != 0.0);
+		shAssert(det != 0.0);
 
-       sky_level = (sum_mm*sum_d - sum_m*sum_dm)/det;
-       model_amp = (sum*sum_dm - sum_m*sum_d)/det;
-       model_ampErr = sqrt(sum/det);
+		sky_level = (sum_mm*sum_d - sum_m*sum_dm)/det;
+		model_amp = (sum*sum_dm - sum_m*sum_d)/det;
+		model_ampErr = sqrt(sum/det);
     } else {
-       shAssert(sum_mm != 0.0);
+		shAssert(sum_mm != 0.0);
 
-       sky_level = 0.0;
-       model_amp = sum_dm/sum_mm;
-       model_ampErr = sqrt(1/sum_mm);
+		sky_level = 0.0;
+		model_amp = sum_dm/sum_mm;
+		model_ampErr = sqrt(1/sum_mm);
     }
     model_ampErr *= sqrt(idata/(idata - nparam - fit_phi)); /* correct for
-							       missing dof */
+															 missing dof */
 /*
  * We _added_ the residuals to the model, so we increased its flux
  */
@@ -707,7 +707,7 @@ cell_fit_model(
     totfluxErr = model_ampErr*(stats_model->totflux + residual_flux);
 
     for(i = 0;i < ncells;i++) {
-       model[i] = model_amp*model[i] + sky_level;
+		model[i] = model_amp*model[i] + sky_level;
     }
 /*
  * and the residual vector
@@ -722,38 +722,38 @@ cell_fit_model(
 
     nannuli = (ncells - 1)/(NSEC/2) + 1;
     for(sect0 = iann = 1; iann < nannuli; iann++, sect0 += NSEC/2) {
-	for(isect = 0; isect < NSEC/2; isect++) {
-	    sigma = sig[idata];
-	    fvec[idata] = fiddle_fac*(data[idata] - model[sect0+isect])/sigma;
+		for(isect = 0; isect < NSEC/2; isect++) {
+			sigma = sig[idata];
+			fvec[idata] = fiddle_fac*(data[idata] - model[sect0+isect])/sigma;
 #if DEBUG || TEST_2D_PROFILES
-	    sigsav[idata] = sigma;
+			sigsav[idata] = sigma;
 #endif
 
-	    ++idata;
-	}
+			++idata;
+		}
     }
     /*
      * The rest of the model must have been zeros.
      */
     for(; idata < ndata; idata++) {
-	fvec[idata] = fiddle_fac*data[idata]/sig[idata];
+		fvec[idata] = fiddle_fac*data[idata]/sig[idata];
 #if DEBUG || TEST_2D_PROFILES
-	sigsav[idata] = sig[idata];
+		sigsav[idata] = sig[idata];
 #endif
-     }
+	}
     /*
      * Debugging code; enable in gdb
      */
 #if 0
     {
- 	static volatile int dump_iteration = 0;
- 	if (dump_iteration) {
- 	    double sum = 0;
- 	    for(i = 0; i < ndata; i++) {
- 		sum += fvec[i]*fvec[i];
-  	    }
- 	    printf("p0 = %g p1 = %g chisq = %g\n", p[0], p[1], sum);
- 	}
+		static volatile int dump_iteration = 0;
+		if (dump_iteration) {
+			double sum = 0;
+			for(i = 0; i < ndata; i++) {
+				sum += fvec[i]*fvec[i];
+			}
+			printf("p0 = %g p1 = %g chisq = %g\n", p[0], p[1], sum);
+		}
     }    
 #endif
 /*
@@ -762,9 +762,9 @@ cell_fit_model(
 #if TEST_2D_PROFILES
     test_nprof2D = ndata;
     for(i = 0; i < ndata; i++) {
-       test_profMean2D[i] = data[i];
-       test_profErr2D[i] = sigsav[i];
-       test_profModel2D[i] = data[i] - fvec[i]*sigsav[i]/fiddle_fac;
+		test_profMean2D[i] = data[i];
+		test_profErr2D[i] = sigsav[i];
+		test_profModel2D[i] = data[i] - fvec[i]*sigsav[i]/fiddle_fac;
     }
 #endif
 }
@@ -774,26 +774,26 @@ cell_fit_model(
  */
 static void
 mod_param_to_index0(const MODEL_PARAMS *p,
-		    const MODEL_ENTRIES *entries,
-		    struct p_model *index)
+					const MODEL_ENTRIES *entries,
+					struct p_model *index)
 {
-   struct p_model iinc[IORDER_INC];	/*    "    "   "   "  "   "  inc */
-   struct p_model isize[IORDER_SIZE];	/*    "    "   "   "  "   "  size */
-   int ii;				/* index for inc */
-   int is;				/*   "    "  size */
-   int ind;				/* index into index[] */
+	struct p_model iinc[IORDER_INC];	/*    "    "   "   "  "   "  inc */
+	struct p_model isize[IORDER_SIZE];	/*    "    "   "   "  "   "  size */
+	int ii;				/* index for inc */
+	int is;				/*   "    "  size */
+	int ind;				/* index into index[] */
    
-   mod_re_to_isize(p->rsize, entries, isize);
-   mod_aratio_to_iinc(p->aratio, entries, iinc);
+	mod_re_to_isize(p->rsize, entries, isize);
+	mod_aratio_to_iinc(p->aratio, entries, iinc);
    
-   ind = 0;
-   for(ii = 0; ii < IORDER_INC; ii++) {
-      for(is = 0; is < IORDER_SIZE; is++, ind++) {
-	 index[ind].i =
-	   entries->mod_offset + iinc[ii].i*entries->mod_nsize + isize[is].i;
-	 index[ind].w = iinc[ii].w*isize[is].w;
-      }
-   }
+	ind = 0;
+	for(ii = 0; ii < IORDER_INC; ii++) {
+		for(is = 0; is < IORDER_SIZE; is++, ind++) {
+			index[ind].i =
+				entries->mod_offset + iinc[ii].i*entries->mod_nsize + isize[is].i;
+			index[ind].w = iinc[ii].w*isize[is].w;
+		}
+	}
 }
 
 /*****************************************************************************/
@@ -823,48 +823,48 @@ convolved_model_get(const int index0)	/* index of model to return */
 
     cs = &model_cache[index0];
     if(cs->ncells < 0) {		/* A miss */
-	if(catalog_file[0] == '\0') {
-	   shErrStackPush("model_cached_read: no catalog file is declared");
-	   return(NULL);
-	}
+		if(catalog_file[0] == '\0') {
+			shErrStackPush("model_cached_read: no catalog file is declared");
+			return(NULL);
+		}
 
-	shAssert(catalog_fd != NULL);
+		shAssert(catalog_fd != NULL);
 /*
  * setup the COMP_CSTATS that we'll be accumulating in the cache slot
  */
-	cs_model = cs->mem;
-	if(use_median) {
-	   cs->median = cs_model;
-	   cs->mean = NULL;
-	} else {
-	   cs->mean = cs_model;
-	   cs->median = NULL;
-	}
+		cs_model = cs->mem;
+		if(use_median) {
+			cs->median = cs_model;
+			cs->mean = NULL;
+		} else {
+			cs->mean = cs_model;
+			cs->median = NULL;
+		}
 #if USE_MODEL_SIG
-	cs_sig = cs->sig;
+		cs_sig = cs->sig;
 #endif
 
-	memset(cs->mem,'\0',(USE_MODEL_SIG ? 2 : 1)*MAXCELLS*sizeof(float));
-	shAssert(*cs->mem == 0.0);	/* check that 0.0 is all 0 bits */
-	cs->totflux = 0.0;
+		memset(cs->mem,'\0',(USE_MODEL_SIG ? 2 : 1)*MAXCELLS*sizeof(float));
+		shAssert(*cs->mem == 0.0);	/* check that 0.0 is all 0 bits */
+		cs->totflux = 0.0;
 	
-	for(i = 0; i < IORDER_SEEING; i++) {
-	   index = index0 + seeing_ind->i[i]*cache_size;
+		for(i = 0; i < IORDER_SEEING; i++) {
+			index = index0 + seeing_ind->i[i]*cache_size;
 
-	   cstmp = model_read(catalog_fd, index, (index0 == 0 ? 1 : 0), NULL);
-	   ncells = cstmp->ncells;
-	   cstmp_model = use_median ? cstmp->median : cstmp->mean;
+			cstmp = model_read(catalog_fd, index, (index0 == 0 ? 1 : 0), NULL);
+			ncells = cstmp->ncells;
+			cstmp_model = use_median ? cstmp->median : cstmp->mean;
 #if USE_MODEL_SIG
-	   cstmp_sig = cstmp->sig;
+			cstmp_sig = cstmp->sig;
 #endif
 
-	   if(ncells > cs->ncells) {
-	      cs->ncells = ncells;
-	   }
+			if(ncells > cs->ncells) {
+				cs->ncells = ncells;
+			}
 /*
  * accumulate the models we've read into the cache
  */
-	   w = seeing_ind->w[i];
+			w = seeing_ind->w[i];
 #if !BROKEN_MODEL_MAGS
 /*
  * The models with given parameters are all normalised to the same total flux,
@@ -874,22 +874,22 @@ convolved_model_get(const int index0)	/* index of model to return */
  *
  * Take this into account.
  */
-	   if(index0 != 0) {		/* i.e. not a PSF */
-	      int ind = seeing_ind->i[i]/2;
-	      int single = seeing_ind->i[i]%2 ? 1 : 0;
-	      w *= psf_cache[ind].totflux[single];
-	   }
+			if(index0 != 0) {		/* i.e. not a PSF */
+				int ind = seeing_ind->i[i]/2;
+				int single = seeing_ind->i[i]%2 ? 1 : 0;
+				w *= psf_cache[ind].totflux[single];
+			}
 #endif
 	   
-	   cs->totflux += w*cstmp->totflux;
-	   for(j = 0;j < ncells;j++) {
-	      cs_model[j] += w*cstmp_model[j];
+			cs->totflux += w*cstmp->totflux;
+			for(j = 0;j < ncells;j++) {
+				cs_model[j] += w*cstmp_model[j];
 #if USE_MODEL_SIG
-	      cs_sig[j] += w*cstmp_sig[j];
+				cs_sig[j] += w*cstmp_sig[j];
 #endif
-	   }
+			}
+		}
 	}
-     }
 
     return(cs);
 }
@@ -901,24 +901,24 @@ convolved_model_get(const int index0)	/* index of model to return */
 static void
 set_rsize_limits(const MODEL_ENTRIES *mod_entries)
 {
-   int nmodel;				/* number of models in table */
+	int nmodel;				/* number of models in table */
    
-   shAssert(mod_entries != NULL);
+	shAssert(mod_entries != NULL);
    
-   nmodel = mod_entries->mod_nsize*mod_entries->mod_nincl;
+	nmodel = mod_entries->mod_nsize*mod_entries->mod_nincl;
 
-   rsize_max = mod_entries->entries[0].scat_reff;
-   rsize_min = mod_entries->entries[nmodel - 1].scat_reff;
-   if(rsize_min == rsize_max) {
-      rsize_min = 0;			/* PSF XXX Fix in tables */
-   }
-   shAssert((rsize_min == rsize_max) ||	/* PSF */
-	    (rsize_min != 1 && rsize_max != 0));
+	rsize_max = mod_entries->entries[0].scat_reff;
+	rsize_min = mod_entries->entries[nmodel - 1].scat_reff;
+	if(rsize_min == rsize_max) {
+		rsize_min = 0;			/* PSF XXX Fix in tables */
+	}
+	shAssert((rsize_min == rsize_max) ||	/* PSF */
+			 (rsize_min != 1 && rsize_max != 0));
 
 #if 0
-   aratio_min = mod_entries->entries[nmodel - 1].scat_axr;
+	aratio_min = mod_entries->entries[nmodel - 1].scat_axr;
 #else
-   aratio_min = 1/(float)(NDEVINCL - 1); /* the a/b == 0 model is weird */
+	aratio_min = 1/(float)(NDEVINCL - 1); /* the a/b == 0 model is weird */
 #endif
 }
 
@@ -930,77 +930,77 @@ find_outer(OBJECT1* obj)
     float max;
 
     if(obj->mask == NULL) {
-       max = 0;
+		max = 0;
     } else {
-       d[0] = sqrt(pow(obj->mask->cmax - obj->colc + 1,2) +
-		   pow(obj->mask->rmax - obj->rowc + 1,2));
-       d[1] = sqrt(pow(obj->mask->cmin - obj->colc + 1,2) +
-		   pow(obj->mask->rmax - obj->rowc + 1,2));
-       d[2] = sqrt(pow(obj->mask->cmax - obj->colc + 1,2) +
-		   pow(obj->mask->rmin - obj->rowc + 1,2));
-       d[3] = sqrt(pow(obj->mask->cmin - obj->colc + 1,2) +
-		   pow(obj->mask->rmin - obj->rowc + 1,2));
-       max = d[0];
+		d[0] = sqrt(pow(obj->mask->cmax - obj->colc + 1,2) +
+					pow(obj->mask->rmax - obj->rowc + 1,2));
+		d[1] = sqrt(pow(obj->mask->cmin - obj->colc + 1,2) +
+					pow(obj->mask->rmax - obj->rowc + 1,2));
+		d[2] = sqrt(pow(obj->mask->cmax - obj->colc + 1,2) +
+					pow(obj->mask->rmin - obj->rowc + 1,2));
+		d[3] = sqrt(pow(obj->mask->cmin - obj->colc + 1,2) +
+					pow(obj->mask->rmin - obj->rowc + 1,2));
+		max = d[0];
 
-       for(i = 1; i < 4; i++) {
-	  if(d[i] > max)
-	    max = d[i];
-       }
+		for(i = 1; i < 4; i++) {
+			if(d[i] > max)
+				max = d[i];
+		}
     }
 
     if(max < SYNCRAD) {			/* we may as well to the sinc region */
-       max = SYNCRAD;
+		max = SYNCRAD;
     }
 
     return(max);
 }
 static COMP_CSTATS *
 find_phi(COMP_CSTATS *stats_model0, /* model at 0 degrees */
-	 int nannuli,			/* dimension of data[], sig[] */
-	 float *data,			/* object's profile */
-	 float *sig)			/* errors in data */
+		 int nannuli,			/* dimension of data[], sig[] */
+		 float *data,			/* object's profile */
+		 float *sig)			/* errors in data */
 {
-   float C[NANN][NSEC/2];		/* coefficients of Fourier expansion */
-   static float c_2dtheta[NSEC/2*NSEC/2]; /* == cos(2*i*dtheta) */
-   static float s_2dtheta[NSEC/2*NSEC/2]; /* == sin(2*i*dtheta) */
-   float data_ivarbar;			/* == data*ivar_bar */
-   const float dtheta = 2*M_PI/NSEC;	/* opening angle of a sector */
-   static int first = 1;		/* is this the first call? */
-   int iann;				/* index for annuli */
-   int idata;				/* index for data[] and sig[] */
-   int isect;				/* index for sectors */
-   float ivarbar;			/* == 1/(sig^2 averaged over annulus)*/
-   float *model;			/* models at phi degrees */
-   int niter_max = 100;			/* maximum number of Brent iterations*/
-   double phi;				/* desired value of position angle */
-   int r;				/* index for Fourier order */
-   int sect0;				/* sector 0 for a given annulus */
-   float sum;
-   float tmp;
-   double tol = 1e-3;			/* acceptable tolerance for minimiser*/
+	float C[NANN][NSEC/2];		/* coefficients of Fourier expansion */
+	static float c_2dtheta[NSEC/2*NSEC/2]; /* == cos(2*i*dtheta) */
+	static float s_2dtheta[NSEC/2*NSEC/2]; /* == sin(2*i*dtheta) */
+	float data_ivarbar;			/* == data*ivar_bar */
+	const float dtheta = 2*M_PI/NSEC;	/* opening angle of a sector */
+	static int first = 1;		/* is this the first call? */
+	int iann;				/* index for annuli */
+	int idata;				/* index for data[] and sig[] */
+	int isect;				/* index for sectors */
+	float ivarbar;			/* == 1/(sig^2 averaged over annulus)*/
+	float *model;			/* models at phi degrees */
+	int niter_max = 100;			/* maximum number of Brent iterations*/
+	double phi;				/* desired value of position angle */
+	int r;				/* index for Fourier order */
+	int sect0;				/* sector 0 for a given annulus */
+	float sum;
+	float tmp;
+	double tol = 1e-3;			/* acceptable tolerance for minimiser*/
    
-   shAssert(NSEC/2 == 6);		/* hand coded stuff follows */
+	shAssert(NSEC/2 == 6);		/* hand coded stuff follows */
 /*
  * Set the {c,s}_2dtheta[] arrays on first call
  */
-   if(first) {
-      for(r = 0;r < NSEC/2*NSEC/2;r++) {
-	 c_2dtheta[r] = cos(2*r*dtheta);
-	 s_2dtheta[r] = sin(2*r*dtheta);
-      }
-      first = 0;
-   }
+	if(first) {
+		for(r = 0;r < NSEC/2*NSEC/2;r++) {
+			c_2dtheta[r] = cos(2*r*dtheta);
+			s_2dtheta[r] = sin(2*r*dtheta);
+		}
+		first = 0;
+	}
 /*
  * Initialise the Fourier expansion of the errors
  */
-   for(r = 0; r < NSEC/2; r++) {
-      A[r] = B[r] = 0;
-   }
+	for(r = 0; r < NSEC/2; r++) {
+		A[r] = B[r] = 0;
+	}
    
-   model = use_median ? stats_model0->median : stats_model0->mean;
-   memcpy(C[1], &model[1], (nannuli - 1)*NSEC/2*sizeof(float));
+	model = use_median ? stats_model0->median : stats_model0->mean;
+	memcpy(C[1], &model[1], (nannuli - 1)*NSEC/2*sizeof(float));
 
-   for(sect0 = iann = 1; iann < nannuli; iann++, sect0 += NSEC/2) {
+	for(sect0 = iann = 1; iann < nannuli; iann++, sect0 += NSEC/2) {
 /*
  * Evaluate chi^2 == sum((model - data)/sigma^2)'s Fourier coefficients
  *
@@ -1009,79 +1009,79 @@ find_phi(COMP_CSTATS *stats_model0, /* model at 0 degrees */
  * only need keep the sum(model*data/sigma^2) term, and that we therefore
  * don't need to worry about the normalisation of the model at this point
  */
-      sum = 0;
-      for(isect = 0; isect < NSEC/2; isect++) {
-	 idata = sect0 + isect;
-	 sum += sig[idata];
-      }
-      sum /= NSEC/2;
-      ivarbar = 1/(sum*sum);
+		sum = 0;
+		for(isect = 0; isect < NSEC/2; isect++) {
+			idata = sect0 + isect;
+			sum += sig[idata];
+		}
+		sum /= NSEC/2;
+		ivarbar = 1/(sum*sum);
       
-      for(isect = 0; isect < NSEC/2; isect++) {
-	 idata = sect0 + isect;
-	 data_ivarbar = data[idata]*ivarbar;
-	 for(r = 0; r < NSEC/2; r++) {
-	    tmp = data_ivarbar*C[iann][r];
+		for(isect = 0; isect < NSEC/2; isect++) {
+			idata = sect0 + isect;
+			data_ivarbar = data[idata]*ivarbar;
+			for(r = 0; r < NSEC/2; r++) {
+				tmp = data_ivarbar*C[iann][r];
 	    
-	    A[r] -= tmp*c_2dtheta[r*isect]; /* == A[r] -= tmp*cos(2*r*theta) */
-	    B[r] -= tmp*s_2dtheta[r*isect]; /* == B[r] -= tmp*sin(2*r*theta) */
-	 }
-      }
-   }
+				A[r] -= tmp*c_2dtheta[r*isect]; /* == A[r] -= tmp*cos(2*r*theta) */
+				B[r] -= tmp*s_2dtheta[r*isect]; /* == B[r] -= tmp*sin(2*r*theta) */
+			}
+		}
+	}
 /*
  * OK, we have the error Fourier decomposed. Proceed to minimise it
  */
 #if DEBUG > 1
-   {
-      float th[100], E[100];
-      int i;
-      for(i = 0; i < 100; i++) {
-	 th[i] = i*M_PI/100;
-	 E[i] = eval_fourier(th[i], NULL);
-      }
-      shAssert(i == 100);
-   }
+	{
+		float th[100], E[100];
+		int i;
+		for(i = 0; i < 100; i++) {
+			th[i] = i*M_PI/100;
+			E[i] = eval_fourier(th[i], NULL);
+		}
+		shAssert(i == 100);
+	}
 #endif
-   phi = 0;
-   if(phBrentMinimum(&phi, 0, M_PI, eval_fourier, NULL, niter_max, tol) != 0) {
-      shError("find_phi: minimiser failed to converge");
-      return(NULL);
-   }
-   model_phi = phi;
-   model_phiErr = ERROR_IS_BAD;		/* XXX */
+	phi = 0;
+	if(phBrentMinimum(&phi, 0, M_PI, eval_fourier, NULL, niter_max, tol) != 0) {
+		shError("find_phi: minimiser failed to converge");
+		return(NULL);
+	}
+	model_phi = phi;
+	model_phiErr = ERROR_IS_BAD;		/* XXX */
 /*
  * now that we know phi we can calculate the model at that position angle;
  * put it in cstats0->model
  *
  * The inner loop's equivalent to
-    sum += Cann[r]*cos(2*r*(theta - phi));
+ sum += Cann[r]*cos(2*r*(theta - phi));
  *
  */
-   for(isect = 0; isect < NSEC/2; isect++, idata++) {
-      const float c2phi = cos(2*phi);
-      const float s2phi =
-		   (2*phi < M_PI) ? sqrt(1-c2phi*c2phi) : -sqrt(1-c2phi*c2phi);
-      float c2rphi, s2rphi;		/* {cos,sin}(2*r*phi) */
+	for(isect = 0; isect < NSEC/2; isect++, idata++) {
+		const float c2phi = cos(2*phi);
+		const float s2phi =
+			(2*phi < M_PI) ? sqrt(1-c2phi*c2phi) : -sqrt(1-c2phi*c2phi);
+		float c2rphi, s2rphi;		/* {cos,sin}(2*r*phi) */
 
-      for(sect0 = iann = 1; iann < nannuli; iann++, sect0 += NSEC/2) {
-	 const float *Cann = C[iann];	/* unalias C */
-	 sum = Cann[0];
+		for(sect0 = iann = 1; iann < nannuli; iann++, sect0 += NSEC/2) {
+			const float *Cann = C[iann];	/* unalias C */
+			sum = Cann[0];
 	 
-	 c2rphi = 1;
-	 s2rphi = 0;
-	 for(r = 1; r < NSEC/2; r++) {
-	    tmp = c2rphi*c2phi - s2rphi*s2phi;
-	    s2rphi = s2rphi*c2phi + c2rphi*s2phi;
-	    c2rphi = tmp;
+			c2rphi = 1;
+			s2rphi = 0;
+			for(r = 1; r < NSEC/2; r++) {
+				tmp = c2rphi*c2phi - s2rphi*s2phi;
+				s2rphi = s2rphi*c2phi + c2rphi*s2phi;
+				c2rphi = tmp;
 	    
-	    sum += Cann[r]*(c_2dtheta[r*isect]*c2rphi +
-						    s_2dtheta[r*isect]*s2rphi);
-	 }
-	 model[sect0 + isect] = sum;
-      }
-   }
+				sum += Cann[r]*(c_2dtheta[r*isect]*c2rphi +
+								s_2dtheta[r*isect]*s2rphi);
+			}
+			model[sect0 + isect] = sum;
+		}
+	}
 
-   return(stats_model0);
+	return(stats_model0);
 }
 
 /*****************************************************************************/
@@ -1094,25 +1094,25 @@ find_phi(COMP_CSTATS *stats_model0, /* model at 0 degrees */
  */
 static void
 expand_model(float phi,			/* desired position angle */
-	     float *model,		/* model to expand */
-	     int nannuli)		/* number of annuli in model */
+			 float *model,		/* model to expand */
+			 int nannuli)		/* number of annuli in model */
 {
-   float C[NSEC/2];
-   int isect, iann;
-   int r;
-   int sect0;
-   float sum;
+	float C[NSEC/2];
+	int isect, iann;
+	int r;
+	int sect0;
+	float sum;
 
-   for(sect0 = iann = 1; iann < nannuli; iann++, sect0 += NSEC/2) {
-      memcpy(C, &model[1 + (iann - 1)*NSEC/2], NSEC/2*sizeof(float));
-      for(isect = 0; isect < NSEC/2; isect++) {
-	 sum = C[0];
-	 for(r = 1; r < NSEC/2; r++) {
-	    sum += C[r]*cos(2*r*(2*M_PI*isect/(float)NSEC - phi));
-	 }
-	 model[sect0 + isect] = sum;
-      }
-   }
+	for(sect0 = iann = 1; iann < nannuli; iann++, sect0 += NSEC/2) {
+		memcpy(C, &model[1 + (iann - 1)*NSEC/2], NSEC/2*sizeof(float));
+		for(isect = 0; isect < NSEC/2; isect++) {
+			sum = C[0];
+			for(r = 1; r < NSEC/2; r++) {
+				sum += C[r]*cos(2*r*(2*M_PI*isect/(float)NSEC - phi));
+			}
+			model[sect0 + isect] = sum;
+		}
+	}
 }
 
 /******************************************************************************/
@@ -1125,34 +1125,34 @@ mod_re_to_isize(
     double re,
     const MODEL_ENTRIES *entries,
     struct p_model *isize
-)
+	)
 {
     int i;
 
     shAssert(IORDER_SIZE == 2);
     
     for(i = 0; i < entries->mod_nsize; i++) {
-	if(re >= entries->entries[i].scat_reff)
-	    break;
+		if(re >= entries->entries[i].scat_reff)
+			break;
     }
     if(i == entries->mod_nsize || entries->mod_nsize == 1) { /* use smallest */
-	isize[0].i = 0;
-	isize[0].w = 1;
-	isize[1].i = 1;
-	isize[1].w = 0;
+		isize[0].i = 0;
+		isize[0].w = 1;
+		isize[1].i = 1;
+		isize[1].w = 0;
     } else if(i == entries->mod_nsize) { /* use the biggest */
-	isize[0].i = i-2;
-	isize[0].w = 0;
-	isize[1].i = i-1;
-	isize[1].w = 1;
+		isize[0].i = i-2;
+		isize[0].w = 0;
+		isize[1].i = i-1;
+		isize[1].w = 1;
     } else {				/* find interpolation coefficients */
-       const int i0 = i - 1;
-       const int i1 = i;
-       const float re0 = entries->entries[i-1].scat_reff;
-       const float re1 = entries->entries[i].scat_reff;
+		const int i0 = i - 1;
+		const int i1 = i;
+		const float re0 = entries->entries[i-1].scat_reff;
+		const float re1 = entries->entries[i].scat_reff;
 
-       isize[0].i = i0;
-       isize[1].i = i1;
+		isize[0].i = i0;
+		isize[1].i = i1;
 /*
  * How should we choose the weights?  If the models all have the same flux
  * then their second moments add and we should use the quadratic formula;
@@ -1161,13 +1161,13 @@ mod_re_to_isize(
  * the linear form for old times' sake.
  */
 #if 1
-       isize[0].w = (re - re1)/(re0 - re1); /* linear interpolation */
+		isize[0].w = (re - re1)/(re0 - re1); /* linear interpolation */
 #else
-       isize[0].w = (re*re - re1*re1)/(re0*re0 - re1*re1); /* quadratic */
+		isize[0].w = (re*re - re1*re1)/(re0*re0 - re1*re1); /* quadratic */
 #endif
-       isize[1].w = 1.0 - isize[0].w;
-       shAssert(isize[1].w >= 0.0)
-    }
+		isize[1].w = 1.0 - isize[0].w;
+		shAssert(isize[1].w >= 0.0)
+			}
     
     return;
 }
@@ -1181,7 +1181,7 @@ mod_aratio_to_iinc(
     double aratio,
     const MODEL_ENTRIES *entries,
     struct p_model *iinc
-)
+	)
 {
     int i;
     int stride;
@@ -1190,32 +1190,32 @@ mod_aratio_to_iinc(
 
     stride = entries->mod_nsize;
     for(i = 0; i < entries->mod_nincl; i++) {
-	if(aratio >= entries->entries[i*stride].scat_axr)
-	    break;
+		if(aratio >= entries->entries[i*stride].scat_axr)
+			break;
     }
     if(i == 0 || entries->mod_nincl == 1) { /* use the largest,
-					       i.e. smallest index */
-	iinc[0].i = 0;
-	iinc[0].w = 1;
-	iinc[1].i = 1;
-	iinc[1].w = 0;
+											 i.e. smallest index */
+		iinc[0].i = 0;
+		iinc[0].w = 1;
+		iinc[1].i = 1;
+		iinc[1].w = 0;
     } else if(i == entries->mod_nincl) { /* use the smallest,
-					    i.e. largest index */
-	iinc[0].i = i-2;
-	iinc[0].w = 0;
-	iinc[1].i = i-1;
-	iinc[1].w = 1;
+										  i.e. largest index */
+		iinc[0].i = i-2;
+		iinc[0].w = 0;
+		iinc[1].i = i-1;
+		iinc[1].w = 1;
     } else {				/* linear interpolation */
-       const int i0 = i - 1;
-       const int i1 = i;
-       const float axr0 = entries->entries[i0*stride].scat_axr;
-       const float axr1 = entries->entries[i1*stride].scat_axr;
+		const int i0 = i - 1;
+		const int i1 = i;
+		const float axr0 = entries->entries[i0*stride].scat_axr;
+		const float axr1 = entries->entries[i1*stride].scat_axr;
        
-       iinc[0].i = i0;
-       iinc[1].i = i1;
+		iinc[0].i = i0;
+		iinc[1].i = i1;
 
-       iinc[0].w = (aratio - axr1)/(axr0 - axr1);
-       iinc[1].w = 1 - iinc[0].w;
+		iinc[0].w = (aratio - axr1)/(axr0 - axr1);
+		iinc[1].w = 1 - iinc[0].w;
     }
     
     return;
@@ -1239,10 +1239,10 @@ mod_aratio_to_iinc(
  */
 static COMP_CSTATS *
 model_read(FILE *fd,			/* file to read */
-	   const int index,		/* index of model to read */
-	   int normalize,		/* normalise profile? */
-	   COMP_CSTATS *cs)		/* a COMP_CSTATS with least MAXCELLS,
-					   or NULL */
+		   const int index,		/* index of model to read */
+		   int normalize,		/* normalise profile? */
+		   COMP_CSTATS *cs)		/* a COMP_CSTATS with least MAXCELLS,
+								 or NULL */
 {
 	printf("model_read() faked.\n");
 	return NULL;
@@ -1254,56 +1254,56 @@ model_read(FILE *fd,			/* file to read */
  *
  * First a function to evaluate chi^2's Fourier series. This is equivalent to
  *
-   sum = 0;
-   for(r = 0; r < NSEC/2;r++) {
-      sum += A[r]*cos(2*r*phi) + B[r]*sin(2*r*phi);
-   }
+ sum = 0;
+ for(r = 0; r < NSEC/2;r++) {
+ sum += A[r]*cos(2*r*phi) + B[r]*sin(2*r*phi);
+ }
  *
  */
 static double
 eval_fourier(double phi,
-	     const void *user)		/* NOTUSED */
+			 const void *user)		/* NOTUSED */
 {
-   const double c2phi = cos(2*phi);
-   const double s2phi =
-		   (2*phi < M_PI) ? sqrt(1-c2phi*c2phi) : -sqrt(1-c2phi*c2phi);
-   double c2rphi, s2rphi;		/* {cos,sin}(2*r*phi) */
-   double sum;				/* desired value */
-   double tmp;
+	const double c2phi = cos(2*phi);
+	const double s2phi =
+		(2*phi < M_PI) ? sqrt(1-c2phi*c2phi) : -sqrt(1-c2phi*c2phi);
+	double c2rphi, s2rphi;		/* {cos,sin}(2*r*phi) */
+	double sum;				/* desired value */
+	double tmp;
 
 #if DEBUG > 1				/* an expensive assertion... */
-   shAssert(fabs(s2phi - sin(2*phi)) < 1e-5);
+	shAssert(fabs(s2phi - sin(2*phi)) < 1e-5);
 #endif
 
-   c2rphi = 1;
-   s2rphi = 0;
-   sum = A[0];				/* i == 0 */
+	c2rphi = 1;
+	s2rphi = 0;
+	sum = A[0];				/* i == 0 */
 
-   c2rphi = c2phi;
-   s2rphi = s2phi;
-   sum += A[1]*c2rphi + B[1]*s2rphi;	/* i == 1 */
+	c2rphi = c2phi;
+	s2rphi = s2phi;
+	sum += A[1]*c2rphi + B[1]*s2rphi;	/* i == 1 */
    
-   tmp = c2rphi*c2phi - s2rphi*s2phi;
-   s2rphi = s2rphi*c2phi + c2rphi*s2phi;
-   c2rphi = tmp;
-   sum += A[2]*c2rphi + B[2]*s2rphi;	/* i == 2 */
+	tmp = c2rphi*c2phi - s2rphi*s2phi;
+	s2rphi = s2rphi*c2phi + c2rphi*s2phi;
+	c2rphi = tmp;
+	sum += A[2]*c2rphi + B[2]*s2rphi;	/* i == 2 */
 
-   tmp = c2rphi*c2phi - s2rphi*s2phi;
-   s2rphi = s2rphi*c2phi + c2rphi*s2phi;
-   c2rphi = tmp;
-   sum += A[3]*c2rphi + B[3]*s2rphi;	/* i == 3 */
+	tmp = c2rphi*c2phi - s2rphi*s2phi;
+	s2rphi = s2rphi*c2phi + c2rphi*s2phi;
+	c2rphi = tmp;
+	sum += A[3]*c2rphi + B[3]*s2rphi;	/* i == 3 */
 
-   tmp = c2rphi*c2phi - s2rphi*s2phi;
-   s2rphi = s2rphi*c2phi + c2rphi*s2phi;
-   c2rphi = tmp;
-   sum += A[4]*c2rphi + B[4]*s2rphi;	/* i == 4 */
+	tmp = c2rphi*c2phi - s2rphi*s2phi;
+	s2rphi = s2rphi*c2phi + c2rphi*s2phi;
+	c2rphi = tmp;
+	sum += A[4]*c2rphi + B[4]*s2rphi;	/* i == 4 */
 
-   tmp = c2rphi*c2phi - s2rphi*s2phi;
-   s2rphi = s2rphi*c2phi + c2rphi*s2phi;
-   c2rphi = tmp;
-   sum += A[5]*c2rphi + B[5]*s2rphi;	/* i == 5 */
+	tmp = c2rphi*c2phi - s2rphi*s2phi;
+	s2rphi = s2rphi*c2phi + c2rphi*s2phi;
+	c2rphi = tmp;
+	sum += A[5]*c2rphi + B[5]*s2rphi;	/* i == 5 */
       
-   return(sum);
+	return(sum);
 }
 
 /*****************************************************************************/
@@ -1315,30 +1315,30 @@ eval_fourier(double phi,
  */
 void
 phCellProfSet(CELL_PROF *cprof,		/* the CELL_PROF to initialise */
-	      const CELL_STATS *cstats, /* cell array info */
-	      int median,		/* use median profile? */
-	      double sky,		/* sky level */
-	      double gain,		/* gain of chip */
-	      double dark_variance,	/* background variance */
-	      double sigma,		/* object's width */
-	      double posErr,		/* centering error */
-	      int use_difference,	/* include difference of cell
-					   pairs in variance? */
-	      int sky_noise_only)	/* only include sky noise */
+			  const CELL_STATS *cstats, /* cell array info */
+			  int median,		/* use median profile? */
+			  double sky,		/* sky level */
+			  double gain,		/* gain of chip */
+			  double dark_variance,	/* background variance */
+			  double sigma,		/* object's width */
+			  double posErr,		/* centering error */
+			  int use_difference,	/* include difference of cell
+									 pairs in variance? */
+			  int sky_noise_only)	/* only include sky noise */
 {
     float area1, area2;			/* areas of two cells */
     struct pstats *cell;		/* statistics etc. for a cell */
 #define NCORR 7				/* number of corr[] coeffs */
     static float corr[][NCORR] = {
-       {				/* 0.8 pixel sigma1 */
-	  0.004300, 0.010893, 0.004389, 0.001474, 0.000401, 0.000049, 0.000000
-       },
-       {				/* 1.0 pixel sigma */
-	  0.005069, 0.003796, 0.002311, 0.000892, 0.000294, 0.000081, 0.000007
-       },
-       {				/* <= 1% correction */
-	  0.010000, 0.010000, 0.010000, 0.010000, 0.005000, 0.002000, 0.000000
-       },
+		{				/* 0.8 pixel sigma1 */
+			0.004300, 0.010893, 0.004389, 0.001474, 0.000401, 0.000049, 0.000000
+		},
+		{				/* 1.0 pixel sigma */
+			0.005069, 0.003796, 0.002311, 0.000892, 0.000294, 0.000081, 0.000007
+		},
+		{				/* <= 1% correction */
+			0.010000, 0.010000, 0.010000, 0.010000, 0.005000, 0.002000, 0.000000
+		},
     };					/* sinc-corrections */
     static int icorr = 1;		/* which corr[] to use */
     int i, j, k;
@@ -1351,7 +1351,7 @@ phCellProfSet(CELL_PROF *cprof,		/* the CELL_PROF to initialise */
     float var;				/* variance in a value */
 #if 1					/* XXX */
     static float var_min_frac = 1e-2;	/* variance cannot fall below
-					   var_min_frac*|data| */
+										 var_min_frac*|data| */
     static int diff_errors = 0;		/* use diff errors? */
     static float sinc_fac = 1.0;	/* fiddle factor for sinc errors */
     static float centering_fac = 0.1;	/* fiddle factor for centering errs */
@@ -1362,7 +1362,7 @@ phCellProfSet(CELL_PROF *cprof,		/* the CELL_PROF to initialise */
     shAssert(sigma != 0.0 || posErr == 0.0);
 
     if(sigma == 0.0) {
-       sigma = 1;			/* avoid division by zero */
+		sigma = 1;			/* avoid division by zero */
     }
 /*
  * See if we need more storage, and if so get it
@@ -1406,88 +1406,88 @@ phCellProfSet(CELL_PROF *cprof,		/* the CELL_PROF to initialise */
  *
  * do the central cell first; it alone has no pair to be coupled with
  */
-   cell = &cstats->cells[0];
-   if((val1 = median ? cell->qt[1] : cell->mean) < -999) {
-      data[0] = 0;
-   } else {
-      data[0] = val1;
-   }
-   area[0] = cell->area;
+	cell = &cstats->cells[0];
+	if((val1 = median ? cell->qt[1] : cell->mean) < -999) {
+		data[0] = 0;
+	} else {
+		data[0] = val1;
+	}
+	area[0] = cell->area;
 
-   if(sky_noise_only) {
-      var_photon = sky/gain + dark_variance;
-      var_photon /= cell->area;
+	if(sky_noise_only) {
+		var_photon = sky/gain + dark_variance;
+		var_photon /= cell->area;
 
-      var = var_photon;
-   } else {
-      if((var_photon = (val1 + sky)/gain + dark_variance) > 0) {
-	 var_photon /= cell->area;
-      } else {
-	 var_photon = 1e10;
-      }
-      var = var_photon;
-      var += sinc_fac*pow(data[0]*corr[icorr][0],2);
-      var += pow(var_min_frac*data[0], 2);
-   }
+		var = var_photon;
+	} else {
+		if((var_photon = (val1 + sky)/gain + dark_variance) > 0) {
+			var_photon /= cell->area;
+		} else {
+			var_photon = 1e10;
+		}
+		var = var_photon;
+		var += sinc_fac*pow(data[0]*corr[icorr][0],2);
+		var += pow(var_min_frac*data[0], 2);
+	}
 
-   sig[0] = sqrt((var < 1e-5) ? 1e-5 : var);
+	sig[0] = sqrt((var < 1e-5) ? 1e-5 : var);
 /*
  * And now the rest of the annuli
  */
-   for(i = 1;i < nann;i++) {
-      for(j = 0;j < NSEC/2;j++) {
-	 k = 1 + NSEC*(i - 1) + j;
-	 cell = &cstats->cells[k];
-	 val1 = median ? cell->qt[1] : cell->mean;
-	 area1 = cell->area;
+	for(i = 1;i < nann;i++) {
+		for(j = 0;j < NSEC/2;j++) {
+			k = 1 + NSEC*(i - 1) + j;
+			cell = &cstats->cells[k];
+			val1 = median ? cell->qt[1] : cell->mean;
+			area1 = cell->area;
 	 
-	 cell = &cstats->cells[k + NSEC/2];
-	 val2 = median ? cell->qt[1] : cell->mean;
-	 area2 = cell->area;
+			cell = &cstats->cells[k + NSEC/2];
+			val2 = median ? cell->qt[1] : cell->mean;
+			area2 = cell->area;
 
-	 k = 1 + NSEC/2*(i - 1) + j;
-	 data[k] = 0.5*(val1 + val2);
-	 area[k] = area1 + area2;
+			k = 1 + NSEC/2*(i - 1) + j;
+			data[k] = 0.5*(val1 + val2);
+			area[k] = area1 + area2;
 	 
-	 if(sky_noise_only) {
-	    var_photon = (area1 + area2)*(sky/gain + dark_variance);
-	    var_photon /= (area1 + area2)*(area1 + area2);
+			if(sky_noise_only) {
+				var_photon = (area1 + area2)*(sky/gain + dark_variance);
+				var_photon /= (area1 + area2)*(area1 + area2);
 
-	    var = var_photon;
-	 } else {
-	    var_photon = (area1*(val1 + sky) + area2*(val2 + sky))/gain +
-						 dark_variance*(area1 + area2);
-	    var_photon /= (area1 + area2)*(area1 + area2);
+				var = var_photon;
+			} else {
+				var_photon = (area1*(val1 + sky) + area2*(val2 + sky))/gain +
+					dark_variance*(area1 + area2);
+				var_photon /= (area1 + area2)*(area1 + area2);
 	    
-	    if(var_photon < 1e-3) {	/* i.e. -ve */
-	       var_photon = 1e10;
-	    }
+				if(var_photon < 1e-3) {	/* i.e. -ve */
+					var_photon = 1e10;
+				}
 	    
-	    if(use_difference) {
-	       var_diff = 0.25*(val1 - val2)*(val1 - val2);
-	       var = (var_diff > var_photon) ? var_diff : var_photon;
-	    } else {
-	       var = var_photon;
-	    }
+				if(use_difference) {
+					var_diff = 0.25*(val1 - val2)*(val1 - val2);
+					var = (var_diff > var_photon) ? var_diff : var_photon;
+				} else {
+					var = var_photon;
+				}
 /*
  * add in sinc-shift errors
  */
-	    if(i < NCORR) {
-	       var += sinc_fac*pow(data[0]*corr[icorr][i],2);
-	    }
+				if(i < NCORR) {
+					var += sinc_fac*pow(data[0]*corr[icorr][i],2);
+				}
 /*
  * and add in the centering errors
  */
-	    rmean = cstats->mgeom[k].rmean;
-	    var += centering_fac*pow(data[k]*rmean*posErr/(sigma*sigma), 2);
+				rmean = cstats->mgeom[k].rmean;
+				var += centering_fac*pow(data[k]*rmean*posErr/(sigma*sigma), 2);
 /*
  * finally, add in the floor to the variance
  */
-	    var += pow(var_min_frac*data[k], 2);
-	 }
-	 shAssert(var == var);
+				var += pow(var_min_frac*data[k], 2);
+			}
+			shAssert(var == var);
 	 
-	 sig[k] = sqrt((var < 1e-5) ? 1e-5 : var);
-      }
-   }
+			sig[k] = sqrt((var < 1e-5) ? 1e-5 : var);
+		}
+	}
 }
