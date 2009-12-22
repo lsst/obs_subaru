@@ -30,7 +30,7 @@ COBJS := photo/deblend.os \
 	photo/phSpanUtil.os photo/finder.os photo/atlasImages.os photo/random-fake.os \
 	photo/utils.os photo/offset.os photo/mathUtils.os photo/objectUtils.os photo/astcen.os \
 	photo/medianSky.os photo/dgpsf.os photo/cellfitobj.os photo/apertures.os \
-	photo/extract.os photo/extract_utils.os photo/fitobj.os \
+	photo/extract.os photo/extract_utils.os \
 	astrotools/atTrans.os astrotools/atExternalSet.os \
 	dervish/shChain.os dervish/shGarbage.os dervish/schema.os dervish/utils.os dervish/errStack.os \
 	dervish/diskio.os dervish/vecOps.os dervish/shHash.os dervish/region.os dervish/hdr.os dervish/tree.os \
