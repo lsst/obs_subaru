@@ -21,6 +21,7 @@
 #include "shCFitsIo.h"
 
 #include "phFake.h"
+#include "phObjc.h"
 
 static float
 assign_missing_flux(const OBJC **children, /* the children in question */
@@ -270,6 +271,17 @@ phObjcDeblend(OBJC *objc,		/* object to deblend */
 		}
 		filtsize = 2*(int)(3*sigma_max) + 1;
 	}
+
+	{
+		int m;
+		for (m=0; m<objc->ncolor; m++) {
+			OBJECT1* o1 = objc->color[m];
+			trace("color %i: rowc,colc %g,%g\n",
+				  m, o1->rowc, o1->colc);
+		}
+	}
+
+
 	/*
 	 * give up on edge objects; they don't satisfy the the deblender's symmetry
 	 * assumptions and are too close to the edge to be smoothed. Some objects
@@ -293,7 +305,6 @@ phObjcDeblend(OBJC *objc,		/* object to deblend */
 	}
 
 	trace("objc.nchild %i\n", objc->nchild);
-
 	/*
 	 * Put pointers to the descendents into an array, children[], for the
 	 * convenience of this routine
@@ -306,6 +317,18 @@ phObjcDeblend(OBJC *objc,		/* object to deblend */
 		children[nchild++] = child;
 	}
 	shAssert(nchild == objc->nchild);
+
+	{
+		int k,m;
+		for (k=0; k<nchild; k++) {
+			for (m=0; m<objc->ncolor; m++) {
+				OBJECT1* o1 = children[k]->color[m];
+				trace("child %i, color %i: rowc,colc %g,%g\n",
+					  k, m, o1->rowc, o1->colc);
+			}
+		}
+	}
+
 
 	/*
 	 * decide whether any possible moving objects are really moving; if they
@@ -358,6 +381,16 @@ phObjcDeblend(OBJC *objc,		/* object to deblend */
 	}
 
 	trace("nchild %i\n", nchild);
+	{
+		int k,m;
+		for (k=0; k<nchild; k++) {
+			for (m=0; m<objc->ncolor; m++) {
+				OBJECT1* o1 = children[k]->color[m];
+				trace("child %i, color %i: rowc,colc %g,%g\n",
+					  k, m, o1->rowc, o1->colc);
+			}
+		}
+	}
 
 	/*
 	 * find the centre of the object after median smoothing. We use this to try

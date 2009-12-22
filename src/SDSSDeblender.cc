@@ -104,12 +104,23 @@ deblender::SDSSDeblender<ImageT>::deblend(std::vector<typename ImageT::Ptr> &ima
             // MUST be a SPANMASK*
             o1->region->mask = (photo::MASK*)photo::phSpanmaskNew(H, W);
             printf("Default flags: 0x%x\n", o1->flags);
+
+            // HACK
+            o1->rowc = H/2;
+            o1->colc = W/2;
+            o1->rowcErr = 0.5;
+            o1->colcErr = 0.5;
+
             objc->color[i] = o1;
         }
-
-              objc->aimage = photo::phAtlasImageNewFromObjc(objc);            
-              //objc->aimage = photo::phAtlasImageNew(images.size());
-              objc->aimage->master_mask = photo::phObjmaskFromRect(0, 0, W, H);
+              objc->rowc = H/2;
+          objc->colc = W/2;
+          objc->rowcErr = 0.5;
+          objc->colcErr = 0.5;
+          
+          objc->aimage = photo::phAtlasImageNewFromObjc(objc);            
+          //objc->aimage = photo::phAtlasImageNew(images.size());
+          objc->aimage->master_mask = photo::phObjmaskFromRect(0, 0, W, H);
           objc->aimage->pix[0] = photo::phAiPixNew(objc->aimage->master_mask, 1, 0);
 
     printObjc(objc);

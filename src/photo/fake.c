@@ -3,12 +3,20 @@
 #include "phFake.h"
 
 #include <stdarg.h>
-void trace(const char* fmt, ...) {
-    va_list lst;
-	printf("%s:%i ", __FILE__, __LINE__);
-    va_start(lst, fmt);
+/*void trace(const char* fmt, ...) {
+ va_list lst;
+ printf("%s:%i ", __FILE__, __LINE__);
+ va_start(lst, fmt);
+ vprintf(fmt, lst);
+ va_end(lst);
+ }
+ */
+void phTrace(const char* fn, int line, const char* fmt, ...) {
+	va_list lst;
+	printf("%s:%i ", fn, line);
+	va_start(lst, fmt);
 	vprintf(fmt, lst);
-    va_end(lst);
+	va_end(lst);
 }
 
 // for MODEL_PARAMS
@@ -61,6 +69,17 @@ static float sky_level;			/* the resulting value */
 static float totflux;			/* estimated total flux in an object */
 static float totfluxErr;		/* error in total flux */
 
+static float rsize_min, rsize_max;	/* extremal values of rsize for
+									 available models */
+static float aratio_min;		/* minimum value of rsize for
+								 available models */
+//static int fit_phi = 0;			/* should we fit the position angle? */
+static float model_phi;			/* position angle of best model (rad)*/
+static float model_amp;			/* amplitude of best-fit model */
+static float model_ampErr;		/* error in amplitude */
+static PSF_COEFFS *seeing_ind = NULL;	/* current seeing */
+
+
 /*
  * a suite of models for e.g. exponential disks
  */
@@ -70,7 +89,6 @@ typedef struct {
     int mod_offset;
     spro_catentry *entries;
 } MODEL_ENTRIES;
-static MODEL_ENTRIES psf_entries;	/* PSFs */
 #define IORDER_INC 2			/* "inclination", really b/a */
 #define IORDER_SIZE 2			/* size */
 
@@ -79,7 +97,11 @@ struct p_model {
     float w;	/* weight to be given to this model */
 };
 static COMP_CSTATS *model_cs = NULL;	/* COMP_CSTATS for the current model */
-
+static void
+expand_model(float phi,			/* desired position angle */
+			 float *model,		/* model to expand */
+			 int nannuli)		/* number of annuli in model */
+	;
 void
 phCellProfSet(CELL_PROF *cprof,		/* the CELL_PROF to initialise */
 			  const CELL_STATS *cstats, /* cell array info */
@@ -137,27 +159,9 @@ phFitCellAsPsfFake(OBJC *objc,		/* Object to fit */
 	// ---> called by cell_fit_model
 	// -----> called by cell_fit_psf
 	// -------> called by phFitCellAsPsfFake
+
 	// phFitCellAsKnownModel
 	{
-#if 0
-		float
-			phFitCellAsKnownModel(OBJC *objc,		/* Object to fit */
-								  int color,               /* color of object */
-								  const CELL_STATS *cstats, /* object's cell array */
-								  const FIELDPARAMS *fiparams, /* describe field */
-								  int nannuli,	/* number of annuli to use */
-								  int class,	/* desired class of model */
-								  float ab,		/* model axis ratio */
-								  float phi,	/* model p.a. (degrees) */
-								  float re,		/* model r_effective */
-								  int use_difference, /* include difference of cell
-													   pairs when estimating variance? */
-								  int sky_noise_only, /* only include sky noise in var. */
-								  float *counts, float *countsErr, /* counts & error */
-								  float *sky,	/* estimated sky level, or NULL */
-								  int *nu)		/* number of degrees of freedom */
-#endif
-
 #define NPARAM 8			/* max number of parameters to fit */
 
 			//void (*cell_fit_func)(int, int, double *, double *, int *) = NULL;
@@ -179,7 +183,6 @@ phFitCellAsPsfFake(OBJC *objc,		/* Object to fit */
 		float *counts = &thecounts;
 		float *countsErr = &thecountserr;
 
-
 		shAssert(fiparams != NULL && objc != NULL);
 		shAssert(color >= 0 && color < fiparams->ncolor && color < objc->ncolor);
 		fparams = &fiparams->frame[color];
@@ -188,6 +191,9 @@ phFitCellAsPsfFake(OBJC *objc,		/* Object to fit */
 		shAssert(obj != NULL);
 
 		reg = fparams->data;
+
+		rsize_max = rsize_min = 0;
+		aratio_min = 0;
 		//set_rsize_limits(&psf_entries);
 		//cell_fit_func = cell_fit_psf;
 		// npar = 0.
@@ -216,6 +222,15 @@ phFitCellAsPsfFake(OBJC *objc,		/* Object to fit */
 		} else {
 			posErr = sqrt(pow(obj->rowcErr,2) + pow(obj->colcErr,2));
 		}
+
+		printf("cell stats:\n");
+		printf("  ncell %i\n", cstats->ncell);
+		printf("  nannuli %i\n", cstats->nannuli);
+		printf("  nannuli_c %i\n", cstats->nannuli_c);
+		printf("  annular %i\n", cstats->annular);
+		printf("  col_c, row_c %g, %g\n", cstats->col_c, cstats->row_c);
+		printf("  col_1, row_1 %g, %g\n", cstats->col_1, cstats->row_1);
+		printf("  orad %i\n", cstats->orad);
 
 		setup_cell_data(cstats, use_median, obj->sky,
 						phGain(fparams, obj->rowc, obj->colc),
@@ -345,6 +360,9 @@ setup_cell_data(const CELL_STATS *stats_obj, /* cell array info */
 	phCellProfSet(&fit_ctx, stats_obj, median, sky, gain, dark_variance,
 				  sigma, posErr, use_difference, sky_noise_only);
 }
+
+
+#if 0
 /*****************************************************************************/
 /*
  * This function will return a COMP_CSTATS containing a realization of a
@@ -360,9 +378,6 @@ model_cells_make(const MODEL_PARAMS *p, /* parameters of model to create */
     COMP_CSTATS *cstmp;
     float *cs_model;			/* unaliased from cs->{mean,median} */
     float *cstmp_model;			/* cstmp->{mean or median} */
-#if USE_MODEL_SIG
-    float *cstmp_sig, *cs_sig;		/* cstmp->sig, cs->sig */
-#endif
     const int median = use_median;	/* unaliased */
     int i;
     int im;
@@ -380,11 +395,7 @@ model_cells_make(const MODEL_PARAMS *p, /* parameters of model to create */
 		cs->median = NULL;
     }
     
-#if USE_MODEL_SIG
-    cs_sig = cs->sig;
-#endif
-
-    memset(cs->mem,'\0',(USE_MODEL_SIG ? 2:1)*sizeof(float)*MAXCELLS);
+    memset(cs->mem,'\0',sizeof(float)*MAXCELLS);
     shAssert(*cs->mem == 0.0);		/* check that 0.0 is all 0 bits */
     cs->ncells = -1;
     cs->totflux = 0.0;
@@ -399,26 +410,25 @@ model_cells_make(const MODEL_PARAMS *p, /* parameters of model to create */
 		}
 		cstmp = convolved_model_get(index[im].i);
 		cstmp_model = median ? cstmp->median : cstmp->mean;
-#if USE_MODEL_SIG
-		cstmp_sig = cstmp->sig;
-#endif
 		if(cstmp->ncells > cs->ncells) cs->ncells = cstmp->ncells;
 
 		cs->totflux += w*cstmp->totflux;
 		for(i = cstmp->ncells - 1;i >= 0; i--) {
 			cs_model[i] += cstmp_model[i]*w;
-#if USE_MODEL_SIG
-			cs_sig[i] += cstmp_sig[i]*w;
-#endif
 		}
     }
 
     return cs;
 }
+#endif
+
+
 static COMP_CSTATS *
 psf_cells_make(const MODEL_PARAMS *p)	/* parameters of model to create */
 {
-	return model_cells_make(p, &psf_entries);
+	//return model_cells_make(p, &psf_entries);
+	printf("psf_cells_make()\n");
+	return NULL;
 }
 static void
 cell_fit_psf(
@@ -431,6 +441,7 @@ cell_fit_psf(
 {
     cell_fit_model(psf_cells_make, ndata, nparam, p, fvec, iflag);
 }
+
 static void
 cell_fit_model(
     COMP_CSTATS *(*cells_make)(const MODEL_PARAMS *),
@@ -476,7 +487,7 @@ cell_fit_model(
 /*
  * Stuff changing parameters into the context.
  */
-    mp.class = -1;			/* unknown */
+	mp.clazz = -1;			/* unknown */
     mp.psf = NULL;
 
     mp.aratio = 1.0;
@@ -535,14 +546,7 @@ cell_fit_model(
 /*
  * find the best position angle, if so desired
  */
-    if(fit_phi) {
-		stats_model = find_phi(stats_model, nannuli, data, sig);
-		shAssert(stats_model != NULL);	/* phi determination converged */
-
-		model = use_median ? stats_model->median : stats_model->mean;
-    } else {
-		expand_model(model_phi, model, nannuli);
-    }
+	expand_model(model_phi, model, nannuli);
 /*
  * correct for the known discrepancy between the psf and our best
  * representation of it
@@ -614,8 +618,8 @@ cell_fit_model(
 		model_amp = sum_dm/sum_mm;
 		model_ampErr = sqrt(1/sum_mm);
     }
-    model_ampErr *= sqrt(idata/(idata - nparam - fit_phi)); /* correct for
-															 missing dof */
+    model_ampErr *= sqrt(idata/(idata - nparam)); /* correct for
+												   missing dof */
 /*
  * We _added_ the residuals to the model, so we increased its flux
  */
@@ -684,6 +688,38 @@ cell_fit_model(
     }
 #endif
 }
+/*****************************************************************************/
+/*
+ * Given a model stored as Fourier coefficients, replace it by the values
+ * in the cells.
+ *
+ * Note that this function is _not_ optimised; it's supposed to be used
+ * only in non-time-critical places (e.g. finding the best PSF model)
+ */
+static void
+expand_model(float phi,			/* desired position angle */
+			 float *model,		/* model to expand */
+			 int nannuli)		/* number of annuli in model */
+{
+	float C[NSEC/2];
+	int isect, iann;
+	int r;
+	int sect0;
+	float sum;
+
+	for(sect0 = iann = 1; iann < nannuli; iann++, sect0 += NSEC/2) {
+		memcpy(C, &model[1 + (iann - 1)*NSEC/2], NSEC/2*sizeof(float));
+		for(isect = 0; isect < NSEC/2; isect++) {
+			sum = C[0];
+			for(r = 1; r < NSEC/2; r++) {
+				sum += C[r]*cos(2*r*(2*M_PI*isect/(float)NSEC - phi));
+			}
+			model[sect0 + isect] = sum;
+		}
+	}
+}
+
+
 /*****************************************************************************/
 /*
  * Set the values of a CELL_PROF, given a CELL_STATS. No correction is
@@ -869,6 +905,11 @@ phCellProfSet(CELL_PROF *cprof,		/* the CELL_PROF to initialise */
 		}
 	}
 }
+
+
+
+
+
 
 
 
