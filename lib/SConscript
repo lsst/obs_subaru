@@ -29,10 +29,11 @@ env.SharedLibrary(
 	'astcen',
 	'medianSky',
 	'dgpsf',
-	'cellfitobj',
+	#'cellfitobj',
 	'apertures',
 	'extract',
 	'extract_utils',
+	'fake',
 	]]
 	+
 	['../src/astrotools/'+x+'.c' for x in [

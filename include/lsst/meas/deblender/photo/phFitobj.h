@@ -154,7 +154,7 @@ int phProfCatalogMake(const char *cat_name, int show_progress);
  */
 
 typedef struct {
-    int class;			/* class of model (psf, exp, deV) */
+    int clazz;			/* class of model (psf, exp, deV) */
     float aratio;		/* axis ratio */
     float rsize;		/* r_eff (exponential) or */
 				/* r_eff(deVoucouleurs), in pixels */
@@ -184,8 +184,8 @@ REGION *phMakePowerLawModel(const float I0, const float beta, const float rmin,
 float phTotalFluxGet(const CELL_STATS *stats_model,
 		     const MODEL_PARAMS *p);
 float phFluxGetFromModel(const MODEL_PARAMS *p);
-float phIeGetFromFlux(float totflux, int class, float re, float ab);
-float phFluxGetFromIe(float Ie, int class, float re, float ab);
+float phIeGetFromFlux(float totflux, int clazz, float re, float ab);
+float phFluxGetFromIe(float Ie, int clazz, float re, float ab);
 
 
 int phCellMakeProfCat(

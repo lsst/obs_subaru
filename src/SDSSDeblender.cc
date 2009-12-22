@@ -17,7 +17,11 @@ extern "C" {
 #include "phSpanUtil.h"
 #include "region.h"
 #include "phObjc_p.h"
-#include "phCellFitobj.h"
+
+int
+phObjcMakeChildrenFake(OBJC *objc,		/* give this OBJC a family */
+					   const FIELDPARAMS *fiparams) /* misc. parameters */
+    ;
 }
 }}}}
 
@@ -46,8 +50,6 @@ deblender::SDSSDeblender<ImageT>::deblend(std::vector<typename ImageT::Ptr> &ima
 
     // Photo init.
     photo::initSpanObjmask();
-    int use_median = 1;
-    photo::phInitCellFitobj("cellprof.dat", images.size(), use_median);
 
     photo::OBJC* objc = photo::phObjcNew(images.size());
     photo::FIELDPARAMS* fp = photo::phFieldparamsNew(filters);
