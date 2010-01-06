@@ -1,6 +1,9 @@
 #include <string.h>
 #include <math.h>
 #include "phFake.h"
+#include "phMathUtils.h"
+
+#include <assert.h>
 
 #include <stdarg.h>
 /*void trace(const char* fmt, ...) {
@@ -18,6 +21,107 @@ void phTrace(const char* fn, int line, const char* fmt, ...) {
 	vprintf(fmt, lst);
 	va_end(lst);
 }
+
+#include "phObjc.h"
+
+#define printflag(flags, pre, f) if (flags & (pre ## f)) {	\
+		printf("    %s\n", #f);					\
+	}
+static void printAnObjc(OBJC* o, int childnum) {
+	printf("Objc");
+	if (childnum >= 0) {
+		printf(" (child %i)", childnum);
+	}
+	printf(":\n  parent %p\n  children %p\n  sibbs %p\n",
+		   o->parent, o->children, o->sibbs);
+    printf("  ncolor %i\n", o->ncolor);
+    printf("  rowc,colc %g,%g\n", o->rowc, o->colc);
+	printf("  flags:\n");
+	printflag(o->flags, OBJECT1_, CANONICAL_CENTER);
+	printflag(o->flags, OBJECT1_, BRIGHT);
+	printflag(o->flags, OBJECT1_, EDGE);
+	printflag(o->flags, OBJECT1_, BLENDED);
+	printflag(o->flags, OBJECT1_, CHILD);
+	printflag(o->flags, OBJECT1_, PEAKCENTER);
+	printflag(o->flags, OBJECT1_, NODEBLEND);
+	printflag(o->flags, OBJECT1_, NOPROFILE);
+	printflag(o->flags, OBJECT1_, NOPETRO);
+	printflag(o->flags, OBJECT1_, MANYPETRO);
+	printflag(o->flags, OBJECT1_, NOPETRO_BIG);
+	printflag(o->flags, OBJECT1_, DEBLEND_TOO_MANY_PEAKS);
+	printflag(o->flags, OBJECT1_, CR);
+	printflag(o->flags, OBJECT1_, MANYR50);
+	printflag(o->flags, OBJECT1_, MANYR90);
+	printflag(o->flags, OBJECT1_, BAD_RADIAL);
+	printflag(o->flags, OBJECT1_, INCOMPLETE_PROFILE);
+	printflag(o->flags, OBJECT1_, INTERP);
+	printflag(o->flags, OBJECT1_, SATUR);
+	printflag(o->flags, OBJECT1_, NOTCHECKED);
+	printflag(o->flags, OBJECT1_, SUBTRACTED);
+	printflag(o->flags, OBJECT1_, NOSTOKES);
+	printflag(o->flags, OBJECT1_, BADSKY);
+	printflag(o->flags, OBJECT1_, PETROFAINT);
+	printflag(o->flags, OBJECT1_, TOO_LARGE);
+	printflag(o->flags, OBJECT1_, DEBLENDED_AS_PSF);
+	printflag(o->flags, OBJECT1_, DEBLEND_PRUNED);
+	printflag(o->flags, OBJECT1_, ELLIPFAINT);
+	printflag(o->flags, OBJECT1_, BINNED1);
+	printflag(o->flags, OBJECT1_, BINNED2);
+	printflag(o->flags, OBJECT1_, BINNED4);
+	printflag(o->flags, OBJECT1_, MOVED);
+
+	printflag(o->flags2, OBJECT2_, DEBLENDED_AS_MOVING);
+	printflag(o->flags2, OBJECT2_, NODEBLEND_MOVING);
+	printflag(o->flags2, OBJECT2_, TOO_FEW_DETECTIONS);
+	printflag(o->flags2, OBJECT2_, BAD_MOVING_FIT);
+	printflag(o->flags2, OBJECT2_, STATIONARY);
+	printflag(o->flags2, OBJECT2_, PEAKS_TOO_CLOSE);
+	printflag(o->flags2, OBJECT2_, BINNED_CENTER);
+	printflag(o->flags2, OBJECT2_, LOCAL_EDGE);
+	printflag(o->flags2, OBJECT2_, BAD_COUNTS_ERROR);
+	printflag(o->flags2, OBJECT2_, BAD_MOVING_FIT_CHILD);
+	printflag(o->flags2, OBJECT2_, DEBLEND_UNASSIGNED_FLUX);
+	printflag(o->flags2, OBJECT2_, SATUR_CENTER);
+	printflag(o->flags2, OBJECT2_, INTERP_CENTER);
+	printflag(o->flags2, OBJECT2_, DEBLENDED_AT_EDGE);
+	printflag(o->flags2, OBJECT2_, DEBLEND_NOPEAK);
+	printflag(o->flags2, OBJECT2_, PSF_FLUX_INTERP);
+	printflag(o->flags2, OBJECT2_, TOO_FEW_GOOD_DETECTIONS);
+	printflag(o->flags2, OBJECT2_, CENTER_OFF_AIMAGE);
+	printflag(o->flags2, OBJECT2_, DEBLEND_DEGENERATE);
+	printflag(o->flags2, OBJECT2_, BRIGHTEST_GALAXY_CHILD);
+	printflag(o->flags2, OBJECT2_, CANONICAL_BAND);
+	printflag(o->flags2, OBJECT2_, AMOMENT_UNWEIGHTED);
+	printflag(o->flags2, OBJECT2_, AMOMENT_SHIFT);
+	printflag(o->flags2, OBJECT2_, AMOMENT_MAXITER);
+	printflag(o->flags2, OBJECT2_, MAYBE_CR);
+	printflag(o->flags2, OBJECT2_, MAYBE_EGHOST);
+	printflag(o->flags2, OBJECT2_, NOTCHECKED_CENTER);
+	printflag(o->flags2, OBJECT2_, HAS_SATUR_DN);
+	printflag(o->flags2, OBJECT2_, DEBLEND_PEEPHOLE);
+	printflag(o->flags2, OBJECT2_, NOT_DEBLENDED_AS_PSF);
+	printflag(o->flags2, OBJECT2_, SUBTRACTED_WINGS);
+
+	printflag(o->flags3, OBJECT3_, HAS_SATUR_DN);
+	printflag(o->flags3, OBJECT3_, MEASURED);
+	printflag(o->flags3, OBJECT3_, GROWN_MERGED);
+	printflag(o->flags3, OBJECT3_, HAS_CENTER);
+	printflag(o->flags3, OBJECT3_, MEASURE_BRIGHT);
+
+	printf("  N children: %i\n", o->nchild);
+	if (o->nchild && o->children) {
+		printAnObjc(o->children, 0);
+	} 
+
+	if (o->sibbs) {
+		printAnObjc(o->sibbs, childnum+1);
+	}
+}
+#undef printflag
+void printObjc(OBJC* o) {
+	printAnObjc(o, -1);
+}
+
 
 // for MODEL_PARAMS
 #include "phFitobj.h"
@@ -144,6 +248,8 @@ phFitCellAsPsfFake(OBJC *objc,		/* Object to fit */
 {
 	int use_difference = 0; /* include difference of cell pairs
 							 in cell variance */
+		float chisq;
+		int nu;
 
 	printf("faking phFitCellAsPsf.\n");
 	// called from deblend.c:
@@ -152,7 +258,6 @@ phFitCellAsPsfFake(OBJC *objc,		/* Object to fit */
 	// sky_noise_only=0
 	printf("color: %i\n", color);
 	printf("nann: %i\n", nannuli);
-
 
 	// problem in model_cells_make
 	// -> called by psf_cells_make (w/ psf_entries)
@@ -165,7 +270,6 @@ phFitCellAsPsfFake(OBJC *objc,		/* Object to fit */
 #define NPARAM 8			/* max number of parameters to fit */
 
 			//void (*cell_fit_func)(int, int, double *, double *, int *) = NULL;
-		float chisq;
 		const FRAMEPARAMS *fparams;		/* unpacked from fiparams */
 		double *fvec;			/* residuals for cells */
 		int i;
@@ -175,11 +279,9 @@ phFitCellAsPsfFake(OBJC *objc,		/* Object to fit */
 		float posErr;			/* error in position */
 		const REGION *reg;			/* unpacked from fparams */
 
-		int thenu;
-		float thesky, thecounts, thecountserr;
+		float thecounts, thecountserr;
 
-		int* nu = &thenu;
-		float* sky = &thesky;
+		float* sky = bkgd;
 		float *counts = &thecounts;
 		float *countsErr = &thecountserr;
 
@@ -199,6 +301,7 @@ phFitCellAsPsfFake(OBJC *objc,		/* Object to fit */
 		// npar = 0.
 
 		if(cstats == NULL) {
+			printf("phProfileExtract...\n");
 			cstats = (const CELL_STATS *)
 				phProfileExtract(-1, -1, reg, obj->rowc, obj->colc, find_outer(obj),
 								 SOFT_BIAS + fparams->bkgd, obj->skyErr, 0);
@@ -206,16 +309,16 @@ phFitCellAsPsfFake(OBJC *objc,		/* Object to fit */
 				shErrStackPush("phFitCellAsKnownModel: "
 							   "object is too close to edge (%.3f, %.3f)",
 							   obj->rowc, obj->colc);
-				if(nu != NULL) {		/* avoid division by 0 */
-					*nu = 1;
-				}
+				nu = 1;
 				if(sky != NULL) {
 					*sky = 0;
 				}
 				return(-1);
 			}
+			trace("Before phProfileMean: cs->ncell %i\n", cstats->ncell);
 			obj->profMean[0] = phProfileMean(cstats, 0, 0, 1, NULL);
 			obj->nprof = cstats->nannuli_c;
+			trace("After phProfileMean: cs->ncell %i\n", cstats->ncell);
 		}
 		if(obj->rowcErr < 0) {
 			posErr = 1;
@@ -223,26 +326,63 @@ phFitCellAsPsfFake(OBJC *objc,		/* Object to fit */
 			posErr = sqrt(pow(obj->rowcErr,2) + pow(obj->colcErr,2));
 		}
 
-		printf("cell stats:\n");
-		printf("  ncell %i\n", cstats->ncell);
-		printf("  nannuli %i\n", cstats->nannuli);
-		printf("  nannuli_c %i\n", cstats->nannuli_c);
-		printf("  annular %i\n", cstats->annular);
-		printf("  col_c, row_c %g, %g\n", cstats->col_c, cstats->row_c);
-		printf("  col_1, row_1 %g, %g\n", cstats->col_1, cstats->row_1);
-		printf("  orad %i\n", cstats->orad);
+		{ 
+			int k;
+			printf("cell stats:\n");
+			printf("  ncell %i\n", cstats->ncell);
+			printf("  nannuli %i\n", cstats->nannuli);
+			printf("  nannuli_c %i\n", cstats->nannuli_c);
+			printf("  annular %i\n", cstats->annular);
+			printf("  col_c, row_c %g, %g\n", cstats->col_c, cstats->row_c);
+			printf("  col_1, row_1 %g, %g\n", cstats->col_1, cstats->row_1);
+			printf("  orad %i\n", cstats->orad);
+			printf("  radii:");
+			for (k=0; k<cstats->nannuli; k++)
+				printf(" %g", cstats->radii[k]);
+			printf("\n");
+			printf("  cells:\n");
+			for (k=0; k<cstats->ncell; k++) {
+				int m;
+				struct pstats* p = cstats->cells + k;
+				printf("    %i: ntot %i, area %g, mean %g, sig %g, sum %g\n",
+					   k, p->ntot, p->area, p->mean, p->sig, p->sum);
+				printf("       flg: 0x%x\n", p->flg);
+				printf("       data:");
+				for (m=0; m<p->ntot; m++)
+					printf(" %i", (int)p->data[m]);
+				printf("\n");
+			}
+		}
+
+		printf("setup_cell_data: use_median %i, sky %g, gain %g, dark_var %g, object's width sigma %g, poserr %g, use_diff %i, sky_noise_only %i\n",
+			   use_median, obj->sky, phGain(fparams, obj->rowc, obj->colc),
+			   phDarkVariance(fparams, obj->rowc, obj->colc),
+			   fparams->psf->width, posErr, use_difference, sky_noise_only);
+		// fparams->dark_variance -- BINREGION*
+		// -- can be a single value, or >= 2x2.
+
+		// note, this calls:
+		//   phCellProfSet()
+		//   and puts results in global "fit_ctx"
 
 		setup_cell_data(cstats, use_median, obj->sky,
 						phGain(fparams, obj->rowc, obj->colc),
 						phDarkVariance(fparams, obj->rowc, obj->colc),
 						fparams->psf->width, posErr, use_difference, sky_noise_only);
+		trace("After setup_cell_data: cs->ncell %i\n", cstats->ncell);
+
+		// set from SDSSDeblender.cc, = 3.
+		trace("nannuli=%i\n", nannuli);
 
 		if(nannuli > 0) {
 			int ncell = 1 + (nannuli - 1)*(NSEC/2);
+			trace("ncell=%i, fit_ctx.ncell=%i\n", ncell, fit_ctx.ncell);
 			if(fit_ctx.ncell > ncell) {
 				fit_ctx.ncell = ncell;
 			}
+			trace("ncell=%i, fit_ctx.ncell=%i\n", ncell, fit_ctx.ncell);
 		}
+		trace("fit_ctx.ncell=%i\n", fit_ctx.ncell);
 /*
  * find the residuals vector, optionally fitting a sky level
  */
@@ -271,44 +411,28 @@ phFitCellAsPsfFake(OBJC *objc,		/* Object to fit */
 			chisq += fvec[i]*fvec[i];
 		}
 
-		if(nu != NULL) {
-			*nu = fit_ctx.ncell - 1;		/* we _didn't_ fit npar parameters */
-			if(fit_sky_level) (*nu)--;
-		}
+		nu = fit_ctx.ncell - 1;		/* we _didn't_ fit npar parameters */
+		if(fit_sky_level) nu--;
 
+		trace("chisq %g, nu %i\n", chisq, nu);
 
 	}
 
-
-#if 0
    OBJECT1 *const obj1 = objc->color[color];
 
-   if((obj1->chisq_star =
-       phFitCellAsKnownModel(objc, color, cstats, fiparams, nannuli, PSF_MODEL,
-			     0.0, 0.0, 0.0, use_difference, sky_noise_only,
-			     NULL, NULL, sky, &obj1->nu_star)) == -1) {
-      if(I0 != NULL) {
-	 *I0 = 0;
-      }
-      return(2e9);
-   }
-   
+   obj1->chisq_star = chisq;
+   obj1->nu_star = nu;
    obj1->star_lnL = phChisqProb(obj1->chisq_star, obj1->nu_star, 1);
    obj1->star_L = exp(obj1->star_lnL);
-
-   if(I0 != NULL) {
-      *I0 = model_amp;
+   if (I0 != NULL) {
+	   // global
+	   *I0 = model_amp;
    }
-
-   return(obj1->chisq_star/obj1->nu_star);
-
-
-#endif
-
-
-
-	return 0;
+   
+   trace("returning %g\n", (obj1->chisq_star / obj1->nu_star));
+   return (obj1->chisq_star / obj1->nu_star);
 }
+
 // from cellfitobj.c
 static float
 find_outer(OBJECT1* obj)
@@ -422,13 +546,264 @@ model_cells_make(const MODEL_PARAMS *p, /* parameters of model to create */
 }
 #endif
 
+static int fcompare(const void* v1, const void* v2) {
+	const float* f1 = v1;
+	const float* f2 = v2;
+	if (*f1 < *f2)
+		return -1;
+	if (*f1 == *f2)
+		return 0;
+	return 1;
+}
+
+static float find_median_nonconst(float* x, int N) {
+	if (N == 0)
+		return 0.0;
+	qsort(x, N, sizeof(float), fcompare);
+	if (N % 2 == 1)
+		return x[N/2];
+	return (x[N/2] + x[N/2+1]) /2.0;
+}
 
 static COMP_CSTATS *
 psf_cells_make(const MODEL_PARAMS *p)	/* parameters of model to create */
 {
 	//return model_cells_make(p, &psf_entries);
-	printf("psf_cells_make()\n");
-	return NULL;
+
+#if 0
+typedef struct {
+    int clazz;			/* class of model (psf, exp, deV) */
+    float aratio;		/* axis ratio */
+    float rsize;		/* r_eff (exponential) or */
+				/* r_eff(deVoucouleurs), in pixels */
+    float orient;		/* orientation */
+    int octant;			/* which octant is position angle in? */
+    DGPSF *psf;			/* PSF */
+    float *data;		/* fitting data */
+    float *var;			/* fitting sigma */
+    int exact;			/* is an exact model desired? */
+} MODEL_PARAMS;			/* pragma SCHEMA */
+
+typedef struct {
+    int ncells;				/* number of cells */
+    float totflux;			/* total flux in object (to infinity)*/
+    float sigma2;			/* second moment of object */
+    float *mean;			/* mean profile */
+    float *median;			/* median profile */
+    float *sig;				/* errors */
+    float *mem;				/* malloced space for mean/median
+					   and sig */
+} COMP_CSTATS;
+
+typedef struct {
+   int ncell;				/* number of cells in {data,sig} */
+   int is_median;			/* is data median profile? */
+   float flux;				/* == sum(data*area) */
+   float data[MAXCELLS];	        /* mean or median profile */
+   float sig[MAXCELLS];			/* errors in data */
+   float area[MAXCELLS];		/* number of pixels in data[] */
+} CELL_PROF;				/* pragma SCHEMA */
+//(global fit_ctx)
+
+#endif
+
+COMP_CSTATS* cs = NULL;
+int nann;
+int ncell;
+int k;
+const CELL_STATS* geom;
+double maxrad;
+int xlo, xhi, ylo, yhi;
+// subpixel shift of the center: [0,1).
+ float dx, dy;
+ float x,y;
+ float step;
+ float** pix = NULL;
+ int* npixels = NULL;
+ int npix;
+ float psfsigma = 2.0; // pixels
+ int i;
+
+ dx = dy = 0.0;
+ // subpixelization
+ step = 0.25;
+
+trace("psf_cells_make():\n");
+cs = calloc(1, sizeof(COMP_CSTATS));
+trace("fit_ctx: ncell %i, flux %g\n", fit_ctx.ncell, fit_ctx.flux);
+
+ncell = fit_ctx.ncell;
+nann = (ncell-1)/(NSEC/2) + 1;
+geom = phProfileGeometry();
+
+trace("  radii:");
+for (k=0; k<=nann; k++)
+	printf(" %g", geom->radii[k]);
+printf("\n");
+// outer radius.
+maxrad = geom->radii[nann];
+
+trace("median? %i\n", fit_ctx.is_median);
+// (yes, median)
+
+// (1-d) Gaussian   CDF = 1/2 * (1 + erf((x - mu) / (sqrt(2) sigma)))
+// ... but we need the radial CDF of a 2-d Gaussian, on a shifted pixel grid.
+
+// HACK -- for the moment, ignore the fact that we'll need subpixelization.
+
+/*
+{
+	int ci=0;
+	int ri, si;
+	double dt = 2.0 * M_PI / (double)NSEC;
+	for (ri=0; ri<nann; ri++) {
+		float rlo, rhi;
+		int x,y;
+		rlo = geom->radii[ri];
+		rhi = geom->radii[ri+1];
+		for (si=0; si<NSEC/2; si++) {
+			// find the pixel box containing the pixels in this cell.
+			int xlo,xhi,ylo,yhi;
+			if (ri == 0) {
+				xlo = floor(dx - rhi);
+				xhi = ceil(dx + rhi);
+				ylo = floor(dy - rhi);
+				yhi = ceil(dy + rhi);
+			} else {
+				double tlo = si*dt;
+				double thi = (si+1)*dt;
+				double x,y, xl,xh,yl,yh;
+				yl = xl = 1000000;
+				yh = xh = -1000000;
+				// HACK -- add cleverness...
+				// corner A
+				x = dx + rlo * cos(tlo);
+				y = dy + rlo * sin(tlo);
+				xl = MIN(xl, x); xh = MAX(xh, x); yl = MIN(yl, y); yh = MAX(yh, y);
+				// corner B
+				x = dx + rlo * cos(thi);
+				y = dy + rlo * sin(thi);
+				xl = MIN(xl, x); xh = MAX(xh, x); yl = MIN(yl, y); yh = MAX(yh, y);
+				// corner C
+				x = dx + rhi * cos(tlo);
+				y = dy + rhi * sin(tlo);
+				xl = MIN(xl, x); xh = MAX(xh, x); yl = MIN(yl, y); yh = MAX(yh, y);
+				// corner D
+				x = dx + rhi * cos(thi);
+				y = dy + rhi * sin(thi);
+				xl = MIN(xl, x); xh = MAX(xh, x); yl = MIN(yl, y); yh = MAX(yh, y);
+				xlo = floor(xl);
+				xhi = ceil(xh);
+				ylo = floor(yl);
+				yhi = ceil(yh);
+			}
+
+			for (y=ylo; y<=yhi; y++) {
+				for (x=xlo; x<=xhi; x++) {
+					// belongs in this ring?
+					double r = sqrt((dx-x)*(dx-x) + (dy-y)*(dy-y));
+					if (r < rlo || r >= rhi)
+						continue;
+
+					if (ri != 0) {
+						// belongs in this sector?
+						double theta = atan2(y-dy, x-dy);
+						if (
+					
+				}
+			}
+
+			ci++;
+			if (ri == 0)
+				break;
+		}
+	}
+}
+}}
+ */
+	 ylo = xlo = floor(-maxrad);
+	 yhi = xhi = ceil(maxrad);
+
+	 npix = (yhi - ylo + 1) * (xhi - xlo + 1);
+
+	 // pixel lists...
+	 pix = malloc(ncell * sizeof(float*));
+	 npixels = calloc(ncell, sizeof(int));
+	 for (i=0; i<ncell; i++)
+		 pix[i] = malloc(npix * sizeof(float));
+
+	 for (y=ylo; y<=yhi; y+=step) {
+		 for (x=xlo; x<=xhi; x+=step) {
+			 int ri;
+			 int si;
+			 int ci;
+			 double theta;
+			 double G;
+			 // in which annulus does it belong?
+			 double r = sqrt((dx-x)*(dx-x) + (dy-y)*(dy-y));
+			 if (r > maxrad)
+				 continue;
+			 for (ri=0;; ri++)
+				 if (r < geom->radii[ri+1])
+					 break;
+			 assert(ri < nann);
+			 // in which sector does this pixel belong?
+			 theta = atan2(y-dy, x-dy);
+			 si = floor(theta / (2.0*M_PI / NSEC));
+			 if (si < 0)
+				 si += NSEC;
+			 // mirror
+			 if (si >= NSEC/2)
+				 si -= NSEC/2;
+			 // which cell is that?
+			 if (ri == 0)
+				 ci = 0;
+			 else
+				 ci = (ri-1)*NSEC/2 + si + 1;
+			 assert(ci < ncell);
+			 assert(ci >= 0);
+
+			 G = exp(-(r*r)/(2.0*psfsigma*psfsigma));
+			 pix[ci][npixels[ci]] = G;
+			 npixels[ci]++;
+
+			 cs->totflux += G;
+			 // second moment
+			 cs->sigma2 += G * r*r;
+		 }
+	 }
+
+	 cs->mem = cs->median = malloc(2 * ncell * sizeof(float));
+	 cs->sig = cs->mem + ncell;
+	 cs->ncells = ncell;
+
+	 for (i=0; i<ncell; i++) {
+		 cs->median[i] = find_median_nonconst(pix[i], npixels[i]);
+		 trace("psf model: cell %i has %i pixels, median %g\n", i, npixels[i], cs->median[i]);
+		 // HACK!
+		 cs->sig[i] = sqrt(cs->median[i]);
+		 free(pix[i]);
+	 }
+
+	 free(pix);
+	 free(npixels);
+
+	 return cs;
+
+
+///// HACK -- we *could* just create a REGION and call phProfileExtract...
+// (that gives us a CELL_STATS, which we'd have to process to fill in COMP_CSTATS)
+/*
+ clazz = -1, 
+ aratio = 1, 
+ rsize = 0, 
+ orient = 4.4765625, 
+ octant = 0, 
+ psf = 0x0, 
+ data = 0x0, 
+ var = 0x17f4bf7, 
+ exact = -1144054338
+ */
 }
 static void
 cell_fit_psf(
@@ -543,6 +918,12 @@ cell_fit_model(
     model = use_median ? stats_model->median : stats_model->mean;
     shAssert(model != NULL);
     sig = fit_ctx.sig;
+
+	for (i=0; i<ncells; i++) {
+		trace("cell %i: data %i, model %g, sigma %g\n",
+			  i, (int)data[i], model[i], sig[i]);
+	}
+
 /*
  * find the best position angle, if so desired
  */
@@ -564,6 +945,7 @@ cell_fit_model(
 		}
 		residual_flux *= I0;
     }
+	trace("residual_flux %g\n", residual_flux);
 /*
  * calculate best-fitting amplitude; if fit_sky is true, solve
  * for the sky level too
@@ -618,6 +1000,8 @@ cell_fit_model(
 		model_amp = sum_dm/sum_mm;
 		model_ampErr = sqrt(1/sum_mm);
     }
+	trace("sky_level = %g, model_amp = %g, err %g\n",
+		  sky_level, model_amp, model_ampErr);
     model_ampErr *= sqrt(idata/(idata - nparam)); /* correct for
 												   missing dof */
 /*
@@ -629,6 +1013,11 @@ cell_fit_model(
     for(i = 0;i < ncells;i++) {
 		model[i] = model_amp*model[i] + sky_level;
     }
+
+	for (i=0; i<ncells; i++) {
+		trace("cell %i: data %i, fit model %g, sigma %g\n",
+			  i, (int)data[i], model[i], sig[i]);
+	}
 /*
  * and the residual vector
  */
@@ -925,6 +1314,9 @@ phCellProfSet(CELL_PROF *cprof,		/* the CELL_PROF to initialise */
  *
  * Each child has a non-NULL parent field which points to its parent, and may
  * have a sibbs field too. It has its OBJECT1_CHILD bit set.
+
+
+phObjcMakeChildren
  */
 int
 phObjcMakeChildrenFake(OBJC *objc,		/* give this OBJC a family */
@@ -943,7 +1335,7 @@ phObjcMakeChildrenFake(OBJC *objc,		/* give this OBJC a family */
 	 * Done with moving objects. See if any of the surviving peaks are
 	 * too close
 	 */
-	trace("objc->peaks->npeak %i\n", objc->peaks->npeak);
+	trace("objc->peaks->npeak %i, nchild %i\n", objc->peaks->npeak, nchild);
 	for(i = 0; i < objc->peaks->npeak; i++) {
 		PEAK *const peak_i = objc->peaks->peaks[i];
 		PEAK *peak_j;
@@ -994,7 +1386,7 @@ phObjcMakeChildrenFake(OBJC *objc,		/* give this OBJC a family */
 	 * We demand that the children are detected in at least deblend_min_detect
 	 * bands; reject peaks that fail this test
 	 */
-	trace("objc->peaks->npeak %i\n", objc->peaks->npeak);
+	trace("objc->peaks->npeak %i, nchild %i\n", objc->peaks->npeak, nchild);
 	for(i = 0; i < objc->peaks->npeak; i++) {
 		int n;				/* number of detections */
 
@@ -1017,7 +1409,7 @@ phObjcMakeChildrenFake(OBJC *objc,		/* give this OBJC a family */
 	/*
 	 * condense the peaks list
 	 */
-	trace("objc->peaks->npeak %i\n", objc->peaks->npeak);
+	trace("objc->peaks->npeak %i, nchild %i\n", objc->peaks->npeak, nchild);
 	if(nchild != objc->peaks->npeak) {
 		for(i = j = 0; i < objc->peaks->npeak; i++) {
 			if(objc->peaks->peaks[i] != NULL) {
@@ -1033,13 +1425,13 @@ phObjcMakeChildrenFake(OBJC *objc,		/* give this OBJC a family */
 	/*
 	 * and create the desired children
 	 */
-	trace("objc->peaks->npeak %i\n", objc->peaks->npeak);
+	trace("objc->peaks->npeak %i, nchild %i\n", objc->peaks->npeak, nchild);
 	if(objc->peaks->npeak > fiparams->nchild_max) { /* are there too many? */
 		objc->flags |= OBJECT1_DEBLEND_TOO_MANY_PEAKS;
 		phPeaksRealloc(objc->peaks, fiparams->nchild_max);
 	}
 
-	trace("objc->peaks->npeak %i\n", objc->peaks->npeak);
+	trace("objc->peaks->npeak %i, nchild %i\n", objc->peaks->npeak, nchild);
 	for(i = 0;i < objc->peaks->npeak;i++) { /* create children */
 		cpeak = objc->peaks->peaks[i];
 		(void)phObjcChildNew(objc, cpeak, fiparams, 1);

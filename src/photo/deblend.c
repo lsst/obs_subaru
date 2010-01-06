@@ -278,9 +278,9 @@ phObjcDeblend(OBJC *objc,		/* object to deblend */
 			OBJECT1* o1 = objc->color[m];
 			trace("color %i: rowc,colc %g,%g\n",
 				  m, o1->rowc, o1->colc);
+			trace("pixel at center: %i\n", (int)fiparams->frame[m].data->rows_u16[(int)o1->rowc][(int)o1->colc]);
 		}
 	}
-
 
 	/*
 	 * give up on edge objects; they don't satisfy the the deblender's symmetry
@@ -304,6 +304,20 @@ phObjcDeblend(OBJC *objc,		/* object to deblend */
 		}
 	}
 
+	{
+		int m;
+		for (m=0; m<objc->ncolor; m++) {
+			OBJECT1* o1 = objc->color[m];
+			trace("color %i: rowc,colc %g,%g\n",
+				  m, o1->rowc, o1->colc);
+			trace("pixel at center: %i\n", (int)fiparams->frame[m].data->rows_u16[(int)o1->rowc][(int)o1->colc]);
+		}
+	}
+
+
+	trace("objc:\n");
+	printObjc(objc);
+
 	trace("objc.nchild %i\n", objc->nchild);
 	/*
 	 * Put pointers to the descendents into an array, children[], for the
@@ -325,6 +339,7 @@ phObjcDeblend(OBJC *objc,		/* object to deblend */
 				OBJECT1* o1 = children[k]->color[m];
 				trace("child %i, color %i: rowc,colc %g,%g\n",
 					  k, m, o1->rowc, o1->colc);
+				trace("pixel at center: %i\n", (int)fiparams->frame[m].data->rows_u16[(int)o1->rowc][(int)o1->colc]);
 			}
 		}
 	}
@@ -388,6 +403,7 @@ phObjcDeblend(OBJC *objc,		/* object to deblend */
 				OBJECT1* o1 = children[k]->color[m];
 				trace("child %i, color %i: rowc,colc %g,%g\n",
 					  k, m, o1->rowc, o1->colc);
+				trace("pixel at center: %i\n", (int)fiparams->frame[m].data->rows_u16[(int)o1->rowc][(int)o1->colc]);
 			}
 		}
 	}
@@ -453,12 +469,15 @@ phObjcDeblend(OBJC *objc,		/* object to deblend */
 				maxval = val;
 			}
 		}
+		trace("minval=%g, maxval=%g\n", minval, maxval);
+
 		/*
 		 * phMedianSmooth requires bin size < region size
 		 */
 		{
-			static char *dump_filename = NULL; /* write data to this file?
-												For use from gdb */
+			//static char *dump_filename = NULL; /* write data to this file?
+			//For use from gdb */
+			static char *dump_filename = "median-filtered.fits";
 			shAssert(sub->nrow >= 1 && sub->ncol >= 1);
 			while(bin_c < sub->nrow/8) { bin_c *= 2; }
 			while(bin_r < sub->ncol/8) { bin_r *= 2; }

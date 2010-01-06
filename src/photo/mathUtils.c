@@ -3032,8 +3032,7 @@ phFloatArrayMean(const float *arr,	/* array of data */
  *
  * Return the value of chi^2 for the fit
  */
-float
-phLinearFit(const float *t,		/* "x" values */
+float phLinearFit(const float *t,		/* "x" values */
 	    const float *y_i,		/* input "y" values */
 	    const float *yErr,		/* errors in y */
 	    int n,			/* number of points to fit */

@@ -14,6 +14,7 @@
 
 #include "phObjc.h"
 #include "phOffset.h"
+#include "phMathUtils.h"
 
 static void
 set_psfMags(const OBJC *objc, const FIELDPARAMS *fiparams,

@@ -28,12 +28,6 @@ namespace photo = lsst::meas::deblender::photo;
 //namespace ex    = lsst::pex::exceptions;
 
 
-static void printObjc(photo::OBJC* o) {
-    std::printf("Objc:\n  parent %p\n  children %p\n  sibbs %p\n",
-                o->parent, o->children, o->sibbs);
-    std::printf("  ncolor %i\n", o->ncolor);
-}
-
 template<typename ImageT>
 std::vector<typename ImageT::Ptr>
 deblender::SDSSDeblender<ImageT>::deblend(std::vector<typename ImageT::Ptr> &images) {
@@ -60,7 +54,14 @@ deblender::SDSSDeblender<ImageT>::deblend(std::vector<typename ImageT::Ptr> &ima
     //  --background-subtraction/sky estimate
     //  --PSF model
 
-    // "detect" two peaks in each image.
+    int W, H;
+
+    const int softbias = 1000;
+
+         W = images[0]->getWidth();
+         H = images[0]->getHeight();
+    
+    // "detect" two peaks
     photo::PEAKS* peaks = photo::phPeaksNew(2);
     peaks->npeak = 2;
     for (i=0; i<peaks->npeak; i++) {
@@ -72,12 +73,20 @@ deblender::SDSSDeblender<ImageT>::deblend(std::vector<typename ImageT::Ptr> &ima
              PEAK_BAND3 | 
              PEAK_BAND4);
              */
-            /*
-             pk->rowc = ...;
-             pk->colc = ...;
-             pk->rowcErr = ...;
-             pk->colcErr = ...;
-             */
+            pk->peak = 1000;
+            if (i == 0) {
+                pk->colc = 28;
+                pk->rowc = 32;
+                pk->cpeak = pk->colc;
+                pk->rpeak = pk->rowc;
+            } else {
+                pk->colc = 38;
+                pk->rowc = 33;
+                pk->cpeak = pk->colc;
+                pk->rpeak = pk->rowc;
+            }
+            pk->rowcErr = 0.5;
+            pk->colcErr = 0.5;
             peaks->peaks[i] = pk;
             std::printf("Set peak %i to %p\n", i, peaks->peaks[i]);
         }
@@ -85,22 +94,14 @@ deblender::SDSSDeblender<ImageT>::deblend(std::vector<typename ImageT::Ptr> &ima
 
          std::FILE* fid = stdout;
 
-         int W, H;
-         
      for (size_t i=0; i<images.size(); i++) {
-            W = images[i]->getWidth();
-            H = images[i]->getHeight();
             photo::OBJECT1* o1 = photo::phObject1New();
             std::printf("Object1 %i:\n", (int)i);
             photo::phObject1PrintPretty(o1, fid);
-            // OBJMASK* (arg: number of spans)
-            //o1->mask = phObjmaskNew(1);
             o1->mask = photo::phObjmaskFromRect(0, 0, W, H);
             // "makeRegion" can't handle TYPE_FL64
             // photo in general can't handle anything other than TYPE_U16.
-            //o1->region = photo::shRegNew("", H, W, photo::TYPE_FL32);
             o1->region = photo::shRegNew("", H, W, photo::TYPE_U16);
-            //o1->region->mask = photo::shMaskNew("", H, W);
             // MUST be a SPANMASK*
             o1->region->mask = (photo::MASK*)photo::phSpanmaskNew(H, W);
             printf("Default flags: 0x%x\n", o1->flags);
@@ -110,6 +111,7 @@ deblender::SDSSDeblender<ImageT>::deblend(std::vector<typename ImageT::Ptr> &ima
             o1->colc = W/2;
             o1->rowcErr = 0.5;
             o1->colcErr = 0.5;
+            o1->sky = 100;
 
             objc->color[i] = o1;
         }
@@ -118,13 +120,6 @@ deblender::SDSSDeblender<ImageT>::deblend(std::vector<typename ImageT::Ptr> &ima
           objc->rowcErr = 0.5;
           objc->colcErr = 0.5;
           
-          objc->aimage = photo::phAtlasImageNewFromObjc(objc);            
-          //objc->aimage = photo::phAtlasImageNew(images.size());
-          objc->aimage->master_mask = photo::phObjmaskFromRect(0, 0, W, H);
-          objc->aimage->pix[0] = photo::phAiPixNew(objc->aimage->master_mask, 1, 0);
-
-    printObjc(objc);
-
 
          fp->ref_band_index = 0;
          fp->canonical_band_index = 0;
@@ -136,17 +131,23 @@ deblender::SDSSDeblender<ImageT>::deblend(std::vector<typename ImageT::Ptr> &ima
              fp->frame[i].toGCC = photo::atTransNew();
              // copy the input images into photo-land...
              //fp->frame[i].data = shRegNew("", H, W, photo::TYPE_FL32);
-             fp->frame[i].data = shRegNew("", H, W, photo::TYPE_U16);
+             fp->frame[i].data = photo::shRegNew("", H, W, photo::TYPE_U16);
+             std::printf("pixels:\n");
              for (int j=0; j<H; j++) {
                  //photo::FL32* row = fp->frame[i].data->rows_fl32[j];
                  photo::U16* row = fp->frame[i].data->rows_u16[j];
                  for (int k=0; k<W; k++) {
-                     row[k] = (*images[i])(k,j);
+                     row[k] = (*images[i])(k,j) + softbias;
+                     std::printf("%i ", (int)row[k]);
                  }
              }
+             std::printf("\n");
              fp->frame[i].psf = photo::phDgpsfNew();
              ((photo::DGPSF*)fp->frame[i].psf)->width = 1.0;
              std::printf("  set psf.width to %g (arcsec FWHM)\n", fp->frame[i].psf->width);
+
+             fp->frame[i].dark_variance = photo::phBinregionNewFromConst(1.0, 1, 1, 1, 1, MAX_U16);
+
          }
               /* from fpParam.par: */
               fp->deblend_min_peak_spacing = 2;
@@ -156,29 +157,29 @@ deblender::SDSSDeblender<ImageT>::deblend(std::vector<typename ImageT::Ptr> &ima
           fp->deblend_npix_max = 0;
           fp->deblend_inner_max	= 0.5;
 
+          // Set atlas image *after* copying image data to fp. (?)
+          objc->aimage = photo::phAtlasImageNewFromObjc(objc);            
+          objc->aimage->master_mask = photo::phObjmaskFromRect(0, 0, W, H);
+          // ??
+          //objc->aimage->pix[0] = photo::phAiPixNew(objc->aimage->master_mask, 1, 0);
+          //photo::phAtlasImageCut(objc, -1, fp, 500, 0, NULL);
+          for (size_t i=0; i<images.size(); i++)
+              photo::phAtlasImageSetFromRegion(objc->aimage, i, fp->frame[i].data);
+
+          photo::printObjc(objc);
 
          
 
-         std::printf("fp->ncolor %i\n", fp->ncolor);
-         std::printf("  filters %s\n", fp->filters);
-         std::printf("  ref_band_index %i\n", fp->ref_band_index);
-         std::printf("  canonical_band_index %i\n", fp->canonical_band_index);
+          std::printf("fp->ncolor %i\n", fp->ncolor);
+          std::printf("  filters %s\n", fp->filters);
+          std::printf("  ref_band_index %i\n", fp->ref_band_index);
+          std::printf("  canonical_band_index %i\n", fp->canonical_band_index);
           
-          /*
-           std::cout << "phObjcMakeChildren..." << std::endl;
-           photo::phObjcMakeChildren(objc, fp);
-           */
           std::cout << "phObjcMakeChildrenFAKE..." << std::endl;
           photo::phObjcMakeChildrenFake(objc, fp);
 
-    /*
-     for(i = 0; i < peaks->npeak; i++) {
-     photo::phObjcChildNew(objc, peaks->peaks[i], fp, 1);
-     photo::phObjcChildNew(objc, peaks->peaks[i], fp, 1);
-     }
-     */
           std::printf("after phObjcMakeChildren:\n");
-    printObjc(objc);
+          photo::printObjc(objc);
 
     std::cout << "Objc to be deblended:" << std::endl;
     photo::phObjcPrintPretty(objc, "");

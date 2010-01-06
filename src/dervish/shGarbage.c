@@ -364,7 +364,7 @@ shMalloc(size_t size)
    if(bad_memblock(pMem_block)) {
       shError("shMalloc: Detected corrupted memory block "
 	      "on free list ("PTR_FMT"): %s %d",
-	      pMem_block->pUser_memory, file, line);
+	      pMem_block->pUser_memory, __FILE__, __LINE__);
       (*shMemInconsistency)(g_Serial_number, pMem_block);
       shError("shMalloc: proceeding to use corrupted memory block; good luck");
    }
@@ -437,7 +437,7 @@ shFree(void *ptr)
 
    if(bad_memblock(mp)) {
       shError("shFree: Attempt to free memory corrupted or "
-	      "not allocated by shMalloc ("PTR_FMT"): %s %d", ptr, file, line);
+	      "not allocated by shMalloc ("PTR_FMT"): %s %d", ptr, __FILE__, __LINE__);
       (*shMemInconsistency)(g_Serial_number, mp);
       return;
    }
@@ -541,7 +541,7 @@ shCalloc(size_t num_of_elts,size_t elt_size)
      we want shMalloc to record the file and line of the shCalloc's CALLER
      */
 #if defined(CHECK_LEAKS)
-  ptr = p_check_shMalloc(size, file, line); 
+  ptr = p_check_shMalloc(size, __FILE__, __LINE__); 
 #else
   ptr = shMalloc(size);
 #endif
@@ -589,10 +589,10 @@ shRealloc(void *ptr, size_t size)
 #endif
    
    if (ptr == NULL)
-       return p_check_shMalloc(size, file, line);
+       return p_check_shMalloc(size, __FILE__, __LINE__);
 
    if (ptr != NULL && size == 0)  {
-       p_check_shFree(ptr, file, line);
+       p_check_shFree(ptr, __FILE__, __LINE__);
        return NULL;
    }
 
@@ -616,13 +616,13 @@ shRealloc(void *ptr, size_t size)
     * 2) it's much simpler to do this in the way outlined below.
     */
 
-   pNewMem = p_check_shMalloc(size, file, line);
+   pNewMem = p_check_shMalloc(size, __FILE__, __LINE__);
 
    count   = (size < pOldMem->user_bytes) ? size : pOldMem->user_bytes;
 
    (void *) memcpy(pNewMem, ptr, count);
 
-   p_check_shFree(ptr, file, line);
+   p_check_shFree(ptr, __FILE__, __LINE__);
 
    return pNewMem;
 }

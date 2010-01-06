@@ -850,7 +850,7 @@ phProfCatalogMake(const char *cat_name,	/* name of catalogue file to make */
    int ti;
    char chead[RGHEADSIZ];
    spro_cheader *pcp = (spro_cheader *)chead;
-   spro_catentry *pcpe;
+   spro_catentry *pc.pe;
    int *header = (int *)chead;
    int flatfac;
    int sizfac;

@@ -4,7 +4,7 @@ all: ../lib/libdeblender.dylib Deblender
 
 INC := -I/usr/local/lsst-sandbox/DarwinX86/external/boost/1.37.0/include -I/usr/local/lsst-sandbox/DarwinX86/pex_exceptions/3.2.2/include -I/usr/local/lsst-sandbox/DarwinX86/utils/3.4.3/include -I/usr/local/lsst-sandbox/DarwinX86/daf_base/3.2.9/include -I/usr/local/lsst-sandbox/DarwinX86/pex_logging/3.3.4/include -I/usr/local/lsst-sandbox/DarwinX86/security/3.2.2/include -I/usr/local/lsst-sandbox/DarwinX86/pex_policy/3.4.1/include -I/usr/local/lsst-sandbox/DarwinX86/daf_persistence/3.3.7/include -I/usr/local/lsst-sandbox/DarwinX86/daf_data/3.2.3/include -I/usr/local/lsst-sandbox/DarwinX86/afw/3.3.18/include -I../include -I../include/lsst/meas/deblender/photo -I../include/lsst/meas/deblender/dervish -I../include/lsst/meas/deblender/astrotools
 
-CFLAGS := -g -Wall -O0 -DLSST_HAVE_TR1=1 -DLSST_LITTLE_ENDIAN=1 -DNOTCL -fPIC
+CFLAGS := -g -Wall -O0 -DNDEBUG -DCHECK_LEAKS=INDEED -DLSST_HAVE_TR1=1 -DLSST_LITTLE_ENDIAN=1 -DNOTCL -fPIC
 
 LIB := -L/usr/local/lsst-sandbox/DarwinX86/external/boost/1.37.0/lib
 LIB +=  -L/usr/local/lsst-sandbox/DarwinX86/pex_exceptions/3.2.2/lib
@@ -38,6 +38,8 @@ COBJS := photo/deblend.os \
 
 OBJS := $(CPPOBJS) $(COBJS)
 
+$(OBJS): ../include/lsst/meas/deblender/photo/phFake.h
+
 MYLIB := ../lib/libdeblender.dylib
 
 $(MYLIB): $(OBJS)
@@ -45,7 +47,7 @@ $(MYLIB): $(OBJS)
 		$(OBJS) $(LIB)
 
 #TAGS:
-#	etags $(shell find src/ include/ -name *.c -o -name *.h -o -name *.cc -o -name *.no)x3
+#	etags $(shell find src/ include/ -name *.c -o -name *.h -o -name *.cc -o -name *.no)
 
 $(CPPOBJS): %.os: %.cc
 	g++ -o $@ -c $(CFLAGS) $(INC) $<

@@ -23,6 +23,7 @@
 **    the incoming name.
 */
 #include <string.h>
+#include <stdlib.h>
 #include "shCAssert.h"
 #include "shCHash.h"
 #include "shCErrStack.h"
