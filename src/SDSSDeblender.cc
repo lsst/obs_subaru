@@ -42,6 +42,12 @@ deblender::SDSSDeblender<ImageT>::deblend(std::vector<typename ImageT::Ptr> &ima
     // Photo init.
     photo::initSpanObjmask();
     photo::phInitProfileExtract();
+    photo::REGION *scr0, *scr1, *scr2, *scr3;
+    scr0 = photo::shRegNew("scr0", 3000, 3000, photo::TYPE_U16);
+    scr1 = photo::shRegNew("scr1", 3000, 3000, photo::TYPE_U16);
+    scr2 = photo::shRegNew("scr2", 3000, 3000, photo::TYPE_U16);
+    scr3 = photo::shRegNew("scr3", 3000, 3000, photo::TYPE_U16);
+    photo::phDeblendSet(scr0, scr1, scr2, scr3);
 
     photo::OBJC* objc = photo::phObjcNew(images.size());
     photo::FIELDPARAMS* fp = photo::phFieldparamsNew(filters);
@@ -142,8 +148,28 @@ deblender::SDSSDeblender<ImageT>::deblend(std::vector<typename ImageT::Ptr> &ima
                  }
              }
              std::printf("\n");
-             fp->frame[i].psf = photo::phDgpsfNew();
-             ((photo::DGPSF*)fp->frame[i].psf)->width = 1.0;
+             photo::DGPSF* psf = photo::phDgpsfNew();
+             // make a single-gaussian.
+             double psfsigma = 2.0; // pixels
+             // HACK...
+             psf->width = 0.396 * 2.35 * psfsigma; // FWHM in arcsec.
+             psf->a = 1.0/(2.0 * M_PI * psfsigma*psfsigma);
+             psf->sigmax1 = 2.0;
+             psf->sigmay1 = 2.0;
+             psf->sigmax2 = 2.0;
+             psf->sigmay2 = 2.0;
+             psf->b = 0.0;
+             psf->p0 = 0.0;
+             psf->chisq = 1.0;
+             fp->frame[i].psf = psf;
+
+             /* the detection
+              * threshold in the smoothed image is ffo_threshold, and a star of peak
+              * intensity I0 would have a peak of I0/2 in the smoothed image, hence the
+              * value of I0_min
+              */
+             fp->frame[i].ffo_threshold = 10.0;
+
              std::printf("  set psf.width to %g (arcsec FWHM)\n", fp->frame[i].psf->width);
 
              fp->frame[i].dark_variance = photo::phBinregionNewFromConst(1.0, 1, 1, 1, 1, MAX_U16);
@@ -151,7 +177,7 @@ deblender::SDSSDeblender<ImageT>::deblend(std::vector<typename ImageT::Ptr> &ima
          }
               /* from fpParam.par: */
               fp->deblend_min_peak_spacing = 2;
-          fp->deblend_psf_Lmin = 2;
+              fp->deblend_psf_Lmin = 2; // ???!
           fp->deblend_psf_nann = 3;
           fp->deblend_psf_rad_max = 12;
           fp->deblend_npix_max = 0;
@@ -187,6 +213,9 @@ deblender::SDSSDeblender<ImageT>::deblend(std::vector<typename ImageT::Ptr> &ima
 	int res = photo::phObjcDeblend(objc, fp);
 
     std::cout << "Result: " << res << std::endl;
+
+    // uninitialize photo...
+    photo::phDeblendUnset();
 
     delete filters;
 	return children;

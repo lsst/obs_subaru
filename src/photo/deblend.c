@@ -44,6 +44,7 @@ swap_columns(MAT *Q, VEC *lambda,
 	;
 static REGION *scr0 = NULL;
 static REGION *scr1 = NULL;
+static REGION *scr2 = NULL;
 static MASK *mscr0 = NULL;
 
 static OBJMASK *
@@ -765,6 +766,7 @@ phObjcDeblend(OBJC *objc,		/* object to deblend */
 		smoothed_ai[i] = NULL;
 		if(phStrategicMemoryReserveIsEmpty() ||
 		   deblend_template_find(child, psfmasks, fiparams, &smoothed_ai[i], filtsize, ngrow) < 0) { /* un-cleanable */
+			trace("un-cleanable\n");
 			objc->flags |= OBJECT1_NODEBLEND;
 			shFree(children);
 			for(c = 0;c < objc->ncolor;c++) {
@@ -794,6 +796,7 @@ phObjcDeblend(OBJC *objc,		/* object to deblend */
 		child = children[i];
 
 		if(!(child->flags & OBJECT1_DETECTED)) {
+			trace("Discarding child %i: undetected.\n", i);
 			continue;			/* We're going to discard this child */
 		}
 
@@ -825,8 +828,10 @@ phObjcDeblend(OBJC *objc,		/* object to deblend */
 			ped_i = child->color[c]->profMean[3]; /* Pedestal for PSF fit */
 
 			if(amp_i < I0_min[c]) {
+				trace("child %i, color %i: not detected.\n", i, c);
 				continue;
 			}
+			trace("child %i, color %i: detected.\n", i, c);
 			ndetect++;
 	 
 			y = child->rowc; x = child->colc;
@@ -863,6 +868,7 @@ phObjcDeblend(OBJC *objc,		/* object to deblend */
 		 * Re-extract templates if we cleared the OBJECT1_DEBLENDED_AS_PSF bit
 		 */
 		if(not_psf > 0 && not_psf >= ndetect - 1) {
+			trace("re-extracting templates due to clearing OBJECT1_DEBLENDED_AS_PSF\n");
 			for(c = 0;c < objc->ncolor;c++) {
 				static char *dump_filename = NULL; /* write data to this file?
 													For use from gdb */
@@ -960,6 +966,7 @@ phObjcDeblend(OBJC *objc,		/* object to deblend */
 		child = children[i];
 
 		if(!(child->flags & OBJECT1_DETECTED)) {
+			trace("Dropping child %i: not OBJECT1_DETECTED\n", i);
 			phObjcChildDel(child);
 			phAtlasImageDel(smoothed_ai[i], 0);
 
@@ -997,12 +1004,14 @@ phObjcDeblend(OBJC *objc,		/* object to deblend */
 			phAtlasImageDel(smoothed_ai[i], 0);
 		}
 		shFree(smoothed_ai);
+		trace("<= one child left, so no need to deblend.\n");
 		return(-1);
 	}
 
 	/*
 	 * Average the per-band templates.
 	 */
+	trace("Averaging templates...\n");
 	if (objc->ncolor > 1) {
 		for(i = 0; i < nchild; i++) {       
 			average_templates(children[i]);
@@ -1011,6 +1020,7 @@ phObjcDeblend(OBJC *objc,		/* object to deblend */
 	/*
 	 * and now set up the normal equations for the least squares problem
 	 */
+	trace("Setting up normal equations...\n");
 	if(skip_deblend) {
 		if(skip_deblend == 2) {		/* save the smoothed templates */
 			for(i = 0;i < nchild;i++) {
@@ -1066,6 +1076,7 @@ phObjcDeblend(OBJC *objc,		/* object to deblend */
 					break;
 				}
 			}
+			trace("reject %i\n", reject);
 			/*
 			 * Eigenvalue decompose A into Q and lambda
 			 */
@@ -1142,6 +1153,7 @@ phObjcDeblend(OBJC *objc,		/* object to deblend */
 			 * If we really can find no children to reject, break out of the loop
 			 * and prepare to allocate flux to each child
 			 */	 
+			trace("reject %i\n", reject);
 			if(reject < 0) {		/* none to reject */
 				for(c = 0; c < objc->ncolor; c++) {
 					w[c] = phEigenBackSub(Q[c], lambda[c], b[c]);
@@ -1209,10 +1221,12 @@ phObjcDeblend(OBJC *objc,		/* object to deblend */
 	       
 					if(c == objc->ncolor) {
 						reject = i;
+						trace("reject %i\n", reject);
 						break;
 					}
 				}
 			}
+			trace("reject %i\n", reject);
 			/*
 			 * Find angles between templates (by summing the inner products over all
 			 * bands, which isn't the same as summing the templates but which is fast)
@@ -1262,6 +1276,7 @@ phObjcDeblend(OBJC *objc,		/* object to deblend */
 					}
 	       
 					if(reject >= 0) {
+						trace("reject %i\n", reject);
 						break;
 					}
 				}
@@ -1272,6 +1287,7 @@ phObjcDeblend(OBJC *objc,		/* object to deblend */
 				 * DEBLENDED_AS_PSF, choose that one, otherwise choose the one with
 				 * the _smaller_ peak value in the associated child.
 				 */
+				trace("reject %i\n", reject);
 				if(reject >= 0) {
 					int keep = i;		/* which child did we keep? */
 					j = reject;		/* it was called j originally */
@@ -1314,10 +1330,12 @@ phObjcDeblend(OBJC *objc,		/* object to deblend */
 			if(reject < 0) {		/* there are none to delete */
 				break;
 			} else {
+				trace("reject %i\n", reject);
 				nchild = reject_template(objc, nchild, reject, children,
 										 smoothed_ai, A, b, norm, lambda, Q, w);
 				nparam--;
 
+				trace("nchild %i\n", nchild);
 				if(nchild <= 0) {
 					return(-1);
 				}
@@ -1458,6 +1476,8 @@ phObjcDeblend(OBJC *objc,		/* object to deblend */
 		shFree(weights);
 	}
 
+	trace("Handling unassigned flux...\n");
+
 	/*
 	 * There may still be unassigned flux, from low S/N areas of the parent,
 	 * or from high points of templates that didn't make it into the final
@@ -1488,6 +1508,8 @@ phObjcDeblend(OBJC *objc,		/* object to deblend */
 			objc->color[c]->flags2 |= OBJECT2_DEBLEND_UNASSIGNED_FLUX;
 		}
 	}
+
+	trace("Estimating sky due siblings...\n");
 
 	/*
 	 * Estimate the background level ("sky") due to siblings. As we expect that
@@ -1554,6 +1576,8 @@ phObjcDeblend(OBJC *objc,		/* object to deblend */
 			children[i]->color[c]->skyErr = (sum2 < 0) ? sum2 : sqrt(sum2/(float)n - pow(sum/(float)n, 2));
 		}
 	}
+
+	trace("Set CR, SATUR, and INTERP flags...\n");
 
 	/*
 	 * set CR, SATUR, and INTERP flags as appropriate
@@ -4124,3 +4148,55 @@ maybe_deblend_at_edge(OBJC *objc,		/* object to deblend */
 	return(0);
 }
 
+/*****************************************************************************/
+/*
+ * <AUTO EXTRACT>
+ *
+ * Setup scratch space for the deblender
+ */
+void
+phDeblendSet(REGION *i_scr0,
+	     REGION *i_scr1,
+	     REGION *i_scr2,
+	     REGION *i_scr3)
+{
+   int i;
+   
+   scr0 = i_scr0; scr1 = i_scr1; scr2 = i_scr2;
+
+   if(scr0 == NULL) {
+      shAssert(scr1 == NULL && scr2 == NULL && i_scr3 == NULL);
+      return;
+   }
+
+   shAssert(scr0->type == TYPE_PIX);
+   shAssert(scr1 != NULL && scr1->type == TYPE_PIX);
+   shAssert(scr1->nrow == scr0->nrow && scr1->ncol == scr0->ncol);
+   shAssert(scr2 != NULL && scr2->type == TYPE_PIX);
+   shAssert(scr2->nrow == scr0->nrow && scr2->ncol == scr0->ncol);
+   shAssert(i_scr3 != NULL && i_scr3->type == TYPE_PIX);
+   shAssert(i_scr3->nrow == scr0->nrow && i_scr3->ncol == scr0->ncol);
+/*
+ * we want to make a MASK out of the i_scr3
+ */
+   shAssert(sizeof(mscr0->rows[0][0]) <= sizeof(PIX));
+
+   mscr0 = shMaskNew("deblender", i_scr3->nrow, 0);
+   for(i = 0; i < mscr0->nrow; i++) {
+      mscr0->rows[i] = (unsigned char *)i_scr3->ROWS[i];
+   }
+   mscr0->ncol = i_scr3->ncol;
+}
+
+/*****************************************************************************/
+/*
+ * Note that we don't actually own this scratch space, we merely borrowed
+ * it in phDeblendSet
+ */
+void
+phDeblendUnset(void)
+{
+   scr0 = scr1 = scr2 = NULL;
+   mscr0->rows[0] = NULL;		/* memory belongs to i_scr3 */
+   shMaskDel(mscr0); mscr0 = NULL;
+}
