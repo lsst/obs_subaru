@@ -562,7 +562,8 @@ static float find_median_nonconst(float* x, int N) {
 	qsort(x, N, sizeof(float), fcompare);
 	if (N % 2 == 1)
 		return x[N/2];
-	return (x[N/2] + x[N/2+1]) /2.0;
+	assert(N/2-1 >= 0);
+	return (x[N/2 - 1] + x[N/2]) /2.0;
 }
 
 static COMP_CSTATS *
@@ -621,7 +622,7 @@ int xlo, xhi, ylo, yhi;
  float** pix = NULL;
  int* npixels = NULL;
  int npix;
- float psfsigma = 2.0; // pixels
+ float psfsigma = 3.0; // pixels, matching Deblender.cc:"s"
  int i;
 
  dx = dy = 0.0;
@@ -732,7 +733,15 @@ trace("median? %i\n", fit_ctx.is_median);
 	 for (i=0; i<ncell; i++)
 		 pix[i] = malloc(npix * sizeof(float));
 
+	 int NX = ceil(1 + (xhi - xlo)/step);
+	 int NY = ceil(1 + (yhi - ylo)/step);
+	 int* cellid = malloc(NX * NY * sizeof(int));
+	 int* phcellid = malloc(NX * NY * sizeof(int));
+	 int ix, iy = -1;
+
 	 for (y=ylo; y<=yhi; y+=step) {
+		 iy++;
+		 ix = -1;
 		 for (x=xlo; x<=xhi; x+=step) {
 			 int ri;
 			 int si;
@@ -741,6 +750,16 @@ trace("median? %i\n", fit_ctx.is_median);
 			 double G;
 			 // in which annulus does it belong?
 			 double r = sqrt((dx-x)*(dx-x) + (dy-y)*(dy-y));
+
+			 // DEBUG -- cell ids
+			 ix++;
+			 assert(ix >= 0);
+			 assert(ix < NX);
+			 assert(iy >= 0);
+			 assert(iy < NY);
+			 cellid[iy * NX + ix] = -1;
+			 phcellid[iy * NX + ix] = -1;
+
 			 if (r > maxrad)
 				 continue;
 			 for (ri=0;; ri++)
@@ -748,8 +767,10 @@ trace("median? %i\n", fit_ctx.is_median);
 					 break;
 			 assert(ri < nann);
 			 // in which sector does this pixel belong?
-			 theta = atan2(y-dy, x-dy);
-			 si = floor(theta / (2.0*M_PI / NSEC));
+			 theta = atan2(y-dy, x-dx);
+			 // FIXME -- see extract.c:290 -- these are wrong by 180 degrees!!
+			 // -- but see also extract.c:380 -- also off by 15 degrees? (-0.5)
+			 si = floor((-0.5 + theta / (2.0*M_PI)) * NSEC);
 			 if (si < 0)
 				 si += NSEC;
 			 // mirror
@@ -760,10 +781,20 @@ trace("median? %i\n", fit_ctx.is_median);
 				 ci = 0;
 			 else
 				 ci = (ri-1)*NSEC/2 + si + 1;
+
+			 // DEBUG -- cell ids
+			 //printf("pix %g,%g -> %i,%i\n", x-dx, y-dy, (int)round(x-dx), (int)round(y-dy));
+			 // NOTE, phGetCellid's args are row,column.
+			 int phci = phGetCellid((int)round(y-dy), (int)round(x-dx));
+			 //printf("pixel (x,y) = (%g,%g): ring %i, sector %i, cell %i, photo's cell %i\n",
+			 //x, y, ri, si, ci, phci);
+			 cellid[iy * NX + ix] = ci;
+			 phcellid[iy * NX + ix] = phci;
+
 			 assert(ci < ncell);
 			 assert(ci >= 0);
 
-			 G = exp(-(r*r)/(2.0*psfsigma*psfsigma));
+			 G = exp(-0.5 * (r*r)/(psfsigma*psfsigma));
 			 pix[ci][npixels[ci]] = G;
 			 npixels[ci]++;
 
@@ -773,6 +804,27 @@ trace("median? %i\n", fit_ctx.is_median);
 		 }
 	 }
 
+	 // DEBUG -- cell ids
+	 fprintf(stderr, "cellids=[");
+	 for (iy=0; iy<NY; iy++) {
+		 fprintf(stderr, "[");
+		 for (ix=0; ix<NX; ix++)
+			 fprintf(stderr, "%i,", cellid[iy*NX + ix]);
+		 fprintf(stderr, "],");
+	 }
+	 fprintf(stderr, "]\n");
+	 fprintf(stderr, "phcellids=[");
+	 for (iy=0; iy<NY; iy++) {
+		 fprintf(stderr, "[");
+		 for (ix=0; ix<NX; ix++)
+			 fprintf(stderr, "%i,", phcellid[iy*NX + ix]);
+		 fprintf(stderr, "],");
+	 }
+	 fprintf(stderr, "]\n");
+	 free(cellid);
+	 free(phcellid);
+
+
 	 cs->mem = cs->median = malloc(2 * ncell * sizeof(float));
 	 cs->sig = cs->mem + ncell;
 	 cs->ncells = ncell;
@@ -781,7 +833,8 @@ trace("median? %i\n", fit_ctx.is_median);
 		 cs->median[i] = find_median_nonconst(pix[i], npixels[i]);
 		 trace("psf model: cell %i has %i pixels, median %g\n", i, npixels[i], cs->median[i]);
 		 // HACK!
-		 cs->sig[i] = sqrt(cs->median[i]);
+		 //cs->sig[i] = sqrt(cs->median[i]);
+		 cs->sig[i] = 0.01 * 1.0/(2.*M_PI*psfsigma*psfsigma);
 		 free(pix[i]);
 	 }
 
@@ -909,6 +962,7 @@ cell_fit_model(
 		return;
     }
     nannuli = (ncells - 1)/(NSEC/2) + 1;
+	trace("model produced %i cells; set nannuli to %i\n", ncells, nannuli);
 
     shAssert(ncells > nparam);
 /*
@@ -920,14 +974,25 @@ cell_fit_model(
     sig = fit_ctx.sig;
 
 	for (i=0; i<ncells; i++) {
-		trace("cell %i: data %i, model %g, sigma %g\n",
-			  i, (int)data[i], model[i], sig[i]);
+		trace("cell %i: data %g, model %g, sigma %g\n",
+			  i, data[i], model[i], sig[i]);
 	}
+	fprintf(stderr, "celldata = [");
+	for (i=0; i<ncells; i++)
+		fprintf(stderr, "%g,", data[i]);
+	fprintf(stderr, "]\ncellmodel = [");
+	for (i=0; i<ncells; i++)
+		fprintf(stderr, "%g,", model[i]);
+	fprintf(stderr, "]\ncellsigma = [");
+	for (i=0; i<ncells; i++)
+		fprintf(stderr, "%g,", sig[i]);
+	fprintf(stderr, "]\n");
 
 /*
  * find the best position angle, if so desired
  */
-	expand_model(model_phi, model, nannuli);
+	trace("skipping expand_model\n");
+	//expand_model(model_phi, model, nannuli);
 /*
  * correct for the known discrepancy between the psf and our best
  * representation of it
@@ -1015,15 +1080,27 @@ cell_fit_model(
     }
 
 	for (i=0; i<ncells; i++) {
-		trace("cell %i: data %i, fit model %g, sigma %g\n",
-			  i, (int)data[i], model[i], sig[i]);
+		trace("cell %i: data %g, fit model %g, sigma %g\n",
+			  i, data[i], model[i], sig[i]);
 	}
+
+	fprintf(stderr, "cellmodel2 = [");
+	for (i=0; i<ncells; i++)
+		fprintf(stderr, "%g,", model[i]);
+	fprintf(stderr, "]\n");
+
 /*
  * and the residual vector
  */
+	trace("fiddle = %g\n", fiddle_fac);
+
     idata = 0;
     sigma = sig[idata];
     fvec[idata] = (data[idata] - model[idata])/sigma;
+
+	trace("idata %i, data %g, model[%i] %g, sigma %g, chi %g\n",
+		  idata, data[idata], idata, model[idata], sig[idata], (data[idata] - model[idata])/sigma);
+
 #if DEBUG || TEST_2D_PROFILES
     sigsav[idata] = sigma;
 #endif
@@ -1033,6 +1110,12 @@ cell_fit_model(
     for(sect0 = iann = 1; iann < nannuli; iann++, sect0 += NSEC/2) {
 		for(isect = 0; isect < NSEC/2; isect++) {
 			sigma = sig[idata];
+
+			trace("iann %i, isect %i, idata %i, data %g, model[%i] = %g, sigma %g, chi %g\n",
+				  iann, isect,
+				  idata, data[idata], sect0+isect, model[sect0+isect], sig[idata],
+				  (data[idata] - model[sect0+isect])/sigma);
+
 			fvec[idata] = fiddle_fac*(data[idata] - model[sect0+isect])/sigma;
 #if DEBUG || TEST_2D_PROFILES
 			sigsav[idata] = sigma;
@@ -1045,6 +1128,7 @@ cell_fit_model(
      * The rest of the model must have been zeros.
      */
     for(; idata < ndata; idata++) {
+		trace("idata %i, data %g, sigma %g, chi %g\n", idata, data[idata], sig[idata], data[idata]/sig[idata]);
 		fvec[idata] = fiddle_fac*data[idata]/sig[idata];
 #if DEBUG || TEST_2D_PROFILES
 		sigsav[idata] = sig[idata];

@@ -81,13 +81,15 @@ deblender::SDSSDeblender<ImageT>::deblend(std::vector<typename ImageT::Ptr> &ima
              */
             pk->peak = 1000;
             if (i == 0) {
-                pk->colc = 28;
+                //pk->colc = 28;
+                pk->colc = 26;
                 pk->rowc = 32;
                 pk->cpeak = pk->colc;
                 pk->rpeak = pk->rowc;
             } else {
-                pk->colc = 38;
-                pk->rowc = 33;
+                //pk->colc = 38;
+                pk->colc = 40;
+                pk->rowc = 32;
                 pk->cpeak = pk->colc;
                 pk->rpeak = pk->rowc;
             }
@@ -101,7 +103,7 @@ deblender::SDSSDeblender<ImageT>::deblend(std::vector<typename ImageT::Ptr> &ima
          std::FILE* fid = stdout;
 
      for (size_t i=0; i<images.size(); i++) {
-            photo::OBJECT1* o1 = photo::phObject1New();
+         photo::OBJECT1* o1 = photo::phObject1New();
             std::printf("Object1 %i:\n", (int)i);
             photo::phObject1PrintPretty(o1, fid);
             o1->mask = photo::phObjmaskFromRect(0, 0, W, H);
@@ -150,7 +152,9 @@ deblender::SDSSDeblender<ImageT>::deblend(std::vector<typename ImageT::Ptr> &ima
              std::printf("\n");
              photo::DGPSF* psf = photo::phDgpsfNew();
              // make a single-gaussian.
-             double psfsigma = 2.0; // pixels
+             double psfsigma = 3.0; // pixels -- matching Deblender.cc:"s" and 
+             // also fake.c:psfsigma
+
              // HACK...
              psf->width = 0.396 * 2.35 * psfsigma; // FWHM in arcsec.
              psf->a = 1.0/(2.0 * M_PI * psfsigma*psfsigma);

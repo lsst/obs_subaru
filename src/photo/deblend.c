@@ -581,10 +581,15 @@ phObjcDeblend(OBJC *objc,		/* object to deblend */
 		psfs[c]->b = fiparams->frame[c].psf->b_2G;
 
 		psf_rad[c] = psf_rad0*fiparams->frame[c].psf->width;
+		// FIXME -- doesn't this grow too quickly?  Annular radii grow exponentially!
 		psf_nann[c] = psf_nann0*fiparams->frame[c].psf->width;
 		if(psf_nann[c] < psf_nann0) {
 			psf_nann[c] = psf_nann0;
 		}
+		// psf_nann0 = fiparams->deblend_psf_nann = 3
+		// psf_rad0  = fiparams->deblend_psf_rad_max = 12
+		trace("psf_nann0 = %i, psf width = %g => psf nann %i\n",
+			  psf_nann0, fiparams->frame[c].psf->width, psf_nann[c]);
 	}
 
 	for(i = 0;i < nchild;i++) {
@@ -632,6 +637,7 @@ phObjcDeblend(OBJC *objc,		/* object to deblend */
 				 (void)phFitCellAsPsf(child, c, NULL, fiparams, psf_nann[c],
 				 sky_noise_only, &I0, &pedestal);
 				 */
+				trace("nannuli: from psf_nann[c=%i] = %i\n", c, psf_nann[c]);
 				phFitCellAsPsfFake(child, c, NULL, fiparams, psf_nann[c],
 								   sky_noise_only, &I0, &pedestal);
 
