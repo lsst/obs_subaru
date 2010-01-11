@@ -770,6 +770,7 @@ phObjcDeblend(OBJC *objc,		/* object to deblend */
 		}
       
 		smoothed_ai[i] = NULL;
+		trace("finding template for child %i...\n", i);
 		if(phStrategicMemoryReserveIsEmpty() ||
 		   deblend_template_find(child, psfmasks, fiparams, &smoothed_ai[i], filtsize, ngrow) < 0) { /* un-cleanable */
 			trace("un-cleanable\n");
@@ -787,6 +788,28 @@ phObjcDeblend(OBJC *objc,		/* object to deblend */
 			return(-1);
 		}
 	}
+
+	// DEBUG -- write template images
+	for (i=0; i<nchild; i++) {
+		char fn[64];
+		REGION* aireg;
+		ATLAS_IMAGE* ai = smoothed_ai[i];
+		for (c=0; c<objc->ncolor; c++) {
+			OBJMASK* mm;
+			int nr, nc;
+			mm = ai->master_mask;
+			nr = mm->rmax - mm->rmin + 1;
+			nc = mm->cmax - mm->cmin + 1;
+			aireg = shRegNew("", nr, nc, TYPE_U16);
+			trace("mm bounds rows [%i, %i], cols [%i, %i], size %i x %i\n", mm->rmin, mm->rmax, mm->cmin, mm->cmax, nr, nc);
+			trace("ATLAS_IMAGE drow[%i], dcol[%i] = (%i, %i)\n", c, c, ai->drow[c], ai->dcol[c]);
+			shRegClear(aireg);
+			phRegionSetFromAtlasImage(ai, c, aireg, 0, 0, 0, '\0', 1);
+			sprintf(fn, "template-child%02i-color%i.fits", i, c);
+			shRegWriteAsFits(aireg, fn, STANDARD, 2, DEF_REGION_FILE, NULL, 0);
+		}
+	}
+
 
 	/*
 	 * We've got all the templates, so it's time to reconsider some of those
@@ -1028,6 +1051,7 @@ phObjcDeblend(OBJC *objc,		/* object to deblend */
 	 */
 	trace("Setting up normal equations...\n");
 	if(skip_deblend) {
+		trace("skip_deblend = %i\n", skip_deblend);
 		if(skip_deblend == 2) {		/* save the smoothed templates */
 			for(i = 0;i < nchild;i++) {
 				for(c = 0;c < objc->ncolor;c++) {
@@ -1154,7 +1178,7 @@ phObjcDeblend(OBJC *objc,		/* object to deblend */
 			/*
 			 * If there were no rejectable eigenvalues, solve for the weights and see if
 			 * any of the resulting children are too faint to have been detected; if
-			 * one is reject _it_ and try again.
+			 * one is, reject _it_ and try again.
 			 *
 			 * If we really can find no children to reject, break out of the loop
 			 * and prepare to allocate flux to each child
@@ -1282,7 +1306,7 @@ phObjcDeblend(OBJC *objc,		/* object to deblend */
 					}
 	       
 					if(reject >= 0) {
-						trace("reject %i\n", reject);
+						trace("reject %i: inner product %g, limit %g\n", reject, max_inner, fiparams->deblend_inner_max);
 						break;
 					}
 				}
@@ -1293,7 +1317,7 @@ phObjcDeblend(OBJC *objc,		/* object to deblend */
 				 * DEBLENDED_AS_PSF, choose that one, otherwise choose the one with
 				 * the _smaller_ peak value in the associated child.
 				 */
-				trace("reject %i\n", reject);
+				trace("rejecting %i, keeping %i\n", reject, i);
 				if(reject >= 0) {
 					int keep = i;		/* which child did we keep? */
 					j = reject;		/* it was called j originally */
@@ -1336,7 +1360,7 @@ phObjcDeblend(OBJC *objc,		/* object to deblend */
 			if(reject < 0) {		/* there are none to delete */
 				break;
 			} else {
-				trace("reject %i\n", reject);
+				trace("rejecting %i\n", reject);
 				nchild = reject_template(objc, nchild, reject, children,
 										 smoothed_ai, A, b, norm, lambda, Q, w);
 				nparam--;
@@ -1347,6 +1371,7 @@ phObjcDeblend(OBJC *objc,		/* object to deblend */
 				}
 			}
 		}
+		trace("nchild %i\n", nchild);
 		/*
 		 * We have the final list of templates, so now's the time to run the
 		 * peephole optimiser;  in other words, look at the potential children
@@ -3469,6 +3494,7 @@ reject_template(OBJC *objc,
       phVecDel(w[c]); w[c] = NULL;
    }
 
+   trace("nchild = %i\n", nchild);
    if(nchild <= 1) {
       for(c = 0; c < objc->ncolor; c++) {
 	 phMatDel(A[c]);
@@ -3478,6 +3504,7 @@ reject_template(OBJC *objc,
 	 phMatDel(Q[c]);
       }
       
+	  trace("nchild = %i\n", nchild);
       if(nchild == 1) {
 	 set_parent_position_from_child(objc, children[0]);
       }

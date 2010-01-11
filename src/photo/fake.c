@@ -1097,9 +1097,8 @@ cell_fit_model(
     idata = 0;
     sigma = sig[idata];
     fvec[idata] = (data[idata] - model[idata])/sigma;
-
-	trace("idata %i, data %g, model[%i] %g, sigma %g, chi %g\n",
-		  idata, data[idata], idata, model[idata], sig[idata], (data[idata] - model[idata])/sigma);
+	//trace("idata %i, data %g, model[%i] %g, sigma %g, chi %g\n", idata, data[idata], idata, model[idata], sig[idata], (data[idata] - model[idata])/sigma);
+		  
 
 #if DEBUG || TEST_2D_PROFILES
     sigsav[idata] = sigma;
@@ -1110,12 +1109,7 @@ cell_fit_model(
     for(sect0 = iann = 1; iann < nannuli; iann++, sect0 += NSEC/2) {
 		for(isect = 0; isect < NSEC/2; isect++) {
 			sigma = sig[idata];
-
-			trace("iann %i, isect %i, idata %i, data %g, model[%i] = %g, sigma %g, chi %g\n",
-				  iann, isect,
-				  idata, data[idata], sect0+isect, model[sect0+isect], sig[idata],
-				  (data[idata] - model[sect0+isect])/sigma);
-
+			//trace("iann %i, isect %i, idata %i, data %g, model[%i] = %g, sigma %g, chi %g\n", iann, isect, idata, data[idata], sect0+isect, model[sect0+isect], sig[idata], (data[idata] - model[sect0+isect])/sigma);
 			fvec[idata] = fiddle_fac*(data[idata] - model[sect0+isect])/sigma;
 #if DEBUG || TEST_2D_PROFILES
 			sigsav[idata] = sigma;
@@ -1128,7 +1122,7 @@ cell_fit_model(
      * The rest of the model must have been zeros.
      */
     for(; idata < ndata; idata++) {
-		trace("idata %i, data %g, sigma %g, chi %g\n", idata, data[idata], sig[idata], data[idata]/sig[idata]);
+		//trace("idata %i, data %g, sigma %g, chi %g\n", idata, data[idata], sig[idata], data[idata]/sig[idata]);
 		fvec[idata] = fiddle_fac*data[idata]/sig[idata];
 #if DEBUG || TEST_2D_PROFILES
 		sigsav[idata] = sig[idata];

@@ -185,6 +185,7 @@ deblender::SDSSDeblender<ImageT>::deblend(std::vector<typename ImageT::Ptr> &ima
           fp->deblend_psf_nann = 3;
           fp->deblend_psf_rad_max = 12;
           fp->deblend_npix_max = 0;
+          // deblend.c:1299: max cosine between templates.
           fp->deblend_inner_max	= 0.5;
 
           // Set atlas image *after* copying image data to fp. (?)
