@@ -178,6 +178,21 @@ deblender::SDSSDeblender<ImageT>::deblend(std::vector<typename ImageT::Ptr> &ima
 
              fp->frame[i].dark_variance = photo::phBinregionNewFromConst(1.0, 1, 1, 1, 1, MAX_U16);
 
+
+             // Estimate background = median pixel.
+             // just dump pix into an stl vector
+             std::vector<float> vpix;
+             for (int j=0; j<H; j++)
+                 for (int k=0; k<W; k++)
+                     vpix.push_back((*images[i])(k,j));
+             // partition
+             nth_element(vpix.begin(), vpix.begin() + vpix.size()/2, vpix.end());
+             float med = *(vpix.begin() + vpix.size()/2);
+             std::printf("Estimating median = %g\n", med);
+             // Used in deblend.c : setup_normal
+             fp->frame[i].bkgd = med;
+
+
          }
               /* from fpParam.par: */
               fp->deblend_min_peak_spacing = 2;
@@ -216,6 +231,34 @@ deblender::SDSSDeblender<ImageT>::deblend(std::vector<typename ImageT::Ptr> &ima
     photo::phObjcPrintPretty(objc, "");
 
 	int res = photo::phObjcDeblend(objc, fp);
+
+    std::cout << "After phObjcDeblend:" << std::endl;
+    photo::phObjcPrintPretty(objc, "");
+    photo::printObjc(objc);
+
+    
+    for (photo::OBJC* o = photo::phObjcDescendentNext(objc);
+         o;
+         o = phObjcDescendentNext((const photo::OBJC*)NULL)) {
+        if (o->children)
+            continue;
+        typename ImageT::Ptr img = typename ImageT::Ptr(new ImageT(W, H, 0)); //ImageT(W, H, 0));
+        photo::REGION* reg = photo::shRegNew("", H, W, photo::TYPE_U16);
+        shRegClear(reg);
+        // HACK -- return 2d vec of obj,color
+        int c = 0;
+        float bg = fp->frame[c].bkgd + softbias;
+        photo::phRegionSetFromAtlasImage(o->aimage, c, reg, 0, 0, 0, 0, 1);
+        for (int j=0; j<H; j++) {
+            photo::U16* row = reg->rows_u16[j];
+            for (int k=0; k<W; k++) {
+                if (row[k])
+                    (*img)(k, j) = (float)row[k] - bg;
+                std::printf("%i ", (int)row[k]);
+            }
+        }
+        children.push_back(img);
+    }
 
     std::cout << "Result: " << res << std::endl;
 

@@ -22,6 +22,16 @@
 
 #include "phFake.h"
 #include "phObjc.h"
+#include "phObjc_p.h"
+#include "phSpanUtil.h"
+
+static char dumpfn[256];
+static char* get_dump_filename() {
+	static int dumpnum = 0;
+	sprintf(dumpfn, "dump-%03i.fits", dumpnum);
+	dumpnum++;
+	return dumpfn;
+}
 
 static float
 assign_missing_flux(const OBJC **children, /* the children in question */
@@ -560,6 +570,9 @@ phObjcDeblend(OBJC *objc,		/* object to deblend */
 		phPeaksDel(peaks);
 	}
 
+	for (c=0; c<objc->ncolor; c++) {
+		trace("pixel 0 of color %i is %i\n", c, (int)fiparams->frame[c].data->ROWS[0][0]);
+	}
 
 	/*
 	 * Find all the peaks that are consistent with being PSFs, and do a crude
@@ -586,8 +599,8 @@ phObjcDeblend(OBJC *objc,		/* object to deblend */
 		if(psf_nann[c] < psf_nann0) {
 			psf_nann[c] = psf_nann0;
 		}
-		// psf_nann0 = fiparams->deblend_psf_nann = 3
-		// psf_rad0  = fiparams->deblend_psf_rad_max = 12
+		// note, psf_nann0 = fiparams->deblend_psf_nann = 3
+		// note, psf_rad0  = fiparams->deblend_psf_rad_max = 12
 		trace("psf_nann0 = %i, psf width = %g => psf nann %i\n",
 			  psf_nann0, fiparams->frame[c].psf->width, psf_nann[c]);
 	}
@@ -747,6 +760,10 @@ phObjcDeblend(OBJC *objc,		/* object to deblend */
 		}
 	}
 
+	for (c=0; c<objc->ncolor; c++) {
+		trace("pixel 0 of color %i is %i\n", c, (int)fiparams->frame[c].data->ROWS[0][0]);
+	}
+
 	/*
 	 * we need a copy of the pixel values in the object after we subtracted
 	 * all objects deemed to be PSFs. The resulting subtracted image is used
@@ -789,7 +806,30 @@ phObjcDeblend(OBJC *objc,		/* object to deblend */
 		}
 	}
 
+	for (c=0; c<objc->ncolor; c++) {
+		trace("pixel 0 of color %i is %i\n", c, (int)fiparams->frame[c].data->ROWS[0][0]);
+	}
+	int testrow = 32;
+	int testcol = 32;
+
+	for(i=0; i<nchild; i++) {
+		for (c=0; c<objc->ncolor; c++) {
+			trace("pixel 0 of child %i, color %i, atlas image, is %i\n", i, c,
+				  (int)phAtlasImagePixelGet(children[i]->aimage, c, 0, 0));
+			trace("pixel 0 of child %i, color %i, smoothed_ai, is %i\n", i, c,
+				  (int)phAtlasImagePixelGet(smoothed_ai[i], c, 0, 0));
+			trace("pixel (%i,%i) of child %i, color %i, atlas image, is %i\n", testcol, testrow, i, c,
+				  (int)phAtlasImagePixelGet(children[i]->aimage, c, testrow, testcol));
+			trace("pixel (%i,%i) of child %i, color %i, smoothed_ai, is %i\n", testcol, testrow, i, c,
+				  (int)phAtlasImagePixelGet(smoothed_ai[i], c, testrow, testcol));
+		}
+	}
+
 	// DEBUG -- write template images
+	//write_template_images(objc, smoothed_ai, nchild,);
+	{
+		ATLAS_IMAGE* ai = objc->aimage;
+	}
 	for (i=0; i<nchild; i++) {
 		char fn[64];
 		REGION* aireg;
@@ -803,10 +843,25 @@ phObjcDeblend(OBJC *objc,		/* object to deblend */
 			aireg = shRegNew("", nr, nc, TYPE_U16);
 			trace("mm bounds rows [%i, %i], cols [%i, %i], size %i x %i\n", mm->rmin, mm->rmax, mm->cmin, mm->cmax, nr, nc);
 			trace("ATLAS_IMAGE drow[%i], dcol[%i] = (%i, %i)\n", c, c, ai->drow[c], ai->dcol[c]);
+			{
+				// m1's are the same for different colors?
+				OBJMASK* m1 = ai->mask[c];
+				OBJMASK* m2 = ai->pix[c]->mask;
+				REGION* reg;
+				trace("m1 %p, m2 %p\n", m1, m2);
+				trace("m2: r0,c0 (%i,%i); npix %i\n", m2->row0, m2->col0, m2->npix);
+				reg = shRegNew("", mm->rmax+1, mm->cmax+1, TYPE_U16);
+				shRegClear(reg);
+				phRegionSetFromObjmask(reg, m2);
+				sprintf(fn, "template-child%02i-color%i-m2.fits", i, c);
+				shRegWriteAsFits(reg, fn, STANDARD, 2, DEF_REGION_FILE, NULL, 0);
+				shRegDel(reg);
+			}
 			shRegClear(aireg);
 			phRegionSetFromAtlasImage(ai, c, aireg, 0, 0, 0, '\0', 1);
 			sprintf(fn, "template-child%02i-color%i.fits", i, c);
 			shRegWriteAsFits(aireg, fn, STANDARD, 2, DEF_REGION_FILE, NULL, 0);
+			shRegDel(aireg);
 		}
 	}
 
@@ -1037,6 +1092,15 @@ phObjcDeblend(OBJC *objc,		/* object to deblend */
 		return(-1);
 	}
 
+	for(i=0; i<nchild; i++) {
+		for (c=0; c<objc->ncolor; c++) {
+			trace("pixel (%i,%i) of child %i, color %i, atlas image, is %i\n", testcol, testrow, i, c,
+				  (int)phAtlasImagePixelGet(children[i]->aimage, c, testrow, testcol));
+			trace("pixel (%i,%i) of child %i, color %i, smoothed_ai, is %i\n", testcol, testrow, i, c,
+				  (int)phAtlasImagePixelGet(smoothed_ai[i], c, testrow, testcol));
+		}
+	}
+
 	/*
 	 * Average the per-band templates.
 	 */
@@ -1046,6 +1110,16 @@ phObjcDeblend(OBJC *objc,		/* object to deblend */
 			average_templates(children[i]);
 		}
 	}
+
+	for(i=0; i<nchild; i++) {
+		for (c=0; c<objc->ncolor; c++) {
+			trace("pixel (%i,%i) of child %i, color %i, atlas image, is %i\n", testcol, testrow, i, c,
+				  (int)phAtlasImagePixelGet(children[i]->aimage, c, testrow, testcol));
+			trace("pixel (%i,%i) of child %i, color %i, smoothed_ai, is %i\n", testcol, testrow, i, c,
+				  (int)phAtlasImagePixelGet(smoothed_ai[i], c, testrow, testcol));
+		}
+	}
+
 	/*
 	 * and now set up the normal equations for the least squares problem
 	 */
@@ -1078,8 +1152,10 @@ phObjcDeblend(OBJC *objc,		/* object to deblend */
 		}
       
 		for(c = 0; c < objc->ncolor; c++) {
-			bkgd = fiparams->frame[c].bkgd + SOFT_BIAS;
-	 
+			// HACK -- but we subtracted the background from the templates in
+			// deblend.c:2975 (deblend_template_find)
+			//bkgd = fiparams->frame[c].bkgd + SOFT_BIAS;
+			bkgd = SOFT_BIAS;
 			setup_normal(objc, (const OBJC **)children, nchild, c, bkgd,
 						 A[c], b[c], norm[c]);
 		}
@@ -1192,6 +1268,7 @@ phObjcDeblend(OBJC *objc,		/* object to deblend */
 					 */
 					for(i = 0;i < w[c]->dim;i++) {
 						w[c]->ve[i] /= norm[c]->ve[i];
+						trace("w[%i]->ve[%i] = %g\n", c, i, w[c]->ve[i]);
 					}
 #if 1
 					/*
@@ -1214,11 +1291,14 @@ phObjcDeblend(OBJC *objc,		/* object to deblend */
 				 * at at least the 3*ffo_threshold level (as opposed to the usual criterion
 				 * of simple exceeding ffo_threshold) XXX
 				 */
+				trace("checking detectability...\n");
 				for(i = 0; i < nchild; i++) {
 					for(c = 0; c < objc->ncolor; c++) {
 						bkgd = fiparams->frame[c].bkgd + SOFT_BIAS;
-
 						val = w[c]->ve[i]*children[i]->color[c]->profMean[2];
+						trace("child %i, color %i.  val %g, threshold %g.\n", i, c, (float)val, (float)fiparams->frame[c].ffo_threshold);
+						trace("profMean[2] = %g\n", (float)children[i]->color[c]->profMean[2]);
+						trace("w[c]->ve[i] = %g\n", (float)w[c]->ve[i]);
 						if(val >= fiparams->frame[c].ffo_threshold) {
 #if 0
 							float flux = 0;
@@ -1236,12 +1316,16 @@ phObjcDeblend(OBJC *objc,		/* object to deblend */
 
 							if(rpeak < 0 || rpeak >= data->nrow ||
 							   cpeak < 0 || cpeak >= data->ncol) {
+								trace("peak is off-chip\n");
 								c = objc->ncolor; /* off chip; not detected! */
 								break;
 							}
 							flux = data->ROWS[rpeak][cpeak] - bkgd - val;
+							trace("child %i, color %i: peak pixel %g, bkgd %g, val %g\n", i, c, (float)data->ROWS[rpeak][cpeak], (float)bkgd, (float)val);
 #endif
 
+							trace("flux %g, threshold %g.  val %g, threshold %g\n",
+								  flux, 10*fiparams->frame[c].ffo_threshold, val, 3*fiparams->frame[c].ffo_threshold);
 							if(flux < 10*fiparams->frame[c].ffo_threshold ||
 							   val > 3*fiparams->frame[c].ffo_threshold) {
 								break;
@@ -2702,6 +2786,9 @@ deblend_template_find(OBJC *objc,	/* the OBJC in question */
 		{
 			static char *dump_filename = NULL; /* write data to this file?
 												For use from gdb */
+			dump_filename = get_dump_filename();
+			trace("dumping to %s\n", dump_filename);
+
 			if(dump_filename != NULL) {
 				shRegWriteAsFits(data,
 								 dump_filename, STANDARD, 2,DEF_NONE,NULL,0);
@@ -2743,6 +2830,8 @@ deblend_template_find(OBJC *objc,	/* the OBJC in question */
 	for(c = 0; c < ncolor; c++) {
 		static char *dump_filename = NULL; /* write data to this file?
 											For use from gdb */
+		dump_filename = get_dump_filename();
+		trace("dumping to %s\n", dump_filename);
 		if(dump_filename != NULL) {
 			shRegWriteAsFits((REGION *)fiparams->frame[c].data,
 							 dump_filename, STANDARD, 2,DEF_NONE,NULL,0);
@@ -2882,6 +2971,8 @@ deblend_template_find(OBJC *objc,	/* the OBJC in question */
 	 */
 	for(c = 0;c < ncolor;c++) {
 		phAtlasImageConstAdd(objc->aimage, c, -fiparams->frame[c].bkgd, 0);
+		trace("subtracting background of %g from smoothed_ai and objc->aimage for color %i\n",
+			  (float)fiparams->frame[c].bkgd, c);
 		phAtlasImageConstAdd(*smoothed_ai, c, -fiparams->frame[c].bkgd, 0);
 	}   
 	/*
@@ -2996,6 +3087,8 @@ improve_template(const OBJMASK *mask,	/* OBJC's master_mask */
 	{
 		static char *dump_filename = NULL; /* write data to this file?
 											For use from gdb */
+		//dump_filename = get_dump_filename();
+		//trace("dumping to %s\n", dump_filename);
 		if(dump_filename != NULL) {
 			shRegWriteAsFits(smoothed,
 							 dump_filename, STANDARD, 2,DEF_NONE,NULL,0);
@@ -3386,6 +3479,8 @@ setup_normal(const OBJC *parent,	/* parent object */
    float *maxpix = alloca(nchild*sizeof(float)); /* max. value for templates */
    int npix = parent->aimage->master_mask->npix;
 
+   trace("setup_normal: bkgd = %i\n", bkgd);
+
    for(i = 0;i < nchild;i++) {
       shAssert(children[i]->aimage->master_mask->npix == npix);
    }
@@ -3396,14 +3491,16 @@ setup_normal(const OBJC *parent,	/* parent object */
       for(j = 0;j <= i;j++) {
 	  A->me[i][j] = A->me[j][i] = phAtlasImageDotProduct(children[i]->aimage, c, bkgd,
 							     children[j]->aimage, c, bkgd);
+	  trace("A: dot child %i with child %i, color %i = %g\n", i, j, c, A->me[i][j]);
       }
    }
 /*
  * and now b
  */
    for(i = 0;i < nchild; i++) {
-      b->ve[i] = phAtlasImageDotProduct(children[i]->aimage, c, bkgd,
+	   b->ve[i] = phAtlasImageDotProduct(children[i]->aimage, c, bkgd,
 					parent->aimage,      c, bkgd);
+	  trace("b: dot child %i with parent, color %i = %g\n", i, c, b->ve[i]);
 
       maxpix[i] = phAtlasImageMaximum(parent->aimage, c) - bkgd;
       if(maxpix[i] <= 0) {

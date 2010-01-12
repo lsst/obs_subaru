@@ -13,6 +13,8 @@
 #include "phUtils.h"
 #include "phObjc_p.h"
 
+#include "phFake.h"
+
 /************************************************************************************************************/
 
 AI_PIX *
@@ -1371,7 +1373,7 @@ phAtlasImageDotProduct(const ATLAS_IMAGE *ai1, /* one atlas image */
    shAssert(ai1->npix == ai2->npix);
    shAssert(c1 >= 0 && c1 < ai1->ncolor);
    shAssert(c2 >= 0 && c2 < ai2->ncolor);    
-
+   //trace("phAtlasImageDotProduct(ai1=%p, c1=%i, bkgd1=%g, ai2=%p, c2=%i, bkgd2=%g)\n", ai1, c1, bkgd1, ai2, c2, bkgd2);
    return phObjmaskDotProduct(ai1->pix[c1]->mask, bkgd1, ai2->pix[c2]->mask, bkgd2, 0.0, 0.0);
 }
 

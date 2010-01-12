@@ -14,6 +14,8 @@
 #  include "phUtils.h"
 #endif
 
+#include "phFake.h"
+
 #ifndef MAXSHORT
 #  define MAXSHORT MAX_S16
 #endif
@@ -1698,6 +1700,9 @@ phObjmaskDotProduct(const OBJMASK *sv1,
 		   if(data1[i1 + x - x1_1] != 0 && data2[i2 + x - x1_2] != 0) {
 		       val1 = data1[i1 + x - x1_1] - bkgd1;
 		       val2 = data2[i2 + x - x1_2] - bkgd2;
+			   trace("  dot: (val1 = %g - %g = %g)  x  (val2 = %g - %g = %g)  =  %g\n",
+					 (float)data1[i1 + x - x1_1], (float)bkgd1, val1, 
+					 (float)data2[i2 + x - x1_2], (float)bkgd2, val2, val1*val2);
 		       sum += val1*val2;
 		   }
 	       }
@@ -1712,7 +1717,7 @@ phObjmaskDotProduct(const OBJMASK *sv1,
    }
    shAssert (i1 <= sv1->npix);
    shAssert (i2 <= sv2->npix);
-
+   trace("sum = %g\n", sum);
    return sum;
 }
 
