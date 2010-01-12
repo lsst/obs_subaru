@@ -14,6 +14,14 @@
 
 int phObjcDeblend(OBJC *objc, const FIELDPARAMS *fparams);
 
+void
+phDeblendSet(REGION *scr0,		/* buffers for smoothing operator */
+	     REGION *scr1,		/*  may be NULL if no */
+	     REGION *scr2,		/*   peak finding or */
+	     REGION *scr3);		/*    deblending is desired */
+void
+phDeblendUnset(void);
+
 void phRemoveAtlasImage(const OBJC *objc, const FIELDPARAMS *fiparams);
 void phInsertAtlasImage(const OBJC *objc, const FIELDPARAMS *fiparams);
 
@@ -64,13 +72,6 @@ phMeasureObjColorSet(FIELDPARAMS *fiparams, /* describe field */
 		     const PSF_BASIS *basis); /* variable PSF */
 void phMeasureObjUnset(FIELDPARAMS *fparams);
 
-void
-phDeblendSet(REGION *scr0,		/* buffers for smoothing operator */
-	     REGION *scr1,		/*  may be NULL if no */
-	     REGION *scr2,		/*   peak finding or */
-	     REGION *scr3);		/*    deblending is desired */
-void
-phDeblendUnset(void);
 
 
 RET_CODE

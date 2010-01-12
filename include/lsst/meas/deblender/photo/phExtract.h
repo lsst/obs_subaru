@@ -128,7 +128,7 @@ typedef struct {
    const REGION *syncreg;		/* sync-shifted central region */
    const float *radii;			/* radii of inner edges of annuli */
    const float *area;			/* areas of annuli */
-   struct pstats *cells;		/* the data cells */
+	struct pstats *cells;		/* the data cells */
    struct cellgeom *geom;		/* geometry of cells */
    struct cellmod *mgeom;		/* (model-dependent) cell geometry */
 } CELL_STATS;				/* pragma SCHEMA */

@@ -29,9 +29,10 @@ namespace photo = lsst::meas::deblender::photo;
 
 
 template<typename ImageT>
-std::vector<typename ImageT::Ptr>
+std::vector<typename deblender::DeblendedObject<ImageT>::Ptr >
 deblender::SDSSDeblender<ImageT>::deblend(std::vector<typename ImageT::Ptr> &images) {
-	std::vector<typename ImageT::Ptr> children;
+
+	std::vector<typename DeblendedObject<ImageT>::Ptr > children;
 
     char* filters = new char[images.size()+1];
     int i;
@@ -242,22 +243,36 @@ deblender::SDSSDeblender<ImageT>::deblend(std::vector<typename ImageT::Ptr> &ima
          o = phObjcDescendentNext((const photo::OBJC*)NULL)) {
         if (o->children)
             continue;
-        typename ImageT::Ptr img = typename ImageT::Ptr(new ImageT(W, H, 0)); //ImageT(W, H, 0));
-        photo::REGION* reg = photo::shRegNew("", H, W, photo::TYPE_U16);
-        shRegClear(reg);
-        // HACK -- return 2d vec of obj,color
-        int c = 0;
-        float bg = fp->frame[c].bkgd + softbias;
-        photo::phRegionSetFromAtlasImage(o->aimage, c, reg, 0, 0, 0, 0, 1);
-        for (int j=0; j<H; j++) {
-            photo::U16* row = reg->rows_u16[j];
-            for (int k=0; k<W; k++) {
-                if (row[k])
-                    (*img)(k, j) = (float)row[k] - bg;
-                std::printf("%i ", (int)row[k]);
+        int cw, ch;
+        int cx0, cy0;
+        std::vector<typename ImageT::Ptr> cimgs;
+        for (size_t c=0; c<images.size(); c++) {
+            photo::OBJMASK* mask = o->aimage->pix[c]->mask;
+            cw = mask->cmax - mask->cmin + 1;
+            ch = mask->rmax - mask->rmin + 1;
+            cx0 = mask->cmin;
+            cy0 = mask->rmin;
+            std::printf("offset (%i,%i), size (%i,%i)\n", cx0, cy0, cw, ch);
+            typename ImageT::Ptr img(new ImageT(cw, ch, 0));
+            photo::REGION* reg = photo::shRegNew("", ch, cw, photo::TYPE_U16);
+            shRegClear(reg);
+            float bg = fp->frame[c].bkgd + softbias;
+            photo::phRegionSetFromAtlasImage(o->aimage, c, reg, cx0, cy0, 0, 0, 1);
+            for (int j=0; j<ch; j++) {
+                photo::U16* row = reg->rows_u16[j];
+                for (int k=0; k<cw; k++) {
+                    if (row[k])
+                        (*img)(k, j) = (float)row[k] - bg;
+                    std::printf("%i ", (int)row[k]);
+                }
             }
+            cimgs.push_back(img);
         }
-        children.push_back(img);
+        typename DeblendedObject<ImageT>::Ptr dbobj(new DeblendedObject<ImageT>());
+        dbobj->x0 = cx0;
+        dbobj->y0 = cy0;
+        dbobj->images = cimgs;
+        children.push_back(dbobj);
     }
 
     std::cout << "Result: " << res << std::endl;
@@ -269,6 +284,24 @@ deblender::SDSSDeblender<ImageT>::deblend(std::vector<typename ImageT::Ptr> &ima
 	return children;
 }
 
+template<typename ImageT>
+void
+deblender::DeblendedObject<ImageT>::addToImage(typename ImageT::Ptr image, int color) {
+    assert(color >= 0);
+    assert(color < this->images.size());
+    assert(this->x0 >= 0);
+    assert(this->y0 >= 0);
+    typename ImageT::Ptr myimg = this->images[color];
+    assert(image->getWidth() >= this->x0 + myimg->getWidth());
+    assert(image->getHeight() >= this->y0 + myimg->getHeight());
+    for (int j=0; j<myimg->getHeight(); j++) {
+        for (int i=0; i<myimg->getWidth(); i++) {
+            (*image)(this->x0 + i, this->y0 + j) += (*myimg)(i, j);
+        }
+    }
+}
+
+
 
 /*
  * Explicit Instantiations
@@ -276,3 +309,6 @@ deblender::SDSSDeblender<ImageT>::deblend(std::vector<typename ImageT::Ptr> &ima
  */
 template class deblender::SDSSDeblender<image::Image<double> >;
 template class deblender::SDSSDeblender<image::Image<float > >;
+
+template class deblender::DeblendedObject<image::Image<double> >;
+template class deblender::DeblendedObject<image::Image<float > >;

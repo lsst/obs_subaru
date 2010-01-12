@@ -5,7 +5,12 @@
 
 void phMergePeaks(PEAK* p1, PEAK* p2);
 
-void trace(const char* fmt, ...);
+//void trace(const char* fmt, ...);
+#define trace(fmt, args...) phTrace(__FILE__, __LINE__, fmt, ## args)
+
+void phTrace(const char* fn, int line, const char* fmt, ...);
+
+void printObjc(OBJC* o);
 
 // fake replacements by dstn.
 
