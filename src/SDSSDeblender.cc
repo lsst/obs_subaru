@@ -158,7 +158,9 @@ deblender::SDSSDeblender<ImageT>::deblend(std::vector<typename ImageT::Ptr> &ima
 
              // HACK...
              psf->width = 0.396 * 2.35 * psfsigma; // FWHM in arcsec.
-             psf->a = 1.0/(2.0 * M_PI * psfsigma*psfsigma);
+             //psf->a = 1.0/(2.0 * M_PI * psfsigma*psfsigma);
+             // required by assertion deblend.c:660
+             psf->a = 1.0;
              psf->sigmax1 = 2.0;
              psf->sigmay1 = 2.0;
              psf->sigmax2 = 2.0;
@@ -288,7 +290,7 @@ template<typename ImageT>
 void
 deblender::DeblendedObject<ImageT>::addToImage(typename ImageT::Ptr image, int color) {
     assert(color >= 0);
-    assert(color < this->images.size());
+    assert(color < (int)this->images.size());
     assert(this->x0 >= 0);
     assert(this->y0 >= 0);
     typename ImageT::Ptr myimg = this->images[color];

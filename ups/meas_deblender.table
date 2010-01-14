@@ -3,6 +3,9 @@ setupRequired(utils)
 setupRequired(afwdata)
 setupRequired(afw)
 
+# For testing...
+setupRequired(meas_utils)
+
 envAppend(LD_LIBRARY_PATH, ${PRODUCT_DIR}/lib)
 envAppend(DYLD_LIBRARY_PATH, ${PRODUCT_DIR}/lib)
 
