@@ -73,6 +73,8 @@ BOOST_AUTO_TEST_CASE(TwoStarDeblend) {
 
     /// do detection, build region masks, ...
 
+    // afw::detection::Footprint ?
+
     deblender::SDSSDeblender<ImageF> db;
     std::vector<deblender::DeblendedObject<ImageF>::Ptr> childList = db.deblend(imgList);
 
