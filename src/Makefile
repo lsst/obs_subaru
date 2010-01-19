@@ -1,6 +1,4 @@
-all: ../lib/libdeblender.dylib Deblender
-
-
+all: ../lib/libmeas_deblender.dylib Deblender ../python/lsst/meas/deblender/deblenderLib_wrap.os
 
 INC := -I/usr/local/lsst-sandbox/DarwinX86/external/boost/1.37.0/include -I/usr/local/lsst-sandbox/DarwinX86/pex_exceptions/3.2.2/include -I/usr/local/lsst-sandbox/DarwinX86/utils/3.4.3/include -I/usr/local/lsst-sandbox/DarwinX86/daf_base/3.2.9/include -I/usr/local/lsst-sandbox/DarwinX86/pex_logging/3.3.4/include -I/usr/local/lsst-sandbox/DarwinX86/security/3.2.2/include -I/usr/local/lsst-sandbox/DarwinX86/pex_policy/3.4.1/include -I/usr/local/lsst-sandbox/DarwinX86/daf_persistence/3.3.7/include -I/usr/local/lsst-sandbox/DarwinX86/daf_data/3.2.3/include -I/usr/local/lsst-sandbox/DarwinX86/afw/3.3.18/include -I../include -I../include/lsst/meas/deblender/photo -I../include/lsst/meas/deblender/dervish -I../include/lsst/meas/deblender/astrotools
 
@@ -13,8 +11,8 @@ LIB +=  -L/usr/local/lsst-sandbox/DarwinX86/daf_base/3.2.9/lib
 LIB +=  -L/usr/local/lsst-sandbox/DarwinX86/pex_logging/3.3.4/lib
 LIB +=  -L/usr/local/lsst-sandbox/DarwinX86/security/3.2.2/lib
 LIB +=  -L/usr/local/lsst-sandbox/DarwinX86/pex_policy/3.4.1/lib
-LIB +=  -L/usr/local/lsst-sandbox/DarwinX86/daf_persistence/3.3.7/lib
-LIB +=  -L/usr/local/lsst-sandbox/DarwinX86/daf_data/3.2.3/lib
+LIB +=  -L/usr/local/lsst-sandbox/DarwinX86/daf_persistence/3.3.7+1/lib
+LIB +=  -L/usr/local/lsst-sandbox/DarwinX86/daf_data/3.2.3+1/lib
 LIB +=  -L/usr/local/lsst-sandbox/DarwinX86/afw/3.3.18/lib
 LIB +=  -L../lib
 #LIB +=  -L.
@@ -40,10 +38,10 @@ OBJS := $(CPPOBJS) $(COBJS)
 
 $(OBJS): ../include/lsst/meas/deblender/photo/phFake.h
 
-MYLIB := ../lib/libdeblender.dylib
+MYLIB := ../lib/libmeas_deblender.dylib
 
 $(MYLIB): $(OBJS)
-	g++ -o $@ -dynamiclib -Wl,-install_name -Wl,libdeblender.dylib \
+	g++ -o $@ -dynamiclib -Wl,-install_name -Wl,libmeas_deblender.dylib \
 		$(OBJS) $(LIB)
 
 #TAGS:
@@ -63,6 +61,64 @@ $(TOBJS): %.o: %.cc
 TEXEC := Deblender
 
 $(TEXEC): $(TOBJS) $(MYLIB)
-	g++ -o $@ $(LIB) $^ -ldeblender
+	g++ -o $@ $(LIB) $^ -lmeas_deblender
+
+WRAP_OBJS := ../python/lsst/meas/deblender/deblenderLib_wrap.os
+WRAP_CPPS := $(addsuffix .cc,$(basename $(WRAP_OBJS)))
+
+SWIG_INC := -I/usr/local/lsst/DarwinX86/external/python/2.5.2/include/python2.5 -I/usr/local/lsst/DarwinX86/external/python/2.5.2/include
+
+$(WRAP_OBJS): %.os: %.cc
+	g++ -o $@ -c $(CFLAGS) $(INC) $(SWIG_INC) $<
+
+$(WRAP_CPPS): %_wrap.cc: %.i
+	swig -o $@ $(INC) $(SWIG_INC) $<
+
+WRAP_LIBS := ../python/lsst/meas/deblender/_deblenderLib.so
+
+SWIG_LIB := \
+	-L/usr/local/lsst/DarwinX86/external/python/2.5.2/lib/python2.5/config \
+	-L/usr/local/lsst/DarwinX86/external/tcltk/8.5a4/lib \
+	-L/usr/X11R6/lib \
+	-lmeas_deblender
+
+$(WRAP_LIBS): $(WRAP_OBJS)
+	g++ -o $@ -bundle -undefined suppress -flat_namespace $< $(LIB)
 
 
+
+#debug:
+#	echo WRAP_OBJS $(WRAP_OBJS)
+#	echo WRAP_CPPS $(WRAP_CPPS)
+
+
+# Cancel implicit rules
+.SUFFIXES:
+SUFFIXES:
+%: %.o
+%: %.c
+%: %.cc
+%: %.C
+%: %.cpp
+%: %.p
+%: %.f
+%: %.F
+%: %.m
+%: %.r
+%: %.s
+%: %.S
+%: %.mod
+%: %.sh
+%: RCS/%,v
+%: RCS/%
+%: s.%
+%: %,v
+%: SCCS/s.%
+
+%.c: %.y
+%.c: %.l
+%.c: %.w
+%.c: %.w %.ch
+
+%.tex: %.w %.ch
+%.tex: %.w

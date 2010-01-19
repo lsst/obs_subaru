@@ -157,6 +157,8 @@ class TestDeblender(unittest.TestCase):
 
 		objs = deblender.deblend(foots, [peaks], maskedImage, psf)
 
+		self.assertNotEqual(objs, None)
+
 
 
 if __name__ == '__main__':

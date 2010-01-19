@@ -5,7 +5,7 @@ Import("env")
 import glob, os
 
 env.SharedLibrary(
-    'deblender',
+    'meas_deblender',
 	glob.glob("../src/*.cc") +
 	['../src/photo/'+x+'.c' for x in [
 	'deblend',
@@ -57,5 +57,5 @@ env.SharedLibrary(
 	]]
 	#glob.glob("../src/photo/*.c"),
 	,
-	LIBS=filter(lambda p: p != "deblender", env.getlibs("deblender"))
+	LIBS=filter(lambda p: p != "meas_deblender", env.getlibs("meas_deblender"))
 )

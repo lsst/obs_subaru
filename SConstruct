@@ -6,11 +6,14 @@ import glob, os.path, sys, traceback
 import lsst.SConsUtils as scons
 
 env = scons.makeEnv(
-	"deblender",
+	"meas_deblender",
     r"$HeadURL:$",
     [
 	["boost", "boost/version.hpp", "boost_system:C++"],
 	["boost", "boost/test/unit_test.hpp", "boost_unit_test_framework:C++"],
+	["python", "Python.h"],
+	["m", "math.h", "m", "sqrt"],
+	["wcslib", "wcslib/wcs.h", "wcs"],
 	["pex_exceptions", "lsst/pex/exceptions.h", "pex_exceptions:C++"],
 	["utils", "lsst/utils/Utils.h", "utils:C++"],
 	["daf_base", "lsst/daf/base.h", "daf_base:C++"],
@@ -26,7 +29,8 @@ env = scons.makeEnv(
 ##################################################
 # Libraries needed to link libraries/executables
 ##################################################
-env.libs["deblender"] += env.getlibs("pex_exceptions afw boost utils daf_base daf_data daf_persistence pex_logging pex_policy security")
+env.libs["meas_deblender"] += env.getlibs("pex_exceptions afw boost utils daf_base daf_data daf_persistence pex_logging pex_policy security")
+# wcslib?
 
 env.Append(CPPPATH = Dir("include/lsst/meas/deblender/photo"))
 env.Append(CPPPATH = Dir("include/lsst/meas/deblender/dervish"))
@@ -62,6 +66,6 @@ scons.CleanTree(r"*~ core *.so *.os *.o *.pyc")
 #
 env.Declare()
 env.Help("""
-LSST Application Framework packages
+LSST Deblender package
 """)
 
