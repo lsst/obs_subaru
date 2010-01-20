@@ -28,15 +28,15 @@ namespace photo = lsst::meas::deblender::photo;
 namespace det = lsst::afw::detection;
 //namespace ex    = lsst::pex::exceptions;
 
-template<typename ImageT>
-deblender::SDSSDeblender<ImageT>::SDSSDeblender() {
+template<typename PixelT>
+deblender::SDSSDeblender<PixelT>::SDSSDeblender() {
     std::printf("SDSSDeblender() constructor\n");
 }
 
 
-template<typename ImageT>
-std::vector<typename deblender::DeblendedObject<ImageT>::Ptr >
-deblender::SDSSDeblender<ImageT>::OLDdeblend(std::vector<typename ImageT::Ptr> &images) {
+template<typename PixelT>
+std::vector<typename deblender::DeblendedObject<image::Image<PixelT> >::Ptr >
+deblender::SDSSDeblender<PixelT>::OLDdeblend(std::vector<typename ImageT::Ptr> &images) {
 
 	std::vector<typename DeblendedObject<ImageT>::Ptr > children;
 
@@ -293,12 +293,13 @@ deblender::SDSSDeblender<ImageT>::OLDdeblend(std::vector<typename ImageT::Ptr> &
 }
 
 
-template<typename ImageT, typename OtherPixelT>
-std::vector<typename deblender::DeblendedObject<ImageT>::Ptr >
-deblender::SDSSDeblender<ImageT>::deblend(
+template<typename PixelT>
+std::vector<typename deblender::DeblendedObject<image::Image<PixelT> >::Ptr >
+deblender::SDSSDeblender<PixelT>::deblend(
     std::vector< det::Footprint::Ptr > footprints,
     std::vector< std::vector< det::Peak::Ptr > > peaks,
-    boost::shared_ptr<typename lsst::afw::image::MaskedImage< OtherPixelT > > maskedImage
+    boost::shared_ptr<typename lsst::afw::image::MaskedImage< PixelT > > maskedImage,
+    boost::shared_ptr<typename lsst::meas::algorithms::PSF > psf
 ) {
 
     std::vector<typename deblender::DeblendedObject<ImageT>::Ptr > rtn;
@@ -330,8 +331,8 @@ deblender::DeblendedObject<ImageT>::addToImage(typename ImageT::Ptr image, int c
  * Explicit Instantiations
  *
  */
-template class deblender::SDSSDeblender<image::Image<double> >;
-template class deblender::SDSSDeblender<image::Image<float > >;
+template class deblender::SDSSDeblender<double>;
+template class deblender::SDSSDeblender<float>;
 
 template class deblender::DeblendedObject<image::Image<double> >;
 template class deblender::DeblendedObject<image::Image<float > >;

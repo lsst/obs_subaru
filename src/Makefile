@@ -84,7 +84,8 @@ $(TEXEC): $(TOBJS) $(MYLIB)
 WRAP_OBJS := ../python/lsst/meas/deblender/deblenderLib_wrap.os
 WRAP_CPPS := $(addsuffix .cc,$(basename $(WRAP_OBJS)))
 
-SWIG_INC := -I/usr/local/lsst/DarwinX86/external/python/2.5.2/include/python2.5 -I/usr/local/lsst/DarwinX86/external/python/2.5.2/include \
+SWIG_INC := -I/usr/local/lsst/DarwinX86/external/python/2.5.2/include/python2.5 \
+	-I/usr/local/lsst/DarwinX86/external/python/2.5.2/include \
 	-I/usr/local/lsst-sandbox/DarwinX86/utils/3.4.3/python \
 	-I/usr/local/lsst-sandbox/DarwinX86/afw/3.3.18/python \
 	-I/usr/local/lsst-sandbox/DarwinX86/daf_base/3.2.9/python \
@@ -93,8 +94,11 @@ SWIG_INC := -I/usr/local/lsst/DarwinX86/external/python/2.5.2/include/python2.5 
 	-I/usr/local/lsst-sandbox/DarwinX86/daf_persistence/3.3.7+1/python \
 	-I/usr/local/lsst-sandbox/DarwinX86/pex_exceptions/3.2.2/python \
 	-I/usr/local/lsst-sandbox/DarwinX86/daf_data/3.2.3+1/python \
-	-I/usr/local/lsst-sandbox/DarwinX86/security/3.2.2/python
+	-I/usr/local/lsst-sandbox/DarwinX86/security/3.2.2/python \
+	-I/usr/local/lsst-sandbox/DarwinX86/external/swig/1.3.36+2/share/swig/1.3.36/python \
+	-I/usr/local/lsst-sandbox//DarwinX86/external/swig/1.3.36+2/share/swig/1.3.36
 
+#/typemaps/swigmacros.swg
 #-I/usr/local/lsst-sandbox/DarwinX86/external/wcslib/4.2+3/include
 
 $(WRAP_OBJS): %.os: %.cc

@@ -7,6 +7,8 @@
 
 #include "lsst/afw/image/Image.h"
 #include "lsst/afw/detection.h"
+#include "lsst/meas/algorithms.h"
+
 //#include "lsst/afw/detection/Footprint.h"
 
 namespace image = lsst::afw::image;
@@ -35,51 +37,50 @@ namespace lsst {
                 void addToImage(typename ImageT::Ptr image, int color);
             };
 
-			template<typename ImageT>
+			template<typename PixelT>
 				class Deblender {
 			public:
+                typedef image::Image<PixelT> ImageT;
 
-                // FIXME -- I'm pretty sure this is a bad idea...
-                template<typename OtherPixelT>
+				virtual std::vector<typename DeblendedObject<ImageT>::Ptr > OLDdeblend(std::vector<typename ImageT::Ptr> &images) = 0;
+
 				virtual
                 //std::vector<typename DeblendedObject<ImageT>::Ptr >
                 //std::vector< boost::shared_ptr< DeblendedObject<typename ImageT> > >
-				std::vector<typename DeblendedObject<ImageT>::Ptr >
+				//std::vector<typename DeblendedObject<ImageT>::Ptr >
+                std::vector<typename DeblendedObject<image::Image<PixelT> >::Ptr >
                 deblend(
                     //std::vector< det::Footprint::Ptr > footprints,
                     std::vector< boost::shared_ptr< lsst::afw::detection::Footprint > > footprints,
                     //std::vector< std::vector< det::Peak::Ptr > > peaks
                     std::vector< std::vector< boost::shared_ptr< lsst::afw::detection::Peak > > > peaks,
-                    //boost::shared_ptr<typename lsst::afw::image::MaskedImage< ImageT, lsst::afw::image::MaskPixel, lsst::afw::image::VariancePixel > > maskedImage
-                    boost::shared_ptr<typename lsst::afw::image::MaskedImage< typename OtherPixelT > > maskedImage
-                    //boost::shared_ptr< lsst::afw::image::MaskedImage< typename ImageT, lsst::afw::image::MaskPixel, lsst::afw::image::VariancePixel > > maskedImage
+                    boost::shared_ptr<typename lsst::afw::image::MaskedImage< PixelT > > maskedImage,
+                    boost::shared_ptr<typename lsst::meas::algorithms::PSF > psf
                     ) = 0;
-
-				virtual std::vector<typename DeblendedObject<ImageT>::Ptr > OLDdeblend(std::vector<typename ImageT::Ptr> &images) = 0;
 
 				virtual ~Deblender() {}
 			};
 			
-			template<typename ImageT>
-				class SDSSDeblender : public Deblender<ImageT> {
+			template<typename PixelT>
+				class SDSSDeblender : public Deblender<PixelT> {
 			public:
+                typedef image::Image<PixelT> ImageT;
+
                 SDSSDeblender();
 
 				virtual std::vector<typename DeblendedObject<ImageT>::Ptr > OLDdeblend(std::vector<typename ImageT::Ptr> &images);
 				//virtual std::vector<typename ImageT::Ptr> deblend(std::vector<typename ImageT::Ptr> &images);
 
-                template<typename OtherPixelT>
                 virtual
-				std::vector<typename DeblendedObject<ImageT>::Ptr >
+				//std::vector<typename DeblendedObject<ImageT>::Ptr >
+                std::vector<typename DeblendedObject<image::Image<PixelT> >::Ptr >
                 deblend(
                     //std::vector< det::Footprint::Ptr > footprints,
                     std::vector< boost::shared_ptr< lsst::afw::detection::Footprint > > footprints,
                     //std::vector< std::vector< det::Peak::Ptr > > peaks
                     std::vector< std::vector< boost::shared_ptr< lsst::afw::detection::Peak > > > peaks,
-                    //boost::shared_ptr<typename lsst::afw::image::MaskedImage< ImageT, lsst::afw::image::MaskPixel, lsst::afw::image::VariancePixel > > maskedImage
-                    //boost::shared_ptr< lsst::afw::image::MaskedImage< typename ImageT, lsst::afw::image::MaskPixel, lsst::afw::image::VariancePixel > > maskedImage
-                    //boost::shared_ptr<typename lsst::afw::image::MaskedImage< ImageT > > maskedImage
-                    boost::shared_ptr<typename lsst::afw::image::MaskedImage< OtherPixelT > > maskedImage
+                    boost::shared_ptr<typename lsst::afw::image::MaskedImage< PixelT > > maskedImage,
+                    boost::shared_ptr<typename lsst::meas::algorithms::PSF > psf
                     );
 
 				virtual ~SDSSDeblender() {}

@@ -75,7 +75,7 @@ BOOST_AUTO_TEST_CASE(TwoStarDeblend) {
 
     // afw::detection::Footprint ?
 
-    deblender::SDSSDeblender<ImageF> db;
+    deblender::SDSSDeblender<float> db;
     std::vector<deblender::DeblendedObject<ImageF>::Ptr> childList = db.OLDdeblend(imgList);
 
     BOOST_CHECK_EQUAL(childList.size(), 2U);

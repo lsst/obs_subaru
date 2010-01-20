@@ -35,13 +35,14 @@ namespace lsst { namespace afw {
 %include "lsst/meas/deblender/deblender.h"
 
 %define %instantiate_templates(NAME, TYPE)
-		// Already defined in imageLib.i
-		// %template(Image ## NAME) lsst::afw::image::Image<TYPE>;
-		%template(Deblender ## NAME) lsst::meas::deblender::Deblender<lsst::afw::image::Image<TYPE> >;
-		%template(SDSSDeblender ## NAME) lsst::meas::deblender::SDSSDeblender<lsst::afw::image::Image<TYPE> >;
-		%template(DeblendedObject ## NAME) lsst::meas::deblender::DeblendedObject<lsst::afw::image::Image<TYPE> >;
-
-		//	%template(deblend ## NAME) std::vector< lsst::meas::deblender::DeblendedObject<lsst::afw::image::Image<TYPE> >::Ptr>);
+ // Already defined in imageLib.i
+ // %template(Image ## NAME) lsst::afw::image::Image<TYPE>;
+ //%template(Deblender ## NAME) lsst::meas::deblender::Deblender<lsst::afw::image::Image<TYPE> >;
+ //%template(SDSSDeblender ## NAME) lsst::meas::deblender::SDSSDeblender<lsst::afw::image::Image<TYPE> >;
+%template(Deblender ## NAME) lsst::meas::deblender::Deblender<TYPE>;
+%template(SDSSDeblender ## NAME) lsst::meas::deblender::SDSSDeblender<TYPE>;
+%template(DeblendedObject ## NAME) lsst::meas::deblender::DeblendedObject<lsst::afw::image::Image<TYPE> >;
+//	%template(deblend ## NAME) std::vector< lsst::meas::deblender::DeblendedObject<lsst::afw::image::Image<TYPE> >::Ptr>);
 %enddef
 
 %instantiate_templates(F, float)

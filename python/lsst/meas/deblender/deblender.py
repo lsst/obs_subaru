@@ -21,6 +21,6 @@ def deblend(footprints, peaks, maskedImage, psf):
 	#objs = lib.deblend(footprints, pks, maskedImage, psf)
 	db = lib.SDSSDeblenderF()
 	print db.deblend.__doc__
-	objs = db.deblend(footprints, pks, maskedImage) #, psf)
+	objs = db.deblend(footprints, pks, maskedImage, psf)
 
 	return None
