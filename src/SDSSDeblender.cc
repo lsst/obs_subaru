@@ -25,12 +25,18 @@ extern "C" {
 namespace image = lsst::afw::image;
 namespace deblender = lsst::meas::deblender;
 namespace photo = lsst::meas::deblender::photo;
+namespace det = lsst::afw::detection;
 //namespace ex    = lsst::pex::exceptions;
+
+template<typename ImageT>
+deblender::SDSSDeblender<ImageT>::SDSSDeblender() {
+    std::printf("SDSSDeblender() constructor\n");
+}
 
 
 template<typename ImageT>
 std::vector<typename deblender::DeblendedObject<ImageT>::Ptr >
-deblender::SDSSDeblender<ImageT>::deblend(std::vector<typename ImageT::Ptr> &images) {
+deblender::SDSSDeblender<ImageT>::OLDdeblend(std::vector<typename ImageT::Ptr> &images) {
 
 	std::vector<typename DeblendedObject<ImageT>::Ptr > children;
 
@@ -286,6 +292,22 @@ deblender::SDSSDeblender<ImageT>::deblend(std::vector<typename ImageT::Ptr> &ima
 	return children;
 }
 
+
+template<typename ImageT, typename OtherPixelT>
+std::vector<typename deblender::DeblendedObject<ImageT>::Ptr >
+deblender::SDSSDeblender<ImageT>::deblend(
+    std::vector< det::Footprint::Ptr > footprints,
+    std::vector< std::vector< det::Peak::Ptr > > peaks,
+    boost::shared_ptr<typename lsst::afw::image::MaskedImage< OtherPixelT > > maskedImage
+) {
+
+    std::vector<typename deblender::DeblendedObject<ImageT>::Ptr > rtn;
+    std::printf("Hello world!\n");
+    return rtn;
+}
+
+
+
 template<typename ImageT>
 void
 deblender::DeblendedObject<ImageT>::addToImage(typename ImageT::Ptr image, int color) {
@@ -302,7 +324,6 @@ deblender::DeblendedObject<ImageT>::addToImage(typename ImageT::Ptr image, int c
         }
     }
 }
-
 
 
 /*

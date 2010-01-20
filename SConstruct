@@ -23,6 +23,7 @@ env = scons.makeEnv(
 	["daf_persistence", "lsst/daf/persistence.h", "daf_persistence:C++"],
 	["daf_data", "lsst/daf/data.h", "daf_data:C++"],
 	["afw", "lsst/afw/image/MaskedImage.h", "afw"],
+	["eigen", "Eigen/Core.h"],
     ],
 	)
 
