@@ -35,14 +35,13 @@ namespace lsst { namespace afw {
 %include "lsst/meas/deblender/deblender.h"
 
 %define %instantiate_templates(NAME, TYPE)
- // Already defined in imageLib.i
- // %template(Image ## NAME) lsst::afw::image::Image<TYPE>;
- //%template(Deblender ## NAME) lsst::meas::deblender::Deblender<lsst::afw::image::Image<TYPE> >;
- //%template(SDSSDeblender ## NAME) lsst::meas::deblender::SDSSDeblender<lsst::afw::image::Image<TYPE> >;
-%template(Deblender ## NAME) lsst::meas::deblender::Deblender<TYPE>;
-%template(SDSSDeblender ## NAME) lsst::meas::deblender::SDSSDeblender<TYPE>;
-%template(DeblendedObject ## NAME) lsst::meas::deblender::DeblendedObject<lsst::afw::image::Image<TYPE> >;
-//	%template(deblend ## NAME) std::vector< lsst::meas::deblender::DeblendedObject<lsst::afw::image::Image<TYPE> >::Ptr>);
+		// Already defined in imageLib.i
+		// %template(Image ## NAME) lsst::afw::image::Image<TYPE>;
+		%template(Deblender ## NAME) lsst::meas::deblender::Deblender<lsst::afw::image::Image<TYPE> >;
+		%template(SDSSDeblender ## NAME) lsst::meas::deblender::SDSSDeblender<lsst::afw::image::Image<TYPE> >;
+		%template(DeblendedObject ## NAME) lsst::meas::deblender::DeblendedObject<lsst::afw::image::Image<TYPE> >;
+
+		//	%template(deblend ## NAME) std::vector< lsst::meas::deblender::DeblendedObject<lsst::afw::image::Image<TYPE> >::Ptr>);
 %enddef
 
 %instantiate_templates(F, float)
@@ -63,7 +62,9 @@ SWIG_SHARED_PTR(DeblendedObjectFPtr, lsst::meas::deblender::DeblendedObject<lsst
 
 //%include "lsst/afw/image/maskedImage.i"
 
-SWIG_SHARED_PTR(MaskedImageFPtrT, lsst::afw::image::MaskedImage<float, lsst::afw::image::MaskPixel, lsst::afw::image::VariancePixel>);
+//SWIG_SHARED_PTR(MaskedImageFPtrT, lsst::afw::image::MaskedImage<float, lsst::afw::image::MaskPixel, lsst::afw::image::VariancePixel>);
+SWIG_SHARED_PTR(MaskedImageFPtrT, lsst::afw::image::MaskedImage<lsst::afw::image::ImageBase<float>::Pixel, lsst::afw::image::MaskPixel, lsst::afw::image::VariancePixel>);
+
 
 /******************************************************************************/
 // Local Variables: ***

@@ -24,8 +24,18 @@ env = scons.makeEnv(
 	["daf_data", "lsst/daf/data.h", "daf_data:C++"],
 	["afw", "lsst/afw/image/MaskedImage.h", "afw"],
 	["eigen", "Eigen/Core.h"],
-    ],
-	)
+	["gsl", "gsl/gsl_rng.h", "gslcblas gsl"],
+	["minuit2", "Minuit2/FCNBase.h", "Minuit2:C++"],
+	["meas_algorithms", "lsst/meas/algorithms.h", "meas_algorithms"],
+	#["numpy", "Python.h numpy/arrayobject.h"], # see numpy workaround below
+   ])
+
+if True:
+    #
+    # Workaround SConsUtils failure to find numpy .h files. Fixed in sconsUtils >= 3.3.2
+    #
+    import numpy
+    env.Append(CCFLAGS = ["-I", numpy.get_include()])
 
 ##################################################
 # Libraries needed to link libraries/executables

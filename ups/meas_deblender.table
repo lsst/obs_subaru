@@ -1,10 +1,13 @@
 setupRequired(utils)
-#?
 setupRequired(afwdata)
 setupRequired(afw)
-
-# For testing...
 setupRequired(meas_utils)
+setupRequired(meas_algorithms)
+
+# required (but undeclared) by meas_algorithms...
+setupRequired(gsl)
+setupRequired(eigen)
+setupRequired(minuit2)
 
 envAppend(LD_LIBRARY_PATH, ${PRODUCT_DIR}/lib)
 envAppend(DYLD_LIBRARY_PATH, ${PRODUCT_DIR}/lib)
