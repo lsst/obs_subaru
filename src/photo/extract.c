@@ -19,6 +19,8 @@
 
 #include "shCFitsIo.h"
 
+#include "phFake.h"
+
 /*
  * BUGS: the model moments are placeholders; some research needs to be
  * done to discover what weighting is best, and in any case normalized
@@ -220,7 +222,7 @@
  */
 static void cellboundary(int cell, struct cellgeom *cbsp);
 static void do_pstats(struct pstats *cinfo, int floor,
-		      int, float, float, const struct cellgeom *);
+					  int, float, float, const struct cellgeom *);
 static void profallocv(void);
 static void profallocs(void);
 static void prosfree(void);
@@ -233,7 +235,7 @@ static void print_cellorig(int sdy);
 /****************** ANNULUS DEFINITION ARRAY *****************************/
 
 static const int anndex[NANN + 1] =
-  {0, 1, 2, 3, 5, 8, 12, 19, 29, 46, 71, 111, 173, 270, 421, 653};
+{0, 1, 2, 3, 5, 8, 12, 19, 29, 46, 71, 111, 173, 270, 421, 653};
 /* 0  1  2  3  4  5   6   7   8   9  10   11   12   13   14   15 */
 
 /* NB!!! these are beginning radial INDICES, not radii, for the annuli;
@@ -328,7 +330,7 @@ struct cellid{
 static struct cellorig ***cellorig=NULL;
 
 static struct cellid **cellid=NULL;	/* matrices to connect pixels to
-					   cells for inner region. */
+									 cells for inner region. */
 static U16 *cellhist = NULL;		/* histogram */
 
 /*
@@ -340,7 +342,7 @@ static REGION *syncin;			/* region to be synced */
 static REGION *syncscr;			/* scratch region used in sync */
 static REGION *syncext;			/* syncreg extended by filter size */
 static REGION *syncext_smoothed;	/* syncreg_smoothed extended
-					   by filter size */
+									 by filter size */
 
 /********************** NOTE ON SUBPIXELLATION *****************************/
 /*
@@ -453,8 +455,8 @@ phInitProfileExtract(void)
 #endif
 
     if(cellinfo != NULL) {		/* already initialised */
-       cstats.id = -1;
-       return;
+		cstats.id = -1;
+		return;
     }
 /*
  * Check that constraints are satisfied
@@ -502,8 +504,8 @@ phInitProfileExtract(void)
  * scaled up by 2**14
  */
     for(i=0;i < NSEC/4;i++) {
-       tanar[i] = ((float)0x4000*
-                            tan(((double)i+0.5)*M_PI/(double)(NSEC/2))) + 0.5;
+		tanar[i] = ((float)0x4000*
+					tan(((double)i+0.5)*M_PI/(double)(NSEC/2))) + 0.5;
     }
 /*
  * Populate cellorig.
@@ -515,11 +517,11 @@ phInitProfileExtract(void)
  * full pixels
  */
     for(sdy = -YSCL + 1;sdy < YSCL;sdy += 2) {
-       i = (sdy + YSCL)/2;		/* i.e. 0...SDY-1 */
-       for(j = 0;j < RLIM;j++) {
-	  y_32 = j*(2*YSCL) - sdy;	/* y in 32nds */
-	  fy = 0.03125*y_32;		/* float y (in pixels) */
-	  sy2 = (y_32*y_32)/4;		/* y**2 (in 16ths of a pixel) */
+		i = (sdy + YSCL)/2;		/* i.e. 0...SDY-1 */
+		for(j = 0;j < RLIM;j++) {
+			y_32 = j*(2*YSCL) - sdy;	/* y in 32nds */
+			fy = 0.03125*y_32;		/* float y (in pixels) */
+			sy2 = (y_32*y_32)/4;		/* y**2 (in 16ths of a pixel) */
 /*
  * Populate sxann, the intersections of the annuli with the current line.
  *
@@ -530,32 +532,32 @@ phInitProfileExtract(void)
  * nanni is the #of intersections in first quadrant, INCLUDING outer boundary
  * of last annulus AND beginning boundary if y < rsyncann
  */
-	  k = 0;
-	  while(annrad[k+1] <= fy) {
-	     k++;			/* k is first annulus whose
-					   OUTER bdy intersects line */
-	  }
+			k = 0;
+			while(annrad[k+1] <= fy) {
+				k++;			/* k is first annulus whose
+								 OUTER bdy intersects line */
+			}
 
-	  ks = 0;
-	  if(k >= NSYNCANN) {
-	     annlo = k;
-	     nanni = NANN - annlo + 1;
-	     sxann[ks++] = 0;
-	  } else {
-	     k = NSYNCANN;
-	     annlo = NSYNCANN - 1;	/* inner boundary of outer region*/
-	     nanni = NANN - annlo;
-	  }
+			ks = 0;
+			if(k >= NSYNCANN) {
+				annlo = k;
+				nanni = NANN - annlo + 1;
+				sxann[ks++] = 0;
+			} else {
+				k = NSYNCANN;
+				annlo = NSYNCANN - 1;	/* inner boundary of outer region*/
+				nanni = NANN - annlo;
+			}
 
-	  for(;k <= NANN;k++) {
-	     sr2 = YSCL*anndex[k] - YSCL/2;
-	     sr2 *= sr2;
-	     if((sx2 = sr2 - sy2) > 0){
-		sxann[ks++] = sqrt((double)sx2) + 1; /* floor+1, # within
-						      is floor + 1/2 the
-						      central one */
-	     }
-	  }
+			for(;k <= NANN;k++) {
+				sr2 = YSCL*anndex[k] - YSCL/2;
+				sr2 *= sr2;
+				if((sx2 = sr2 - sy2) > 0){
+					sxann[ks++] = sqrt((double)sx2) + 1; /* floor+1, # within
+														  is floor + 1/2 the
+														  central one */
+				}
+			}
 /*
  * at this point, sxann contains all the annulus intersections
  * with the line, including 0 if the line is outside the inner
@@ -564,133 +566,133 @@ phInitProfileExtract(void)
  *
  * annulus is the index of the _end_ of the current annulus
  */
-	  annulus = annlo;
-	  if(annulus < NSYNCANN) annulus = NSYNCANN;
+			annulus = annlo;
+			if(annulus < NSYNCANN) annulus = NSYNCANN;
 
-	  /* beginning annulus */
-	  /*populate sxsec*/
-	  sx = sxann[0];
-	  nseci = 0;
-	  sector = NSEC/4;
-	  for(k=0;k < NSEC/4;k++){
-	     scr = ((y_32*tanar[k])>>15) + 1;
-	     if(scr <= sx){
-		sector--;
-	     }else{
-		sxsec[nseci++] = scr;
-	     }
-	  }
-	  sxsec[nseci] = 0xfffff;	/* big */
+			/* beginning annulus */
+			/*populate sxsec*/
+			sx = sxann[0];
+			nseci = 0;
+			sector = NSEC/4;
+			for(k=0;k < NSEC/4;k++){
+				scr = ((y_32*tanar[k])>>15) + 1;
+				if(scr <= sx){
+					sector--;
+				}else{
+					sxsec[nseci++] = scr;
+				}
+			}
+			sxsec[nseci] = 0xfffff;	/* big */
 /*
  * sxsec contains the sector intersections in the region outside
  * FRSYNCANN; sector is the beginning sector index.
  */
 #ifdef SETDEBUG
-	  if(i==7 && j == scr1){
-	     int k;
-	     printf("line=%d, annlo=%d y_32=%d sy2=%d YSCL=%d\n",
-                    j,annlo,y_32,sy2,YSCL);
-	     printf("sector=%d, annulus=%d, nanni=%d nseci = %d\n",
-		    sector,annulus,nanni,nseci);
+			if(i==7 && j == scr1){
+				int k;
+				printf("line=%d, annlo=%d y_32=%d sy2=%d YSCL=%d\n",
+					   j,annlo,y_32,sy2,YSCL);
+				printf("sector=%d, annulus=%d, nanni=%d nseci = %d\n",
+					   sector,annulus,nanni,nseci);
 
-	     printf("sxsec\n");
-	     for(k = 0;k < nseci;k++) {
-		printf("%d%c",sxsec[k],k%10==9 ? '\n' : ' ');
-	     }
-	     if(k%10 != 0) putchar('\n');
+				printf("sxsec\n");
+				for(k = 0;k < nseci;k++) {
+					printf("%d%c",sxsec[k],k%10==9 ? '\n' : ' ');
+				}
+				if(k%10 != 0) putchar('\n');
 
-	     printf("sxann\n");
-	     for(k = 0;k < nanni;k++) {
-		printf("%d%c",sxann[k],k%10==9 ? '\n' : ' ');
-	     }
-	     if(k%10 != 0) putchar('\n');
-	  }
+				printf("sxann\n");
+				for(k = 0;k < nanni;k++) {
+					printf("%d%c",sxann[k],k%10==9 ? '\n' : ' ');
+				}
+				if(k%10 != 0) putchar('\n');
+			}
 #endif
 /*
  * populate cellorig; start with the first cell
  */
-	  pcell = pcell0 = cellorig[i][j];
-	  corig = pcell->c_orig = sxann[0]; /* either 0 or inner bdy of
-					       1st annulus */
-	  pcell->c_len = 0;		/* we do the length later */
-	  cell0 = (annulus-1)*NSEC + 1;
-	  pcell->c_llcell = cell0 + sector;
-	  pcell->c_lrcell = cell0 + NSEC/2 - sector;
-	  pcell->c_urcell = cell0 + NSEC/2 + sector;
-	  if(sector > 0) {
-	     pcell->c_ulcell = cell0 + NSEC - sector;
-	  } else {
-	     pcell->c_ulcell = cell0;
-	  }
-	  oorig = corig;
+			pcell = pcell0 = cellorig[i][j];
+			corig = pcell->c_orig = sxann[0]; /* either 0 or inner bdy of
+											   1st annulus */
+			pcell->c_len = 0;		/* we do the length later */
+			cell0 = (annulus-1)*NSEC + 1;
+			pcell->c_llcell = cell0 + sector;
+			pcell->c_lrcell = cell0 + NSEC/2 - sector;
+			pcell->c_urcell = cell0 + NSEC/2 + sector;
+			if(sector > 0) {
+				pcell->c_ulcell = cell0 + NSEC - sector;
+			} else {
+				pcell->c_ulcell = cell0;
+			}
+			oorig = corig;
 
 #ifdef SETDEBUG
-	  if(i==7 && j == scr1) printf("cells: %d\n",(pcell-1)->c_llcell);
+			if(i==7 && j == scr1) printf("cells: %d\n",(pcell-1)->c_llcell);
 #endif
-	  pcell++;
+			pcell++;
 
-	  ks = 0;			/* index of first sector intersection*/
-	  for(k = 1;k < nanni;k++){
-	     cell0 = (annulus-1)*NSEC + 1; /* index of 1st cell in annulus */
-	     while(sxsec[ks] < sxann[k]) { /* sector boundary is next */
-		sector--;
-		corig = pcell->c_orig = sxsec[ks];
-		clen = pcell->c_orig - oorig;
-		if(oorig == 0) clen = 2*clen - 1;
-		(pcell-1)->c_len = clen;
-		pcell->c_llcell = cell0 + sector;
+			ks = 0;			/* index of first sector intersection*/
+			for(k = 1;k < nanni;k++){
+				cell0 = (annulus-1)*NSEC + 1; /* index of 1st cell in annulus */
+				while(sxsec[ks] < sxann[k]) { /* sector boundary is next */
+					sector--;
+					corig = pcell->c_orig = sxsec[ks];
+					clen = pcell->c_orig - oorig;
+					if(oorig == 0) clen = 2*clen - 1;
+					(pcell-1)->c_len = clen;
+					pcell->c_llcell = cell0 + sector;
 #ifdef SETDEBUG
-		if(i==7 && j == scr1) printf(" %d",(pcell-1)->c_llcell);
+					if(i==7 && j == scr1) printf(" %d",(pcell-1)->c_llcell);
 #endif
-		pcell->c_lrcell = cell0 + NSEC/2 - sector;
-		pcell->c_urcell = cell0 + NSEC/2 + sector;
-		if(sector > 0) {
-		   pcell->c_ulcell = cell0 + NSEC - sector;
-		} else {
-		   pcell->c_ulcell = cell0;
-		}
-		oorig = corig;
-		ks++;
-		pcell++;
-	     }
+					pcell->c_lrcell = cell0 + NSEC/2 - sector;
+					pcell->c_urcell = cell0 + NSEC/2 + sector;
+					if(sector > 0) {
+						pcell->c_ulcell = cell0 + NSEC - sector;
+					} else {
+						pcell->c_ulcell = cell0;
+					}
+					oorig = corig;
+					ks++;
+					pcell++;
+				}
 /*
  * if there is no sector bdy inside the next annulus bdy, go to next annulus
  */
-	     annulus++;			/* next annulus */
+				annulus++;			/* next annulus */
 
-	     cell0 = (annulus-1)*NSEC + 1; /* index of 1st cell in annulus*/
-	     corig = pcell->c_orig = sxann[k];   /*next annulus boundary*/
-	     clen = pcell->c_orig - oorig;
-	     if(oorig == 0) clen = 2*clen - 1;
-	     (pcell-1)->c_len = clen;
-	     pcell->c_llcell = cell0 + sector;
-	     pcell->c_lrcell = cell0 + NSEC/2 - sector;
-	     pcell->c_urcell = cell0 + NSEC/2 + sector;
-	     if(sector) {
-		pcell->c_ulcell = cell0 + NSEC - sector;
-	     } else {
-		pcell->c_ulcell = cell0;
-	     }
-	     oorig = corig;
+				cell0 = (annulus-1)*NSEC + 1; /* index of 1st cell in annulus*/
+				corig = pcell->c_orig = sxann[k];   /*next annulus boundary*/
+				clen = pcell->c_orig - oorig;
+				if(oorig == 0) clen = 2*clen - 1;
+				(pcell-1)->c_len = clen;
+				pcell->c_llcell = cell0 + sector;
+				pcell->c_lrcell = cell0 + NSEC/2 - sector;
+				pcell->c_urcell = cell0 + NSEC/2 + sector;
+				if(sector) {
+					pcell->c_ulcell = cell0 + NSEC - sector;
+				} else {
+					pcell->c_ulcell = cell0;
+				}
+				oorig = corig;
 #ifdef SETDEBUG
-	     if(i==7 && j == scr1) printf(" %d",(pcell-1)->c_llcell);
+				if(i==7 && j == scr1) printf(" %d",(pcell-1)->c_llcell);
 #endif
 
-	     pcell++;
-	  }
-	  /* fix origin if middle cell */
-	  if(pcell0->c_orig == 0){
-	     pcell0->c_orig = -((pcell0+1)->c_orig -1);
-	  }
-	  /* mark end */
-	  pcell--;
-	  pcell->c_orig = 0x7fff;
-	  pcell->c_len = 1;
-	  pcell->c_llcell = NCELL;
-	  pcell->c_lrcell = NCELL;
-	  pcell->c_urcell = NCELL;
-	  pcell->c_ulcell = NCELL;
-       }
+				pcell++;
+			}
+			/* fix origin if middle cell */
+			if(pcell0->c_orig == 0){
+				pcell0->c_orig = -((pcell0+1)->c_orig -1);
+			}
+			/* mark end */
+			pcell--;
+			pcell->c_orig = 0x7fff;
+			pcell->c_len = 1;
+			pcell->c_llcell = NCELL;
+			pcell->c_lrcell = NCELL;
+			pcell->c_urcell = NCELL;
+			pcell->c_ulcell = NCELL;
+		}
     }
 /*
  * set up cellid; this is tiny, and I am not going to be clever
@@ -771,14 +773,14 @@ phInitProfileExtract(void)
 #endif
 
     for(pass=0;pass <= 1;pass++){
-    /* we have a problem; there is no central subline in the
-     * subpixel array; we must average the results from subcell 7 and 8;
-     * this actually has all manner of salutory features, like doing a
-     * reasonable job along the diagonals. We do only the first quadrant,
-     * which means we only half-populate the cells in sector 0; we
-     * fix that later. Note that it is necessary to weight line 0 by
-     * 1/2 in each pass.
-     */
+		/* we have a problem; there is no central subline in the
+		 * subpixel array; we must average the results from subcell 7 and 8;
+		 * this actually has all manner of salutory features, like doing a
+		 * reasonable job along the diagonals. We do only the first quadrant,
+		 * which means we only half-populate the cells in sector 0; we
+		 * fix that later. Note that it is necessary to weight line 0 by
+		 * 1/2 in each pass.
+		 */
         i = YSCL/2 - 1 + ((pass == 0) ? 0 : 1);
 
         for(j=0;j<RLIM;j++) {
@@ -788,21 +790,21 @@ phInitProfileExtract(void)
             pcell = cellorig[i][j];
             while((cso = pcell->c_orig) != 0x7fff){
                 co = ((cso + YSCL - 1 + RLIM*YSCL)>>YSHFT) - RLIM;
-                    /* this hanky is to get floor; cso can be negative, but
-                     * cso + srlim is always positive.
-                     * NB!!!! the correct offset to go from scaled to unscaled
-                     * origins appears to be YSCL-1; it is clear that
-                     * it should be either YSCL-1 or YSCL, but it is NOT
-                     * clear why it should be one or the other; YSCL-1
-                     * works best for centered patterns, so we adopt it.
-                     */
+				/* this hanky is to get floor; cso can be negative, but
+				 * cso + srlim is always positive.
+				 * NB!!!! the correct offset to go from scaled to unscaled
+				 * origins appears to be YSCL-1; it is clear that
+				 * it should be either YSCL-1 or YSCL, but it is NOT
+				 * clear why it should be one or the other; YSCL-1
+				 * works best for centered patterns, so we adopt it.
+				 */
                 cslen = pcell->c_len;
                 cso2 = cso + cslen;
                 co2 = ((cso2 + YSCL - 1)>>YSHFT);
-                                             /* next origin in unscaled pix;
-                                              * this should never be negative,
-                                              * so no funny business req.
-                                              */
+				/* next origin in unscaled pix;
+				 * this should never be negative,
+				 * so no funny business req.
+				 */
                 cell = pcell->c_llcell;
                 sector = (cell-1)%NSEC;
 
@@ -821,11 +823,11 @@ phInitProfileExtract(void)
                 scry2 = fy2*cmul;
 
                 ipcell = &cellmod[cell];
-		scrn = nmod[cell];
+				scrn = nmod[cell];
                 for(k=co;k<co2;k++){
-		    ifr2 = 1.0/(fx2+fy2);
-		    ifr = sqrt(ifr2);
-		    fr = 1.0/ifr;
+					ifr2 = 1.0/(fx2+fy2);
+					ifr = sqrt(ifr2);
+					fr = 1.0/ifr;
                     scrn += cmul;
                     ipcell->col -= scrx;
                     ipcell->row -= scry;
@@ -843,7 +845,7 @@ phInitProfileExtract(void)
                     fx2 = fx*fx;
                     scrx = fx*cxmul;
                 }
-		nmod[cell] = scrn;
+				nmod[cell] = scrn;
                 pcell++;
             }
         }
@@ -857,91 +859,91 @@ phInitProfileExtract(void)
      */
 
     for(j = NSYNCANN;j < NANN;j++) {
-       cell = (j-1)*NSEC + 1;
-       for(i = 0;i <= NSEC/4;i++) {
-	  ipcell = &cellmod[cell + i];
-	  scrn = nmod[cell + i];
+		cell = (j-1)*NSEC + 1;
+		for(i = 0;i <= NSEC/4;i++) {
+			ipcell = &cellmod[cell + i];
+			scrn = nmod[cell + i];
 
-	  ipcell->col2 /= scrn;
-	  ipcell->row2 /= scrn;
-	  ipcell->colrow /= scrn;
-	  ipcell->Q /= scrn;
-	  ipcell->U /= scrn;
-	  ipcell->col /= scrn;
-	  ipcell->row /= scrn;
-	  ipcell->rmean /= scrn;
-	  ipcell->rmean = 1./(ipcell->rmean) ;
-	  ipcell->rvar /= scrn;  /* mean r */
-	  ipcell->rvar = ipcell->col2 + ipcell->row2 -
-	    					     ipcell->rvar*ipcell->rvar;
+			ipcell->col2 /= scrn;
+			ipcell->row2 /= scrn;
+			ipcell->colrow /= scrn;
+			ipcell->Q /= scrn;
+			ipcell->U /= scrn;
+			ipcell->col /= scrn;
+			ipcell->row /= scrn;
+			ipcell->rmean /= scrn;
+			ipcell->rmean = 1./(ipcell->rmean) ;
+			ipcell->rvar /= scrn;  /* mean r */
+			ipcell->rvar = ipcell->col2 + ipcell->row2 -
+				ipcell->rvar*ipcell->rvar;
 
-	  /* take care of boundary cells */
-	  if(i == 0) {
-	     ipcell->row = 0.;
-	     ipcell->U = ipcell->colrow = 0.;
-	  } else {
-	     nmod[cell + i] /= 2;		/* 2 passes, recall */
-	  }
-       }
+			/* take care of boundary cells */
+			if(i == 0) {
+				ipcell->row = 0.;
+				ipcell->U = ipcell->colrow = 0.;
+			} else {
+				nmod[cell + i] /= 2;		/* 2 passes, recall */
+			}
+		}
     }
 /*
  * ensure that the U and Q coefficients have 4-fold symmetry and sum to 0
  */
     shAssert(NSEC/4 == 3);		/* we assume this in fixing Q, U */
     for(j = NSYNCANN;j < NANN;j++) {
-       float tmp;
+		float tmp;
        
-       cell = (j-1)*NSEC + 1;
+		cell = (j-1)*NSEC + 1;
 
-       tmp = 0.5*(cellmod[cell].Q + cellmod[cell + NSEC/4].Q);
-       cellmod[cell].Q -= tmp;
-       cellmod[cell + NSEC/4].Q -= tmp;
+		tmp = 0.5*(cellmod[cell].Q + cellmod[cell + NSEC/4].Q);
+		cellmod[cell].Q -= tmp;
+		cellmod[cell + NSEC/4].Q -= tmp;
 
-       tmp = 0.5*(cellmod[cell + 1].Q + cellmod[cell + NSEC/4 - 1].Q);
-       cellmod[cell + 1].Q -= tmp;
-       cellmod[cell + NSEC/4 - 1].Q -= tmp;
+		tmp = 0.5*(cellmod[cell + 1].Q + cellmod[cell + NSEC/4 - 1].Q);
+		cellmod[cell + 1].Q -= tmp;
+		cellmod[cell + NSEC/4 - 1].Q -= tmp;
 
-       tmp = 0.5*(cellmod[cell].U + cellmod[cell + NSEC/4].U);
-       cellmod[cell].U -= tmp;
-       cellmod[cell + NSEC/4].U -= tmp;
+		tmp = 0.5*(cellmod[cell].U + cellmod[cell + NSEC/4].U);
+		cellmod[cell].U -= tmp;
+		cellmod[cell + NSEC/4].U -= tmp;
 
-       tmp = 0.5*(cellmod[cell + 1].U + cellmod[cell + NSEC/4 - 1].U);
-       cellmod[cell + 1].U -= tmp;
-       cellmod[cell + NSEC/4 - 1].U -= tmp;
+		tmp = 0.5*(cellmod[cell + 1].U + cellmod[cell + NSEC/4 - 1].U);
+		cellmod[cell + 1].U -= tmp;
+		cellmod[cell + NSEC/4 - 1].U -= tmp;
     }
 /*
  * propagate to other quadrants
  */
     for(i=NSEC/4 + 1;i<NSEC/2; i++) {    /* lr */
-       for(j=NSYNCANN;j<NANN;j++){
-	  nmod[(j-1)*NSEC + 1 + i] = nmod[(j-1)*NSEC + 1 + (NSEC/2 - i)];
-	  cellmod[(j-1)*NSEC + 1 + i] = cellmod[(j-1)*NSEC + 1 + (NSEC/2 - i)];
+		for(j=NSYNCANN;j<NANN;j++){
+			nmod[(j-1)*NSEC + 1 + i] = nmod[(j-1)*NSEC + 1 + (NSEC/2 - i)];
+			cellmod[(j-1)*NSEC + 1 + i] = cellmod[(j-1)*NSEC + 1 + (NSEC/2 - i)];
 
-	  cellmod[(j-1)*NSEC + 1 + i].col = -cellmod[(j-1)*NSEC + 1 + i].col;
-	  cellmod[(j-1)*NSEC + 1 + i].colrow =
-					   -cellmod[(j-1)*NSEC + 1 + i].colrow;
-	  cellmod[(j-1)*NSEC + 1 + i].U = -cellmod[(j-1)*NSEC + 1 + i].U;
-       }
+			cellmod[(j-1)*NSEC + 1 + i].col = -cellmod[(j-1)*NSEC + 1 + i].col;
+			cellmod[(j-1)*NSEC + 1 + i].colrow =
+				-cellmod[(j-1)*NSEC + 1 + i].colrow;
+			cellmod[(j-1)*NSEC + 1 + i].U = -cellmod[(j-1)*NSEC + 1 + i].U;
+		}
     }
     for(i=NSEC/2;i<(3*NSEC)/4; i++) {    /* ur */
-       for(j=NSYNCANN;j<NANN;j++){
-	  nmod[(j-1)*NSEC + 1 + i] = nmod[(j-1)*NSEC + 1 + (i - NSEC/2)];
-	  cellmod[(j-1)*NSEC + 1 + i] = cellmod[(j-1)*NSEC + 1 + (i - NSEC/2)];
+		for(j=NSYNCANN;j<NANN;j++){
+			nmod[(j-1)*NSEC + 1 + i] = nmod[(j-1)*NSEC + 1 + (i - NSEC/2)];
+			cellmod[(j-1)*NSEC + 1 + i] = cellmod[(j-1)*NSEC + 1 + (i - NSEC/2)];
 
-	  cellmod[(j-1)*NSEC + 1 + i].col = -cellmod[(j-1)*NSEC + 1 + i].col;
-	  cellmod[(j-1)*NSEC + 1 + i].row = -cellmod[(j-1)*NSEC + 1 + i].row;
-       }
+			cellmod[(j-1)*NSEC + 1 + i].col = -cellmod[(j-1)*NSEC + 1 + i].col;
+			cellmod[(j-1)*NSEC + 1 + i].row = -cellmod[(j-1)*NSEC + 1 + i].row;
+		}
     }
     for(i=(3*NSEC)/4;i<NSEC; i++) {    /* ul */
-       for(j=NSYNCANN;j<NANN;j++){
-	  nmod[(j-1)*NSEC + 1 + i] = nmod[(j-1)*NSEC + 1 + (NSEC - i)];
-	  cellmod[(j-1)*NSEC + 1 + i] = cellmod[(j-1)*NSEC + 1 + (NSEC - i)];
+		for(j=NSYNCANN;j<NANN;j++){
+			nmod[(j-1)*NSEC + 1 + i] = nmod[(j-1)*NSEC + 1 + (NSEC - i)];
+			cellmod[(j-1)*NSEC + 1 + i] = cellmod[(j-1)*NSEC + 1 + (NSEC - i)];
 
-	  cellmod[(j-1)*NSEC + 1 + i].row = -cellmod[(j-1)*NSEC + 1 + i].row;
-	  cellmod[(j-1)*NSEC + 1 + i].colrow =
-					   -cellmod[(j-1)*NSEC + 1 + i].colrow;
-	  cellmod[(j-1)*NSEC + 1 + i].U = -cellmod[(j-1)*NSEC + 1 + i].U;
-       }
+			cellmod[(j-1)*NSEC + 1 + i].row = -cellmod[(j-1)*NSEC + 1 + i].row;
+			cellmod[(j-1)*NSEC + 1 + i].colrow =
+				-cellmod[(j-1)*NSEC + 1 + i].colrow;
+			cellmod[(j-1)*NSEC + 1 + i].U = -cellmod[(j-1)*NSEC + 1 + i].U;
+		}
     }
 
     /* outer region is done. Now do inner. This should be cleaner. */
@@ -959,13 +961,13 @@ phInitProfileExtract(void)
             fx = j;
             fx2 = fx*fx;
             fr2 = (fx2+fy2);
-	    if(fr2 == 0) {
-	       fr = ifr = ifr2 = 0;
-	    } else {
-	       ifr2 = 1.0/fr2;
-	       ifr = sqrt(ifr2);
-	       fr = 1.0/ifr;
-	    }
+			if(fr2 == 0) {
+				fr = ifr = ifr2 = 0;
+			} else {
+				ifr2 = 1.0/fr2;
+				ifr = sqrt(ifr2);
+				fr = 1.0/ifr;
+			}
 
             if(ir2 < ir2out){
                 pid = cellid[iy] + jx;
@@ -973,7 +975,7 @@ phInitProfileExtract(void)
                 ipcell = &cellmod[cell];
                 pshft = pid->c_shft;
                 cmul = (1<<pshft);
-		scrxy = fx*fy;
+				scrxy = fx*fy;
 
                 nmod[cell]    += cmul;
                 ipcell->col2   += fx2*cmul;
@@ -1029,35 +1031,35 @@ phInitProfileExtract(void)
  * part, and n_cell in the outer so we cannot just use it.
  */
     for(i = 0;i < NCELLIN;i++) {
-       cellgeom[i].n = nmod[i]/2;
-       cellboundary(i,&cellgeom[i]);
+		cellgeom[i].n = nmod[i]/2;
+		cellboundary(i,&cellgeom[i]);
     }
     for(;i<NCELL;i++) {
-       cellgeom[i].n = nmod[i];
-       cellboundary(i,&cellgeom[i]);
+		cellgeom[i].n = nmod[i];
+		cellboundary(i,&cellgeom[i]);
     }
 /*
  * as promised, refine annrad[]
  */
     {
-       float enclosed_area;		/* cumulative area */
+		float enclosed_area;		/* cumulative area */
        
-       for(i = 0;i < NANN;i++) {
-	  area[i] = 0;			
-       }
+		for(i = 0;i < NANN;i++) {
+			area[i] = 0;			
+		}
        
-       for(i = 0;i < NCELL;i++) {	/* count pixels in all cells */
-	  int ind = cellgeom[i].ann;
-	  shAssert(ind >= 0 && ind < NANN);
-	  area[ind] += cellgeom[i].n;
-       }
+		for(i = 0;i < NCELL;i++) {	/* count pixels in all cells */
+			int ind = cellgeom[i].ann;
+			shAssert(ind >= 0 && ind < NANN);
+			area[ind] += cellgeom[i].n;
+		}
        
-       enclosed_area = 0.0;
-       for(i = 0;i < NANN;i++) {
-	  annrad[i] = sqrt(enclosed_area/M_PI);
-	  enclosed_area += area[i];
-       }
-       annrad[i] = sqrt(enclosed_area/M_PI);
+		enclosed_area = 0.0;
+		for(i = 0;i < NANN;i++) {
+			annrad[i] = sqrt(enclosed_area/M_PI);
+			enclosed_area += area[i];
+		}
+		annrad[i] = sqrt(enclosed_area/M_PI);
     }
 /*
  * The inner annuli are handled by phSincApertureMean(), so their cellmod[]
@@ -1067,35 +1069,35 @@ phInitProfileExtract(void)
  * N.b. theta is measured from -ve x axis --- be careful with signs for column
  */
     for(i = 1;i < NCELLIN;i++) {
-       float theta1 = cellgeom[i].ccw;
-       float theta2 = cellgeom[i].cw;
-       float r1 = annrad[i/NSEC + 1];
-       float r2 = annrad[i/NSEC + 2];
-       float area = (pow(r2, 2) - pow(r1, 2))/2*(theta2 - theta1);
+		float theta1 = cellgeom[i].ccw;
+		float theta2 = cellgeom[i].cw;
+		float r1 = annrad[i/NSEC + 1];
+		float r2 = annrad[i/NSEC + 2];
+		float area = (pow(r2, 2) - pow(r1, 2))/2*(theta2 - theta1);
 #if 0
-       printf("%d  %6.3f %6.3f  %6.3f %6.3f %6.3f\n", i,
-	      cellmod[i].row, cellmod[i].col,
-	      cellmod[i].row2, cellmod[i].colrow, cellmod[i].col2);
+		printf("%d  %6.3f %6.3f  %6.3f %6.3f %6.3f\n", i,
+			   cellmod[i].row, cellmod[i].col,
+			   cellmod[i].row2, cellmod[i].colrow, cellmod[i].col2);
 #endif
-       cellmod[i].rmean = (r2 - r1)*(theta2 - theta1)/area;
+		cellmod[i].rmean = (r2 - r1)*(theta2 - theta1)/area;
        
-       cellmod[i].row =
-	 (pow(r2, 3) - pow(r1, 3))/3*(-cos(theta2) + cos(theta1))/area;
-       cellmod[i].col =
-	 -(pow(r2, 3) - pow(r1, 3))/3*(sin(theta2) - sin(theta1))/area;
+		cellmod[i].row =
+			(pow(r2, 3) - pow(r1, 3))/3*(-cos(theta2) + cos(theta1))/area;
+		cellmod[i].col =
+			-(pow(r2, 3) - pow(r1, 3))/3*(sin(theta2) - sin(theta1))/area;
 	
-       cellmod[i].col2 =
-	 (pow(r2, 4) - pow(r1, 4))/4*
-	   (theta2 + 0.5*sin(2*theta2) - (theta1 + 0.5*sin(2*theta1)))/2/area;
-       cellmod[i].colrow =
-	 -(pow(r2, 4) - pow(r1, 4))/4*(cos(2*theta1) - cos(2*theta2))/4/area;
-       cellmod[i].row2 =
-	 (pow(r2, 4) - pow(r1, 4))/4*
-	   (theta2 - 0.5*sin(2*theta2) - (theta1 - 0.5*sin(2*theta1)))/2/area;
+		cellmod[i].col2 =
+			(pow(r2, 4) - pow(r1, 4))/4*
+			(theta2 + 0.5*sin(2*theta2) - (theta1 + 0.5*sin(2*theta1)))/2/area;
+		cellmod[i].colrow =
+			-(pow(r2, 4) - pow(r1, 4))/4*(cos(2*theta1) - cos(2*theta2))/4/area;
+		cellmod[i].row2 =
+			(pow(r2, 4) - pow(r1, 4))/4*
+			(theta2 - 0.5*sin(2*theta2) - (theta1 - 0.5*sin(2*theta1)))/2/area;
 #if 0
-       printf("%d  %6.3f %6.3f  %6.3f %6.3f %6.3f\n", i,
-	      cellmod[i].row, cellmod[i].col,
-	      cellmod[i].row2, cellmod[i].colrow, cellmod[i].col2);
+		printf("%d  %6.3f %6.3f  %6.3f %6.3f %6.3f\n", i,
+			   cellmod[i].row, cellmod[i].col,
+			   cellmod[i].row2, cellmod[i].colrow, cellmod[i].col2);
 #endif
     }
     
@@ -1110,8 +1112,8 @@ phInitProfileExtract(void)
 void
 phFiniProfileExtract(void)
 {
-   provfree();				/* volatile ones */
-   prosfree();				/* static ones */
+	provfree();				/* volatile ones */
+	prosfree();				/* static ones */
 }
 
 /*****************************************************************************/
@@ -1124,12 +1126,12 @@ phFiniProfileExtract(void)
 CELL_PROF *
 phCellProfNew(int n)			/* number of data points */
 {
-   CELL_PROF *cprof = shMalloc(sizeof(CELL_PROF));
+	CELL_PROF *cprof = shMalloc(sizeof(CELL_PROF));
 
-   cprof->ncell = n;
-   cprof->is_median = -1;
+	cprof->ncell = n;
+	cprof->is_median = -1;
 
-   return(cprof);
+	return(cprof);
 }
 
 /*
@@ -1139,10 +1141,10 @@ phCellProfNew(int n)			/* number of data points */
  */
 void
 phCellProfRealloc(CELL_PROF *cprof,	/* a pre-existing CELL_PROF */
-		  int n)		/* number of data points */
+				  int n)		/* number of data points */
 {
-   shAssert(cprof != NULL);
-   cprof->ncell = n;
+	shAssert(cprof != NULL);
+	cprof->ncell = n;
 }
 
 /*
@@ -1153,7 +1155,7 @@ phCellProfRealloc(CELL_PROF *cprof,	/* a pre-existing CELL_PROF */
 void
 phCellProfDel(CELL_PROF *cprof)
 {
-   shFree(cprof);
+	shFree(cprof);
 }
 
 /*****************************************************************************/
@@ -1176,36 +1178,36 @@ phProfileIsInitialised(void)
 const CELL_STATS *
 phProfileSetFromCellprof(const CELL_PROF *cprof)
 {
-   int i;				/* index into cprof */
-   int i1, i2;				/* indices into cstats */
-   int is_median;			/* == cstats.is_median */
+	int i;				/* index into cprof */
+	int i1, i2;				/* indices into cstats */
+	int is_median;			/* == cstats.is_median */
    
-   shAssert(phProfileIsInitialised() && cprof != NULL && cprof->ncell >= 1);
+	shAssert(phProfileIsInitialised() && cprof != NULL && cprof->ncell >= 1);
 
-   is_median = cprof->is_median;
-   cstats.id = -2;			/* invalid ID, set from CELL_PROF */
-   cstats.annular = 1;
-   cstats.ncell = 1 + 2*(cprof->ncell - 1);
-   cstats.nannuli_c = cstats.nannuli = 1 + (cprof->ncell - 1)/(NSEC/2);
-   cstats.syncreg = NULL;
+	is_median = cprof->is_median;
+	cstats.id = -2;			/* invalid ID, set from CELL_PROF */
+	cstats.annular = 1;
+	cstats.ncell = 1 + 2*(cprof->ncell - 1);
+	cstats.nannuli_c = cstats.nannuli = 1 + (cprof->ncell - 1)/(NSEC/2);
+	cstats.syncreg = NULL;
    
-   for(i = 0; i < cprof->ncell; i++) {
-      i1 = (i == 0) ? 0 : 1 + NSEC*(int)((i - 1)/(NSEC/2)) + (i - 1)%(NSEC/2);
-      i2 = (i == 0) ? i1 : i1 + NSEC/2;
+	for(i = 0; i < cprof->ncell; i++) {
+		i1 = (i == 0) ? 0 : 1 + NSEC*(int)((i - 1)/(NSEC/2)) + (i - 1)%(NSEC/2);
+		i2 = (i == 0) ? i1 : i1 + NSEC/2;
 
-      cstats.cells[i1].flg = cstats.cells[i2].flg = EXTRACT_NONE;
-      if(cprof->area[i] > 0) {
-	 cstats.cells[i1].area = cstats.cells[i2].area = cprof->area[i];
-      }
-      if(is_median) {
-	 cstats.cells[i1].qt[1] = cstats.cells[i2].qt[1] = cprof->data[i];
-      } else {
-	 cstats.cells[i1].mean = cstats.cells[i2].mean = cprof->data[i];
-      }
-      cstats.cells[i1].sig = cstats.cells[i2].sig = cprof->sig[i];
-   }
+		cstats.cells[i1].flg = cstats.cells[i2].flg = EXTRACT_NONE;
+		if(cprof->area[i] > 0) {
+			cstats.cells[i1].area = cstats.cells[i2].area = cprof->area[i];
+		}
+		if(is_median) {
+			cstats.cells[i1].qt[1] = cstats.cells[i2].qt[1] = cprof->data[i];
+		} else {
+			cstats.cells[i1].mean = cstats.cells[i2].mean = cprof->data[i];
+		}
+		cstats.cells[i1].sig = cstats.cells[i2].sig = cprof->sig[i];
+	}
 
-   return(&cstats);
+	return(&cstats);
 }
 
 /*****************************************************************************/
@@ -1239,26 +1241,26 @@ phProfileSetFromCellprof(const CELL_PROF *cprof)
  */
 CELL_STATS *
 phProfileExtract(int id,		/* ID for this profile */
-		 int band,		/* which band is this?
-					   Useful for debugging */
-		 const REGION *in,	/* input region */
-		 double fyc,            /* row centre of object */
-		                        /*    relative to REGION's origin */
-		 double fxc,            /* col centre of object */
-		                        /*    relative to REGION's origin */
-		 int orad,		/* desired radius of largest annulus;
-					   if -ve, desired number of annuli */
-		 double sky,		/* sky level */
-		 double skysig,		/* sky sigma */
-		 int keep_profile)	/* keep old profile at r > orad */
+				 int band,		/* which band is this?
+								 Useful for debugging */
+				 const REGION *in,	/* input region */
+				 double fyc,            /* row centre of object */
+				 /*    relative to REGION's origin */
+				 double fxc,            /* col centre of object */
+				 /*    relative to REGION's origin */
+				 int orad,		/* desired radius of largest annulus;
+								 if -ve, desired number of annuli */
+				 double sky,		/* sky level */
+				 double skysig,		/* sky sigma */
+				 int keep_profile)	/* keep old profile at r > orad */
 {
     int cellim0;			/* value of cellim from previous call
-					   to phProfileExtract with this id */
+							 to phProfileExtract with this id */
     int i,j;
     int sdy_l, sdy_u;			/* These are the indexes into cellorig
-					   based on which y-subpixel the
-					   object's centre lies in, for the
-					   lower and upper half of the object*/
+								 based on which y-subpixel the
+								 object's centre lies in, for the
+								 lower and upper half of the object*/
     int rlim,rlimyl,rlimyu;
     int srlim;
     const int yrin = SYNCRAD + SYNCEXTRA + SYBELL - 1;
@@ -1296,8 +1298,8 @@ phProfileExtract(int id,		/* ID for this profile */
     int ncol, nrow;			/* == in->{ncol,nrow} */
 
     if(in == NULL) {			/* we just want to set id */
-       cstats.id = id;
-       return(NULL);
+		cstats.id = id;
+		return(NULL);
     }
     
     shAssert(in != NULL);
@@ -1311,29 +1313,29 @@ phProfileExtract(int id,		/* ID for this profile */
  */
     if(fxc < 0 || fxc + 0.5 >= ncol ||
        fyc < 0 || fyc + 0.5 >= nrow) {
-       shErrStackPush("object %d is off the frame",id);
-       return(NULL);
+		shErrStackPush("object %d is off the frame",id);
+		return(NULL);
     }
 /*
  * find outermost annulus that we need to process given orad
  */
     if(orad > 0) {
-       for(annlim = 0; annlim <= NANN && orad > anndex[annlim];annlim++) {
-	  continue;
-       }
+		for(annlim = 0; annlim <= NANN && orad > anndex[annlim];annlim++) {
+			continue;
+		}
     } else {
-       annlim = -orad;
+		annlim = -orad;
     }
     if(annlim > NANN) {
-       annlim = NANN;
+		annlim = NANN;
     }
       
     if(annlim == 0) {
-       shErrStackPush("Extraction for object %d has too small a radius",id);
-       return(NULL);
+		shErrStackPush("Extraction for object %d has too small a radius",id);
+		return(NULL);
     }
     rlim = anndex[annlim];		/* first radius beyond limit--ie
-					   r < rlim */
+								 r < rlim */
 /*
  * if the id is the same as the previous call, we may be able to reuse
  * some of the information in the cstats.
@@ -1349,30 +1351,30 @@ phProfileExtract(int id,		/* ID for this profile */
  * the centre's changed.  The user had better understand what they are doing.
  */
     if(id < 0 || id != cstats.id) {
-       if(keep_profile) {
-	  keep_profile = 0;		/* the current profile is irrelevant */
-       }
+		if(keep_profile) {
+			keep_profile = 0;		/* the current profile is irrelevant */
+		}
     } else if(annlim <= cstats.nannuli) {
-       if(fabs(fxc - cstats.col_c) > 1e-4 || fabs(fyc - cstats.row_c) > 1e-4) {
-	  cstats.id = -1;		/* the centre's moved */
-       } else {				/* no more work to do */
-	  if(!keep_profile) {
-	     cstats.nannuli = annlim;
-	     if(cstats.nannuli_c > cstats.nannuli) {
-		cstats.nannuli_c = cstats.nannuli;
-	     }
-	  }
-	  return(&cstats);
-       }
+		if(fabs(fxc - cstats.col_c) > 1e-4 || fabs(fyc - cstats.row_c) > 1e-4) {
+			cstats.id = -1;		/* the centre's moved */
+		} else {				/* no more work to do */
+			if(!keep_profile) {
+				cstats.nannuli = annlim;
+				if(cstats.nannuli_c > cstats.nannuli) {
+					cstats.nannuli_c = cstats.nannuli;
+				}
+			}
+			return(&cstats);
+		}
     }
 
     if(id < 0 || id != cstats.id) {	/* start from scratch */
-       cellim0 = 0;
-       cellinfo[NCELL].ntot = 0;
+		cellim0 = 0;
+		cellinfo[NCELL].ntot = 0;
     } else {       
-       shAssert(fabs(fxc - cstats.col_c) < 1e-4 &&
-		fabs(fyc - cstats.row_c) < 1e-4);
-       cellim0 = (cstats.nannuli <= 0) ? 0 : NSEC*(cstats.nannuli - 1) + 1;
+		shAssert(fabs(fxc - cstats.col_c) < 1e-4 &&
+				 fabs(fyc - cstats.row_c) < 1e-4);
+		cellim0 = (cstats.nannuli <= 0) ? 0 : NSEC*(cstats.nannuli - 1) + 1;
     }
 /*
  * Set the parts of the return struct that we already know
@@ -1389,7 +1391,7 @@ phProfileExtract(int id,		/* ID for this profile */
     cellim = (annlim-1)*NSEC + 1;	/* first cell beyond limit */
 
     if(cellim < cellim0) {		/* we are already fully extracted */
-       return(&cstats);
+		return(&cstats);
     }
 /*
  * setup subpixellation
@@ -1436,25 +1438,25 @@ phProfileExtract(int id,		/* ID for this profile */
  * clear the parts of the cellinfo array that we cannot reuse
  */
     if(cellim0 == 0) {
-       if(cellim < NCELLIN) {
-	  memset(cellinfo,'\0', NCELLIN*sizeof(struct pstats));
-       } else {
-	  memset(cellinfo,'\0', cellim*sizeof(struct pstats));
-       }
-       shAssert(cellinfo[0].ntot == 0);    /* check that memset correctly */
-       shAssert(cellinfo[0].mean == 0.0);  /*   sets variables to */
-       shAssert(cellinfo[0].data == NULL); /*   0 or 0.0 or NULL */
+		if(cellim < NCELLIN) {
+			memset(cellinfo,'\0', NCELLIN*sizeof(struct pstats));
+		} else {
+			memset(cellinfo,'\0', cellim*sizeof(struct pstats));
+		}
+		shAssert(cellinfo[0].ntot == 0);    /* check that memset correctly */
+		shAssert(cellinfo[0].mean == 0.0);  /*   sets variables to */
+		shAssert(cellinfo[0].data == NULL); /*   0 or 0.0 or NULL */
     } else {
-       shAssert(cellim > cellim0);
-       if(cellim < NCELLIN) {
-	  ;				/* don't clear the sync region */
-       } else {
-	  for(i = NCELLIN;i < cellim0;i++) {
-	     cellinfo[i].ntot = 0;
-	  }
-	  memset(&cellinfo[cellim0],'\0',
-		 (cellim - cellim0)*sizeof(struct pstats));
-       }
+		shAssert(cellim > cellim0);
+		if(cellim < NCELLIN) {
+			;				/* don't clear the sync region */
+		} else {
+			for(i = NCELLIN;i < cellim0;i++) {
+				cellinfo[i].ntot = 0;
+			}
+			memset(&cellinfo[cellim0],'\0',
+				   (cellim - cellim0)*sizeof(struct pstats));
+		}
     }
 /*
  * populate the cell cache
@@ -1470,12 +1472,12 @@ phProfileExtract(int id,		/* ID for this profile */
  */
     if(ixc < yrin || ixc + yrin >= ncol ||
        iyc < yrin || iyc + yrin >= nrow) {
-       for(i = 0;i < NCELLIN;i++) {	/* too close to edge to sync */
-	  cellinfo[i].ntot = -1;
-       }
-       cstats.syncreg = NULL;		/* not shifted */
-       cstats.nannuli = cstats.nannuli_c = cstats.orad = 0;
-       return(&cstats);
+		for(i = 0;i < NCELLIN;i++) {	/* too close to edge to sync */
+			cellinfo[i].ntot = -1;
+		}
+		cstats.syncreg = NULL;		/* not shifted */
+		cstats.nannuli = cstats.nannuli_c = cstats.orad = 0;
+		return(&cstats);
     }
     cstats.syncreg = syncreg;
 
@@ -1483,292 +1485,292 @@ phProfileExtract(int id,		/* ID for this profile */
 /*
  * First the lower half (including the central row)
  */
-       for(i = 0;i < rlimyl;i++) {
-	  pcell = cellorig[sdy_l][i];
-	  yorig = iyc - i;
-	  line = rows[yorig];
+		for(i = 0;i < rlimyl;i++) {
+			pcell = cellorig[sdy_l][i];
+			yorig = iyc - i;
+			line = rows[yorig];
 /*
  * Process the lower half, central segment, if it exists
  */
-	  if((corig = pcell[0].c_orig) < 0) {
-	     sxorig = (sxc + corig + YSCL - 1);
-	     xorig = ((sxorig + srlim)>>YSHFT) - rlim;  /* positivity */
-	     len  = ((sxorig + (pcell[0].c_len))>>YSHFT) - xorig;
-	     ppix = line + xorig;
-	     cell = pcell[0].c_lrcell;
-	     if(ccareful){
-                if(xorig < 0){
-		   len += xorig;
-		   ppix = line;
-		   cellinfo[cell].flg |= EXTRACT_EDGE;
-                }else{
-		   if((iscr = xorig+len-ncol) > 0) {
-		      len -= iscr;
-		      cellinfo[cell].flg |= EXTRACT_EDGE;
-		   }
-                }
-	     }
-	     if(len > 0) {
-		if(yorig == 0) {
-		   cellinfo[cell].flg |= EXTRACT_EDGE;
-		}
-		cache = cellval[cell] + cellinfo[cell].ntot;
-		cache_end = cache + len;
-		cellinfo[cell].ntot += len;
-		do {
-		   *cache++ = *ppix++;
-		} while(cache < cache_end);
-	     }
+			if((corig = pcell[0].c_orig) < 0) {
+				sxorig = (sxc + corig + YSCL - 1);
+				xorig = ((sxorig + srlim)>>YSHFT) - rlim;  /* positivity */
+				len  = ((sxorig + (pcell[0].c_len))>>YSHFT) - xorig;
+				ppix = line + xorig;
+				cell = pcell[0].c_lrcell;
+				if(ccareful){
+					if(xorig < 0){
+						len += xorig;
+						ppix = line;
+						cellinfo[cell].flg |= EXTRACT_EDGE;
+					}else{
+						if((iscr = xorig+len-ncol) > 0) {
+							len -= iscr;
+							cellinfo[cell].flg |= EXTRACT_EDGE;
+						}
+					}
+				}
+				if(len > 0) {
+					if(yorig == 0) {
+						cellinfo[cell].flg |= EXTRACT_EDGE;
+					}
+					cache = cellval[cell] + cellinfo[cell].ntot;
+					cache_end = cache + len;
+					cellinfo[cell].ntot += len;
+					do {
+						*cache++ = *ppix++;
+					} while(cache < cache_end);
+				}
 
-	     pcell++;			/* we don't want to see the central
-					   cell again */
-	  }
+				pcell++;			/* we don't want to see the central
+									 cell again */
+			}
 /*
  * Now the lower half, right side
  */
-	  for(j = 0;(corig = pcell[j].c_orig) < srxext &&
-	            (cell = pcell[j].c_lrcell) < cellim;j++) {
-	     sxorig = (sxc + corig + YSCL - 1);
-	     xorig = (sxorig >> YSHFT);
-	     len  = ((sxorig + (pcell[j].c_len))>>YSHFT) - xorig;
-	     ppix = line + xorig;
-	     if(rcareful){
-                if((iscr=xorig+len-ncol) > 0) {
-		   len -= iscr;
-		   cellinfo[cell].flg |= EXTRACT_EDGE;
-		}
-	     }
-	     if(len > 0) {
-		if(yorig == 0) {
-		   cellinfo[cell].flg |= EXTRACT_EDGE;
-		}
-		cache = cellval[cell] + cellinfo[cell].ntot;
-		cache_end = cache + len;
-		cellinfo[cell].ntot += len;
-		do {
-		   *cache++ = *ppix++;
-		} while(cache < cache_end);
-	     }
-	  }
+			for(j = 0;(corig = pcell[j].c_orig) < srxext &&
+					(cell = pcell[j].c_lrcell) < cellim;j++) {
+				sxorig = (sxc + corig + YSCL - 1);
+				xorig = (sxorig >> YSHFT);
+				len  = ((sxorig + (pcell[j].c_len))>>YSHFT) - xorig;
+				ppix = line + xorig;
+				if(rcareful){
+					if((iscr=xorig+len-ncol) > 0) {
+						len -= iscr;
+						cellinfo[cell].flg |= EXTRACT_EDGE;
+					}
+				}
+				if(len > 0) {
+					if(yorig == 0) {
+						cellinfo[cell].flg |= EXTRACT_EDGE;
+					}
+					cache = cellval[cell] + cellinfo[cell].ntot;
+					cache_end = cache + len;
+					cellinfo[cell].ntot += len;
+					do {
+						*cache++ = *ppix++;
+					} while(cache < cache_end);
+				}
+			}
 /*
  * and the lower half, left side
  */
-	  for(j = 0;(corig = pcell[j].c_orig) < slxext &&
-	            (cell=pcell[j].c_llcell) < cellim;j++) {
-	     slen = pcell[j].c_len;
-	     sxorig = (sxc - corig - slen + YSCL);
-	     xorig = ((sxorig+srlim)>>YSHFT) - rlim; /* positivity*/
-	     len  = ((sxorig + slen)>>YSHFT) - xorig;
-	     ppix = line + xorig;
-	     if(lcareful){
-                if(xorig < 0){
-		   len += xorig;
-		   ppix = line;
-		   cellinfo[cell].flg |= EXTRACT_EDGE;
-                }
-	     }
-	     if(len > 0) {
-		if(yorig == 0) {
-		   cellinfo[cell].flg |= EXTRACT_EDGE;
+			for(j = 0;(corig = pcell[j].c_orig) < slxext &&
+					(cell=pcell[j].c_llcell) < cellim;j++) {
+				slen = pcell[j].c_len;
+				sxorig = (sxc - corig - slen + YSCL);
+				xorig = ((sxorig+srlim)>>YSHFT) - rlim; /* positivity*/
+				len  = ((sxorig + slen)>>YSHFT) - xorig;
+				ppix = line + xorig;
+				if(lcareful){
+					if(xorig < 0){
+						len += xorig;
+						ppix = line;
+						cellinfo[cell].flg |= EXTRACT_EDGE;
+					}
+				}
+				if(len > 0) {
+					if(yorig == 0) {
+						cellinfo[cell].flg |= EXTRACT_EDGE;
+					}
+					cache = cellval[cell] + cellinfo[cell].ntot;
+					cache_end = cache + len;
+					cellinfo[cell].ntot += len;
+					do {
+						*cache++ = *ppix++;
+					} while(cache < cache_end);
+				}
+			}
 		}
-		cache = cellval[cell] + cellinfo[cell].ntot;
-		cache_end = cache + len;
-		cellinfo[cell].ntot += len;
-		do {
-		   *cache++ = *ppix++;
-		} while(cache < cache_end);
-	     }
-	  }
-       }
 /*
  * Now the upper half, again central, right, and left
  */
-       for(i = 1;i < rlimyu;i++) {
-	  pcell = cellorig[sdy_u][i];
-	  yorig = iyc + i;
-	  line = rows[yorig];
+		for(i = 1;i < rlimyu;i++) {
+			pcell = cellorig[sdy_u][i];
+			yorig = iyc + i;
+			line = rows[yorig];
 /*
  * Central segment if it exists
  */
-	  if((corig = pcell[0].c_orig) < 0) {
-	     sxorig = (sxc + corig + YSCL - 1);
-	     xorig = ((sxorig + srlim)>>YSHFT) - rlim;  /* positivity */
-	     len  = ((sxorig + (pcell[0].c_len))>>YSHFT) - xorig;
-	     ppix = line + xorig;
-	     cell = pcell[0].c_urcell;
+			if((corig = pcell[0].c_orig) < 0) {
+				sxorig = (sxc + corig + YSCL - 1);
+				xorig = ((sxorig + srlim)>>YSHFT) - rlim;  /* positivity */
+				len  = ((sxorig + (pcell[0].c_len))>>YSHFT) - xorig;
+				ppix = line + xorig;
+				cell = pcell[0].c_urcell;
 
-	     if(ccareful){
-                if(xorig < 0){
-		   len += xorig;
-		   ppix = line;
-		   cellinfo[cell].flg |= EXTRACT_EDGE;
-                }else{
-		   if((iscr = xorig+len-ncol) > 0) {
-		      len -= iscr;
-		      cellinfo[cell].flg |= EXTRACT_EDGE;
-		   }
-                }
-	     }
-	     if(len > 0) {
-		if(yorig == nrow - 1) {
-		   cellinfo[cell].flg |= EXTRACT_EDGE;
-		}
-		cache = cellval[cell] + cellinfo[cell].ntot;
-		cache_end = cache + len;
-		cellinfo[cell].ntot += len;
-		do {
-		   *cache++ = *ppix++;
-		} while(cache < cache_end);
-	     }
-	     pcell++;
-	  }
+				if(ccareful){
+					if(xorig < 0){
+						len += xorig;
+						ppix = line;
+						cellinfo[cell].flg |= EXTRACT_EDGE;
+					}else{
+						if((iscr = xorig+len-ncol) > 0) {
+							len -= iscr;
+							cellinfo[cell].flg |= EXTRACT_EDGE;
+						}
+					}
+				}
+				if(len > 0) {
+					if(yorig == nrow - 1) {
+						cellinfo[cell].flg |= EXTRACT_EDGE;
+					}
+					cache = cellval[cell] + cellinfo[cell].ntot;
+					cache_end = cache + len;
+					cellinfo[cell].ntot += len;
+					do {
+						*cache++ = *ppix++;
+					} while(cache < cache_end);
+				}
+				pcell++;
+			}
 /*
  * Now the upper half, right side
  */
-	  for(j = 0;(corig = pcell[j].c_orig) < srxext &&
-	            (cell=pcell[j].c_urcell) < cellim;j++) {
-	     /* in bounds */
-	     sxorig = (sxc + corig + YSCL - 1);   /* is this right ?? */
-	     xorig = (sxorig >> YSHFT);
-	     len  = ((sxorig + (pcell[j].c_len))>>YSHFT) - xorig;
-	     ppix = line + xorig;
-	     if(rcareful){
-                if((iscr=xorig+len-ncol) > 0) {
-		   len -= iscr;
-		   cellinfo[cell].flg |= EXTRACT_EDGE;
-		}
-	     }
+			for(j = 0;(corig = pcell[j].c_orig) < srxext &&
+					(cell=pcell[j].c_urcell) < cellim;j++) {
+				/* in bounds */
+				sxorig = (sxc + corig + YSCL - 1);   /* is this right ?? */
+				xorig = (sxorig >> YSHFT);
+				len  = ((sxorig + (pcell[j].c_len))>>YSHFT) - xorig;
+				ppix = line + xorig;
+				if(rcareful){
+					if((iscr=xorig+len-ncol) > 0) {
+						len -= iscr;
+						cellinfo[cell].flg |= EXTRACT_EDGE;
+					}
+				}
 
-	     if(len > 0) {
-		if(yorig == nrow - 1) {
-		   cellinfo[cell].flg |= EXTRACT_EDGE;
-		}
-		cache = cellval[cell] + cellinfo[cell].ntot;
-		cache_end = cache + len;
-		cellinfo[cell].ntot += len;
-		do {
-		   *cache++ = *ppix++;
-		} while(cache < cache_end);
-	     }
-	  }
+				if(len > 0) {
+					if(yorig == nrow - 1) {
+						cellinfo[cell].flg |= EXTRACT_EDGE;
+					}
+					cache = cellval[cell] + cellinfo[cell].ntot;
+					cache_end = cache + len;
+					cellinfo[cell].ntot += len;
+					do {
+						*cache++ = *ppix++;
+					} while(cache < cache_end);
+				}
+			}
 /*
  * and the upper half, left side
  */
-	  for(j = 0;(corig = pcell[j].c_orig) < slxext &&
-	            (cell = pcell[j].c_ulcell) < cellim;j++) {
-	     /* in bounds */
-	     slen = pcell[j].c_len;
-	     sxorig = (sxc - corig - slen + YSCL);
-	     xorig = ((sxorig+srlim)>>YSHFT) - rlim; /* positivity*/
-	     len  = ((sxorig + slen)>>YSHFT) - xorig;
-	     ppix = line + xorig;
-	     if(lcareful){
-                if(xorig < 0){
-		   len += xorig;
-		   ppix = line;
-		   cellinfo[cell].flg |= EXTRACT_EDGE;
-                }
-	     }
-	     if(len > 0) {
-		if(yorig == nrow - 1) {
-		   cellinfo[cell].flg |= EXTRACT_EDGE;
+			for(j = 0;(corig = pcell[j].c_orig) < slxext &&
+					(cell = pcell[j].c_ulcell) < cellim;j++) {
+				/* in bounds */
+				slen = pcell[j].c_len;
+				sxorig = (sxc - corig - slen + YSCL);
+				xorig = ((sxorig+srlim)>>YSHFT) - rlim; /* positivity*/
+				len  = ((sxorig + slen)>>YSHFT) - xorig;
+				ppix = line + xorig;
+				if(lcareful){
+					if(xorig < 0){
+						len += xorig;
+						ppix = line;
+						cellinfo[cell].flg |= EXTRACT_EDGE;
+					}
+				}
+				if(len > 0) {
+					if(yorig == nrow - 1) {
+						cellinfo[cell].flg |= EXTRACT_EDGE;
+					}
+					cache = cellval[cell] + cellinfo[cell].ntot;
+					cache_end = cache + len;
+					cellinfo[cell].ntot += len;
+					do {
+						*cache++ = *ppix++;
+					} while(cache < cache_end);
+				}
+			}
 		}
-		cache = cellval[cell] + cellinfo[cell].ntot;
-		cache_end = cache + len;
-		cellinfo[cell].ntot += len;
-		do {
-		   *cache++ = *ppix++;
-		} while(cache < cache_end);
-	     }
-	  }
-       }
 /*
  * If we haven't already done so, populate the special cellinfo element
  * for all the pixels that are in the inner region, and are thus treated
  * differently from the outer pixels
  */
-       if(cellinfo[NCELL].ntot == 0) {
-	  int x1, x2;
+		if(cellinfo[NCELL].ntot == 0) {
+			int x1, x2;
 
-	  rlim = anndex[NSYNCANN + 1];
-	  srlim = rlim<<YSHFT;	/* scaled limiting radius */
+			rlim = anndex[NSYNCANN + 1];
+			srlim = rlim<<YSHFT;	/* scaled limiting radius */
 /*
  * First the lower half (including the central row)
  */
-	  for(i = 0;i < SYNCRAD + 1;i++) {
-	     pcell = cellorig[sdy_l][i];
-	     yorig = iyc - i;
-	     line = rows[yorig];
-	     if(pcell[0].c_orig < 0) {	/* central cell; skip */
-		pcell++;
-	     }
+			for(i = 0;i < SYNCRAD + 1;i++) {
+				pcell = cellorig[sdy_l][i];
+				yorig = iyc - i;
+				line = rows[yorig];
+				if(pcell[0].c_orig < 0) {	/* central cell; skip */
+					pcell++;
+				}
 
-	     x1 = -1000; x2 = 100000;
-	     for(j = 0; pcell[j].c_llcell < NCELLIN + NSEC;j++) {
-		corig = pcell[j].c_orig;
-		slen = pcell[j].c_len;
+				x1 = -1000; x2 = 100000;
+				for(j = 0; pcell[j].c_llcell < NCELLIN + NSEC;j++) {
+					corig = pcell[j].c_orig;
+					slen = pcell[j].c_len;
 
-		sxorig = (sxc - corig - slen + YSCL); /* left side */
-		xorig = (sxorig + slen) >> YSHFT; /* end of span */
-		if(xorig > x1) {
-		   x1 = xorig;
-		}
+					sxorig = (sxc - corig - slen + YSCL); /* left side */
+					xorig = (sxorig + slen) >> YSHFT; /* end of span */
+					if(xorig > x1) {
+						x1 = xorig;
+					}
 
-		sxorig = (sxc + corig + YSCL - 1); /* right side */
-		xorig = sxorig >> YSHFT; /* beginning of span */
-		if(xorig < x2) {
-		   x2 = xorig;
-		}
-	     }
+					sxorig = (sxc + corig + YSCL - 1); /* right side */
+					xorig = sxorig >> YSHFT; /* beginning of span */
+					if(xorig < x2) {
+						x2 = xorig;
+					}
+				}
 
-	     len  = x2 - x1;
-	     memcpy(&cellinfo[NCELL].data[cellinfo[NCELL].ntot],&line[x1],
-		    len*sizeof(PIX));
-	     cellinfo[NCELL].ntot += len;
-	  }
+				len  = x2 - x1;
+				memcpy(&cellinfo[NCELL].data[cellinfo[NCELL].ntot],&line[x1],
+					   len*sizeof(PIX));
+				cellinfo[NCELL].ntot += len;
+			}
 /*
  * and now the upper half
  */
-	  for(i = 1;i < SYNCRAD + 1;i++) {
-	     pcell = cellorig[sdy_u][i];
-	     yorig = iyc + i;
-	     line = rows[yorig];
-	     if(pcell[0].c_orig < 0) {	/* central cell; skip */
-		pcell++;
-	     }
+			for(i = 1;i < SYNCRAD + 1;i++) {
+				pcell = cellorig[sdy_u][i];
+				yorig = iyc + i;
+				line = rows[yorig];
+				if(pcell[0].c_orig < 0) {	/* central cell; skip */
+					pcell++;
+				}
 
-	     x1 = -1000; x2 = 100000;
-	     for(j = 0; pcell[j].c_ulcell < NCELLIN + NSEC;j++) {
-		corig = pcell[j].c_orig;
-		slen = pcell[j].c_len;
+				x1 = -1000; x2 = 100000;
+				for(j = 0; pcell[j].c_ulcell < NCELLIN + NSEC;j++) {
+					corig = pcell[j].c_orig;
+					slen = pcell[j].c_len;
 
-		sxorig = (sxc - corig - slen + YSCL); /* left side */
-		xorig = (sxorig + slen) >> YSHFT; /* end of span */
-		if(xorig > x1) {
-		   x1 = xorig;
+					sxorig = (sxc - corig - slen + YSCL); /* left side */
+					xorig = (sxorig + slen) >> YSHFT; /* end of span */
+					if(xorig > x1) {
+						x1 = xorig;
+					}
+
+					sxorig = (sxc + corig + YSCL - 1); /* right side */
+					xorig = sxorig >> YSHFT; /* beginning of span */
+					if(xorig < x2) {
+						x2 = xorig;
+					}
+				}
+
+				len  = x2 - x1;
+				memcpy(&cellinfo[NCELL].data[cellinfo[NCELL].ntot],&line[x1],
+					   len*sizeof(PIX));
+				cellinfo[NCELL].ntot += len;
+			}
+
+			makedssprof(NCELL, NCELL, sky, skysig, band, fxc, fyc);
 		}
-
-		sxorig = (sxc + corig + YSCL - 1); /* right side */
-		xorig = sxorig >> YSHFT; /* beginning of span */
-		if(xorig < x2) {
-		   x2 = xorig;
-		}
-	     }
-
-	     len  = x2 - x1;
-	     memcpy(&cellinfo[NCELL].data[cellinfo[NCELL].ntot],&line[x1],
-		    len*sizeof(PIX));
-	     cellinfo[NCELL].ntot += len;
-	  }
-
-	  makedssprof(NCELL, NCELL, sky, skysig, band, fxc, fyc);
-       }
     }
 /*
  * done--now do inner region
  */
     if(cellim0 > 0) {			/* already extracted */
-       ;
+		;
     } else {
 /*
  * Extract the sync buffer: first set up the pointers.
@@ -1780,83 +1782,83 @@ phProfileExtract(int id,		/* ID for this profile */
  * the REGION syncreg is aliased to the central part of syncext. We don't
  * bother to shift if the offset is too small
  */
-       for(i=0;i < SYNC_REG_SIZEI;i++) {
-	  syncin->ROWS[i] = &rows[i+iyc-yrin][ixc-yrin];
-       }
-       syncin->ncol = SYNC_REG_SIZEI;
+		for(i=0;i < SYNC_REG_SIZEI;i++) {
+			syncin->ROWS[i] = &rows[i+iyc-yrin][ixc-yrin];
+		}
+		syncin->ncol = SYNC_REG_SIZEI;
 
-       if(fabs(fdx) <= min_shift && fabs(fdy) <= min_shift) {
-	  shRegIntCopy(syncext, syncin);
-       } else {
-	  get_sync_with_cosbell(filx,SYBELL,fdx);
-	  get_sync_with_cosbell(fily,SYBELL,fdy);
+		if(fabs(fdx) <= min_shift && fabs(fdy) <= min_shift) {
+			shRegIntCopy(syncext, syncin);
+		} else {
+			get_sync_with_cosbell(filx,SYBELL,fdx);
+			get_sync_with_cosbell(fily,SYBELL,fdy);
        
-	  phConvolve(syncext,syncin,syncscr,2*SYBELL-1,2*SYBELL-1,filx,fily,0,
-		     CONVOLVE_MULT);
-       }
-       syncreg->row0 = iyc - yrin + (SYBELL - 1);
-       syncreg->col0 = ixc - yrin + (SYBELL - 1);
+			phConvolve(syncext,syncin,syncscr,2*SYBELL-1,2*SYBELL-1,filx,fily,0,
+					   CONVOLVE_MULT);
+		}
+		syncreg->row0 = iyc - yrin + (SYBELL - 1);
+		syncreg->col0 = ixc - yrin + (SYBELL - 1);
 #if defined(DEBUG)
-       {
-	  REGION *tmp = shRegNew("",syncreg->nrow,syncreg->ncol,TYPE_PIX);
-	  for(i = 0;i < tmp->nrow;i++) {
-	     memcpy(tmp->ROWS[i],syncreg->ROWS[i],sizeof(PIX)*tmp->ncol);
-	  }
-	  if(shRegWriteAsFits(tmp,"syncreg.fts",STANDARD,2,DEF_NONE,NULL,0) !=
-	     SH_SUCCESS) {
-	     shErrStackPush("Failed to write sync shifted region 0x%x",tmp);
-	     return(NULL);		/* don't bother with proper cleanup */
-	  }
-	  shRegDel(tmp);
-       }
+		{
+			REGION *tmp = shRegNew("",syncreg->nrow,syncreg->ncol,TYPE_PIX);
+			for(i = 0;i < tmp->nrow;i++) {
+				memcpy(tmp->ROWS[i],syncreg->ROWS[i],sizeof(PIX)*tmp->ncol);
+			}
+			if(shRegWriteAsFits(tmp,"syncreg.fts",STANDARD,2,DEF_NONE,NULL,0) !=
+			   SH_SUCCESS) {
+				shErrStackPush("Failed to write sync shifted region 0x%x",tmp);
+				return(NULL);		/* don't bother with proper cleanup */
+			}
+			shRegDel(tmp);
+		}
 #endif
 /*
  * We start by setting cello to 0 rather than (say) -1 as it allows us
  * to avoid testing cello inside the loop
  */
-       cello = 0;
-       cache = cellval[cello] + cellinfo[cello].ntot;
+		cello = 0;
+		cache = cellval[cello] + cellinfo[cello].ntot;
        
-       for(i=0;i < SYNC_REG_SIZE;i++) {
-	  PIX *row = &syncreg->ROWS[SYNCEXTRA + i][SYNCEXTRA];
-	  struct cellid *cells = cellid[i];
-	  for(j=0;j < SYNC_REG_SIZE;j++){
-	     if((cell = cells[j].c_id) >= NCELLIN) continue;
-	     p = row[j];
+		for(i=0;i < SYNC_REG_SIZE;i++) {
+			PIX *row = &syncreg->ROWS[SYNCEXTRA + i][SYNCEXTRA];
+			struct cellid *cells = cellid[i];
+			for(j=0;j < SYNC_REG_SIZE;j++){
+				if((cell = cells[j].c_id) >= NCELLIN) continue;
+				p = row[j];
 	     
-	     ndiag = cells[j].c_shft;
-	     if(cell != cello){
-		cellinfo[cello].ntot = cache - cellval[cello];
+				ndiag = cells[j].c_shft;
+				if(cell != cello){
+					cellinfo[cello].ntot = cache - cellval[cello];
 		
-		cello = cell;
-		cache = cellval[cell] + cellinfo[cell].ntot;
-	     }
-	     *cache++ = p;
-	     if(ndiag){			/* double it if not on diag */
-		*cache++ = p;
-	     } else {			/* diag, go to companion cell */
-		if(cell != 0) {		/* central cell has no companions,
-					   but wants to be doubled */
-		   cellinfo[cell].ntot = cache - cellval[cell];
+					cello = cell;
+					cache = cellval[cell] + cellinfo[cell].ntot;
+				}
+				*cache++ = p;
+				if(ndiag){			/* double it if not on diag */
+					*cache++ = p;
+				} else {			/* diag, go to companion cell */
+					if(cell != 0) {		/* central cell has no companions,
+										 but wants to be doubled */
+						cellinfo[cell].ntot = cache - cellval[cell];
 		   
-		   cello = ++cell;
-		   cache = cellval[cell] + cellinfo[cell].ntot;
+						cello = ++cell;
+						cache = cellval[cell] + cellinfo[cell].ntot;
+					}
+					*cache++ = p;
+				}
+			}
 		}
-		*cache++ = p;
-	     }
-	  }
-       }
-       if(cell != NCELL) {		/* NCELL was used as garbage marker */
-	  cellinfo[cell].ntot = cache - cellval[cell];
-       }
+		if(cell != NCELL) {		/* NCELL was used as garbage marker */
+			cellinfo[cell].ntot = cache - cellval[cell];
+		}
        
-       /* OK, we are done with the cache*/
+		/* OK, we are done with the cache*/
     }
 /*
  * now we have the pixels, calculate the desired quantities (mean, median, etc)
  */
     for(i = cellim0;i < cellim;i++){
-       cellinfo[i].data = cellval[i];
+		cellinfo[i].data = cellval[i];
     }
     makedssprof(cellim0, cellim - 1, sky, skysig, band, fxc, fyc);
 /*
@@ -1864,13 +1866,13 @@ phProfileExtract(int id,		/* ID for this profile */
  * means via integration over the sinc-interpolated function
  */
     if(cellim0 == 0 && cstats.syncreg != NULL) {
-       for(i = 0;i < NCELLIN;i++) {
-	  j = phSincApertureMean(cstats.syncreg,i,sky,
-				 syncreg->nrow/2, syncreg->ncol/2,
-				 &cstats.cells[i].mean, &cstats.cells[i].area);
-	  shAssert(j == 0);
+		for(i = 0;i < NCELLIN;i++) {
+			j = phSincApertureMean(cstats.syncreg,i,sky,
+								   syncreg->nrow/2, syncreg->ncol/2,
+								   &cstats.cells[i].mean, &cstats.cells[i].area);
+			shAssert(j == 0);
 	  
-       }
+		}
     }
 /*
  * Find how many annuli we have data for, and how many are complete
@@ -1878,37 +1880,37 @@ phProfileExtract(int id,		/* ID for this profile */
  * We do NOT consider any data in partial sectors
  */
     if(keep_profile) {
-       nannuli_old = cstats.nannuli;
-       nannuli_c_old = cstats.nannuli_c;
+		nannuli_old = cstats.nannuli;
+		nannuli_c_old = cstats.nannuli_c;
     } else {
-       nannuli_old = nannuli_c_old = 0;	/* make gcc happy */
+		nannuli_old = nannuli_c_old = 0;	/* make gcc happy */
     }
     
     cstats.nannuli = (cellim - 1)/NSEC + 1;
     cstats.nannuli_c = -1;
     for(i = 1;i < cstats.nannuli;i++) {
-       int nel;				/* sum of nel in an annulus */
-       int flg;				/* | of flags for this annulus */
-       flg = nel = 0;
-       for(j = (i - 1)*NSEC + 1;j <= i*NSEC;j++) {
-	  shAssert(j < cellim);
-	  flg |= cstats.cells[j].flg;
-	  if(cstats.cells[j].nel > 0 && !(cstats.cells[j].flg & EXTRACT_EDGE)){
-	     nel += cstats.cells[j].nel;
-	  }
-       }
-       if(nel == 0) {			/* no data in this annulus */
-	  cstats.nannuli = i;
-	  break;
-       }
-       if(flg & EXTRACT_EDGE) {		/* annulus is incomplete */
-	  if(cstats.nannuli_c < 0) {
-	     cstats.nannuli_c = i;
-	  }
-       }
+		int nel;				/* sum of nel in an annulus */
+		int flg;				/* | of flags for this annulus */
+		flg = nel = 0;
+		for(j = (i - 1)*NSEC + 1;j <= i*NSEC;j++) {
+			shAssert(j < cellim);
+			flg |= cstats.cells[j].flg;
+			if(cstats.cells[j].nel > 0 && !(cstats.cells[j].flg & EXTRACT_EDGE)){
+				nel += cstats.cells[j].nel;
+			}
+		}
+		if(nel == 0) {			/* no data in this annulus */
+			cstats.nannuli = i;
+			break;
+		}
+		if(flg & EXTRACT_EDGE) {		/* annulus is incomplete */
+			if(cstats.nannuli_c < 0) {
+				cstats.nannuli_c = i;
+			}
+		}
     }
     if(cstats.nannuli_c < 0) {
-       cstats.nannuli_c = cstats.nannuli;
+		cstats.nannuli_c = cstats.nannuli;
     }
     shAssert(cstats.nannuli_c <= cstats.nannuli);
 
@@ -1929,50 +1931,50 @@ phProfileExtract(int id,		/* ID for this profile */
  * for this effect once.
  */
     if(cellim0 < NCELLIN && cellim >= NCELLIN && cstats.nannuli_c > NSYNCANN) {
-       float delta;			/* amount of missing flux */
-       float mflux;			/* flux as measured */
-       float pflux;			/* flux in pixels omitted from outer
-					   parts as part of inner region */
+		float delta;			/* amount of missing flux */
+		float mflux;			/* flux as measured */
+		float pflux;			/* flux in pixels omitted from outer
+								 parts as part of inner region */
        
-       mflux = cstats.cells[0].sum;
-       for(i = 1;i < NSYNCANN;i++) {
-	  for(j = 0;j < NSEC;j++) {
-	     cell = 1 + NSEC*(i-1) + j;
-	     mflux += cstats.cells[cell].sum;
-	  }
-       }
-       mflux *= 0.5;			/* we double count in the sinc region*/
+		mflux = cstats.cells[0].sum;
+		for(i = 1;i < NSYNCANN;i++) {
+			for(j = 0;j < NSEC;j++) {
+				cell = 1 + NSEC*(i-1) + j;
+				mflux += cstats.cells[cell].sum;
+			}
+		}
+		mflux *= 0.5;			/* we double count in the sinc region*/
        
-       pflux = cstats.cells[NCELL].mean*cstats.cells[NCELL].ntot;
-       delta = pflux - mflux;
+		pflux = cstats.cells[NCELL].mean*cstats.cells[NCELL].ntot;
+		delta = pflux - mflux;
 
-       i = NSYNCANN;			/* and now this one */
-       for(j = 0;j < NSEC;j++) {
-	  cstats.cells[1 + NSEC*(i - 1) + j].mean += delta/area[i];
-       }
+		i = NSYNCANN;			/* and now this one */
+		for(j = 0;j < NSEC;j++) {
+			cstats.cells[1 + NSEC*(i - 1) + j].mean += delta/area[i];
+		}
     }
 /*
  * Were we asked to keep old profile it if extended beyond orad?
  */
     if(keep_profile) {
-       if(nannuli_old > cstats.nannuli) {
-	  cstats.nannuli = nannuli_old;
-       }
-       if(nannuli_c_old > cstats.nannuli_c) {
-	  cstats.nannuli_c = nannuli_c_old;
-       }
+		if(nannuli_old > cstats.nannuli) {
+			cstats.nannuli = nannuli_old;
+		}
+		if(nannuli_c_old > cstats.nannuli_c) {
+			cstats.nannuli_c = nannuli_c_old;
+		}
     }
 /*
  * Write out file to help with debugging?
  */
     {
-       static char *dump_filename = NULL; /* write data to this file?
-					     For use from gdb */
-       if(dump_filename != NULL) {
-	  shRegWriteAsFits((REGION *)in, dump_filename,
-			   STANDARD, 2, DEF_NONE, NULL, 0);
-	  dump_filename = NULL;
-       }
+		static char *dump_filename = NULL; /* write data to this file?
+											For use from gdb */
+		if(dump_filename != NULL) {
+			shRegWriteAsFits((REGION *)in, dump_filename,
+							 STANDARD, 2, DEF_NONE, NULL, 0);
+			dump_filename = NULL;
+		}
     }
 
     return(&cstats);
@@ -1987,7 +1989,7 @@ phProfileExtract(int id,		/* ID for this profile */
 CELL_STATS *
 phProfileGetLast(void)
 {
-   return(&cstats);
+	return(&cstats);
 }
 
 /*****************************************************************************/
@@ -2000,11 +2002,11 @@ int phGetCellid(int r, int c)
     c += SYNCRAD;
     
     if (r < 0 || r >= 2*SYNCRAD + 1 || c < 0 || c >= 2*SYNCRAD + 1) {
-	return -1;
+		return -1;
     }
 
     if (cellid == NULL) {
-	phInitProfileExtract();
+		phInitProfileExtract();
     }
 
     return cellid[r][c].c_id;
@@ -2019,25 +2021,25 @@ int phGetCellid(int r, int c)
  */
 int
 phProfileExtractOk(const REGION *in,	/* input region */
-		   double fyc,		/* row centre of object
-					     relative to REGION's origin */
-		   double fxc)		/* col centre of object
-					   relative to REGION's origin */
+				   double fyc,		/* row centre of object
+									 relative to REGION's origin */
+				   double fxc)		/* col centre of object
+									 relative to REGION's origin */
 {
-   int iyc, ixc;
-   const int yrin = SYNCRAD + SYNCEXTRA + SYBELL - 1;
+	int iyc, ixc;
+	const int yrin = SYNCRAD + SYNCEXTRA + SYBELL - 1;
 
-   if(in == NULL) return(0);
-   shAssert(in->type == TYPE_PIX);
+	if(in == NULL) return(0);
+	shAssert(in->type == TYPE_PIX);
 
-   iyc = (int)fyc; ixc = (int)fxc;
+	iyc = (int)fyc; ixc = (int)fxc;
    
-   if(ixc < yrin || ixc + yrin >= in->ncol ||
-      iyc < yrin || iyc + yrin >= in->nrow) {
-      return(0);
-   }
+	if(ixc < yrin || ixc + yrin >= in->ncol ||
+	   iyc < yrin || iyc + yrin >= in->nrow) {
+		return(0);
+	}
    
-   return(1);
+	return(1);
 }
 
 /*****************************************************************************/
@@ -2050,23 +2052,23 @@ phProfileExtractOk(const REGION *in,	/* input region */
 const CELL_STATS *
 phProfileGeometry(void)
 {
-   static CELL_STATS cstats;		/* return value */
+	static CELL_STATS cstats;		/* return value */
 
-   cstats.id = -1;
-   cstats.annular = 1;
-   cstats.col_c = cstats.row_c = 0;
-   cstats.orad = -1;
-   cstats.syncreg = NULL;
+	cstats.id = -1;
+	cstats.annular = 1;
+	cstats.col_c = cstats.row_c = 0;
+	cstats.orad = -1;
+	cstats.syncreg = NULL;
 
-   cstats.radii = annrad;
-   cstats.area = area;
-   cstats.cells = NULL;
-   cstats.geom = cellgeom;
-   cstats.mgeom = NULL;
+	cstats.radii = annrad;
+	cstats.area = area;
+	cstats.cells = NULL;
+	cstats.geom = cellgeom;
+	cstats.mgeom = NULL;
 
-   cstats.ncell = NCELL;
+	cstats.ncell = NCELL;
    
-   return(&cstats);
+	return(&cstats);
 }
 
 /*****************************************************************************/
@@ -2075,37 +2077,37 @@ phProfileGeometry(void)
  */
 float
 phSigma2GetFromProfile(const CELL_STATS *cprof, /* extracted profile */
-		       float *sigma_rr,	/* <row^2>, or NULL */
-		       float *sigma_cc)	/* <col^2>, or NULL */
+					   float *sigma_rr,	/* <row^2>, or NULL */
+					   float *sigma_cc)	/* <col^2>, or NULL */
 {
-   float cflux;				/* flux within a cell */
-   int i;
-   float sigma_rc_s, *sigma_rc = &sigma_rc_s; /* <row col> */
-   float sigma_rr_s, sigma_cc_s;	/* space for sigma_{rr,cc} if needed */
-   double sum;				/* sums of intensity */
-   double sum_rr, sum_rc, sum_cc;	/*          and intensity*[]rc]*[rc] */
+	float cflux;				/* flux within a cell */
+	int i;
+	float sigma_rc_s, *sigma_rc = &sigma_rc_s; /* <row col> */
+	float sigma_rr_s, sigma_cc_s;	/* space for sigma_{rr,cc} if needed */
+	double sum;				/* sums of intensity */
+	double sum_rr, sum_rc, sum_cc;	/*          and intensity*[]rc]*[rc] */
 
-   if(sigma_rr == NULL) sigma_rr = &sigma_rr_s;
-   if(sigma_cc == NULL) sigma_cc = &sigma_cc_s;
+	if(sigma_rr == NULL) sigma_rr = &sigma_rr_s;
+	if(sigma_cc == NULL) sigma_cc = &sigma_cc_s;
 
-   shAssert(cprof != NULL && cprof->annular == 1 && cprof->nannuli_c >= 1);
+	shAssert(cprof != NULL && cprof->annular == 1 && cprof->nannuli_c >= 1);
 
-   sum = sum_rr = sum_rc = sum_cc = 0;
-   for(i = 0; i < 1 + NSEC*(cprof->nannuli_c - 1); i++) {
-      cflux = cprof->cells[i].mean*cprof->cells[i].area;
-      sum += cflux;
-      sum_rr += cflux*cprof->mgeom[i].row2;
-      sum_rc += cflux*cprof->mgeom[i].colrow;
-      sum_cc += cflux*cprof->mgeom[i].col2;
-   }
+	sum = sum_rr = sum_rc = sum_cc = 0;
+	for(i = 0; i < 1 + NSEC*(cprof->nannuli_c - 1); i++) {
+		cflux = cprof->cells[i].mean*cprof->cells[i].area;
+		sum += cflux;
+		sum_rr += cflux*cprof->mgeom[i].row2;
+		sum_rc += cflux*cprof->mgeom[i].colrow;
+		sum_cc += cflux*cprof->mgeom[i].col2;
+	}
 
-   shAssert(sum != 0);
+	shAssert(sum != 0);
 
-   *sigma_rr = sum_rr/sum;
-   *sigma_rc = sum_rc/sum;
-   *sigma_cc = sum_cc/sum;
+	*sigma_rr = sum_rr/sum;
+	*sigma_rc = sum_rc/sum;
+	*sigma_cc = sum_cc/sum;
 
-   return((*sigma_rr + *sigma_cc)/2);
+	return((*sigma_rr + *sigma_cc)/2);
 }
 
 /*****************************************************************************/
@@ -2115,73 +2117,73 @@ phSigma2GetFromProfile(const CELL_STATS *cprof, /* extracted profile */
  * First a static function to do the work
  */
 #define STEP(X,Y)			/* advance an Bresenham step */ \
-	a -= dsml; \
-	if (a >= 0) { \
-	   X += strx; \
-	   Y += stry; \
-	} else { \
-	   X += diagx; \
-	   Y++; \
-	   a += dlg; \
+	a -= dsml;												\
+	if (a >= 0) {											\
+		X += strx;											\
+		Y += stry;											\
+	} else {												\
+		X += diagx;											\
+		Y++;												\
+		a += dlg;											\
 	}
 
 static void
 setup_bresenham(int ix0, int iy0, int ix1, int iy1, /* end points */
-		int *x0, int *y0, int *x1, int *y1, /* end points, as permuted
-						       for Bresenham's use */
-		int *a, int *dsml,	/* Bresenham internals */
-		int *dlg, int *diagx,	/* "  "   "   "   */
-		int *strx, int *stry)	/* "  "   "   "   */
+				int *x0, int *y0, int *x1, int *y1, /* end points, as permuted
+													 for Bresenham's use */
+				int *a, int *dsml,	/* Bresenham internals */
+				int *dlg, int *diagx,	/* "  "   "   "   */
+				int *strx, int *stry)	/* "  "   "   "   */
 {
-   int dx = ix1 - ix0;
-   int dy = iy1 - iy0;
+	int dx = ix1 - ix0;
+	int dy = iy1 - iy0;
 
-   if(dy >= 0) {		/* find which octant and assign accordingly */
-      *y0 = iy0;
-      *x0 = ix0;
-      *y1 = iy1;
-      *x1 = ix1;
-   } else {
-      *x0 = ix1;
-      *y0 = iy1;
-      *x1 = ix0;
-      *y1 = iy0;
-      dy = -dy;
-      dx = -dx;
-   }
-   if(dx >= 0) {
-      if(dy >= dx) {
-	 *a = dy/2;
-	 *dlg = dy;
-	 *dsml = dx;
-	 *strx = 0;
-	 *stry = 1;
-	 *diagx = 1;
-      } else {
-	 *dlg = dx;
-	 *dsml = dy;
-	 *a = dx/2;
-	 *strx = 1;
-	 *stry = 0;
-	 *diagx = 1;
-      }
-   } else {
-      if(dy >= -dx) {
-	 *a = dy/2;
-	 *dlg = dy;
-	 *dsml = -dx;
-	 *strx = 0;
-	 *stry = 1;
-	 *diagx = -1;
-      } else {
-	 *dlg = -dx;
-	 *dsml = dy;
-	 *a = -dx/2;
-	 *strx = -1;
-	 *stry = 0;
-	 *diagx = -1;
-      }
-   }
+	if(dy >= 0) {		/* find which octant and assign accordingly */
+		*y0 = iy0;
+		*x0 = ix0;
+		*y1 = iy1;
+		*x1 = ix1;
+	} else {
+		*x0 = ix1;
+		*y0 = iy1;
+		*x1 = ix0;
+		*y1 = iy0;
+		dy = -dy;
+		dx = -dx;
+	}
+	if(dx >= 0) {
+		if(dy >= dx) {
+			*a = dy/2;
+			*dlg = dy;
+			*dsml = dx;
+			*strx = 0;
+			*stry = 1;
+			*diagx = 1;
+		} else {
+			*dlg = dx;
+			*dsml = dy;
+			*a = dx/2;
+			*strx = 1;
+			*stry = 0;
+			*diagx = 1;
+		}
+	} else {
+		if(dy >= -dx) {
+			*a = dy/2;
+			*dlg = dy;
+			*dsml = -dx;
+			*strx = 0;
+			*stry = 1;
+			*diagx = -1;
+		} else {
+			*dlg = -dx;
+			*dsml = dy;
+			*a = -dx/2;
+			*strx = -1;
+			*stry = 0;
+			*diagx = -1;
+		}
+	}
 }
 
 /*
@@ -2189,100 +2191,104 @@ setup_bresenham(int ix0, int iy0, int ix1, int iy1, /* end points */
  */
 static PIX *
 lextract_pixels(PIX **const rows,	/* rows of region */
-		int nrow, int ncol,	/* size of region */
-		PIX *cache,		/* where to put the region's pixels */
-		int x, int y,		/* start of line */
-		int xend, int yend,	/* end of line */
-		int a, int dsml, int dlg, /* Bresenham internals */
-		int strx, int stry, int diagx /* "  "   "   "   */
-		)
+				int nrow, int ncol,	/* size of region */
+				PIX *cache,		/* where to put the region's pixels */
+				int x, int y,		/* start of line */
+				int xend, int yend,	/* end of line */
+				int a, int dsml, int dlg, /* Bresenham internals */
+				int strx, int stry, int diagx /* "  "   "   "   */
+	)
 {
-   int j;				/* how many steps have we taken? */
+	int j;				/* how many steps have we taken? */
 
-   j = 0;
+	j = 0;
 /*
  * We may be below the region, so fix that
  */
-   if(y < 0) {
-      for(;j <= dlg;j++) {
-	 STEP(x,y);
-	 if(y >= 0) {
-	    break;
-	 }
-      }
-   }
+	if(y < 0) {
+		for(;j <= dlg;j++) {
+			STEP(x,y);
+			if(y >= 0) {
+				break;
+			}
+		}
+	}
 /*
  * We may be to the left or right of region, so fix _that_
  */
-   if(x < 0) {
-      if(diagx < 0) {			/* going left; we'll never hit region*/
-	 return(cache);
-      }
-      for(;j <= dlg;j++) {
-	 STEP(x,y);
-	 if(x >= 0) {
-	    break;
-	 }
-      }
-   } else if(x >= ncol) {
-      if(diagx > 0) {			/* going right; we'll never hit it */
-	 return(cache);
-      }
-      for(;j <= dlg;j++) {
-	 STEP(x,y);
-	 if(x < ncol) {
-	    break;
-	 }
-      }
-   }
+	if(x < 0) {
+		if(diagx < 0) {			/* going left; we'll never hit region*/
+			return(cache);
+		}
+		for(;j <= dlg;j++) {
+			STEP(x,y);
+			if(x >= 0) {
+				break;
+			}
+		}
+	} else if(x >= ncol) {
+		if(diagx > 0) {			/* going right; we'll never hit it */
+			return(cache);
+		}
+		for(;j <= dlg;j++) {
+			STEP(x,y);
+			if(x < ncol) {
+				break;
+			}
+		}
+	}
 /*
  * Check if we're above region; if so, we're done
  */
-   if(y >= nrow) return(cache);
+	if(y >= nrow) return(cache);
 /*
  * We are in the interior or on the left, bottom, or right boundary
  */
-   if(diagx > 0) {			/* going right */
-      if(xend < ncol && yend < nrow) {	/* easy; no boundaries to check */
-	 for(;j <= dlg;j++) {
+	if(diagx > 0) {			/* going right */
+		if(xend < ncol && yend < nrow) {	/* easy; no boundaries to check */
+			for(;j <= dlg;j++) {
 #if 0
-	    shAssert(y >= 0 && y < nrow && x >= 0 && x < ncol);
+				shAssert(y >= 0 && y < nrow && x >= 0 && x < ncol);
 #endif
-	    *cache++ = rows[y][x];
-	    STEP(x,y);
-	 }
-      } else {
-	 for(;j <= dlg;j++) {
+				trace("Grabbing pixel (x,y) = (%i,%i) = %i\n", x, y, (int)rows[y][x]);
+				*cache++ = rows[y][x];
+				STEP(x,y);
+			}
+		} else {
+			for(;j <= dlg;j++) {
 #if 0
-	    shAssert(y >= 0 && y < nrow && x >= 0 && x < ncol);
+				shAssert(y >= 0 && y < nrow && x >= 0 && x < ncol);
 #endif
-	    *cache++ = rows[y][x];
-	    STEP(x,y);
-	    if(y == nrow || x == ncol) break;
-	 }
-      }
-   } else {				/* going left */
-      if(xend >= 0 && yend < nrow) {	/* easy; no boundaries to check */
-	 for(;j <= dlg;j++) {
+				trace("Grabbing pixel (x,y) = (%i,%i) = %i\n", x, y, (int)rows[y][x]);
+				*cache++ = rows[y][x];
+				STEP(x,y);
+				if(y == nrow || x == ncol) break;
+			}
+		}
+	} else {				/* going left */
+		if(xend >= 0 && yend < nrow) {	/* easy; no boundaries to check */
+			for(;j <= dlg;j++) {
 #if 0
-	    shAssert(y >= 0 && y < nrow && x >= 0 && x < ncol);
+				shAssert(y >= 0 && y < nrow && x >= 0 && x < ncol);
 #endif
-	    *cache++ = rows[y][x];
-	    STEP(x,y);
-	 }
-      } else {
-	 for(;j <= dlg;j++) {
+				trace("Grabbing pixel (x,y) = (%i,%i) = %i\n", x, y, (int)rows[y][x]);
+				*cache++ = rows[y][x];
+				STEP(x,y);
+			}
+		} else {
+			for(;j <= dlg;j++) {
 #if 0
-	    shAssert(y >= 0 && y < nrow && x >= 0 && x < ncol);
+				shAssert(y >= 0 && y < nrow && x >= 0 && x < ncol);
 #endif
-	    *cache++ = rows[y][x];
-	    STEP(x,y);
-	    if(y == nrow || x == -1) break;
-	 }
-      }
-   }
+				trace("Grabbing pixel (x,y) = (%i,%i) = %i\n", x, y, (int)rows[y][x]);
+				*cache++ = rows[y][x];
+				STEP(x,y);
+				if(y == nrow || x == -1) break;
+			}
+		}
+	}
 
-   return(cache);
+	return(cache);
 }
 
 /*****************************************************************************/
@@ -2292,194 +2298,194 @@ lextract_pixels(PIX **const rows,	/* rows of region */
  */
 CELL_STATS *
 phProfileExtractLinear(int id,		/* ID for this profile */
-		       const REGION *in,
-		       double fy0, double fx0,	/* left end of object */
-		       double fy1, double fx1,	/* right end of object */
-		       int hwidth,		/* desired half-width of
-						   profile */
-		       int bin,			/* width of bins; if 0 use the
-						   ones defined by anndex[]*/
-		       double sky,		/* sky level */
-		       double skysig		/* sky sigma */
-		       )
+					   const REGION *in,
+					   double fy0, double fx0,	/* left end of object */
+					   double fy1, double fx1,	/* right end of object */
+					   int hwidth,		/* desired half-width of
+										 profile */
+					   int bin,			/* width of bins; if 0 use the
+										 ones defined by anndex[]*/
+					   double sky,		/* sky level */
+					   double skysig		/* sky sigma */
+	)
 {
-   int ann;				/* index into anndex[] */
-   PIX *cache;				/* cache for pixels in a cell */
-   struct pstats *cinfo;
-   static CELL_STATS cstats;		/* return value */
-   float delta;				/* how far we are from ridgeline */
-   int bounds[NANN + 1];		/* indices of boundaries of cells */
-   float obound;			/* outer edge of outermost bin */
-   int i;
-   int diagx,dlg,dsml;			/* used by Bresenham's algorithm */
-   int a,strx,stry;			/*   "  "    "   "       "   "   */
-   int nbound;				/* number of values in bounds */
-   int nrow, ncol;			/* in->{nrow,ncol} unaliased */
-   int skyfloor = sky - 5.*skysig;	 /* sky - 5*sigma should be safe, but
-					    region_maxmean_crude() checks */
-   float theta;				/* angle of ridgeline to columns */
-   int x0_r, y0_r, x1_r, y1_r;		/* integer endpoints of ridgeline */
-   int x0, y0, x1, y1;			/*  "  "     "   "   "  line */
+	int ann;				/* index into anndex[] */
+	PIX *cache;				/* cache for pixels in a cell */
+	struct pstats *cinfo;
+	static CELL_STATS cstats;		/* return value */
+	float delta;				/* how far we are from ridgeline */
+	int bounds[NANN + 1];		/* indices of boundaries of cells */
+	float obound;			/* outer edge of outermost bin */
+	int i;
+	int diagx,dlg,dsml;			/* used by Bresenham's algorithm */
+	int a,strx,stry;			/*   "  "    "   "       "   "   */
+	int nbound;				/* number of values in bounds */
+	int nrow, ncol;			/* in->{nrow,ncol} unaliased */
+	int skyfloor = sky - 5.*skysig;	 /* sky - 5*sigma should be safe, but
+									  region_maxmean_crude() checks */
+	float theta;				/* angle of ridgeline to columns */
+	int x0_r, y0_r, x1_r, y1_r;		/* integer endpoints of ridgeline */
+	int x0, y0, x1, y1;			/*  "  "     "   "   "  line */
 
-   shAssert(in != NULL);
-   shAssert(in->type == TYPE_PIX);
-   shAssert(cellinfo != NULL);
-   ncol = in->ncol; nrow = in->nrow;
+	shAssert(in != NULL);
+	shAssert(in->type == TYPE_PIX);
+	shAssert(cellinfo != NULL);
+	ncol = in->ncol; nrow = in->nrow;
 /*
  * See which index in anndex corresponds to hwidth if we are using anndex[]
  */
-   if(bin == 0) {
-      for(i = 0;hwidth > anndex[i];i++) continue;
-      obound = (i == 0) ? 0 : anndex[i] - 0.5; /* first r beyond limit */
-   } else {
-      shAssert(bin > 0);
-      obound = hwidth/bin;
-   }
+	if(bin == 0) {
+		for(i = 0;hwidth > anndex[i];i++) continue;
+		obound = (i == 0) ? 0 : anndex[i] - 0.5; /* first r beyond limit */
+	} else {
+		shAssert(bin > 0);
+		obound = hwidth/bin;
+	}
 /*
  * Set up for Bresenham's algorithm
  */
-   setup_bresenham(fx0, fy0, fx1, fy1, &x0_r, &y0_r, &x1_r, &y1_r,
-		   &a, &dsml, &dlg, &diagx, &strx, &stry);
+	setup_bresenham(fx0, fy0, fx1, fy1, &x0_r, &y0_r, &x1_r, &y1_r,
+					&a, &dsml, &dlg, &diagx, &strx, &stry);
 
-   if(x0_r == x1_r && y0_r == y1_r) {
-      shErrStackPush("Cannot extract profile between two coincident points");
-      return(NULL);
-   }
-   theta = atan2(fy1 - fy0,fx1 - fx0);
+	if(x0_r == x1_r && y0_r == y1_r) {
+		shErrStackPush("Cannot extract profile between two coincident points");
+		return(NULL);
+	}
+	theta = atan2(fy1 - fy0,fx1 - fx0);
 /*
  * Find out where the cell boundaries are. They'd be at anndex[i] if the
  * ridgeline were vertical or horizontal, but in general it isn't.
  */
-   if(bin == 0) {
-      ann = 0;
-      for(i = 0;;i++) {
-	 delta = fabs((i + 0.5)*(stry == 1 ? sin(theta) : cos(theta)));
-	 if(delta > anndex[ann]) {
-	    bounds[ann] = i;
-	    if(delta > obound) break;
-	    ann++;
-	 }
-      }
-      if(ann == 1) {
-	 ann++;
-	 bounds[ann] = i + 1;
-      }
-   } else {
-      ann = 0;
-      bounds[ann++] = 0;
-      for(i = bin/2 + 1;i <= hwidth;i += bin) {
-	 bounds[ann++] = i;
-	 if(ann >= NANN) {
-	    break;
-	 }
-      }
-      if(ann > 1) ann--;
+	if(bin == 0) {
+		ann = 0;
+		for(i = 0;;i++) {
+			delta = fabs((i + 0.5)*(stry == 1 ? sin(theta) : cos(theta)));
+			if(delta > anndex[ann]) {
+				bounds[ann] = i;
+				if(delta > obound) break;
+				ann++;
+			}
+		}
+		if(ann == 1) {
+			ann++;
+			bounds[ann] = i + 1;
+		}
+	} else {
+		ann = 0;
+		bounds[ann++] = 0;
+		for(i = bin/2 + 1;i <= hwidth;i += bin) {
+			bounds[ann++] = i;
+			if(ann >= NANN) {
+				break;
+			}
+		}
+		if(ann > 1) ann--;
 
-      if(ann == 1) {
-	 ann++;
-	 bounds[ann] = bounds[ann-1] + bin;
-      }
-   }
-   nbound = ann;
+		if(ann == 1) {
+			ann++;
+			bounds[ann] = bounds[ann-1] + bin;
+		}
+	}
+	nbound = ann;
 /*
  * Now set the bits corresponding to that line. First on one side...
  */
-   ann = 0;				/* index into anndex */
-   cinfo = &cellinfo[nbound - 1];
-   cache = cinfo->data = cellval[0];
-   for(i = -bounds[1] + 1;;i++) {
-      if(stry == 1) {			/* nearer the y- than the x- axis */
-	 x0 = x0_r + i;
-	 y0 = y0_r;
-	 x1 = x1_r + i;
-	 y1 = y1_r;
-      } else {
-	 x0 = x0_r;
-	 y0 = y0_r + i;
-	 x1 = x1_r;
-	 y1 = y1_r + i;
-      }
-      if(i >= bounds[ann + 1]) {
-	 if((cinfo->ntot = cache - cinfo->data) > 0) {
-	    do_pstats(cinfo, skyfloor, -1, fx0, fy0, NULL);
-	 }
-	 if(++ann == nbound) break;
+	ann = 0;				/* index into anndex */
+	cinfo = &cellinfo[nbound - 1];
+	cache = cinfo->data = cellval[0];
+	for(i = -bounds[1] + 1;;i++) {
+		if(stry == 1) {			/* nearer the y- than the x- axis */
+			x0 = x0_r + i;
+			y0 = y0_r;
+			x1 = x1_r + i;
+			y1 = y1_r;
+		} else {
+			x0 = x0_r;
+			y0 = y0_r + i;
+			x1 = x1_r;
+			y1 = y1_r + i;
+		}
+		if(i >= bounds[ann + 1]) {
+			if((cinfo->ntot = cache - cinfo->data) > 0) {
+				do_pstats(cinfo, skyfloor, -1, fx0, fy0, NULL);
+			}
+			if(++ann == nbound) break;
 
-	 cinfo = &cellinfo[nbound + ann - 1];
-	 cache = cinfo->data = cellval[0];
-      }
+			cinfo = &cellinfo[nbound + ann - 1];
+			cache = cinfo->data = cellval[0];
+		}
 
-      cache = lextract_pixels(in->ROWS, nrow, ncol, cache, x0, y0, x1, y1,
-					      a, dsml, dlg, strx, stry, diagx);
-   }
+		cache = lextract_pixels(in->ROWS, nrow, ncol, cache, x0, y0, x1, y1,
+								a, dsml, dlg, strx, stry, diagx);
+	}
 /*
  * ... and then on the other
  */
-   ann = 1;				/* index into anndex */
-   cinfo = &cellinfo[nbound - 1 - ann];
-   cache = cinfo->data = cellval[0];
-   for(i = bounds[1];;i++) {
-      if(stry == 1) {			/* nearer the y- than the x- axis */
-	 x0 = x0_r - i;
-	 y0 = y0_r;
-	 x1 = x1_r - i;
-	 y1 = y1_r;
-      } else {
-	 x0 = x0_r;
-	 y0 = y0_r - i;
-	 x1 = x1_r;
-	 y1 = y1_r - i;
-      }
-      if(i >= bounds[ann + 1]) {
-	 if((cinfo->ntot = cache - cinfo->data) > 0) {
-	    do_pstats(cinfo, skyfloor, -1, fx0, fy0, NULL);
-	 }
-	 if(++ann == nbound) break;
+	ann = 1;				/* index into anndex */
+	cinfo = &cellinfo[nbound - 1 - ann];
+	cache = cinfo->data = cellval[0];
+	for(i = bounds[1];;i++) {
+		if(stry == 1) {			/* nearer the y- than the x- axis */
+			x0 = x0_r - i;
+			y0 = y0_r;
+			x1 = x1_r - i;
+			y1 = y1_r;
+		} else {
+			x0 = x0_r;
+			y0 = y0_r - i;
+			x1 = x1_r;
+			y1 = y1_r - i;
+		}
+		if(i >= bounds[ann + 1]) {
+			if((cinfo->ntot = cache - cinfo->data) > 0) {
+				do_pstats(cinfo, skyfloor, -1, fx0, fy0, NULL);
+			}
+			if(++ann == nbound) break;
 
-	 cinfo = &cellinfo[nbound - 1 - ann];
-	 cache = cinfo->data = cellval[0];
-      }
+			cinfo = &cellinfo[nbound - 1 - ann];
+			cache = cinfo->data = cellval[0];
+		}
 
-      cache = lextract_pixels(in->ROWS,nrow, ncol, cache, x0, y0, x1, y1,
-					      a, dsml, dlg, strx, stry, diagx);
-   }
+		cache = lextract_pixels(in->ROWS,nrow, ncol, cache, x0, y0, x1, y1,
+								a, dsml, dlg, strx, stry, diagx);
+	}
 /*
  * set return values
  */
-   cstats.id = id;
-   cstats.nannuli = cstats.ncell = 2*nbound - 1;
-   cstats.nannuli_c = cstats.annular = 0;
-   cstats.col_c = fx0; cstats.row_c = fy0;
-   cstats.col_1 = fx1; cstats.row_1 = fy1;
-   cstats.syncreg = NULL;
-   cstats.radii = NULL;
-   cstats.cells = cellinfo;
-   cstats.geom = lcellgeom;
-   cstats.mgeom = lcellmod;
+	cstats.id = id;
+	cstats.nannuli = cstats.ncell = 2*nbound - 1;
+	cstats.nannuli_c = cstats.annular = 0;
+	cstats.col_c = fx0; cstats.row_c = fy0;
+	cstats.col_1 = fx1; cstats.row_1 = fy1;
+	cstats.syncreg = NULL;
+	cstats.radii = NULL;
+	cstats.cells = cellinfo;
+	cstats.geom = lcellgeom;
+	cstats.mgeom = lcellmod;
 /*
  * fill out geometry information
  */
-   for(i = 0;i < nbound;i++) {
-      ann = (nbound - 1) - i;
-      if(bin == 0) {
-	 lcellmod[i].col = (ann == 0) ?
-   			    	  0 : -((anndex[ann] + anndex[ann+1])/2.0-0.5);
-      } else {
-	 lcellmod[i].col = (ann == 0) ?
-	   			  0 : -((bounds[ann] + bounds[ann+1])/2.0-0.5);
-      }
-      lcellmod[i].row = 0;
-      lcellmod[i].rmean = 0;
+	for(i = 0;i < nbound;i++) {
+		ann = (nbound - 1) - i;
+		if(bin == 0) {
+			lcellmod[i].col = (ann == 0) ?
+				0 : -((anndex[ann] + anndex[ann+1])/2.0-0.5);
+		} else {
+			lcellmod[i].col = (ann == 0) ?
+				0 : -((bounds[ann] + bounds[ann+1])/2.0-0.5);
+		}
+		lcellmod[i].row = 0;
+		lcellmod[i].rmean = 0;
 
-      lcellmod[cstats.ncell - i - 1] = lcellmod[i];
-      lcellmod[cstats.ncell - i - 1].col = -lcellmod[i].col;
-   }
+		lcellmod[cstats.ncell - i - 1] = lcellmod[i];
+		lcellmod[cstats.ncell - i - 1].col = -lcellmod[i].col;
+	}
 
-   for(i = 0;i < cstats.ncell;i++) {
-      lcellgeom[i].n = cellinfo[i].ntot;
-   }
+	for(i = 0;i < cstats.ncell;i++) {
+		lcellgeom[i].n = cellinfo[i].ntot;
+	}
 
-   return(&cstats);
+	return(&cstats);
 }
 
 /*****************************************************************************/
@@ -2504,90 +2510,90 @@ phProfileExtractLinear(int id,		/* ID for this profile */
  */
 float *
 phXsectionExtract(const REGION *in,
-		  double fy0, double fx0, /* left end of section */
-		  double fy1, double fx1, /* right end of section */
-		  int hwidth,		/* desired half-width */
-		  int *nval		/* number of points in cross section */
-		  )
+				  double fy0, double fx0, /* left end of section */
+				  double fy1, double fx1, /* right end of section */
+				  int hwidth,		/* desired half-width */
+				  int *nval		/* number of points in cross section */
+	)
 {
-   int i,j;
-   PIX *cache;				/* cache for pixels in a cell */
-   float delta;				/* how far we are from ridgeline */
-   int diagx,dlg,dsml;			/* used by Bresenham's algorithm */
-   int a,strx,stry;			/*   "  "    "   "       "   "   */
-   int nrow, ncol;			/* in->{nrow,ncol} unaliased */
-   float *section;			/* the extracted cross-section */
-   float theta;				/* angle of ridgeline to columns */
-   int x0_r, y0_r, x1_r, y1_r;		/* integer endpoints of ridgeline */
-   int x0, y0, x1, y1;			/*  "  "     "   "   "  line */
+	int i,j;
+	PIX *cache;				/* cache for pixels in a cell */
+	float delta;				/* how far we are from ridgeline */
+	int diagx,dlg,dsml;			/* used by Bresenham's algorithm */
+	int a,strx,stry;			/*   "  "    "   "       "   "   */
+	int nrow, ncol;			/* in->{nrow,ncol} unaliased */
+	float *section;			/* the extracted cross-section */
+	float theta;				/* angle of ridgeline to columns */
+	int x0_r, y0_r, x1_r, y1_r;		/* integer endpoints of ridgeline */
+	int x0, y0, x1, y1;			/*  "  "     "   "   "  line */
 
-   shAssert(in != NULL);
-   shAssert(in->type == TYPE_PIX);
-   shAssert(cellinfo != NULL);
-   ncol = in->ncol; nrow = in->nrow;
+	shAssert(in != NULL);
+	shAssert(in->type == TYPE_PIX);
+	shAssert(cellinfo != NULL);
+	ncol = in->ncol; nrow = in->nrow;
 /*
  * Set up for Bresenham's algorithm
  */
-   setup_bresenham(fx0, fy0, fx1, fy1, &x0_r, &y0_r, &x1_r, &y1_r,
-		   &a, &dsml, &dlg, &diagx, &strx, &stry);
+	setup_bresenham(fx0, fy0, fx1, fy1, &x0_r, &y0_r, &x1_r, &y1_r,
+					&a, &dsml, &dlg, &diagx, &strx, &stry);
 
-   if(x0_r == x1_r && y0_r == y1_r) {
-      shErrStackPush("Cannot extract profile between two coincident points");
-      return(NULL);
-   }
-   theta = atan2(fy1 - fy0,fx1 - fx0);
+	if(x0_r == x1_r && y0_r == y1_r) {
+		shErrStackPush("Cannot extract profile between two coincident points");
+		return(NULL);
+	}
+	theta = atan2(fy1 - fy0,fx1 - fx0);
 /*
  * Find out where the edge of the swath is; it'd be at hwidth if the
  * ridgeline were vertical or horizontal, but in general it isn't.
  */
-   for(i = 0;;i++) {
-      delta = fabs((i + 0.5)*(stry == 1 ? sin(theta) : cos(theta)));
-      if(delta > hwidth) {
-	 break;
-      }
-   }
-   hwidth = i;
+	for(i = 0;;i++) {
+		delta = fabs((i + 0.5)*(stry == 1 ? sin(theta) : cos(theta)));
+		if(delta > hwidth) {
+			break;
+		}
+	}
+	hwidth = i;
 /*
  * Now extract those pixels into the cross section
  */
-   section = (float *)cellval[0];
-   cache = cellval[0] + 4000*sizeof(float)/sizeof(PIX);
-   shAssert(nrow + ncol <
+	section = (float *)cellval[0];
+	cache = cellval[0] + 4000*sizeof(float)/sizeof(PIX);
+	shAssert(nrow + ncol <
 	    	 4000*sizeof(float)/sizeof(PIX)); /* really hypot(ncol,nrow) */
 
-   (void)lextract_pixels(in->ROWS,nrow, ncol, cache, x0_r, y0_r, x1_r, y1_r,
+	(void)lextract_pixels(in->ROWS,nrow, ncol, cache, x0_r, y0_r, x1_r, y1_r,
 					      a, dsml, dlg, strx, stry, diagx);
-   for(j = 0;j < dlg;j++) {
-      section[j] = cache[j];
-   }
+	for(j = 0;j < dlg;j++) {
+		section[j] = cache[j];
+	}
 
-   for(i = -hwidth + 1;i < hwidth;i++) {
-      if(i == 0) continue;		/* we did it already */
+	for(i = -hwidth + 1;i < hwidth;i++) {
+		if(i == 0) continue;		/* we did it already */
 
-      if(stry == 1) {			/* nearer the y- than the x- axis */
-	 x0 = x0_r + i;
-	 y0 = y0_r;
-	 x1 = x1_r + i;
-	 y1 = y1_r;
-      } else {
-	 x0 = x0_r;
-	 y0 = y0_r + i;
-	 x1 = x1_r;
-	 y1 = y1_r + i;
-      }
-      (void)lextract_pixels(in->ROWS, nrow, ncol, cache, x0, y0, x1, y1,
-					      a, dsml, dlg, strx, stry, diagx);
-      for(j = 0;j < dlg;j++) {
-	 section[j] += cache[j];
-      }
-   }
+		if(stry == 1) {			/* nearer the y- than the x- axis */
+			x0 = x0_r + i;
+			y0 = y0_r;
+			x1 = x1_r + i;
+			y1 = y1_r;
+		} else {
+			x0 = x0_r;
+			y0 = y0_r + i;
+			x1 = x1_r;
+			y1 = y1_r + i;
+		}
+		(void)lextract_pixels(in->ROWS, nrow, ncol, cache, x0, y0, x1, y1,
+							  a, dsml, dlg, strx, stry, diagx);
+		for(j = 0;j < dlg;j++) {
+			section[j] += cache[j];
+		}
+	}
 
-   for(j = 0;j < dlg;j++) {
-      section[j] /= (2*hwidth - 1);
-   }
+	for(j = 0;j < dlg;j++) {
+		section[j] /= (2*hwidth - 1);
+	}
 
-   *nval = dlg;
-   return(section);
+	*nval = dlg;
+	return(section);
 }
 
 /*****************************************************************************/
@@ -2597,135 +2603,135 @@ phXsectionExtract(const REGION *in,
  * threshold. Assumes that the profile is circular --- but see also
  * phObjectNewFromProfileLinear
  */
-#define INCR_NSPAN \
-   if(++nspan >= nalloc) { \
-      nalloc *= 2; \
-      span0 = shRealloc(span0,nalloc*sizeof(SPAN)); \
-      span = &span0[nspan]; \
-   }
+#define INCR_NSPAN										\
+	if(++nspan >= nalloc) {								\
+		nalloc *= 2;									\
+		span0 = shRealloc(span0,nalloc*sizeof(SPAN));	\
+		span = &span0[nspan];							\
+	}
 
 
 OBJECT *
 phObjectNewFromProfile(
-		       const CELL_STATS *cstats, /* extracted profile */
-		       int ncol, int nrow, /* size of REGION in which
-					    object is embedded */
-		       float thresh,	/* set bits if profile exceeds thresh*/
-		       int set_sectors,	/* no. of sectors above threshold
-					   to mask the entire annulus*/
-		       int clip		/* if >= 0, calculate clipped mean for
-					   annulus, and compare this to thresh
-					   to mask entire annulus */
-		       )
+	const CELL_STATS *cstats, /* extracted profile */
+	int ncol, int nrow, /* size of REGION in which
+						 object is embedded */
+	float thresh,	/* set bits if profile exceeds thresh*/
+	int set_sectors,	/* no. of sectors above threshold
+						 to mask the entire annulus*/
+	int clip		/* if >= 0, calculate clipped mean for
+					 annulus, and compare this to thresh
+					 to mask entire annulus */
+	)
 {
-   int set[NCELL];			/* cells that we want to set */
-   int i,j;
-   int sdy_l, sdy_u;			/* These are the indexes into cellorig
-					   based on which y-subpixel the
-					   object's centre lies in, for the
-					   lower and upper half of the object*/
-   int rlim,rlimyl,rlimyu;
-   int srlim;
-   int annlim;				/* first annulus beyond limit */
-   int cellim;				/* first cell beyond limit */
-   int cxext;
-   int lxext,rxext;			/* extents left and right */
-   int slxext,srxext;			/* scaled extents left and right */
-   int iyc,ixc,sxc;
-   int slen,sxorig;
-   int xorig;
-   int corig;
-   register int len,cell;
-   struct cellorig *pcell;
-   int iscr;
-   int ccareful = 0;
-   int lcareful = 0;			/* flags to be careful at edges */
-   int rcareful = 0;
+	int set[NCELL];			/* cells that we want to set */
+	int i,j;
+	int sdy_l, sdy_u;			/* These are the indexes into cellorig
+								 based on which y-subpixel the
+								 object's centre lies in, for the
+								 lower and upper half of the object*/
+	int rlim,rlimyl,rlimyu;
+	int srlim;
+	int annlim;				/* first annulus beyond limit */
+	int cellim;				/* first cell beyond limit */
+	int cxext;
+	int lxext,rxext;			/* extents left and right */
+	int slxext,srxext;			/* scaled extents left and right */
+	int iyc,ixc,sxc;
+	int slen,sxorig;
+	int xorig;
+	int corig;
+	register int len,cell;
+	struct cellorig *pcell;
+	int iscr;
+	int ccareful = 0;
+	int lcareful = 0;			/* flags to be careful at edges */
+	int rcareful = 0;
 /*
  * span stuff
  */
-   int nspan;				/* number of SPANs used */
-   int nalloc;				/* number of SPANs allocated */
-   OBJECT *obj;
-   SPAN *span0;				/* base of SPAN array */
-   SPAN *span;				/* pointer to current SPAN */
-   int y, x1;				/* the starting coordinates of a SPAN*/
+	int nspan;				/* number of SPANs used */
+	int nalloc;				/* number of SPANs allocated */
+	OBJECT *obj;
+	SPAN *span0;				/* base of SPAN array */
+	SPAN *span;				/* pointer to current SPAN */
+	int y, x1;				/* the starting coordinates of a SPAN*/
 
-   shAssert(cstats != NULL);
-   shAssert(cstats->annular);
+	shAssert(cstats != NULL);
+	shAssert(cstats->annular);
 
-   nalloc = nrow;
-   span0 = shMalloc(nalloc*sizeof(SPAN));
-   nspan = 0; span = span0;
+	nalloc = nrow;
+	span0 = shMalloc(nalloc*sizeof(SPAN));
+	nspan = 0; span = span0;
 /*
  * find outermost annulus that we need to process given orad
  */
-   for(annlim = 0;cstats->orad > anndex[annlim];annlim++) continue;
-   rlim = anndex[annlim];		/* first radius beyond limit--ie
-					   r < rlim */
-   srlim = rlim<<YSHFT;			/* scaled limiting radius */
-   cellim = (annlim-1)*NSEC + 1;	/* first cell beyond limit */
+	for(annlim = 0;cstats->orad > anndex[annlim];annlim++) continue;
+	rlim = anndex[annlim];		/* first radius beyond limit--ie
+								 r < rlim */
+	srlim = rlim<<YSHFT;			/* scaled limiting radius */
+	cellim = (annlim-1)*NSEC + 1;	/* first cell beyond limit */
 /*
  * See which cells to set; we only want contiguous cells above thresh
  */
-   if(cstats->cells[0].qt[1] < thresh) {
-      shFree(span0);
-      return(phObjectNew(1));
-   }
+	if(cstats->cells[0].qt[1] < thresh) {
+		shFree(span0);
+		return(phObjectNew(1));
+	}
 
-   set[0] = 1;
-   if(clip >= 0) {
-      for(i = 0;i < annlim - 1;i++) {	/* sort sector values */
-	 if(phProfileMedian(cstats,i,clip,0,NULL) >= thresh) {
-	    for(j = 0;j < NSEC;j++) {
-	       set[i*NSEC + j + 1] = 1;
-	    }
-	 } else {
-	    for(j = i*NSEC + 1;j < cellim;j++) {
-	       set[j] = 0;
-	    }
-	    break;
-	 }
-      }
-   } else {
-      for(cell = 1;cell < cellim;cell++) {
-	 if(cstats->cells[cell].qt[1] < thresh) {
-	    set[cell] = 0;
-	    continue;
-	 }
-	 if(cell <= 12) {		/* touches central cell, which is on */
-	    set[cell] = 1;
-	    continue;
-	 }
+	set[0] = 1;
+	if(clip >= 0) {
+		for(i = 0;i < annlim - 1;i++) {	/* sort sector values */
+			if(phProfileMedian(cstats,i,clip,0,NULL) >= thresh) {
+				for(j = 0;j < NSEC;j++) {
+					set[i*NSEC + j + 1] = 1;
+				}
+			} else {
+				for(j = i*NSEC + 1;j < cellim;j++) {
+					set[j] = 0;
+				}
+				break;
+			}
+		}
+	} else {
+		for(cell = 1;cell < cellim;cell++) {
+			if(cstats->cells[cell].qt[1] < thresh) {
+				set[cell] = 0;
+				continue;
+			}
+			if(cell <= 12) {		/* touches central cell, which is on */
+				set[cell] = 1;
+				continue;
+			}
 
-	 set[cell] = set[cell - NSEC];	/* contiguity condition */
-      }
+			set[cell] = set[cell - NSEC];	/* contiguity condition */
+		}
 
-      if(set_sectors > 0) {		/* they wanted to set entire annulus */
-	 int nset;			/* number of set sectors in annulus */
+		if(set_sectors > 0) {		/* they wanted to set entire annulus */
+			int nset;			/* number of set sectors in annulus */
 	 
-	 for(i = 0;i < annlim - 1;i++) {
-	    nset = 0;
-	    for(j = 0;j < NSEC;j++) {
-	       if(i*NSEC + j + 1 >= cellim) {
-		  fprintf(stderr,"Index too high\n");
-		  break;
-	       }
-	       nset += (set[i*NSEC + j + 1]);
-	    }
-	    if(nset >= set_sectors) {
-	       for(j = 0;j < NSEC;j++) {
-		  set[i*NSEC + j + 1] = 1;
-	       }
-	    } else {
-	       for(j = i*NSEC + 1;j < cellim;j++) {
-		  set[j] = 0;
-	       }
-	       break;
-	    }
-	 }
-      }
-   }
+			for(i = 0;i < annlim - 1;i++) {
+				nset = 0;
+				for(j = 0;j < NSEC;j++) {
+					if(i*NSEC + j + 1 >= cellim) {
+						fprintf(stderr,"Index too high\n");
+						break;
+					}
+					nset += (set[i*NSEC + j + 1]);
+				}
+				if(nset >= set_sectors) {
+					for(j = 0;j < NSEC;j++) {
+						set[i*NSEC + j + 1] = 1;
+					}
+				} else {
+					for(j = i*NSEC + 1;j < cellim;j++) {
+						set[j] = 0;
+					}
+					break;
+				}
+			}
+		}
+	}
 /*
  * setup subpixellation. We assume that the object is centred on a pixel,
  * so (sxc,syc)%YSCL = (7.5, 7.5)
@@ -2749,20 +2755,20 @@ phObjectNewFromProfile(
  * the right edge of the region, lcareful the left, and ccareful
  * if the central sectors might intersect the edge.
  */
-   cxext = (rlim*SSEC1)>>8; /* approximate x-extent of sectors 3,9 */
-   lxext = rxext = rlim;
-   if(lxext > ixc){
-      lxext = ixc;
-      lcareful = 1;
-      if(ixc < cxext) ccareful = 1;
-   }
-   slxext = lxext*YSCL;
-   if(rxext > (iscr = ncol - ixc - 1)){
-      rxext = iscr;
-      rcareful = 1;
-      if(iscr < cxext) ccareful = 1;
-   }
-   srxext = rxext*YSCL;
+	cxext = (rlim*SSEC1)>>8; /* approximate x-extent of sectors 3,9 */
+	lxext = rxext = rlim;
+	if(lxext > ixc){
+		lxext = ixc;
+		lcareful = 1;
+		if(ixc < cxext) ccareful = 1;
+	}
+	slxext = lxext*YSCL;
+	if(rxext > (iscr = ncol - ixc - 1)){
+		rxext = iscr;
+		rcareful = 1;
+		if(iscr < cxext) ccareful = 1;
+	}
+	srxext = rxext*YSCL;
 /*
  * Find the spans that are above threshold
  *
@@ -2777,230 +2783,230 @@ phObjectNewFromProfile(
 /*
  * First the lower half (including the central row)
  */
-       for(i = 0;i < rlimyl;i++) {
-	  pcell = cellorig[sdy_l][i];
-	  y = iyc - i;
+		for(i = 0;i < rlimyl;i++) {
+			pcell = cellorig[sdy_l][i];
+			y = iyc - i;
 /*
  * Process the lower half, central segment, if it exists
  */
-	  if((corig = pcell[0].c_orig) < 0) {
-	     cell = pcell[0].c_lrcell;
-	     if(set[cell]) {
-		sxorig = (sxc + corig + YSCL - 1);
-		xorig = ((sxorig + srlim)>>YSHFT) - rlim;  /* positivity */
-		len  = ((sxorig + (pcell[0].c_len))>>YSHFT) - xorig;
-		x1 = xorig;
-		if(ccareful){
-		   if(xorig < 0){
-		      len += xorig;
-		      x1 = 0;
-		   }else{
-		      if((iscr = xorig+len-ncol) > 0) len -= iscr;
-		   }
-		}
+			if((corig = pcell[0].c_orig) < 0) {
+				cell = pcell[0].c_lrcell;
+				if(set[cell]) {
+					sxorig = (sxc + corig + YSCL - 1);
+					xorig = ((sxorig + srlim)>>YSHFT) - rlim;  /* positivity */
+					len  = ((sxorig + (pcell[0].c_len))>>YSHFT) - xorig;
+					x1 = xorig;
+					if(ccareful){
+						if(xorig < 0){
+							len += xorig;
+							x1 = 0;
+						}else{
+							if((iscr = xorig+len-ncol) > 0) len -= iscr;
+						}
+					}
 
-		span->y = y;
-		span->x1 = x1;
-		span->x2 = x1 + len - 1;
+					span->y = y;
+					span->x1 = x1;
+					span->x2 = x1 + len - 1;
 	     
-		INCR_NSPAN;
-		span = &span0[nspan];
-	     }
+					INCR_NSPAN;
+					span = &span0[nspan];
+				}
 
-	     pcell++;			/* we don't want to see the central
-					   cell again */
-	  }
+				pcell++;			/* we don't want to see the central
+									 cell again */
+			}
 /*
  * Now the lower half, right side
  */
-	  for(j = 0;(corig = pcell[j].c_orig) < srxext &&
-	            (cell = pcell[j].c_lrcell) < cellim;j++) {
-	     if(set[cell]) {
-		sxorig = (sxc + corig + YSCL - 1);
-		xorig = (sxorig >> YSHFT);
-		len  = ((sxorig + (pcell[j].c_len))>>YSHFT) - xorig;
-		x1 = xorig;
-		if(rcareful){
-		   if((iscr=xorig+len-ncol) > 0) len -= iscr;
-		}
+			for(j = 0;(corig = pcell[j].c_orig) < srxext &&
+					(cell = pcell[j].c_lrcell) < cellim;j++) {
+				if(set[cell]) {
+					sxorig = (sxc + corig + YSCL - 1);
+					xorig = (sxorig >> YSHFT);
+					len  = ((sxorig + (pcell[j].c_len))>>YSHFT) - xorig;
+					x1 = xorig;
+					if(rcareful){
+						if((iscr=xorig+len-ncol) > 0) len -= iscr;
+					}
 
-		span->y = y;
-		span->x1 = x1;
-		span->x2 = x1 + len - 1;
+					span->y = y;
+					span->x1 = x1;
+					span->x2 = x1 + len - 1;
 
-		INCR_NSPAN;
-		span = &span0[nspan];
-	     }
-	  }
+					INCR_NSPAN;
+					span = &span0[nspan];
+				}
+			}
 /*
  * and the lower half, left side
  */
-	  for(j = 0;(corig = pcell[j].c_orig) < slxext &&
-	            (cell=pcell[j].c_llcell) < cellim;j++) {
-	     if(set[cell]) {
-		slen = pcell[j].c_len;
-		sxorig = (sxc - corig - slen + YSCL);
-		xorig = ((sxorig+srlim)>>YSHFT) - rlim; /* positivity*/
-		len  = ((sxorig + slen)>>YSHFT) - xorig;
-		x1 = xorig;
-		if(lcareful){
-		   if(xorig < 0){
-		      len += xorig;
-		      x1 = 0;
-		   }
-		}
+			for(j = 0;(corig = pcell[j].c_orig) < slxext &&
+					(cell=pcell[j].c_llcell) < cellim;j++) {
+				if(set[cell]) {
+					slen = pcell[j].c_len;
+					sxorig = (sxc - corig - slen + YSCL);
+					xorig = ((sxorig+srlim)>>YSHFT) - rlim; /* positivity*/
+					len  = ((sxorig + slen)>>YSHFT) - xorig;
+					x1 = xorig;
+					if(lcareful){
+						if(xorig < 0){
+							len += xorig;
+							x1 = 0;
+						}
+					}
 		
-		span->y = y;
-		span->x1 = x1;
-		span->x2 = x1 + len - 1;
+					span->y = y;
+					span->x1 = x1;
+					span->x2 = x1 + len - 1;
 
-		INCR_NSPAN;
-		span = &span0[nspan];
-	     }
-	  }
-       }
+					INCR_NSPAN;
+					span = &span0[nspan];
+				}
+			}
+		}
 /*
  * Now the upper half, again central, right, and left
  */
-       for(i = 1;i < rlimyu;i++) {
-	  pcell = cellorig[sdy_u][i];
-	  y = iyc + i;
+		for(i = 1;i < rlimyu;i++) {
+			pcell = cellorig[sdy_u][i];
+			y = iyc + i;
 /*
  * Central segment if it exists
  */
-	  if((corig = pcell[0].c_orig) < 0) {
-	     cell = pcell[0].c_urcell;
-	     if(set[cell]) {
-		sxorig = (sxc + corig + YSCL - 1);
-		xorig = ((sxorig + srlim)>>YSHFT) - rlim;  /* positivity */
-		len  = ((sxorig + (pcell[0].c_len))>>YSHFT) - xorig;
-		x1 = xorig;
-		if(ccareful){
-		   if(xorig < 0){
-		      len += xorig;
-		      x1 = 0;
-		   }else{
-		      if((iscr = xorig+len-ncol) > 0) len -= iscr;
-		   }
-		}
+			if((corig = pcell[0].c_orig) < 0) {
+				cell = pcell[0].c_urcell;
+				if(set[cell]) {
+					sxorig = (sxc + corig + YSCL - 1);
+					xorig = ((sxorig + srlim)>>YSHFT) - rlim;  /* positivity */
+					len  = ((sxorig + (pcell[0].c_len))>>YSHFT) - xorig;
+					x1 = xorig;
+					if(ccareful){
+						if(xorig < 0){
+							len += xorig;
+							x1 = 0;
+						}else{
+							if((iscr = xorig+len-ncol) > 0) len -= iscr;
+						}
+					}
 
-		span->y = y;
-		span->x1 = x1;
-		span->x2 = x1 + len - 1;
+					span->y = y;
+					span->x1 = x1;
+					span->x2 = x1 + len - 1;
 
-		INCR_NSPAN;
-		span = &span0[nspan];
-	     }
-	     pcell++;
-	  }
+					INCR_NSPAN;
+					span = &span0[nspan];
+				}
+				pcell++;
+			}
 /*
  * Now the upper half, right side
  */
-	  for(j = 0;(corig = pcell[j].c_orig) < srxext &&
-	            (cell=pcell[j].c_urcell) < cellim;j++) { /* in bounds */
-	     if(set[cell]) {
-		sxorig = (sxc + corig + YSCL - 1);   /* is this right ?? */
-		xorig = (sxorig >> YSHFT);
-		len  = ((sxorig + (pcell[j].c_len))>>YSHFT) - xorig;
-		x1 = xorig;
+			for(j = 0;(corig = pcell[j].c_orig) < srxext &&
+					(cell=pcell[j].c_urcell) < cellim;j++) { /* in bounds */
+				if(set[cell]) {
+					sxorig = (sxc + corig + YSCL - 1);   /* is this right ?? */
+					xorig = (sxorig >> YSHFT);
+					len  = ((sxorig + (pcell[j].c_len))>>YSHFT) - xorig;
+					x1 = xorig;
 		
-		if(rcareful){
-		   if((iscr=xorig+len-ncol) > 0) len -= iscr;
-		}
+					if(rcareful){
+						if((iscr=xorig+len-ncol) > 0) len -= iscr;
+					}
 		
-		span->y = y;
-		span->x1 = x1;
-		span->x2 = x1 + len - 1;
+					span->y = y;
+					span->x1 = x1;
+					span->x2 = x1 + len - 1;
 
-		INCR_NSPAN;
-		span = &span0[nspan];
-	     }
-	  }
+					INCR_NSPAN;
+					span = &span0[nspan];
+				}
+			}
 /*
  * and the upper half, left side
  */
-	  for(j = 0;(corig = pcell[j].c_orig) < slxext &&
-	            (cell = pcell[j].c_ulcell) < cellim;j++) { /* in bounds */
-	     if(set[cell]) {
-		slen = pcell[j].c_len;
-		sxorig = (sxc - corig - slen + YSCL);
-		xorig = ((sxorig+srlim)>>YSHFT) - rlim; /* positivity*/
-		len  = ((sxorig + slen)>>YSHFT) - xorig;
-		x1 = xorig;
-		if(lcareful) {
-		   if(xorig < 0){
-		      len += xorig;
-		      x1 = 0;
-		   }
-		}
+			for(j = 0;(corig = pcell[j].c_orig) < slxext &&
+					(cell = pcell[j].c_ulcell) < cellim;j++) { /* in bounds */
+				if(set[cell]) {
+					slen = pcell[j].c_len;
+					sxorig = (sxc - corig - slen + YSCL);
+					xorig = ((sxorig+srlim)>>YSHFT) - rlim; /* positivity*/
+					len  = ((sxorig + slen)>>YSHFT) - xorig;
+					x1 = xorig;
+					if(lcareful) {
+						if(xorig < 0){
+							len += xorig;
+							x1 = 0;
+						}
+					}
 		
-		span->y = y;
-		span->x1 = x1;
-		span->x2 = x1 + len - 1;
+					span->y = y;
+					span->x1 = x1;
+					span->x2 = x1 + len - 1;
 
-		INCR_NSPAN;
-		span = &span0[nspan];
-	     }
-	  }
-       }
+					INCR_NSPAN;
+					span = &span0[nspan];
+				}
+			}
+		}
     }
 /*
  * done--now do inner region. We have to be a little careful, as there's
  * no guarantee that the inner region is entirely within the REGION
  */
-   xorig = ixc - (unsigned)SYNC_REG_SIZE/2;
-   for(i=0;i < SYNC_REG_SIZE;i++) {
-      struct cellid *cells = cellid[i];
-      int in_span;			/* are we currently in a span? */
-      int j0, j1;			/* range of j values keeping us
-					   within the REGION */
+	xorig = ixc - (unsigned)SYNC_REG_SIZE/2;
+	for(i=0;i < SYNC_REG_SIZE;i++) {
+		struct cellid *cells = cellid[i];
+		int in_span;			/* are we currently in a span? */
+		int j0, j1;			/* range of j values keeping us
+							 within the REGION */
       
-      if((y = iyc - (unsigned)SYNC_REG_SIZE/2 + i) < 0 || y >= nrow) {
-	 continue;
-      }
+		if((y = iyc - (unsigned)SYNC_REG_SIZE/2 + i) < 0 || y >= nrow) {
+			continue;
+		}
       
-      in_span = 0;
-      j0 = (xorig <= 0) ? 1 - xorig : 0;
-      j1 = (xorig + SYNC_REG_SIZE >= ncol) ? ncol - xorig : SYNC_REG_SIZE;
-      for(j = j0;j < j1;j++) {
-	 if((cell = cells[j].c_id) >= NCELLIN) { /* not in sync region */
-	    if(in_span) {
-	       span->x2 = xorig + j - 1;
-	       INCR_NSPAN;
-	       span = &span0[nspan];
-	       in_span = 0;
-	    }
-	    continue;
-	 }
-	 if(set[cell]) {
-	    if(!in_span) {
-	       span->y = y;
-	       span->x1 = xorig + j;
-	       in_span = 1;
-	    }
-	 } else if(in_span) {
-	    span->x2 = xorig + j - 1;
-	    INCR_NSPAN;
-	    span = &span0[nspan];
-	    in_span = 0;
-	 }
-      }
-      if(in_span) {
-	 span->x2 = xorig + j - 1;
-	 INCR_NSPAN;
-	 span = &span0[nspan];
-	 in_span = 0;
-      }
-   }
+		in_span = 0;
+		j0 = (xorig <= 0) ? 1 - xorig : 0;
+		j1 = (xorig + SYNC_REG_SIZE >= ncol) ? ncol - xorig : SYNC_REG_SIZE;
+		for(j = j0;j < j1;j++) {
+			if((cell = cells[j].c_id) >= NCELLIN) { /* not in sync region */
+				if(in_span) {
+					span->x2 = xorig + j - 1;
+					INCR_NSPAN;
+					span = &span0[nspan];
+					in_span = 0;
+				}
+				continue;
+			}
+			if(set[cell]) {
+				if(!in_span) {
+					span->y = y;
+					span->x1 = xorig + j;
+					in_span = 1;
+				}
+			} else if(in_span) {
+				span->x2 = xorig + j - 1;
+				INCR_NSPAN;
+				span = &span0[nspan];
+				in_span = 0;
+			}
+		}
+		if(in_span) {
+			span->x2 = xorig + j - 1;
+			INCR_NSPAN;
+			span = &span0[nspan];
+			in_span = 0;
+		}
+	}
 /*
  * pack up the SPANs into an OBJECT
  */
-   obj = phObjectNew(1);
-   obj->sv[0]->nspan = obj->sv[0]->size = nspan;
-   obj->sv[0]->s = shRealloc(span0,nspan*sizeof(SPAN));
-   phCanonizeObjmask(obj->sv[0],0);
+	obj = phObjectNew(1);
+	obj->sv[0]->nspan = obj->sv[0]->size = nspan;
+	obj->sv[0]->s = shRealloc(span0,nspan*sizeof(SPAN));
+	phCanonizeObjmask(obj->sv[0],0);
 
-   return(obj);
+	return(obj);
 }
 
 /*****************************************************************************/
@@ -3011,27 +3017,27 @@ phObjectNewFromProfile(
  */
 OBJMASK *
 phObjmaskSetFromProfile(int ncol,	/* size of REGION in which */
-			int nrow,	/*                 the OBJMASK lives */
-			const CELL_STATS *cstats, /* extracted profile */
-			float thresh,	/* set bits if profile exceeds thresh*/
-			int set_sectors, /* no. of sectors above threshold
-					    to mask the entire annulus*/
-			int clip	/* if >= 0, calculate clipped mean for
-					   annulus, and compare this to thresh
-					   to mask entire annulus */
-		     )
+						int nrow,	/*                 the OBJMASK lives */
+						const CELL_STATS *cstats, /* extracted profile */
+						float thresh,	/* set bits if profile exceeds thresh*/
+						int set_sectors, /* no. of sectors above threshold
+										  to mask the entire annulus*/
+						int clip	/* if >= 0, calculate clipped mean for
+									 annulus, and compare this to thresh
+									 to mask entire annulus */
+	)
 {
-   OBJECT *obj;				/* the OBJECT set from profile */
-   OBJMASK *sm;				/* OBJMASK to return */
+	OBJECT *obj;				/* the OBJECT set from profile */
+	OBJMASK *sm;				/* OBJMASK to return */
    
-   shAssert(cstats != NULL);
+	shAssert(cstats != NULL);
 
-   obj = phObjectNewFromProfile(cstats,ncol,nrow,thresh,set_sectors,clip);
-   sm = obj->sv[0]; obj->sv[0] = NULL;
+	obj = phObjectNewFromProfile(cstats,ncol,nrow,thresh,set_sectors,clip);
+	sm = obj->sv[0]; obj->sv[0] = NULL;
 
-   phObjectDel(obj);
+	phObjectDel(obj);
 
-   return(sm);
+	return(sm);
 }
 
 /*****************************************************************************/
@@ -3043,42 +3049,42 @@ phObjmaskSetFromProfile(int ncol,	/* size of REGION in which */
  */
 static int
 do_edge(SPAN *span, int nrow, int ncol,
-	int xb, int yb, int xl, int yl, int left_edge)
+		int xb, int yb, int xl, int yl, int left_edge)
 {
-   int a, dsml, dlg;			/* Bresenham internals */
-   int strx, stry, diagx;		/* "  "   "   "   */
-   int j;
-   int old_y;
-   const SPAN *span0 = span;		/* initial value of span */
-   int x0, x1, y0, y1;
-   int x;				/* clipped version of x0 */
+	int a, dsml, dlg;			/* Bresenham internals */
+	int strx, stry, diagx;		/* "  "   "   "   */
+	int j;
+	int old_y;
+	const SPAN *span0 = span;		/* initial value of span */
+	int x0, x1, y0, y1;
+	int x;				/* clipped version of x0 */
 
-   setup_bresenham(xb, yb, xl, yl, &x0, &y0, &x1, &y1,
-		   &a, &dsml, &dlg, &diagx, &strx, &stry);
-   old_y = y0 - 1;
-   for(j = 0;j <= dlg;j++) {
-      if(y0 != old_y) {
-	 if(y0 >= 0 && y0 < nrow) {
-	    x = (x0 < 0) ? 0 : ((x0 >= ncol) ? ncol - 1 : x0);
+	setup_bresenham(xb, yb, xl, yl, &x0, &y0, &x1, &y1,
+					&a, &dsml, &dlg, &diagx, &strx, &stry);
+	old_y = y0 - 1;
+	for(j = 0;j <= dlg;j++) {
+		if(y0 != old_y) {
+			if(y0 >= 0 && y0 < nrow) {
+				x = (x0 < 0) ? 0 : ((x0 >= ncol) ? ncol - 1 : x0);
 
-	    if(left_edge) {
-	       span->y = y0;
-	       span->x1 = x;
-	    } else {
-	       if(y0 != span->y) {
-		  fprintf(stderr,"Span %d:%d %d  bad y %d\n",
-			  span->y,span->x1,span->x2,y0);
-	       }
-	       span->x2 = x;
-	    }
-	    span++;
-	    old_y = y0;
-	 }
-      }
-      STEP(x0,y0);
-   }
+				if(left_edge) {
+					span->y = y0;
+					span->x1 = x;
+				} else {
+					if(y0 != span->y) {
+						fprintf(stderr,"Span %d:%d %d  bad y %d\n",
+								span->y,span->x1,span->x2,y0);
+					}
+					span->x2 = x;
+				}
+				span++;
+				old_y = y0;
+			}
+		}
+		STEP(x0,y0);
+	}
    
-   return(span - span0);
+	return(span - span0);
 }
 
 /*
@@ -3090,26 +3096,26 @@ do_edge(SPAN *span, int nrow, int ncol,
  */
 void
 phObjmaskSetLinear(OBJMASK *mask,	/* mask to set */
-		   int ncol, int nrow,	/* size of REGION mask lives in */
-		   float fx0, float fy0, /* one end of ridgeline... */
-		   float fx1, float fy1, /* and the other */
-		   int hwidth_l,	/* half-width of region to mask 
-					   to left of ridgeline */
-		   int hwidth_r		/* half-width of region to mask
-					   to right of ridgeline */
+				   int ncol, int nrow,	/* size of REGION mask lives in */
+				   float fx0, float fy0, /* one end of ridgeline... */
+				   float fx1, float fy1, /* and the other */
+				   int hwidth_l,	/* half-width of region to mask 
+									 to left of ridgeline */
+				   int hwidth_r		/* half-width of region to mask
+									 to right of ridgeline */
     )
 {
-   int i;
-   int nspan;				/* number of spans set by do_edge */
-   SPAN *newspans;			/* spans set by this function */
-   int newsize;				/* size of added SPANs */
-   int npix;				/* number of pixels in OBJMASK */
-   float theta;				/* angle of ridgeline to columns */
-   int x0, y0;				/* start of line */
-   int x1, y1;				/* end of line */
-   int xs, ys, xe, ye;			/* start and end points of a line */
+	int i;
+	int nspan;				/* number of spans set by do_edge */
+	SPAN *newspans;			/* spans set by this function */
+	int newsize;				/* size of added SPANs */
+	int npix;				/* number of pixels in OBJMASK */
+	float theta;				/* angle of ridgeline to columns */
+	int x0, y0;				/* start of line */
+	int x1, y1;				/* end of line */
+	int xs, ys, xe, ye;			/* start and end points of a line */
 
-   shAssert(mask != NULL);
+	shAssert(mask != NULL);
 /*
  * The ridgeline runs from x0 to x1, and we wish to mask the area
  * within the lines
@@ -3136,92 +3142,92 @@ phObjmaskSetLinear(OBJMASK *mask,	/* mask to set */
  * When we reach the top (xt) we return to xb, and work up the right and top
  * sides filling the x2 field
  */
-   if(fy0 < fy1) {
-      x0 = fx0 + 0.5;
-      y0 = fy0 + 0.5;
-      x1 = fx1 + 0.5;
-      y1 = fy1 + 0.5;
-      theta = atan2(fy1 - fy0,fx1 - fx0);
-   } else {
-      x0 = fx1 + 0.5;
-      y0 = fy1 + 0.5;
-      x1 = fx0 + 0.5;
-      y1 = fy0 + 0.5;
-      theta = atan2(fy0 - fy1,fx0 - fx1);
-   }
+	if(fy0 < fy1) {
+		x0 = fx0 + 0.5;
+		y0 = fy0 + 0.5;
+		x1 = fx1 + 0.5;
+		y1 = fy1 + 0.5;
+		theta = atan2(fy1 - fy0,fx1 - fx0);
+	} else {
+		x0 = fx1 + 0.5;
+		y0 = fy1 + 0.5;
+		x1 = fx0 + 0.5;
+		y1 = fy0 + 0.5;
+		theta = atan2(fy0 - fy1,fx0 - fx1);
+	}
 /*
  * figure out how many SPANs we need
  */
-   if(theta < M_PI/2) {
-      ys = y0 - hwidth_r*cos(theta) + 0.5; ye = y1 + hwidth_l*cos(theta) + 0.5;
-   } else {
-      ys = y0 + hwidth_l*cos(theta) + 0.5; ye = y1 - hwidth_r*cos(theta) + 0.5;
-   }
-   newsize = ye - ys + 1;
-   if(mask->nspan + newsize > mask->size) {
-      phObjmaskRealloc(mask,mask->nspan + newsize);
-   }
-   newspans = &mask->s[mask->nspan];	/* where to start setting spans */
+	if(theta < M_PI/2) {
+		ys = y0 - hwidth_r*cos(theta) + 0.5; ye = y1 + hwidth_l*cos(theta) + 0.5;
+	} else {
+		ys = y0 + hwidth_l*cos(theta) + 0.5; ye = y1 - hwidth_r*cos(theta) + 0.5;
+	}
+	newsize = ye - ys + 1;
+	if(mask->nspan + newsize > mask->size) {
+		phObjmaskRealloc(mask,mask->nspan + newsize);
+	}
+	newspans = &mask->s[mask->nspan];	/* where to start setting spans */
 /*
  * and fill them.
  */
-   if(theta < M_PI/2) {
-      xs = x0 + hwidth_r*sin(theta) + 0.5; ys = y0 - hwidth_r*cos(theta) + 0.5;
-      xe = x0 - hwidth_l*sin(theta) + 0.5; ye = y0 + hwidth_l*cos(theta) + 0.5;
-   } else {
-      xs = x0 - hwidth_l*sin(theta) + 0.5; ys = y0 + hwidth_l*cos(theta) + 0.5;
-      xe = x1 - hwidth_l*sin(theta) + 0.5; ye = y1 + hwidth_l*cos(theta) + 0.5;
-   }
-   nspan = do_edge(&newspans[0], nrow, ncol, xs, ys, xe, ye, 1);
-   if(nspan > 0 && ye < nrow) nspan--;	/* we'll see that point again */
-   shAssert(nspan <= newsize);
+	if(theta < M_PI/2) {
+		xs = x0 + hwidth_r*sin(theta) + 0.5; ys = y0 - hwidth_r*cos(theta) + 0.5;
+		xe = x0 - hwidth_l*sin(theta) + 0.5; ye = y0 + hwidth_l*cos(theta) + 0.5;
+	} else {
+		xs = x0 - hwidth_l*sin(theta) + 0.5; ys = y0 + hwidth_l*cos(theta) + 0.5;
+		xe = x1 - hwidth_l*sin(theta) + 0.5; ye = y1 + hwidth_l*cos(theta) + 0.5;
+	}
+	nspan = do_edge(&newspans[0], nrow, ncol, xs, ys, xe, ye, 1);
+	if(nspan > 0 && ye < nrow) nspan--;	/* we'll see that point again */
+	shAssert(nspan <= newsize);
 
-   xs = xe; ys = ye;
-   if(theta < M_PI/2) {
-      xe = x1 - hwidth_l*sin(theta) + 0.5; ye = y1 + hwidth_l*cos(theta) + 0.5;
-   } else {
-      xe = x1 + hwidth_r*sin(theta) + 0.5; ye = y1 - hwidth_r*cos(theta) + 0.5;
-   }
-   nspan += do_edge(&newspans[nspan], nrow, ncol, xs, ys, xe, ye, 1);
-   shAssert(nspan <= newsize);
+	xs = xe; ys = ye;
+	if(theta < M_PI/2) {
+		xe = x1 - hwidth_l*sin(theta) + 0.5; ye = y1 + hwidth_l*cos(theta) + 0.5;
+	} else {
+		xe = x1 + hwidth_r*sin(theta) + 0.5; ye = y1 - hwidth_r*cos(theta) + 0.5;
+	}
+	nspan += do_edge(&newspans[nspan], nrow, ncol, xs, ys, xe, ye, 1);
+	shAssert(nspan <= newsize);
 
-   newsize = nspan;			/* we know its value now */
-   mask->nspan += newsize;
+	newsize = nspan;			/* we know its value now */
+	mask->nspan += newsize;
 /*
  * and now the right-hand-sides
  */
-   if(theta < M_PI/2) {
-      xs = x0 + hwidth_r*sin(theta) + 0.5; ys = y0 - hwidth_r*cos(theta) + 0.5;
-      xe = x1 + hwidth_r*sin(theta) + 0.5; ye = y1 - hwidth_r*cos(theta) + 0.5;
-   } else {
-      xs = x0 - hwidth_l*sin(theta) + 0.5; ys = y0 + hwidth_l*cos(theta) + 0.5;
-      xe = x0 + hwidth_r*sin(theta) + 0.5; ye = y0 - hwidth_r*cos(theta) + 0.5;
-   }
-   nspan = do_edge(&newspans[0], nrow, ncol, xs, ys, xe, ye, 0);
-   if(nspan > 0 && ye < nrow) nspan--;	/* we'll see that point again */
-   shAssert(nspan <= newsize);
+	if(theta < M_PI/2) {
+		xs = x0 + hwidth_r*sin(theta) + 0.5; ys = y0 - hwidth_r*cos(theta) + 0.5;
+		xe = x1 + hwidth_r*sin(theta) + 0.5; ye = y1 - hwidth_r*cos(theta) + 0.5;
+	} else {
+		xs = x0 - hwidth_l*sin(theta) + 0.5; ys = y0 + hwidth_l*cos(theta) + 0.5;
+		xe = x0 + hwidth_r*sin(theta) + 0.5; ye = y0 - hwidth_r*cos(theta) + 0.5;
+	}
+	nspan = do_edge(&newspans[0], nrow, ncol, xs, ys, xe, ye, 0);
+	if(nspan > 0 && ye < nrow) nspan--;	/* we'll see that point again */
+	shAssert(nspan <= newsize);
 
-   xs = xe; ys = ye;
-   if(theta < M_PI/2) {
-      xe = x1 - hwidth_l*sin(theta) + 0.5; ye = y1 + hwidth_l*cos(theta) + 0.5;
-   } else {
-      xe = x1 + hwidth_r*sin(theta) + 0.5; ye = y1 - hwidth_r*cos(theta) + 0.5;
-   }
-   nspan += do_edge(&newspans[nspan], nrow, ncol, xs, ys, xe, ye, 0);
-   shAssert(nspan == newsize);
+	xs = xe; ys = ye;
+	if(theta < M_PI/2) {
+		xe = x1 - hwidth_l*sin(theta) + 0.5; ye = y1 + hwidth_l*cos(theta) + 0.5;
+	} else {
+		xe = x1 + hwidth_r*sin(theta) + 0.5; ye = y1 - hwidth_r*cos(theta) + 0.5;
+	}
+	nspan += do_edge(&newspans[nspan], nrow, ncol, xs, ys, xe, ye, 0);
+	shAssert(nspan == newsize);
 /*
  * ensure that x2 >= x1, and increment npix appropriately
  */
-   npix = mask->nspan;
-   for(i = 0;i < newsize;i++) {
-      SPAN *s = &newspans[i];
-      xs = s->x1; xe = s->x2;
-      if(xs > xe) {
-	 s->x1 = xe; s->x2 = xs;
-      }
-      npix += xe - xs + 1;
-   }
-   mask->npix = npix;
+	npix = mask->nspan;
+	for(i = 0;i < newsize;i++) {
+		SPAN *s = &newspans[i];
+		xs = s->x1; xe = s->x2;
+		if(xs > xe) {
+			s->x1 = xe; s->x2 = xs;
+		}
+		npix += xe - xs + 1;
+	}
+	mask->npix = npix;
 }
 
 /*****************************************************************************/
@@ -3232,41 +3238,41 @@ phObjmaskSetLinear(OBJMASK *mask,	/* mask to set */
  */
 OBJMASK *
 phObjmaskSetFromProfileLinear(int ncol, int nrow,
-			      const CELL_STATS *cstats,
-			      float thresh	/* threshold to use */
-   )
+							  const CELL_STATS *cstats,
+							  float thresh	/* threshold to use */
+	)
 {
-   int i;
-   int hwidth_l, hwidth_r;		/* half widths to left and right */
-   OBJMASK *mask;			/* mask to set */
+	int i;
+	int hwidth_l, hwidth_r;		/* half widths to left and right */
+	OBJMASK *mask;			/* mask to set */
 
-   shAssert(cstats != NULL && !cstats->annular);
+	shAssert(cstats != NULL && !cstats->annular);
 
-   mask = phObjmaskNew(0);
+	mask = phObjmaskNew(0);
 
-   if(cstats->cells[cstats->ncell/2].qt[1] < thresh) { /* object's below
-							  threshold */
-      return(mask);
-   }
+	if(cstats->cells[cstats->ncell/2].qt[1] < thresh) { /* object's below
+														 threshold */
+		return(mask);
+	}
    
-   for(i = cstats->ncell/2;i >= 0;i--) {
-      if(cstats->cells[i].qt[1] < thresh) {
-	 break;
-      }
-   }
-   hwidth_l = (i >= 0) ? -cstats->mgeom[i].col : 10000;
+	for(i = cstats->ncell/2;i >= 0;i--) {
+		if(cstats->cells[i].qt[1] < thresh) {
+			break;
+		}
+	}
+	hwidth_l = (i >= 0) ? -cstats->mgeom[i].col : 10000;
    
-   for(i = cstats->ncell/2 + 1;i < cstats->ncell;i++) {
-      if(cstats->cells[i].qt[1] < thresh) {
-	 break;
-      }
-   }
-   hwidth_r = (i < cstats->ncell) ? cstats->mgeom[i].col : 10000;
+	for(i = cstats->ncell/2 + 1;i < cstats->ncell;i++) {
+		if(cstats->cells[i].qt[1] < thresh) {
+			break;
+		}
+	}
+	hwidth_r = (i < cstats->ncell) ? cstats->mgeom[i].col : 10000;
    
-   phObjmaskSetLinear(mask, ncol, nrow, cstats->col_c, cstats->row_c,
-			     cstats->col_1, cstats->row_1, hwidth_l, hwidth_r);
+	phObjmaskSetLinear(mask, ncol, nrow, cstats->col_c, cstats->row_c,
+					   cstats->col_1, cstats->row_1, hwidth_l, hwidth_r);
 
-   return(mask);
+	return(mask);
 }
 
 /*****************************************************************************/
@@ -3280,11 +3286,11 @@ profallocv(void)
     int vsiz;				/* total number of pixels in a sector*/
     int scr;
     int sizecache[NANN];		/* numbers of pixels in a single cell
-					   in each annulus */
+								 in each annulus */
 
     if(cellinfo != NULL) {
-       shErrStackPush("Profile Arrays Already Allocated");
-       return;
+		shErrStackPush("Profile Arrays Already Allocated");
+		return;
     }
 /*
  * allocate cell info struct array; the extra 1 is for a cell for all of the
@@ -3312,8 +3318,8 @@ profallocv(void)
 
     cellval = shMalloc(NSEC*NANN*sizeof(PIX *));
     cellval[0] = shMalloc(NSEC*vsiz*sizeof(PIX) + /* space */
-			  RLIM*2*7*sizeof(PIX)); /* 2-pixel ovfl +
-						   inner corners*/
+						  RLIM*2*7*sizeof(PIX)); /* 2-pixel ovfl +
+												  inner corners*/
 
     cellval[1] = cellval[0] + sizecache[0];   /* central pixel */
     for(i=2;i<=NSEC*NANN;i++){
@@ -3324,16 +3330,16 @@ profallocv(void)
     syncscr = shRegNew("syncscr",SYNC_REG_SIZEI,SYNC_REG_SIZEI,TYPE_PIX);
     syncext = shRegNew("syncext",SYNC_REG_SIZEI,SYNC_REG_SIZEI,TYPE_PIX);
     syncext_smoothed =
-      shRegNew("syncext",SYNC_REG_SIZEI,SYNC_REG_SIZEI,TYPE_PIX);
+		shRegNew("syncext",SYNC_REG_SIZEI,SYNC_REG_SIZEI,TYPE_PIX);
     {
-       const int size = SYNC_REG_SIZE + 2*SYNCEXTRA;
-       syncreg = shSubRegNew("syncreg", syncext,
-			     size, size, SYBELL-1, SYBELL-1, NO_FLAGS);
-       syncreg_smoothed = shSubRegNew("syncreg", syncext_smoothed,
-			     size, size, SYBELL-1, SYBELL-1, NO_FLAGS);
+		const int size = SYNC_REG_SIZE + 2*SYNCEXTRA;
+		syncreg = shSubRegNew("syncreg", syncext,
+							  size, size, SYBELL-1, SYBELL-1, NO_FLAGS);
+		syncreg_smoothed = shSubRegNew("syncreg", syncext_smoothed,
+									   size, size, SYBELL-1, SYBELL-1, NO_FLAGS);
     }
     syncin = shRegNew("syncin",SYNC_REG_SIZEI,0,TYPE_PIX); /* n.b. pointers
-							      must be set! */
+															must be set! */
 
 
     /* allocate histogram */
@@ -3361,10 +3367,10 @@ profallocs(void)
 
     /* allocate cellid */
     cellid = (struct cellid **)shMalloc(
-                            SYNC_REG_SIZE*sizeof(struct cellid *) +
-                            SYNC_REG_SIZE*SYNC_REG_SIZE*sizeof(struct cellid));
+		SYNC_REG_SIZE*sizeof(struct cellid *) +
+		SYNC_REG_SIZE*SYNC_REG_SIZE*sizeof(struct cellid));
     cellid[0] = (struct cellid *)((char *)cellid +
-                                    SYNC_REG_SIZE*sizeof(struct cellid *));
+								  SYNC_REG_SIZE*sizeof(struct cellid *));
     for(i=1;i<SYNC_REG_SIZE;i++) cellid[i] = cellid[i-1] + SYNC_REG_SIZE;
     /* These matrices give the cell index for
      * each pixel in the inner region, arranged as cellid[y][x]
@@ -3409,20 +3415,20 @@ profallocs(void)
  * each cell on that line.
  */
     cellorig = (struct cellorig ***)shMalloc(
-                      YSCL*sizeof(struct cellorig **) +
-                      YSCL*RLIM*sizeof(struct cellorig *) +
-                      YSCL*ntinter*sizeof(struct cellorig));
+		YSCL*sizeof(struct cellorig **) +
+		YSCL*RLIM*sizeof(struct cellorig *) +
+		YSCL*ntinter*sizeof(struct cellorig));
     /* and set up pointers */
     cellorig[0] = (struct cellorig **)((char *)cellorig +
-                        YSCL*sizeof(struct cellorig **));
+									   YSCL*sizeof(struct cellorig **));
     for(i=1;i<YSCL;i++){
         cellorig[i] = (struct cellorig **)((char *)cellorig[i-1] +
-                         RLIM*sizeof(struct cellorig *) +
-                         ntinter*sizeof(struct cellorig));
+										   RLIM*sizeof(struct cellorig *) +
+										   ntinter*sizeof(struct cellorig));
     }
     for(i=0;i<YSCL;i++){
         cellorig[i][0] = (struct cellorig *)((char *)cellorig[i] +
-                         RLIM*sizeof(struct cellorig *));
+											 RLIM*sizeof(struct cellorig *));
         ninter = NSEC/4 + NANN - NSYNCANN + 2;
         ka = NSYNCANN + 1;    /* 2 more to allow for zero origin and end mkr*/
         ks = 0;
@@ -3454,24 +3460,24 @@ static void
 provfree(void)
 {
     if(cellinfo != NULL) {
-       shFree(cellinfo[NCELL].data);
-       shFree(cellinfo);
-       cellinfo = NULL;
+		shFree(cellinfo[NCELL].data);
+		shFree(cellinfo);
+		cellinfo = NULL;
     }
     if(cellval) {
-       shFree(cellval[0]);
-       shFree(cellval);
-       cellval  = NULL;
+		shFree(cellval[0]);
+		shFree(cellval);
+		cellval  = NULL;
     }
     if(syncreg != NULL)  {
-       shRegDel(syncreg);
-       shRegDel(syncreg_smoothed);
-       shRegDel(syncext);
-       shRegDel(syncext_smoothed);
-       shRegDel(syncin);
-       shRegDel(syncscr);
+		shRegDel(syncreg);
+		shRegDel(syncreg_smoothed);
+		shRegDel(syncext);
+		shRegDel(syncext_smoothed);
+		shRegDel(syncin);
+		shRegDel(syncscr);
 
-       syncreg = NULL;
+		syncreg = NULL;
     }
     if(cellhist) {shFree(cellhist); cellhist = NULL;}
 }
@@ -3499,85 +3505,85 @@ prosfree(void)
 
 static void
 do_pstats(struct pstats *cinfo,
-	  int floor,
-	  int band,			/* band data was taken in */
-	  float fxc, float fyc,		/* centre of obj/start of line */
-	  const struct cellgeom *cgeom)	/* cell geometry, or NULL */
+		  int floor,
+		  int band,			/* band data was taken in */
+		  float fxc, float fyc,		/* centre of obj/start of line */
+		  const struct cellgeom *cgeom)	/* cell geometry, or NULL */
 {
-   int npt = cinfo->ntot;		/* number of points in data */
-   int min;				/* min. value of histogrammed data */
-   int rng;				/* range of histogrammed data */
+	int npt = cinfo->ntot;		/* number of points in data */
+	int min;				/* min. value of histogrammed data */
+	int rng;				/* range of histogrammed data */
 
-   if(npt < 0) {			/* no data available */
-      badstats(cinfo);
-      return;
-   } else if(npt == 0) {
-      cinfo->area = npt;
-      return;
-   }
+	if(npt < 0) {			/* no data available */
+		badstats(cinfo);
+		return;
+	} else if(npt == 0) {
+		cinfo->area = npt;
+		return;
+	}
 
-   cinfo->nel = npt;			/* we may reconsider after clipping */
-   if(npt < NSIMPLE) {
-      simplestats(cinfo);
-   } else {
-      if(npt < NINSERT){
-	 /*
-	  * do straight Shell or insertion sort; shinstats does everything
-	  */
-	 shinstats(cinfo);
-      } else {
-	 /* check for max, make mean, calc. range */
-	 cinfo->min = floor;
-	 region_maxmean_crude(cinfo);
-	 rng = cinfo->rng;
-	 min = cinfo->min;
-	 if(SHELLWINS(npt,rng)){   /* use Shellsort */
-	    shinstats(cinfo);
-	 } else {		/* use histsort */
-	    shAssert(min + rng <= MAX_U16);
-	    memset(&cellhist[min],'\0',(rng + 1)*sizeof(cellhist[0]));
-	    if(MBTHRESH < 0 || npt < MBTHRESH) {
-	       get_quartiles_from_array(cellhist,cinfo);
+	cinfo->nel = npt;			/* we may reconsider after clipping */
+	if(npt < NSIMPLE) {
+		simplestats(cinfo);
+	} else {
+		if(npt < NINSERT){
+			/*
+			 * do straight Shell or insertion sort; shinstats does everything
+			 */
+			shinstats(cinfo);
+		} else {
+			/* check for max, make mean, calc. range */
+			cinfo->min = floor;
+			region_maxmean_crude(cinfo);
+			rng = cinfo->rng;
+			min = cinfo->min;
+			if(SHELLWINS(npt,rng)){   /* use Shellsort */
+				shinstats(cinfo);
+			} else {		/* use histsort */
+				shAssert(min + rng <= MAX_U16);
+				memset(&cellhist[min],'\0',(rng + 1)*sizeof(cellhist[0]));
+				if(MBTHRESH < 0 || npt < MBTHRESH) {
+					get_quartiles_from_array(cellhist,cinfo);
 #if MBTHRESH >= 0			/* make compiler happy */
-	    } else {
-	       get_quartiles_from_array_clipped(cellhist,cinfo,
-						band, fxc, fyc, cgeom);
+				} else {
+					get_quartiles_from_array_clipped(cellhist,cinfo,
+													 band, fxc, fyc, cgeom);
 #endif
-	    }
-	 }
-      }
-   }
-   cinfo->area = (cinfo->flg & EXTRACT_SINC) ? 0.5*cinfo->ntot : cinfo->ntot;
+				}
+			}
+		}
+	}
+	cinfo->area = (cinfo->flg & EXTRACT_SINC) ? 0.5*cinfo->ntot : cinfo->ntot;
 }
 
 static void
 makedssprof(int cell0,			/* first cell to process */
-	    int cell1,			/* last cell to process */
-	    double sky,			/* sky level */
-	    double skysig,		/* sky variance */
-	    int band,			/* band data is taken in */
-	    float fxc, float fyc)	/* centre of object */
+			int cell1,			/* last cell to process */
+			double sky,			/* sky level */
+			double skysig,		/* sky variance */
+			int band,			/* band data is taken in */
+			float fxc, float fyc)	/* centre of object */
 {
     int i;
     int skyfloor = sky - 5.*skysig;	 /* sky - 5*sigma should be safe, but
-					    region_maxmean_crude() checks */
+									  region_maxmean_crude() checks */
 
     if(skyfloor < 0) skyfloor = 0;
 
     for(i = cell0;i <= cell1;i++){
-       if(i < NCELLIN) {
-	  cellinfo[i].flg |= EXTRACT_SINC;
-       }
+		if(i < NCELLIN) {
+			cellinfo[i].flg |= EXTRACT_SINC;
+		}
        
-       do_pstats(&cellinfo[i], skyfloor, band, fxc, fyc, &cellgeom[i]);
-       if(cellinfo[i].ntot > 0) {
-	  cellinfo[i].mean -= sky;
-	  cellinfo[i].qt[0] -= sky;
-	  cellinfo[i].qt[1] -= sky;
-	  cellinfo[i].qt[2] -= sky;
-	  cellinfo[i].min -= sky;
-	  cellinfo[i].sum -= cellinfo[i].nel*sky;
-       }
+		do_pstats(&cellinfo[i], skyfloor, band, fxc, fyc, &cellgeom[i]);
+		if(cellinfo[i].ntot > 0) {
+			cellinfo[i].mean -= sky;
+			cellinfo[i].qt[0] -= sky;
+			cellinfo[i].qt[1] -= sky;
+			cellinfo[i].qt[2] -= sky;
+			cellinfo[i].min -= sky;
+			cellinfo[i].sum -= cellinfo[i].nel*sky;
+		}
     }
 }
 
@@ -3588,30 +3594,30 @@ makedssprof(int cell0,			/* first cell to process */
  */
 void
 phProfileSkySubtract(CELL_STATS *cstats,
-		     float sky)
+					 float sky)
 {
-   int i;
+	int i;
 
-   shAssert(cstats != NULL);
+	shAssert(cstats != NULL);
    
-   for(i = 0;i < cstats->ncell;i++){
-      if(cellinfo[i].ntot > 0) {
-	 cellinfo[i].mean -= sky;
-	 cellinfo[i].qt[0] -= sky;
-	 cellinfo[i].qt[1] -= sky;
-	 cellinfo[i].qt[2] -= sky;
-	 cellinfo[i].min -= sky;
-	 cellinfo[i].sum -= cellinfo[i].nel*sky;
-      }
-   }
+	for(i = 0;i < cstats->ncell;i++){
+		if(cellinfo[i].ntot > 0) {
+			cellinfo[i].mean -= sky;
+			cellinfo[i].qt[0] -= sky;
+			cellinfo[i].qt[1] -= sky;
+			cellinfo[i].qt[2] -= sky;
+			cellinfo[i].min -= sky;
+			cellinfo[i].sum -= cellinfo[i].nel*sky;
+		}
+	}
 }
 
 
 /*****************************************************************************/
 static void
 cellboundary(int cell,			/* the cell in question */
-	     struct cellgeom *cbsp	/* description of the cell */
-	     )
+			 struct cellgeom *cbsp	/* description of the cell */
+	)
 {
     int annulus;
     int sector;
@@ -3625,7 +3631,7 @@ cellboundary(int cell,			/* the cell in question */
         cbsp->outer = 0.5;
         cbsp->cw = 0.;
         cbsp->ccw = 2*M_PI;
-     } else {
+	} else {
         annulus = (cell-1)/NSEC + 1;
         sector = (cell-1)%NSEC;
 
@@ -3648,23 +3654,23 @@ cellboundary(int cell,			/* the cell in question */
 static void
 print_cellorig(int sdy)
 {
-   struct cellorig **cells;
-   struct cellorig cell;
-   int x,y;
+	struct cellorig **cells;
+	struct cellorig cell;
+	int x,y;
 
-   if(sdy < 0 || sdy > YSCL) {
-      fprintf(stderr,"Invalid subpixel: %d\n",sdy);
-      return;
-   }
-   cells = cellorig[sdy];
+	if(sdy < 0 || sdy > YSCL) {
+		fprintf(stderr,"Invalid subpixel: %d\n",sdy);
+		return;
+	}
+	cells = cellorig[sdy];
 
-   for(y = 0;y < RLIM;y++) {
-      for(x = 0;cells[y][x].c_orig != 0x7fff;x++) {
-	 cell = cells[y][x];
-	 printf("%d %d   %d %d   %d %d %d %d\n",y,x,cell.c_orig,cell.c_len,
-		cell.c_llcell,cell.c_lrcell,cell.c_urcell,cell.c_ulcell);
-      }
-   }
+	for(y = 0;y < RLIM;y++) {
+		for(x = 0;cells[y][x].c_orig != 0x7fff;x++) {
+			cell = cells[y][x];
+			printf("%d %d   %d %d   %d %d %d %d\n",y,x,cell.c_orig,cell.c_len,
+				   cell.c_llcell,cell.c_lrcell,cell.c_urcell,cell.c_ulcell);
+		}
+	}
 }
 #endif
 
@@ -3678,10 +3684,10 @@ print_cellorig(int sdy)
 const REGION *
 phConvolveSyncregWithGaussian(float dsigma)
 {
-   int ret =
-     phConvolveWithGaussian(syncext_smoothed, syncext, syncscr, 2*SYBELL-1,
-			    dsigma, 0, CONVOLVE_MULT);
-   shAssert(ret == SH_SUCCESS);
+	int ret =
+		phConvolveWithGaussian(syncext_smoothed, syncext, syncscr, 2*SYBELL-1,
+							   dsigma, 0, CONVOLVE_MULT);
+	shAssert(ret == SH_SUCCESS);
 
-   return(syncreg_smoothed);
+	return(syncreg_smoothed);
 }
