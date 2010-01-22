@@ -23,4 +23,4 @@ def deblend(footprints, peaks, maskedImage, psf):
 	print db.deblend.__doc__
 	objs = db.deblend(footprints, pks, maskedImage, psf)
 
-	return None
+	return objs

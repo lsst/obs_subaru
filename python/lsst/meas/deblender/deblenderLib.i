@@ -65,6 +65,7 @@ SWIG_SHARED_PTR(DeblendedObjectFPtr, lsst::meas::deblender::DeblendedObject<lsst
 //SWIG_SHARED_PTR(MaskedImageFPtrT, lsst::afw::image::MaskedImage<float, lsst::afw::image::MaskPixel, lsst::afw::image::VariancePixel>);
 SWIG_SHARED_PTR(MaskedImageFPtrT, lsst::afw::image::MaskedImage<lsst::afw::image::ImageBase<float>::Pixel, lsst::afw::image::MaskPixel, lsst::afw::image::VariancePixel>);
 
+SWIG_SHARED_PTR(PsfPtr, boost::shared_ptr<lsst::meas::algorithms::PSF>);
 
 /******************************************************************************/
 // Local Variables: ***

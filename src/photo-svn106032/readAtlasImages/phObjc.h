@@ -243,7 +243,7 @@ typedef struct {
    int parent;			        /* id of parent for deblends */
    const int ncolor;			/* number of colours */
    int shallow_copy;			/* is atlas image a shallow copy? */
-   OBJMASK *master_mask;                /* master mask for OBJECT1s */
+	OBJMASK *master_mask;                /* master mask for OBJECT1s */
 
    int drow[NCOLOR], dcol[NCOLOR];	/* offsets wrt reference colour */
    SPANMASK *regmask[NCOLOR];		/* status mask from regions */

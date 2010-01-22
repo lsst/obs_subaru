@@ -35,7 +35,7 @@ static void printAnObjc(OBJC* o, int childnum) {
 	printf(":\n  parent %p\n  children %p\n  sibbs %p\n",
 		   o->parent, o->children, o->sibbs);
     printf("  ncolor %i\n", o->ncolor);
-    printf("  rowc,colc %g,%g\n", o->rowc, o->colc);
+    printf("  colc,rowc %g,%g\n", o->colc, o->rowc);
 	printf("  flags:\n");
 	printflag(o->flags, OBJECT1_, CANONICAL_CENTER);
 	printflag(o->flags, OBJECT1_, BRIGHT);
@@ -622,7 +622,8 @@ int xlo, xhi, ylo, yhi;
  float** pix = NULL;
  int* npixels = NULL;
  int npix;
- float psfsigma = 3.0; // pixels, matching Deblender.cc:"s"
+// SUPER-HACK
+ float psfsigma = 2.0; // pixels, matching Deblender.cc:"s"
  int i;
 
  dx = dy = 0.0;
