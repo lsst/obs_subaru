@@ -826,43 +826,29 @@ phObjcDeblend(OBJC *objc,		/* object to deblend */
 	}
 
 	// DEBUG -- write template images
-	//write_template_images(objc, smoothed_ai, nchild,);
-	{
-		ATLAS_IMAGE* ai = objc->aimage;
-	}
 	for (i=0; i<nchild; i++) {
 		char fn[64];
-		REGION* aireg;
 		ATLAS_IMAGE* ai = smoothed_ai[i];
-		for (c=0; c<objc->ncolor; c++) {
-			OBJMASK* mm;
-			int nr, nc;
-			mm = ai->master_mask;
-			nr = mm->rmax - mm->rmin + 1;
-			nc = mm->cmax - mm->cmin + 1;
-			aireg = shRegNew("", nr, nc, TYPE_U16);
-			trace("mm bounds rows [%i, %i], cols [%i, %i], size %i x %i\n", mm->rmin, mm->rmax, mm->cmin, mm->cmax, nr, nc);
+		REGION* reg;
+		OBJMASK* mm;
+		int nr, nc;
+		mm = ai->master_mask;
+		nr = mm->rmax - mm->rmin + 1;
+		nc = mm->cmax - mm->cmin + 1;
+		reg = shRegNew("", nr, nc, TYPE_U16);
+		trace("smoothed_ai[%i]: mm bounds rows=[%i, %i], cols=[%i, %i], size %i x %i (r x c)\n", i, mm->rmin, mm->rmax, mm->cmin, mm->cmax, nr, nc);
+		for (c=0; c<ai->ncolor; c++) {
 			trace("ATLAS_IMAGE drow[%i], dcol[%i] = (%i, %i)\n", c, c, ai->drow[c], ai->dcol[c]);
-			{
-				// m1's are the same for different colors?
-				OBJMASK* m1 = ai->mask[c];
-				OBJMASK* m2 = ai->pix[c]->mask;
-				REGION* reg;
-				trace("m1 %p, m2 %p\n", m1, m2);
-				trace("m2: r0,c0 (%i,%i); npix %i\n", m2->row0, m2->col0, m2->npix);
-				reg = shRegNew("", mm->rmax+1, mm->cmax+1, TYPE_U16);
-				shRegClear(reg);
-				phRegionSetFromObjmask(reg, m2);
-				sprintf(fn, "template-child%02i-color%i-m2.fits", i, c);
-				shRegWriteAsFits(reg, fn, STANDARD, 2, DEF_REGION_FILE, NULL, 0);
-				shRegDel(reg);
-			}
-			shRegClear(aireg);
-			phRegionSetFromAtlasImage(ai, c, aireg, 0, 0, 0, '\0', 1);
-			sprintf(fn, "template-child%02i-color%i.fits", i, c);
-			shRegWriteAsFits(aireg, fn, STANDARD, 2, DEF_REGION_FILE, NULL, 0);
-			shRegDel(aireg);
+			OBJMASK* m2 = ai->pix[c]->mask;
+			trace("color %i m2: r0,c0=(%i,%i), rminmax=[%i,%i], cminmax=[%i,%i]\n",
+				  c, m2->row0, m2->col0, m2->rmin, m2->rmax, m2->cmin, m2->cmax);
+			shRegClear(reg);
+			phRegionSetFromAtlasImage(ai, c, reg, m2->rmin, m2->cmin, 0, 0, 1);
+			sprintf(fn, "template-child%02i-color%i-m2.fits", i, c);
+			shRegWriteAsFits(reg, fn, STANDARD, 2, DEF_REGION_FILE, NULL, 0);
+			//phRegionSetFromObjmask(reg, m2);
 		}
+		shRegDel(reg);
 	}
 
 

@@ -1,4 +1,4 @@
-all: ../lib/libmeas_deblender.dylib Deblender ../python/lsst/meas/deblender/_deblenderLib.so
+all: ../lib/libmeas_deblender.dylib ../tests/Deblender ../python/lsst/meas/deblender/_deblenderLib.so
 
 INC := \
 	-I/usr/local/lsst-sandbox/DarwinX86/external/boost/1.37.0/include \
@@ -41,6 +41,8 @@ LIB +=  -lpex_exceptions -lafw -lboost_system-xgcc40-mt
 LIB +=  -lboost_unit_test_framework-xgcc40-mt -lutils -ldaf_base -ldaf_data 
 LIB +=  -ldaf_persistence -lpex_logging -lpex_policy -lsecurity
 
+LIB_MEAS_ALG := -L/usr/local/lsst-sandbox/DarwinX86/meas_algorithms/3.0.12/lib -lmeas_algorithms
+
 CPPOBJS := SDSSDeblender.os 
 
 COBJS := photo/deblend.os \
@@ -82,10 +84,12 @@ TOBJS := ../tests/Deblender.o
 $(TOBJS): %.o: %.cc
 	g++ -o $@ -c $(CFLAGS) $(INC) $<
 
-TEXEC := Deblender
+TEXEC := ../tests/Deblender
 
-$(TEXEC): $(TOBJS) $(MYLIB)
-	g++ -o $@ $(LIB) $^ -lmeas_deblender
+$(TEXEC): $(MYLIB)
+
+$(TEXEC): $(TOBJS)
+	g++ -o $@ $(LIB) $(TOBJS) -lmeas_deblender $(LIB_MEAS_ALG)
 
 WRAP_OBJS := ../python/lsst/meas/deblender/deblenderLib_wrap.os
 WRAP_CPPS := $(addsuffix .cc,$(basename $(WRAP_OBJS)))

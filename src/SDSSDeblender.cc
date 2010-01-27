@@ -379,8 +379,11 @@ deblender::SDSSDeblender<ImageT>::deblend(
             phpk->peak = 1000;
             phpk->colc = pk->getFx();
             phpk->rowc = pk->getFy();
-            phpk->cpeak = pk->getIx();
-            phpk->rpeak = pk->getIy();
+            // we probably want to round rather than truncate...
+            //phpk->cpeak = pk->getIx();
+            //phpk->rpeak = pk->getIy();
+            phpk->cpeak = static_cast<int>(0.5 + pk->getFx());
+            phpk->rpeak = static_cast<int>(0.5 + pk->getFy());
             // FIXME -- {row,col}cErr
             phpk->rowcErr = 0.5;
             phpk->colcErr = 0.5;

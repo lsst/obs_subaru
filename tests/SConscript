@@ -17,6 +17,7 @@ for fileName in glob.glob("*.cc"):
 tests = lsst.tests.Control(env, ignoreList=[], expectedFailures={})
 
 tests.run("*.cc")
+tests.run("Deblender.py")
 
 #for target in tests.run("*.py"):
 #    env.Depends(target, "../python/lsst/stack/_stackLib%s" % (env['LDMODULESUFFIX']))

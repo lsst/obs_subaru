@@ -38,7 +38,7 @@ RET_CODE shRegWriteAsFits
 				"NAXIS2  =                 % 4i /                                                "
 				"EXTEND  =                    T / There may be FITS ext                          "
 				"END                                                                             ",
-				reg->nrow, reg->ncol);
+				reg->ncol, reg->nrow);
 	// HACK -- pad
 	for (; i<2880; i++)
 		fprintf(fid, " ");

@@ -40,7 +40,7 @@ if True:
 ##################################################
 # Libraries needed to link libraries/executables
 ##################################################
-env.libs["meas_deblender"] += env.getlibs("pex_exceptions afw boost utils daf_base daf_data daf_persistence pex_logging pex_policy security")
+env.libs["meas_deblender"] += env.getlibs("pex_exceptions afw boost utils daf_base daf_data daf_persistence pex_logging pex_policy security meas_algorithms")
 # wcslib?
 
 env.Append(CPPPATH = Dir("include/lsst/meas/deblender/photo"))
