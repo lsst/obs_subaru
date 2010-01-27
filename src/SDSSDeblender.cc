@@ -602,7 +602,7 @@ deblender::SDSSDeblender<ImageT>::deblend(
             photo::REGION* reg = photo::shRegNew("", ch, cw, photo::TYPE_U16);
             shRegClear(reg);
             float bg = fp->frame[i].bkgd + softbias;
-            photo::phRegionSetFromAtlasImage(o->aimage, i, reg, cx0, cy0, 0, 0, 1);
+            photo::phRegionSetFromAtlasImage(o->aimage, i, reg, cy0, cx0, 0, 0, 1);
             for (int j=0; j<ch; j++) {
                 photo::U16* row = reg->rows_u16[j];
                 for (int k=0; k<cw; k++) {
