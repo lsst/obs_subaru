@@ -433,11 +433,11 @@ deblender::SDSSDeblender<ImageT>::deblend(
         double psfsigma = 2.0;
         // in pixels -- matching Deblender.cc:"s" and also fake.c:psfsigma
         phpsf->width = 0.396 * 2.35 * psfsigma; // FWHM in arcsec.
-        phpsf->sigmax1 = 2.0;
-        phpsf->sigmay1 = 2.0;
-        phpsf->sigmax2 = 2.0;
-        phpsf->sigmay2 = 2.0;
-
+        // HACK!!!
+        phpsf->sigmax1 = psfsigma;
+        phpsf->sigmay1 = psfsigma;
+        phpsf->sigmax2 = psfsigma;
+        phpsf->sigmay2 = psfsigma;
         // required by assertion deblend.c:660
         phpsf->a = 1.0;
 
@@ -452,6 +452,7 @@ deblender::SDSSDeblender<ImageT>::deblend(
          */
         // HACK
         fp->frame[i].ffo_threshold = 10.0;
+        // --> I0_min[i] = ffo_threshold * 2 (deblend.c:590)
 
         //std::printf("  set psf.width to %g (arcsec FWHM)\n", fp->frame[i].psf->width);
 
@@ -476,11 +477,14 @@ deblender::SDSSDeblender<ImageT>::deblend(
     }
     
     // from fpParam.par:
+    // minimum number of detections to create a child
+    fp->deblend_min_detect = 1;
     fp->deblend_min_peak_spacing = 2;
-    fp->deblend_psf_Lmin = 2; // ???!
+    fp->deblend_psf_Lmin = 0.2; // ???!
     fp->deblend_psf_nann = 3;
     fp->deblend_psf_rad_max = 12;
     fp->deblend_npix_max = 0;
+    //deblend_allowed_unassigned 0.05	# max permitted fraction of unassigned flux
     // deblend.c:1299: max cosine between templates.
     fp->deblend_inner_max	= 0.5;
 

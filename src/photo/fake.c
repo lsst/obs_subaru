@@ -248,8 +248,8 @@ phFitCellAsPsfFake(OBJC *objc,		/* Object to fit */
 {
 	int use_difference = 0; /* include difference of cell pairs
 							 in cell variance */
-		float chisq;
-		int nu;
+	float chisq;
+	int nu;
 
 	printf("faking phFitCellAsPsf.\n");
 	// called from deblend.c:
@@ -258,12 +258,6 @@ phFitCellAsPsfFake(OBJC *objc,		/* Object to fit */
 	// sky_noise_only=0
 	printf("color: %i\n", color);
 	printf("nann: %i\n", nannuli);
-
-	// problem in model_cells_make
-	// -> called by psf_cells_make (w/ psf_entries)
-	// ---> called by cell_fit_model
-	// -----> called by cell_fit_psf
-	// -------> called by phFitCellAsPsfFake
 
 	// phFitCellAsKnownModel
 	{
@@ -427,6 +421,7 @@ phFitCellAsPsfFake(OBJC *objc,		/* Object to fit */
    if (I0 != NULL) {
 	   // global
 	   *I0 = model_amp;
+	   trace("setting I0 = model_amp = %g\n", model_amp);
    }
    
    trace("returning %g\n", (obj1->chisq_star / obj1->nu_star));
@@ -648,81 +643,6 @@ maxrad = geom->radii[nann];
 trace("median? %i\n", fit_ctx.is_median);
 // (yes, median)
 
-// (1-d) Gaussian   CDF = 1/2 * (1 + erf((x - mu) / (sqrt(2) sigma)))
-// ... but we need the radial CDF of a 2-d Gaussian, on a shifted pixel grid.
-
-// HACK -- for the moment, ignore the fact that we'll need subpixelization.
-
-/*
-{
-	int ci=0;
-	int ri, si;
-	double dt = 2.0 * M_PI / (double)NSEC;
-	for (ri=0; ri<nann; ri++) {
-		float rlo, rhi;
-		int x,y;
-		rlo = geom->radii[ri];
-		rhi = geom->radii[ri+1];
-		for (si=0; si<NSEC/2; si++) {
-			// find the pixel box containing the pixels in this cell.
-			int xlo,xhi,ylo,yhi;
-			if (ri == 0) {
-				xlo = floor(dx - rhi);
-				xhi = ceil(dx + rhi);
-				ylo = floor(dy - rhi);
-				yhi = ceil(dy + rhi);
-			} else {
-				double tlo = si*dt;
-				double thi = (si+1)*dt;
-				double x,y, xl,xh,yl,yh;
-				yl = xl = 1000000;
-				yh = xh = -1000000;
-				// HACK -- add cleverness...
-				// corner A
-				x = dx + rlo * cos(tlo);
-				y = dy + rlo * sin(tlo);
-				xl = MIN(xl, x); xh = MAX(xh, x); yl = MIN(yl, y); yh = MAX(yh, y);
-				// corner B
-				x = dx + rlo * cos(thi);
-				y = dy + rlo * sin(thi);
-				xl = MIN(xl, x); xh = MAX(xh, x); yl = MIN(yl, y); yh = MAX(yh, y);
-				// corner C
-				x = dx + rhi * cos(tlo);
-				y = dy + rhi * sin(tlo);
-				xl = MIN(xl, x); xh = MAX(xh, x); yl = MIN(yl, y); yh = MAX(yh, y);
-				// corner D
-				x = dx + rhi * cos(thi);
-				y = dy + rhi * sin(thi);
-				xl = MIN(xl, x); xh = MAX(xh, x); yl = MIN(yl, y); yh = MAX(yh, y);
-				xlo = floor(xl);
-				xhi = ceil(xh);
-				ylo = floor(yl);
-				yhi = ceil(yh);
-			}
-
-			for (y=ylo; y<=yhi; y++) {
-				for (x=xlo; x<=xhi; x++) {
-					// belongs in this ring?
-					double r = sqrt((dx-x)*(dx-x) + (dy-y)*(dy-y));
-					if (r < rlo || r >= rhi)
-						continue;
-
-					if (ri != 0) {
-						// belongs in this sector?
-						double theta = atan2(y-dy, x-dy);
-						if (
-					
-				}
-			}
-
-			ci++;
-			if (ri == 0)
-				break;
-		}
-	}
-}
-}}
- */
 	 ylo = xlo = floor(-maxrad);
 	 yhi = xhi = ceil(maxrad);
 
@@ -843,21 +763,6 @@ trace("median? %i\n", fit_ctx.is_median);
 	 free(npixels);
 
 	 return cs;
-
-
-///// HACK -- we *could* just create a REGION and call phProfileExtract...
-// (that gives us a CELL_STATS, which we'd have to process to fill in COMP_CSTATS)
-/*
- clazz = -1, 
- aratio = 1, 
- rsize = 0, 
- orient = 4.4765625, 
- octant = 0, 
- psf = 0x0, 
- data = 0x0, 
- var = 0x17f4bf7, 
- exact = -1144054338
- */
 }
 static void
 cell_fit_psf(
@@ -974,20 +879,22 @@ cell_fit_model(
     shAssert(model != NULL);
     sig = fit_ctx.sig;
 
-	for (i=0; i<ncells; i++) {
-		trace("cell %i: data %g, model %g, sigma %g\n",
-			  i, data[i], model[i], sig[i]);
-	}
-	fprintf(stderr, "celldata = [");
-	for (i=0; i<ncells; i++)
-		fprintf(stderr, "%g,", data[i]);
-	fprintf(stderr, "]\ncellmodel = [");
-	for (i=0; i<ncells; i++)
-		fprintf(stderr, "%g,", model[i]);
-	fprintf(stderr, "]\ncellsigma = [");
-	for (i=0; i<ncells; i++)
-		fprintf(stderr, "%g,", sig[i]);
-	fprintf(stderr, "]\n");
+	/*
+	 for (i=0; i<ncells; i++) {
+	 trace("cell %i: data %g, model %g, sigma %g\n",
+	 i, data[i], model[i], sig[i]);
+	 }
+	 fprintf(stderr, "celldata = [");
+	 for (i=0; i<ncells; i++)
+	 fprintf(stderr, "%g,", data[i]);
+	 fprintf(stderr, "]\ncellmodel = [");
+	 for (i=0; i<ncells; i++)
+	 fprintf(stderr, "%g,", model[i]);
+	 fprintf(stderr, "]\ncellsigma = [");
+	 for (i=0; i<ncells; i++)
+	 fprintf(stderr, "%g,", sig[i]);
+	 fprintf(stderr, "]\n");
+	 */
 
 /*
  * find the best position angle, if so desired
@@ -1081,14 +988,16 @@ cell_fit_model(
     }
 
 	for (i=0; i<ncells; i++) {
-		trace("cell %i: data %g, fit model %g, sigma %g\n",
-			  i, data[i], model[i], sig[i]);
+		trace("cell %i: data %g, fit model %g, sigma %g  -->  chi %g\n",
+			  i, data[i], model[i], sig[i], (model[i] - data[i])/sig[i]);
 	}
 
-	fprintf(stderr, "cellmodel2 = [");
-	for (i=0; i<ncells; i++)
-		fprintf(stderr, "%g,", model[i]);
-	fprintf(stderr, "]\n");
+	/*
+	 fprintf(stderr, "cellmodel2 = [");
+	 for (i=0; i<ncells; i++)
+	 fprintf(stderr, "%g,", model[i]);
+	 fprintf(stderr, "]\n");
+	 */
 
 /*
  * and the residual vector
@@ -1299,8 +1208,8 @@ phCellProfSet(CELL_PROF *cprof,		/* the CELL_PROF to initialise */
 	if(sky_noise_only) {
 		var_photon = sky/gain + dark_variance;
 		var_photon /= cell->area;
-
 		var = var_photon;
+		//trace("sky_noise_only; sky=%g, gain=%g, dark_var=%g, cell->area=%g  -->  var=%g\n", sky, gain, dark_variance, cell->area, var);
 	} else {
 		if((var_photon = (val1 + sky)/gain + dark_variance) > 0) {
 			var_photon /= cell->area;
@@ -1310,6 +1219,8 @@ phCellProfSet(CELL_PROF *cprof,		/* the CELL_PROF to initialise */
 		var = var_photon;
 		var += sinc_fac*pow(data[0]*corr[icorr][0],2);
 		var += pow(var_min_frac*data[0], 2);
+		//trace("not sky_noise_only; val1=%g, sky=%g, gain=%g, dark_variance=%g, cell->area=%g\n", val1, sky, gain, dark_variance, cell->area);
+		//trace("photon variance %g, sinc_fac %g, var_min_frac %g\n", var_photon, sinc_fac*pow(data[0]*corr[icorr][0],2), pow(var_min_frac*data[0], 2));
 	}
 
 	sig[0] = sqrt((var < 1e-5) ? 1e-5 : var);
@@ -1336,6 +1247,7 @@ phCellProfSet(CELL_PROF *cprof,		/* the CELL_PROF to initialise */
 				var_photon /= (area1 + area2)*(area1 + area2);
 
 				var = var_photon;
+				// trace("sky_noise_only; area1=%g, area2=%g, sky=%g, gain=%g, dark_var=%g  -->  var=%g\n", area1, area2, sky, gain, dark_variance, var);
 			} else {
 				var_photon = (area1*(val1 + sky) + area2*(val2 + sky))/gain +
 					dark_variance*(area1 + area2);
@@ -1366,6 +1278,17 @@ phCellProfSet(CELL_PROF *cprof,		/* the CELL_PROF to initialise */
  * finally, add in the floor to the variance
  */
 				var += pow(var_min_frac*data[k], 2);
+
+				// in my tests it's photon-noise dominated.
+				/*
+				 trace("not sky_noise_only; val1=%g, val2=%g, area1=%g, area2=%g, sky=%g, gain=%g, dark_variance=%g\n",
+				 val1, val2, area1, area2, sky, gain, dark_variance);
+				 trace("photon variance %g, sinc_fac %g, centering %g, var_min_frac %g\n",
+				 var_photon,
+				 sinc_fac*pow(data[0]*corr[icorr][i],2),
+				 centering_fac*pow(data[k]*rmean*posErr/(sigma*sigma), 2),
+				 pow(var_min_frac*data[k], 2));
+				 */
 			}
 			shAssert(var == var);
 	 

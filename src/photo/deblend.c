@@ -658,6 +658,7 @@ phObjcDeblend(OBJC *objc,		/* object to deblend */
 				child->color[c]->profMean[2] = child->color[c]->profMean[0];
 				child->color[c]->profMean[3] = pedestal;
 				shAssert(fiparams->frame[c].psf->a == 1.0);
+				trace("dividing I0 by %g\n", phDgpsfCumulativeFlux(fiparams->frame[c].psf, 1/sqrt(M_PI)));
 				I0 /= phDgpsfCumulativeFlux(fiparams->frame[c].psf, 1/sqrt(M_PI));
 
 				psf_props[c].satur = 0;
@@ -666,9 +667,14 @@ phObjcDeblend(OBJC *objc,		/* object to deblend */
 			}
 			psf_props[c].star_L = child->color[c]->star_L;
 
+			trace("central intensity I0 = %g, modified I0 = %g, vs 10*I0_min = %g\n", psf_props[c].I0, I0, 10*I0_min[c]);
 			psf_props[c].detected = (I0 > 2*I0_min[c]) ? 1 : 0;
 			psf_props[c].is_good_psf = (psf_props[c].I0 > 10*I0_min[c] &&
 										psf_props[c].star_L > psf_Lmin) ? 1 : 0;
+			trace("star_L: %g, detected? %s, is_good_psf? %s\n",
+				  psf_props[c].star_L,
+				  psf_props[c].detected ? "yes":"no",
+				  psf_props[c].is_good_psf ? "yes":"no");
 		}
 		/*
 		 * Now use that information to decide if the object is indeed a star; note
@@ -681,15 +687,17 @@ phObjcDeblend(OBJC *objc,		/* object to deblend */
 			is_psf = 0;			/* we don't yet know what it is */
 			for(c = 0; c < objc->ncolor; c++) {
 				if(psf_props[c].satur) {
+					trace("color %i: saturated -> is_psf\n", c);
 					is_psf = 1;
 					break;
 				}
-	  
 				if(psf_props[c].is_good_psf) {
+					trace("color %i: is_good_psf -> is_psf\n", c);
 					is_psf = 1;
 					break;
 				}
 			}
+			trace("is_psf? %i\n", is_psf);
 			/*	 
 			 * If it isn't obviously a PSF, but there aren't many detections,
 			 * accept a lesser standard of proof.
@@ -697,18 +705,24 @@ phObjcDeblend(OBJC *objc,		/* object to deblend */
 			if(!is_psf) {
 				int ndetect = 0;
 				for(c = 0; c < objc->ncolor; c++) {
+					trace("detected in color %i: %i\n", c, psf_props[c].detected);
 					ndetect += psf_props[c].detected;
 				}
+				trace("ndetect=%i\n", ndetect);
 				if(ndetect <= 2) {
 					for(c = 0; c < objc->ncolor; c++) {
+						trace("color %i: star_L %g vs psf_Lmin %g\n", c, psf_props[c].star_L, psf_Lmin);
 						if(psf_props[c].star_L > psf_Lmin) {
+							trace("is_psf\n");
 							is_psf = 1;
 							break;
 						}
 					}
 				}
 			}
+			trace("is_psf? %i\n", is_psf);
 		}
+		trace("is_psf? %i\n", is_psf);
 		/*
 		 * If it's a PSF, subtract it, and prepare to deblend it AS_PSF
 		 */

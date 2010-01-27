@@ -4,6 +4,8 @@
  */
 #include <iostream>
 
+#include <sys/param.h>
+
 #define BOOST_TEST_DYN_LINK
 #define BOOST_TEST_MODULE Deblender
 
@@ -50,6 +52,9 @@ double random_gaussian() {
 #define FOR_EACH_PIXEL(img, it)                                         \
     for (Image::iterator it = img->begin(), end = img->end(); it != end; it++)
 
+#define FOR_EACH_PIXEL_OFTYPE(img, it, T)                                 \
+    for (T::iterator it = img->begin(), end = img->end(); it != end; it++)
+
 //template afwImage::Image<PixelT>::Ptr afwMath::Background::getImage() const;
 
 BOOST_AUTO_TEST_CASE(TwoStarDeblend) {
@@ -61,7 +66,9 @@ BOOST_AUTO_TEST_CASE(TwoStarDeblend) {
     float flux[] = {2000, 4000};
     // single-Gaussian PSF sigma
     float truepsfsigma = 2;
+    // sky level
     float sky = 100;
+    // sky noise level, gaussian approximation
     float skysigma = sqrt(sky);
     // number of peaks
     int NP = sizeof(cx)/sizeof(float);
@@ -115,7 +122,11 @@ BOOST_AUTO_TEST_CASE(TwoStarDeblend) {
     img->writeFits("test2.fits");
 
     // give it roughly correct variance
-    *(mimage->getVariance()) = sky;
+    //*(mimage->getVariance()) = sky;
+    imgit = img->begin();
+    FOR_EACH_PIXEL_OFTYPE(mimage->getVariance(), it, MImage::Variance) {
+        *it = MAX(skysigma, sqrt(*imgit));
+    }
 
     // make a deep copy for further processing...
     Image::Ptr imgcopy(new Image(*img, true));
@@ -231,7 +242,7 @@ BOOST_AUTO_TEST_CASE(TwoStarDeblend) {
             for (int x=mxlo; x<(W-mxhi); x++) {
                 double modelpix = (*pimg)(x,y) + (*bgimg)(x,y);
                 double realpix = (*imgList[i])(x,y);
-                std::printf("pix diff %g\n", modelpix - realpix);
+                //std::printf("pix diff %g\n", modelpix - realpix);
                 //BOOST_CHECK(fabs(modelpix - realpix) < noise);
                 checkedpix++;
             }
