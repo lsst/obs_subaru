@@ -1156,6 +1156,8 @@ phObjcDeblend(OBJC *objc,		/* object to deblend */
 			// deblend.c:2975 (deblend_template_find)
 			//bkgd = fiparams->frame[c].bkgd + SOFT_BIAS;
 			bkgd = SOFT_BIAS;
+			//trace("setup_normal: fiparams->frame[c].bkgd = %g\n",
+			//fiparams->frame[c].bkgd);
 			setup_normal(objc, (const OBJC **)children, nchild, c, bkgd,
 						 A[c], b[c], norm[c]);
 		}
@@ -2611,7 +2613,9 @@ deblend_template_find(OBJC *objc,	/* the OBJC in question */
 	 * a template here. We'll deal with missing templates later.
 	 */
 	for(c = 0;c < ncolor;c++) {
+		trace("color %i\n", c);
 		if(!(objc->color[c]->flags & OBJECT1_DETECTED)) {
+			trace("not detected.\n");
 			continue;
 		}
       
@@ -2658,6 +2662,7 @@ deblend_template_find(OBJC *objc,	/* the OBJC in question */
 		if(objc->color[c]->flags & OBJECT1_DEBLENDED_AS_PSF) {
 			int rad;			/* radius to mask */
 
+			trace("deblended_as_psf\n");
 			i = rowc - rmin;
 			if(rowc < rmin) {		/* something's rotten in the state
 									 of the astrometry */
@@ -2697,13 +2702,19 @@ deblend_template_find(OBJC *objc,	/* the OBJC in question */
 			objc->color[c]->mask = phObjmaskFromCircle(rowc, colc, rad);
 			template_max += SOFT_BIAS;
 		} else {				/* not a PSF; symmetrise image */
+			trace("not a PSF: symmetrise image\n");
+			trace("DONT_USE_SUBTRACTED is %i\n", (int)DONT_USE_SUBTRACTED);
+
 			template_max = objc->color[c]->profMean[2]; /* max. val. of template*/
 			template_max += SOFT_BIAS;
+
+			trace("master mask nspan = %i\n", mmask->nspan);
 
 			for(i = 0;i < mmask->nspan;i++) {
 				y = mmask->s[i].y + aimage_drow;
 				x1 = mmask->s[i].x1 + aimage_dcol;
 				x2 = mmask->s[i].x2 + aimage_dcol;
+				trace("span %i: y=%i, x=[%i, %i]\n", i, y, x1, x2);
 				if(y < 0 || y >= nrow) {
 					continue;
 				}
@@ -2712,6 +2723,7 @@ deblend_template_find(OBJC *objc,	/* the OBJC in question */
 	    
 				my = rowc + (rowc - y);
 				mx1 = colc + (colc - x2); mx2 = colc + (colc - x1); /* mx1 <= mx2*/
+				trace("  my=%i, mx=[%i, %i]\n", my, mx1, mx2);
 				/*
 				 * check if the mirrored span lies outside mmask's bounding box; if so, leave
 				 * sym at the background level
@@ -2748,6 +2760,7 @@ deblend_template_find(OBJC *objc,	/* the OBJC in question */
 					shAssert(x >= 0 && x < ncol && mx >= cmin && mx < cmin + csize);
 					val = row[x];
 					mval = mrow[mx];
+					trace("  x=%i; val=%i, mval=%i\n", x, val, mval);
 #if DONT_USE_SUBTRACTED			/* don't use PSF-subtracted pixels */
 					if(psfrow[x - cmin] != 0) { /* pixel is part of a PSF object */
 						if(mpsfrow[mx - cmin] != 0) {	/* so is mirror pixel */
