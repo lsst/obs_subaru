@@ -50,8 +50,6 @@ namespace lsst {
                     boost::shared_ptr<typename lsst::meas::algorithms::PSF > psf
                     ) = 0;
 
-				virtual std::vector<typename DeblendedObject<ImageT>::Ptr > OLDdeblend(std::vector<typename ImageT::Ptr> &images) = 0;
-
 				virtual ~Deblender() {}
 			};
 			
@@ -59,8 +57,6 @@ namespace lsst {
 				class SDSSDeblender : public Deblender<ImageT> {
 			public:
                 SDSSDeblender();
-
-				virtual std::vector<typename DeblendedObject<ImageT>::Ptr > OLDdeblend(std::vector<typename ImageT::Ptr> &images);
 
                 virtual
 				std::vector<typename DeblendedObject<ImageT>::Ptr >
