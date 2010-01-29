@@ -446,6 +446,7 @@ deblender::SDSSDeblender<ImageT>::deblend(
         phpsf->chisq = 1.0;
         fp->frame[i].psf = phpsf;
 
+        // required by improve_template
         fp->frame[i].smooth_sigma = psfsigma;
 
         /* the detection threshold in the smoothed image is ffo_threshold, and a
@@ -577,18 +578,19 @@ deblender::SDSSDeblender<ImageT>::deblend(
      */
     photo::phObjcMakeChildrenFake(objc, fp);
 
-    std::printf("after phObjcMakeChildren:\n");
-    photo::printObjc(objc);
-
-    std::printf("Objc to be deblended:\n");
-    photo::phObjcPrintPretty(objc, "");
-
+    /*
+     std::printf("after phObjcMakeChildren:\n");
+     photo::printObjc(objc);
+     std::printf("Objc to be deblended:\n");
+     photo::phObjcPrintPretty(objc, "");
+     */
 	int res = photo::phObjcDeblend(objc, fp);
 
     std::cout << "After phObjcDeblend:" << std::endl;
     photo::phObjcPrintPretty(objc, "");
     photo::printObjc(objc);
-    
+
+    // OBJC* family --> vector of DeblendedObject
     for (photo::OBJC* o = photo::phObjcDescendentNext(objc);
          o;
          o = phObjcDescendentNext((const photo::OBJC*)NULL)) {
@@ -604,6 +606,9 @@ deblender::SDSSDeblender<ImageT>::deblend(
             cx0 = mask->cmin;
             cy0 = mask->rmin;
             std::printf("offset (%i,%i), size (%i,%i)\n", cx0, cy0, cw, ch);
+
+            // FIXME -- OBJMASK --> Footprint, rather than REGION --> Image
+
             typename ImageT::Ptr img(new ImageT(cw, ch, 0));
             photo::REGION* reg = photo::shRegNew("", ch, cw, photo::TYPE_U16);
             shRegClear(reg);

@@ -10,7 +10,7 @@
 #include "lsst/meas/algorithms.h"
 
 namespace image = lsst::afw::image;
-namespace det = lsst::afw::detection;
+namespace afwDet = lsst::afw::detection;
 
 namespace lsst {
 	namespace meas {
@@ -22,9 +22,11 @@ namespace lsst {
                 typedef boost::shared_ptr< DeblendedObject<ImageT> > Ptr;
 
 				std::vector<typename ImageT::Ptr> images;
-                // pixel offset of "image" within the parent image.
+                // pixel offset of "images" within the parent images.
                 int x0;
                 int y0;
+
+				std::vector<afwDet::Footprint::Ptr> foots;
 
                 /*
                  add this object's pixel values for "color" to the given image,
@@ -40,17 +42,11 @@ namespace lsst {
 			public:
 
 				virtual
-                //std::vector<typename DeblendedObject<ImageT>::Ptr >
-                //std::vector< boost::shared_ptr< DeblendedObject<typename ImageT> > >
 				std::vector<typename DeblendedObject<ImageT>::Ptr >
                 deblend(
-                    //std::vector< det::Footprint::Ptr > footprints,
                     std::vector< boost::shared_ptr< lsst::afw::detection::Footprint > > footprints,
-                    //std::vector< std::vector< det::Peak::Ptr > > peaks
                     std::vector< std::vector< boost::shared_ptr< lsst::afw::detection::Peak > > > peaks,
-                    //boost::shared_ptr<typename lsst::afw::image::MaskedImage< ImageT, lsst::afw::image::MaskPixel, lsst::afw::image::VariancePixel > > maskedImage
                     boost::shared_ptr<typename lsst::afw::image::MaskedImage<typename ImageT::Pixel> > maskedImage,
-                    //boost::shared_ptr< lsst::afw::image::MaskedImage< typename ImageT, lsst::afw::image::MaskPixel, lsst::afw::image::VariancePixel > > maskedImage
                     boost::shared_ptr<typename lsst::meas::algorithms::PSF > psf
                     ) = 0;
 
@@ -65,18 +61,12 @@ namespace lsst {
                 SDSSDeblender();
 
 				virtual std::vector<typename DeblendedObject<ImageT>::Ptr > OLDdeblend(std::vector<typename ImageT::Ptr> &images);
-				//virtual std::vector<typename ImageT::Ptr> deblend(std::vector<typename ImageT::Ptr> &images);
 
                 virtual
 				std::vector<typename DeblendedObject<ImageT>::Ptr >
                 deblend(
-                    //std::vector< det::Footprint::Ptr > footprints,
                     std::vector< boost::shared_ptr< lsst::afw::detection::Footprint > > footprints,
-                    //std::vector< std::vector< det::Peak::Ptr > > peaks
                     std::vector< std::vector< boost::shared_ptr< lsst::afw::detection::Peak > > > peaks,
-                    //boost::shared_ptr<typename lsst::afw::image::MaskedImage< ImageT, lsst::afw::image::MaskPixel, lsst::afw::image::VariancePixel > > maskedImage
-                    //boost::shared_ptr< lsst::afw::image::MaskedImage< typename ImageT, lsst::afw::image::MaskPixel, lsst::afw::image::VariancePixel > > maskedImage
-                    //boost::shared_ptr<typename lsst::afw::image::MaskedImage< ImageT > > maskedImage
                     boost::shared_ptr<typename lsst::afw::image::MaskedImage<typename ImageT::Pixel> > maskedImage,
                     boost::shared_ptr<typename lsst::meas::algorithms::PSF > psf
                     );
