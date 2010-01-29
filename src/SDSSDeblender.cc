@@ -207,8 +207,8 @@ deblender::SDSSDeblender<ImageT>::deblend(
         {
             // just dump pix into an stl vector
             std::vector<float> vpix;
-            for (int j=0; j<H; j++)
-                for (int k=0; k<W; k++)
+            for (j=0; j<H; j++)
+                for (k=0; k<W; k++)
                     vpix.push_back((*image)(k,j));
             // partition
             nth_element(vpix.begin(), vpix.begin() + vpix.size()/2, vpix.end());
@@ -339,6 +339,8 @@ deblender::SDSSDeblender<ImageT>::deblend(
         int cw, ch;
         int cx0, cy0;
         std::vector<typename ImageT::Ptr> cimgs;
+        std::vector<afwDet::Footprint::Ptr> cfoots;
+
         for (i=0; i<NI; i++) {
             photo::OBJMASK* mask = o->aimage->pix[i]->mask;
             cw = mask->cmax - mask->cmin + 1;
@@ -347,16 +349,21 @@ deblender::SDSSDeblender<ImageT>::deblend(
             cy0 = mask->rmin;
             std::printf("offset (%i,%i), size (%i,%i)\n", cx0, cy0, cw, ch);
 
-            // FIXME -- OBJMASK --> Footprint, rather than REGION --> Image
+            afwDet::Footprint::Ptr foot(new afwDet::Footprint(mask->nspan));
+            for (j=0; j<mask->nspan; j++) {
+                photo::SPAN* phs = mask->s + j;
+                afwDet::Span span = foot->addSpan(phs->y, phs->x1, phs->x2);
+            }
+            cfoots.push_back(foot);
 
             typename ImageT::Ptr img(new ImageT(cw, ch, 0));
             photo::REGION* reg = photo::shRegNew("", ch, cw, photo::TYPE_U16);
             shRegClear(reg);
             float bg = fp->frame[i].bkgd + softbias;
             photo::phRegionSetFromAtlasImage(o->aimage, i, reg, cy0, cx0, 0, 0, 1);
-            for (int j=0; j<ch; j++) {
+            for (j=0; j<ch; j++) {
                 photo::U16* row = reg->rows_u16[j];
-                for (int k=0; k<cw; k++) {
+                for (k=0; k<cw; k++) {
                     if (row[k])
                         (*img)(k, j) = (float)row[k] - bg;
                     //std::printf("%i ", (int)row[k]);
@@ -368,6 +375,7 @@ deblender::SDSSDeblender<ImageT>::deblend(
         dbobj->x0 = cx0;
         dbobj->y0 = cy0;
         dbobj->images = cimgs;
+        dbobj->foots = cfoots;
         children.push_back(dbobj);
     }
 
