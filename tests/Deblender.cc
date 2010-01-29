@@ -9,8 +9,8 @@
 #define BOOST_TEST_DYN_LINK
 #define BOOST_TEST_MODULE Deblender
 
-#include "boost/test/unit_test.hpp"
-#include "boost/test/floating_point_comparison.hpp"
+#include <boost/test/unit_test.hpp>
+#include <boost/test/floating_point_comparison.hpp>
 
 //#include "lsst/afw/image/Image.h"
 //#include "lsst/meas/algorithms/PSF.h"
@@ -67,9 +67,9 @@ BOOST_AUTO_TEST_CASE(TwoStarDeblend) {
     // single-Gaussian PSF sigma
     float truepsfsigma = 2;
     // sky level
-    float sky = 100;
+    double sky = 100;
     // sky noise level, gaussian approximation
-    float skysigma = sqrt(sky);
+    double skysigma = sqrt(sky);
     // number of peaks
     int NP = sizeof(cx)/sizeof(float);
 
@@ -237,16 +237,43 @@ BOOST_AUTO_TEST_CASE(TwoStarDeblend) {
         int myhi = 1;
         double noise = skysigma;
 
+        Image::Ptr diffimg(new Image(W, H, 0));
+        *diffimg += *pimg;
+        *diffimg += *bgimg;
+        *diffimg -= *imgList[i];
+
+        Image::Ptr diffgood(new Image(*diffimg,
+                                      afwImage::BBox(afwImage::PointI(mxlo, mylo),
+                                                     W-mxhi-mxlo, H-myhi-mylo)));
         int checkedpix = 0;
-        for (int y=mylo; y<(H-myhi); y++) {
-            for (int x=mxlo; x<(W-mxhi); x++) {
-                double modelpix = (*pimg)(x,y) + (*bgimg)(x,y);
-                double realpix = (*imgList[i])(x,y);
-                //std::printf("pix diff %g\n", modelpix - realpix);
-                //BOOST_CHECK(fabs(modelpix - realpix) < noise);
-                checkedpix++;
-            }
+
+        double dlo =  1e100;
+        double dhi = -1e100;
+        double dmean = 0;
+        double dvar = 0;
+        FOR_EACH_PIXEL(diffgood, it) {
+            dlo = MIN(dlo, *it);
+            dhi = MAX(dhi, *it);
+            dmean += *it;
+            checkedpix++;
         }
+        dmean /= checkedpix;
+        FOR_EACH_PIXEL(diffgood, it) {
+            dvar += (*it - dmean)*(*it - dmean);
+        }
+        dvar /= checkedpix;
+        std::printf("differences: mean %g, variance %g, range [%g, %g]\n", dmean, dvar, dlo, dhi);
+
+        diffgood->writeFits("diffgood.fits");
+
+        // variance within 10% of skysigma**2.
+        BOOST_CHECK_CLOSE(dvar, skysigma*skysigma, 10.);
+        // mean within 0.1*skysigma of zero.
+        BOOST_CHECK(fabs(dmean) < skysigma*0.1);
+        // extrema within 5-sigma of zero.
+        BOOST_CHECK(dlo > -5*skysigma);
+        BOOST_CHECK(dhi <  5*skysigma);
+
         BOOST_CHECK_EQUAL(checkedpix, 3721);
         // the margins should be zero
         for (int y=0; y<mylo; y++)
