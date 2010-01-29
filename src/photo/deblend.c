@@ -2649,6 +2649,8 @@ deblend_template_find(OBJC *objc,	/* the OBJC in question */
 		 */
 		rowc = objc->color[c]->rowc;
 		colc = objc->color[c]->colc;
+
+		trace("peak pixel: x,y = (%i,%i)\n", colc, rowc);
 		/*
 		 * done with checks and unpacking. To work.
 		 *
@@ -2760,7 +2762,7 @@ deblend_template_find(OBJC *objc,	/* the OBJC in question */
 					shAssert(x >= 0 && x < ncol && mx >= cmin && mx < cmin + csize);
 					val = row[x];
 					mval = mrow[mx];
-					trace("  x=%i; val=%i, mval=%i\n", x, val, mval);
+					trace("  x=%i; (x,y)=(%i,%i), val=%i,   (mx,my)=(%i,%i), mval=%i\n", x, x, y, val, mx, my, mval);
 #if DONT_USE_SUBTRACTED			/* don't use PSF-subtracted pixels */
 					if(psfrow[x - cmin] != 0) { /* pixel is part of a PSF object */
 						if(mpsfrow[mx - cmin] != 0) {	/* so is mirror pixel */
@@ -2807,6 +2809,10 @@ deblend_template_find(OBJC *objc,	/* the OBJC in question */
 								 dump_filename, STANDARD, 2,DEF_NONE,NULL,0);
 				dump_filename = NULL;
 			}
+
+			dump_filename = get_dump_filename();
+			trace("dumping 'sym' to %s\n", dump_filename);
+			shRegWriteAsFits(sym, dump_filename, STANDARD, 2,DEF_NONE,NULL,0);
 		}
 		/*
 		 * we next want to run the object finder on that symmetrised image; the image
@@ -2823,6 +2829,10 @@ deblend_template_find(OBJC *objc,	/* the OBJC in question */
 			if (sigma != 0.0) {
 				threshold /= sigma;
 			}
+
+			trace("fiparams->frame[c].smooth_sigma = %g; ffo_threshold = %g\n",
+				  fiparams->frame[c].smooth_sigma,
+				  fiparams->frame[c].ffo_threshold);
 
 			shAssert(obj1->mask == objc->aimage->mask[c]);
 			phObjmaskDel(obj1->mask); objc->aimage->mask[c] = NULL;
@@ -3047,6 +3057,11 @@ improve_template(const OBJMASK *mask,	/* OBJC's master_mask */
 	OBJMASK *objmask;			/* OBJMASK of desired object */
 	int r0, c0;				/* origin of subdata in data */
 	REGION *subdata;			/* subregion around peak */
+
+	trace("improve_template: band=%i, cpeak,rpeak=(%i,%i), dcol,drow=(%i,%i), csize,rsize=(%i,%i)\n",
+		  band, cpeak, rpeak, dcol, drow, csize, rsize);
+	trace("sigma=%g, filtsize=%i, npeak_max=%i, threshold=%i, grow=%i\n",
+		  sigma, filtsize, npeak_max, threshold, ngrow);
    
 	c0 = mask->cmin + dcol - filtsize/2;
 	r0 = mask->rmin + drow - filtsize/2;

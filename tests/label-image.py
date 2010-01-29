@@ -2,7 +2,7 @@ from pylab import *
 import pyfits
 
 if __name__ == '__main__':
-	fn = 'mimage.fits'
+	fn = 'input.fits'
 	softbias = 1000
 
 	I = pyfits.open(fn)[0].data
@@ -22,12 +22,14 @@ if __name__ == '__main__':
 		for j in range(ylo, yhi+1):
 			pix = I[j,i]
 			if pix < 0:
-				s = '(%i)' % round(pix+softbias)
+				#s = '(%i)' % round(pix+softbias)
+				s = '(%i)' % int(pix+softbias)
 			else:
-				s = '%i' % round(pix)
+				#s = '%i' % round(pix)
+				s = '%i' % int(pix)
 
 			text(i, j, s, color='k', fontsize='7',
 				 horizontalalignment='center', verticalalignment='center')
 	axis([xlo-0.5, xhi+0.5, ylo-0.5, yhi+0.5])
-	savefig('test1.png')
+	savefig('test.pdf')
 

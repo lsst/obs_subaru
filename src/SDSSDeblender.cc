@@ -446,6 +446,8 @@ deblender::SDSSDeblender<ImageT>::deblend(
         phpsf->chisq = 1.0;
         fp->frame[i].psf = phpsf;
 
+        fp->frame[i].smooth_sigma = psfsigma;
+
         /* the detection threshold in the smoothed image is ffo_threshold, and a
          * star of peak intensity I0 would have a peak of I0/2 in the smoothed
          * image, hence the value of I0_min
