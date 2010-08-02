@@ -1,0 +1,8 @@
+# -*- python -*-
+import re
+Import("env")
+
+env.CheckSwig("python", ilang="c++", includedProducts="distEst")
+env.LoadableModuleIncomplete("_distest", Split("distest.i"),
+                             CCFLAGS=re.sub("-Wall", "", " ".join(env['CCFLAGS'])),
+                             LIBS=env.getlibs("hscdistest"))
