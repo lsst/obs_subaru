@@ -1,5 +1,5 @@
 setupRequired(hscBase)
-#setupRequired(utils)
+setupRequired(utils)
 #setupRequired(gsl)
 #setupRequired(afw)
 #setupRequired(meas_algorithms)
