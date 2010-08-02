@@ -1,0 +1,11 @@
+# -*- python -*-
+#
+#
+Import("env")
+import glob, os
+
+env.SharedLibrary(
+    'hscdistest', glob.glob('../src/*.cc'), LIBS=filter(lambda p: p != "hscdistest", env.getlibs("hscdistest"))
+)
+
+env.Append(CPPPATH = ['#include/hsc/meas/match'])
