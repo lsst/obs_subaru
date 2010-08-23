@@ -6,7 +6,7 @@ import glob, os.path, sys, traceback
 import lsst.SConsUtils as scons
 
 env = scons.makeEnv(
-    "hscdistest",
+    "distEst",
     r"$HeadURL: FILL IN PATH /distEst/trunk/SConstruct $",
     [
         ["python", "Python.h"],
@@ -26,6 +26,13 @@ for d in (
 
 scons.CleanTree(r"*~ core *.so *.os *.o *.pyc config.log")
 
+env['IgnoreFiles'] = r"(~$|\.pyc$|^\.svn$|\.o$)"
+
+Alias("install", env.Install(env['prefix'], "python"))
+Alias("install", env.Install(env['prefix'], "example"))
+Alias("install", env.Install(env['prefix'], "lib"))
+Alias("install", env.InstallEups(os.path.join(env['prefix'], "ups")))
+        
 env.Declare()
 env.Help("""
 LSST Application Framework packages
