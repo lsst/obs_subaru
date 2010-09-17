@@ -1,0 +1,11 @@
+# -*- python -*-
+Import("env")
+import glob
+
+#
+# Tests
+#
+import lsst.tests
+
+tests = lsst.tests.Control(env, verbose = True)
+tests.run("*.py")

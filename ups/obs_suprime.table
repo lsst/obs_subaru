@@ -1,0 +1,12 @@
+setupRequired(pex_logging >= 3.4.1)
+setupRequired(pex_policy >= 3.5)
+setupRequired(daf_persistence >= 3.3.12)
+setupRequired(afw >= 3.4.1)
+setupRequired(daf_butlerUtils >= 3.0.3)
+setupRequired(skypix >= 3.0.3)
+setupRequired(pysqlite >= 2.6.0)
+setupRequired(obs_camera)
+
+envAppend(PYTHONPATH, ${PRODUCT_DIR}/python)
+envAppend(PATH, ${PRODUCT_DIR}/bin)
+

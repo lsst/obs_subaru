@@ -1,0 +1,19 @@
+#<?cfg paf policy ?>
+#
+description: "The Subaru SuprimeCam Filters ... placeholder until i can find correct details."
+
+Filter: {
+    name: "i"
+    lambdaEff: 770.0
+    alias: "W-S-I+"
+}
+Filter: {
+    name: "i2"
+    lambdaEff: 770.0
+    alias: "W-S-ZR"
+}
+Filter: {
+    name: "z"
+    lambdaEff: 900.0
+    alias: "W-S-Z+"
+}
