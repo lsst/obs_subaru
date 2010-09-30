@@ -13,10 +13,8 @@ class GetRawTestCase(unittest.TestCase):
     """Testing butler raw image retrieval"""
 
     def setUp(self):
-        policy = Policy.createPolicy("./policy/SuprimeMapper.paf")
         self.bf = dafPersist.ButlerFactory(mapper=SuprimeMapper(
-            policy=policy, root="./tests/science",
-	    calibRoot="./tests/calib"))
+			root="./tests/science", calibRoot="./tests/calib"))
         self.butler = self.bf.create()
 
     def tearDown(self):
@@ -25,9 +23,7 @@ class GetRawTestCase(unittest.TestCase):
 
     def testRaw(self):
         """Test retrieval of raw image"""
-        raw = self.butler.get("raw", field="CFHQS", visit=101543, ccd=2,
-#			      taiObs="2008-08-28", mystery="00038",
-                              amp=0)
+        raw = self.butler.get("raw", field="CFHQS", visit=101543, ccd=2)
 	
 	print "width: ",              raw.getWidth()
 	print "height: ",             raw.getHeight()

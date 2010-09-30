@@ -23,7 +23,7 @@ conn = sqlite3.connect("calibRegistry.sqlite3")
 cmd = "create table flat (id integer primary key autoincrement"
 cmd += ", derivedRunId text, runId text, version int"
 cmd += ", validStart text, validEnd text"
-cmd += ", taiObs text, dateobs text, filter text, mystery text, visit int, ccd int"
+cmd += ", taiObs text, dateobs text, filter text, mystery text, flatnum int, ccd int"
 cmd += ")"
 conn.execute(cmd)
 conn.commit()
@@ -40,7 +40,7 @@ for fits in glob.glob(os.path.join(root, "FLAT", "20*-*-*", "W-S-*", "*", "FLAT-
         print >>sys.stderr, "Warning: Unrecognized file:", fits
         continue
 
-    dateObs, filter, mystery, visit, ccd = m.groups()
+    dateObs, filter, mystery, flatnum, ccd = m.groups()
 
     md = afwImage.readMetadata(fits)
     expTime = md.get("EXPTIME")
@@ -64,7 +64,7 @@ for fits in glob.glob(os.path.join(root, "FLAT", "20*-*-*", "W-S-*", "*", "FLAT-
 
     conn.execute("INSERT INTO flat VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             (derivedRunId, runId, version, validStart, validEnd,
-             taiObs, dateObs, filter, mystery, visit, ccd))
+             taiObs, dateObs, filter, mystery, flatnum, ccd))
 
 conn.commit()
 conn.close()
