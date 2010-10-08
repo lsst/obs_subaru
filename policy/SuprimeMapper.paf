@@ -20,6 +20,7 @@ exposures: {
 		cpp:		"ExposureF"
 		storage:	"FitsStorage"
 		level:		"Amp"
+		tables:		"raw raw_visit"
 	}
 	postISRCCD: {
 		template:	"postISRCCD/v%(visit)d-f%(filter)s/c%(ccd)02d.fits"
@@ -27,6 +28,7 @@ exposures: {
 		cpp:		"ExposureF"
 		storage:	"FitsStorage"
 		level:		"Ccd"
+		tables:		"raw raw_visit"
 	}
 	visitim: {
 		template:  	"visitim/v%(visit)d-f%(filter)s/c%(ccd)02d.fits"
@@ -34,6 +36,7 @@ exposures: {
 		cpp:		"ExposureF"
 		storage:	"FitsStorage"
 		level:		"Ccd"
+		tables:		"raw raw_visit"
 	}
 	psf: {
 		template:  	"psf/v%(visit)d-f%(filter)s/c%(ccd)02d.boost"
@@ -41,6 +44,7 @@ exposures: {
 		cpp:		"Psf"
 		storage:	"BoostStorage"
 		level:		"Ccd"
+		tables:		"raw raw_visit"
 	}
 	calexp: {
 		template:  	"calexp/v%(visit)d-f%(filter)s/c%(ccd)02d.fits"
@@ -48,6 +52,7 @@ exposures: {
 		cpp:		"ExposureF"
 		storage:	"FitsStorage"
 		level:		"Ccd"
+		tables:		"raw raw_visit"
 	}
 	src: {
 		template:  	"src/v%(visit)d-f%(filter)s/c%(ccd)02d.boost"
@@ -56,6 +61,7 @@ exposures: {
 		storage:	"BoostStorage"
 		level:		"Ccd"
 		map:		"map_src"
+		tables:		"raw raw_visit"
 	}
 	sourceHist: {
 		template:  	"results/st%(skyTile)d/sourceHist.fits"
