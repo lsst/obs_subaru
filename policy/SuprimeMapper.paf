@@ -60,7 +60,6 @@ exposures: {
 		cpp:		"PersistableSourceVector"
 		storage:	"BoostStorage"
 		level:		"Ccd"
-		map:		"map_src"
 		tables:		"raw raw_visit"
 	}
 	sourceHist: {
