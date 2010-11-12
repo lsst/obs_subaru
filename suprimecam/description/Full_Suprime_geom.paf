@@ -141,7 +141,7 @@ Raft: {
         serial: 3                       # CCD's serial number
         name: "Sophie"                  # CCD's name
         index: 4 0                      # Location of CCD in Raft thought of as a grid of CCDs
-        offset: -4246.0 -2126.7         # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 4246.0 -2126.7         # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0        # pitch, roll, yaw; degrees
     }
