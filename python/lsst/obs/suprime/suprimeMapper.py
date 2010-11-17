@@ -13,13 +13,15 @@ class SuprimeMapper(dafPersist.Mapper):
         self.keys = ["field", "visit", "ccd", "amp", "filter", "mystery", "taiObs" ]
         self.keys += ["filter", "expTime"]
 
+        self.filterKey = "FILTER01"
         self.filterMap = {
+            "W-S-R+"  : "i",
             "W-S-I+"  : "i",
-            "W-S-ZR"  : "z2",
-            "W-S-Z+"  : "z"
+            "W-S-Z+"  : "z",
+            "W-S-ZR"  : "y",
             }
 
-        self.filterIdMap = { 'u': 0, 'g': 1, 'r': 2, 'i': 3, 'z': 4, 'y': 5, 'z2': 5}
+        self.filterIdMap = { 'u': 0, 'g': 1, 'r': 2, 'i': 3, 'z': 4, 'y': 5 }
 
     def _extractAmpId(self, dataId):
         return (self._extractDetectorName(dataId), 0, 0)
@@ -48,4 +50,13 @@ class SuprimeMapper(dafPersist.Mapper):
         gain = md.get('GAIN')
         for amp in cameraGeom.cast_Ccd(exp.getDetector()):
             amp.getElectronicParams().setGain(gain)
+        if dataId.has_key('filter'):
+            filterName = dataId['filter']
+        elif md.exists(self.filterKey):
+            filterName = item.getMetadata().get(self.filterKey).strip()
+            if self.filterMap.has_key(filterName):
+                filterName = self.filterMap[filterName]
+        else:
+            raise RuntimeError("Unable to determine filter name")
+        exp.setFilter(afwImage.Filter(filterName))
         return exp
