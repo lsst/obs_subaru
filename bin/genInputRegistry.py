@@ -30,10 +30,8 @@ conn.execute(cmd)
 
 conn.commit()
 
-progId = "CFHQS"
-
 root = sys.argv[1]
-for fits in glob.glob(os.path.join(root, progId, "20*-*-*", "*", "W-S-*", "SUPA*.fits*")):
+for fits in glob.glob(os.path.join(root, "*", "20*-*-*", "*", "W-S-*", "SUPA*.fits*")):
     print fits
     m = re.search(r'(\w+)/(\d{4}-\d{2}-\d{2})/(\d+)/(W-S-.{1,3})/SUPA(\d{7})(\d).fits', fits)
     if not m:
