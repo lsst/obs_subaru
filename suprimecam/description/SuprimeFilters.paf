@@ -8,8 +8,8 @@ Filter: {
     alias: "W-S-I+"
 }
 Filter: {
-    name: "i2"
-    lambdaEff: 770.0
+    name: "y"
+    lambdaEff: 10000.0
     alias: "W-S-ZR"
 }
 Filter: {
