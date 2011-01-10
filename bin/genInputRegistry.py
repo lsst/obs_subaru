@@ -3,7 +3,7 @@
 import glob
 import os
 import re
-import sqlite3
+import sqlite
 import sys
 import lsst.daf.base   as dafBase
 import lsst.afw.image  as afwImage
@@ -11,7 +11,7 @@ import lsst.skypix     as skypix
 
 if os.path.exists("registry.sqlite3"):
     os.unlink("registry.sqlite3")
-conn = sqlite3.connect("registry.sqlite3")
+conn = sqlite.connect("registry.sqlite3")
 
 cmd = "create table raw (id integer primary key autoincrement"
 cmd += ", field text, visit int, filter text, ccd int"
