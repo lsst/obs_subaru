@@ -1,3 +1,4 @@
+from math import sqrt
 from lsst.meas.deblender import deblender
 
 #from lsst.meas.utils import sourceDetection
@@ -16,6 +17,14 @@ import numpy as np
 #   eups declare --current meas_utils svn -r ~/lsst/meas-utils/
 
 import unittest
+
+def lsstimagetonumpy(img):
+    W,H = img.getWidth(), img.getHeight()
+    a = np.zeros((H,W))
+    for i in range(H):
+        for j in range(W):
+            a[i,j] = img.get(j,i)
+    return a
 
 class TestDeblender(unittest.TestCase):
 
@@ -168,9 +177,71 @@ class TestDeblender(unittest.TestCase):
 
         self.assertNotEqual(objs, None)
 
+        self.assertEqual(2, len(objs))
+
         print 'Got deblended objects:', objs
-        for o in objs:
+        for i,o in enumerate(objs):
             print o
+            img = afwImg.ImageF(W, H)
+            o.addToImage(img, 0)
+            img.writeFits('child-%02i.fits' % i)
+
+            img = o.images[0]
+            img.writeFits('child-%02i-b.fits' % i)
+
+            simg = afwImg.ImageF(W, H)
+            for y in range(H):
+                for x in range(W):
+                    simg.set(x, y, starpix[i][y, x])
+            simg.writeFits('star-%02i.fits' % i)
+
+        if True:
+            import pylab as plt
+            plt.clf()
+
+            N = len(objs)
+
+            children = []
+            for o in objs:
+                img = afwImg.ImageF(W, H)
+                o.addToImage(img, 0)
+                a = lsstimagetonumpy(img)
+                children.append(a)
+
+            mn,mx = min([s.min() for s in starpix]), max([s.max() for s in starpix])
+
+            C = 4
+            ploti = 1
+            diff = 5 * sqrt(sky)
+
+            for i,(s,c) in enumerate(zip(starpix, children)):
+
+                plt.subplot(N,C, ploti)
+                ploti += 1
+                plt.imshow(s, interpolation='nearest', origin='lower',
+                           vmin=mn, vmax=mx)
+
+                plt.subplot(N,C, ploti)
+                ploti += 1
+                plt.imshow(s+skypix-sky, interpolation='nearest', origin='lower',
+                           vmin=mn, vmax=mx)
+
+                plt.subplot(N,C, ploti)
+                ploti += 1
+                plt.imshow(c, interpolation='nearest', origin='lower',
+                           vmin=mn, vmax=mx)
+
+                plt.subplot(N,C, ploti)
+                ploti += 1
+                plt.imshow(s - c, interpolation='nearest', origin='lower',
+                           vmin=-diff, vmax=diff)
+                plt.colorbar()
+
+            plt.savefig('child-stars.png')
+
+
+
+
 
 if __name__ == '__main__':
     unittest.main()
