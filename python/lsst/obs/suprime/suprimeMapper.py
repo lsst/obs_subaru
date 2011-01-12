@@ -15,13 +15,14 @@ class SuprimeMapper(dafPersist.Mapper):
 
         self.filterKey = "FILTER01"
         self.filterMap = {
+            "W-J-B"   : "B",
             "W-S-R+"  : "i",
             "W-S-I+"  : "i",
             "W-S-Z+"  : "z",
             "W-S-ZR"  : "y",
             }
 
-        self.filterIdMap = { 'u': 0, 'g': 1, 'r': 2, 'i': 3, 'z': 4, 'y': 5 }
+        self.filterIdMap = { 'B': 1, 'u': 0, 'g': 1, 'r': 2, 'i': 3, 'z': 4, 'y': 5 }
 
     def _extractAmpId(self, dataId):
         return (self._extractDetectorName(dataId), 0, 0)
