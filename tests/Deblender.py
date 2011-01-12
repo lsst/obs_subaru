@@ -34,7 +34,6 @@ class TestDeblender(unittest.TestCase):
         # Single-Gaussian PSF
         truepsfsigma = 2.
         # "DoubleGaussian", w, h, sigma1, sigma2, b (rel.ampl. of gaussian #2)
-        #truepsf = measAlg.createPSF("DoubleGaussian", 10, 10, truepsfsigma, 0, 0.0)
         truepsf = afwDet.createPsf("DoubleGaussian", 10, 10, truepsfsigma, 0, 0.0)
 
         skypix = poisson(sky, (H,W))
@@ -43,18 +42,13 @@ class TestDeblender(unittest.TestCase):
         for (x,y,flux) in stars:
             psfimg = truepsf.computeImage(afwGeom.makePointD(x, y))
             print 'psfimg has x0,y0', psfimg.getX0(), psfimg.getY0()
-            #print 'psfimg has dir', dir(psfimg)
-            X,Y = meshgrid(range(W), range(H))
             a = np.zeros((H,W))
-            x0,y0 = psfimg.getY0(), psfimg.getX0()
+            x0,y0 = psfimg.getX0(), psfimg.getY0()
             for y in range(psfimg.getHeight()):
                 for x in range(psfimg.getWidth()):
                     a[y+y0, x+x0] = psfimg.get(x,y)
             starpix.append(a)
-            #starpix.append(array([psfimg.get(xx,yy) for (xx,yy) in zip(X.ravel(), Y.ravel())]).reshape(X.shape))
-        #starpix = [array([psfimg.get(Xi-x, Yi-y) for (Xi,Yi) in zip(X.ravel(), Y.ravel())]).reshape(X.shape)
-        #           for (x,y,flux) in stars]
-        # normalize by PSF sum (it's not 1!)
+        # normalize then scale PSFs
         starpix = [flux * s / s.sum()
                    for ((x,y,flux),s) in zip(stars, starpix)]
 
@@ -65,6 +59,24 @@ class TestDeblender(unittest.TestCase):
                 image.set(x, y, skypix[y,x] + sum([s[y,x] for s in starpix]))
 
         image.writeFits('test1.fits')
+
+        if True:
+            import matplotlib
+            matplotlib.use('Agg')
+            import pylab as plt
+            plt.clf()
+            im = np.zeros_like(starpix[0])
+            for s in starpix:
+                im += s
+            im += skypix
+            plt.imshow(im, interpolation='nearest', origin='lower')
+            ax = plt.axis()
+            for x,y,flux in stars:
+                plt.plot([x],[y], 'rx', ms=10)
+                #plt.axhline(y, color='b')
+                #plt.axvline(x, color='b')
+            plt.axis(ax)
+            plt.savefig('image.png')
 
         # Give it ~correct variance image
         varimg = maskedImage.getVariance()
@@ -99,10 +111,6 @@ class TestDeblender(unittest.TestCase):
                          maskedImage,
                          psf.getKernel())
         
-        #psf.convolve(convolvedImage.getImage(), 
-        #             image,
-        #             convolvedImage.getMask().getMaskPlane("EDGE")
-        #            )
         convolvedImage.getImage().writeFits('conv1.fits')
 
         # Only search psf-smoothed part of frame
@@ -149,9 +157,9 @@ class TestDeblender(unittest.TestCase):
         self.assertEqual(len(foots), 1)
 
         ## HACK -- plug in exact Peak locations.
-        # UGH -- can't do that because _peaks is private to Footprint!
-        #foots[0].getPeaks() = [afwDet.Peak(x,y) for (x,y,flux) in stars]
         peaks = [afwDet.Peak(x,y) for (x,y,flux) in stars]
+        for p in peaks:
+            print 'peak:', p.getFx(), p.getFy()
 
         # DEBUG
         maskedImage.getImage().writeFits('mimage.fits')
@@ -160,6 +168,9 @@ class TestDeblender(unittest.TestCase):
 
         self.assertNotEqual(objs, None)
 
+        print 'Got deblended objects:', objs
+        for o in objs:
+            print o
 
 if __name__ == '__main__':
     unittest.main()

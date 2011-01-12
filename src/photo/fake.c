@@ -713,15 +713,14 @@ trace("median? %i\n", fit_ctx.is_median);
 			 //printf("pix %g,%g -> %i,%i\n", x-dx, y-dy, (int)round(x-dx), (int)round(y-dy));
 			 // NOTE, phGetCellid's args are row,column.
 			 int phci = phGetCellid((int)round(y-dy), (int)round(x-dx));
-			 trace("pixel (x,y) = (%g,%g): ring %i, sector %i, cell %i, photo's cell %i\n",
-                   x, y, ri, si, ci, phci);
+			 //trace("pixel (x,y) = (%g,%g): ring %i, sector %i, cell %i, photo's cell %i\n", x, y, ri, si, ci, phci);
 			 cellid[iy * NX + ix] = ci;
 			 phcellid[iy * NX + ix] = phci;
 
-             trace("ci = %i  (max %i)\n", ci, ncell);
+             //trace("ci = %i  (max %i)\n", ci, ncell);
 			 assert(ci >= 0);
 			 assert(ci < ncell);
-             trace("npixels[ci] = %i  (max %i)\n", npixels[ci], npix);
+             //trace("npixels[ci] = %i  (max %i)\n", npixels[ci], npix);
              assert(npixels[ci] >= 0);
              assert(npixels[ci] < npix);
 
@@ -736,6 +735,7 @@ trace("median? %i\n", fit_ctx.is_median);
 	 }
 
 	 // DEBUG -- cell ids
+     /*
 	 fprintf(stderr, "cellids=[");
 	 for (iy=0; iy<NY; iy++) {
 		 fprintf(stderr, "[");
@@ -752,6 +752,7 @@ trace("median? %i\n", fit_ctx.is_median);
 		 fprintf(stderr, "],");
 	 }
 	 fprintf(stderr, "]\n");
+      */
 	 free(cellid);
 	 free(phcellid);
 

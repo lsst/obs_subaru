@@ -127,6 +127,8 @@ deblender::SDSSDeblender<ImageT>::deblend(
             phpk->rowcErr = 0.5;
             phpk->colcErr = 0.5;
             phpeaks->peaks[k] = phpk;
+            std::printf("Giving Photo a Peak at (%i,%i), (%.2f, %.2f)\n",
+                        phpk->cpeak, phpk->rpeak, phpk->colc, phpk->rowc);
             k++;
         }
     objc->peaks = phpeaks;

@@ -26,8 +26,8 @@ env = scons.makeEnv(
 	["pex_policy", "lsst/pex/policy/Policy.h", "pex_policy:C++"],
 	["daf_persistence", "lsst/daf/persistence.h", "daf_persistence:C++"],
 	["daf_data", "lsst/daf/data.h", "daf_data:C++"],
-	["afw", "lsst/afw/image/MaskedImage.h", "afw"],
-	["meas_algorithms", "lsst/meas/algorithms.h", "meas_algorithms"],
+	["afw", "lsst/afw/image/MaskedImage.h", "afw:C++"],
+	["meas_algorithms", "lsst/meas/algorithms.h", "meas_algorithms:C++"],
 	#["numpy", "Python.h numpy/arrayobject.h"], # see numpy workaround below
    ])
 

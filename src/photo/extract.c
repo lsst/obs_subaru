@@ -3555,7 +3555,7 @@ do_pstats(struct pstats *cinfo,
 			}
 		}
 	}
-    trace("cinfo->flg = 0x%x\n", cinfo->flg);
+    //trace("cinfo->flg = 0x%x\n", cinfo->flg);
 	cinfo->area = (cinfo->flg & EXTRACT_SINC) ? 0.5*cinfo->ntot : cinfo->ntot;
 }
 
@@ -3574,8 +3574,8 @@ makedssprof(int cell0,			/* first cell to process */
     if(skyfloor < 0) skyfloor = 0;
 
     for(i = cell0;i <= cell1;i++){
-        trace("makedssprof: setting cellinfo[%i].  NCELLIN=%i, NCELL=%i\n", i, NCELLIN, NCELL);
-        trace("flag: 0x%x\n", cellinfo[i].flg);
+        //trace("makedssprof: setting cellinfo[%i].  NCELLIN=%i, NCELL=%i\n", i, NCELLIN, NCELL);
+        //trace("flag: 0x%x\n", cellinfo[i].flg);
 		if(i < NCELLIN) {
 			cellinfo[i].flg |= EXTRACT_SINC;
 		}
