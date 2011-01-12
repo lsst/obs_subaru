@@ -602,15 +602,20 @@ shinstats(struct pstats *ps)
              */
             udex = cdex;
 
+            // dstn -- made this run valgrind-clean
             //while(udex < n && data[++udex] == dcell) continue;
             //while(udex < n && data[++udex] == dcell);
             for (;;) {
+                //printf("cdex=%i, udex=%i, n=%i\n", cdex, udex, n);
                 if (udex >= n)
                     break;
                 udex++;
+                if (udex == n)
+                    break;
                 if (data[udex] != dcell)
                     break;
             }
+            //printf("udex=%i\n", udex);
 
             /* first index for which data>cdex or the end of the array, 
              * whichever comes first. This can run off the end of
