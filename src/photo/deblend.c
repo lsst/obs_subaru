@@ -841,6 +841,7 @@ phObjcDeblend(OBJC *objc,		/* object to deblend */
 	int testrow = 32;
 	int testcol = 32;
 
+    /*
 	for(i=0; i<nchild; i++) {
 		for (c=0; c<objc->ncolor; c++) {
 			trace("pixel 0 of child %i, color %i, atlas image, is %i\n", i, c,
@@ -853,6 +854,7 @@ phObjcDeblend(OBJC *objc,		/* object to deblend */
 				  (int)phAtlasImagePixelGet(smoothed_ai[i], c, testrow, testcol));
 		}
 	}
+     */
 
 	// DEBUG -- write template images
 	for (i=0; i<nchild; i++) {
@@ -861,6 +863,10 @@ phObjcDeblend(OBJC *objc,		/* object to deblend */
 		REGION* reg;
 		OBJMASK* mm;
 		int nr, nc;
+        if (!ai) {
+            trace("No ai!\n");
+            continue;
+        }
 		mm = ai->master_mask;
 		nr = mm->rmax - mm->rmin + 1;
 		nc = mm->cmax - mm->cmin + 1;
