@@ -38,16 +38,15 @@ std::vector<typename deblender::DeblendedObject<ImageT>::Ptr >
 deblender::SDSSDeblender<ImageT>::deblend(
     std::vector< afwDet::Footprint::Ptr > footprints,
     std::vector< std::vector< afwDet::Peak::Ptr > > peaks,
-    boost::shared_ptr<typename lsst::afw::image::MaskedImage<typename ImageT::Pixel > > the_mimage,
-    boost::shared_ptr<typename lsst::meas::algorithms::PSF > the_psf
+    boost::shared_ptr<typename afwImage::MaskedImage<typename ImageT::Pixel > > the_mimage,
+    boost::shared_ptr<typename afwDet::Psf > the_psf
 ) {
 
     // Hmmm, must figure out the right API!
-    std::vector<boost::shared_ptr<typename lsst::afw::image::MaskedImage<typename ImageT::Pixel > > > mimages;
-    std::vector<boost::shared_ptr<typename lsst::meas::algorithms::PSF > > psfs;
+    std::vector<boost::shared_ptr<typename afwImage::MaskedImage<typename ImageT::Pixel > > > mimages;
+    std::vector<boost::shared_ptr<typename afwDet::Psf > > psfs;
     mimages.push_back(the_mimage);
     psfs.push_back(the_psf);
-
 
     std::vector<typename DeblendedObject<ImageT>::Ptr > children;
     std::printf("Hello world!\n");
@@ -324,10 +323,12 @@ deblender::SDSSDeblender<ImageT>::deblend(
      std::printf("Objc to be deblended:\n");
      photo::phObjcPrintPretty(objc, "");
      */
-	int res = photo::phObjcDeblend(objc, fp);
+    int res = photo::phObjcDeblend(objc, fp);
+
+    char pref[1] = "";
 
     std::cout << "After phObjcDeblend:" << std::endl;
-    photo::phObjcPrintPretty(objc, "");
+    photo::phObjcPrintPretty(objc, pref);
     photo::printObjc(objc);
 
     // OBJC* family --> vector of DeblendedObject

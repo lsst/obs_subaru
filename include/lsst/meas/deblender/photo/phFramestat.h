@@ -233,7 +233,7 @@ typedef struct {
 /*
  * The following can be different for each frame
  */
-   FRAMEPARAMS *frame;
+    FRAMEPARAMS *frame;
 } FIELDPARAMS;
 
 /*****************************************************************************/

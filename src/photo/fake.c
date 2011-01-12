@@ -646,7 +646,13 @@ trace("median? %i\n", fit_ctx.is_median);
 	 ylo = xlo = floor(-maxrad);
 	 yhi = xhi = ceil(maxrad);
 
-	 npix = (yhi - ylo + 1) * (xhi - xlo + 1);
+     int nstep = ceil(1./step) * ceil(1./step);
+
+	 npix = (yhi - ylo + 1) * (xhi - xlo + 1) * nstep;
+
+     trace("maxrad = %g\n", maxrad);
+     trace("lo: %i, hi: %i\n", xlo, xhi);
+     trace("npix: %i\n", npix);
 
 	 // pixel lists...
 	 pix = malloc(ncell * sizeof(float*));
@@ -707,13 +713,17 @@ trace("median? %i\n", fit_ctx.is_median);
 			 //printf("pix %g,%g -> %i,%i\n", x-dx, y-dy, (int)round(x-dx), (int)round(y-dy));
 			 // NOTE, phGetCellid's args are row,column.
 			 int phci = phGetCellid((int)round(y-dy), (int)round(x-dx));
-			 //printf("pixel (x,y) = (%g,%g): ring %i, sector %i, cell %i, photo's cell %i\n",
-			 //x, y, ri, si, ci, phci);
+			 trace("pixel (x,y) = (%g,%g): ring %i, sector %i, cell %i, photo's cell %i\n",
+                   x, y, ri, si, ci, phci);
 			 cellid[iy * NX + ix] = ci;
 			 phcellid[iy * NX + ix] = phci;
 
-			 assert(ci < ncell);
+             trace("ci = %i  (max %i)\n", ci, ncell);
 			 assert(ci >= 0);
+			 assert(ci < ncell);
+             trace("npixels[ci] = %i  (max %i)\n", npixels[ci], npix);
+             assert(npixels[ci] >= 0);
+             assert(npixels[ci] < npix);
 
 			 G = exp(-0.5 * (r*r)/(psfsigma*psfsigma));
 			 pix[ci][npixels[ci]] = G;

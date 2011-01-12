@@ -289,7 +289,16 @@ phObjcDeblend(OBJC *objc,		/* object to deblend */
 			OBJECT1* o1 = objc->color[m];
 			trace("color %i: rowc,colc %g,%g\n",
 				  m, o1->rowc, o1->colc);
-			trace("pixel at center: %i\n", (int)fiparams->frame[m].data->rows_u16[(int)o1->rowc][(int)o1->colc]);
+            // fiparams is a FIELDPARAMS
+            // frame[m] is a FRAMEPARAMS
+            // data is a REGION (dervish/region.h)
+            const REGION* reg = fiparams->frame[m].data;
+            if (o1->rowc < 0 || o1->rowc >= reg->nrow ||
+                o1->colc < 0 || o1->colc >= reg->ncol) {
+                trace("(out of bounds: (%i x %i))\n", o1->colc, o1->rowc);
+            } else {
+                trace("pixel at center: %i\n", (int)fiparams->frame[m].data->rows_u16[(int)o1->rowc][(int)o1->colc]);
+            }
 		}
 	}
 
@@ -321,7 +330,13 @@ phObjcDeblend(OBJC *objc,		/* object to deblend */
 			OBJECT1* o1 = objc->color[m];
 			trace("color %i: rowc,colc %g,%g\n",
 				  m, o1->rowc, o1->colc);
-			trace("pixel at center: %i\n", (int)fiparams->frame[m].data->rows_u16[(int)o1->rowc][(int)o1->colc]);
+            const REGION* reg = fiparams->frame[m].data;
+            if (o1->rowc < 0 || o1->rowc >= reg->nrow ||
+                o1->colc < 0 || o1->colc >= reg->ncol) {
+                trace("(out of bounds: (%i x %i))\n", o1->colc, o1->rowc);
+            } else {
+                trace("pixel at center: %i\n", (int)fiparams->frame[m].data->rows_u16[(int)o1->rowc][(int)o1->colc]);
+            }
 		}
 	}
 

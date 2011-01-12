@@ -9,7 +9,7 @@
 #include "lsst/afw/detection.h"
 #include "lsst/meas/algorithms.h"
 
-namespace image = lsst::afw::image;
+namespace afwImage = lsst::afw::image;
 namespace afwDet = lsst::afw::detection;
 
 namespace lsst {
@@ -44,10 +44,10 @@ namespace lsst {
 				virtual
 				std::vector<typename DeblendedObject<ImageT>::Ptr >
                 deblend(
-                    std::vector< boost::shared_ptr< lsst::afw::detection::Footprint > > footprints,
-                    std::vector< std::vector< boost::shared_ptr< lsst::afw::detection::Peak > > > peaks,
-                    boost::shared_ptr<typename lsst::afw::image::MaskedImage<typename ImageT::Pixel> > maskedImage,
-                    boost::shared_ptr<typename lsst::meas::algorithms::PSF > psf
+                    std::vector< boost::shared_ptr< afwDet::Footprint > > footprints,
+                    std::vector< std::vector< boost::shared_ptr< afwDet::Peak > > > peaks,
+                    boost::shared_ptr<typename afwImage::MaskedImage<typename ImageT::Pixel> > maskedImage,
+                    boost::shared_ptr<typename afwDet::Psf > psf
                     ) = 0;
 
 				virtual ~Deblender() {}
@@ -61,10 +61,10 @@ namespace lsst {
                 virtual
 				std::vector<typename DeblendedObject<ImageT>::Ptr >
                 deblend(
-                    std::vector< boost::shared_ptr< lsst::afw::detection::Footprint > > footprints,
-                    std::vector< std::vector< boost::shared_ptr< lsst::afw::detection::Peak > > > peaks,
-                    boost::shared_ptr<typename lsst::afw::image::MaskedImage<typename ImageT::Pixel> > maskedImage,
-                    boost::shared_ptr<typename lsst::meas::algorithms::PSF > psf
+                    std::vector< boost::shared_ptr< afwDet::Footprint > > footprints,
+                    std::vector< std::vector< boost::shared_ptr< afwDet::Peak > > > peaks,
+                    boost::shared_ptr<typename afwImage::MaskedImage<typename ImageT::Pixel> > maskedImage,
+                    boost::shared_ptr<typename afwDet::Psf > psf
                     );
 
 				virtual ~SDSSDeblender() {}

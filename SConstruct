@@ -14,6 +14,10 @@ env = scons.makeEnv(
 	["python", "Python.h"],
 	["m", "math.h", "m", "sqrt"],
 	["wcslib", "wcslib/wcs.h", "wcs"],
+    ["base", "lsst/base.h"],
+	["eigen", "Eigen/Core.h"],
+	["gsl", "gsl/gsl_rng.h", "gslcblas gsl"],
+	["minuit2", "Minuit2/FCNBase.h", "Minuit2:C++"],
 	["pex_exceptions", "lsst/pex/exceptions.h", "pex_exceptions:C++"],
 	["utils", "lsst/utils/Utils.h", "utils:C++"],
 	["daf_base", "lsst/daf/base.h", "daf_base:C++"],
@@ -23,9 +27,6 @@ env = scons.makeEnv(
 	["daf_persistence", "lsst/daf/persistence.h", "daf_persistence:C++"],
 	["daf_data", "lsst/daf/data.h", "daf_data:C++"],
 	["afw", "lsst/afw/image/MaskedImage.h", "afw"],
-	["eigen", "Eigen/Core.h"],
-	["gsl", "gsl/gsl_rng.h", "gslcblas gsl"],
-	["minuit2", "Minuit2/FCNBase.h", "Minuit2:C++"],
 	["meas_algorithms", "lsst/meas/algorithms.h", "meas_algorithms"],
 	#["numpy", "Python.h numpy/arrayobject.h"], # see numpy workaround below
    ])

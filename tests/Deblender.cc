@@ -19,20 +19,24 @@
 #include "lsst/afw/image.h"
 #include "lsst/afw/math.h"
 #include "lsst/afw/detection.h"
+#include "lsst/afw/geom.h"
 #include "lsst/meas/algorithms.h"
 
 #include "lsst/meas/deblender/deblender.h"
 
 namespace afwImage = lsst::afw::image;
 namespace afwDet = lsst::afw::detection;
+namespace afwGeom = lsst::afw::geom;
 namespace measAlg = lsst::meas::algorithms;
 namespace afwMath = lsst::afw::math;
 namespace deblender = lsst::meas::deblender;
 
 typedef float PixelT;
 typedef afwImage::Image<PixelT> Image;
+typedef afwImage::Image<double> ImageD;
 typedef afwImage::MaskedImage<PixelT> MImage;
-typedef measAlg::PSF PSF;
+typedef afwDet::Psf PSF;
+typedef afwMath::Kernel Kernel;
 
 // MaskedImage = Image + Mask + var Image
 // Exposure = MaskedImage + WCS
@@ -73,7 +77,7 @@ BOOST_AUTO_TEST_CASE(TwoStarDeblend) {
     // number of peaks
     int NP = sizeof(cx)/sizeof(float);
 
-    PSF::Ptr truepsf = measAlg::createPSF("DoubleGaussian", 10, 10, truepsfsigma, 0, 0.0);
+    PSF::Ptr truepsf = afwDet::createPsf("DoubleGaussian", 10, 10, truepsfsigma, 0, 0.0);
     PSF::Ptr psf = truepsf;
     float psfsigma = truepsfsigma;
 
@@ -88,16 +92,33 @@ BOOST_AUTO_TEST_CASE(TwoStarDeblend) {
     std::vector<Image::Ptr> starimgs;
     for (int i=0; i<NP; i++) {
         Image::Ptr starimg(new Image(W, H, 0));
-        for (int y=0; y != starimg->getHeight(); ++y) {
-            int x=0;
-            for (Image::x_iterator ptr = starimg->row_begin(y), end = starimg->row_end(y); ptr != end; ++ptr, x++) {
-                *ptr += psf->getValue(x-cx[i], y-cy[i], x, y);
+
+        ImageD::Ptr psfd = psf->computeImage(afwGeom::makePointD(cx[i],cy[i]));
+        std::cout << "PSF image size is " << psfd->getWidth() << " x " << psfd->getHeight() << std::endl;
+        std::cout << "  origin " << psfd->getX0() << ", " << psfd->getY0() << std::endl;
+
+        /*
+         char fn[64];
+         sprintf(fn, "psf-%02i.fits", i);
+         std::string sfn(fn);
+         psfd->writeFits(sfn);
+         std::cout << "wrote to " << sfn << std::endl;
+         */
+
+        int x0, y0;
+        x0 = psfd->getX0();
+        y0 = psfd->getY0();
+        for (int y=0; y<psfd->getHeight(); y++) {
+            for (int x=0; x<psfd->getWidth(); x++) {
+                (*starimg)(x+x0, y+y0) += (*psfd)(x,y);
             }
         }
+
         // normalize and scale by flux -- wrong if source is close to the edge.
         double imgsum = 0;
         for (Image::iterator it = starimg->begin(), end = starimg->end(); it != end; it++)
             imgsum += *it;
+        std::cout << "Image sum: " << imgsum << std::endl;
         for (Image::iterator it = starimg->begin(), end = starimg->end(); it != end; it++)
             *it *= flux[i] / imgsum;
         starimgs.push_back(starimg);
@@ -129,24 +150,27 @@ BOOST_AUTO_TEST_CASE(TwoStarDeblend) {
     }
 
     // make a deep copy for further processing...
-    Image::Ptr imgcopy(new Image(*img, true));
+    MImage::Ptr mimgcopy(new MImage(*mimage, true));
     // background subtraction...
     afwMath::BackgroundControl bctrl(afwMath::Interpolate::AKIMA_SPLINE);
     bctrl.setNxSample(5);
     bctrl.setNySample(5);
-    afwMath::Background bg = afwMath::makeBackground(*imgcopy, bctrl);
+    afwMath::Background bg = afwMath::makeBackground(*mimgcopy, bctrl);
     Image::Ptr bgimg = bg.getImage<PixelT>();
 
-    (*imgcopy) -= (*bgimg);
-    imgcopy->writeFits("bgsub1.fits");
+    (*mimgcopy) -= (*bgimg);
+    mimgcopy->writeFits("bgsub1.fits");
 
     // smooth image by PSF and do detection to generate sets of Footprints and Peaks
     MImage::Ptr convolvedImage(new MImage(mimage->getDimensions()));
     convolvedImage->setXY0(mimage->getXY0());
-    psf->convolve(*convolvedImage->getImage(), 
-                  *imgcopy,
-                  true,
-                  convolvedImage->getMask()->getMaskPlane("EDGE"));
+
+    Kernel::Ptr kernel = psf->getKernel();
+    afwMath::convolve(*convolvedImage, //->getImage(), 
+                      *mimgcopy,
+                      *kernel);
+    //true,
+    //convolvedImage->getMask()->getMaskPlane("EDGE"));
     convolvedImage->getImage()->writeFits("conv1.fits");
 
     afwImage::PointI llc(psf->getKernel()->getWidth()/2, 
