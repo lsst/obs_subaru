@@ -386,8 +386,8 @@ deblender::SDSSDeblender<ImageT>::deblend(
     photo::phDeblendUnset();
     // FIXME -- more cleanup...!
 
-    delete filters;
-	return children;
+    delete [] filters;
+    return children;
 }
 
 

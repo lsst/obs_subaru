@@ -18,21 +18,21 @@
 int
 reduce_shift(float del, float *d)
 {
-   int i;
+    int i;
 
-   del += 0.5;				/* so should be in [0,1] */
-   if(del < 0) {
-      i = -(int)(-del) - 1;
-   } else {
-      i = (int)del;
-   }
-   del -= i;				/* reduced to [0,1] */
-   del -= 0.5;				/* reduced to [-0.5, 0.5] */
+    del += 0.5;				/* so should be in [0,1] */
+    if(del < 0) {
+        i = -(int)(-del) - 1;
+    } else {
+        i = (int)del;
+    }
+    del -= i;				/* reduced to [0,1] */
+    del -= 0.5;				/* reduced to [-0.5, 0.5] */
    
-   shAssert(del >= -0.5 && del <= 0.5);
+    shAssert(del >= -0.5 && del <= 0.5);
      
-   *d = del;
-   return(i);
+    *d = del;
+    return(i);
 }
 
 /********************** COSYGEN ********************************/
@@ -56,7 +56,7 @@ get_sync_with_cosbell(float *filt, int lbell, double del)
     float jd;
     const double flbell = M_PI/(double)lbell;
 
-   shAssert(del >= -0.5 && del <= 0.5);    
+    shAssert(del >= -0.5 && del <= 0.5);    
 /*
  * generate the coefficients
  */
@@ -153,11 +153,11 @@ shinsort(PIX *arr,int n)
 static void
 qhist(register PIX *data,register int n,register U16 *hist)
 {
-   register PIX *end;
+    register PIX *end;
 
-   for(end = data + n;data < end;data++) {
-      hist[PIX2INT(*data)]++;
-   }
+    for(end = data + n;data < end;data++) {
+        hist[PIX2INT(*data)]++;
+    }
 }
 
 /***************** QMAXMEAN() **********************************************/
@@ -199,7 +199,7 @@ region_maxmean_crude(struct pstats *ps)
     ps->rng++;				/* min == max => upper quartile == max + 025, so need extra value */
 
     if (ps->min + ps->rng > MAX_U16) {
-	ps->rng--;
+        ps->rng--;
     }
     shAssert(ps->min + ps->rng <= MAX_U16);
 }
@@ -252,7 +252,7 @@ get_quartiles_from_array(U16 *hist,struct pstats *ps)
          */
 
         qt[i] = (float)(min + (sp-histo)) + 0.5 
-                           - ((float)sum-fbound)/((float)(*sp));
+            - ((float)sum-fbound)/((float)(*sp));
 
         /* have evaluated quartile. to begin next one, GO BACK one
          * step; this is necessary to handle 'spike' histograms, for which
@@ -289,9 +289,9 @@ get_quartiles_from_array(U16 *hist,struct pstats *ps)
  */
 void 
 get_quartiles_from_array_clipped(U16 *hist,struct pstats *ps,
-				 int band, /* band data's taken in */
-				 float fxc, float fyc, /* centre of obj */
-				 const struct cellgeom *cgeom) /* geom */
+                                 int band, /* band data's taken in */
+                                 float fxc, float fyc, /* centre of obj */
+                                 const struct cellgeom *cgeom) /* geom */
 
 {
     register U16 *sp ;
@@ -341,7 +341,7 @@ get_quartiles_from_array_clipped(U16 *hist,struct pstats *ps,
             if(b1 > n) b1 = n;    /* do not look for more than we have */
         
             while( sum < b1 ) {   /* find the rough quartile */
-                   sum += *(sp++) ;
+                sum += *(sp++) ;
             }
             /* at this point, the histogram first sums to a number which is 
              * greater than the bound, being at least equal to bound + 1, AND 
@@ -355,7 +355,7 @@ get_quartiles_from_array_clipped(U16 *hist,struct pstats *ps,
              * current cell (pointed to by sp-1; the pointer stays one ahead
              * of the sum, and points to the NEXT cell to be summed).
              */
-	    shAssert(sp[-1] > 0);
+            shAssert(sp[-1] > 0);
             qt[i] = (float)(sp - hist -1) + 0.5 - ((float)sum - fbound)/sp[-1];
 		
             /* have evaluated quartile. to begin next one, GO BACK one
@@ -366,72 +366,72 @@ get_quartiles_from_array_clipped(U16 *hist,struct pstats *ps,
             sum -= *sp;
         }
 
-	if (min + ps->rng < qt[2]) {	/* ensure that rng covers the upper quartile */
-	    fprintf(stderr, "min + rng doesn't cover upper quartile: %d %g\n", min + ps->rng, qt[2]);
-	    ps->rng = (int)(qt[2] + 1) - min;
-	}
+        if (min + ps->rng < qt[2]) {	/* ensure that rng covers the upper quartile */
+            fprintf(stderr, "min + rng doesn't cover upper quartile: %d %g\n", min + ps->rng, qt[2]);
+            ps->rng = (int)(qt[2] + 1) - min;
+        }
 
         if(pass == 0){
             /*
-	     * 'trim' the histogram to the range which would
+             * 'trim' the histogram to the range which would
              * correspond to +/- PROFILE_NSIGMA sigma if Gaussian; we
              * have done this (provisionally) on the low side by
              * finding the PROFILE_NTILE quantile. We do it on the
              * high side by going to the histogram cell which would be
              * PROFILE_NSIGMA sigma for a gaussian, calculated by use
              * of the interquartile range.
-	     *
-	     * When processing children, the other children are replaced
-	     * by the value SOFT_BIAS; this can confuse the estimation of
-	     * `sigma' so set that element of the histogram to the average
-	     * of its neighbours.
+             *
+             * When processing children, the other children are replaced
+             * by the value SOFT_BIAS; this can confuse the estimation of
+             * `sigma' so set that element of the histogram to the average
+             * of its neighbours.
              */
 #if 1
-	   float mean;			/* naive mean of histogram */
-	   double dsum;			/* a floating point accumulator */
-	   int i;
-	   int nhist;			/* number of pixels with this DN */
-	   int npix;			/* number of pixels in histogram */
-	   int rng = ps->rng;
+            float mean;			/* naive mean of histogram */
+            double dsum;			/* a floating point accumulator */
+            int i;
+            int nhist;			/* number of pixels with this DN */
+            int npix;			/* number of pixels in histogram */
+            int rng = ps->rng;
 
-	   shAssert(n > 1);
+            shAssert(n > 1);
 	   
-	   dsum = 0; npix = 0;
-	   for(i = min; i < min + rng; i++) {
-	      nhist = (i != SOFT_BIAS) ?
-				       hist[i] : (hist[i - 1] + hist[i + 1])/2;
-	      npix += nhist;
-	      dsum += i*nhist;
-	   }
+            dsum = 0; npix = 0;
+            for(i = min; i < min + rng; i++) {
+                nhist = (i != SOFT_BIAS) ?
+                    hist[i] : (hist[i - 1] + hist[i + 1])/2;
+                npix += nhist;
+                dsum += i*nhist;
+            }
 
-	   if(npix == 0) {
-	       mean = ps->data[0];
-	   } else {
-	      mean = dsum/npix;
-	   }
+            if(npix == 0) {
+                mean = ps->data[0];
+            } else {
+                mean = dsum/npix;
+            }
 
-	   dsum = 0;
-	   if(npix > 1) {
-	      for(i = min; i < min + rng; i++) {
-		 nhist = (i != SOFT_BIAS) ?
-				       hist[i] : (hist[i - 1] + hist[i + 1])/2;
-		 dsum += (i - mean)*(i - mean)*nhist;
-	      }
-	      dsum /= (npix - 1);
-	   }
-	   /*
-	    * If almost all the pixels are SOFT_BIAS ignoring them isn't a smart thing
-	    * to do, and indeed gets us into trouble (cf. PR 7609)
-	    */
-	   if (npix < 0.01*n) {		/* XXX 0.01 */
-	       clipval = PROFILE_NSIGMA*IQR_TO_SIGMA*(qt[2] - qt[0]);
-	       mean = qt[1];
-	   } else {
-	       clipval = PROFILE_NSIGMA*sqrt(dsum);
-	   }
-	   top = hist + 1 + (int)(mean + clipval + 0.5);
+            dsum = 0;
+            if(npix > 1) {
+                for(i = min; i < min + rng; i++) {
+                    nhist = (i != SOFT_BIAS) ?
+                        hist[i] : (hist[i - 1] + hist[i + 1])/2;
+                    dsum += (i - mean)*(i - mean)*nhist;
+                }
+                dsum /= (npix - 1);
+            }
+            /*
+             * If almost all the pixels are SOFT_BIAS ignoring them isn't a smart thing
+             * to do, and indeed gets us into trouble (cf. PR 7609)
+             */
+            if (npix < 0.01*n) {		/* XXX 0.01 */
+                clipval = PROFILE_NSIGMA*IQR_TO_SIGMA*(qt[2] - qt[0]);
+                mean = qt[1];
+            } else {
+                clipval = PROFILE_NSIGMA*sqrt(dsum);
+            }
+            top = hist + 1 + (int)(mean + clipval + 0.5);
 #else
-	    clipval = PROFILE_NSIGMA*IQR_TO_SIGMA*(qt[2] - qt[0]);
+            clipval = PROFILE_NSIGMA*IQR_TO_SIGMA*(qt[2] - qt[0]);
             top = hist + 1 + (int)(qt[1] + clipval + 0.5);
 #endif
             /* top points to the first cell BEYOND the cell containing
@@ -439,10 +439,10 @@ get_quartiles_from_array_clipped(U16 *hist,struct pstats *ps,
              * i-0.5 to i+0.5, so the value 0.51 lies in cell i+1, and
              * the round is appropriate.  we will sum cells BELOW top.
              */
-	    if(top < sp) {		/* don't clip pixels that we've
-					   already counted; PR 4983 */
-	       top = sp;
-	    }
+            if(top < sp) {		/* don't clip pixels that we've
+                                 already counted; PR 4983 */
+                top = sp;
+            }
 	   
             while(sp < top && sum < n) sum += *(sp++);
             tsum = sum;
@@ -460,7 +460,7 @@ get_quartiles_from_array_clipped(U16 *hist,struct pstats *ps,
 #endif
                     ps->sig = IQR_TO_SIGMA*(qt[2] - qt[0]);
                     break;              /* nothing more to do; whole
-                                           hist is in reduced range */
+                                         hist is in reduced range */
                 }
             }
             /* check for lower tail */
@@ -477,40 +477,40 @@ get_quartiles_from_array_clipped(U16 *hist,struct pstats *ps,
                 sp--;
                 sum -= *sp ;
                 mosum = sum ;
-                    /* sum below cell containing -PROFILE_NSIGMA sigma point */
+                /* sum below cell containing -PROFILE_NSIGMA sigma point */
                 mhist = sp ;
-                    /* pointer to cell containing -PROFILE_NSIGMA sigma point*/
+                /* pointer to cell containing -PROFILE_NSIGMA sigma point*/
             }
 
             /* update structure */
-	    ps->rng = top - mhist;
+            ps->rng = top - mhist;
             ps->min = min = mhist - hist;
-	    n = ps->nel = tsum-mosum;
+            n = ps->nel = tsum-mosum;
             /* go back around with trimmed histogram */
             sp = hist + min;
             sum = 0;
         }else{
-	   /* successful trim; modify flags and reevaluate sigma */
+            /* successful trim; modify flags and reevaluate sigma */
 #if 0
-	   if(cgeom != NULL && ps->ntot - ps->nel > 0.005*ps->ntot) {
- 	      fprintf(stderr, "show_sector \""
-		      "%d  %7.3f %7.3f  %5.1f %5.1f %7.4f %7.4f  %d %d %.1f"
-		      "\"\n", band, fyc, fxc, cgeom->inner, cgeom->outer,
-		      cgeom->cw, cgeom->ccw,
-		      ps->ntot - ps->nel, ps->ntot, ps->qt[1] - SOFT_BIAS);
-	   }
+            if(cgeom != NULL && ps->ntot - ps->nel > 0.005*ps->ntot) {
+                fprintf(stderr, "show_sector \""
+                        "%d  %7.3f %7.3f  %5.1f %5.1f %7.4f %7.4f  %d %d %.1f"
+                        "\"\n", band, fyc, fxc, cgeom->inner, cgeom->outer,
+                        cgeom->cw, cgeom->ccw,
+                        ps->ntot - ps->nel, ps->ntot, ps->qt[1] - SOFT_BIAS);
+            }
 #else
-	   shAssert(band ==band && fxc == fxc && fyc == fyc && cgeom == cgeom);
+            shAssert(band ==band && fxc == fxc && fyc == fyc && cgeom == cgeom);
 #endif
-	   ps->flg |= EXTRACT_CLIPPED;
-	   ps->sig = IQR_TO_SIGMA_NSIGMA_CLIPPED*(qt[2] - qt[0]);
+            ps->flg |= EXTRACT_CLIPPED;
+            ps->sig = IQR_TO_SIGMA_NSIGMA_CLIPPED*(qt[2] - qt[0]);
         }
     }
     /* evaluate sum, mean */
     n = sum = 0;    
     for(i = min; i < top - hist; i++) {
-	n += hist[i];
-	sum += i*hist[i];
+        n += hist[i];
+        sum += i*hist[i];
     }
     ps->sum = sum;
     ps->mean = (float)sum/(float)n;
@@ -577,109 +577,119 @@ shinstats(struct pstats *ps)
     }
 
     for(pass=0;pass < npass;pass++){
-       ps->min = data[0];
-       ps->rng = data[n-1] - data[0];
+        ps->min = data[0];
+        ps->rng = data[n-1] - data[0];
 
-       for(i = 0;i < 3;i++) {
-	  fdex = 0.25*(float)((i+1)*n);	/*float index*/
-	  cdex = fdex;
-	  dcell = data[cdex];
-	  ldex = cdex;
-	  if(ldex > 0) {
-	     while(data[--ldex] == dcell && ldex > 0) continue;
-	     /* ldex is now the last index for which data<cdex */
+        for(i = 0;i < 3;i++) {
+            fdex = 0.25*(float)((i+1)*n);	/*float index*/
+            cdex = fdex;
+            dcell = data[cdex];
+            ldex = cdex;
+            if(ldex > 0) {
+                while(data[--ldex] == dcell && ldex > 0) continue;
+                /* ldex is now the last index for which data<cdex */
 	     
-	     if(ldex > 0 || data[ldex] != dcell) {
-		/* we stopped before the end or we stopped at the
-		 * end but would have stopped anyway, so bump it up; 
-		 */
-		ldex++;
-	     }
-	  }
-	  /* The value of the cumulative histogram at the left edge of the
-	   * dcell cell is ldex; ie exactly ldex values lie strictly below
-	   * dcell, and data=dcell BEGINS at ldex.
-	   */
-	  udex = cdex;
-	  while(udex < n && data[++udex] == dcell) continue;
-	  /* first index for which data>cdex or the end of the array, 
-	   * whichever comes first. This can run off the end of
-	   * the array, but it does not matter; if data[n] is accidentally
-	   * equal to dcell, udex == n on the next go and it falls out 
-	   * before udex is incremented again. */
-	  
-	  /* now the cumulative histogram at the right edge of the dcell
-	   * cell is udex-1, and the number of instances for which the data
-	   * are equal to dcell exactly is udex-ldex. Thus if we assume
-	   * that the data are distributed uniformly within a histogram
-	   * cell, the quartile can be computed:
-	   */
-	  fldex = ldex; 
-	  
-	  shAssert(udex != ldex);
-	  qt[i] = dcell - 1 + 0.5 + (fdex - fldex)/(float)(udex-ldex);
-	  
-	  /* The above is all OK except for one singular case: if the
-	   * quartile is EXACTLY at a histogram cell boundary (a half-integer) 
-	   * as computed above AND the previous histogram cell is empty, the
-	   * result is not intuitively correct, though the 'real' answer 
-	   * is formally indeterminate even with the unform-population-in-
-	   * cells ansatz. The cumulative histogram has a segment of zero
-	   * derivative in this cell, and intuitively one would place the
-	   * quartile in the center of this segment; the algorithm above
-	   * places it always at the right end. This code, which can be
-	   * omitted, fixes this case.
-	   *
-	   * We only have to do something if the quartile is exactly at a cell
-	   * boundary; in this case ldex cannot be at either end of the array,
-	   * so we do not need to worry about the array boundaries .
-	   */
-	  if(4*ldex == (i+1)*n) {
-	     int zext = dcell - data[ldex-1] - 1;
-	     
-	     if(zext > 0) {
-		/* there is at least one empty cell in the histogram
-		 * prior to the first data==dcell one
-		 */
-		qt[i] -= 0.5*zext;
-	     }
-	  }
-       }
+                if(ldex > 0 || data[ldex] != dcell) {
+                    /* we stopped before the end or we stopped at the
+                     * end but would have stopped anyway, so bump it up; 
+                     */
+                    ldex++;
+                }
+            }
+            /* The value of the cumulative histogram at the left edge of the
+             * dcell cell is ldex; ie exactly ldex values lie strictly below
+             * dcell, and data=dcell BEGINS at ldex.
+             */
+            udex = cdex;
 
-       if(npass == 1) {			/* no trimming to be done */
-	  ps->sig = IQR_TO_SIGMA*(qt[2] - qt[0]);
-       } else {
-	  /*
-	   * trim the histogram if possible to the first percentile below
-	   * and the +PROFILE_NSIGMA sigma point above
-	   */
-	  if(pass==0){
-	     /* terminate data array--there must be room */
-	     data[n] = 0x7fff;
-	     /* trim histogram */
-	     ldex = PROFILE_NTILE*n;	/* index in sorted data array at
-					   quantile corresponding to
-					   -PROFILE_NSIGMA */
-	     dlim = qt[1] + PROFILE_NSIGMA*IQR_TO_SIGMA*(qt[2] - qt[0]) + 0.5;
-	     if(dlim >= data[n-1] || udex >= n) {  /* off top of data or
-						      already at end */
-		if(ldex == 0) {
-		   ps->sig = IQR_TO_SIGMA*(qt[2] - qt[0]);
-		   break;		/* histogram is too small; we're done*/
-		}
-	     } else {
-		/* find the index corresponding to PROFILE_NSIGMA
-		 * sigma; this should be done by a binary search */
-		udex--; 
-		while(data[++udex] <= dlim){;}
-		n = ps->nel = udex - ldex;
-		data = data + ldex;
-		ps->flg |= EXTRACT_CLIPPED;
-	     }
-	  }else{   /* have trimmed hist and recomputed quartiles */
-	     ps->sig = IQR_TO_SIGMA_NSIGMA_CLIPPED*(qt[2] - qt[0]);
-	  }
-       }
+            //while(udex < n && data[++udex] == dcell) continue;
+            //while(udex < n && data[++udex] == dcell);
+            for (;;) {
+                if (udex >= n)
+                    break;
+                udex++;
+                if (data[udex] != dcell)
+                    break;
+            }
+
+            /* first index for which data>cdex or the end of the array, 
+             * whichever comes first. This can run off the end of
+             * the array, but it does not matter; if data[n] is accidentally
+             * equal to dcell, udex == n on the next go and it falls out 
+             * before udex is incremented again. */
+	  
+            /* now the cumulative histogram at the right edge of the dcell
+             * cell is udex-1, and the number of instances for which the data
+             * are equal to dcell exactly is udex-ldex. Thus if we assume
+             * that the data are distributed uniformly within a histogram
+             * cell, the quartile can be computed:
+             */
+            fldex = ldex; 
+	  
+            shAssert(udex != ldex);
+            qt[i] = dcell - 1 + 0.5 + (fdex - fldex)/(float)(udex-ldex);
+	  
+            /* The above is all OK except for one singular case: if the
+             * quartile is EXACTLY at a histogram cell boundary (a half-integer) 
+             * as computed above AND the previous histogram cell is empty, the
+             * result is not intuitively correct, though the 'real' answer 
+             * is formally indeterminate even with the unform-population-in-
+             * cells ansatz. The cumulative histogram has a segment of zero
+             * derivative in this cell, and intuitively one would place the
+             * quartile in the center of this segment; the algorithm above
+             * places it always at the right end. This code, which can be
+             * omitted, fixes this case.
+             *
+             * We only have to do something if the quartile is exactly at a cell
+             * boundary; in this case ldex cannot be at either end of the array,
+             * so we do not need to worry about the array boundaries .
+             */
+            if(4*ldex == (i+1)*n) {
+                int zext = dcell - data[ldex-1] - 1;
+	     
+                if(zext > 0) {
+                    /* there is at least one empty cell in the histogram
+                     * prior to the first data==dcell one
+                     */
+                    qt[i] -= 0.5*zext;
+                }
+            }
+        }
+
+        if(npass == 1) {			/* no trimming to be done */
+            ps->sig = IQR_TO_SIGMA*(qt[2] - qt[0]);
+        } else {
+            /*
+             * trim the histogram if possible to the first percentile below
+             * and the +PROFILE_NSIGMA sigma point above
+             */
+            if(pass==0){
+                /* terminate data array--there must be room */
+                data[n] = 0x7fff;
+                /* trim histogram */
+                ldex = PROFILE_NTILE*n;	/* index in sorted data array at
+                                         quantile corresponding to
+                                         -PROFILE_NSIGMA */
+                dlim = qt[1] + PROFILE_NSIGMA*IQR_TO_SIGMA*(qt[2] - qt[0]) + 0.5;
+                if(dlim >= data[n-1] || udex >= n) {  /* off top of data or
+                                                       already at end */
+                    if(ldex == 0) {
+                        ps->sig = IQR_TO_SIGMA*(qt[2] - qt[0]);
+                        break;		/* histogram is too small; we're done*/
+                    }
+                } else {
+                    /* find the index corresponding to PROFILE_NSIGMA
+                     * sigma; this should be done by a binary search */
+                    udex--; 
+                    while(data[++udex] <= dlim){;}
+                    n = ps->nel = udex - ldex;
+                    data = data + ldex;
+                    ps->flg |= EXTRACT_CLIPPED;
+                }
+            }else{   /* have trimmed hist and recomputed quartiles */
+                ps->sig = IQR_TO_SIGMA_NSIGMA_CLIPPED*(qt[2] - qt[0]);
+            }
+        }
     }
 
     ps->flg |= EXTRACT_SIGIQR;
@@ -756,11 +766,11 @@ simplestats(struct pstats *ps)
 void
 badstats(struct pstats *ps)
 {
-   int big = (1 << 16) - 1;
+    int big = (1 << 16) - 1;
     
-   ps->min = ps->rng = big;
-   ps->mean = ps->sig = ps->qt[1] = ps->qt[2] = big;
-   ps->qt[0] = -big;			/* invalidate IQR too */
-   ps->area = ps->nel = -1;
-   ps->flg |= EXTRACT_BAD;
+    ps->min = ps->rng = big;
+    ps->mean = ps->sig = ps->qt[1] = ps->qt[2] = big;
+    ps->qt[0] = -big;			/* invalidate IQR too */
+    ps->area = ps->nel = -1;
+    ps->flg |= EXTRACT_BAD;
 }
