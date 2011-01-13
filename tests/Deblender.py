@@ -121,6 +121,11 @@ class TestDeblender(unittest.TestCase):
     def setUp(self):
         pass
 
+    def testGeom(self):
+        import lsst.meas.deblender.deblenderLib as lib
+        db = lib.SDSSDeblenderF()
+        db.debugProfiles()
+
     def tstTwoStars(self):
         # seed numpy random number generator.
         seed(42)
@@ -336,7 +341,7 @@ class TestDeblender(unittest.TestCase):
 
             plt.savefig('child-stars.png')
 
-    def testStarGal(self):
+    def tstStarGal(self):
         if True:
             import matplotlib
             matplotlib.use('Agg')

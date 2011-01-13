@@ -114,13 +114,10 @@ static void printAnObjc(OBJC* o, int childnum) {
 	}
 }
 #undef printflag
+
 void printObjc(OBJC* o) {
 	printAnObjc(o, -1);
 }
-
-
-// for MODEL_PARAMS
-#include "phFitobj.h"
 
 static float find_outer(OBJECT1* obj);
 
@@ -136,8 +133,7 @@ typedef struct {
     float *mem;				/* malloced space for mean/median and sig */
 } COMP_CSTATS;
 
-static void cell_fit_psf_model(int ndata, int nparam, double *p,
-                               double *fvec, int *iflag);
+static void cell_fit_psf_model(int ndata, double *fvec, int *iflag);
 
 static int use_median = 1;		/* use median not mean profile */
 static int fit_sky_level = 0;		/* should we fit the sky? */
@@ -162,6 +158,35 @@ phCellProfSet(CELL_PROF *cprof,		/* the CELL_PROF to initialise */
 									 pairs in variance? */
 			  int sky_noise_only)	/* only include sky noise */
 	;
+
+static void print_cell_stats(const CELL_STATS* cstats) {
+    int k;
+    printf("cell stats:\n");
+    printf("  ncell %i\n", cstats->ncell);
+    printf("  nannuli %i\n", cstats->nannuli);
+    printf("  nannuli_c %i\n", cstats->nannuli_c);
+    printf("  annular %i\n", cstats->annular);
+    printf("  col_c, row_c %g, %g\n", cstats->col_c, cstats->row_c);
+    printf("  col_1, row_1 %g, %g\n", cstats->col_1, cstats->row_1);
+    printf("  orad %i\n", cstats->orad);
+    printf("  radii:");
+    for (k=0; k<cstats->nannuli; k++)
+        printf(" %g", cstats->radii[k]);
+    printf("\n");
+    printf("  cells:\n");
+    for (k=0; k<cstats->ncell; k++) {
+        int m;
+        struct pstats* p = cstats->cells + k;
+        printf("    %i: ntot %i, area %g, mean %g, sig %g, sum %g\n",
+               k, p->ntot, p->area, p->mean, p->sig, p->sum);
+        printf("       flg: 0x%x\n", p->flg);
+        printf("       data:");
+        for (m=0; m<p->ntot; m++)
+            printf(" %i", (int)p->data[m]);
+        printf("\n");
+    }
+}
+
 
 /*****************************************************************************/
 /*
@@ -195,6 +220,8 @@ phFitCellAsPsfFake(OBJC *objc,		/* Object to fit */
 	float chisq;
 	int nu;
 
+    assert(cstats == NULL);
+
 	printf("faking phFitCellAsPsf.\n");
 	// called from deblend.c:
 	//phFitCellAsPsfFake(child, c, NULL, fiparams, psf_nann[c],
@@ -205,82 +232,52 @@ phFitCellAsPsfFake(OBJC *objc,		/* Object to fit */
 
 	// phFitCellAsKnownModel
 	{
-#define NPARAM 8			/* max number of parameters to fit */
 		const FRAMEPARAMS *fparams;		/* unpacked from fiparams */
 		double *fvec;			/* residuals for cells */
 		int i;
 		OBJECT1 *obj;			/* object in question */
-		double p[NPARAM];			/* model parameters */
-		int npar = 0;			/* number of parameters in p */
 		float posErr;			/* error in position */
 		const REGION *reg;			/* unpacked from fparams */
 
 		float thecounts, thecountserr;
 
 		float* sky = bkgd;
-		float *counts = &thecounts;
-		float *countsErr = &thecountserr;
+		float* counts = &thecounts;
+		float* countsErr = &thecountserr;
 
 		shAssert(fiparams != NULL && objc != NULL);
 		shAssert(color >= 0 && color < fiparams->ncolor && color < objc->ncolor);
+
 		fparams = &fiparams->frame[color];
 		shAssert(fparams != NULL && fparams->data != NULL && fparams->psf != NULL);
+
 		obj = objc->color[color];
 		shAssert(obj != NULL);
 
 		reg = fparams->data;
 
-		if (!cstats) {
-			printf("phProfileExtract...\n");
-			cstats = (const CELL_STATS *)
-				phProfileExtract(-1, -1, reg, obj->rowc, obj->colc, find_outer(obj),
-								 SOFT_BIAS + fparams->bkgd, obj->skyErr, 0);
-			if (cstats == NULL || cstats->syncreg == NULL) {
-				shErrStackPush("phFitCellAsKnownModel: "
-							   "object is too close to edge (%.3f, %.3f)",
-							   obj->rowc, obj->colc);
-				if (sky)
-					*sky = 0;
-				return -1;
-			}
-			trace("Before phProfileMean: cs->ncell %i\n", cstats->ncell);
-			obj->profMean[0] = phProfileMean(cstats, 0, 0, 1, NULL);
-			obj->nprof = cstats->nannuli_c;
-			trace("After phProfileMean: cs->ncell %i\n", cstats->ncell);
-		}
-		if(obj->rowcErr < 0) {
-			posErr = 1;
-		} else {
-			posErr = sqrt(pow(obj->rowcErr,2) + pow(obj->colcErr,2));
-		}
+        printf("phProfileExtract...\n");
+        cstats = (const CELL_STATS *)
+            phProfileExtract(-1, -1, reg, obj->rowc, obj->colc, find_outer(obj),
+                             SOFT_BIAS + fparams->bkgd, obj->skyErr, 0);
+        if (cstats == NULL || cstats->syncreg == NULL) {
+            shErrStackPush("phFitCellAsKnownModel: object is too close to edge (%.3f, %.3f)",
+                           obj->rowc, obj->colc);
+            if (sky)
+                *sky = 0;
+            return -1;
+        }
+        trace("Before phProfileMean: cs->ncell %i\n", cstats->ncell);
+        obj->profMean[0] = phProfileMean(cstats, 0, 0, 1, NULL);
+        obj->nprof = cstats->nannuli_c;
+        trace("After phProfileMean: cs->ncell %i\n", cstats->ncell);
 
-		{ 
-			int k;
-			printf("cell stats:\n");
-			printf("  ncell %i\n", cstats->ncell);
-			printf("  nannuli %i\n", cstats->nannuli);
-			printf("  nannuli_c %i\n", cstats->nannuli_c);
-			printf("  annular %i\n", cstats->annular);
-			printf("  col_c, row_c %g, %g\n", cstats->col_c, cstats->row_c);
-			printf("  col_1, row_1 %g, %g\n", cstats->col_1, cstats->row_1);
-			printf("  orad %i\n", cstats->orad);
-			printf("  radii:");
-			for (k=0; k<cstats->nannuli; k++)
-				printf(" %g", cstats->radii[k]);
-			printf("\n");
-			printf("  cells:\n");
-			for (k=0; k<cstats->ncell; k++) {
-				int m;
-				struct pstats* p = cstats->cells + k;
-				printf("    %i: ntot %i, area %g, mean %g, sig %g, sum %g\n",
-					   k, p->ntot, p->area, p->mean, p->sig, p->sum);
-				printf("       flg: 0x%x\n", p->flg);
-				printf("       data:");
-				for (m=0; m<p->ntot; m++)
-					printf(" %i", (int)p->data[m]);
-				printf("\n");
-			}
-		}
+		if (obj->rowcErr < 0)
+			posErr = 1;
+        else
+			posErr = hypot(obj->rowcErr, obj->colcErr);
+
+        print_cell_stats(cstats);
 
 		printf("setup_cell_data: use_median %i, sky %g, gain %g, dark_var %g, object's width sigma %g, poserr %g, use_diff %i, sky_noise_only %i\n",
 			   use_median, obj->sky, phGain(fparams, obj->rowc, obj->colc),
@@ -288,12 +285,10 @@ phFitCellAsPsfFake(OBJC *objc,		/* Object to fit */
 			   fparams->psf->width, posErr, use_difference, sky_noise_only);
 		// fparams->dark_variance -- BINREGION*
 		// -- can be a single value, or >= 2x2.
-
         phCellProfSet(&fit_ctx, cstats, use_median, obj->sky,
                       phGain(fparams, obj->rowc, obj->colc),
                       phDarkVariance(fparams, obj->rowc, obj->colc),
                       fparams->psf->width, posErr, use_difference, sky_noise_only);
-
 		trace("After setup_cell_data: cs->ncell %i\n", cstats->ncell);
 
 		// set from SDSSDeblender.cc, = 3.
@@ -310,18 +305,15 @@ phFitCellAsPsfFake(OBJC *objc,		/* Object to fit */
 		trace("fit_ctx.ncell=%i\n", fit_ctx.ncell);
 
         // find the residuals vector, optionally fitting a sky level
-		fit_sky_level = (sky == NULL) ? 0 : 1;
+		fit_sky_level = ((sky == NULL) ? 0 : 1);
 		fvec = alloca(fit_ctx.ncell*sizeof(double));
 		i = 0;
 
         // static CELL_PROF fit_ctx;
         // int fit_ctx.ncell: number of cells
-        // int npar: number of params in p
-        // double* p: model params
         // double* fvec: residuals
         // i: flag
-        trace("cell_fit_psf_model: npar=%i\n", npar);
-        cell_fit_psf_model(fit_ctx.ncell, npar, p, fvec, &i);
+        cell_fit_psf_model(fit_ctx.ncell, fvec, &i);
 
         // set return variables, if so desired
 		if (sky)
@@ -347,48 +339,14 @@ phFitCellAsPsfFake(OBJC *objc,		/* Object to fit */
    obj1->nu_star = nu;
    obj1->star_lnL = phChisqProb(obj1->chisq_star, obj1->nu_star, 1);
    obj1->star_L = exp(obj1->star_lnL);
-   if (I0 != NULL) {
+
+   if (I0) {
 	   // global
 	   *I0 = model_amp;
 	   trace("setting I0 = model_amp = %g\n", model_amp);
    }
-   
    trace("returning %g\n", (obj1->chisq_star / obj1->nu_star));
    return (obj1->chisq_star / obj1->nu_star);
-}
-
-// from cellfitobj.c
-static float
-find_outer(OBJECT1* obj)
-{
-    float d[4];
-    int i;
-    float max;
-
-    if(obj->mask == NULL) {
-		max = 0;
-    } else {
-		d[0] = sqrt(pow(obj->mask->cmax - obj->colc + 1,2) +
-					pow(obj->mask->rmax - obj->rowc + 1,2));
-		d[1] = sqrt(pow(obj->mask->cmin - obj->colc + 1,2) +
-					pow(obj->mask->rmax - obj->rowc + 1,2));
-		d[2] = sqrt(pow(obj->mask->cmax - obj->colc + 1,2) +
-					pow(obj->mask->rmin - obj->rowc + 1,2));
-		d[3] = sqrt(pow(obj->mask->cmin - obj->colc + 1,2) +
-					pow(obj->mask->rmin - obj->rowc + 1,2));
-		max = d[0];
-
-		for(i = 1; i < 4; i++) {
-			if(d[i] > max)
-				max = d[i];
-		}
-    }
-
-    if(max < SYNCRAD) {			/* we may as well to the sinc region */
-		max = SYNCRAD;
-    }
-
-    return(max);
 }
 
 static int fcompare(const void* v1, const void* v2) {
@@ -584,7 +542,7 @@ static COMP_CSTATS* psf_cells_make() {
     return cs;
 }
 
-static void cell_fit_psf_model(int ndata, int nparam, double *p, double *fvec, int *iflag) {
+static void cell_fit_psf_model(int ndata, double *fvec, int *iflag) {
 
 #if DEBUG || TEST_2D_PROFILES
     float sigsav[NCELL];
@@ -613,9 +571,7 @@ static void cell_fit_psf_model(int ndata, int nparam, double *p, double *fvec, i
     int ncells;
 
     shAssert(*iflag >= 0);
-    shAssert(nparam <= NPARAM);
     shAssert(ndata == fit_ctx.ncell);
-    shAssert(nparam == 0 || p != NULL);
     shAssert(fvec != NULL);
 
     // Build the model
@@ -629,8 +585,6 @@ static void cell_fit_psf_model(int ndata, int nparam, double *p, double *fvec, i
 
     nannuli = (ncells - 1)/(NSEC/2) + 1;
 	trace("model produced %i cells; set nannuli to %i\n", ncells, nannuli);
-
-    shAssert(ncells > nparam);
 
     // Unpack the compressed cell data
     data = fit_ctx.data;
@@ -728,9 +682,6 @@ static void cell_fit_psf_model(int ndata, int nparam, double *p, double *fvec, i
 		model_ampErr = sqrt(1/sum_mm);
     }
 	trace("sky_level = %g, model_amp = %g, err %g\n", sky_level, model_amp, model_ampErr);
-
-    // correct for missing dof
-    model_ampErr *= sqrt(idata/(idata - nparam));
 
     // We _added_ the residuals to the model, so we increased its flux
     totflux = model_amp*(stats_model->totflux + residual_flux);
@@ -1140,3 +1091,33 @@ phObjcMakeChildrenFake(OBJC *objc,		/* give this OBJC a family */
 
 	return(objc->peaks->npeak + ((objc->sibbs != NULL) ? 1 : 0));
 }
+
+
+// from cellfitobj.c
+static float find_outer(OBJECT1* obj) {
+    float d[4];
+    int i;
+    float max;
+    if(obj->mask == NULL) {
+		max = 0;
+    } else {
+		d[0] = sqrt(pow(obj->mask->cmax - obj->colc + 1,2) +
+					pow(obj->mask->rmax - obj->rowc + 1,2));
+		d[1] = sqrt(pow(obj->mask->cmin - obj->colc + 1,2) +
+					pow(obj->mask->rmax - obj->rowc + 1,2));
+		d[2] = sqrt(pow(obj->mask->cmax - obj->colc + 1,2) +
+					pow(obj->mask->rmin - obj->rowc + 1,2));
+		d[3] = sqrt(pow(obj->mask->cmin - obj->colc + 1,2) +
+					pow(obj->mask->rmin - obj->rowc + 1,2));
+		max = d[0];
+		for(i = 1; i < 4; i++) {
+			if(d[i] > max)
+				max = d[i];
+		}
+    }
+    if(max < SYNCRAD) {			/* we may as well to the sinc region */
+		max = SYNCRAD;
+    }
+    return(max);
+}
+

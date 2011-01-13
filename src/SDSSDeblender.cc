@@ -38,6 +38,30 @@ deblender::SDSSDeblender<ImageT>::SDSSDeblender() {
 }
 
 template<typename ImageT>
+void
+deblender::SDSSDeblender<ImageT>::debugProfiles() {
+    photo::phInitProfileExtract();
+
+    const photo::CELL_STATS* cstats = photo::phProfileGeometry();
+    /* fields set:
+     -radii = annrad
+     -area = area
+     -geom = cellgeom   (size NCELL + NLCELL)
+     -ncell = NCELL
+     */
+
+    for (int i=0; i<cstats->ncell; i++) {
+        struct photo::cellgeom* cg = cstats->geom + i;
+        std::cout << "cell " << i << ": geom: ann=" << cg->ann << ", sec=" << cg->sec
+                  << ", npix=" << cg->n << ", inner=" << cg->inner << ", outer=" << cg->outer
+                  << ", cw=" << cg->cw << ", ccw=" << cg->ccw << std::endl;
+    }
+
+    photo::phFiniProfileExtract();
+}
+
+
+template<typename ImageT>
 std::vector<typename deblender::DeblendedObject<ImageT>::Ptr >
 deblender::SDSSDeblender<ImageT>::deblend(
     std::vector< afwDet::Footprint::Ptr > footprints,

@@ -13,20 +13,20 @@ namespace afwImage = lsst::afw::image;
 namespace afwDet = lsst::afw::detection;
 
 namespace lsst {
-	namespace meas {
-		namespace deblender {
+    namespace meas {
+        namespace deblender {
 
-			template<typename ImageT>
-				class DeblendedObject {
+            template<typename ImageT>
+            class DeblendedObject {
             public:
                 typedef boost::shared_ptr< DeblendedObject<ImageT> > Ptr;
 
-				std::vector<typename ImageT::Ptr> images;
+                std::vector<typename ImageT::Ptr> images;
                 // pixel offset of "images" within the parent images.
                 int x0;
                 int y0;
 
-				std::vector<afwDet::Footprint::Ptr> foots;
+                std::vector<afwDet::Footprint::Ptr> foots;
 
                 /*
                  add this object's pixel values for "color" to the given image,
@@ -37,12 +37,12 @@ namespace lsst {
                 void addToImage(typename ImageT::Ptr image, int color);
             };
 
-			template<typename ImageT>
-				class Deblender {
-			public:
+            template<typename ImageT>
+            class Deblender {
+            public:
 
-				virtual
-				std::vector<typename DeblendedObject<ImageT>::Ptr >
+                virtual
+                std::vector<typename DeblendedObject<ImageT>::Ptr >
                 deblend(
                     std::vector< boost::shared_ptr< afwDet::Footprint > > footprints,
                     std::vector< std::vector< boost::shared_ptr< afwDet::Peak > > > peaks,
@@ -50,16 +50,16 @@ namespace lsst {
                     boost::shared_ptr<typename afwDet::Psf > psf
                     ) = 0;
 
-				virtual ~Deblender() {}
-			};
+                virtual ~Deblender() {}
+            };
 			
-			template<typename ImageT>
-				class SDSSDeblender : public Deblender<ImageT> {
-			public:
+            template<typename ImageT>
+            class SDSSDeblender : public Deblender<ImageT> {
+            public:
                 SDSSDeblender();
 
                 virtual
-				std::vector<typename DeblendedObject<ImageT>::Ptr >
+                std::vector<typename DeblendedObject<ImageT>::Ptr >
                 deblend(
                     std::vector< boost::shared_ptr< afwDet::Footprint > > footprints,
                     std::vector< std::vector< boost::shared_ptr< afwDet::Peak > > > peaks,
@@ -67,9 +67,11 @@ namespace lsst {
                     boost::shared_ptr<typename afwDet::Psf > psf
                     );
 
-				virtual ~SDSSDeblender() {}
-			};
+                void debugProfiles();
+
+                virtual ~SDSSDeblender() {}
+            };
 			
-		}}}
+        }}}
 
 #endif
