@@ -1,5 +1,8 @@
 #include <string.h>
 #include <math.h>
+// we had better get...
+double round(double x);
+
 #include "phFake.h"
 #include "phMathUtils.h"
 
@@ -121,29 +124,7 @@ void printObjc(OBJC* o) {
 
 static float find_outer(OBJECT1* obj);
 
-static void
-setup_cell_data(const CELL_STATS *stats_obj, /* cell array info */
-				int median,		/* use median profile? */
-				double sky,		/* sky level */
-				double gain,		/* gain of chip */
-				double dark_variance,	/* background variance */
-				double sigma,		/* sigma of PSF */
-				double posErr,		/* centering error */
-				int use_difference,	/* include difference of cell
-									 pairs in variance? */
-				int sky_noise_only)	/* only include sky noise */
-	;
-
 static CELL_PROF fit_ctx;
-
-static void
-cell_fit_psf(
-    int ndata,
-    int nparam,
-    double *p,
-    double *fvec,
-    int *iflag
-    );
 
 typedef struct {
     int ncells;				/* number of cells */
@@ -155,15 +136,8 @@ typedef struct {
     float *mem;				/* malloced space for mean/median and sig */
 } COMP_CSTATS;
 
-static void cell_fit_model(
-    COMP_CSTATS *(*cells_make)(const MODEL_PARAMS *),
-    int ndata,
-    int nparam,
-    double *p,
-    double *fvec,
-    int *iflag
-    );
-
+static void cell_fit_psf_model(int ndata, int nparam, double *p,
+                               double *fvec, int *iflag);
 
 static int use_median = 1;		/* use median not mean profile */
 static int fit_sky_level = 0;		/* should we fit the sky? */
@@ -171,15 +145,9 @@ static float sky_level;			/* the resulting value */
 static float totflux;			/* estimated total flux in an object */
 static float totfluxErr;		/* error in total flux */
 
-static float rsize_min, rsize_max;	/* extremal values of rsize for available models */
-									 
-static float aratio_min;		/* minimum value of rsize for
-								 available models */
 static float model_amp;			/* amplitude of best-fit model */
 static float model_ampErr;		/* error in amplitude */
 static PSF_COEFFS *seeing_ind = NULL;	/* current seeing */
-
-static COMP_CSTATS *model_cs = NULL;	/* COMP_CSTATS for the current model */
 
 void
 phCellProfSet(CELL_PROF *cprof,		/* the CELL_PROF to initialise */
@@ -238,8 +206,6 @@ phFitCellAsPsfFake(OBJC *objc,		/* Object to fit */
 	// phFitCellAsKnownModel
 	{
 #define NPARAM 8			/* max number of parameters to fit */
-
-			//void (*cell_fit_func)(int, int, double *, double *, int *) = NULL;
 		const FRAMEPARAMS *fparams;		/* unpacked from fiparams */
 		double *fvec;			/* residuals for cells */
 		int i;
@@ -264,26 +230,18 @@ phFitCellAsPsfFake(OBJC *objc,		/* Object to fit */
 
 		reg = fparams->data;
 
-		rsize_max = rsize_min = 0;
-		aratio_min = 0;
-		//set_rsize_limits(&psf_entries);
-		//cell_fit_func = cell_fit_psf;
-		// npar = 0.
-
-		if(cstats == NULL) {
+		if (!cstats) {
 			printf("phProfileExtract...\n");
 			cstats = (const CELL_STATS *)
 				phProfileExtract(-1, -1, reg, obj->rowc, obj->colc, find_outer(obj),
 								 SOFT_BIAS + fparams->bkgd, obj->skyErr, 0);
-			if(cstats == NULL || cstats->syncreg == NULL) {
+			if (cstats == NULL || cstats->syncreg == NULL) {
 				shErrStackPush("phFitCellAsKnownModel: "
 							   "object is too close to edge (%.3f, %.3f)",
 							   obj->rowc, obj->colc);
-				nu = 1;
-				if(sky != NULL) {
+				if (sky)
 					*sky = 0;
-				}
-				return(-1);
+				return -1;
 			}
 			trace("Before phProfileMean: cs->ncell %i\n", cstats->ncell);
 			obj->profMean[0] = phProfileMean(cstats, 0, 0, 1, NULL);
@@ -331,14 +289,11 @@ phFitCellAsPsfFake(OBJC *objc,		/* Object to fit */
 		// fparams->dark_variance -- BINREGION*
 		// -- can be a single value, or >= 2x2.
 
-		// note, this calls:
-		//   phCellProfSet()
-		//   and puts results in global "fit_ctx"
+        phCellProfSet(&fit_ctx, cstats, use_median, obj->sky,
+                      phGain(fparams, obj->rowc, obj->colc),
+                      phDarkVariance(fparams, obj->rowc, obj->colc),
+                      fparams->psf->width, posErr, use_difference, sky_noise_only);
 
-		setup_cell_data(cstats, use_median, obj->sky,
-						phGain(fparams, obj->rowc, obj->colc),
-						phDarkVariance(fparams, obj->rowc, obj->colc),
-						fparams->psf->width, posErr, use_difference, sky_noise_only);
 		trace("After setup_cell_data: cs->ncell %i\n", cstats->ncell);
 
 		// set from SDSSDeblender.cc, = 3.
@@ -353,39 +308,37 @@ phFitCellAsPsfFake(OBJC *objc,		/* Object to fit */
 			trace("ncell=%i, fit_ctx.ncell=%i\n", ncell, fit_ctx.ncell);
 		}
 		trace("fit_ctx.ncell=%i\n", fit_ctx.ncell);
-/*
- * find the residuals vector, optionally fitting a sky level
- */
+
+        // find the residuals vector, optionally fitting a sky level
 		fit_sky_level = (sky == NULL) ? 0 : 1;
 		fvec = alloca(fit_ctx.ncell*sizeof(double));
 		i = 0;
-		//cell_fit_func(fit_ctx.ncell, npar, p, fvec, &i);
-		cell_fit_psf(fit_ctx.ncell, npar, p, fvec, &i);
-/*
- * set return variables, if so desired
- */
-		if(sky != NULL) {
+
+        // static CELL_PROF fit_ctx;
+        // int fit_ctx.ncell: number of cells
+        // int npar: number of params in p
+        // double* p: model params
+        // double* fvec: residuals
+        // i: flag
+        trace("cell_fit_psf_model: npar=%i\n", npar);
+        cell_fit_psf_model(fit_ctx.ncell, npar, p, fvec, &i);
+
+        // set return variables, if so desired
+		if (sky)
 			*sky = sky_level;
-		}
-		if(counts != NULL) {
+		if (counts)
 			*counts = totflux;
-		}
-		if(countsErr != NULL) {
+		if(countsErr)
 			*countsErr = totfluxErr;
-		}
-/*
- * Evaluate chi^2
- */
+
+        // Evaluate chi^2
 		chisq = 0.0;
-		for(i = 0; i < fit_ctx.ncell; i++) {
+		for (i=0; i<fit_ctx.ncell; i++)
 			chisq += fvec[i]*fvec[i];
-		}
 
 		nu = fit_ctx.ncell - 1;		/* we _didn't_ fit npar parameters */
-		if(fit_sky_level) nu--;
-
+		if (fit_sky_level) nu--;
 		trace("chisq %g, nu %i\n", chisq, nu);
-
 	}
 
    OBJECT1 *const obj1 = objc->color[color];
@@ -438,25 +391,6 @@ find_outer(OBJECT1* obj)
     return(max);
 }
 
-/*
- * Note that this routine fills out the global fit_ctx
- */
-static void
-setup_cell_data(const CELL_STATS *stats_obj, /* cell array info */
-				int median,		/* use median profile? */
-				double sky,		/* sky level */
-				double gain,		/* gain of chip */
-				double dark_variance,	/* background variance */
-				double sigma,		/* sigma of PSF */
-				double posErr,		/* centering error */
-				int use_difference,	/* include difference of cell
-									 pairs in variance? */
-				int sky_noise_only)	/* only include sky noise */
-{
-	phCellProfSet(&fit_ctx, stats_obj, median, sky, gain, dark_variance,
-				  sigma, posErr, use_difference, sky_noise_only);
-}
-
 static int fcompare(const void* v1, const void* v2) {
 	const float* f1 = v1;
 	const float* f2 = v2;
@@ -477,8 +411,7 @@ static float find_median_nonconst(float* x, int N) {
 	return (x[N/2 - 1] + x[N/2]) /2.0;
 }
 
-static COMP_CSTATS *
-psf_cells_make(const MODEL_PARAMS *p) {
+static COMP_CSTATS* psf_cells_make() {
     COMP_CSTATS* cs = NULL;
     int nann;
     int ncell;
@@ -639,9 +572,9 @@ psf_cells_make(const MODEL_PARAMS *p) {
     for (i=0; i<ncell; i++) {
         cs->median[i] = find_median_nonconst(pix[i], npixels[i]);
         trace("psf model: cell %i has %i pixels, median %g\n", i, npixels[i], cs->median[i]);
+        cs->sig[i] = sqrt(cs->median[i]);
         // HACK!
-        //cs->sig[i] = sqrt(cs->median[i]);
-        cs->sig[i] = 0.01 * 1.0/(2.*M_PI*psfsigma*psfsigma);
+        //cs->sig[i] = 0.01 * 1.0/(2.*M_PI*psfsigma*psfsigma);
         free(pix[i]);
     }
 
@@ -651,19 +584,13 @@ psf_cells_make(const MODEL_PARAMS *p) {
     return cs;
 }
 
-static void cell_fit_psf(int ndata, int nparam, double *p, double *fvec, int *iflag) {
-    cell_fit_model(psf_cells_make, ndata, nparam, p, fvec, iflag);
-}
-
-static void cell_fit_model(
-    COMP_CSTATS *(*cells_make)(const MODEL_PARAMS *),
-    int ndata, int nparam, double *p, double *fvec, int *iflag) {
+static void cell_fit_psf_model(int ndata, int nparam, double *p, double *fvec, int *iflag) {
 
 #if DEBUG || TEST_2D_PROFILES
     float sigsav[NCELL];
 #endif
     float *data;			/* mean or median */
-    float fiddle_fac;			/* amount to fiddle chisq due to
+    float fiddle_fac = 1.0;			/* amount to fiddle chisq due to
 								 parameters being out of bounds */
     const int fit_sky = fit_sky_level;	/* a local copy for optimiser */
     int i;
@@ -677,7 +604,6 @@ static void cell_fit_model(
     float mod;				/* model[sector]; unpacked for speed */
     float mod_ivar;			/* == mod/sigma^2;
 							 unpacked for speed */
-    MODEL_PARAMS mp;
     float residual_flux;		/* flux in residual table */
     float sigma;			/* model-reduced sigma for a point */
     COMP_CSTATS *stats_model;		/* model at best-fit angle */
@@ -691,62 +617,22 @@ static void cell_fit_model(
     shAssert(ndata == fit_ctx.ncell);
     shAssert(nparam == 0 || p != NULL);
     shAssert(fvec != NULL);
-/*
- * Stuff changing parameters into the context.
- */
-	mp.clazz = -1;			/* unknown */
-    mp.psf = NULL;
 
-    mp.aratio = 1.0;
-    mp.rsize = rsize_max;
-    if(nparam >= 1) {
-		shAssert(p[0] == p[0]);		/* i.e. not a NaN */
-		mp.aratio = p[0];
-		if(nparam >= 2) {
-			shAssert(p[1] == p[1]);
-			mp.rsize = p[1];
-		}
-    }
-/*
- * see if any parameters are out of range; if so set them to their limits,
- * and remember to increase the final fvec vector correspondingly
- */
-    fiddle_fac = 1.0;
+    // Build the model
+    stats_model = psf_cells_make();
 
-    if(mp.aratio < aratio_min) {
-		fiddle_fac *= 1 + pow(aratio_min - mp.aratio,2);
-		mp.aratio = aratio_min;
-    }
-    if(mp.aratio > 1) {			/* minimiser can choose a better phi */
-		fiddle_fac *= pow(mp.aratio,2);
-		mp.aratio = 1;
-    }    
-    if(mp.rsize > rsize_max) {
-		fiddle_fac *= pow(mp.rsize/rsize_max,2);
-		mp.rsize = rsize_max;
-    } else if(mp.rsize < rsize_min) {
-		fiddle_fac *= pow((mp.rsize - 1)/(rsize_min - 1),2);
-		mp.rsize = rsize_min;
-    }
-/*
- * Build the model
- */
-    stats_model = (*cells_make)(&mp);
-/*
- * get uncompressed number of cells.
- */
+    // get uncompressed number of cells.
     ncells = stats_model->ncells;
     ncells = ncells < ndata ? ncells : ndata;
-    if(ncells == 0) {
+    if (ncells == 0)
 		return;
-    }
+
     nannuli = (ncells - 1)/(NSEC/2) + 1;
 	trace("model produced %i cells; set nannuli to %i\n", ncells, nannuli);
 
     shAssert(ncells > nparam);
-/*
- * Unpack the compressed cell data
- */
+
+    // Unpack the compressed cell data
     data = fit_ctx.data;
     model = use_median ? stats_model->median : stats_model->mean;
     shAssert(model != NULL);
@@ -769,17 +655,14 @@ static void cell_fit_model(
 	 fprintf(stderr, "]\n");
 	 */
 
-/*
- * find the best position angle, if so desired
- */
-	trace("skipping expand_model\n");
-
-/*
- * correct for the known discrepancy between the psf and our best
- * representation of it
- */
+    /*
+     correct for the known discrepancy between the psf and our best
+     representation of it
+     */
     residual_flux = 0;
-    if(seeing_ind != NULL) {		/* we have a model for the PSF */
+    trace("seeing_ind: %p\n", seeing_ind);
+
+    if (seeing_ind) {  /* we have a model for the PSF */
 		const float I0 = model[0];	/* central value of model */
 		const float *area = seeing_ind->residuals.area;
 		float *residuals = seeing_ind->residuals.data;
@@ -792,19 +675,20 @@ static void cell_fit_model(
 		residual_flux *= I0;
     }
 	trace("residual_flux %g\n", residual_flux);
-/*
- * calculate best-fitting amplitude; if fit_sky is true, solve
- * for the sky level too
- */
+
+    /*
+     * calculate best-fitting amplitude; if fit_sky is true, solve
+     * for the sky level too
+     */
     idata = 0;
     sigma = sig[idata];
     ivar = 1/(sigma*sigma);
-    if(fit_sky) {
+    if (fit_sky) {
 		sum_d = data[idata]*ivar;
 		sum_m = model[idata]*ivar;
 		sum = ivar;
     } else {
-		sum = sum_m = sum_d = 0;		/* make compilers happy */
+		sum = sum_m = sum_d = 0;
     }
     sum_dm = data[idata]*model[idata]*ivar;
     sum_mm = model[idata]*model[idata]*ivar;
@@ -831,34 +715,29 @@ static void cell_fit_model(
     }
     shAssert(idata == ncells);
 
-    if(fit_sky) {
+    if (fit_sky) {
 		double det = sum*sum_mm - sum_m*sum_m;
-
 		shAssert(det != 0.0);
-
 		sky_level = (sum_mm*sum_d - sum_m*sum_dm)/det;
 		model_amp = (sum*sum_dm - sum_m*sum_d)/det;
 		model_ampErr = sqrt(sum/det);
     } else {
 		shAssert(sum_mm != 0.0);
-
 		sky_level = 0.0;
 		model_amp = sum_dm/sum_mm;
 		model_ampErr = sqrt(1/sum_mm);
     }
-	trace("sky_level = %g, model_amp = %g, err %g\n",
-		  sky_level, model_amp, model_ampErr);
-    model_ampErr *= sqrt(idata/(idata - nparam)); /* correct for
-												   missing dof */
-/*
- * We _added_ the residuals to the model, so we increased its flux
- */
+	trace("sky_level = %g, model_amp = %g, err %g\n", sky_level, model_amp, model_ampErr);
+
+    // correct for missing dof
+    model_ampErr *= sqrt(idata/(idata - nparam));
+
+    // We _added_ the residuals to the model, so we increased its flux
     totflux = model_amp*(stats_model->totflux + residual_flux);
     totfluxErr = model_ampErr*(stats_model->totflux + residual_flux);
 
-    for(i = 0;i < ncells;i++) {
+    for(i = 0;i < ncells;i++)
 		model[i] = model_amp*model[i] + sky_level;
-    }
 
 	for (i=0; i<ncells; i++) {
 		trace("cell %i: data %g, fit model %g, sigma %g  -->  chi %g\n",
@@ -872,20 +751,17 @@ static void cell_fit_model(
 	 fprintf(stderr, "]\n");
 	 */
 
-/*
- * and the residual vector
- */
+    // and the residual vector
 	trace("fiddle = %g\n", fiddle_fac);
-
     idata = 0;
     sigma = sig[idata];
     fvec[idata] = (data[idata] - model[idata])/sigma;
 	//trace("idata %i, data %g, model[%i] %g, sigma %g, chi %g\n", idata, data[idata], idata, model[idata], sig[idata], (data[idata] - model[idata])/sigma);
-		  
 
 #if DEBUG || TEST_2D_PROFILES
     sigsav[idata] = sigma;
 #endif
+
     idata++;
 
     nannuli = (ncells - 1)/(NSEC/2) + 1;
@@ -901,9 +777,8 @@ static void cell_fit_model(
 			++idata;
 		}
     }
-    /*
-     * The rest of the model must have been zeros.
-     */
+
+    // The rest of the model must have been zeros.
     for(; idata < ndata; idata++) {
 		//trace("idata %i, data %g, sigma %g, chi %g\n", idata, data[idata], sig[idata], data[idata]/sig[idata]);
 		fvec[idata] = fiddle_fac*data[idata]/sig[idata];
@@ -911,9 +786,8 @@ static void cell_fit_model(
 		sigsav[idata] = sig[idata];
 #endif
 	}
-/*
- * Save fit in a global for TEST_INFO?
- */
+
+    // Save fit in a global for TEST_INFO?
 #if TEST_2D_PROFILES
     test_nprof2D = ndata;
     for(i = 0; i < ndata; i++) {
@@ -922,6 +796,7 @@ static void cell_fit_model(
 		test_profModel2D[i] = data[i] - fvec[i]*sigsav[i]/fiddle_fac;
     }
 #endif
+
 }
 
 /*****************************************************************************/
