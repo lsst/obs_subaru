@@ -562,219 +562,180 @@ static float find_median_nonconst(float* x, int N) {
 }
 
 static COMP_CSTATS *
-psf_cells_make(const MODEL_PARAMS *p)	/* parameters of model to create */
-{
-	//return model_cells_make(p, &psf_entries);
+psf_cells_make(const MODEL_PARAMS *p) {
 
-#if 0
-typedef struct {
-    int clazz;			/* class of model (psf, exp, deV) */
-    float aratio;		/* axis ratio */
-    float rsize;		/* r_eff (exponential) or */
-				/* r_eff(deVoucouleurs), in pixels */
-    float orient;		/* orientation */
-    int octant;			/* which octant is position angle in? */
-    DGPSF *psf;			/* PSF */
-    float *data;		/* fitting data */
-    float *var;			/* fitting sigma */
-    int exact;			/* is an exact model desired? */
-} MODEL_PARAMS;			/* pragma SCHEMA */
+    COMP_CSTATS* cs = NULL;
+    int nann;
+    int ncell;
+    int k;
+    const CELL_STATS* geom;
+    double maxrad;
+    int xlo, xhi, ylo, yhi;
+    // subpixel shift of the center: [0,1).
+    float dx, dy;
+    float x,y;
+    float step;
+    float** pix = NULL;
+    int* npixels = NULL;
+    int npix;
+    // SUPER-HACK
+    float psfsigma = 2.0; // pixels, matching Deblender.cc:"s"
+    int i;
 
-typedef struct {
-    int ncells;				/* number of cells */
-    float totflux;			/* total flux in object (to infinity)*/
-    float sigma2;			/* second moment of object */
-    float *mean;			/* mean profile */
-    float *median;			/* median profile */
-    float *sig;				/* errors */
-    float *mem;				/* malloced space for mean/median
-					   and sig */
-} COMP_CSTATS;
+    dx = dy = 0.0;
+    // subpixelization
+    step = 0.25;
 
-typedef struct {
-   int ncell;				/* number of cells in {data,sig} */
-   int is_median;			/* is data median profile? */
-   float flux;				/* == sum(data*area) */
-   float data[MAXCELLS];	        /* mean or median profile */
-   float sig[MAXCELLS];			/* errors in data */
-   float area[MAXCELLS];		/* number of pixels in data[] */
-} CELL_PROF;				/* pragma SCHEMA */
-//(global fit_ctx)
+    trace("psf_cells_make():\n");
+    cs = calloc(1, sizeof(COMP_CSTATS));
+    trace("fit_ctx: ncell %i, flux %g\n", fit_ctx.ncell, fit_ctx.flux);
 
-#endif
+    ncell = fit_ctx.ncell;
+    nann = (ncell-1)/(NSEC/2) + 1;
+    geom = phProfileGeometry();
 
-COMP_CSTATS* cs = NULL;
-int nann;
-int ncell;
-int k;
-const CELL_STATS* geom;
-double maxrad;
-int xlo, xhi, ylo, yhi;
-// subpixel shift of the center: [0,1).
- float dx, dy;
- float x,y;
- float step;
- float** pix = NULL;
- int* npixels = NULL;
- int npix;
-// SUPER-HACK
- float psfsigma = 2.0; // pixels, matching Deblender.cc:"s"
- int i;
+    trace("  radii:");
+    for (k=0; k<=nann; k++)
+        printf(" %g", geom->radii[k]);
+    printf("\n");
+    // outer radius.
+    maxrad = geom->radii[nann];
 
- dx = dy = 0.0;
- // subpixelization
- step = 0.25;
+    trace("median? %i\n", fit_ctx.is_median);
+    // (yes, median)
 
-trace("psf_cells_make():\n");
-cs = calloc(1, sizeof(COMP_CSTATS));
-trace("fit_ctx: ncell %i, flux %g\n", fit_ctx.ncell, fit_ctx.flux);
+    ylo = xlo = floor(-maxrad);
+    yhi = xhi = ceil(maxrad);
 
-ncell = fit_ctx.ncell;
-nann = (ncell-1)/(NSEC/2) + 1;
-geom = phProfileGeometry();
+    int nstep = ceil(1./step) * ceil(1./step);
 
-trace("  radii:");
-for (k=0; k<=nann; k++)
-	printf(" %g", geom->radii[k]);
-printf("\n");
-// outer radius.
-maxrad = geom->radii[nann];
+    npix = (yhi - ylo + 1) * (xhi - xlo + 1) * nstep;
 
-trace("median? %i\n", fit_ctx.is_median);
-// (yes, median)
+    trace("maxrad = %g\n", maxrad);
+    trace("lo: %i, hi: %i\n", xlo, xhi);
+    trace("npix: %i\n", npix);
 
-	 ylo = xlo = floor(-maxrad);
-	 yhi = xhi = ceil(maxrad);
+    // pixel lists...
+    pix = malloc(ncell * sizeof(float*));
+    npixels = calloc(ncell, sizeof(int));
+    for (i=0; i<ncell; i++)
+        pix[i] = malloc(npix * sizeof(float));
 
-     int nstep = ceil(1./step) * ceil(1./step);
+    int NX = ceil(1 + (xhi - xlo)/step);
+    int NY = ceil(1 + (yhi - ylo)/step);
+    int* cellid = malloc(NX * NY * sizeof(int));
+    int* phcellid = malloc(NX * NY * sizeof(int));
+    int ix, iy = -1;
 
-	 npix = (yhi - ylo + 1) * (xhi - xlo + 1) * nstep;
+    for (y=ylo; y<=yhi; y+=step) {
+        iy++;
+        ix = -1;
+        for (x=xlo; x<=xhi; x+=step) {
+            int ri;
+            int si;
+            int ci;
+            double theta;
+            double G;
+            // in which annulus does it belong?
+            double r = sqrt((dx-x)*(dx-x) + (dy-y)*(dy-y));
 
-     trace("maxrad = %g\n", maxrad);
-     trace("lo: %i, hi: %i\n", xlo, xhi);
-     trace("npix: %i\n", npix);
+            // DEBUG -- cell ids
+            ix++;
+            assert(ix >= 0);
+            assert(ix < NX);
+            assert(iy >= 0);
+            assert(iy < NY);
+            cellid[iy * NX + ix] = -1;
+            phcellid[iy * NX + ix] = -1;
 
-	 // pixel lists...
-	 pix = malloc(ncell * sizeof(float*));
-	 npixels = calloc(ncell, sizeof(int));
-	 for (i=0; i<ncell; i++)
-		 pix[i] = malloc(npix * sizeof(float));
+            if (r > maxrad)
+                continue;
+            for (ri=0;; ri++)
+                if (r < geom->radii[ri+1])
+                    break;
+            assert(ri < nann);
+            // in which sector does this pixel belong?
+            theta = atan2(y-dy, x-dx);
+            // FIXME -- see extract.c:290 -- these are wrong by 180 degrees!!
+            // -- but see also extract.c:380 -- also off by 15 degrees? (-0.5)
+            si = floor((-0.5 + theta / (2.0*M_PI)) * NSEC);
+            if (si < 0)
+                si += NSEC;
+            // mirror
+            if (si >= NSEC/2)
+                si -= NSEC/2;
+            // which cell is that?
+            if (ri == 0)
+                ci = 0;
+            else
+                ci = (ri-1)*NSEC/2 + si + 1;
 
-	 int NX = ceil(1 + (xhi - xlo)/step);
-	 int NY = ceil(1 + (yhi - ylo)/step);
-	 int* cellid = malloc(NX * NY * sizeof(int));
-	 int* phcellid = malloc(NX * NY * sizeof(int));
-	 int ix, iy = -1;
+            // DEBUG -- cell ids
+            //printf("pix %g,%g -> %i,%i\n", x-dx, y-dy, (int)round(x-dx), (int)round(y-dy));
+            // NOTE, phGetCellid's args are row,column.
+            int phci = phGetCellid((int)round(y-dy), (int)round(x-dx));
+            //trace("pixel (x,y) = (%g,%g): ring %i, sector %i, cell %i, photo's cell %i\n", x, y, ri, si, ci, phci);
+            cellid[iy * NX + ix] = ci;
+            phcellid[iy * NX + ix] = phci;
 
-	 for (y=ylo; y<=yhi; y+=step) {
-		 iy++;
-		 ix = -1;
-		 for (x=xlo; x<=xhi; x+=step) {
-			 int ri;
-			 int si;
-			 int ci;
-			 double theta;
-			 double G;
-			 // in which annulus does it belong?
-			 double r = sqrt((dx-x)*(dx-x) + (dy-y)*(dy-y));
+            //trace("ci = %i  (max %i)\n", ci, ncell);
+            assert(ci >= 0);
+            assert(ci < ncell);
+            //trace("npixels[ci] = %i  (max %i)\n", npixels[ci], npix);
+            assert(npixels[ci] >= 0);
+            assert(npixels[ci] < npix);
 
-			 // DEBUG -- cell ids
-			 ix++;
-			 assert(ix >= 0);
-			 assert(ix < NX);
-			 assert(iy >= 0);
-			 assert(iy < NY);
-			 cellid[iy * NX + ix] = -1;
-			 phcellid[iy * NX + ix] = -1;
+            G = exp(-0.5 * (r*r)/(psfsigma*psfsigma));
+            pix[ci][npixels[ci]] = G;
+            npixels[ci]++;
 
-			 if (r > maxrad)
-				 continue;
-			 for (ri=0;; ri++)
-				 if (r < geom->radii[ri+1])
-					 break;
-			 assert(ri < nann);
-			 // in which sector does this pixel belong?
-			 theta = atan2(y-dy, x-dx);
-			 // FIXME -- see extract.c:290 -- these are wrong by 180 degrees!!
-			 // -- but see also extract.c:380 -- also off by 15 degrees? (-0.5)
-			 si = floor((-0.5 + theta / (2.0*M_PI)) * NSEC);
-			 if (si < 0)
-				 si += NSEC;
-			 // mirror
-			 if (si >= NSEC/2)
-				 si -= NSEC/2;
-			 // which cell is that?
-			 if (ri == 0)
-				 ci = 0;
-			 else
-				 ci = (ri-1)*NSEC/2 + si + 1;
+            cs->totflux += G;
+            // second moment
+            cs->sigma2 += G * r*r;
+        }
+    }
 
-			 // DEBUG -- cell ids
-			 //printf("pix %g,%g -> %i,%i\n", x-dx, y-dy, (int)round(x-dx), (int)round(y-dy));
-			 // NOTE, phGetCellid's args are row,column.
-			 int phci = phGetCellid((int)round(y-dy), (int)round(x-dx));
-			 //trace("pixel (x,y) = (%g,%g): ring %i, sector %i, cell %i, photo's cell %i\n", x, y, ri, si, ci, phci);
-			 cellid[iy * NX + ix] = ci;
-			 phcellid[iy * NX + ix] = phci;
-
-             //trace("ci = %i  (max %i)\n", ci, ncell);
-			 assert(ci >= 0);
-			 assert(ci < ncell);
-             //trace("npixels[ci] = %i  (max %i)\n", npixels[ci], npix);
-             assert(npixels[ci] >= 0);
-             assert(npixels[ci] < npix);
-
-			 G = exp(-0.5 * (r*r)/(psfsigma*psfsigma));
-			 pix[ci][npixels[ci]] = G;
-			 npixels[ci]++;
-
-			 cs->totflux += G;
-			 // second moment
-			 cs->sigma2 += G * r*r;
-		 }
-	 }
-
-	 // DEBUG -- cell ids
-     /*
+    // DEBUG -- cell ids
+    /*
 	 fprintf(stderr, "cellids=[");
 	 for (iy=0; iy<NY; iy++) {
-		 fprintf(stderr, "[");
-		 for (ix=0; ix<NX; ix++)
-			 fprintf(stderr, "%i,", cellid[iy*NX + ix]);
-		 fprintf(stderr, "],");
+     fprintf(stderr, "[");
+     for (ix=0; ix<NX; ix++)
+     fprintf(stderr, "%i,", cellid[iy*NX + ix]);
+     fprintf(stderr, "],");
 	 }
 	 fprintf(stderr, "]\n");
 	 fprintf(stderr, "phcellids=[");
 	 for (iy=0; iy<NY; iy++) {
-		 fprintf(stderr, "[");
-		 for (ix=0; ix<NX; ix++)
-			 fprintf(stderr, "%i,", phcellid[iy*NX + ix]);
-		 fprintf(stderr, "],");
+     fprintf(stderr, "[");
+     for (ix=0; ix<NX; ix++)
+     fprintf(stderr, "%i,", phcellid[iy*NX + ix]);
+     fprintf(stderr, "],");
 	 }
 	 fprintf(stderr, "]\n");
-      */
-	 free(cellid);
-	 free(phcellid);
+     */
+    free(cellid);
+    free(phcellid);
 
+    cs->mem = cs->median = malloc(2 * ncell * sizeof(float));
+    cs->sig = cs->mem + ncell;
+    cs->ncells = ncell;
 
-	 cs->mem = cs->median = malloc(2 * ncell * sizeof(float));
-	 cs->sig = cs->mem + ncell;
-	 cs->ncells = ncell;
+    for (i=0; i<ncell; i++) {
+        cs->median[i] = find_median_nonconst(pix[i], npixels[i]);
+        trace("psf model: cell %i has %i pixels, median %g\n", i, npixels[i], cs->median[i]);
+        // HACK!
+        //cs->sig[i] = sqrt(cs->median[i]);
+        cs->sig[i] = 0.01 * 1.0/(2.*M_PI*psfsigma*psfsigma);
+        free(pix[i]);
+    }
 
-	 for (i=0; i<ncell; i++) {
-		 cs->median[i] = find_median_nonconst(pix[i], npixels[i]);
-		 trace("psf model: cell %i has %i pixels, median %g\n", i, npixels[i], cs->median[i]);
-		 // HACK!
-		 //cs->sig[i] = sqrt(cs->median[i]);
-		 cs->sig[i] = 0.01 * 1.0/(2.*M_PI*psfsigma*psfsigma);
-		 free(pix[i]);
-	 }
+    free(pix);
+    free(npixels);
 
-	 free(pix);
-	 free(npixels);
-
-	 return cs;
+    return cs;
 }
+
 static void
 cell_fit_psf(
     int ndata,

@@ -19,9 +19,12 @@ extern "C" {
 #include "phObjc_p.h"
 #include "phFake.h"
 #include "phDgpsf.h"
-#include <sys/param.h>
 }
 }}}}
+
+extern "C" {
+#include <sys/param.h>
+}
 
 namespace image = lsst::afw::image;
 namespace deblender = lsst::meas::deblender;
