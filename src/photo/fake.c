@@ -6,14 +6,7 @@
 #include <assert.h>
 
 #include <stdarg.h>
-/*void trace(const char* fmt, ...) {
- va_list lst;
- printf("%s:%i ", __FILE__, __LINE__);
- va_start(lst, fmt);
- vprintf(fmt, lst);
- va_end(lst);
- }
- */
+
 void phTrace(const char* fn, int line, const char* fmt, ...) {
 	va_list lst;
 	printf("%s:%i ", fn, line);
@@ -127,6 +120,7 @@ void printObjc(OBJC* o) {
 #include "phFitobj.h"
 
 static float find_outer(OBJECT1* obj);
+
 static void
 setup_cell_data(const CELL_STATS *stats_obj, /* cell array info */
 				int median,		/* use median profile? */
@@ -139,7 +133,9 @@ setup_cell_data(const CELL_STATS *stats_obj, /* cell array info */
 									 pairs in variance? */
 				int sky_noise_only)	/* only include sky noise */
 	;
+
 static CELL_PROF fit_ctx;
+
 static void
 cell_fit_psf(
     int ndata,
@@ -148,6 +144,7 @@ cell_fit_psf(
     double *fvec,
     int *iflag
     );
+
 typedef struct {
     int ncells;				/* number of cells */
     float totflux;			/* total flux in object (to infinity)*/
@@ -155,11 +152,10 @@ typedef struct {
     float *mean;			/* mean profile */
     float *median;			/* median profile */
     float *sig;				/* errors */
-    float *mem;				/* malloced space for mean/median
-					   and sig */
+    float *mem;				/* malloced space for mean/median and sig */
 } COMP_CSTATS;
-static void
-cell_fit_model(
+
+static void cell_fit_model(
     COMP_CSTATS *(*cells_make)(const MODEL_PARAMS *),
     int ndata,
     int nparam,
@@ -167,45 +163,24 @@ cell_fit_model(
     double *fvec,
     int *iflag
     );
+
+
 static int use_median = 1;		/* use median not mean profile */
 static int fit_sky_level = 0;		/* should we fit the sky? */
 static float sky_level;			/* the resulting value */
 static float totflux;			/* estimated total flux in an object */
 static float totfluxErr;		/* error in total flux */
 
-static float rsize_min, rsize_max;	/* extremal values of rsize for
-									 available models */
+static float rsize_min, rsize_max;	/* extremal values of rsize for available models */
+									 
 static float aratio_min;		/* minimum value of rsize for
 								 available models */
-//static int fit_phi = 0;			/* should we fit the position angle? */
-static float model_phi;			/* position angle of best model (rad)*/
 static float model_amp;			/* amplitude of best-fit model */
 static float model_ampErr;		/* error in amplitude */
 static PSF_COEFFS *seeing_ind = NULL;	/* current seeing */
 
-
-/*
- * a suite of models for e.g. exponential disks
- */
-typedef struct {
-    int mod_nsize;
-    int mod_nincl;
-    int mod_offset;
-    spro_catentry *entries;
-} MODEL_ENTRIES;
-#define IORDER_INC 2			/* "inclination", really b/a */
-#define IORDER_SIZE 2			/* size */
-
-struct p_model {
-    int i; 	/* index of model */
-    float w;	/* weight to be given to this model */
-};
 static COMP_CSTATS *model_cs = NULL;	/* COMP_CSTATS for the current model */
-static void
-expand_model(float phi,			/* desired position angle */
-			 float *model,		/* model to expand */
-			 int nannuli)		/* number of annuli in model */
-	;
+
 void
 phCellProfSet(CELL_PROF *cprof,		/* the CELL_PROF to initialise */
 			  const CELL_STATS *cstats, /* cell array info */
@@ -219,6 +194,7 @@ phCellProfSet(CELL_PROF *cprof,		/* the CELL_PROF to initialise */
 									 pairs in variance? */
 			  int sky_noise_only)	/* only include sky noise */
 	;
+
 /*****************************************************************************/
 /*
  * here are the functions to fit cell arrays with PSFs, De Vaucouleurs models,
@@ -461,6 +437,7 @@ find_outer(OBJECT1* obj)
 
     return(max);
 }
+
 /*
  * Note that this routine fills out the global fit_ctx
  */
@@ -479,67 +456,6 @@ setup_cell_data(const CELL_STATS *stats_obj, /* cell array info */
 	phCellProfSet(&fit_ctx, stats_obj, median, sky, gain, dark_variance,
 				  sigma, posErr, use_difference, sky_noise_only);
 }
-
-
-#if 0
-/*****************************************************************************/
-/*
- * This function will return a COMP_CSTATS containing a realization of a
- * seeing-convolved model
- */
-static COMP_CSTATS *
-model_cells_make(const MODEL_PARAMS *p, /* parameters of model to create */
-				 const MODEL_ENTRIES *mod_entries
-	)
-{
-    struct p_model index[IORDER_INC*IORDER_SIZE];
-    COMP_CSTATS *cs;
-    COMP_CSTATS *cstmp;
-    float *cs_model;			/* unaliased from cs->{mean,median} */
-    float *cstmp_model;			/* cstmp->{mean or median} */
-    const int median = use_median;	/* unaliased */
-    int i;
-    int im;
-    float w;				/* unaliased weight index[].w */
-/*
- * create the returned COMP_CSTATS
- */
-    cs = model_cs;			/* the global scratch COMP_CSTATS */
-
-    if(use_median) {
-		cs_model = cs->median = cs->mem;
-		cs->mean = NULL;
-    } else {
-		cs_model = cs->mean = cs->mem;
-		cs->median = NULL;
-    }
-    
-    memset(cs->mem,'\0',sizeof(float)*MAXCELLS);
-    shAssert(*cs->mem == 0.0);		/* check that 0.0 is all 0 bits */
-    cs->ncells = -1;
-    cs->totflux = 0.0;
-/*
- * perform the interpolation to make the model.
- */
-    mod_param_to_index0(p, mod_entries, index);
-    
-    for(im = 0; im < IORDER_INC*IORDER_SIZE; im++) {
-        if((w = index[im].w) == 0.0) {
-			continue;
-		}
-		cstmp = convolved_model_get(index[im].i);
-		cstmp_model = median ? cstmp->median : cstmp->mean;
-		if(cstmp->ncells > cs->ncells) cs->ncells = cstmp->ncells;
-
-		cs->totflux += w*cstmp->totflux;
-		for(i = cstmp->ncells - 1;i >= 0; i--) {
-			cs_model[i] += cstmp_model[i]*w;
-		}
-    }
-
-    return cs;
-}
-#endif
 
 static int fcompare(const void* v1, const void* v2) {
 	const float* f1 = v1;
@@ -563,7 +479,6 @@ static float find_median_nonconst(float* x, int N) {
 
 static COMP_CSTATS *
 psf_cells_make(const MODEL_PARAMS *p) {
-
     COMP_CSTATS* cs = NULL;
     int nann;
     int ncell;
@@ -736,28 +651,14 @@ psf_cells_make(const MODEL_PARAMS *p) {
     return cs;
 }
 
-static void
-cell_fit_psf(
-    int ndata,
-    int nparam,
-    double *p,
-    double *fvec,
-    int *iflag
-    )
-{
+static void cell_fit_psf(int ndata, int nparam, double *p, double *fvec, int *iflag) {
     cell_fit_model(psf_cells_make, ndata, nparam, p, fvec, iflag);
 }
 
-static void
-cell_fit_model(
+static void cell_fit_model(
     COMP_CSTATS *(*cells_make)(const MODEL_PARAMS *),
-    int ndata,
-    int nparam,
-    double *p,
-    double *fvec,
-    int *iflag
-    )
-{
+    int ndata, int nparam, double *p, double *fvec, int *iflag) {
+
 #if DEBUG || TEST_2D_PROFILES
     float sigsav[NCELL];
 #endif
@@ -872,7 +773,7 @@ cell_fit_model(
  * find the best position angle, if so desired
  */
 	trace("skipping expand_model\n");
-	//expand_model(model_phi, model, nannuli);
+
 /*
  * correct for the known discrepancy between the psf and our best
  * representation of it
@@ -1010,21 +911,6 @@ cell_fit_model(
 		sigsav[idata] = sig[idata];
 #endif
 	}
-    /*
-     * Debugging code; enable in gdb
-     */
-#if 0
-    {
-		static volatile int dump_iteration = 0;
-		if (dump_iteration) {
-			double sum = 0;
-			for(i = 0; i < ndata; i++) {
-				sum += fvec[i]*fvec[i];
-			}
-			printf("p0 = %g p1 = %g chisq = %g\n", p[0], p[1], sum);
-		}
-    }    
-#endif
 /*
  * Save fit in a global for TEST_INFO?
  */
@@ -1037,37 +923,6 @@ cell_fit_model(
     }
 #endif
 }
-/*****************************************************************************/
-/*
- * Given a model stored as Fourier coefficients, replace it by the values
- * in the cells.
- *
- * Note that this function is _not_ optimised; it's supposed to be used
- * only in non-time-critical places (e.g. finding the best PSF model)
- */
-static void
-expand_model(float phi,			/* desired position angle */
-			 float *model,		/* model to expand */
-			 int nannuli)		/* number of annuli in model */
-{
-	float C[NSEC/2];
-	int isect, iann;
-	int r;
-	int sect0;
-	float sum;
-
-	for(sect0 = iann = 1; iann < nannuli; iann++, sect0 += NSEC/2) {
-		memcpy(C, &model[1 + (iann - 1)*NSEC/2], NSEC/2*sizeof(float));
-		for(isect = 0; isect < NSEC/2; isect++) {
-			sum = C[0];
-			for(r = 1; r < NSEC/2; r++) {
-				sum += C[r]*cos(2*r*(2*M_PI*isect/(float)NSEC - phi));
-			}
-			model[sect0 + isect] = sum;
-		}
-	}
-}
-
 
 /*****************************************************************************/
 /*
@@ -1274,8 +1129,6 @@ phCellProfSet(CELL_PROF *cprof,		/* the CELL_PROF to initialise */
 
 
 
-
-
 /*****************************************************************************/
 /*
  * <AUTO EXTRACT>
@@ -1288,7 +1141,6 @@ phCellProfSet(CELL_PROF *cprof,		/* the CELL_PROF to initialise */
  *
  * Each child has a non-NULL parent field which points to its parent, and may
  * have a sibbs field too. It has its OBJECT1_CHILD bit set.
-
 
 phObjcMakeChildren
  */
