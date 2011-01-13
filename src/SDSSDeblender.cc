@@ -19,6 +19,7 @@ extern "C" {
 #include "phObjc_p.h"
 #include "phFake.h"
 #include "phDgpsf.h"
+#include <sys/param.h>
 }
 }}}}
 
@@ -119,8 +120,6 @@ deblender::SDSSDeblender<ImageT>::deblend(
             phpk->colc = pk->getFx();
             phpk->rowc = pk->getFy();
             // we probably want to round rather than truncate...
-            //phpk->cpeak = pk->getIx();
-            //phpk->rpeak = pk->getIy();
             phpk->cpeak = static_cast<int>(0.5 + pk->getFx());
             phpk->rpeak = static_cast<int>(0.5 + pk->getFy());
             // FIXME -- {row,col}cErr
@@ -132,8 +131,6 @@ deblender::SDSSDeblender<ImageT>::deblend(
             k++;
         }
     objc->peaks = phpeaks;
-
-    //std::FILE* fid = stdout;
 
     // afwImage::MaskedImage  -->  photo::FRAMEPARAM, FIELDPARAM
 
@@ -160,7 +157,14 @@ deblender::SDSSDeblender<ImageT>::deblend(
         for (j=0; j<H; j++) {
             photo::U16* row = fp->frame[i].data->rows_u16[j];
             for (k=0; k<W; k++) {
-                row[k] = (*image)(k,j) + softbias;
+                double pix = (*image)(k,j);
+                if (pix < -softbias || pix >= (MAX_U16 - softbias)) {
+                    std::printf("WARNING: pixel (%i,%i) value %g won't fit in U16!\n", j, k, pix);
+                }
+                pix += softbias;
+                pix = MAX(0, pix);
+                pix = MIN(MAX_U16, pix);
+                row[k] = pix;
                 //std::printf("%i ", (int)row[k]);
             }
         }
@@ -345,6 +349,9 @@ deblender::SDSSDeblender<ImageT>::deblend(
         std::vector<afwDet::Footprint::Ptr> cfoots;
 
         for (i=0; i<NI; i++) {
+            if (!o->aimage->pix[i]) {
+                continue;
+            }
             photo::OBJMASK* mask = o->aimage->pix[i]->mask;
             cw = mask->cmax - mask->cmin + 1;
             ch = mask->rmax - mask->rmin + 1;
@@ -367,8 +374,9 @@ deblender::SDSSDeblender<ImageT>::deblend(
             for (j=0; j<ch; j++) {
                 photo::U16* row = reg->rows_u16[j];
                 for (k=0; k<cw; k++) {
-                    if (row[k])
-                        (*img)(k, j) = (float)row[k] - bg;
+                    if (!row[k])
+                        continue;
+                    (*img)(k, j) = (float)row[k] - bg;
                     //std::printf("%i ", (int)row[k]);
                 }
             }
