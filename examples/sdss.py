@@ -2,7 +2,7 @@ if __name__ == '__main__':
     import matplotlib
     matplotlib.use('Agg')
 
-import lsst.meas.deblender.deblenderLib as lib
+import lsst.meas.deblender.sdss as sdss
 
 import pylab as plt
 import numpy as np
@@ -10,22 +10,23 @@ import matplotlib as mpl
 from math import pi
 
 if __name__ == '__main__':
-    db = lib.SDSSDeblenderF()
-    strs = db.debugProfiles()
-    
-    for s in strs:
-        exec(s)
-
-    print 'cellgeom:', cellgeom
+    sdss.phInitProfileExtract()
+    cstats = sdss.phProfileGeometry()
+    print cstats
 
     for j,logr in enumerate([False, True]):
         plt.clf()
         colors = ['r','b','g','m','c','y','0.5']
-        for i,cell in enumerate(cellgeom):
-            inner = cell['inner']
-            outer = cell['outer']
-            cw = cell['cw']
-            ccw = cell['ccw']
+
+        for i in range(cstats.ncell):
+            cg = sdss.cell_stats_get_cellgeom(cstats, i)
+
+            inner = cg.inner
+            outer = cg.outer
+            cw = cg.cw
+            ccw = cg.ccw
+            ann = cg.ann
+            sec = cg.sec
 
             angles = np.linspace(ccw, cw, 100)
             rangles = angles[-1::-1]
@@ -49,7 +50,7 @@ if __name__ == '__main__':
             a = plt.gca()
             p = mpl.patches.Polygon(np.vstack((x,y)).T, fill=True, alpha=0.5, fc=c)
             a.add_artist(p)
-            plt.text(midx, midy, '%i/%i/%i' % (i, cell['ann'], cell['sec']), ha='center',
+            plt.text(midx, midy, '%i/%i/%i' % (i, ann, sec), ha='center',
                      clip_on=True)
 
         plt.axis('tight')

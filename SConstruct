@@ -57,7 +57,7 @@ env.Append(CCFLAGS = ['-DCHECK_LEAKS=HELLYA'])
 ##################################################
 # Build/install things
 ##################################################
-for d in Split("src lib examples python/lsst/meas/deblender tests doc"):
+for d in Split("src lib examples python/lsst/meas/deblender tests"): # doc"):
     SConscript(os.path.join(d, "SConscript"))
 
 env['IgnoreFiles'] = r"(~$|\.pyc$|^\.svn$|\.o$)"
