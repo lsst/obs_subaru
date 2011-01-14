@@ -67,7 +67,7 @@ namespace lsst {
                     boost::shared_ptr<typename afwDet::Psf > psf
                     );
 
-                void debugProfiles();
+                std::vector< std::string > debugProfiles();
 
                 virtual ~SDSSDeblender() {}
             };

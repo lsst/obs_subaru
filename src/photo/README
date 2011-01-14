@@ -1,0 +1,47 @@
+--- Dustin pulled out the photo deblender, doing considerable violence to it
+along the way.  Mostly, whole source files were pulled in.  Things I had to fake
+are in  "fake.c".  The most significant thing is the cell profile-fitting code
+from cellfitobj.c -- since the deblender doesn't need to galaxy profiles, only PSFs,
+great violence was done.
+
+Photo uses "makeprof.c" to create a cache file of compiled profiles.
+
+
+(BEFORE)
+
+phFitCellAsPsfFake
+  phProfileExtract      -- objc -> CELL_STATS
+  phProfileMean
+  setup_cell_data       -- CELL_STATS -> fit_ctx
+  cell_fit_psf
+    cell_fit_model
+      psf_cells_make
+
+(AFTER)
+
+phFitCellAsPsfFake
+  phProfileExtract      -- objc -> CELL_STATS cstats
+  phProfileMean
+  phCellProfSet         -- CELL_STATS cstats -> CELL_PROF fit_ctx
+  cell_fit_psf_model
+       psf_cells_make   --   psf --> COMP_CSTATS
+       --> touches fit_ctx
+
+
+
+
+CELL_PROF -- in phExtract.h
+CELL_STATS -- in phExtract.h
+
+
+
+phInitProfileExtract() -- sets up "cellgeom", etc
+CELL_STATS* phProfileGeometry() -- retrieves partial CELL_STATS with geometry set.
+
+phGetCellid() ?
+CELL_STATS* phProfileGetLast() -- returns &cstats global
+
+phObjectNewFromProfile?
+phProfileExtract -- REGION to CELL_STATS
+
+

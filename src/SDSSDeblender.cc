@@ -24,6 +24,7 @@ extern "C" {
 
 extern "C" {
 #include <sys/param.h>
+#include <stdarg.h>
 }
 
 namespace image = lsst::afw::image;
@@ -37,10 +38,25 @@ deblender::SDSSDeblender<ImageT>::SDSSDeblender() {
     std::printf("SDSSDeblender() constructor\n");
 }
 
+static std::string
+__attribute__ ((format(printf, 1, 2)))
+strprintf(const char* fmt, ...) {
+    char* s = NULL;
+    va_list va;
+    va_start(va, fmt);
+    vasprintf(&s, fmt, va);
+    std::string str(s);
+    free(s);
+    va_end(va);
+    return str;
+}
+
 template<typename ImageT>
-void
+std::vector< std::string >
 deblender::SDSSDeblender<ImageT>::debugProfiles() {
     photo::phInitProfileExtract();
+
+    std::vector< std::string > strings;
 
     const photo::CELL_STATS* cstats = photo::phProfileGeometry();
     /* fields set:
@@ -50,14 +66,21 @@ deblender::SDSSDeblender<ImageT>::debugProfiles() {
      -ncell = NCELL
      */
 
+    strings.push_back("cellgeom = []");
+
     for (int i=0; i<cstats->ncell; i++) {
         struct photo::cellgeom* cg = cstats->geom + i;
-        std::cout << "cell " << i << ": geom: ann=" << cg->ann << ", sec=" << cg->sec
-                  << ", npix=" << cg->n << ", inner=" << cg->inner << ", outer=" << cg->outer
-                  << ", cw=" << cg->cw << ", ccw=" << cg->ccw << std::endl;
+        /*
+         std::cout << "cell " << i << ": geom: ann=" << cg->ann << ", sec=" << cg->sec
+         << ", npix=" << cg->n << ", inner=" << cg->inner << ", outer=" << cg->outer
+         << ", cw=" << cg->cw << ", ccw=" << cg->ccw << std::endl;
+         */
+        strings.push_back(strprintf("cellgeom.append(dict(ann=%i, sec=%i, npix=%g, inner=%g, outer=%g, cw=%g, ccw=%g))",
+                                    cg->ann, cg->sec, cg->n, cg->inner, cg->outer, cg->cw, cg->ccw));
     }
 
     photo::phFiniProfileExtract();
+    return strings;
 }
 
 
