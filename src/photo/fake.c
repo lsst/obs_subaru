@@ -7,8 +7,8 @@ double round(double x);
 #include "phMathUtils.h"
 
 #include <assert.h>
-
 #include <stdarg.h>
+#include <sys/param.h>
 
 void phTrace(const char* fn, int line, const char* fmt, ...) {
 	va_list lst;
@@ -185,6 +185,38 @@ static void print_cell_stats(const CELL_STATS* cstats) {
             printf(" %i", (int)p->data[m]);
         printf("\n");
     }
+}
+
+float pstats_get_median(struct pstats* ps) {
+    return ps->qt[1];
+}
+
+// DEBUG
+// maxrad: largest annulus to compute; if zero, the max dist from cx,cy to image edge.
+CELL_STATS* extractProfile(int* image, int W, int H, double cx, double cy,
+                           double maxrad, double sky, double skysig) {
+    REGION* reg;
+    int j,k;
+
+    reg = shRegNew("", H, W, TYPE_U16);
+    for (j=0; j<H; j++) {
+        U16* row = reg->rows_u16[j];
+        for (k=0; k<W; k++) {
+            int pix = image[j * W + k];
+            row[k] = pix;
+        }
+    }
+    if (maxrad == 0)
+        maxrad = MAX(MAX(hypot(cx, cy), hypot(W-1 - cx, cy)),
+                     MAX(hypot(cx, H-1 - cy), hypot(W-1 - cx, H-1 - cy)));
+
+    CELL_STATS* cstats = phProfileExtract(-1, -1, reg, cy, cx, maxrad,
+                                          sky, skysig, 0);
+
+    // free?
+    shRegClear(reg);
+    
+    return cstats;
 }
 
 
@@ -369,16 +401,61 @@ static float find_median_nonconst(float* x, int N) {
 	return (x[N/2 - 1] + x[N/2]) /2.0;
 }
 
+int phFakeGetCellId(double dx, double dy, int ncell,
+                    int* p_ri, int* p_si) {
+    int ri, si, ci;
+    int nann;
+    double theta;
+    const CELL_STATS* geom;
+    double maxrad;
+
+    double r = hypot(dx, dy);
+    geom = phProfileGeometry();
+    nann = (ncell-1)/(NSEC/2) + 1;
+
+    // outer radius.
+    maxrad = geom->radii[nann];
+
+    // in which annulus does it belong?
+    if (r > maxrad)
+        return -1;
+    for (ri=0;; ri++)
+        if (r < geom->radii[ri+1])
+            break;
+
+    assert(ri < nann);
+
+    // in which sector does this pixel belong?
+    theta = atan2(dy, dx);
+    // FIXME -- see extract.c:290 -- these are wrong by 180 degrees!!
+    // -- but see also extract.c:380 -- also off by 15 degrees? (-0.5)
+    si = floor((-0.5 + theta / (2.0*M_PI)) * NSEC);
+    if (si < 0)
+        si += NSEC;
+    // mirror
+    if (si >= NSEC/2)
+        si -= NSEC/2;
+    // which cell is that?
+    if (ri == 0)
+        ci = 0;
+    else
+        ci = (ri-1)*NSEC/2 + si + 1;
+
+    if (p_ri)
+        *p_ri = ri;
+    if (p_si)
+        *p_si = si;
+
+    return ci;
+}
+
 static COMP_CSTATS* psf_cells_make() {
     COMP_CSTATS* cs = NULL;
     int nann;
     int ncell;
-    int k;
-    const CELL_STATS* geom;
-    double maxrad;
     int xlo, xhi, ylo, yhi;
     // subpixel shift of the center: [0,1).
-    float dx, dy;
+    float cx, cy;
     float x,y;
     float step;
     float** pix = NULL;
@@ -388,7 +465,7 @@ static COMP_CSTATS* psf_cells_make() {
     float psfsigma = 2.0; // pixels, matching Deblender.cc:"s"
     int i;
 
-    dx = dy = 0.0;
+    cx = cy = 0.0;
     // subpixelization
     step = 0.25;
 
@@ -398,17 +475,18 @@ static COMP_CSTATS* psf_cells_make() {
 
     ncell = fit_ctx.ncell;
     nann = (ncell-1)/(NSEC/2) + 1;
-    geom = phProfileGeometry();
-
-    trace("  radii:");
-    for (k=0; k<=nann; k++)
-        printf(" %g", geom->radii[k]);
-    printf("\n");
-    // outer radius.
-    maxrad = geom->radii[nann];
 
     trace("median? %i\n", fit_ctx.is_median);
     // (yes, median)
+
+    const CELL_STATS* geom = phProfileGeometry();
+    double maxrad = geom->radii[nann];
+
+    trace("  radii:");
+    int k;
+    for (k=0; k<=nann; k++)
+        printf(" %g", geom->radii[k]);
+    printf("\n");
 
     ylo = xlo = floor(-maxrad);
     yhi = xhi = ceil(maxrad);
@@ -440,10 +518,15 @@ static COMP_CSTATS* psf_cells_make() {
             int ri;
             int si;
             int ci;
-            double theta;
             double G;
-            // in which annulus does it belong?
-            double r = sqrt((dx-x)*(dx-x) + (dy-y)*(dy-y));
+    
+            ci = phFakeGetCellId(x-cx, y-cy, fit_ctx.ncell, &ri, &si);
+            if (ci == -1)
+                continue;
+
+            //trace("ci = %i  (max %i)\n", ci, ncell);
+            assert(ci >= 0);
+            assert(ci < ncell);
 
             // DEBUG -- cell ids
             ix++;
@@ -454,43 +537,17 @@ static COMP_CSTATS* psf_cells_make() {
             cellid[iy * NX + ix] = -1;
             phcellid[iy * NX + ix] = -1;
 
-            if (r > maxrad)
-                continue;
-            for (ri=0;; ri++)
-                if (r < geom->radii[ri+1])
-                    break;
-            assert(ri < nann);
-            // in which sector does this pixel belong?
-            theta = atan2(y-dy, x-dx);
-            // FIXME -- see extract.c:290 -- these are wrong by 180 degrees!!
-            // -- but see also extract.c:380 -- also off by 15 degrees? (-0.5)
-            si = floor((-0.5 + theta / (2.0*M_PI)) * NSEC);
-            if (si < 0)
-                si += NSEC;
-            // mirror
-            if (si >= NSEC/2)
-                si -= NSEC/2;
-            // which cell is that?
-            if (ri == 0)
-                ci = 0;
-            else
-                ci = (ri-1)*NSEC/2 + si + 1;
-
-            // DEBUG -- cell ids
-            //printf("pix %g,%g -> %i,%i\n", x-dx, y-dy, (int)round(x-dx), (int)round(y-dy));
             // NOTE, phGetCellid's args are row,column.
-            int phci = phGetCellid((int)round(y-dy), (int)round(x-dx));
+            int phci = phGetCellid((int)round(y-cy), (int)round(x-cx));
             //trace("pixel (x,y) = (%g,%g): ring %i, sector %i, cell %i, photo's cell %i\n", x, y, ri, si, ci, phci);
             cellid[iy * NX + ix] = ci;
             phcellid[iy * NX + ix] = phci;
 
-            //trace("ci = %i  (max %i)\n", ci, ncell);
-            assert(ci >= 0);
-            assert(ci < ncell);
             //trace("npixels[ci] = %i  (max %i)\n", npixels[ci], npix);
             assert(npixels[ci] >= 0);
             assert(npixels[ci] < npix);
 
+            double r = hypot(x-cx, y-cy);
             G = exp(-0.5 * (r*r)/(psfsigma*psfsigma));
             pix[ci][npixels[ci]] = G;
             npixels[ci]++;
@@ -588,7 +645,7 @@ static void cell_fit_psf_model(int ndata, double *fvec, int *iflag) {
 
     // Unpack the compressed cell data
     data = fit_ctx.data;
-    model = use_median ? stats_model->median : stats_model->mean;
+    model = (use_median ? stats_model->median : stats_model->mean);
     shAssert(model != NULL);
     sig = fit_ctx.sig;
 
@@ -635,6 +692,8 @@ static void cell_fit_psf_model(int ndata, double *fvec, int *iflag) {
      * for the sky level too
      */
     idata = 0;
+
+    // Special-case the middle cell (it has only one sector)
     sigma = sig[idata];
     ivar = 1/(sigma*sigma);
     if (fit_sky) {
@@ -646,11 +705,14 @@ static void cell_fit_psf_model(int ndata, double *fvec, int *iflag) {
     }
     sum_dm = data[idata]*model[idata]*ivar;
     sum_mm = model[idata]*model[idata]*ivar;
-    
     idata++;
 
-    for(sect0 = iann = 1; iann < nannuli; iann++, sect0 += NSEC/2) {
-		for(isect = 0; isect < NSEC/2; isect++) {
+    // sect0: offset of sector 0 in this annulus.
+    // iann: annulus index
+    for (sect0 = iann = 1; iann < nannuli; iann++, sect0 += NSEC/2) {
+		for (isect = 0; isect < NSEC/2; isect++) {
+            trace("model[%i], data[%i];  sect0=%i, iann=%i, nannuli=%i, isect=%i\n", sect0 + isect, idata,
+                  sect0, iann, nannuli, isect);
 			mod = model[sect0 + isect];
 			sigma = sig[idata];
 

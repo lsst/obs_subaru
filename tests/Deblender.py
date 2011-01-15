@@ -121,12 +121,12 @@ class TestDeblender(unittest.TestCase):
     def setUp(self):
         pass
 
-    def testGeom(self):
-        import lsst.meas.deblender.deblenderLib as lib
-        db = lib.SDSSDeblenderF()
-        db.debugProfiles()
+    #def testGeom(self):
+    #    import lsst.meas.deblender.deblenderLib as lib
+    #    db = lib.SDSSDeblenderF()
+    #    db.debugProfiles()
 
-    def tstTwoStars(self):
+    def testTwoStars(self):
         # seed numpy random number generator.
         seed(42)
         # Read/create a test image....
