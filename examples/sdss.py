@@ -28,14 +28,8 @@ def main():
     ilist = [int(p) for p in img.ravel()]
     cx,cy = 50,50
 
+    # punch it   (..., maxrad, sky, skysig)
     cstats = sdss.extractProfile(ilist, W, H, cx+0.5, cy+0.5, 0, 0, 0)
-    #cstats = sdss.extractProfile(ilist, W, H, cx+1., cy+1., 0, 0, 0)
-
-    #print 'cstats', cstats
-    #print 'cells', cstats.cells
-
-    #CELL_PROF *
-    # phCellProfNew(int n)			/* number of data points */
 
     cmap = mpl.cm.hot
 
@@ -47,17 +41,17 @@ def main():
     plt.axis(ax)
     plt.savefig('img.png')
 
-    for kind in ['mean']: #, 'median']:
+    for kind in ['mean', 'median']:
         plt.clf()
         for i in range(cstats.ncell):
             geom = sdss.cell_stats_get_cellgeom(cstats, i)
             pstats = sdss.cell_stats_get_cell(cstats, i)
             if kind == 'mean':
                 v = pstats.mean
-                print 'mean val', v
+                #print 'mean val', v
             else:
                 v = sdss.pstats_get_median(pstats)
-                print 'median val', v
+                #print 'median val', v
             c = cmap( (v - mn) / (mx - mn) )
             plot_cell(geom, color=c, falpha=1., ealpha=0.1, ec='0.5', elw=0.5,
                   ##
@@ -69,7 +63,16 @@ def main():
         plt.axis(ax)
         plt.savefig('profile-%s.png' % kind)
 
-    #sys.exit(0)
+    median = 1
+    #    (median, sky, gain, darkvar, psfwidth, poserr, use diff, sky noise only)
+    cprof = sdss.getCellProfile(cstats, median, 0, 1., 1., 2., 0.1, 0, 0)
+
+    print 'cprof', cprof
+    print 'ncell', cprof.ncell
+    print 'median?', cprof.is_median
+    print 'data:', [sdss.cellprof_get_data(cprof,i) for i in range(cprof.ncell)]
+
+    sys.exit(0)
 
     ncell = 169
     plt.clf()

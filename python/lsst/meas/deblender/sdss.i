@@ -35,16 +35,32 @@ int phFakeGetCellId(double dx, double dy, int ncell, int* p_ri, int* p_si);
 CELL_STATS* extractProfile(int* image, int W, int H, double cx, double cy,
                            double maxrad, double sky, double skysig);
 
+void phCellProfSet(CELL_PROF *OUTPUT, const CELL_STATS *cstats,
+                   int median, double sky, double gain, double dark_variance,
+                   double sigma, double posErr, int use_difference, int sky_noise_only);
+
+CELL_PROF getCellProfile(const CELL_STATS *cstats,
+                         int median, double sky, double gain, double dark_variance,
+                         double sigma, double posErr, int use_difference, int sky_noise_only);
+
+float pstats_get_median(struct pstats* ps) {
+    return ps->qt[1];
+}
+
+float cellprof_get_data(CELL_PROF* cp, int i) {
+    return cp->data[i];
+}
+float cellprof_get_sig(CELL_PROF* cp, int i) {
+    return cp->sig[i];
+}
+
+
+
 %}
 
 %ignore phApoApertureEvalNaive;
 %ignore phApoApertureEval;
 %ignore phApoApertureMomentsEval;
-
-/*
-%ignore phApoApertureEvalNaive(const REGION *reg, float r,	float asigma, float bkgd, float rowc, float colc, float *val);
-%ignore phApoApertureEval(const REGION *reg, int ann, float asigma, float bkgd, float rowc, float colc, float *val);
-*/
 
 /*
 %include "phMeasureObj.h"
@@ -62,6 +78,13 @@ CELL_STATS* extractProfile(int* image, int W, int H, double cx, double cy,
 const struct cellgeom* cell_stats_get_cellgeom(const CELL_STATS* cs, int i);
 const struct pstats*   cell_stats_get_cell(const CELL_STATS* cs, int i);
 float pstats_get_median(struct pstats* ps);
+float cellprof_get_data(CELL_PROF* cp, int i);
+float cellprof_get_sig(CELL_PROF* cp, int i);
+float pstats_get_median(struct pstats* ps);
+
+CELL_PROF getCellProfile(const CELL_STATS *cstats,
+                         int median, double sky, double gain, double dark_variance,
+                         double sigma, double posErr, int use_difference, int sky_noise_only);
 
 int phFakeGetCellId(double dx, double dy, int ncell,
                     int* OUTPUT, int* OUTPUT);
@@ -98,5 +121,4 @@ int phFakeGetCellId(double dx, double dy, int ncell,
 CELL_STATS* extractProfile(int* image, int W, int H, double cx, double cy,
                            double maxrad, double sky, double skysig);
 
-float pstats_get_median(struct pstats* ps);
 

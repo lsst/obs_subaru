@@ -187,11 +187,16 @@ static void print_cell_stats(const CELL_STATS* cstats) {
     }
 }
 
-float pstats_get_median(struct pstats* ps) {
-    return ps->qt[1];
+CELL_PROF getCellProfile(const CELL_STATS *cstats,
+                         int median, double sky, double gain, double dark_variance,
+                         double sigma, double posErr, int use_difference, int sky_noise_only) {
+    CELL_PROF cp;
+    phCellProfSet(&cp, cstats, median, sky, gain, dark_variance, sigma,
+                  posErr, use_difference, sky_noise_only);
+    return cp;
 }
 
-// DEBUG
+// For Python
 // maxrad: largest annulus to compute; if zero, the max dist from cx,cy to image edge.
 CELL_STATS* extractProfile(int* image, int W, int H, double cx, double cy,
                            double maxrad, double sky, double skysig) {
