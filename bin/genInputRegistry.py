@@ -31,14 +31,24 @@ conn.execute(cmd)
 conn.commit()
 
 root = sys.argv[1]
-for fits in glob.glob(os.path.join(root, "*", "*-*-*", "*", "*-*-*", "SUPA*.fits*")):
+
+files = glob.glob(os.path.join(root, "*", "*-*-*", "*", "*-*-*", "SUPA*.fits*"))
+files += glob.glob(os.path.join(root, "BIAS", "*-*-*", "*", "SUPA*.fits*"))
+files += glob.glob(os.path.join(root, "DARK", "*-*-*", "*", "SUPA*.fits*"))
+
+for fits in files:
     print fits
     m = re.search(r'(\w+)/(\d{4}-\d{2}-\d{2})/(\d+)/(.-.-.{1,3})/SUPA(\d{7})(\d).fits', fits)
-    if not m:
-        print >>sys.stderr, "Warning: Unrecognized file:", fits
-        continue
-
-    field, dateObs, mystery, filter, visit, ccd = m.groups()
+    if m:
+        field, dateObs, mystery, filter, visit, ccd = m.groups()
+    else:
+        m = re.search(r'(BIAS|DARK)/(\d{4}-\d{2}-\d{2})/(\d+)/SUPA(\d{7})(\d).fits', fits)
+        if m:
+            field, dateObs, mystery, visit, ccd = m.groups()
+            filter = "NONE"
+        else:
+            print >>sys.stderr, "Warning: Unrecognized file:", fits
+            continue
 
     md = afwImage.readMetadata(fits)
     expTime = md.get("EXPTIME")
