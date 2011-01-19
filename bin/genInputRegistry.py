@@ -36,7 +36,7 @@ files = glob.glob(os.path.join(root, "*", "*-*-*", "*", "*", "SUPA*.fits*"))
 
 for fits in files:
     print fits
-    m = re.search(r'(\w+)/(\d{4}-\d{2}-\d{2})/(\d+)/(\w+)/SUPA(\d{7})(\d).fits', fits)
+    m = re.search(r'(\w+)/(\d{4}-\d{2}-\d{2})/(\d+)/([\w\-\+]+)/SUPA(\d{7})(\d).fits', fits)
     if not m:
         print >>sys.stderr, "Warning: Unrecognized file:", fits
         continue
