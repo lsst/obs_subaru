@@ -1,157 +1,134 @@
 #<?cfg paf policy ?>
 
-camera:		"../suprimecam/description/Full_Suprime_geom.paf"
-defects:	"../suprimecam/description/defects"
-filters:	"../suprimecam/description/SuprimeFilters.paf"
+#calibRoot: "/path/to/calibration/"
+#registryPath: "/path/to/registry/"
+needCalibRegistry: true
+#calibRegistryPath: "/path/to/calibration/registry/"
+
+camera:        "../suprimecam/description/Full_Suprime_geom.paf"
+defects:    "../suprimecam/description/defects"
+filters:    "../suprimecam/description/SuprimeFilters.paf"
 
 exposures: {
-	raw: {
-		template:	"%(field)s/%(dateObs)s/%(mystery)s/%(filter)s/SUPA%(visit)07d%(ccd)1d.fits"
-		python: 	"lsst.afw.image.DecoratedImageU"
-		cpp: 		"DecoratedImageU"
-		storage: 	"FitsStorage"
-		level:		"Amp"
-		tables:		"raw raw_visit"
-		standardize:"standardize_raw"
-	}
-	postISR: {
-		template:	"postISR/v%(visit)d-f%(filter)s/c%(ccd)02d-a%(amp)d.fits"
-		python:		"lsst.afw.image.ExposureF"
-		cpp:		"ExposureF"
-		storage:	"FitsStorage"
-		level:		"Amp"
-		tables:		"raw raw_visit"
-	}
-	postISRCCD: {
-		template:	"postISRCCD/v%(visit)d-f%(filter)s/c%(ccd)02d.fits"
-		python:		"lsst.afw.image.ExposureF"
-		cpp:		"ExposureF"
-		storage:	"FitsStorage"
-		level:		"Ccd"
-		tables:		"raw raw_visit"
-	}
-	visitim: {
-		template:  	"visitim/v%(visit)d-f%(filter)s/c%(ccd)02d.fits"
-		python:		"lsst.afw.image.ExposureF"
-		cpp:		"ExposureF"
-		storage:	"FitsStorage"
-		level:		"Ccd"
-		tables:		"raw raw_visit"
-	}
-	psf: {
-		template:  	"psf/v%(visit)d-f%(filter)s/c%(ccd)02d.boost"
-		python:		"lsst.afw.detection.Psf"
-		cpp:		"Psf"
-		storage:	"BoostStorage"
-		level:		"Ccd"
-		tables:		"raw raw_visit"
-	}
-	calexp: {
-		template:  	"calexp/v%(visit)d-f%(filter)s/c%(ccd)02d.fits"
-		python:		"lsst.afw.image.ExposureF"
-		cpp:		"ExposureF"
-		storage:	"FitsStorage"
-		level:		"Ccd"
-		tables:		"raw raw_visit"
-	}
-	src: {
-		template:  	"src/v%(visit)d-f%(filter)s/c%(ccd)02d.boost"
-		python:		"lsst.afw.detection.PersistableSourceVector"
-		cpp:		"PersistableSourceVector"
-		storage:	"BoostStorage"
-		level:		"Ccd"
-		tables:		"raw raw_visit"
-	}
-	matches: {
-		template:  	"match/v%(visit)d-f%(filter)s/c%(ccd)02d.fits"
-		python:		"lsst.afw.detection.PersistableSourceMatchVector"
-		cpp:		"PersistableSourceMatchVector"
-		storage:	"FitsStorage"
-		level:		"Ccd"
-		tables:		"raw raw_visit"
-	}
-	sourceHist: {
-		template:  	"results/st%(skyTile)d/sourceHist.fits"
-		python:		"lsst.afw.image.DecoratedImageU"
-		cpp:		"DecoratedImageU"
-		storage:	"FitsStorage"
-		level:		"skyTile"
-	}
-	badSourceHist: {
-		template:  	"results/st%(skyTile)d/badSourceHist.fits"
-		python:		"lsst.afw.image.DecoratedImageU"
-		cpp:		"DecoratedImageU"
-		storage:	"FitsStorage"
-		level:		"skyTile"
-	}
-	source: {
-		template:  	"results/st%(skyTile)d/source.boost"
-		python:		"lsst.afw.detection.PersistableSourceVector"
-		cpp:		"PersistableSourceVector"
-		storage:	"BoostStorage"
-		level:		"skyTile"
-	}
-	badSource: {
-		template:  	"results/st%(skyTile)d/badSource.boost"
-		python:		"lsst.afw.detection.PersistableSourceVector"
-		cpp:		"PersistableSourceVector"
-		storage:	"BoostStorage"
-		level:		"skyTile"
-	}
-	invalidSource: {
-		template:  	"results/st%(skyTile)d/invalidSource.boost"
-		python:		"lsst.afw.detection.PersistableSourceVector"
-		cpp:		"PersistableSourceVector"
-		storage:	"BoostStorage"
-		level:		"skyTile"
-	}
-	object: {
-		template:  	"results/st%(skyTile)d/object.boost"
-		python:		"lsst.afw.detection.PersistableSourceClusterVector"
-		cpp:		"PersistableSourceClusterVector"
-		storage:	"BoostStorage"
-		level:		"skyTile"
-	}
-	badObject: {
-		template:  	"results/st%(skyTile)d/badObject.boost"
-		python:		"lsst.afw.detection.PersistableSourceClusterVector"
-		cpp:		"PersistableSourceClusterVector"
-		storage:	"BoostStorage"
-		level:		"skyTile"
-	}
+    raw: {
+        template:    "%(field)s/%(dateObs)s/%(mystery)s/%(filter)s/SUPA%(visit)07d%(ccd)1d.fits"
+        python:     "lsst.afw.image.DecoratedImageU"
+        persistable:         "DecoratedImageU"
+        storage:     "FitsStorage"
+        level:        "Ccd"
+        tables:        "raw"
+        tables:        "raw_visit"
+    }
+    postISRCCD: {
+        template:    "postISRCCD/v%(visit)d-f%(filter)s/c%(ccd)02d.fits"
+        python:        "lsst.afw.image.ExposureF"
+        persistable:        "ExposureF"
+        storage:    "FitsStorage"
+        level:        "Ccd"
+        tables:        "raw"
+        tables:        "raw_visit"
+    }
+    visitim: {
+        template:      "visitim/v%(visit)d-f%(filter)s/c%(ccd)02d.fits"
+        python:        "lsst.afw.image.ExposureF"
+        persistable:        "ExposureF"
+        storage:    "FitsStorage"
+        level:        "Ccd"
+        tables:        "raw"
+        tables:        "raw_visit"
+    }
+    psf: {
+        template:      "psf/v%(visit)d-f%(filter)s/c%(ccd)02d.boost"
+        python:        "lsst.afw.detection.Psf"
+        persistable:        "Psf"
+        storage:    "BoostStorage"
+        level:        "Ccd"
+        tables:        "raw"
+        tables:        "raw_visit"
+    }
+    calexp: {
+        template:      "calexp/v%(visit)d-f%(filter)s/c%(ccd)02d.fits"
+        python:        "lsst.afw.image.ExposureF"
+        persistable:        "ExposureF"
+        storage:    "FitsStorage"
+        level:        "Ccd"
+        tables:        "raw"
+        tables:        "raw_visit"
+    }
+    src: {
+        template:      "src/v%(visit)d-f%(filter)s/c%(ccd)02d.boost"
+        python:        "lsst.afw.detection.PersistableSourceVector"
+        persistable:        "PersistableSourceVector"
+        storage:    "BoostStorage"
+        level:        "Ccd"
+        tables:        "raw"
+        tables:        "raw_visit"
+    }
+    matches: {
+        template:      "match/v%(visit)d-f%(filter)s/c%(ccd)02d.fits"
+        python:        "lsst.afw.detection.PersistableSourceMatchVector"
+        persistable:        "PersistableSourceMatchVector"
+        storage:    "FitsStorage"
+        level:        "Ccd"
+        tables:        "raw"
+        tables:        "raw_visit"
+    }
 }
 
 calibrations: {
-###	bias: {
-###		template:	
-###		python:		"lsst.afw.image.ExposureF"
-###		cpp:		"ExposureF"
-###		storage:	"FitsStorage"
-###		level:		"Amp"
-###	}
-###	dark: {
-###		template:	
-###		python:		"lsst.afw.image.ExposureF"
-###		cpp:		"ExposureF"
-###		storage:	"FitsStorage"
-###		level:		"Amp"
-###	}
-	flat: {
-		template:	"FLAT/%(dateObs)s/%(filter)s/%(mystery)s/FLAT-%(flatnum)07d%(ccd)1d.fits"
-		python:		"lsst.afw.image.ExposureF"
-		cpp:		"ExposureF"
-		storage:	"FitsStorage"
-		level:		"Amp"
-		query:		"SELECT * FROM flat WHERE filter = '%(filter)s' AND ccd = %(ccd)d AND DATE('%(taiObs)s') BETWEEN DATE(validStart) AND DATE(validEnd)"
-	}
-###	fringe: {
-###		template:	
-###		python:		"lsst.afw.image.ExposureF"
-###		cpp:		"ExposureF"
-###		storage:	"FitsStorage"
-###		level:		"Amp"
-###	}
+###    bias: {
+###        template:    
+###        python:        "lsst.afw.image.ExposureF"
+###        persistable:        "ExposureF"
+###        storage:    "FitsStorage"
+###        level:        "Ccd"
+###        tables:     "bias"
+###        columns: "ccd"
+###        reference:   "raw_visit"
+###        refCols:     "visit"
+###        refCols:     "filter"
+###    }
+###    dark: {
+###        template:    
+###        python:        "lsst.afw.image.ExposureF"
+###        persistable:        "ExposureF"
+###        storage:    "FitsStorage"
+###        level:        "Ccd"
+###        tables:     "dark"
+###        columns: "ccd"
+###        reference:   "raw_visit"
+###        refCols:     "visit"
+###        refCols:     "filter"
+###    }
+    flat: {
+        template:    "FLAT/%(dateObs)s/%(filter)s/%(mystery)s/FLAT-%(flatnum)07d%(ccd)1d.fits"
+        python:        "lsst.afw.image.ExposureF"
+        persistable:        "ExposureF"
+        storage:    "FitsStorage"
+        level:        "Ccd"
+        tables:     "flat"
+        columns: "ccd"
+        columns: "filter"
+        reference:   "raw_visit"
+        refCols:     "visit"
+        refCols:     "filter"
+    }
+###    fringe: {
+###        template:    
+###        python:        "lsst.afw.image.ExposureF"
+###        persistable:        "ExposureF"
+###        storage:    "FitsStorage"
+###        level:        "Ccd"
+###        tables:     "fringe"
+###        columns: "ccd"
+###        columns: "filter"
+###        reference:   "raw_visit"
+###        refCols:     "visit"
+###        refCols:     "filter"
+###    }
 }
 
 
 
+datasets: {
+}
