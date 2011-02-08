@@ -52,17 +52,19 @@ exposures: {
         python:        "lsst.afw.image.ExposureF"
         persistable:        "ExposureF"
         storage:    "FitsStorage"
-        level:        "Ccd"
+        level:        "Skytile"
         tables:        "raw"
         tables:        "raw_visit"
+        columns:       "visit"
+        columns:       "filter"
     }
 
     stack: {
-        template:      "stack/v%(stack)s/s%(skytile)d.fits"
+        template:      "stack/%(stack)s/s%(skytile)d.fits"
         python:        "lsst.afw.image.ExposureF"
         persistable:        "ExposureF"
         storage:    "FitsStorage"
-        level:        "Ccd"
+        level:        "Skytile"
         tables:        "raw_visit"
     }
 
@@ -129,7 +131,6 @@ datasets: {
         python:        "lsst.afw.detection.Psf"
         persistable:        "Psf"
         storage:    "BoostStorage"
-        level:        "Ccd"
         tables:        "raw"
         tables:        "raw_visit"
     }
@@ -138,7 +139,6 @@ datasets: {
         python:        "lsst.afw.detection.PersistableSourceVector"
         persistable:        "PersistableSourceVector"
         storage:    "BoostStorage"
-        level:        "Ccd"
         tables:        "raw"
         tables:        "raw_visit"
     }
@@ -147,7 +147,6 @@ datasets: {
         python:        "lsst.afw.detection.PersistableSourceMatchVector"
         persistable:        "PersistableSourceMatchVector"
         storage:    "FitsStorage"
-        level:        "Ccd"
         tables:        "raw"
         tables:        "raw_visit"
     }
