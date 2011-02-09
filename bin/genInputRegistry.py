@@ -32,11 +32,13 @@ conn.commit()
 
 root = sys.argv[1]
 
-files = glob.glob(os.path.join(root, "*", "*-*-*", "*", "*", "SUPA*.fits*"))
+files = glob.glob(os.path.join(root, "*", "*-*-*", "*", "*", "*.fits"))
 
 for fits in files:
     print fits
     m = re.search(r'(\w+)/(\d{4}-\d{2}-\d{2})/(\d+)/([\w\-\+]+)/SUPA(\d{7})(\d).fits', fits)
+    if not m:
+        m = re.search(r'(\w+)/(\d{4}-\d{2}-\d{2})/(\d+)/([\w\-\+]+)/HSCA(\d{5})(\d{3}).fits', fits)
     if not m:
         print >>sys.stderr, "Warning: Unrecognized file:", fits
         continue
