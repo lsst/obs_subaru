@@ -1,0 +1,3713 @@
+#<?cfg paf policy ?>
+#
+Camera: {
+    serial: 0
+    name: "HSC"
+    nCol: 1                             # number of columns of Rafts
+    nRow: 1                             # number of rows of Rafts
+    Raft: {
+        serial: 0                       # Raft's serial number
+        name: "R:0,0"                   # Raft's name
+        index: 0 0                      # location of Raft in Camera; in (range(nCol), range(nRow))
+        offset: 0.0 0.0                 # offset of Raft center from boresight, (x, y); mm
+    }
+}
+#
+# N.b. we need to specify nQuarter/orientation for each CCD due to pex_policy #1117
+#
+Raft: {
+    nCol: 14                           # number of columns of CCDs
+    nRow: 8                            # number of rows of CCDs
+    Ccd: { 
+        serial:   0                    # CCD's serial number
+        name: "dummy000"                    # CCD's name
+        index: 3 4                    # Location of CCD in Raft thought of as a grid of CCDs
+        offset:  -9514.7    -96.0      # offset of CCD center from raft center, (x, y); mm (pixels??)
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
+    }
+    Ccd: { 
+        serial:   1                    # CCD's serial number
+        name: "dummy001"                    # CCD's name
+        index: 11 3
+        offset:   7466.7  -4266.7      # offset of CCD center from raft center, (x, y); mm (pixels??)
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
+    }
+    Ccd: { 
+        serial:   2                    # CCD's serial number
+        name: "dummy002"                    # CCD's name
+        index: 4 4
+        offset:  -7392.0    -96.0      # offset of CCD center from raft center, (x, y); mm (pixels??)
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
+    }
+    Ccd: { 
+        serial:   3                    # CCD's serial number
+        name: "dummy003"                    # CCD's name
+        index: 10 3
+        offset:   5344.0  -4266.7      # offset of CCD center from raft center, (x, y); mm (pixels??)
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
+    }
+    Ccd: { 
+        serial:   4                    # CCD's serial number
+        name: "dummy004"                    # CCD's name
+        index: 5 4
+        offset:  -5269.3    -96.0      # offset of CCD center from raft center, (x, y); mm (pixels??)
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
+    }
+    Ccd: { 
+        serial:   5                    # CCD's serial number
+        name: "dummy005"                    # CCD's name
+        index:  9 3 
+        offset:   3221.3  -4266.7      # offset of CCD center from raft center, (x, y); mm (pixels??)
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
+    }
+    Ccd: { 
+        serial:   6                    # CCD's serial number
+        name: "dummy006"                    # CCD's name
+        index: 6 4
+        offset:  -3146.7    -96.0      # offset of CCD center from raft center, (x, y); mm (pixels??)
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
+    }
+    Ccd: { 
+        serial:   7                    # CCD's serial number
+        name: "dummy007"                    # CCD's name
+        index: 8 3
+        offset:   1098.7  -4266.7      # offset of CCD center from raft center, (x, y); mm (pixels??)
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
+    }
+    Ccd: { 
+        serial:   8                    # CCD's serial number
+        name: "dummy008"                    # CCD's name
+        index: 7 4
+        offset:  -1024.0    -96.0      # offset of CCD center from raft center, (x, y); mm (pixels??)
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
+    }
+    Ccd: { 
+        serial:   9                    # CCD's serial number
+        name: "dummy009"                    # CCD's name
+        index: 7 3
+        offset:  -1024.0  -4266.7      # offset of CCD center from raft center, (x, y); mm (pixels??)
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
+    }
+    Ccd: { 
+        serial:  10                    # CCD's serial number
+        name: "dummy010"                    # CCD's name
+        index: 8 4
+        offset:   1098.7    -96.0      # offset of CCD center from raft center, (x, y); mm (pixels??)
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
+    }
+    Ccd: { 
+        serial:  11                    # CCD's serial number
+        name: "dummy011"                    # CCD's name
+        index: 6 3
+        offset:  -3146.7  -4266.7      # offset of CCD center from raft center, (x, y); mm (pixels??)
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
+    }
+    Ccd: { 
+        serial:  12                    # CCD's serial number
+        name: "dummy012"                    # CCD's name
+        index: 9 4
+        offset:   3221.3    -96.0      # offset of CCD center from raft center, (x, y); mm (pixels??)
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
+    }
+    Ccd: { 
+        serial:  13                    # CCD's serial number
+        name: "dummy013"                    # CCD's name
+        index: 5 3
+        offset:  -5269.3  -4266.7      # offset of CCD center from raft center, (x, y); mm (pixels??)
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
+    }
+    Ccd: { 
+        serial:  14                    # CCD's serial number
+        name: "dummy014"                    # CCD's name
+        index: 10 4
+        offset:   5344.0    -96.0      # offset of CCD center from raft center, (x, y); mm (pixels??)
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
+    }
+    Ccd: { 
+        serial:  15                    # CCD's serial number
+        name: "dummy015"                    # CCD's name
+        index: 4 3
+        offset:  -7392.0  -4266.7      # offset of CCD center from raft center, (x, y); mm (pixels??)
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
+    }
+    Ccd: { 
+        serial:  16                    # CCD's serial number
+        name: "dummy016"                    # CCD's name
+        index: 11 4
+        offset:   7466.7    -96.0      # offset of CCD center from raft center, (x, y); mm (pixels??)
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
+    }
+    Ccd: { 
+        serial:  17                    # CCD's serial number
+        name: "dummy017"                    # CCD's name
+        index: 3 3
+        offset:  -9514.7  -4266.7      # offset of CCD center from raft center, (x, y); mm (pixels??)
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
+    }
+    Ccd: { 
+        serial:  18                    # CCD's serial number
+        name: "dummy018"                    # CCD's name
+        index: 12 4
+        offset:   9589.3    -96.0      # offset of CCD center from raft center, (x, y); mm (pixels??)
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
+    }
+    Ccd: { 
+        serial:  19                    # CCD's serial number
+        name: "dummy019"                    # CCD's name
+        index: 2 3
+        offset: -11637.3  -4266.7      # offset of CCD center from raft center, (x, y); mm (pixels??)
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
+    }
+    Ccd: { 
+        serial:  20                    # CCD's serial number
+        name: "dummy020"                    # CCD's name
+        index: 13 4
+        offset:  11712.0    -96.0      # offset of CCD center from raft center, (x, y); mm (pixels??)
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
+    }
+    Ccd: { 
+        serial:  21                    # CCD's serial number
+        name: "dummy021"                    # CCD's name
+        index: 1 3
+        offset: -13760.0  -4266.7      # offset of CCD center from raft center, (x, y); mm (pixels??)
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
+    }
+    Ccd: { 
+        serial:  22                    # CCD's serial number
+        name: "dummy022"                    # CCD's name
+        index: 14 4
+        offset:  13834.7    -96.0      # offset of CCD center from raft center, (x, y); mm (pixels??)
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
+    }
+    Ccd: { 
+        serial:  23                    # CCD's serial number
+        name: "dummy023"                    # CCD's name
+        index: 0 3
+        offset: -15882.7  -4266.7      # offset of CCD center from raft center, (x, y); mm (pixels??)
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
+    }
+    Ccd: { 
+        serial:  24                    # CCD's serial number
+        name: "dummy024"                    # CCD's name
+        index: 3 5
+        offset:  -9514.7   4379.0      # offset of CCD center from raft center, (x, y); mm (pixels??)
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
+    }
+    Ccd: { 
+        serial:  25                    # CCD's serial number
+        name: "dummy025"                    # CCD's name
+        index: 11 2
+        offset:   7466.7  -8741.7      # offset of CCD center from raft center, (x, y); mm (pixels??)
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
+    }
+    Ccd: { 
+        serial:  26                    # CCD's serial number
+        name: "dummy026"                    # CCD's name
+        index: 4 5
+        offset:  -7392.0   4379.0      # offset of CCD center from raft center, (x, y); mm (pixels??)
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
+    }
+    Ccd: { 
+        serial:  27                    # CCD's serial number
+        name: "dummy027"                    # CCD's name
+        index: 10 2
+        offset:   5344.0  -8741.7      # offset of CCD center from raft center, (x, y); mm (pixels??)
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
+    }
+    Ccd: { 
+        serial:  28                    # CCD's serial number
+        name: "dummy028"                    # CCD's name
+        index: 5 5
+        offset:  -5269.3   4379.0      # offset of CCD center from raft center, (x, y); mm (pixels??)
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
+    }
+    Ccd: { 
+        serial:  29                    # CCD's serial number
+        name: "dummy029"                    # CCD's name
+        index: 9 2
+        offset:   3221.3  -8741.7      # offset of CCD center from raft center, (x, y); mm (pixels??)
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
+    }
+    Ccd: { 
+        serial:  30                    # CCD's serial number
+        name: "dummy030"                    # CCD's name
+        index: 6 5
+        offset:  -3146.7   4379.0      # offset of CCD center from raft center, (x, y); mm (pixels??)
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
+    }
+    Ccd: { 
+        serial:  31                    # CCD's serial number
+        name: "dummy031"                    # CCD's name
+        index: 8 2
+        offset:   1098.7  -8741.7      # offset of CCD center from raft center, (x, y); mm (pixels??)
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
+    }
+    Ccd: { 
+        serial:  32                    # CCD's serial number
+        name: "dummy032"                    # CCD's name
+        index: 7 5
+        offset:  -1024.0   4379.0      # offset of CCD center from raft center, (x, y); mm (pixels??)
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
+    }
+    Ccd: { 
+        serial:  33                    # CCD's serial number
+        name: "dummy033"                    # CCD's name
+        index: 7 2
+        offset:  -1024.0  -8741.7      # offset of CCD center from raft center, (x, y); mm (pixels??)
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
+    }
+    Ccd: { 
+        serial:  34                    # CCD's serial number
+        name: "dummy034"                    # CCD's name
+        index: 8 5
+        offset:   1098.7   4379.0      # offset of CCD center from raft center, (x, y); mm (pixels??)
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
+    }
+    Ccd: { 
+        serial:  35                    # CCD's serial number
+        name: "dummy035"                    # CCD's name
+        index: 6 2
+        offset:  -3146.7  -8741.7      # offset of CCD center from raft center, (x, y); mm (pixels??)
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
+    }
+    Ccd: { 
+        serial:  36                    # CCD's serial number
+        name: "dummy036"                    # CCD's name
+        index: 9 5
+        offset:   3221.3   4379.0      # offset of CCD center from raft center, (x, y); mm (pixels??)
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
+    }
+    Ccd: { 
+        serial:  37                    # CCD's serial number
+        name: "dummy037"                    # CCD's name
+        index: 5 2
+        offset:  -5269.3  -8741.7      # offset of CCD center from raft center, (x, y); mm (pixels??)
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
+    }
+    Ccd: { 
+        serial:  38                    # CCD's serial number
+        name: "dummy038"                    # CCD's name
+        index: 10 5
+        offset:   5344.0   4379.0      # offset of CCD center from raft center, (x, y); mm (pixels??)
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
+    }
+    Ccd: { 
+        serial:  39                    # CCD's serial number
+        name: "dummy039"                    # CCD's name
+        index: 4 2
+        offset:  -7392.0  -8741.7      # offset of CCD center from raft center, (x, y); mm (pixels??)
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
+    }
+    Ccd: { 
+        serial:  40                    # CCD's serial number
+        name: "dummy040"                    # CCD's name
+        index: 11 5
+        offset:   7466.7   4379.0      # offset of CCD center from raft center, (x, y); mm (pixels??)
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
+    }
+    Ccd: { 
+        serial:  41                    # CCD's serial number
+        name: "dummy041"                    # CCD's name
+        index: 3 2
+        offset:  -9514.7  -8741.7      # offset of CCD center from raft center, (x, y); mm (pixels??)
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
+    }
+    Ccd: { 
+        serial:  42                    # CCD's serial number
+        name: "dummy042"                    # CCD's name
+        index: 12 5
+        offset:   9589.3   4379.0      # offset of CCD center from raft center, (x, y); mm (pixels??)
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
+    }
+    Ccd: { 
+        serial:  43                    # CCD's serial number
+        name: "dummy043"                    # CCD's name
+        index: 2 2
+        offset: -11637.3  -8741.7      # offset of CCD center from raft center, (x, y); mm (pixels??)
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
+    }
+    Ccd: { 
+        serial:  44                    # CCD's serial number
+        name: "dummy044"                    # CCD's name
+        index: 13 5
+        offset:  11712.0   4379.0      # offset of CCD center from raft center, (x, y); mm (pixels??)
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
+    }
+    Ccd: { 
+        serial:  45                    # CCD's serial number
+        name: "dummy045"                    # CCD's name
+        index: 1 2
+        offset: -13760.0  -8741.7      # offset of CCD center from raft center, (x, y); mm (pixels??)
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
+    }
+    Ccd: { 
+        serial:  46                    # CCD's serial number
+        name: "dummy046"                    # CCD's name
+        index: 14 5
+        offset:  13834.7   4379.0      # offset of CCD center from raft center, (x, y); mm (pixels??)
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
+    }
+    Ccd: { 
+        serial:  47                    # CCD's serial number
+        name: "dummy047"                    # CCD's name
+        index: 0 2
+        offset: -15882.7  -8741.7      # offset of CCD center from raft center, (x, y); mm (pixels??)
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
+    }
+    Ccd: { 
+        serial:  48                    # CCD's serial number
+        name: "dummy048"                    # CCD's name
+        index: 3 6
+        offset:  -9514.7   8854.0      # offset of CCD center from raft center, (x, y); mm (pixels??)
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
+    }
+    Ccd: { 
+        serial:  49                    # CCD's serial number
+        name: "dummy049"                    # CCD's name
+        index: 11 1
+        offset:   7466.7 -13216.7      # offset of CCD center from raft center, (x, y); mm (pixels??)
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
+    }
+    Ccd: { 
+        serial:  50                    # CCD's serial number
+        name: "dummy050"                    # CCD's name
+        index: 4 6
+        offset:  -7392.0   8854.0      # offset of CCD center from raft center, (x, y); mm (pixels??)
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
+    }
+    Ccd: { 
+        serial:  51                    # CCD's serial number
+        name: "dummy051"                    # CCD's name
+        index: 10 1
+        offset:   5344.0 -13216.7      # offset of CCD center from raft center, (x, y); mm (pixels??)
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
+    }
+    Ccd: { 
+        serial:  52                    # CCD's serial number
+        name: "dummy052"                    # CCD's name
+        index: 5 6
+        offset:  -5269.3   8854.0      # offset of CCD center from raft center, (x, y); mm (pixels??)
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
+    }
+    Ccd: { 
+        serial:  53                    # CCD's serial number
+        name: "dummy053"                    # CCD's name
+        index: 9 1
+        offset:   3221.3 -13216.7      # offset of CCD center from raft center, (x, y); mm (pixels??)
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
+    }
+    Ccd: { 
+        serial:  54                    # CCD's serial number
+        name: "dummy054"                    # CCD's name
+        index: 6 6
+        offset:  -3146.7   8854.0      # offset of CCD center from raft center, (x, y); mm (pixels??)
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
+    }
+    Ccd: { 
+        serial:  55                    # CCD's serial number
+        name: "dummy055"                    # CCD's name
+        index: 8 1
+        offset:   1098.7 -13216.7      # offset of CCD center from raft center, (x, y); mm (pixels??)
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
+    }
+    Ccd: { 
+        serial:  56                    # CCD's serial number
+        name: "dummy056"                    # CCD's name
+        index: 7 6
+        offset:  -1024.0   8854.0      # offset of CCD center from raft center, (x, y); mm (pixels??)
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
+    }
+    Ccd: { 
+        serial:  57                    # CCD's serial number
+        name: "dummy057"                    # CCD's name
+        index: 7 1
+        offset:  -1024.0 -13216.7      # offset of CCD center from raft center, (x, y); mm (pixels??)
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
+    }
+    Ccd: { 
+        serial:  58                    # CCD's serial number
+        name: "dummy058"                    # CCD's name
+        index: 8 6
+        offset:   1098.7   8854.0      # offset of CCD center from raft center, (x, y); mm (pixels??)
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
+    }
+    Ccd: { 
+        serial:  59                    # CCD's serial number
+        name: "dummy059"                    # CCD's name
+        index: 6 1
+        offset:  -3146.7 -13216.7      # offset of CCD center from raft center, (x, y); mm (pixels??)
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
+    }
+    Ccd: { 
+        serial:  60                    # CCD's serial number
+        name: "dummy060"                    # CCD's name
+        index: 9 6
+        offset:   3221.3   8854.0      # offset of CCD center from raft center, (x, y); mm (pixels??)
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
+    }
+    Ccd: { 
+        serial:  61                    # CCD's serial number
+        name: "dummy061"                    # CCD's name
+        index: 5 1
+        offset:  -5269.3 -13216.7      # offset of CCD center from raft center, (x, y); mm (pixels??)
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
+    }
+    Ccd: { 
+        serial:  62                    # CCD's serial number
+        name: "dummy062"                    # CCD's name
+        index: 10 6
+        offset:   5344.0   8854.0      # offset of CCD center from raft center, (x, y); mm (pixels??)
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
+    }
+    Ccd: { 
+        serial:  63                    # CCD's serial number
+        name: "dummy063"                    # CCD's name
+        index: 4 1
+        offset:  -7392.0 -13216.7      # offset of CCD center from raft center, (x, y); mm (pixels??)
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
+    }
+    Ccd: { 
+        serial:  64                    # CCD's serial number
+        name: "dummy064"                    # CCD's name
+        index: 11 6
+        offset:   7466.7   8854.0      # offset of CCD center from raft center, (x, y); mm (pixels??)
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
+    }
+    Ccd: { 
+        serial:  65                    # CCD's serial number
+        name: "dummy065"                    # CCD's name
+        index: 3 1
+        offset:  -9514.7 -13216.7      # offset of CCD center from raft center, (x, y); mm (pixels??)
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
+    }
+    Ccd: { 
+        serial:  66                    # CCD's serial number
+        name: "dummy066"                    # CCD's name
+        index: 12 6
+        offset:   9589.3   8854.0      # offset of CCD center from raft center, (x, y); mm (pixels??)
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
+    }
+    Ccd: { 
+        serial:  67                    # CCD's serial number
+        name: "dummy067"                    # CCD's name
+        index: 2 1
+        offset: -11637.3 -13216.7      # offset of CCD center from raft center, (x, y); mm (pixels??)
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
+    }
+    Ccd: { 
+        serial:  68                    # CCD's serial number
+        name: "dummy068"                    # CCD's name
+        index: 13 6
+        offset:  11712.0   8854.0      # offset of CCD center from raft center, (x, y); mm (pixels??)
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
+    }
+    Ccd: { 
+        serial:  69                    # CCD's serial number
+        name: "dummy069"                    # CCD's name
+        index: 1 1
+        offset: -13760.0 -13216.7      # offset of CCD center from raft center, (x, y); mm (pixels??)
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
+    }
+    Ccd: { 
+        serial:  70                    # CCD's serial number
+        name: "dummy070"                    # CCD's name
+        index: 4 7
+        offset:  -7392.0  13329.0      # offset of CCD center from raft center, (x, y); mm (pixels??)
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
+    }
+    Ccd: { 
+        serial:  71                    # CCD's serial number
+        name: "dummy071"                    # CCD's name
+        index: 10 0
+        offset:   5344.0 -17691.7      # offset of CCD center from raft center, (x, y); mm (pixels??)
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
+    }
+    Ccd: { 
+        serial:  72                    # CCD's serial number
+        name: "dummy072"                    # CCD's name
+        index: 5 7
+        offset:  -5269.3  13329.0      # offset of CCD center from raft center, (x, y); mm (pixels??)
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
+    }
+    Ccd: { 
+        serial:  73                    # CCD's serial number
+        name: "dummy073"                    # CCD's name
+        index: 9 0
+        offset:   3221.3 -17691.7      # offset of CCD center from raft center, (x, y); mm (pixels??)
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
+    }
+    Ccd: { 
+        serial:  74                    # CCD's serial number
+        name: "dummy074"                    # CCD's name
+        index: 6 7
+        offset:  -3146.7  13329.0      # offset of CCD center from raft center, (x, y); mm (pixels??)
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
+    }
+    Ccd: { 
+        serial:  75                    # CCD's serial number
+        name: "dummy075"                    # CCD's name
+        index: 8 0
+        offset:   1098.7 -17691.7      # offset of CCD center from raft center, (x, y); mm (pixels??)
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
+    }
+    Ccd: { 
+        serial:  76                    # CCD's serial number
+        name: "dummy076"                    # CCD's name
+        index: 7 7
+        offset:  -1024.0  13329.0      # offset of CCD center from raft center, (x, y); mm (pixels??)
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
+    }
+    Ccd: { 
+        serial:  77                    # CCD's serial number
+        name: "dummy077"                    # CCD's name
+        index: 7 0
+        offset:  -1024.0 -17691.7      # offset of CCD center from raft center, (x, y); mm (pixels??)
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
+    }
+    Ccd: { 
+        serial:  78                    # CCD's serial number
+        name: "dummy078"                    # CCD's name
+        index: 8 7
+        offset:   1098.7  13329.0      # offset of CCD center from raft center, (x, y); mm (pixels??)
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
+    }
+    Ccd: { 
+        serial:  79                    # CCD's serial number
+        name: "dummy079"                    # CCD's name
+        index: 6 0
+        offset:  -3146.7 -17691.7      # offset of CCD center from raft center, (x, y); mm (pixels??)
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
+    }
+    Ccd: { 
+        serial:  80                    # CCD's serial number
+        name: "dummy080"                    # CCD's name
+        index: 9 7
+        offset:   3221.3  13329.0      # offset of CCD center from raft center, (x, y); mm (pixels??)
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
+    }
+    Ccd: { 
+        serial:  81                    # CCD's serial number
+        name: "dummy081"                    # CCD's name
+        index: 5 0
+        offset:  -5269.3 -17691.7      # offset of CCD center from raft center, (x, y); mm (pixels??)
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
+    }
+    Ccd: { 
+        serial:  82                    # CCD's serial number
+        name: "dummy082"                    # CCD's name
+        index: 10 7
+        offset:   5344.0  13329.0      # offset of CCD center from raft center, (x, y); mm (pixels??)
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
+    }
+    Ccd: { 
+        serial:  83                    # CCD's serial number
+        name: "dummy083"                    # CCD's name
+        index: 4 0
+        offset:  -7392.0 -17691.7      # offset of CCD center from raft center, (x, y); mm (pixels??)
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
+    }
+    Ccd: { 
+        serial:  84                    # CCD's serial number
+        name: "dummy084"                    # CCD's name
+        index: 12 3
+        offset:   9589.3  -4571.0      # offset of CCD center from raft center, (x, y); mm (pixels??)
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
+    }
+    Ccd: { 
+        serial:  85                    # CCD's serial number
+        name: "dummy085"                    # CCD's name
+        index: 2 4
+        offset: -11637.3    208.3      # offset of CCD center from raft center, (x, y); mm (pixels??)
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
+    }
+    Ccd: { 
+        serial:  86                    # CCD's serial number
+        name: "dummy086"                    # CCD's name
+        index: 13 3
+        offset:  11712.0  -4571.0      # offset of CCD center from raft center, (x, y); mm (pixels??)
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
+    }
+    Ccd: { 
+        serial:  87                    # CCD's serial number
+        name: "dummy087"                    # CCD's name
+        index: 1 4
+        offset: -13760.0    208.3      # offset of CCD center from raft center, (x, y); mm (pixels??)
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
+    }
+    Ccd: { 
+        serial:  88                    # CCD's serial number
+        name: "dummy088"                    # CCD's name
+        index: 14 3
+        offset:  13834.7  -4571.0      # offset of CCD center from raft center, (x, y); mm (pixels??)
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
+    }
+    Ccd: { 
+        serial:  89                    # CCD's serial number
+        name: "dummy089"                    # CCD's name
+        index: 0 4
+        offset: -15882.7    208.3      # offset of CCD center from raft center, (x, y); mm (pixels??)
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
+    }
+    Ccd: { 
+        serial:  90                    # CCD's serial number
+        name: "dummy090"                    # CCD's name
+        index: 12 2
+        offset:   9589.3  -9046.0      # offset of CCD center from raft center, (x, y); mm (pixels??)
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
+    }
+    Ccd: { 
+        serial:  91                    # CCD's serial number
+        name: "dummy091"                    # CCD's name
+        index: 2 5
+        offset: -11637.3   4683.3      # offset of CCD center from raft center, (x, y); mm (pixels??)
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
+    }
+    Ccd: { 
+        serial:  92                    # CCD's serial number
+        name: "dummy092"                    # CCD's name
+        index: 13 2
+        offset:  11712.0  -9046.0      # offset of CCD center from raft center, (x, y); mm (pixels??)
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
+    }
+    Ccd: { 
+        serial:  93                    # CCD's serial number
+        name: "dummy093"                    # CCD's name
+        index: 1 5
+        offset: -13760.0   4683.3      # offset of CCD center from raft center, (x, y); mm (pixels??)
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
+    }
+    Ccd: { 
+        serial:  94                    # CCD's serial number
+        name: "dummy094"                    # CCD's name
+        index: 14 2
+        offset:  13834.7  -9046.0      # offset of CCD center from raft center, (x, y); mm (pixels??)
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
+    }
+    Ccd: { 
+        serial:  95                    # CCD's serial number
+        name: "dummy095"                    # CCD's name
+        index: 0 5
+        offset: -15882.7   4683.3      # offset of CCD center from raft center, (x, y); mm (pixels??)
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
+    }
+    Ccd: { 
+        serial:  96                    # CCD's serial number
+        name: "dummy096"                    # CCD's name
+        index: 12 1
+        offset:   9589.3 -13521.0      # offset of CCD center from raft center, (x, y); mm (pixels??)
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
+    }
+    Ccd: { 
+        serial:  97                    # CCD's serial number
+        name: "dummy097"                    # CCD's name
+        index: 2 6
+        offset: -11637.3   9158.3      # offset of CCD center from raft center, (x, y); mm (pixels??)
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
+    }
+    Ccd: { 
+        serial:  98                    # CCD's serial number
+        name: "dummy098"                    # CCD's name
+        index: 13 1
+        offset:  11712.0 -13521.0      # offset of CCD center from raft center, (x, y); mm (pixels??)
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
+    }
+    Ccd: { 
+        serial:  99                    # CCD's serial number
+        name: "dummy099"                    # CCD's name
+        index: 1 6
+        offset: -13760.0   9158.3      # offset of CCD center from raft center, (x, y); mm (pixels??)
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
+    }
+    Ccd: { 
+        serial: 100                    # CCD's serial number
+        name: "dummy100"                    # CCD's name
+        index: 2 7
+        offset: -11562.7  15376.0      # offset of CCD center from raft center, (x, y); mm (pixels??)
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
+    }
+    Ccd: { 
+        serial: 101                    # CCD's serial number
+        name: "dummy101"                    # CCD's name
+        index: 10 7
+        offset:   7466.7  15376.0      # offset of CCD center from raft center, (x, y); mm (pixels??)
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
+    }
+    Ccd: { 
+        serial: 102                    # CCD's serial number
+        name: "dummy102"                    # CCD's name
+        index: 2 0
+        offset:   7466.7 -13596.7      # offset of CCD center from raft center, (x, y); mm (pixels??)
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
+    }
+    Ccd: { 
+        serial: 103                    # CCD's serial number
+        name: "dummy103"                    # CCD's name
+        index: 11 0
+        offset: -11562.7 -13596.7      # offset of CCD center from raft center, (x, y); mm (pixels??)
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
+    }
+}
+
+#-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+Ccd: {
+    #pixelSize: 10.0e-3                 # pixel size (mm)
+    pixelSize: 1.0                      # pixel size (we're using pixels, not mm)
+
+    nCol: 4                             # number of columns of amps; 2 == Left and Right
+    nRow: 1                             # number of rows of amps
+    Amp: {
+        serial: 4
+        index: 0 0                      # Location of Amp in CCD thought of as a grid of amplifiers
+        readoutCorner: LLC              # location of first pixel read
+    }
+    Amp: {
+        serial: 3
+        index: 1 0                      # Location of Amp in CCD thought of as a grid of amplifiers
+        readoutCorner: LRC              # location of first pixel read
+    }
+    Amp: {
+        serial: 2
+        index: 2 0                      # Location of Amp in CCD thought of as a grid of amplifiers
+        readoutCorner: LLC              # location of first pixel read
+    }
+    Amp: {
+        serial: 1
+        index: 3 0                      # Location of Amp in CCD thought of as a grid of amplifiers
+        readoutCorner: LRC              # location of first pixel read
+    }
+}
+
+#-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+Amp: {
+    height: 4096                        # number of physical rows
+    preRows: 48                         # extra rows before first real serial transfer
+    width: 512                          # number of physical columns
+    extended: 8                         # length of extended register
+    overclockH: 48                      # number of serial overclock pixels
+    overclockV: 48                      # number of parallel overclock pixels
+}
+
+#-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+#
+# Electronic properties of our CCDs
+#
+Electronic: {
+    Raft: {
+        name: "XXX"                     # An empty string makes the Policy parser unhappy
+        Ccd: { 
+            name: "dummy000"
+            Amp: {
+                index: 0 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+        }
+        Ccd: { 
+            name: "dummy001"
+            Amp: {
+                index: 0 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+        }
+        Ccd: { 
+            name: "dummy002"
+            Amp: {
+                index: 0 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+        }
+        Ccd: { 
+            name: "dummy003"
+            Amp: {
+                index: 0 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+        }
+        Ccd: { 
+            name: "dummy004"
+            Amp: {
+                index: 0 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+        }
+        Ccd: { 
+            name: "dummy005"
+            Amp: {
+                index: 0 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+        }
+        Ccd: { 
+            name: "dummy006"
+            Amp: {
+                index: 0 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+        }
+        Ccd: { 
+            name: "dummy007"
+            Amp: {
+                index: 0 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+        }
+        Ccd: { 
+            name: "dummy008"
+            Amp: {
+                index: 0 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+        }
+        Ccd: { 
+            name: "dummy009"
+            Amp: {
+                index: 0 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+        }
+        Ccd: { 
+            name: "dummy010"
+            Amp: {
+                index: 0 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+        }
+        Ccd: { 
+            name: "dummy011"
+            Amp: {
+                index: 0 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+        }
+        Ccd: { 
+            name: "dummy012"
+            Amp: {
+                index: 0 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+        }
+        Ccd: { 
+            name: "dummy013"
+            Amp: {
+                index: 0 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+        }
+        Ccd: { 
+            name: "dummy014"
+            Amp: {
+                index: 0 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+        }
+        Ccd: { 
+            name: "dummy015"
+            Amp: {
+                index: 0 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+        }
+        Ccd: { 
+            name: "dummy016"
+            Amp: {
+                index: 0 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+        }
+        Ccd: { 
+            name: "dummy017"
+            Amp: {
+                index: 0 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+        }
+        Ccd: { 
+            name: "dummy018"
+            Amp: {
+                index: 0 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+        }
+        Ccd: { 
+            name: "dummy019"
+            Amp: {
+                index: 0 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+        }
+        Ccd: { 
+            name: "dummy020"
+            Amp: {
+                index: 0 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+        }
+        Ccd: { 
+            name: "dummy021"
+            Amp: {
+                index: 0 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+        }
+        Ccd: { 
+            name: "dummy022"
+            Amp: {
+                index: 0 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+        }
+        Ccd: { 
+            name: "dummy023"
+            Amp: {
+                index: 0 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+        }
+        Ccd: { 
+            name: "dummy024"
+            Amp: {
+                index: 0 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+        }
+        Ccd: { 
+            name: "dummy025"
+            Amp: {
+                index: 0 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+        }
+        Ccd: { 
+            name: "dummy026"
+            Amp: {
+                index: 0 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+        }
+        Ccd: { 
+            name: "dummy027"
+            Amp: {
+                index: 0 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+        }
+        Ccd: { 
+            name: "dummy028"
+            Amp: {
+                index: 0 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+        }
+        Ccd: { 
+            name: "dummy029"
+            Amp: {
+                index: 0 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+        }
+        Ccd: { 
+            name: "dummy030"
+            Amp: {
+                index: 0 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+        }
+        Ccd: { 
+            name: "dummy031"
+            Amp: {
+                index: 0 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+        }
+        Ccd: { 
+            name: "dummy032"
+            Amp: {
+                index: 0 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+        }
+        Ccd: { 
+            name: "dummy033"
+            Amp: {
+                index: 0 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+        }
+        Ccd: { 
+            name: "dummy034"
+            Amp: {
+                index: 0 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+        }
+        Ccd: { 
+            name: "dummy035"
+            Amp: {
+                index: 0 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+        }
+        Ccd: { 
+            name: "dummy036"
+            Amp: {
+                index: 0 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+        }
+        Ccd: { 
+            name: "dummy037"
+            Amp: {
+                index: 0 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+        }
+        Ccd: { 
+            name: "dummy038"
+            Amp: {
+                index: 0 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+        }
+        Ccd: { 
+            name: "dummy039"
+            Amp: {
+                index: 0 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+        }
+        Ccd: { 
+            name: "dummy040"
+            Amp: {
+                index: 0 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+        }
+        Ccd: { 
+            name: "dummy041"
+            Amp: {
+                index: 0 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+        }
+        Ccd: { 
+            name: "dummy042"
+            Amp: {
+                index: 0 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+        }
+        Ccd: { 
+            name: "dummy043"
+            Amp: {
+                index: 0 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+        }
+        Ccd: { 
+            name: "dummy044"
+            Amp: {
+                index: 0 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+        }
+        Ccd: { 
+            name: "dummy045"
+            Amp: {
+                index: 0 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+        }
+        Ccd: { 
+            name: "dummy046"
+            Amp: {
+                index: 0 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+        }
+        Ccd: { 
+            name: "dummy047"
+            Amp: {
+                index: 0 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+        }
+        Ccd: { 
+            name: "dummy048"
+            Amp: {
+                index: 0 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+        }
+        Ccd: { 
+            name: "dummy049"
+            Amp: {
+                index: 0 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+        }
+        Ccd: { 
+            name: "dummy050"
+            Amp: {
+                index: 0 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+        }
+        Ccd: { 
+            name: "dummy051"
+            Amp: {
+                index: 0 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+        }
+        Ccd: { 
+            name: "dummy052"
+            Amp: {
+                index: 0 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+        }
+        Ccd: { 
+            name: "dummy053"
+            Amp: {
+                index: 0 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+        }
+        Ccd: { 
+            name: "dummy054"
+            Amp: {
+                index: 0 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+        }
+        Ccd: { 
+            name: "dummy055"
+            Amp: {
+                index: 0 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+        }
+        Ccd: { 
+            name: "dummy056"
+            Amp: {
+                index: 0 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+        }
+        Ccd: { 
+            name: "dummy057"
+            Amp: {
+                index: 0 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+        }
+        Ccd: { 
+            name: "dummy058"
+            Amp: {
+                index: 0 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+        }
+        Ccd: { 
+            name: "dummy059"
+            Amp: {
+                index: 0 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+        }
+        Ccd: { 
+            name: "dummy060"
+            Amp: {
+                index: 0 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+        }
+        Ccd: { 
+            name: "dummy061"
+            Amp: {
+                index: 0 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+        }
+        Ccd: { 
+            name: "dummy062"
+            Amp: {
+                index: 0 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+        }
+        Ccd: { 
+            name: "dummy063"
+            Amp: {
+                index: 0 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+        }
+        Ccd: { 
+            name: "dummy064"
+            Amp: {
+                index: 0 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+        }
+        Ccd: { 
+            name: "dummy065"
+            Amp: {
+                index: 0 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+        }
+        Ccd: { 
+            name: "dummy066"
+            Amp: {
+                index: 0 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+        }
+        Ccd: { 
+            name: "dummy067"
+            Amp: {
+                index: 0 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+        }
+        Ccd: { 
+            name: "dummy068"
+            Amp: {
+                index: 0 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+        }
+        Ccd: { 
+            name: "dummy069"
+            Amp: {
+                index: 0 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+        }
+        Ccd: { 
+            name: "dummy070"
+            Amp: {
+                index: 0 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+        }
+        Ccd: { 
+            name: "dummy071"
+            Amp: {
+                index: 0 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+        }
+        Ccd: { 
+            name: "dummy072"
+            Amp: {
+                index: 0 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+        }
+        Ccd: { 
+            name: "dummy073"
+            Amp: {
+                index: 0 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+        }
+        Ccd: { 
+            name: "dummy074"
+            Amp: {
+                index: 0 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+        }
+        Ccd: { 
+            name: "dummy075"
+            Amp: {
+                index: 0 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+        }
+        Ccd: { 
+            name: "dummy076"
+            Amp: {
+                index: 0 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+        }
+        Ccd: { 
+            name: "dummy077"
+            Amp: {
+                index: 0 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+        }
+        Ccd: { 
+            name: "dummy078"
+            Amp: {
+                index: 0 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+        }
+        Ccd: { 
+            name: "dummy079"
+            Amp: {
+                index: 0 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+        }
+        Ccd: { 
+            name: "dummy080"
+            Amp: {
+                index: 0 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+        }
+        Ccd: { 
+            name: "dummy081"
+            Amp: {
+                index: 0 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+        }
+        Ccd: { 
+            name: "dummy082"
+            Amp: {
+                index: 0 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+        }
+        Ccd: { 
+            name: "dummy083"
+            Amp: {
+                index: 0 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+        }
+        Ccd: { 
+            name: "dummy084"
+            Amp: {
+                index: 0 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+        }
+        Ccd: { 
+            name: "dummy085"
+            Amp: {
+                index: 0 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+        }
+        Ccd: { 
+            name: "dummy086"
+            Amp: {
+                index: 0 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+        }
+        Ccd: { 
+            name: "dummy087"
+            Amp: {
+                index: 0 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+        }
+        Ccd: { 
+            name: "dummy088"
+            Amp: {
+                index: 0 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+        }
+        Ccd: { 
+            name: "dummy089"
+            Amp: {
+                index: 0 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+        }
+        Ccd: { 
+            name: "dummy090"
+            Amp: {
+                index: 0 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+        }
+        Ccd: { 
+            name: "dummy091"
+            Amp: {
+                index: 0 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+        }
+        Ccd: { 
+            name: "dummy092"
+            Amp: {
+                index: 0 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+        }
+        Ccd: { 
+            name: "dummy093"
+            Amp: {
+                index: 0 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+        }
+        Ccd: { 
+            name: "dummy094"
+            Amp: {
+                index: 0 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+        }
+        Ccd: { 
+            name: "dummy095"
+            Amp: {
+                index: 0 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+        }
+        Ccd: { 
+            name: "dummy096"
+            Amp: {
+                index: 0 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+        }
+        Ccd: { 
+            name: "dummy097"
+            Amp: {
+                index: 0 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+        }
+        Ccd: { 
+            name: "dummy098"
+            Amp: {
+                index: 0 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+        }
+        Ccd: { 
+            name: "dummy099"
+            Amp: {
+                index: 0 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+        }
+        Ccd: { 
+            name: "dummy100"
+            Amp: {
+                index: 0 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+        }
+        Ccd: { 
+            name: "dummy101"
+            Amp: {
+                index: 0 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+        }
+        Ccd: { 
+            name: "dummy102"
+            Amp: {
+                index: 0 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+        }
+        Ccd: { 
+            name: "dummy103"
+            Amp: {
+                index: 0 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.0
+                readNoise: 10.0
+                saturationLevel: 65535.0
+            }
+        }
+
+    }
+}

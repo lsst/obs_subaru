@@ -1,0 +1,153 @@
+#<?cfg paf policy ?>
+
+#calibRoot: "/path/to/calibration/"
+#registryPath: "/path/to/registry/"
+needCalibRegistry: true
+#calibRegistryPath: "/path/to/calibration/registry/"
+
+camera:        "../hscSim/description/hscSim_geom_dummy.paf"
+#defects:    "../hscSim/description/hscSim_defects.paf"
+filters:    "../hscSim/description/hscSim_filters.paf"
+
+exposures: {
+    raw: {
+        template:    "%(field)s/%(dateObs)s/%(mystery)s/%(filter)s/SUPA%(visit)07d%(ccd)1d.fits"
+        python:     "lsst.afw.image.DecoratedImageU"
+        persistable:         "DecoratedImageU"
+        storage:     "FitsStorage"
+        level:        "Ccd"
+        tables:        "raw"
+        tables:        "raw_visit"
+    }
+    postISRCCD: {
+        template:    "postISRCCD/v%(visit)d-f%(filter)s/c%(ccd)02d.fits"
+        python:        "lsst.afw.image.ExposureF"
+        persistable:        "ExposureF"
+        storage:    "FitsStorage"
+        level:        "Ccd"
+        tables:        "raw"
+        tables:        "raw_visit"
+    }
+    visitim: {
+        template:      "visitim/v%(visit)d-f%(filter)s/c%(ccd)02d.fits"
+        python:        "lsst.afw.image.ExposureF"
+        persistable:        "ExposureF"
+        storage:    "FitsStorage"
+        level:        "Ccd"
+        tables:        "raw"
+        tables:        "raw_visit"
+    }
+    calexp: {
+        template:      "calexp/v%(visit)d-f%(filter)s/c%(ccd)02d.fits"
+        python:        "lsst.afw.image.ExposureF"
+        persistable:        "ExposureF"
+        storage:    "FitsStorage"
+        level:        "Ccd"
+        tables:        "raw"
+        tables:        "raw_visit"
+    }
+
+    warp: {
+        template:      "warp/v%(visit)d-f%(filter)s/s%(skytile)d.fits"
+        python:        "lsst.afw.image.ExposureF"
+        persistable:        "ExposureF"
+        storage:    "FitsStorage"
+        level:        "Skytile"
+        tables:        "raw"
+        tables:        "raw_visit"
+        columns:       "visit"
+        columns:       "filter"
+    }
+
+    stack: {
+        template:      "stack/%(stack)s/s%(skytile)d.fits"
+        python:        "lsst.afw.image.ExposureF"
+        persistable:        "ExposureF"
+        storage:    "FitsStorage"
+        level:        "Skytile"
+        tables:        "raw_visit"
+    }
+
+}
+
+calibrations: {
+###    bias: {
+###        template:    
+###        python:        "lsst.afw.image.ExposureF"
+###        persistable:        "ExposureF"
+###        storage:    "FitsStorage"
+###        level:        "Ccd"
+###        tables:     "bias"
+###        columns: "ccd"
+###        reference:   "raw_visit"
+###        refCols:     "visit"
+###        refCols:     "filter"
+###    }
+###    dark: {
+###        template:    
+###        python:        "lsst.afw.image.ExposureF"
+###        persistable:        "ExposureF"
+###        storage:    "FitsStorage"
+###        level:        "Ccd"
+###        tables:     "dark"
+###        columns: "ccd"
+###        reference:   "raw_visit"
+###        refCols:     "visit"
+###        refCols:     "filter"
+###    }
+    flat: {
+        template:    "FLAT/%(dateObs)s/%(filter)s/%(mystery)s/FLAT-%(flatnum)07d%(ccd)1d.fits"
+        python:        "lsst.afw.image.ExposureF"
+        persistable:        "ExposureF"
+        storage:    "FitsStorage"
+        level:        "Ccd"
+        tables:     "flat"
+        columns: "ccd"
+        columns: "filter"
+        reference:   "raw_visit"
+        refCols:     "visit"
+        refCols:     "filter"
+    }
+###    fringe: {
+###        template:    
+###        python:        "lsst.afw.image.ExposureF"
+###        persistable:        "ExposureF"
+###        storage:    "FitsStorage"
+###        level:        "Ccd"
+###        tables:     "fringe"
+###        columns: "ccd"
+###        columns: "filter"
+###        reference:   "raw_visit"
+###        refCols:     "visit"
+###        refCols:     "filter"
+###    }
+}
+
+
+
+datasets: {
+    psf: {
+        template:      "psf/v%(visit)d-f%(filter)s/c%(ccd)02d.boost"
+        python:        "lsst.afw.detection.Psf"
+        persistable:        "Psf"
+        storage:    "BoostStorage"
+        tables:        "raw"
+        tables:        "raw_visit"
+    }
+    src: {
+        template:      "src/v%(visit)d-f%(filter)s/c%(ccd)02d.boost"
+        python:        "lsst.afw.detection.PersistableSourceVector"
+        persistable:        "PersistableSourceVector"
+        storage:    "BoostStorage"
+        tables:        "raw"
+        tables:        "raw_visit"
+    }
+    matches: {
+        template:      "match/v%(visit)d-f%(filter)s/c%(ccd)02d.fits"
+        python:        "lsst.afw.detection.PersistableSourceMatchVector"
+        persistable:        "PersistableSourceMatchVector"
+        storage:    "FitsStorage"
+        tables:        "raw"
+        tables:        "raw_visit"
+    }
+}
