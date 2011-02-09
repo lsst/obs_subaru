@@ -5,9 +5,9 @@
 needCalibRegistry: true
 #calibRegistryPath: "/path/to/calibration/registry/"
 
-camera:        "../suprimecam/description/Full_Suprime_geom.paf"
+camera:        "../suprimecam/description/Full_Suprimecam_geom.paf"
 defects:    "../suprimecam/description/defects"
-filters:    "../suprimecam/description/SuprimeFilters.paf"
+filters:    "../suprimecam/description/SuprimecamFilters.paf"
 
 exposures: {
     raw: {

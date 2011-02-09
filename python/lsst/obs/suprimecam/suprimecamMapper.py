@@ -6,11 +6,11 @@ import lsst.pex.policy as pexPolicy
 import lsst.afw.image as afwImage
 import lsst.afw.cameraGeom as cameraGeom
 
-class SuprimeMapper(CameraMapper):
+class SuprimecamMapper(CameraMapper):
     def __init__(self, **kwargs):
-        policyFile = pexPolicy.DefaultPolicyFile("obs_subaru", "SuprimeMapper.paf", "policy")
+        policyFile = pexPolicy.DefaultPolicyFile("obs_subaru", "SuprimecamMapper.paf", "policy")
         policy = pexPolicy.Policy(policyFile)
-        super(SuprimeMapper, self).__init__(policy, policyFile.getRepositoryPath(), **kwargs)
+        super(SuprimecamMapper, self).__init__(policy, policyFile.getRepositoryPath(), **kwargs)
 
         self.filters = {
             "W-J-B"   : "B",
@@ -33,7 +33,7 @@ class SuprimeMapper(CameraMapper):
 
 ### XXX Not necessary now that gains are in the camera configuration
 #    def std_raw(self, item, dataId):
-#        exposure = super(SuprimeMapper, self).std_raw(item, dataId)
+#        exposure = super(SuprimecamMapper, self).std_raw(item, dataId)
 #
 #        # Set gains from the header
 #        md = exposure.getMetadata()

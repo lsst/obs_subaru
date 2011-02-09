@@ -4,15 +4,15 @@ import unittest
 import lsst.utils.tests as utilsTests
 
 import lsst.daf.persistence as dafPersist
-from hsc.obs.suprime import SuprimeMapper
+from hsc.obs.suprimecam import SuprimecamMapper
 
 class MetadataTestCase(unittest.TestCase):
     """Testing butler metadata retrieval"""
 
     def setUp(self):
-        self.bf = dafPersist.ButlerFactory(mapper=SuprimeMapper(
+        self.bf = dafPersist.ButlerFactory(mapper=SuprimecamMapper(
             root=os.path.join(os.getenv('SUPRIME_DATA_DIR'), "SUPA"),
-	    calibRoot=os.path.join(os.getenv('SUPRIME_DATA_DIR'), "CALIB") ))
+            calibRoot=os.path.join(os.getenv('SUPRIME_DATA_DIR'), "CALIB") ))
         self.butler = self.bf.create()
 
     def tearDown(self):
@@ -55,16 +55,16 @@ class MetadataTestCase(unittest.TestCase):
         visits.sort()
 
         self.assertEqual(visits, [
-	    100513, 100514, 100515, 100516, 100517, 100518,
-	    100519, 100520, 100521, 100522, 100523, 100524,
-	    100525, 100526, 100527, 100528, 100529, 100530,
-	    101410, 101411, 101412, 101413, 101414, 101415,
-	    101416, 101417, 101418, 101419, 101421, 101422,
-	    101423, 101424, 101425, 101426, 101427, 101428,
-	    101429, 101438, 101439, 101440, 101441, 101541,
-	    101542, 101543, 101544, 101545, 101546, 101547,
-	    101548
-	    ])
+            100513, 100514, 100515, 100516, 100517, 100518,
+            100519, 100520, 100521, 100522, 100523, 100524,
+            100525, 100526, 100527, 100528, 100529, 100530,
+            101410, 101411, 101412, 101413, 101414, 101415,
+            101416, 101417, 101418, 101419, 101421, 101422,
+            101423, 101424, 101425, 101426, 101427, 101428,
+            101429, 101438, 101439, 101440, 101441, 101541,
+            101542, 101543, 101544, 101545, 101546, 101547,
+            101548
+            ])
 
     def testFilter(self):
         """Test filters"""

@@ -34,18 +34,18 @@ def trimCcd(ccd, ccdImage=""):
 
 #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
-class SuprimeGeomTestCase(unittest.TestCase):
+class SuprimecamGeomTestCase(unittest.TestCase):
     """A test case for Suprime Cam camera geometry"""
     
     def setUp(self):
-        SuprimeGeomTestCase.ampSerial = [0] # an array so we pass the value by reference
+        SuprimecamGeomTestCase.ampSerial = [0] # an array so we pass the value by reference
 
         policyFile = pexPolicy.DefaultPolicyFile("afw", "CameraGeomDictionary.paf", "policy")
         defPolicy = pexPolicy.Policy.createPolicy(policyFile, policyFile.getRepositoryPath(), True)
 
-        polFile = pexPolicy.DefaultPolicyFile("obs_suprime",
-					      "Full_Suprime_geom.paf",
-					      "suprimecam/description")
+        polFile = pexPolicy.DefaultPolicyFile("obs_suprimecam",
+                                              "Full_Suprimecam_geom.paf",
+                                              "suprimecam/description")
         self.geomPolicy = pexPolicy.Policy.createPolicy(polFile)
         self.geomPolicy.mergeDefaults(defPolicy.getDictionary())
 
@@ -75,7 +75,7 @@ def suite():
     utilsTests.init()
 
     suites = []
-    suites += unittest.makeSuite(SuprimeGeomTestCase)
+    suites += unittest.makeSuite(SuprimecamGeomTestCase)
     suites += unittest.makeSuite(utilsTests.MemoryTestCase)
     return unittest.TestSuite(suites)
 
