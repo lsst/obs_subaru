@@ -1,10 +1,7 @@
-import os
-import re
+#!/usr/bin/env python
 
 from lsst.daf.butlerUtils import CameraMapper
 import lsst.pex.policy as pexPolicy
-import lsst.afw.image as afwImage
-import lsst.afw.cameraGeom as cameraGeom
 
 class SuprimecamMapper(CameraMapper):
     def __init__(self, **kwargs):
