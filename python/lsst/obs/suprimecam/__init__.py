@@ -1,1 +1,1 @@
-from suprimeMapper import *
+from suprimecamMapper import *
