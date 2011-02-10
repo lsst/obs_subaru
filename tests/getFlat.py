@@ -27,14 +27,12 @@ class GetFlatTestCase(unittest.TestCase):
         
         print "width: ",              raw.getWidth()
         print "height: ",              raw.getHeight()
-        print "detector(amp) name: ", raw.getDetector().getId().getName()
-        print "detector(ccd) name: ", raw.getDetector().getParent().getId().getName()
+        print "detector(ccd) name: ", raw.getDetector().getId().getName()
         
         self.assertEqual(raw.getWidth(), 2048)    # trimmed
         self.assertEqual(raw.getHeight(), 4177) # trimmed
         self.assertEqual(raw.getFilter().getFilterProperty().getName(), "i")
-        self.assertEqual(raw.getDetector().getId().getName(), "ID0")
-        self.assertEqual(raw.getDetector().getParent().getId().getName(), "Fio")
+        self.assertEqual(raw.getDetector().getId().getName(), "Fio")
         
 #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
