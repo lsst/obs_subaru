@@ -6,7 +6,7 @@ import lsst.pex.policy as pexPolicy
 class HscSimMapper(CameraMapper):
     """Provides abstract-physical mapping for HSC Simulation data"""
     
-    def __init__(self, policy=None, root=".", registry=None, calibRoot=None):
+    def __init__(self, **kwargs):
         policyFile = pexPolicy.DefaultPolicyFile("obs_subaru", "HscSimMapper.paf", "policy")
         policy = pexPolicy.Policy(policyFile)
         super(HscSimMapper, self).__init__(policy, policyFile.getRepositoryPath(), **kwargs)
