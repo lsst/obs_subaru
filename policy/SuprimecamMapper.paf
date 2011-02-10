@@ -107,6 +107,7 @@ calibrations: {
         reference:   "raw_visit"
         refCols:     "visit"
         refCols:     "filter"
+        filter:      true
     }
 ###    fringe: {
 ###        template:    
@@ -120,6 +121,7 @@ calibrations: {
 ###        reference:   "raw_visit"
 ###        refCols:     "visit"
 ###        refCols:     "filter"
+###        filter:      true
 ###    }
 }
 
