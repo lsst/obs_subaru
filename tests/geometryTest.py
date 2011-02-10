@@ -43,7 +43,7 @@ class SuprimecamGeomTestCase(unittest.TestCase):
         policyFile = pexPolicy.DefaultPolicyFile("afw", "CameraGeomDictionary.paf", "policy")
         defPolicy = pexPolicy.Policy.createPolicy(policyFile, policyFile.getRepositoryPath(), True)
 
-        polFile = pexPolicy.DefaultPolicyFile("obs_suprimecam",
+        polFile = pexPolicy.DefaultPolicyFile("obs_subaru",
                                               "Full_Suprimecam_geom.paf",
                                               "suprimecam/description")
         self.geomPolicy = pexPolicy.Policy.createPolicy(polFile)
@@ -62,7 +62,9 @@ class SuprimecamGeomTestCase(unittest.TestCase):
 
     def testCamera(self):
         camera = cameraGeomUtils.makeCamera(self.geomPolicy)
-        cameraGeomUtils.showCamera(camera, )
+        # XXX This is interactive
+        #ds9.setDefaultFrame(0)
+        #cameraGeomUtils.showCamera(camera, )
 
     def tearDown(self):
         del self.geomPolicy
@@ -82,7 +84,6 @@ def suite():
 def run(exit=False):
     """Run the tests"""
 
-    ds9.setDefaultFrame(0)
     utilsTests.run(suite(), exit)
 
 if __name__ == "__main__":
