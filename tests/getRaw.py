@@ -23,19 +23,17 @@ class GetRawTestCase(unittest.TestCase):
 
     def testRaw(self):
         """Test retrieval of raw image"""
-        raw = self.butler.get("raw", field="CFHQS", visit=101543, ccd=2)
+        raw = self.butler.get("raw", visit=127073, ccd=2)
     
         print "width: ",              raw.getWidth()
         print "height: ",             raw.getHeight()
         print "detector(amp) name: ", raw.getDetector().getId().getName()
-        print "detector(ccd) name: ", raw.getDetector().getParent().getId().getName()
         
         self.assertEqual(raw.getWidth(), 2272) # untrimmed
         self.assertEqual(raw.getHeight(), 4273) # untrimmed
     
         self.assertEqual(raw.getFilter().getFilterProperty().getName(), "i") 
-        self.assertEqual(raw.getDetector().getId().getName(), "ID0")
-        self.assertEqual(raw.getDetector().getParent().getId().getName(), "Fio")
+        self.assertEqual(raw.getDetector().getId().getName(), "Fio")
 
 #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
