@@ -11,7 +11,7 @@ filters:    "../suprimecam/description/SuprimecamFilters.paf"
 
 exposures: {
     raw: {
-        template:    "%(field)s/%(dateObs)s/%(mystery)s/%(filter)s/SUPA%(visit)07d%(ccd)1d.fits"
+        template:    "%(field)s/%(dateObs)s/%(pointing)s/%(filter)s/SUPA%(visit)07d%(ccd)1d.fits"
         python:     "lsst.afw.image.DecoratedImageU"
         persistable:         "DecoratedImageU"
         storage:     "FitsStorage"
