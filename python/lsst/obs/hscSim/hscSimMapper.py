@@ -12,11 +12,17 @@ class HscSimMapper(CameraMapper):
         policyFile = pexPolicy.DefaultPolicyFile("obs_subaru", "HscSimMapper.paf", "policy")
         policy = pexPolicy.Policy(policyFile)
 
+        # Default to using $SUPRIME_DATA_DIR. Otherwise require root= arg
         if not 'root' in kwargs:
-            kwargs['root'] = os.environ.get('SUPRIME_DATA_DIR', '.')
+            try:
+                kwargs['root'] = os.path.join(os.environ.get('SUPRIME_DATA_DIR'),
+                                              'HSC')
+            except:
+                raise RuntimeError("Either $SUPRIME_DATA_DIR or root= must be specified")
+
         super(HscSimMapper, self).__init__(policy, policyFile.getRepositoryPath(), **kwargs)
 
-        self.filterss = {
+        self.filters = {
             "W-J-B"   : "B",
             "W-S-G+"  : "g",
             "W-S-R+"  : "r",
