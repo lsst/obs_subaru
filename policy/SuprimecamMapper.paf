@@ -71,32 +71,32 @@ exposures: {
 }
 
 calibrations: {
-###    bias: {
-###        template:    
-###        python:        "lsst.afw.image.ExposureF"
-###        persistable:        "ExposureF"
-###        storage:    "FitsStorage"
-###        level:        "Ccd"
-###        tables:     "bias"
-###        columns: "ccd"
-###        reference:   "raw_visit"
-###        refCols:     "visit"
-###        refCols:     "filter"
-###    }
-###    dark: {
-###        template:    
-###        python:        "lsst.afw.image.ExposureF"
-###        persistable:        "ExposureF"
-###        storage:    "FitsStorage"
-###        level:        "Ccd"
-###        tables:     "dark"
-###        columns: "ccd"
-###        reference:   "raw_visit"
-###        refCols:     "visit"
-###        refCols:     "filter"
-###    }
+    bias: {
+        template:    "BIAS/%(dateObs)s/%(filter)s/%(mystery)s/BIAS-%(num)07d%(ccd)1d.fits"
+        python:        "lsst.afw.image.ExposureF"
+        persistable:        "ExposureF"
+        storage:    "FitsStorage"
+        level:        "Ccd"
+        tables:     "bias"
+        columns: "ccd"
+        reference:   "raw_visit"
+        refCols:     "visit"
+        refCols:     "filter"
+    }
+    dark: {
+        template:    "DARK/%(dateObs)s/%(filter)s/%(mystery)s/DARK-%(num)07d%(ccd)1d.fits"
+        python:        "lsst.afw.image.ExposureF"
+        persistable:        "ExposureF"
+        storage:    "FitsStorage"
+        level:        "Ccd"
+        tables:     "dark"
+        columns: "ccd"
+        reference:   "raw_visit"
+        refCols:     "visit"
+        refCols:     "filter"
+    }
     flat: {
-        template:    "FLAT/%(dateObs)s/%(filter)s/%(mystery)s/FLAT-%(flatnum)07d%(ccd)1d.fits"
+        template:    "FLAT/%(dateObs)s/%(filter)s/%(mystery)s/FLAT-%(num)07d%(ccd)1d.fits"
         python:        "lsst.afw.image.ExposureF"
         persistable:        "ExposureF"
         storage:    "FitsStorage"
@@ -109,20 +109,20 @@ calibrations: {
         refCols:     "filter"
         filter:      true
     }
-###    fringe: {
-###        template:    
-###        python:        "lsst.afw.image.ExposureF"
-###        persistable:        "ExposureF"
-###        storage:    "FitsStorage"
-###        level:        "Ccd"
-###        tables:     "fringe"
-###        columns: "ccd"
-###        columns: "filter"
-###        reference:   "raw_visit"
-###        refCols:     "visit"
-###        refCols:     "filter"
-###        filter:      true
-###    }
+    fringe: {
+        template:    "FRINGE/%(dateObs)s/%(filter)s/%(mystery)s/FRINGE-%(num)07d%(ccd)1d.fits"
+        python:        "lsst.afw.image.ExposureF"
+        persistable:        "ExposureF"
+        storage:    "FitsStorage"
+        level:        "Ccd"
+        tables:     "fringe"
+        columns: "ccd"
+        columns: "filter"
+        reference:   "raw_visit"
+        refCols:     "visit"
+        refCols:     "filter"
+        filter:      true
+    }
 }
 
 
