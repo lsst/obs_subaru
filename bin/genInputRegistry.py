@@ -22,7 +22,7 @@ conn = sqlite.connect("registry.sqlite3")
 if makeTables:
     cmd = "create table raw (id integer primary key autoincrement"
     cmd += ", field text, visit int, filter text, ccd int"
-    cmd += ", dateObs text, taiObs text, expTime double, pointing int"
+    cmd += ", dateObs text, taiObs text, expTime double, pointing text"
     cmd += ", unique(visit, ccd))"
     conn.execute(cmd)
 
@@ -31,7 +31,7 @@ if makeTables:
     conn.execute(cmd)
 
     cmd = "create table raw_visit (visit int, field text, filter text,"
-    cmd += "dateObs text, taiObs text, expTime double, pointing int"
+    cmd += "dateObs text, taiObs text, expTime double, pointing text"
     cmd += ", unique(visit))"
     conn.execute(cmd)
     conn.commit()
