@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+import os
+
 from lsst.daf.butlerUtils import CameraMapper
 import lsst.pex.policy as pexPolicy
 
@@ -9,6 +11,9 @@ class HscSimMapper(CameraMapper):
     def __init__(self, **kwargs):
         policyFile = pexPolicy.DefaultPolicyFile("obs_subaru", "HscSimMapper.paf", "policy")
         policy = pexPolicy.Policy(policyFile)
+
+        if not 'root' in kwargs:
+            kwargs['root'] = os.environ.get('SUPRIME_DATA_DIR', '.')
         super(HscSimMapper, self).__init__(policy, policyFile.getRepositoryPath(), **kwargs)
 
         self.filterss = {
