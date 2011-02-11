@@ -32,14 +32,15 @@ derivedRunId = 0
 runId = 0
 version = 0
 
+# ?? This can't match anything in the public directories... CPL
+# Also SUPA vs. HSCA w.r.t. CCD ids
 for fits in glob.glob(os.path.join(root, "FLAT", "20*-*-*", "?-?-*", "*", "FLAT-*.fits*")):
     print fits
     m = re.search(r'\w+/(\d{4}-\d{2}-\d{2})/(.-.-.{1,3})/(\d+)/\w+-(\d{7})(\d).fits', fits)
     if not m:
         print >>sys.stderr, "Warning: Unrecognized file:", fits
         continue
-
-    dateObs, filter, mystery, flatnum, ccd = m.groups()
+    dateObs, filterName, mystery, flatnum, ccd = m.groups()
 
     if False:
         # Convert to local time to get meaningful validStart, validEnd
@@ -66,7 +67,7 @@ for fits in glob.glob(os.path.join(root, "FLAT", "20*-*-*", "?-?-*", "*", "FLAT-
 
     conn.execute("INSERT INTO flat VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             (derivedRunId, runId, version, validStart, validEnd,
-             taiObs, dateObs, filter, mystery, flatnum, ccd))
+             taiObs, dateObs, filterName, mystery, flatnum, ccd))
 
 conn.commit()
 conn.close()
