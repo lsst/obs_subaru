@@ -1,10 +1,7 @@
 setupRequired(hscBase)
 setupRequired(utils)
-#setupRequired(gsl)
-#setupRequired(afw)
-#setupRequired(meas_algorithms)
-#setupRequired(meas_utils)
-#setupRequired(meas_pipeline)
+
+setupOptional(pipette)
 
 envPrepend(LD_LIBRARY_PATH, ${PRODUCT_DIR}/lib)
 envPrepend(DYLD_LIBRARY_PATH, ${PRODUCT_DIR}/lib)
