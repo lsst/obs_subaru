@@ -10,7 +10,12 @@ import math
 import lsst.daf.base   as dafBase
 import lsst.afw.image  as afwImage
 
-root = sys.argv[1]
+camera = sys.argv[1]
+root = sys.argv[2]
+
+if camera.lower() not in ("suprime-cam", "suprimecam", "sc", "hsc"):
+    raise RuntimeError("Camera not recognised: %s" % camera)
+
 registry = os.path.join(root, "calibRegistry.sqlite3")
 
 if os.path.exists(registry):
@@ -33,7 +38,10 @@ for calib in ('bias', 'dark', 'flat', 'fringe'):
     for fits in glob.glob(os.path.join(root, calib.upper(), "20*-*-*", "?-?-*", "*",
                                        calib.upper() + "-*.fits*")):
         print fits
-        m = re.search(r'\w+/(\d{4}-\d{2}-\d{2})/(.-.-.{1,3})/(\d+)/\w+-(\d{7})(\d).fits', fits)
+        if camera.lower() in ("suprime-cam", "suprimecam", "sc"):
+            m = re.search(r'\w+/(\d{4}-\d{2}-\d{2})/(.-.-.{1,3})/(\d+)/\w+-(\d{7})(\d).fits', fits)
+        elif camera.lower() in ("hsc"):
+            m = re.search(r'\w+/(\d{4}-\d{2}-\d{2})/(.-.-.{1,3})/(\d+)/\w+-(\d{5})(\d{3}).fits', fits)
         if not m:
             print >>sys.stderr, "Warning: Unrecognized file:", fits
             continue
