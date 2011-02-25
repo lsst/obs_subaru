@@ -4,7 +4,7 @@
 
 #calibRoot: "/path/to/calibration/"
 #registryPath: "/path/to/registry/"
-needCalibRegistry: false
+needCalibRegistry: true
 #calibRegistryPath: "/path/to/calibration/registry/"
 
 camera:        "../hscSim/description/hscSim_geom.paf"
