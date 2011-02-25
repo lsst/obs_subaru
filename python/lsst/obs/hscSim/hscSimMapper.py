@@ -8,17 +8,32 @@ import lsst.pex.policy as pexPolicy
 class HscSimMapper(CameraMapper):
     """Provides abstract-physical mapping for HSC Simulation data"""
     
-    def __init__(self, **kwargs):
+    def __init__(self, rerun=None, **kwargs):
         policyFile = pexPolicy.DefaultPolicyFile("obs_subaru", "HscSimMapper.paf", "policy")
         policy = pexPolicy.Policy(policyFile)
 
-        # Default to using $SUPRIME_DATA_DIR. Otherwise require root= arg
-        if not 'root' in kwargs:
+        # Resolve root directory in order:
+        #   if rerun is specified:
+        #     if rerun is a path (starts with / or .) use it as root
+        #     else use $SUPRIME_DATA_DIR/HSC/rerun/$rerun as root
+        #
+        #   else 
+        #     try using $SUPRIME_DATA_DIR/HSC. Otherwise require root= arg
+        if not kwargs.get('root', None):
             try:
-                kwargs['root'] = os.path.join(os.environ.get('SUPRIME_DATA_DIR'),
-                                              'HSC')
+                kwargs['root'] = os.path.join(os.environ.get('SUPRIME_DATA_DIR'), 'HSC')
+                kwargs['calibRoot'] = os.path.join(os.environ.get('SUPRIME_DATA_DIR'), 'CALIB')
             except:
                 raise RuntimeError("Either $SUPRIME_DATA_DIR or root= must be specified")
+
+        if rerun:
+            if rerun.startswith('.') or rerun.startswith('/'):
+                kwargs['root'] = rerun
+            else:
+                try:
+                    kwargs['root'] = os.path.join(os.environ.get('SUPRIME_DATA_DIR'), 'HSC', 'rerun', rerun)
+                except:
+                    raise RuntimeError("Rerun must include a path, or $SUPRIME_DATA_DIR must be defined")
 
         super(HscSimMapper, self).__init__(policy, policyFile.getRepositoryPath(), **kwargs)
 
