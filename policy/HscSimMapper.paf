@@ -21,8 +21,9 @@ exposures: {
         tables:        "raw"
         tables:        "raw_visit"
     }
+
     postISRCCD: {
-        template:    "postISRCCD/v%(visit)d-f%(filter)s/c%(ccd)02d.fits"
+        template:    "%(pointing)05d/%(filter)s/corr/CORR%(visit)05d%(ccd)03d.fits"
         python:        "lsst.afw.image.ExposureF"
         persistable:        "ExposureF"
         storage:    "FitsStorage"
@@ -131,7 +132,7 @@ calibrations: {
 
 datasets: {
     psf: {
-        template:      "psf/v%(visit)d-f%(filter)s/c%(ccd)02d.boost"
+        template:      "%(pointing)05d/%(filter)s/output/PSF%(visit)05d%(ccd)03d.boost"
         python:        "lsst.afw.detection.Psf"
         persistable:        "Psf"
         storage:    "BoostStorage"
@@ -139,7 +140,7 @@ datasets: {
         tables:        "raw_visit"
     }
     src: {
-        template:      "src/v%(visit)d-f%(filter)s/c%(ccd)02d.boost"
+        template:      "%(pointing)05d/%(filter)s/output/SRC%(visit)05d%(ccd)03d.boost"
         python:        "lsst.afw.detection.PersistableSourceVector"
         persistable:        "PersistableSourceVector"
         storage:    "BoostStorage"
@@ -147,7 +148,7 @@ datasets: {
         tables:        "raw_visit"
     }
     matches: {
-        template:      "match/v%(visit)d-f%(filter)s/c%(ccd)02d.fits"
+        template:      "%(pointing)05d/%(filter)s/output/OBJ%(visit)05d%(ccd)03d.fits"
         python:        "lsst.afw.detection.PersistableSourceMatchVector"
         persistable:        "PersistableSourceMatchVector"
         storage:    "FitsStorage"
