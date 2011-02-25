@@ -22,7 +22,7 @@ conn = sqlite.connect("registry.sqlite3")
 if makeTables:
     cmd = "create table raw (id integer primary key autoincrement"
     cmd += ", field text, visit int, filter text, ccd int"
-    cmd += ", dateObs text, taiObs text, expTime double, pointing text"
+    cmd += ", dateObs text, taiObs text, expTime double, pointing int"
     cmd += ", unique(visit, ccd))"
     conn.execute(cmd)
 
@@ -31,15 +31,15 @@ if makeTables:
     conn.execute(cmd)
 
     cmd = "create table raw_visit (visit int, field text, filter text,"
-    cmd += "dateObs text, taiObs text, expTime double, pointing text"
+    cmd += "dateObs text, taiObs text, expTime double, pointing int"
     cmd += ", unique(visit))"
     conn.execute(cmd)
     conn.commit()
 
 for fits in files:
-    m = re.search(r'(\w+)/(\d{4}-\d{2}-\d{2})/(\d+)/([\w\-\+]+)/SUPA(\d{7})(\d).fits', fits)
+    m = re.search(r'([\w+-]+)/(\d{4}-\d{2}-\d{2})/(\d+)/([\w\-\+]+)/SUPA(\d{7})(\d).fits', fits)
     if not m:
-        m = re.search(r'(\w+)/(\d{4}-\d{2}-\d{2})/(\d+)/([\w\-\+]+)/HSCA(\d{5})(\d{3}).fits', fits)
+        m = re.search(r'([\w+-]+)/(\d{4}-\d{2}-\d{2})/(\d+)/([\w\-\+]+)/HSCA(\d{5})(\d{3}).fits', fits)
     if not m:
         print >>sys.stderr, "Warning: skipping unrecognized filename:", fits
         continue
