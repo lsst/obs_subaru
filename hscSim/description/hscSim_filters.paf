@@ -22,7 +22,7 @@ Filter: {
 }
 Filter: {
     # Red side of SDSS z': Shimasaku et al., 2005, PASJ, 57, 447
-    name: "z2"
+    name: "y"
     lambdaEff: 990.0
     alias: "W-S-ZR"
 }
@@ -31,9 +31,4 @@ Filter: {
     name: "z"
     lambdaEff: 925.0
     alias: "W-S-Z+"
-}
-Filter: {
-    name: "y"
-    lambdaEff: 10000.0
-    alias: "W-S-ZR"
 }
