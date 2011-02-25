@@ -1,30 +1,35 @@
 #<?cfg paf policy ?>
 #
-description: "The Subaru SuprimeCam Filters ... placeholder until i can find correct details."
+description: "The Subaru HSC filters"
 
 Filter: {
-    name: "B"
-    lambdaEff: 400.0 # ?
-    alias: "W-J-B"
-}
-Filter: {
+    # SDSS g': http://www.naoj.org/Observing/Instruments/SCam/txt/g.txt
     name: "g"
-    lambdaEff: 450.0 # ?
+    lambdaEff: 477.0 # Should be re-calced in same way as other filters.
     alias: "W-S-G+"
 }
 Filter: {
+    # SDSS r': http://www.naoj.org/Observing/Instruments/SCam/txt/r.txt
     name: "r"
-    lambdaEff: 600.0 # ?
+    lambdaEff: 623.0 # Should be re-calced in same way as other filters.
     alias: "W-S-R+"
 }
 Filter: {
+    # SDSS i': http://www.naoj.org/Observing/Instruments/SCam/txt/i.txt
     name: "i"
-    lambdaEff: 770.0
+    lambdaEff: 775.0
     alias: "W-S-I+"
 }
 Filter: {
+    # Red side of SDSS z': Shimasaku et al., 2005, PASJ, 57, 447
+    name: "z2"
+    lambdaEff: 990.0
+    alias: "W-S-ZR"
+}
+Filter: {
+    # SDSS z': http://www.naoj.org/Observing/Instruments/SCam/txt/z.txt
     name: "z"
-    lambdaEff: 900.0
+    lambdaEff: 925.0
     alias: "W-S-Z+"
 }
 Filter: {
