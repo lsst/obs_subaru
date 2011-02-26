@@ -22,6 +22,15 @@ exposures: {
         tables:        "raw_visit"
     }
 
+    calexp: {
+        template:    "%(pointing)05d/%(filter)s/corr/CORR%(visit)05d%(ccd)03d.fits"
+        python:        "lsst.afw.image.ExposureF"
+        persistable:        "ExposureF"
+        storage:    "FitsStorage"
+        level:        "Ccd"
+        tables:        "raw"
+        tables:        "raw_visit"
+    }
     postISRCCD: {
         template:    "%(pointing)05d/%(filter)s/corr/CORR%(visit)05d%(ccd)03d.fits"
         python:        "lsst.afw.image.ExposureF"
@@ -33,15 +42,6 @@ exposures: {
     }
     visitim: {
         template:      "visitim/v%(visit)d-f%(filter)s/c%(ccd)02d.fits"
-        python:        "lsst.afw.image.ExposureF"
-        persistable:        "ExposureF"
-        storage:    "FitsStorage"
-        level:        "Ccd"
-        tables:        "raw"
-        tables:        "raw_visit"
-    }
-    calexp: {
-        template:      "calexp/v%(visit)d-f%(filter)s/c%(ccd)02d.fits"
         python:        "lsst.afw.image.ExposureF"
         persistable:        "ExposureF"
         storage:    "FitsStorage"
