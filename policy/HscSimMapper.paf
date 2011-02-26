@@ -23,7 +23,7 @@ exposures: {
     }
 
     calexp: {
-        template:    "%(pointing)05d/%(filter)s/corr/CORR%(visit)05d%(ccd)03d.fits"
+        template:    "rerun/%(rerun)s/%(pointing)05d/%(filter)s/corr/CORR%(visit)05d%(ccd)03d.fits"
         python:        "lsst.afw.image.ExposureF"
         persistable:        "ExposureF"
         storage:    "FitsStorage"
@@ -32,7 +32,7 @@ exposures: {
         tables:        "raw_visit"
     }
     postISRCCD: {
-        template:    "%(pointing)05d/%(filter)s/corr/CORR%(visit)05d%(ccd)03d.fits"
+        template:    "rerun/%(rerun)s/%(pointing)05d/%(filter)s/corr/CORR%(visit)05d%(ccd)03d.fits"
         python:        "lsst.afw.image.ExposureF"
         persistable:        "ExposureF"
         storage:    "FitsStorage"
@@ -41,7 +41,7 @@ exposures: {
         tables:        "raw_visit"
     }
     visitim: {
-        template:      "visitim/v%(visit)d-f%(filter)s/c%(ccd)02d.fits"
+        template:      "rerun/%(rerun)s/visitim/v%(visit)d-f%(filter)s/c%(ccd)02d.fits"
         python:        "lsst.afw.image.ExposureF"
         persistable:        "ExposureF"
         storage:    "FitsStorage"
@@ -51,7 +51,7 @@ exposures: {
     }
 
     warp: {
-        template:      "warp/v%(visit)d-f%(filter)s/s%(skytile)d.fits"
+        template:      "rerun/%(rerun)s/warp/v%(visit)d-f%(filter)s/s%(skytile)d.fits"
         python:        "lsst.afw.image.ExposureF"
         persistable:        "ExposureF"
         storage:    "FitsStorage"
@@ -63,7 +63,7 @@ exposures: {
     }
 
     stack: {
-        template:      "stack/%(stack)s/s%(skytile)d.fits"
+        template:      "rerun/%(rerun)s/stack/%(stack)s/s%(skytile)d.fits"
         python:        "lsst.afw.image.ExposureF"
         persistable:        "ExposureF"
         storage:    "FitsStorage"

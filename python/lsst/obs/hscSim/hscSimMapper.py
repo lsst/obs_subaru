@@ -26,16 +26,18 @@ class HscSimMapper(CameraMapper):
             except:
                 raise RuntimeError("Either $SUPRIME_DATA_DIR or root= must be specified")
 
-        if rerun:
-            if rerun.startswith('.') or rerun.startswith('/'):
-                kwargs['root'] = rerun
-            else:
-                try:
-                    kwargs['root'] = os.path.join(os.environ.get('SUPRIME_DATA_DIR'), 'HSC', 'rerun', rerun)
-                except:
-                    raise RuntimeError("Rerun must include a path, or $SUPRIME_DATA_DIR must be defined")
+#        if rerun:
+#            if rerun.startswith('.') or rerun.startswith('/'):
+#                self.rerun = rerun
+#            else:
+#                try:
+#                    self.rerun = os.path.join(os.environ.get('SUPRIME_DATA_DIR'), 'HSC', 'rerun', rerun)
+#                except:
+#                    raise RuntimeError("Rerun must include a path, or $SUPRIME_DATA_DIR must be defined")
+        self.rerun = rerun
 
-        super(HscSimMapper, self).__init__(policy, policyFile.getRepositoryPath(), **kwargs)
+        super(HscSimMapper, self).__init__(policy, policyFile.getRepositoryPath(),
+                                           provided=['rerun'], **kwargs)
 
         self.filters = {
             "W-J-B"   : "B",
@@ -52,3 +54,13 @@ class HscSimMapper(CameraMapper):
     def _extractDetectorName(self, dataId):
         return int("%(ccd)d" % dataId)
 
+    def _transformId(self, dataId):
+        actualId = dataId.copy()
+        if actualId.has_key("rerun"):
+            del actualId["rerun"]
+        return actualId
+
+    def _mapActualToPath(self, template, dataId):
+        actualId = self._transformId(dataId)
+        actualId['rerun'] = self.rerun
+        return template % actualId
