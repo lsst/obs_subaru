@@ -113,7 +113,7 @@ calibrations: {
 
 datasets: {
     psf: {
-        template:      "%(pointing)05d/%(filter)s/output/PSF%(visit)05d%(ccd)03d.boost"
+        template:      "rerun/%(rerun)s/%(pointing)05d/%(filter)s/output/PSF%(visit)05d%(ccd)03d.boost"
         python:        "lsst.afw.detection.Psf"
         persistable:        "Psf"
         storage:    "BoostStorage"
@@ -121,7 +121,7 @@ datasets: {
         tables:        "raw_visit"
     }
     src: {
-        template:      "%(pointing)05d/%(filter)s/output/SRC%(visit)05d%(ccd)03d.boost"
+        template:      "rerun/%(rerun)s/%(pointing)05d/%(filter)s/output/SRC%(visit)05d%(ccd)03d.boost"
         python:        "lsst.afw.detection.PersistableSourceVector"
         persistable:        "PersistableSourceVector"
         storage:    "BoostStorage"
@@ -129,19 +129,31 @@ datasets: {
         tables:        "raw_visit"
     }
     source: {
-        template:      "%(pointing)05d/%(filter)s/output/SRC%(visit)05d%(ccd)03d.fits"
+        template:      "rerun/%(rerun)s/%(pointing)05d/%(filter)s/output/SRC%(visit)05d%(ccd)03d.fits"
         python:        "lsst.afw.detection.PersistableSourceVector"
         persistable:   "PersistableSourceVector"
-        storage:       "FitsStrorage"
+        storage:       "PyfitsStorage"
         tables:        "raw"
         tables:        "raw_visit"
     }
     matches: {
-        template:      "%(pointing)05d/%(filter)s/output/OBJ%(visit)05d%(ccd)03d.fits"
+        template:      "rerun/%(rerun)s/%(pointing)05d/%(filter)s/output/OBJ%(visit)05d%(ccd)03d.fits"
         python:        "lsst.afw.detection.PersistableSourceMatchVector"
-        persistable:        "PersistableSourceMatchVector"
-        storage:    "FitsStorage"
+        persistable:   "PersistableSourceMatchVector"
+        storage:       "FitsStorage"
         tables:        "raw"
         tables:        "raw_visit"
+    }
+    log: {
+        template:      "rerun/%(rerun)s/%(pointing)05d/%(filter)s/logs/run.log"
+        python:        "lsst.afw.detection.PersistableSourceMatchVector"
+        persistable:   "None"
+        storage:       "TextStorage"
+    }
+    logDir: {
+        template:      "rerun/%(rerun)s/%(pointing)05d/%(filter)s/logs"
+        python:        "str"
+        persistable:   "None"
+        storage:       "None"
     }
 }
