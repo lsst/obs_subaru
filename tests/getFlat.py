@@ -23,7 +23,10 @@ class GetFlatTestCase(unittest.TestCase):
 
     def testFlat(self):
         """Test retrieval of flat image"""
-        raw = self.butler.get("flat", field="CFHQS", visit=101543, ccd=2)
+
+        import pdb ; pdb.set_trace()
+        
+        raw = self.butler.get("flat", visit=127073, ccd=2)
         
         print "width: ",              raw.getWidth()
         print "height: ",              raw.getHeight()
