@@ -144,6 +144,14 @@ datasets: {
         tables:        "raw"
         tables:        "raw_visit"
     }
+    matchsources: {
+        template:      "rerun/%(rerun)s/%(pointing)05d/%(filter)s/output/MS%(visit)05d%(ccd)03d.fits"
+        python:        "lsst.afw.detection.PersistableSourceVector"
+        persistable:   "PersistableSourceVector"
+        storage:       "FitsStorage"
+        tables:        "raw"
+        tables:        "raw_visit"
+    }
     log: {
         template:      "rerun/%(rerun)s/%(pointing)05d/%(filter)s/logs/run.log"
         python:        "lsst.afw.detection.PersistableSourceMatchVector"
