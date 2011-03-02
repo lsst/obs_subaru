@@ -144,6 +144,13 @@ datasets: {
         tables:        "raw"
         tables:        "raw_visit"
     }
+    matchFull: {
+        template:      "rerun/%(rerun)s/%(pointing)05d/%(filter)s/output/MLA%(visit)05d%(ccd)03d.fits"
+        python:        "lsst.afw.detection.PersistableSourceVector"
+        persistable:   "PersistableSourceVector"
+        storage:       "PyfitsStorage"
+	tables:		"raw"
+    }
     matchedsources: {
         template:      "rerun/%(rerun)s/%(pointing)05d/%(filter)s/output/MS%(visit)05d%(ccd)03d.boost"
         python:        "lsst.afw.detection.PersistableSourceVector"
@@ -154,14 +161,16 @@ datasets: {
     }
     log: {
         template:      "rerun/%(rerun)s/%(pointing)05d/%(filter)s/logs/run.log"
-        python:        "lsst.afw.detection.PersistableSourceMatchVector"
-        persistable:   "None"
-        storage:       "TextStorage"
+        python:        "str"
+        persistable:   "str"
+        storage:       "str"
+	tables:	       "raw"
     }
     logDir: {
         template:      "rerun/%(rerun)s/%(pointing)05d/%(filter)s/logs"
         python:        "str"
-        persistable:   "None"
-        storage:       "None"
+        persistable:   "str"
+        storage:       "str"
+	tables:        "None"
     }
 }
