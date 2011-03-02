@@ -152,4 +152,12 @@ datasets: {
         tables:        "raw"
         tables:        "raw_visit"
     }
+    matchedsources: {
+        template:      "matchedsources/v%(visit)d-f%(filter)s/c%(ccd)02d.boost"
+        python:        "lsst.afw.detection.PersistableSourceMatchVector"
+        persistable:        "PersistableSourceMatchVector"
+        storage:    "BoostStorage"
+        tables:        "raw"
+        tables:        "raw_visit"
+    }
 }
