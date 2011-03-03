@@ -11,6 +11,11 @@ camera:        "../hscSim/description/hscSim_geom.paf"
 #defects:    "../hscSim/description/hscSim_defects.paf"
 filters:    "../hscSim/description/hscSim_filters.paf"
 
+skytiles: {
+    resolutionPix: 700    # Resolution for skytiles: 700 --> 500 arcsec sides
+    paddingArcsec: 10     # Overlap between skytiles
+}
+
 exposures: {
     raw: {
         template:    "SIMS/%(field)s/%(dateObs).10s/%(pointing)05d/%(filter)s/HSCA%(visit)05d%(ccd)03d.fits"
@@ -45,14 +50,22 @@ exposures: {
     }
 
     stack: {
-        template:      "rerun/%(rerun)s/stack/%(stack)s/s%(skytile)d.fits"
+        template:      "rerun/%(rerun)s/stack/%(stack)d/STK%(patch)05d%(filter).fits"
         python:        "lsst.afw.image.ExposureF"
         persistable:        "ExposureF"
         storage:    "FitsStorage"
         level:        "Skytile"
-        tables:        "raw_visit"
+        tables:        "raw_skytile"
     }
 
+    chisquared: {
+        template:      "rerun/%(rerun)s/stack/%(stack)d/CHI%(patch)05d.fits"
+        python:        "lsst.afw.image.ExposureF"
+        persistable:        "ExposureF"
+        storage:    "FitsStorage"
+        level:        "Skytile"
+        tables:        "raw_skytile"
+    }
 }
 
 calibrations: {
@@ -173,4 +186,23 @@ datasets: {
         storage:       "str"
 	tables:        "None"
     }
+
+    stacksources: {
+        template:      "rerun/%(rerun)s/stack/%(stack)d/SRC(patch)05d%(filter).boost"
+        python:        "lsst.afw.detection.PersistableSourceVector"
+        persistable:   "PersistableSourceVector"
+        storage:       "BoostStorage"
+        level:         "Skytile"
+        tables:        "raw_skytile"
+    }
+
+    stackpsf: {
+        template:      "rerun/%(rerun)s/stack/%(stack)d/PSF%(patch)05d%(filter).boost"
+        python:        "lsst.afw.detection.Psf"
+        persistable:   "Psf"
+        storage:       "BoostStorage"
+        level:         "Skytile"
+        tables:        "raw_skytile"
+    }
+
 }
