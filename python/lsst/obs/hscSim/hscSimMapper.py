@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import os
+import pwd
 
 from lsst.daf.butlerUtils import CameraMapper
 import lsst.pex.policy as pexPolicy
@@ -12,13 +13,6 @@ class HscSimMapper(CameraMapper):
         policyFile = pexPolicy.DefaultPolicyFile("obs_subaru", "HscSimMapper.paf", "policy")
         policy = pexPolicy.Policy(policyFile)
 
-        # Resolve root directory in order:
-        #   if rerun is specified:
-        #     if rerun is a path (starts with / or .) use it as root
-        #     else use $SUPRIME_DATA_DIR/HSC/rerun/$rerun as root
-        #
-        #   else 
-        #     try using $SUPRIME_DATA_DIR/HSC. Otherwise require root= arg
         if not kwargs.get('root', None):
             try:
                 kwargs['root'] = os.path.join(os.environ.get('SUPRIME_DATA_DIR'), 'HSC')
@@ -26,15 +20,7 @@ class HscSimMapper(CameraMapper):
             except:
                 raise RuntimeError("Either $SUPRIME_DATA_DIR or root= must be specified")
 
-#        if rerun:
-#            if rerun.startswith('.') or rerun.startswith('/'):
-#                self.rerun = rerun
-#            else:
-#                try:
-#                    self.rerun = os.path.join(os.environ.get('SUPRIME_DATA_DIR'), 'HSC', 'rerun', rerun)
-#                except:
-#                    raise RuntimeError("Rerun must include a path, or $SUPRIME_DATA_DIR must be defined")
-        self.rerun = rerun
+        self.rerun = rerun if rerun is not None else pwd.getpwuid(os.geteuid())[0]
 
         super(HscSimMapper, self).__init__(policy, policyFile.getRepositoryPath(),
                                            provided=['rerun'], **kwargs)
