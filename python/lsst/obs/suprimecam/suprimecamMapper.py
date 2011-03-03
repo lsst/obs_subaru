@@ -17,7 +17,8 @@ class SuprimecamMapper(CameraMapper):
 
         self.rerun = rerun if rerun is not None else pwd.getpwuid(os.geteuid())[0]
 
-        super(SuprimecamMapper, self).__init__(policy, policyFile.getRepositoryPath(), **kwargs)
+        super(SuprimecamMapper, self).__init__(policy, policyFile.getRepositoryPath(),
+                                               provided=['rerun'], **kwargs)
 
         self.filters = {
             "W-J-B"   : "B",
@@ -37,6 +38,17 @@ class SuprimecamMapper(CameraMapper):
         #return "Suprime %(ccd)d" % dataId
         ccdTmp = int("%(ccd)d" % dataId)
         return miyazakiNames[ccdTmp]
+
+    def _transformId(self, dataId):
+        actualId = dataId.copy()
+        if actualId.has_key("rerun"):
+            del actualId["rerun"]
+        return actualId
+
+    def _mapActualToPath(self, template, dataId):
+        actualId = self._transformId(dataId)
+        actualId['rerun'] = self.rerun
+        return template % actualId
 
 ### XXX Not necessary now that gains are in the camera configuration
 #    def std_raw(self, item, dataId):
