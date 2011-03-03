@@ -188,7 +188,7 @@ datasets: {
     }
 
     stacksources: {
-        template:      "rerun/%(rerun)s/stack/%(stack)05d/SRC(patch)05d%(filter)s.boost"
+        template:      "rerun/%(rerun)s/stack/%(stack)05d/SRC%(patch)05d%(filter)s.boost"
         python:        "lsst.afw.detection.PersistableSourceVector"
         persistable:   "PersistableSourceVector"
         storage:       "BoostStorage"
@@ -205,7 +205,7 @@ datasets: {
 
     stackrgb: {
         # Will be read/written directly by the user; here for _filename only
-        template:      "rerun/%(rerun)s/stack/%(stack)05d/SRC(patch)05d.tiff"
+        template:      "rerun/%(rerun)s/stack/%(stack)05d/SRC%(patch)05d.tiff"
         python:        "lsst.afw.extensions.rgb.RgbImageF"
         persistable:   "RgbImageF"
         storage:       "SelfStorage"
