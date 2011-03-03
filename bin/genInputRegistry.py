@@ -21,7 +21,7 @@ parser.add_option("--camera", dest="camera", default="hsc", help="Camera name: H
 opts, args = parser.parse_args()
 
 if len(args) > 0 or len(sys.argv) == 1:
-    print "Unrecognised arguments:", sys.argv
+    print "Unrecognised arguments:", sys.argv[1:]
     parser.print_help()
     sys.exit(1)
 
