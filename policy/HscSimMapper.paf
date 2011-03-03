@@ -192,7 +192,6 @@ datasets: {
         python:        "lsst.afw.detection.PersistableSourceVector"
         persistable:   "PersistableSourceVector"
         storage:       "BoostStorage"
-        level:         "Skytile"
         tables:        "raw_skytile"
     }
 
@@ -201,7 +200,6 @@ datasets: {
         python:        "lsst.afw.detection.Psf"
         persistable:   "Psf"
         storage:       "BoostStorage"
-        level:         "Skytile"
         tables:        "raw_skytile"
     }
 
@@ -211,7 +209,6 @@ datasets: {
         python:        "lsst.afw.extensions.rgb.RgbImageF"
         persistable:   "RgbImageF"
         storage:       "SelfStorage"
-        level:         "Skytile"
         tables:        "None"
     }
 
