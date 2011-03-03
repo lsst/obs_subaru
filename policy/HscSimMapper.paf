@@ -38,7 +38,7 @@ exposures: {
     }
 
     warp: {
-        template:      "rerun/%(rerun)s/warp/v%(visit)d-f%(filter)s/s%(skytile)d.fits"
+        template:      "rerun/%(rerun)s/warp/v%(visit)d-f%(filter)s/s%(patch)d.fits"
         python:        "lsst.afw.image.ExposureF"
         persistable:        "ExposureF"
         storage:    "FitsStorage"
