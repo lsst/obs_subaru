@@ -206,4 +206,15 @@ datasets: {
         level:         "Skytile"
         tables:        "raw_skytile"
     }
+
+    stackrgb: {
+        # Will be read/written directly by the user; here for _filename only
+        template:      "rerun/%(rerun)s/stack/%(stack)d/SRC(patch)05d%(filter).tiff"
+        python:        "lsst.afw.extensions.rgb.RgbImageF"
+        persistable:   "RgbImageF"
+        storage:       "SelfStorage"
+        level:         "Skytile"
+        tables:        "None"
+    }
+
 }
