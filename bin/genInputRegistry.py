@@ -6,19 +6,51 @@ import re
 import sqlite
 import sys
 import lsst.daf.base   as dafBase
+import lsst.pex.policy as pexPolicy
 import lsst.afw.image  as afwImage
 import lsst.skypix     as skypix
 
+import optparse
+
 # Needs optparse w/ --create, etc. CPL
-root = sys.argv[1]
+parser = optparse.OptionParser()
+parser.add_option("--create", dest="create", default=False, action="store_true", 
+                  help="Create new registry (clobber old)?")
+parser.add_option("--root", dest="root", default=".", help="Root directory")
+parser.add_option("--camera", dest="camera", default="hsc", help="Camera name: HSC|SC")
+opts, args = parser.parse_args()
+
+if len(args) > 0 or len(sys.argv) == 1:
+    print "Unrecognised arguments:", sys.argv
+    parser.print_help()
+    sys.exit(1)
+
+if opts.camera.lower() in ("hsc"):
+    mapperPolicy = "HscSimMapper.paf"
+elif opts.camera.lower() in ("sc", "suprimecam", "suprime-cam"):
+    mapperPolicy = "SuprimecamMapper.paf"
+else:
+    raise KeyError("Unrecognised camera name: %s" % opts.camera)
+
+mapperPolicy = pexPolicy.Policy(os.path.join(os.getenv("OBS_SUBARU_DIR"), "policy", mapperPolicy))
+if mapperPolicy.exists("skytiles"):
+    skyPolicy = mapperPolicy.getPolicy("skytiles")
+else:
+    skyPolicy = None
+
+root = opts.root
 if root == '-':
     files = [l.strip() for l in sys.stdin.readlines()]
 else:
     files = glob.glob(os.path.join(root, "*", "*-*-*", "*", "*", "*.fits"))
 sys.stderr.write('processing %d files...\n' % (len(files)))
 
-makeTables = not os.path.exists("registry.sqlite3")
-conn = sqlite.connect("registry.sqlite3")
+registryName = "registry.sqlite3"
+if opts.create and os.path.exists(registryName):
+    os.unlink(registryName)
+
+makeTables = not os.path.exists(registryName)
+conn = sqlite.connect(registryName)
 if makeTables:
     cmd = "create table raw (id integer primary key autoincrement"
     cmd += ", field text, visit int, filter text, ccd int"
@@ -36,6 +68,7 @@ if makeTables:
     conn.execute(cmd)
     conn.commit()
 
+qsp = skypix.createQuadSpherePixelization(skyPolicy)
 for fits in files:
     m = re.search(r'([\w+-]+)/(\d{4}-\d{2}-\d{2})/(\d+)/([\w\-\+]+)/SUPA(\d{7})(\d).fits', fits)
     if not m:
@@ -70,7 +103,6 @@ for fits in files:
         wcs = afwImage.makeWcs(md)
         poly = skypix.imageToPolygon(wcs, md.get("NAXIS1"), md.get("NAXIS2"),
                                      padRad=0.000075) # about 15 arcsec
-        qsp = skypix.createQuadSpherePixelization()
         pix = qsp.intersect(poly)
 
         conn.execute("INSERT INTO raw VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?)",
