@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+import os
+
 from lsst.daf.butlerUtils import CameraMapper
 import lsst.pex.policy as pexPolicy
 
