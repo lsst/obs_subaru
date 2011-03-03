@@ -60,7 +60,7 @@ exposures: {
     }
 
     stack: {
-        template:      "rerun/%(rerun)s/stack/%(stack)d/STK%(patch)05d%(filter)s.fits"
+        template:      "rerun/%(rerun)s/stack/%(stack)05d/STK%(patch)05d%(filter)s.fits"
         python:        "lsst.afw.image.ExposureF"
         persistable:        "ExposureF"
         storage:    "FitsStorage"
@@ -69,7 +69,7 @@ exposures: {
     }
 
     chisquared: {
-        template:      "rerun/%(rerun)s/stack/%(stack)d/CHI%(patch)05d.fits"
+        template:      "rerun/%(rerun)s/stack/%(stack)05d/CHI%(patch)05d.fits"
         python:        "lsst.afw.image.ExposureF"
         persistable:        "ExposureF"
         storage:    "FitsStorage"
@@ -190,7 +190,7 @@ datasets: {
     }
 
     stacksources: {
-        template:      "rerun/%(rerun)s/stack/%(stack)d/SRC(patch)05d%(filter)s.boost"
+        template:      "rerun/%(rerun)s/stack/%(stack)05d/SRC(patch)05d%(filter)s.boost"
         python:        "lsst.afw.detection.PersistableSourceVector"
         persistable:   "PersistableSourceVector"
         storage:       "BoostStorage"
@@ -198,7 +198,7 @@ datasets: {
     }
 
     stackpsf: {
-        template:      "rerun/%(rerun)s/stack/%(stack)d/PSF%(patch)05d%(filter)s.boost"
+        template:      "rerun/%(rerun)s/stack/%(stack)05d/PSF%(patch)05d%(filter)s.boost"
         python:        "lsst.afw.detection.Psf"
         persistable:   "Psf"
         storage:       "BoostStorage"
@@ -207,7 +207,7 @@ datasets: {
 
     stackrgb: {
         # Will be read/written directly by the user; here for _filename only
-        template:      "rerun/%(rerun)s/stack/%(stack)d/SRC(patch)05d%(filter)s.tiff"
+        template:      "rerun/%(rerun)s/stack/%(stack)05d/SRC(patch)05d%(filter)s.tiff"
         python:        "lsst.afw.extensions.rgb.RgbImageF"
         persistable:   "RgbImageF"
         storage:       "SelfStorage"
