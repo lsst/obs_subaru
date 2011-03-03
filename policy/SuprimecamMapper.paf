@@ -20,7 +20,7 @@ exposures: {
         tables:        "raw_visit"
     }
     postISRCCD: {
-        template:    "postISRCCD/v%(visit)d-f%(filter)s/c%(ccd)02d.fits"
+        template:    "rerun/%(rerun)s/postISRCCD/v%(visit)d-f%(filter)s/c%(ccd)02d.fits"
         python:        "lsst.afw.image.ExposureF"
         persistable:        "ExposureF"
         storage:    "FitsStorage"
@@ -29,7 +29,7 @@ exposures: {
         tables:        "raw_visit"
     }
     visitim: {
-        template:      "visitim/v%(visit)d-f%(filter)s/c%(ccd)02d.fits"
+        template:      "rerun/%(rerun)s/visitim/v%(visit)d-f%(filter)s/c%(ccd)02d.fits"
         python:        "lsst.afw.image.ExposureF"
         persistable:        "ExposureF"
         storage:    "FitsStorage"
@@ -38,7 +38,7 @@ exposures: {
         tables:        "raw_visit"
     }
     calexp: {
-        template:      "calexp/v%(visit)d-f%(filter)s/c%(ccd)02d.fits"
+        template:      "rerun/%(rerun)s/calexp/v%(visit)d-f%(filter)s/c%(ccd)02d.fits"
         python:        "lsst.afw.image.ExposureF"
         persistable:        "ExposureF"
         storage:    "FitsStorage"
@@ -48,7 +48,7 @@ exposures: {
     }
 
     warp: {
-        template:      "warp/v%(visit)d-f%(filter)s/s%(skytile)d.fits"
+        template:      "rerun/%(rerun)s/warp/v%(visit)d-f%(filter)s/s%(skytile)d.fits"
         python:        "lsst.afw.image.ExposureF"
         persistable:        "ExposureF"
         storage:    "FitsStorage"
@@ -60,7 +60,7 @@ exposures: {
     }
 
     stack: {
-        template:      "stack/%(stack)s/s%(skytile)d.fits"
+        template:      "rerun/%(rerun)s/stack/%(stack)s/s%(skytile)d.fits"
         python:        "lsst.afw.image.ExposureF"
         persistable:        "ExposureF"
         storage:    "FitsStorage"
@@ -129,7 +129,7 @@ calibrations: {
 
 datasets: {
     psf: {
-        template:      "psf/v%(visit)d-f%(filter)s/c%(ccd)02d.boost"
+        template:      "rerun/%(rerun)s/psf/v%(visit)d-f%(filter)s/c%(ccd)02d.boost"
         python:        "lsst.afw.detection.Psf"
         persistable:        "Psf"
         storage:    "BoostStorage"
@@ -137,7 +137,7 @@ datasets: {
         tables:        "raw_visit"
     }
     src: {
-        template:      "src/v%(visit)d-f%(filter)s/c%(ccd)02d.boost"
+        template:      "rerun/%(rerun)s/src/v%(visit)d-f%(filter)s/c%(ccd)02d.boost"
         python:        "lsst.afw.detection.PersistableSourceVector"
         persistable:        "PersistableSourceVector"
         storage:    "BoostStorage"
@@ -145,7 +145,7 @@ datasets: {
         tables:        "raw_visit"
     }
     matches: {
-        template:      "match/v%(visit)d-f%(filter)s/c%(ccd)02d.fits"
+        template:      "rerun/%(rerun)s/match/v%(visit)d-f%(filter)s/c%(ccd)02d.fits"
         python:        "lsst.afw.detection.PersistableSourceMatchVector"
         persistable:        "PersistableSourceMatchVector"
         storage:    "FitsStorage"
@@ -153,7 +153,7 @@ datasets: {
         tables:        "raw_visit"
     }
     matchedsources: {
-        template:      "matchedsources/v%(visit)d-f%(filter)s/c%(ccd)02d.boost"
+        template:      "rerun/%(rerun)s/matchedsources/v%(visit)d-f%(filter)s/c%(ccd)02d.boost"
         python:        "lsst.afw.detection.PersistableSourceMatchVector"
         persistable:        "PersistableSourceMatchVector"
         storage:    "BoostStorage"
