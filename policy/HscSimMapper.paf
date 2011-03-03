@@ -25,6 +25,7 @@ exposures: {
         level:        "Ccd"
         tables:        "raw"
         tables:        "raw_visit"
+        tables:        "raw_skyTile"
     }
 
     calexp: {
@@ -35,6 +36,7 @@ exposures: {
         level:        "Ccd"
         tables:        "raw"
         tables:        "raw_visit"
+        tables:        "raw_skyTile"
     }
 
     warp: {
@@ -50,21 +52,21 @@ exposures: {
     }
 
     stack: {
-        template:      "rerun/%(rerun)s/stack/%(stack)05d/STK%(patch)05d%(filter)s.fits"
+        template:      "rerun/%(rerun)s/stack/%(stack)05d/STK%(patch)08d%(filter)s.fits"
         python:        "lsst.afw.image.ExposureF"
         persistable:        "ExposureF"
         storage:    "FitsStorage"
         level:        "Skytile"
-        tables:        "raw_skytile"
+        tables:        "raw_skyTile"
     }
 
     chisquared: {
-        template:      "rerun/%(rerun)s/stack/%(stack)05d/CHI%(patch)05d.fits"
+        template:      "rerun/%(rerun)s/stack/%(stack)05d/CHI%(patch)08d.fits"
         python:        "lsst.afw.image.ExposureF"
         persistable:        "ExposureF"
         storage:    "FitsStorage"
         level:        "Skytile"
-        tables:        "raw_skytile"
+        tables:        "raw_skyTile"
     }
 }
 
@@ -188,24 +190,24 @@ datasets: {
     }
 
     stacksources: {
-        template:      "rerun/%(rerun)s/stack/%(stack)05d/SRC%(patch)05d%(filter)s.boost"
+        template:      "rerun/%(rerun)s/stack/%(stack)05d/SRC%(patch)08d%(filter)s.boost"
         python:        "lsst.afw.detection.PersistableSourceVector"
         persistable:   "PersistableSourceVector"
         storage:       "BoostStorage"
-        tables:        "raw_skytile"
+        tables:        "raw_skyTile"
     }
 
     stackpsf: {
-        template:      "rerun/%(rerun)s/stack/%(stack)05d/PSF%(patch)05d%(filter)s.boost"
+        template:      "rerun/%(rerun)s/stack/%(stack)05d/PSF%(patch)08d%(filter)s.boost"
         python:        "lsst.afw.detection.Psf"
         persistable:   "Psf"
         storage:       "BoostStorage"
-        tables:        "raw_skytile"
+        tables:        "raw_skyTile"
     }
 
     stackrgb: {
         # Will be read/written directly by the user; here for _filename only
-        template:      "rerun/%(rerun)s/stack/%(stack)05d/SRC%(patch)05d.tiff"
+        template:      "rerun/%(rerun)s/stack/%(stack)05d/SRC%(patch)08d.tiff"
         python:        "lsst.afw.extensions.rgb.RgbImageF"
         persistable:   "RgbImageF"
         storage:       "SelfStorage"
