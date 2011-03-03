@@ -60,14 +60,22 @@ exposures: {
     }
 
     stack: {
-        template:      "rerun/%(rerun)s/stack/%(stack)s/s%(skytile)d.fits"
+        template:      "rerun/%(rerun)s/stack/%(stack)d/STK%(patch)05d%(filter).fits"
         python:        "lsst.afw.image.ExposureF"
         persistable:        "ExposureF"
         storage:    "FitsStorage"
         level:        "Skytile"
-        tables:        "raw_visit"
+        tables:        "raw_skytile"
     }
 
+    chisquared: {
+        template:      "rerun/%(rerun)s/stack/%(stack)d/CHI%(patch)05d.fits"
+        python:        "lsst.afw.image.ExposureF"
+        persistable:        "ExposureF"
+        storage:    "FitsStorage"
+        level:        "Skytile"
+        tables:        "raw_skytile"
+    }
 }
 
 calibrations: {
@@ -144,6 +152,14 @@ datasets: {
         tables:        "raw"
         tables:        "raw_visit"
     }
+    source: {
+        template:      "rerun/%(rerun)s/%(pointing)05d/%(filter)s/output/SRC%(visit)05d%(ccd)03d.fits"
+        python:        "lsst.afw.detection.PersistableSourceVector"
+        persistable:   "PersistableSourceVector"
+        storage:       "PyfitsStorage"
+        tables:        "raw"
+        tables:        "raw_visit"
+    }
     matches: {
         template:      "rerun/%(rerun)s/match/v%(visit)d-f%(filter)s/c%(ccd)02d.fits"
         python:        "lsst.afw.detection.PersistableSourceMatchVector"
@@ -153,11 +169,41 @@ datasets: {
         tables:        "raw_visit"
     }
     matchedsources: {
-        template:      "rerun/%(rerun)s/matchedsources/v%(visit)d-f%(filter)s/c%(ccd)02d.boost"
-        python:        "lsst.afw.detection.PersistableSourceMatchVector"
-        persistable:        "PersistableSourceMatchVector"
-        storage:    "BoostStorage"
+        template:      "rerun/%(rerun)s/%(pointing)05d/%(filter)s/output/MS%(visit)05d%(ccd)03d.boost"
+        python:        "lsst.afw.detection.PersistableSourceVector"
+        persistable:   "PersistableSourceVector"
+        storage:       "BoostStorage"
         tables:        "raw"
         tables:        "raw_visit"
+    }
+    log: {
+        template:      "rerun/%(rerun)s/%(pointing)05d/%(filter)s/logs/run.log"
+        python:        "lsst.afw.detection.PersistableSourceMatchVector"
+        persistable:   "None"
+        storage:       "TextStorage"
+    }
+    logDir: {
+        template:      "rerun/%(rerun)s/%(pointing)05d/%(filter)s/logs"
+        python:        "str"
+        persistable:   "None"
+        storage:       "None"
+    }
+
+    stacksources: {
+        template:      "rerun/%(rerun)s/stack/%(stack)d/SRC(patch)05d%(filter).boost"
+        python:        "lsst.afw.detection.PersistableSourceVector"
+        persistable:   "PersistableSourceVector"
+        storage:       "BoostStorage"
+        level:         "Skytile"
+        tables:        "raw_skytile"
+    }
+
+    stackpsf: {
+        template:      "rerun/%(rerun)s/stack/%(stack)d/PSF%(patch)05d%(filter).boost"
+        python:        "lsst.afw.detection.Psf"
+        persistable:   "Psf"
+        storage:       "BoostStorage"
+        level:         "Skytile"
+        tables:        "raw_skytile"
     }
 }
