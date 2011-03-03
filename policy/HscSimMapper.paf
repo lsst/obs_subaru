@@ -13,7 +13,7 @@ filters:    "../hscSim/description/hscSim_filters.paf"
 
 skytiles: {
     resolutionPix: 700    # Resolution for skytiles: 700 --> 500 arcsec sides
-    paddingArcsec: 10     # Overlap between skytiles
+    paddingArcsec: 10.0   # Overlap between skytiles
 }
 
 exposures: {
