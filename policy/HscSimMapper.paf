@@ -54,11 +54,21 @@ exposures: {
     stack: {
         template:      "rerun/%(rerun)s/stack/%(stack)05d/STK%(patch)08d%(filter)s.fits"
         python:        "lsst.afw.image.ExposureF"
-        persistable:        "ExposureF"
-        storage:    "FitsStorage"
-        level:        "Skytile"
+        persistable:   "ExposureF"
+        storage:       "FitsStorage"
+        level:         "Skytile"
         tables:        "raw_skyTile"
     }
+
+    stackWcs: {
+        template:      "rerun/%(rerun)s/stack/%(stack)05d/WCS%(patch)05d%(filter)s.fits"
+        python:        "lsst.afw.image.ExposureF"
+        persistable:   "ExposureF"
+        storage:       "FitsStorage"
+        level:         "Skytile"
+        tables:        "raw_skytile"
+    }
+
 
     chisquared: {
         template:      "rerun/%(rerun)s/stack/%(stack)05d/CHI%(patch)08d.fits"
