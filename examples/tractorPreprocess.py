@@ -6,6 +6,7 @@ import sys
 import lsst.pipette.options as pipOptions
 import lsst.pipette.readwrite as pipReadWrite
 import lsst.pipette.isr as pipIsr
+import lsst.pipette.processCcd as pipProcCcd
 
 from tractorMapper import *
 
@@ -18,28 +19,25 @@ class NullISR(pipIsr.Isr):
         return exposures, None, None
 
 def run(visit, rerun, config):
-    io = pipReadWrite.ReadWrite(TractorMapper, ['visit'], config=config)
+    mapper = TractorMapper()
     dataId = { 'visit': visit, 'rerun': rerun }
-    rrdir = io.outMapper.getPath('outdir', dataId)
+    rrdir = mapper.getPath('outdir', dataId)
     if not os.path.exists(rrdir):
-        os.mkdir(rrdir)
-
+        print 'Creating directory for ouputs:', rrdir
+        os.makedirs(rrdir)
+    io = pipReadWrite.ReadWrite(mapper, ['visit'], config=config)
     ccdProc = pipProcCcd.ProcessCcd(config=config, Isr=NullISR)
 
-    raws = io.readRaw(dataId)
-    detrends = io.detrends(dataId, config)
+    #raws = io.readRaw(dataId)
+    #detrends = io.detrends(dataId, config)
+    print 'Reading exposure'
+    #exposure = io.read('visitim', dataId)
+    detrends = []
+    raws = io.inButler.get('visitim', dataId)
+    print 'ccdProc.run()...'
     exposure, psf, apcorr, brightSources, sources, matches, matchMeta = ccdProc.run(raws, detrends)
-    io.write(dataId, exposure=exposure, psf=psf, sources=sources, matches=matches, matchMeta=matchMeta)
-
-    catPolicy = os.path.join(os.getenv("PIPETTE_DIR"), "policy", "catalog.paf")
-    catalog = pipCatalog.Catalog(catPolicy, allowNonfinite=False)
-    if sources is not None:
-        catalog.writeSources(basename + '.sources', sources, 'sources')
-    if matches is not None:
-        catalog.writeMatches(basename + '.matches', matches, 'sources')
-    return
-
-
+    print 'done!'
+    #io.write(dataId, exposure=exposure, psf=psf, sources=sources, matches=matches, matchMeta=matchMeta)
 
 if __name__ == "__main__":
     parser = pipOptions.OptionParser()
@@ -47,11 +45,10 @@ if __name__ == "__main__":
     parser.add_option("-v", "--visit", dest="visit", type=int, default=0, help="visit to run (default=%default)")
 
     default = os.path.join(os.getenv("PIPETTE_DIR"), "policy", "ProcessCcdDictionary.paf")
-    #overrides = os.path.join(os.getenv("PIPETTE_DIR"), "policy", "suprimecam.paf")
-    #config, opts, args = parser.parse_args([default, overrides])
-    config, opts, args = parser.parse_args([default])
-    if len(args) > 0 or len(sys.argv) == 1 or opts.rerun is None or opts.frame is None or opts.ccd is None:
+    overrides = os.path.join(os.getenv("MEAS_DEBLENDER_DIR"), 'examples', 'tractor.paf')
+    config, opt, args = parser.parse_args([default, overrides])
+    if len(args) > 0 or len(sys.argv) == 1 or opt.rerun is None or opt.visit is None:
         parser.print_help()
         sys.exit(1)
-
-    run(opts.visit, opts.rerun, config)
+    print 'running visit', opt.visit, 'rerun', opt.rerun
+    run(opt.visit, opt.rerun, config)

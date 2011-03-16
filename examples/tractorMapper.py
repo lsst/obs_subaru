@@ -41,8 +41,11 @@ import lsst.meas.algorithms as measAlgo
 import lsst.meas.multifit as measMultifit
 
 class TractorMapper(Mapper):
-    def __init__(self, rerun=0):
+    def __init__(self, rerun=0, **kwargs):
         Mapper.__init__(self)
+
+        print 'TractorMapper(): ignoring kwargs', kwargs
+
         self.rerun = rerun
         self.log = pexLog.Log(pexLog.getDefaultLog(), 'TractorMapper')
 
@@ -69,12 +72,19 @@ class TractorMapper(Mapper):
     def getKeys(self):
         return self.keys
 
-    def map(self, datasetType, dataId):
+    def getPath(self, datasetType, dataId):
         print 'Mapping', datasetType, 'with keys', dataId
         if not 'rerun' in dataId:
             dataId['rerun'] = self.rerun
-        (pattern, cname, pyname) = self.filenames(datasetType)
+        (pattern, cname, pyname) = self.filenames[datasetType]
         path = pattern % dataId
+        print '->', path
+        return path
+
+    def map(self, datasetType, dataId):
+        print 'Mapping', datasetType, 'with keys', dataId
+        path = self.getPath(datasetType, dataId)
+        (pattern, cname, pyname) = self.filenames[datasetType]
         # wow, this is rocket science
         storagetype = None
         if path.endswith('.fits'):
