@@ -39,26 +39,29 @@ import lsst.pex.policy as pexPolicy
 # Solely to get boost serialization registrations for Measurement subclasses
 import lsst.meas.algorithms as measAlgo
 import lsst.meas.multifit as measMultifit
+import lsst.afw.detection
 
 class TractorMapper(Mapper):
-    def __init__(self, rerun=0, **kwargs):
+    def __init__(self, rerun=0, basedir='.', **kwargs):
         Mapper.__init__(self)
 
         print 'TractorMapper(): ignoring kwargs', kwargs
 
+        self.basedir = basedir
         self.rerun = rerun
         self.log = pexLog.Log(pexLog.getDefaultLog(), 'TractorMapper')
 
-        indir = 't%(visit)04i'
+        indir = os.path.join(self.basedir, 't%(visit)04i')
         outdir = os.path.join(indir, 'rr%(rerun)04i')
-        self.filenames = { 'visitim': (
-            os.path.join(indir, 'img.fits'),
-            'lsst.afw.image.ExposureF', 'ExposureF'),
-                           'psf': (
-            os.path.join(outdir, 'psf.boost'),
-            'lsst.afw.detection.Psf', 'Psf'),
-            #'icSrc': os.path.join(outdir, 'icSrc.boost'),
-                           'outdir': (outdir, None, None),
+        self.filenames = { 'outdir': (outdir, None, None),
+                           'visitim': (os.path.join(indir, 'img.fits'),
+                                       'lsst.afw.image.ExposureF', 'ExposureF'),
+                           'psf': (os.path.join(outdir, 'psf.boost'),
+                                   'lsst.afw.detection.Psf', 'Psf'),
+                           'src': (os.path.join(outdir, 'src.boost'),
+                                   # dare to dream / keep dreaming
+                                   #os.path.join(outdir, 'src.fits'),
+                                   'lsst.afw.detection.Source', 'Source'),
                            }
         '''
         for datasetType in ["raw", "bias", "dark", "flat", "fringe",
@@ -89,7 +92,7 @@ class TractorMapper(Mapper):
         storagetype = None
         if path.endswith('.fits'):
             storagetype = 'FitsStorage'
-        elif path.endswidth('.boost'):
+        elif path.endswith('.boost'):
             storagetype = 'BoostStorage'
         return ButlerLocation(cname, pyname, storagetype, path, dataId)
 
