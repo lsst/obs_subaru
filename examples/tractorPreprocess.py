@@ -49,20 +49,22 @@ class MyCalibrate(pipCalib.Calibrate):
         self.log.log(self.log.INFO, "Measuring %d positive sources" % num)
         footprints.append([footprintSet.getFootprints(), False])
         sources = muMeasurement.sourceMeasurement(exposure, psf, footprints, policy)
+
+        print 'sources:', sources
+        for s in sources:
+            print '  ', s, s.getXAstrom(), s.getYAstrom(), s.getPsfFlux(), s.getIxx(), s.getIyy(), s.getIxy()
+
+
         # sourceMeasurement():
         pexLog.Trace_setVerbosity("meas.algorithms.measure", True)
         import lsst.meas.algorithms   as measAlg
         exposure.setPsf(psf)
         measureSources = measAlg.makeMeasureSources(exposure, policy)
-
         print 'ms policy', str(measureSources.getPolicy())
         print 'ms astrom:', measureSources.getMeasureAstrom()
         print 'ms photom:', measureSources.getMeasurePhotom()
         print 'ms shape:', measureSources.getMeasureShape()
 
-        print 'sources:', sources
-        for s in sources:
-            print '  ', s, s.getXAstrom(), s.getYAstrom(), s.getPsfFlux(), s.getIxx(), s.getIyy(), s.getIxy()
 
         print 'initial photometry...'
         sources, footprints = self.phot(exposure, psf)
@@ -79,6 +81,7 @@ class MyCalibrate(pipCalib.Calibrate):
 
 
 def run(visit, rerun, config):
+    # haha, base directory for data
     database = os.path.join(os.getenv("MEAS_DEBLENDER_DIR"), 'examples', 'data')
     mapper = TractorMapper(basedir=database)
     dataId = { 'visit': visit, 'rerun': rerun }
@@ -95,7 +98,21 @@ def run(visit, rerun, config):
     #exposure = io.read('visitim', dataId)
     detrends = []
     exposure = io.inButler.get('visitim', dataId)
+    print 'exposure is', exposure
+    print 'size', exposure.getWidth(), 'x', exposure.getHeight()
+    mi = exposure.getMaskedImage()
+    print 'mi.image is', mi.getImage()
+    print 'mi.mask is', mi.getMask()
+    print 'mi.var is', mi.getVariance()
 
+    img = mi.getImage()
+    var = mi.getVariance()
+    print 'var at 90,100 is', var.get(90,100)
+    print 'img at 90,100 is', img.get(90,100)
+
+    #print dir(mi)
+    print dir(var)
+    
     #print 'ccdProc.run()...'
     # raws = [exposure]
     #exposure, psf, apcorr, brightSources, sources, matches, matchMeta = ccdProc.run(raws, detrends)

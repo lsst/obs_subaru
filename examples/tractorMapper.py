@@ -54,7 +54,7 @@ class TractorMapper(Mapper):
         indir = os.path.join(self.basedir, 't%(visit)04i')
         outdir = os.path.join(indir, 'rr%(rerun)04i')
         self.filenames = { 'outdir': (outdir, None, None),
-                           'visitim': (os.path.join(indir, 'img.fits'),
+                           'visitim': (os.path.join(indir, 't.fits'), #'t_img.fits'), #img.fits'),
                                        'lsst.afw.image.ExposureF', 'ExposureF'),
                            'psf': (os.path.join(outdir, 'psf.boost'),
                                    'lsst.afw.detection.Psf', 'Psf'),
