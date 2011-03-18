@@ -31,49 +31,68 @@ class MyCalibrate(pipCalib.Calibrate):
         assert exposure is not None, "No exposure provided"
         print 'creating fake PSF...'
         psf, wcs = self.fakePsf(exposure)
+        print 'wcs is', wcs
 
+        if True:
+            import lsst.meas.utils.sourceDetection as muDetection
+            import lsst.meas.utils.sourceMeasurement as muMeasurement
+            # phot.py : detect()
+            policy = self.config['detect']
+            posSources, negSources = muDetection.detectSources(exposure, psf, policy.getPolicy())
+            numPos = len(posSources.getFootprints()) if posSources is not None else 0
+            numNeg = len(negSources.getFootprints()) if negSources is not None else 0
+            print 'found', numPos, 'pos and', numNeg, 'neg sources'
+            footprintSet = posSources
+            # phot.py : measure()
+            policy = self.config['measure'].getPolicy()
+            footprints = []
+            num = len(footprintSet.getFootprints())
+            self.log.log(self.log.INFO, "Measuring %d positive sources" % num)
+            footprints.append([footprintSet.getFootprints(), False])
+            sources = muMeasurement.sourceMeasurement(exposure, psf, footprints, policy)
+            print 'sources:', sources
+            for s in sources:
+                print '  ', s, s.getXAstrom(), s.getYAstrom(), s.getPsfFlux(), s.getIxx(), s.getIyy(), s.getIxy()
 
-        import lsst.meas.utils.sourceDetection as muDetection
-        import lsst.meas.utils.sourceMeasurement as muMeasurement
-        # phot.py : detect()
-        policy = self.config['detect']
-        posSources, negSources = muDetection.detectSources(exposure, psf, policy.getPolicy())
-        numPos = len(posSources.getFootprints()) if posSources is not None else 0
-        numNeg = len(negSources.getFootprints()) if negSources is not None else 0
-        print 'found', numPos, 'pos and', numNeg, 'neg sources'
-        footprintSet = posSources
-        # phot.py : measure()
-        policy = self.config['measure'].getPolicy()
-        footprints = []
-        num = len(footprintSet.getFootprints())
-        self.log.log(self.log.INFO, "Measuring %d positive sources" % num)
-        footprints.append([footprintSet.getFootprints(), False])
-        sources = muMeasurement.sourceMeasurement(exposure, psf, footprints, policy)
-
-        print 'sources:', sources
-        for s in sources:
-            print '  ', s, s.getXAstrom(), s.getYAstrom(), s.getPsfFlux(), s.getIxx(), s.getIyy(), s.getIxy()
-
-
-        # sourceMeasurement():
-        pexLog.Trace_setVerbosity("meas.algorithms.measure", True)
-        import lsst.meas.algorithms   as measAlg
-        exposure.setPsf(psf)
-        measureSources = measAlg.makeMeasureSources(exposure, policy)
-        print 'ms policy', str(measureSources.getPolicy())
-        print 'ms astrom:', measureSources.getMeasureAstrom()
-        print 'ms photom:', measureSources.getMeasurePhotom()
-        print 'ms shape:', measureSources.getMeasureShape()
+            # sourceMeasurement():
+            import lsst.meas.algorithms   as measAlg
+            import lsst.afw.detection     as afwDetection
+            pexLog.Trace_setVerbosity("meas.algorithms.measure", True)
+            exposure.setPsf(psf)
+            measureSources = measAlg.makeMeasureSources(exposure, policy)
+            print 'ms policy', str(measureSources.getPolicy())
+            print 'ms astrom:', measureSources.getMeasureAstrom()
+            print 'ms photom:', measureSources.getMeasurePhotom()
+            print 'ms shape:', measureSources.getMeasureShape()
+            F = footprints[0][0]
+            for i in range(len(F)):
+                # create a new source, and add it to the list, initialize ...
+                s = afwDetection.Source()
+                f = F[i]
+                print 'measuring footprint', f
+                measureSources.apply(s, f)
+                print 'got', s
+                print '  ', s, s.getXAstrom(), s.getYAstrom(), s.getPsfFlux(), s.getIxx(), s.getIyy(), s.getIxy()
+                
 
 
         print 'initial photometry...'
         sources, footprints = self.phot(exposure, psf)
         print 'got sources', str(sources)
         print 'got footprints', str(footprints)
+        print 'sources:', sources
+        for s in sources:
+            print '  ', s, s.getXAstrom(), s.getYAstrom(), s.getPsfFlux(), s.getIxx(), s.getIyy(), s.getIxy()
+
         print 're-photometry...'
         sources = self.rephot(exposure, footprints, psf)
         print 'got sources', str(sources)
+        print 'sources:', sources
+        for s in sources:
+            print '  ', s, s.getXAstrom(), s.getYAstrom(), s.getPsfFlux(), s.getIxx(), s.getIyy(), s.getIxy()
+
         return psf, sources, footprints
+
 
     #def repair(self, *args, **kwargs):
     #    print 'repair: doing nothing'
@@ -100,19 +119,17 @@ def run(visit, rerun, config):
     exposure = io.inButler.get('visitim', dataId)
     print 'exposure is', exposure
     print 'size', exposure.getWidth(), 'x', exposure.getHeight()
+    # debug
     mi = exposure.getMaskedImage()
-    print 'mi.image is', mi.getImage()
-    print 'mi.mask is', mi.getMask()
-    print 'mi.var is', mi.getVariance()
-
     img = mi.getImage()
     var = mi.getVariance()
     print 'var at 90,100 is', var.get(90,100)
     print 'img at 90,100 is', img.get(90,100)
 
-    #print dir(mi)
-    print dir(var)
-    
+    print 'wcs is', exposure.getWcs()
+    wcs = exposure.getWcs()
+    assert wcs
+
     #print 'ccdProc.run()...'
     # raws = [exposure]
     #exposure, psf, apcorr, brightSources, sources, matches, matchMeta = ccdProc.run(raws, detrends)
