@@ -1,0 +1,7 @@
+hg co svn://hsc-gw2.mtk.nao.ac.jp/ana/hgrepo/@PRODUCT@ @PRODUCT@-@VERSION@ &&
+cd @PRODUCT@-@VERSION@ &&
+hg up @VERSION@ &&
+setup -r . &&
+scons opt=3 &&
+scons opt=3 install version=@VERSION@
+
