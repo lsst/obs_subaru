@@ -25,7 +25,7 @@ class HscDistortion(pipDist.CameraDistortion):
         self.x0 = position.getX() - center.getX()
         self.y0 = position.getY() - center.getY()
 
-    def _distortPosition(self, x, y, direction=None, elevation=30.0, copy=True):
+    def _distortPosition(self, x, y, direction=None, elevation=60.0, copy=True):
         """Distort/undistort a position.
 
         @param x X coordinate to distort. pixels from focal plane center.
