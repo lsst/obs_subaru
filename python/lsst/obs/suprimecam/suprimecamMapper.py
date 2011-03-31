@@ -27,7 +27,7 @@ class SuprimecamMapper(CameraMapper):
         self.outRoot = outRoot
 
         super(SuprimecamMapper, self).__init__(policy, policyFile.getRepositoryPath(),
-                                               provided=['rerun'], **kwargs)
+                                               provided=['rerun', 'outRoot'], **kwargs)
 
         self.filters = {
             "W-J-B"   : "B",
