@@ -16,9 +16,13 @@ calibrate: {
      model: "DoubleGaussian"
      fwhm: 2.35  # arcsec
      size: 15
+
+	thresholdValue: 6.0
+
 }
 
 detect: {
+	# THIS VALUE IS IGNORED (it's overridden by calibrate.thresholdValue; see pipette calibrate.py phot() )
     thresholdValue: 5.0
     thresholdType: stdev
 }

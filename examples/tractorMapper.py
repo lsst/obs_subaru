@@ -61,7 +61,10 @@ class TractorMapper(Mapper):
                            'src': (os.path.join(outdir, 'src.boost'),
                                    # dare to dream / keep dreaming
                                    #os.path.join(outdir, 'src.fits'),
-                                   'lsst.afw.detection.Source', 'Source'),
+                                   # htf did this work before?
+                                   #'lsst.afw.detection.Source', 'Source'),
+                                   'lsst.afw.detection.PersistableSourceVector',
+                                   'PersistableSourceVector'),
                            }
         '''
         for datasetType in ["raw", "bias", "dark", "flat", "fringe",
