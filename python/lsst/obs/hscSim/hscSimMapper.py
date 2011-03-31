@@ -9,7 +9,7 @@ import lsst.pex.policy as pexPolicy
 class HscSimMapper(CameraMapper):
     """Provides abstract-physical mapping for HSC Simulation data"""
     
-    def __init__(self, rerun=None, **kwargs):
+    def __init__(self, rerun=None, outRoot=None, **kwargs):
         policyFile = pexPolicy.DefaultPolicyFile("obs_subaru", "HscSimMapper.paf", "policy")
         policy = pexPolicy.Policy(policyFile)
 
@@ -19,11 +19,17 @@ class HscSimMapper(CameraMapper):
                 kwargs['calibRoot'] = os.path.join(os.environ.get('SUPRIME_DATA_DIR'), 'CALIB')
             except:
                 raise RuntimeError("Either $SUPRIME_DATA_DIR or root= must be specified")
+        if outRoot is None:
+            if policy.exists('outRoot'):
+                outRoot = policy.get('outRoot')
+            else:
+                outRoot = kwargs['root']
 
         self.rerun = rerun if rerun is not None else pwd.getpwuid(os.geteuid())[0]
+        self.outRoot = outRoot
 
         super(HscSimMapper, self).__init__(policy, policyFile.getRepositoryPath(),
-                                           provided=['rerun'], **kwargs)
+                                           provided=['rerun', 'outRoot'], **kwargs)
 
         self.filters = {
             "W-J-B"   : "B",
@@ -49,4 +55,5 @@ class HscSimMapper(CameraMapper):
     def _mapActualToPath(self, template, dataId):
         actualId = self._transformId(dataId)
         actualId['rerun'] = self.rerun
+        actualId['outRoot'] = self.outRoot
         return template % actualId

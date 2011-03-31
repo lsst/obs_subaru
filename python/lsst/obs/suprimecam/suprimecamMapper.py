@@ -7,7 +7,7 @@ from lsst.daf.butlerUtils import CameraMapper
 import lsst.pex.policy as pexPolicy
 
 class SuprimecamMapper(CameraMapper):
-    def __init__(self, rerun=None, **kwargs):
+    def __init__(self, rerun=None, outRoot=None, **kwargs):
         policyFile = pexPolicy.DefaultPolicyFile("obs_subaru", "SuprimecamMapper.paf", "policy")
         policy = pexPolicy.Policy(policyFile)
 
@@ -17,8 +17,14 @@ class SuprimecamMapper(CameraMapper):
                 kwargs['calibRoot'] = os.path.join(os.environ.get('SUPRIME_DATA_DIR'), 'SUPA', 'CALIB')
             except:
                 raise RuntimeError("Either $SUPRIME_DATA_DIR or root= must be specified")
+        if outRoot is None:
+            if policy.exists('outRoot'):
+                outRoot = policy.get('outRoot')
+            else:
+                outRoot = kwargs['root']
 
         self.rerun = rerun if rerun is not None else pwd.getpwuid(os.geteuid())[0]
+        self.outRoot = outRoot
 
         super(SuprimecamMapper, self).__init__(policy, policyFile.getRepositoryPath(),
                                                provided=['rerun'], **kwargs)
@@ -51,6 +57,7 @@ class SuprimecamMapper(CameraMapper):
     def _mapActualToPath(self, template, dataId):
         actualId = self._transformId(dataId)
         actualId['rerun'] = self.rerun
+        actualId['outRoot'] = self.outRoot
         return template % actualId
 
 ### XXX Not necessary now that gains are in the camera configuration
