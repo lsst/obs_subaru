@@ -1,0 +1,34 @@
+#<?cfg paf policy ?>
+#
+description: "The Subaru HSC filters"
+
+Filter: {
+    # SDSS g': http://www.naoj.org/Observing/Instruments/SCam/txt/g.txt
+    name: "g"
+    lambdaEff: 477.0 # Should be re-calced in same way as other filters.
+    alias: "W-S-G+"
+}
+Filter: {
+    # SDSS r': http://www.naoj.org/Observing/Instruments/SCam/txt/r.txt
+    name: "r"
+    lambdaEff: 623.0 # Should be re-calced in same way as other filters.
+    alias: "W-S-R+"
+}
+Filter: {
+    # SDSS i': http://www.naoj.org/Observing/Instruments/SCam/txt/i.txt
+    name: "i"
+    lambdaEff: 775.0
+    alias: "W-S-I+"
+}
+Filter: {
+    # Red side of SDSS z': Shimasaku et al., 2005, PASJ, 57, 447
+    name: "y"
+    lambdaEff: 990.0
+    alias: "W-S-ZR"
+}
+Filter: {
+    # SDSS z': http://www.naoj.org/Observing/Instruments/SCam/txt/z.txt
+    name: "z"
+    lambdaEff: 925.0
+    alias: "W-S-Z+"
+}

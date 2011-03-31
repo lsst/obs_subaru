@@ -1,0 +1,435 @@
+Camera: { 
+    name: "Subaru SuprimeCam" 
+    serial: 1
+    nCol: 1 
+    nRow: 1 
+    Raft: { 
+        name: "R:0,0" 
+        serial: -1 
+        index: 0 0 
+        offset: 0.0 0.0 
+    } 
+} 
+Amp: { 
+    height: 4177 
+    width:  512
+    extended: 8 
+    preRows: 48 
+    overclockH: 48 
+    overclockV: 48
+} 
+Ccd: { 
+    pixelSize: 10.0e-3  # mm
+    nCol: 4
+    nRow: 1 
+    Amp: { 
+        index: 0 0 
+        readoutCorner: LLC 
+    } 
+    Amp: { 
+        index: 1 0 
+        readoutCorner: LRC 
+    }
+    Amp: { 
+        index: 2 0 
+        readoutCorner: LLC 
+    }
+    Amp: { 
+        index: 3 0 
+        readoutCorner: LRC 
+    }
+}
+
+CcdDiskLayout: { 
+    HduPerAmp: false 
+    Amp: { 
+        serial: 0 
+        flipLR: false 
+        flipTB: false 
+        hdu: 0 
+    } 
+    Amp: { 
+        serial: 1 
+        flipLR: false 
+        flipTB: false 
+        hdu: 0 
+    } 
+    Amp: { 
+        serial: 2 
+        flipLR: false 
+        flipTB: false 
+        hdu: 0 
+    } 
+    Amp: { 
+        serial: 3 
+        flipLR: false 
+        flipTB: false 
+        hdu: 0 
+    } 
+} 
+Raft: { 
+    nCol: 5 
+    nRow: 2 
+    name: "R:0,0" 
+    serial: -1
+
+    Ccd: {
+        serial: 8                       # CCD's serial number
+        name: "Ponyo"                   # CCD's name
+        index: 0 0                      # Location of CCD in Raft thought of as a grid of CCDs
+        offset: -4242.1 -2123.13        # offset of CCD center from raft center, (x, y); mm (pixels??)
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0        # pitch, roll, yaw; degrees
+    }
+    Ccd: {
+        serial: 6                       # CCD's serial number
+        name: "Chihiro"                 # CCD's name
+        index: 0 1                      # Location of CCD in Raft thought of as a grid of CCDs
+        offset: -4245.1 2127.3          # offset of CCD center from raft center, (x, y); mm
+        nQuarter: 2                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0        # pitch, roll, yaw; degrees
+    }
+    Ccd: {
+        serial: 9                       # CCD's serial number
+        name: "San"                     # CCD's name
+        index: 1 0                      # Location of CCD in Raft thought of as a grid of CCDs
+        offset: -2120.4 -2122.0         # offset of CCD center from raft center, (x, y); mm
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0        # pitch, roll, yaw; degrees
+    }
+    Ccd: {
+        serial: 7                       # CCD's serial number
+        name: "Clarisse"                # CCD's name
+        index: 1 1                      # Location of CCD in Raft thought of as a grid of CCDs
+        offset: -2121.2 2129.6          # offset of CCD center from raft center, (x, y); mm
+        nQuarter: 2                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0        # pitch, roll, yaw; degrees
+    }
+    Ccd: {
+        serial: 5                       # CCD's serial number
+        name: "Satsuki"                 # CCD's name
+        index: 2 0                      # Location of CCD in Raft thought of as a grid of CCDs
+        offset: 0.0 -2126.7             # offset of CCD center from raft center, (x, y); mm
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0        # pitch, roll, yaw; degrees
+    }
+   Ccd: {
+        serial: 2                       # CCD's serial number
+        name: "Fio"                     # CCD's name
+        index: 2 1                      # Location of CCD in Raft thought of as a grid of CCDs
+        offset: 2.1 2130.3              # offset of CCD center from raft center, (x, y); mm
+        nQuarter: 2                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0        # pitch, roll, yaw; degrees
+    }
+    Ccd: {
+        serial: 4                       # CCD's serial number
+        name: "Sheeta"                  # CCD's name
+        index: 3 0                      # Location of CCD in Raft thought of as a grid of CCDs
+        offset: 2129.9 -2120.9          # offset of CCD center from raft center, (x, y); mm
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0        # pitch, roll, yaw; degrees
+    }
+    Ccd: {
+        serial: 1                       # CCD's serial number
+        name: "Kiki"                    # CCD's name
+        index: 3 1                      # Location of CCD in Raft thought of as a grid of CCDs
+        offset: 2123.8 2129.7           # offset of CCD center from raft center, (x, y); mm
+        nQuarter: 2                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0        # pitch, roll, yaw; degrees
+    }
+    Ccd: {
+        serial: 3                       # CCD's serial number
+        name: "Sophie"                  # CCD's name
+        index: 4 0                      # Location of CCD in Raft thought of as a grid of CCDs
+        offset: 4247.4 -2122.7         # offset of CCD center from raft center, (x, y); mm (pixels??)
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0        # pitch, roll, yaw; degrees
+    }
+    Ccd: {
+        serial: 0                       # CCD's serial number
+        name: "Nausicaa"                # CCD's name
+        index: 4 1                      # Location of CCD in Raft thought of as a grid of CCDs
+        offset: 4245.5 2130.0           # offset of CCD center from raft center, (x, y); mm
+        nQuarter: 2                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0        # pitch, roll, yaw; degrees
+    }
+}
+
+Electronic: { 
+    Raft: { 
+        name: "R:0,0" 
+        serial: -1 
+
+        Ccd: {
+            name: "Ponyo"
+            Amp: {
+                index: 0 0
+                gain: 3.650
+                readNoise: 10.0
+                saturationLevel: 60000.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.830
+                readNoise: 10.0
+                saturationLevel: 60000.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 4.030
+                readNoise: 10.0
+                saturationLevel: 60000.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.120
+                readNoise: 10.0
+                saturationLevel: 60000.0
+            }
+        }
+        Ccd: {
+            name: "Chihiro"             # CCD's name
+            Amp: {
+                index: 0 0
+                gain: 3.730
+                readNoise: 10.0
+                saturationLevel: 60000.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 2.950
+                readNoise: 10.0
+                saturationLevel: 60000.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.100
+                readNoise: 10.0
+                saturationLevel: 60000.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.170
+                readNoise: 10.0
+                saturationLevel: 60000.0
+            }
+        }
+        Ccd: {
+            name: "San"                 # CCD's name
+            Amp: {
+                index: 0 0
+                gain: 3.060
+                readNoise: 10.0
+                saturationLevel: 60000.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.160
+                readNoise: 10.0
+                saturationLevel: 60000.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.280
+                readNoise: 10.0
+                saturationLevel: 60000.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.020
+                readNoise: 10.0
+                saturationLevel: 60000.0
+            }
+        }
+        Ccd: {
+            name: "Clarisse"            # CCD's name
+            Amp: {
+                index: 0 0
+                gain: 2.990
+                readNoise: 10.0
+                saturationLevel: 60000.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.130
+                readNoise: 10.0
+                saturationLevel: 60000.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.310
+                readNoise: 10.0
+                saturationLevel: 60000.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.060
+                readNoise: 10.0
+                saturationLevel: 60000.0
+            }
+        }
+        Ccd: {
+            name: "Satsuki"             # CCD's name
+            Amp: {
+                index: 0 0
+                gain: 3.150
+                readNoise: 10.0
+                saturationLevel: 60000.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 2.820
+                readNoise: 10.0
+                saturationLevel: 60000.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.000
+                readNoise: 10.0
+                saturationLevel: 60000.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.080
+                readNoise: 10.0
+                saturationLevel: 60000.0
+            }
+        }
+        Ccd: {
+            name: "Fio"                 # CCD's name
+            Amp: {
+                index: 0 0
+                gain: 2.960
+                readNoise: 10.0
+                saturationLevel: 60000.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.090
+                readNoise: 10.0
+                saturationLevel: 60000.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.210
+                readNoise: 10.0
+                saturationLevel: 60000.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 2.910
+                readNoise: 10.0
+                saturationLevel: 60000.0
+            }
+        }
+        Ccd: {
+            name: "Sheeta"              # CCD's name
+            Amp: {
+                index: 0 0
+                gain: 3.100
+                readNoise: 10.0
+                saturationLevel: 60000.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.260
+                readNoise: 10.0
+                saturationLevel: 60000.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.440
+                readNoise: 10.0
+                saturationLevel: 60000.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.120
+                readNoise: 10.0
+                saturationLevel: 60000.0
+            }
+        }
+        Ccd: {
+            name: "Kiki"                # CCD's name
+            Amp: {
+                index: 0 0
+                gain: 3.300
+                readNoise: 10.0
+                saturationLevel: 60000.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.470
+                readNoise: 10.0
+                saturationLevel: 60000.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.780
+                readNoise: 10.0
+                saturationLevel: 60000.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.720
+                readNoise: 10.0
+                saturationLevel: 60000.0
+            }
+        }
+        Ccd: {
+            name: "Sophie"              # CCD's name
+            Amp: {
+                index: 0 0
+                gain: 3.580
+                readNoise: 10.0
+                saturationLevel: 60000.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.100
+                readNoise: 10.0
+                saturationLevel: 60000.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.230
+                readNoise: 10.0
+                saturationLevel: 60000.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.190
+                readNoise: 10.0
+                saturationLevel: 60000.0
+            }
+        }
+        Ccd: {
+            name: "Nausicaa"            # CCD's name
+            Amp: {
+                index: 0 0
+                gain: 3.320
+                readNoise: 10.0
+                saturationLevel: 60000.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.210
+                readNoise: 10.0
+                saturationLevel: 60000.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.330
+                readNoise: 10.0
+                saturationLevel: 60000.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.220
+                readNoise: 10.0
+                saturationLevel: 60000.0
+            }
+        }
+
+    } 
+} 
