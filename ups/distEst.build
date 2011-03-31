@@ -1,4 +1,4 @@
-hg clone ssh://hsc-gw2.mtk.nao.ac.jp/ana/hgrepo/@PRODUCT@ @PRODUCT@-@VERSION@ &&
+hg clone ssh://hsc-gw2.mtk.nao.ac.jp//ana/hgrepo/@PRODUCT@ @PRODUCT@-@VERSION@ &&
 cd @PRODUCT@-@VERSION@ &&
 hg up @VERSION@ &&
 setup -r . &&
