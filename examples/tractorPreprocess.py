@@ -153,6 +153,16 @@ def run(visit, rerun, config):
     for s in sources:
         print '  ', s, s.getXAstrom(), s.getYAstrom(), s.getPsfFlux(), s.getIxx(), s.getIyy(), s.getIxy()
 
+    print 'footprints:', footprints
+    # oh yeah, baby!
+    fps = footprints.getFootprints()
+    print len(fps)
+    bb = []
+    for f in fps:
+        print '  ', f
+        print '  ', f.getBBox()
+        bbox = f.getBBox()
+        bb.append((bbox.getX0(), bbox.getY0(), bbox.getX1(), bbox.getY1()))
     #print 'psf', psf
     #print 'sources', sources
     #print 'footprints', footprints
@@ -170,8 +180,9 @@ def run(visit, rerun, config):
     print 'writing output...'
     io.write(dataId, psf=psf, sources=sources)
     print 'done!'
+    return bb
 
-def plots(visit, rerun, config):
+def plots(visit, rerun, config, bb=[]):
     mapper = getMapper()
     dataId = { 'visit': visit, 'rerun': rerun }
     rrdir = mapper.getPath('outdir', dataId)
@@ -222,9 +233,9 @@ def plots(visit, rerun, config):
     # SExtractor manual pg 29.
     a2 = (x2 + y2)/2. + np.sqrt(((x2 - y2)/2.)**2 + xy**2)
     b2 = (x2 + y2)/2. - np.sqrt(((x2 - y2)/2.)**2 + xy**2)
+    theta = np.rad2deg(np.arctan2(2.*xy, (x2 - y2)) / 2.)
     a = np.sqrt(a2)
     b = np.sqrt(b2)
-    theta = np.rad2deg(np.arctan2(2.*xy, (x2 - y2)) / 2.)
     print 'a,b', a, b
     print 'theta', theta
 
@@ -240,6 +251,9 @@ def plots(visit, rerun, config):
         tirad = np.deg2rad(ti)
         plt.plot([xi, xi + ai * np.cos(tirad)],
                  [yi, yi + ai * np.sin(tirad)], 'r-')
+
+    for (x0,y0,x1,y1) in bb:
+        plt.plot([x0,x0,x1,x1,x0], [y0,y1,y1,y0,y0], 'b-')
 
     plt.axis(ax)
     plt.savefig('src.png')
@@ -258,9 +272,9 @@ if __name__ == "__main__":
         parser.print_help()
         sys.exit(1)
     print 'running visit', opt.visit, 'rerun', opt.rerun
-    run(opt.visit, opt.rerun, config)
+    bb = run(opt.visit, opt.rerun, config)
 
     if opt.plots:
-        plots(opt.visit, opt.rerun, config)
+        plots(opt.visit, opt.rerun, config, bb)
         
 
