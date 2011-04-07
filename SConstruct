@@ -20,7 +20,8 @@ env = scons.makeEnv(
 
 for d in (
     "lib",
-    "python/hsc/meas/match"
+    "python/hsc/meas/match",
+    "tests",
 ):
     SConscript(os.path.join(d, "SConscript"))
 

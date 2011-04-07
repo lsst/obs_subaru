@@ -23,6 +23,9 @@ tmp*
 submit.condor
 eups*
 
+*_wrap.cc
+.tests/*
+
 *.o
 *.so
 *.dylib
