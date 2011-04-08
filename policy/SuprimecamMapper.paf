@@ -161,7 +161,7 @@ datasets: {
         tables:        "raw"
         tables:        "raw_visit"
     }
-    matches: {
+    icMatch: {
         template:      "%(outRoot)s/rerun/%(rerun)s/%(pointing)05d/%(filter)s/output/OBJ%(visit)07d%(ccd)1d.fits"
         python:        "lsst.afw.detection.PersistableSourceMatchVector"
         persistable:        "PersistableSourceMatchVector"
@@ -176,7 +176,7 @@ datasets: {
         storage:       "PyfitsStorage"
 	tables:		"raw"
     }
-    matchedsources: {
+    icSrc: {
         template:      "%(outRoot)s/rerun/%(rerun)s/%(pointing)05d/%(filter)s/output/MS%(visit)07d%(ccd)1d.boost"
         python:        "lsst.afw.detection.PersistableSourceVector"
         persistable:   "PersistableSourceVector"
