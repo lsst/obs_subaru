@@ -49,6 +49,7 @@ del types
 
 
 getDistortedPosition = _distest.getDistortedPosition
+getDistortedPositionIterative = _distest.getDistortedPositionIterative
 getUndistortedPosition = _distest.getUndistortedPosition
 
 

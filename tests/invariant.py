@@ -65,10 +65,15 @@ class InvarianceTestCase(unittest.TestCase):
                        (-7467.7, 13309.0), (11642.67, 13309.0), (11642.67, -15575.7), (-7467.7, -15575.7)]:
             for elev in [30, 45, 60, 90]:
                 xDist, yDist = distest.getDistortedPosition(x0, y0, elev)
+                xDist_iter, yDist_iter = distest.getDistortedPositionIterative(x0, y0, elev)
                 x1, y1 = distest.getUndistortedPosition(xDist, yDist, elev)
+                x1_iter, y1_iter = distest.getUndistortedPosition(xDist_iter, yDist_iter, elev)
                 diff = math.hypot(x1 - x0, y1 - y0)
-                self.assertLess(diff, TOLERANCE, "Not invariant at elev %f: %f,%f --> %f,%f --> %f,%f (%f)" % \
-                                (elev, x0, y0, xDist, yDist, x1, y1, diff))
+                diff_iter = math.hypot(x1_iter - x0, y1_iter - y0)
+                self.assertLess(diff_iter, TOLERANCE, "Not invariant at elev %f: %f,%f --> %f,%f --> %f,%f (%f)" % \
+                                (elev, x0, y0, xDist_iter, yDist_iter, x1_iter, y1_iter, diff_iter))
+#                self.assertLess(diff, TOLERANCE, "Not invariant at elev %f: %f,%f --> %f,%f --> %f,%f (%f)" % \
+#                                (elev, x0, y0, xDist, yDist, x1, y1, diff))
 
 def suite():
     utilsTests.init()
