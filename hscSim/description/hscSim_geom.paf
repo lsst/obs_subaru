@@ -824,7 +824,7 @@ Raft: {
     Ccd: { 
         serial: 100                    # CCD's serial number
         name: "dummy100"                    # CCD's name
-        index: 4 7
+        index: 2 7
         offset: -7467.7 13309.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                    # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 90.0       # pitch, roll, yaw; degrees
@@ -832,7 +832,7 @@ Raft: {
     Ccd: { 
         serial: 101                    # CCD's serial number
         name: "dummy101"                    # CCD's name
-        index: 13 7
+        index: 12 7
         offset: 11642.67 13309.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 90.0       # pitch, roll, yaw; degrees
@@ -840,7 +840,7 @@ Raft: {
     Ccd: { 
         serial: 102                    # CCD's serial number
         name: "dummy102"                    # CCD's name
-        index: 13 0
+        index: 12 0
         offset: 11642.67 -15575.7 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 90.0       # pitch, roll, yaw; degrees
@@ -848,7 +848,7 @@ Raft: {
     Ccd: { 
         serial: 103                    # CCD's serial number
         name: "dummy103"                    # CCD's name
-        index: 4 0
+        index: 2 0
         offset: -7467.7 -15575.7 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 90.0       # pitch, roll, yaw; degrees
