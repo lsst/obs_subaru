@@ -39,14 +39,13 @@ class HscDistortion(pipDist.CameraDistortion):
             point = self.ccd.getPositionFromPixel(point)
             pixelSize = self.ccd.getPixelSize()
             x, y = point.getX() / pixelSize, point.getY() / pixelSize
-        else:
-            x += self.x0
-            y += self.y0
 
         if direction == "toIdeal":
-            distX, distY = distest.getUndistortedPosition(x, y, elevation)
+            distX, distY = distest.getUndistortedPosition(x + self.x0, y + self.y0, elevation)
         elif direction == "toActual":
             distX, distY = distest.getDistortedPosition(x, y, elevation)
+            distX -= self.x0
+            distY -= self.y0
         else:
             raise RuntimeError("unknown distortion direction: %s" % (direction))
 
@@ -56,7 +55,7 @@ class HscDistortion(pipDist.CameraDistortion):
             point = self.ccd.getPixelFromPosition(point)
             return point.getX(), point.getY()
         else:
-            return distX - self.x0, distY - self.y0
+            return distX, distY
     
     # Need to get elevation in here -- CPL
     def actualToIdeal(self, sources, copy=True):
