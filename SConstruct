@@ -7,7 +7,7 @@ import lsst.SConsUtils as scons
 
 env = scons.makeEnv(
     "distEst",
-    r"$HeadURL: FILL IN PATH /distEst/trunk/SConstruct $",
+    "hg",
     [
         ["python", "Python.h"],
     ],
