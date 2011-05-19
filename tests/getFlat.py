@@ -17,7 +17,7 @@ class GetFlatTestCase(unittest.TestCase):
         assert datadir, "obs_test_subaru is not setup"
         self.bf = dafPersist.ButlerFactory(
             mapper=SuprimecamMapper(root=os.path.join(datadir, "science"),
-                                    calibRoot=os.path.join(datadir, "calib"))
+                                    calibRoot=os.path.join(datadir, "calib")))
         self.butler = self.bf.create()
         
     def tearDown(self):
