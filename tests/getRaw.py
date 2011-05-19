@@ -13,8 +13,11 @@ class GetRawTestCase(unittest.TestCase):
     """Testing butler raw image retrieval"""
 
     def setUp(self):
+        datadir = os.getenv("OBS_TEST_SUBARU_DIR")
+        assert datadir, "obs_test_subaru is not setup"
         self.bf = dafPersist.ButlerFactory(mapper=SuprimecamMapper(
-            root="./tests/science", calibRoot="./tests/calib"))
+            root=os.path.join(datadir, "science"),
+            calibRoot=os.path.join(datadir, "calib"))
         self.butler = self.bf.create()
 
     def tearDown(self):
