@@ -13,8 +13,8 @@ class GetFlatTestCase(unittest.TestCase):
     """Testing butler flat image retrieval"""
     
     def setUp(self):
-        datadir = os.getenv("OBS_TEST_SUBARU_DIR")
-        assert datadir, "obs_test_subaru is not setup"
+        datadir = os.getenv("TESTDATA_SUBARU_DIR")
+        assert datadir, "testdata_subaru is not setup"
         self.bf = dafPersist.ButlerFactory(
             mapper=SuprimecamMapper(root=os.path.join(datadir, "science"),
                                     calibRoot=os.path.join(datadir, "calib")))

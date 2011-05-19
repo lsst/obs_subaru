@@ -4,7 +4,7 @@ setupRequired(pysqlite >= 2.6.0)
 
 setupOptional(suprime_data)
 
-setupOptional(obs_test_subaru)
+setupOptional(testdata_subaru)
 
 envAppend(PYTHONPATH, ${PRODUCT_DIR}/python)
 envAppend(PATH, ${PRODUCT_DIR}/bin)
