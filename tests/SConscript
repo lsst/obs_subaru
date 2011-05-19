@@ -2,9 +2,9 @@
 Import("env")
 import lsst.SConsUtils as scons
 
-dataDir = scons.ProductDir("obs_test_subaru")
+dataDir = scons.ProductDir("testdata_subaru")
 if not dataDir:
-    print "Warning: obs_test_subaru is not set up; not running the tests!"
+    print "Warning: testdata_subaru is not set up; not running the tests!"
 else:    
     import glob
     #
