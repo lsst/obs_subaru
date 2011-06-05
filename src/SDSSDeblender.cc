@@ -7,6 +7,8 @@
 #include <vector>
 
 #include "lsst/meas/deblender/deblender.h"
+#include "lsst/afw/geom/Box.h"
+#include "lsst/afw/image/Image.h"
 
 // Photo
 namespace lsst { namespace meas { namespace deblender { namespace photo {
@@ -31,6 +33,7 @@ namespace image = lsst::afw::image;
 namespace deblender = lsst::meas::deblender;
 namespace photo = lsst::meas::deblender::photo;
 namespace afwDet = lsst::afw::detection;
+namespace afwGeom = lsst::afw::geom;
 //namespace ex    = lsst::pex::exceptions;
 
 template<typename ImageT>
@@ -291,7 +294,7 @@ deblender::SDSSDeblender<ImageT>::deblend(
 
     for (i=0; i<NI; i++) {
         photo::OBJECT1* o1 = photo::phObject1New();
-        image::BBox bbox = footprints[i]->getBBox();
+        afwGeom::Box2I bbox = footprints[i]->getBBox();
         afwDet::Footprint::SpanList spans;
 
         //o1->region = photo::shRegNew("", H, W, photo::TYPE_U16);
@@ -299,14 +302,14 @@ deblender::SDSSDeblender<ImageT>::deblend(
         // Footprint bounding-box --> REGION
         o1->region = photo::shSubRegNew("", fp->frame[i].data,
                                         bbox.getHeight(), bbox.getWidth(),
-                                        bbox.getY0(), bbox.getX0(),
+                                        bbox.getMinY(), bbox.getMinX(),
                                         photo::READ_ONLY);
         // MUST be a SPANMASK*
         o1->region->mask = (photo::MASK*)photo::phSpanmaskNew(bbox.getHeight(), bbox.getWidth());
 
         std::printf("Footprint %i: offset (%i, %i), size %i x %i  (max %i, %i)\n",
-                    i, bbox.getX0(), bbox.getY0(), bbox.getWidth(), bbox.getHeight(),
-                    bbox.getX0() + bbox.getWidth(), bbox.getY0() + bbox.getHeight());
+                    i, bbox.getMinX(), bbox.getMinY(), bbox.getWidth(), bbox.getHeight(),
+                    bbox.getMinX() + bbox.getWidth(), bbox.getMinY() + bbox.getHeight());
 
         // Footprint spans --> OBJMASK
         spans = footprints[i]->getSpans();
@@ -394,7 +397,7 @@ deblender::SDSSDeblender<ImageT>::deblend(
         if (o->children)
             continue;
         int cw, ch;
-        int cx0, cy0;
+        int cx0=-1, cy0=-1;
         std::vector<typename ImageT::Ptr> cimgs;
         std::vector<afwDet::Footprint::Ptr> cfoots;
 
@@ -416,7 +419,7 @@ deblender::SDSSDeblender<ImageT>::deblend(
             }
             cfoots.push_back(foot);
 
-            typename ImageT::Ptr img(new ImageT(cw, ch, 0));
+            typename ImageT::Ptr img(new ImageT(afwGeom::Extent2I(cw, ch)));
             photo::REGION* reg = photo::shRegNew("", ch, cw, photo::TYPE_U16);
             shRegClear(reg);
             float bg = fp->frame[i].bkgd + softbias;

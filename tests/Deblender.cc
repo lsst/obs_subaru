@@ -20,6 +20,7 @@
 #include "lsst/afw/math.h"
 #include "lsst/afw/detection.h"
 #include "lsst/afw/geom.h"
+#include "lsst/afw/geom/Box.h"
 #include "lsst/meas/algorithms.h"
 
 #include "lsst/meas/deblender/deblender.h"
@@ -82,7 +83,7 @@ BOOST_AUTO_TEST_CASE(TwoStarDeblend) {
     float psfsigma = truepsfsigma;
 
     // generate sky + noise.
-    Image::Ptr skyimg(new Image(W, H, 0));
+    Image::Ptr skyimg(new Image(afwGeom::Extent2I(W, H)));
     // for (Image::iterator it = skyimg->begin(), end = skyimg->end(); it != end; it++)
     FOR_EACH_PIXEL(skyimg, it)
         // ~ Poisson
@@ -91,9 +92,9 @@ BOOST_AUTO_TEST_CASE(TwoStarDeblend) {
     // generate star images (PSFs)
     std::vector<Image::Ptr> starimgs;
     for (int i=0; i<NP; i++) {
-        Image::Ptr starimg(new Image(W, H, 0));
+        Image::Ptr starimg(new Image(afwGeom::Extent2I(W, H)));
 
-        ImageD::Ptr psfd = psf->computeImage(afwGeom::makePointD(cx[i],cy[i]));
+        ImageD::Ptr psfd = psf->computeImage(afwGeom::Point2D(cx[i],cy[i]));
         std::cout << "PSF image size is " << psfd->getWidth() << " x " << psfd->getHeight() << std::endl;
         std::cout << "  origin " << psfd->getX0() << ", " << psfd->getY0() << std::endl;
 
@@ -125,7 +126,7 @@ BOOST_AUTO_TEST_CASE(TwoStarDeblend) {
     }
 
     // sum the sky and star images
-    MImage::Ptr mimage(new MImage(W, H));
+    MImage::Ptr mimage(new MImage(afwGeom::Extent2I(W, H)));
     Image::Ptr img = mimage->getImage();
     Image::iterator imgit = img->begin();
     FOR_EACH_PIXEL(skyimg, it) {
@@ -173,16 +174,16 @@ BOOST_AUTO_TEST_CASE(TwoStarDeblend) {
     //convolvedImage->getMask()->getMaskPlane("EDGE"));
     convolvedImage->getImage()->writeFits("conv1.fits");
 
-    afwImage::PointI llc(psf->getKernel()->getWidth()/2, 
-                         psf->getKernel()->getHeight()/2);
-    afwImage::PointI urc(convolvedImage->getWidth() - 1,
-                         convolvedImage->getHeight() - 1);
-    urc = urc - llc;
-    afwImage::BBox bbox(llc, urc);
+    int psfw = psf->getKernel()->getWidth();
+    int psfh = psf->getKernel()->getHeight();
+    afwGeom::PointI llc(psfw/2, psfh/2);
+    afwGeom::PointI urc(convolvedImage->getWidth()  - 1 - psfw/2,
+                        convolvedImage->getHeight() - 1 - psfh/2);
+    afwGeom::Box2I bbox(llc, urc);
     std::printf("Bbox: (x0,y0)=(%i,%i), (x1,y1)=(%i,%i)\n",
-                bbox.getX0(), bbox.getY0(),
-                bbox.getX1(), bbox.getY1());
-    MImage::Ptr middle(new MImage(*convolvedImage, bbox));
+                bbox.getMinX(), bbox.getMinY(),
+                bbox.getMaxX(), bbox.getMaxY());
+    MImage::Ptr middle(new MImage(*convolvedImage, bbox, afwImage::PARENT));
     middle->getImage()->writeFits("middle.fits");
     std::printf("saved middle.fits\n");
 
@@ -194,17 +195,17 @@ BOOST_AUTO_TEST_CASE(TwoStarDeblend) {
     afwDet::FootprintSet<PixelT>::Ptr detections =
         afwDet::makeFootprintSet(*middle, threshold, "DETECTED", minPixels);
     std::cout << "Detections: " << detections->toString() << std::endl;
-    std::cout << "Detections: " << detections->getFootprints().size() << std::endl;
+    std::cout << "Detections: " << detections->getFootprints()->size() << std::endl;
     detections = afwDet::makeFootprintSet(*detections, nGrow, false);
     std::cout << "Detections: " << detections->toString() << std::endl;
-    std::cout << "Detections: " << detections->getFootprints().size() << std::endl;
+    std::cout << "Detections: " << detections->getFootprints()->size() << std::endl;
     //detections->setMask(mimage->getMask(), "DETECTED");
-    std::vector<afwDet::Footprint::Ptr> footprints = detections->getFootprints();
+    std::vector<afwDet::Footprint::Ptr> footprints = *(detections->getFootprints());
     std::cout << "N Footprints: " << footprints.size() << std::endl;
     std::cout << "Footprint bboxes: " << std::endl;
     for (size_t i=0; i<footprints.size(); i++) {
-        image::BBox bb = footprints[i]->getBBox();
-        std::printf("  (%i,%i) to (%i,%i)\n", bb.getX0(), bb.getY0(), bb.getX1(), bb.getY1());
+        afwGeom::Box2I bb = footprints[i]->getBBox();
+        std::printf("  (%i,%i) to (%i,%i)\n", bb.getMinX(), bb.getMinY(), bb.getMaxX(), bb.getMaxY());
     }
 
 
@@ -232,7 +233,7 @@ BOOST_AUTO_TEST_CASE(TwoStarDeblend) {
             std::printf("child %i, color %i: offset x,y = (%i,%i), size %i x %i\n", (int)i, (int)c, child->x0, child->y0, cimg->getWidth(), cimg->getHeight());
             char fn[256];
             sprintf(fn, "test-child%02i-color%02i.fits", (int)i, (int)c);
-            Image::Ptr pimg(new Image(W, H, 0));
+            Image::Ptr pimg(new Image(afwGeom::Extent2I(W, H)));
             child->addToImage(pimg, c);
             std::printf("saving as %s\n", fn);
             pimg->writeFits(fn);
@@ -244,7 +245,7 @@ BOOST_AUTO_TEST_CASE(TwoStarDeblend) {
 
     // check that the deblended children (approximately) sum to the original image (flux-preserving)
     for (size_t i=0; i<imgList.size(); i++) {
-        Image::Ptr pimg(new Image(W, H, 0));
+        Image::Ptr pimg(new Image(afwGeom::Extent2I(W, H)));
         for (size_t j=0; j<childList.size(); j++) {
             childList[j]->addToImage(pimg, i);
         }
@@ -261,14 +262,16 @@ BOOST_AUTO_TEST_CASE(TwoStarDeblend) {
         int myhi = 1;
         double noise = skysigma;
 
-        Image::Ptr diffimg(new Image(W, H, 0));
+        Image::Ptr diffimg(new Image(afwGeom::Extent2I(W, H)));
         *diffimg += *pimg;
         *diffimg += *bgimg;
         *diffimg -= *imgList[i];
 
         Image::Ptr diffgood(new Image(*diffimg,
-                                      afwImage::BBox(afwImage::PointI(mxlo, mylo),
-                                                     W-mxhi-mxlo, H-myhi-mylo)));
+                                      afwGeom::Box2I(afwGeom::Point2I(mxlo, mylo),
+                                                     afwGeom::Point2I(W-mxhi-mxlo, H-myhi-mylo)),
+                                      afwImage::PARENT));
+
         int checkedpix = 0;
 
         double dlo =  1e100;

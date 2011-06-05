@@ -20,15 +20,26 @@ env = scons.makeEnv(me,
                     scons.ConfigureDependentProducts(me))
 
 # I copied this list from meas_alg also.
-env.libs[me] += env.getlibs('daf_base daf_data daf_persistence pex_logging pex_exceptions ' +
-                            'pex_policy security ndarray afw boost minuit2 utils wcslib' +
-                            'eigen gsl meas_algorithms')
+env.libs[me] += env.getlibs('afw meas_algorithms')
+    #'daf_base daf_data daf_persistence pex_logging pex_exceptions ' +
+    #'pex_policy security ndarray afw boost minuit2 utils wcslib' +
+    #'eigen gsl meas_algorithms')
 if True:
     #
     # Workaround SConsUtils failure to find numpy .h files. Fixed in sconsUtils >= 3.3.2
     #
     import numpy
     env.Append(CCFLAGS = ["-I", numpy.get_include()])
+
+env.Append(CPPPATH = Dir("include/lsst/meas/deblender/photo"))
+env.Append(CPPPATH = Dir("include/lsst/meas/deblender/dervish"))
+env.Append(CPPPATH = Dir("include/lsst/meas/deblender/astrotools"))
+env.Append(CCFLAGS = ['-DNOTCL'])
+# for dervish/shGarbage.c
+#env.Append(CCFLAGS = ['-DNDEBUG'])
+# dervish/shGarbage.c fails to compile without this...
+env.Append(CCFLAGS = ['-DCHECK_LEAKS=HELLYA'])
+
 #
 # Build/install things
 #
@@ -63,15 +74,4 @@ env.Declare()
 env.Help("""
 LSST FrameWork packages
 """)
-
-
-env.Append(CPPPATH = Dir("include/lsst/meas/deblender/photo"))
-env.Append(CPPPATH = Dir("include/lsst/meas/deblender/dervish"))
-env.Append(CPPPATH = Dir("include/lsst/meas/deblender/astrotools"))
-env.Append(CCFLAGS = ['-DNOTCL'])
-# for dervish/shGarbage.c
-#env.Append(CCFLAGS = ['-DNDEBUG'])
-# dervish/shGarbage.c fails to compile without this...
-env.Append(CCFLAGS = ['-DCHECK_LEAKS=HELLYA'])
-
 
