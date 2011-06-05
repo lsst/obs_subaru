@@ -175,7 +175,7 @@ def run(visit, rerun, config):
     #model = calibrate['model']
     #fwhm = calibrate['fwhm'] / wcs.pixelScale()
     #size = calibrate['size']
-    #psf = afwDet.createPsf(model, size, size, fwhm/(2*math.sqrt(2*math.log(2))))
+    # psf = afwDet.createPsf(model, size, size, fwhm/(2*math.sqrt(2*math.log(2))))
     #print 'done!'
     print 'writing output...'
     io.write(dataId, psf=psf, sources=sources)
