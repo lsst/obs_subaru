@@ -23,833 +23,833 @@ Raft: {
     nRow: 8                            # number of rows of CCDs
     Ccd: { 
         serial:   0                    # CCD's serial number
-        name: "dummy000"                    # CCD's name
+        name: "hsc000"                    # CCD's name
         index: 3 4
-        offset: -9514.66 -95.9925 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: -8490.7 1952.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
     Ccd: { 
         serial:   1                    # CCD's serial number
-        name: "dummy001"                    # CCD's name
+        name: "hsc001"                    # CCD's name
         index: 11 3
-        offset: 7466.67 -4347.66 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 8490.7 -2299.7 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
     Ccd: { 
         serial:   2                    # CCD's serial number
-        name: "dummy002"                    # CCD's name
+        name: "hsc002"                    # CCD's name
         index: 4 4
-        offset: -7391.99 -95.9925 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: -6368.0 1952.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
     Ccd: { 
         serial:   3                    # CCD's serial number
-        name: "dummy003"                    # CCD's name
+        name: "hsc003"                    # CCD's name
         index: 10 3
-        offset: 5344.01 -4347.66 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 6368.0 -2299.7 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
     Ccd: { 
         serial:   4                    # CCD's serial number
-        name: "dummy004"                    # CCD's name
+        name: "hsc004"                    # CCD's name
         index: 5 4
-        offset: -5269.33 -95.9925 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: -4245.3 1952.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
     Ccd: { 
         serial:   5                    # CCD's serial number
-        name: "dummy005"                    # CCD's name
+        name: "hsc005"                    # CCD's name
         index: 9 3
-        offset: 3221.34 -4347.66 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 4245.3 -2299.7 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
     Ccd: { 
         serial:   6                    # CCD's serial number
-        name: "dummy006"                    # CCD's name
+        name: "hsc006"                    # CCD's name
         index: 6 4
-        offset: -3146.66 -95.9925 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: -2122.7 1952.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
     Ccd: { 
         serial:   7                    # CCD's serial number
-        name: "dummy007"                    # CCD's name
+        name: "hsc007"                    # CCD's name
         index: 8 3
-        offset: 1098.67 -4347.66 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 2122.7 -2299.7 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
     Ccd: { 
         serial:   8                    # CCD's serial number
-        name: "dummy008"                    # CCD's name
+        name: "hsc008"                    # CCD's name
         index: 7 4
-        offset: -1023.99 -95.9925 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 0.0 1952.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
     Ccd: { 
         serial:   9                    # CCD's serial number
-        name: "dummy009"                    # CCD's name
+        name: "hsc009"                    # CCD's name
         index: 7 3
-        offset: -1023.99 -4347.66 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 0.0 -2299.7 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
     Ccd: { 
         serial:  10                    # CCD's serial number
-        name: "dummy010"                    # CCD's name
+        name: "hsc010"                    # CCD's name
         index: 8 4
-        offset: 1098.67 -95.9925 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 2122.7 1952.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
     Ccd: { 
         serial:  11                    # CCD's serial number
-        name: "dummy011"                    # CCD's name
+        name: "hsc011"                    # CCD's name
         index: 6 3
-        offset: -3146.66 -4347.66 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: -2122.7 -2299.7 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
     Ccd: { 
         serial:  12                    # CCD's serial number
-        name: "dummy012"                    # CCD's name
+        name: "hsc012"                    # CCD's name
         index: 9 4
-        offset: 3221.34 -95.9925 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 4245.3 1952.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
     Ccd: { 
         serial:  13                    # CCD's serial number
-        name: "dummy013"                    # CCD's name
+        name: "hsc013"                    # CCD's name
         index: 5 3
-        offset: -5269.33 -4347.66 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: -4245.3 -2299.7 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
     Ccd: { 
         serial:  14                    # CCD's serial number
-        name: "dummy014"                    # CCD's name
+        name: "hsc014"                    # CCD's name
         index: 10 4
-        offset: 5344.01 -95.9925 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 6368.0 1952.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
     Ccd: { 
         serial:  15                    # CCD's serial number
-        name: "dummy015"                    # CCD's name
+        name: "hsc015"                    # CCD's name
         index: 4 3
-        offset: -7391.99 -4347.66 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: -6368.0 -2299.7 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
     Ccd: { 
         serial:  16                    # CCD's serial number
-        name: "dummy016"                    # CCD's name
+        name: "hsc016"                    # CCD's name
         index: 11 4
-        offset: 7466.67 -95.9925 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 8490.7 1952.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
     Ccd: { 
         serial:  17                    # CCD's serial number
-        name: "dummy017"                    # CCD's name
+        name: "hsc017"                    # CCD's name
         index: 3 3
-        offset: -9514.66 -4347.66 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: -8490.7 -2299.7 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
     Ccd: { 
         serial:  18                    # CCD's serial number
-        name: "dummy018"                    # CCD's name
+        name: "hsc018"                    # CCD's name
         index: 12 4
-        offset: 9589.34 -95.9925 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 10613.0 1952.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
     Ccd: { 
         serial:  19                    # CCD's serial number
-        name: "dummy019"                    # CCD's name
+        name: "hsc019"                    # CCD's name
         index: 2 3
-        offset: -11637.3 -4347.66 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: -10613.0 -2299.7 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
     Ccd: { 
         serial:  20                    # CCD's serial number
-        name: "dummy020"                    # CCD's name
+        name: "hsc020"                    # CCD's name
         index: 13 4
-        offset: 11712.0 -95.9925 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 12736.0 1952.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
     Ccd: { 
         serial:  21                    # CCD's serial number
-        name: "dummy021"                    # CCD's name
+        name: "hsc021"                    # CCD's name
         index: 1 3
-        offset: -13760.0 -4347.66 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: -12736.0 -2299.7 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
     Ccd: { 
         serial:  22                    # CCD's serial number
-        name: "dummy022"                    # CCD's name
+        name: "hsc022"                    # CCD's name
         index: 14 4
-        offset: 13834.7 -95.9925 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 14859.0 1952.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
     Ccd: { 
         serial:  23                    # CCD's serial number
-        name: "dummy023"                    # CCD's name
+        name: "hsc023"                    # CCD's name
         index: 0 3
-        offset: -15882.7 -4347.66 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: -14859.0 -2299.7 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
     Ccd: { 
         serial:  24                    # CCD's serial number
-        name: "dummy024"                    # CCD's name
+        name: "hsc024"                    # CCD's name
         index: 3 5
-        offset: -9514.66 4372.34 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: -8490.7 6420.3 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
     Ccd: { 
         serial:  25                    # CCD's serial number
-        name: "dummy025"                    # CCD's name
+        name: "hsc025"                    # CCD's name
         index: 11 2
-        offset: 7466.67 -8815.99 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 8490.7 -6768.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
     Ccd: { 
         serial:  26                    # CCD's serial number
-        name: "dummy026"                    # CCD's name
+        name: "hsc026"                    # CCD's name
         index: 4 5
-        offset: -7391.99 4372.34 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: -6368.0 6420.3 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
     Ccd: { 
         serial:  27                    # CCD's serial number
-        name: "dummy027"                    # CCD's name
+        name: "hsc027"                    # CCD's name
         index: 10 2
-        offset: 5344.01 -8815.99 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 6368.0 -6768.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
     Ccd: { 
         serial:  28                    # CCD's serial number
-        name: "dummy028"                    # CCD's name
+        name: "hsc028"                    # CCD's name
         index: 5 5
-        offset: -5269.33 4372.34 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: -4245.3 6420.3 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
     Ccd: { 
         serial:  29                    # CCD's serial number
-        name: "dummy029"                    # CCD's name
+        name: "hsc029"                    # CCD's name
         index: 9 2
-        offset: 3221.34 -8815.99 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 4245.3 -6768.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
     Ccd: { 
         serial:  30                    # CCD's serial number
-        name: "dummy030"                    # CCD's name
+        name: "hsc030"                    # CCD's name
         index: 6 5
-        offset: -3146.66 4372.34 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: -2122.7 6420.3 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
     Ccd: { 
         serial:  31                    # CCD's serial number
-        name: "dummy031"                    # CCD's name
+        name: "hsc031"                    # CCD's name
         index: 8 2
-        offset: 1098.67 -8815.99 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 2122.7 -6768.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
     Ccd: { 
         serial:  32                    # CCD's serial number
-        name: "dummy032"                    # CCD's name
+        name: "hsc032"                    # CCD's name
         index: 7 5
-        offset: -1023.99 4372.34 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 0.0 6420.3 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
     Ccd: { 
         serial:  33                    # CCD's serial number
-        name: "dummy033"                    # CCD's name
+        name: "hsc033"                    # CCD's name
         index: 7 2
-        offset: -1023.99 -8815.99 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 0.0 -6768.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
     Ccd: { 
         serial:  34                    # CCD's serial number
-        name: "dummy034"                    # CCD's name
+        name: "hsc034"                    # CCD's name
         index: 8 5
-        offset: 1098.67 4372.34 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 2122.7 6420.3 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
     Ccd: { 
         serial:  35                    # CCD's serial number
-        name: "dummy035"                    # CCD's name
+        name: "hsc035"                    # CCD's name
         index: 6 2
-        offset: -3146.66 -8815.99 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: -2122.7 -6768.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
     Ccd: { 
         serial:  36                    # CCD's serial number
-        name: "dummy036"                    # CCD's name
+        name: "hsc036"                    # CCD's name
         index: 9 5
-        offset: 3221.34 4372.34 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 4245.3 6420.3 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
     Ccd: { 
         serial:  37                    # CCD's serial number
-        name: "dummy037"                    # CCD's name
+        name: "hsc037"                    # CCD's name
         index: 5 2
-        offset: -5269.33 -8815.99 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: -4245.3 -6768.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
     Ccd: { 
         serial:  38                    # CCD's serial number
-        name: "dummy038"                    # CCD's name
+        name: "hsc038"                    # CCD's name
         index: 10 5
-        offset: 5344.01 4372.34 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 6368.0 6420.3 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
     Ccd: { 
         serial:  39                    # CCD's serial number
-        name: "dummy039"                    # CCD's name
+        name: "hsc039"                    # CCD's name
         index: 4 2
-        offset: -7391.99 -8815.99 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: -6368.0 -6768.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
     Ccd: { 
         serial:  40                    # CCD's serial number
-        name: "dummy040"                    # CCD's name
+        name: "hsc040"                    # CCD's name
         index: 11 5
-        offset: 7466.67 4372.34 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 8490.7 6420.3 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
     Ccd: { 
         serial:  41                    # CCD's serial number
-        name: "dummy041"                    # CCD's name
+        name: "hsc041"                    # CCD's name
         index: 3 2
-        offset: -9514.66 -8815.99 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: -8490.7 -6768.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
     Ccd: { 
         serial:  42                    # CCD's serial number
-        name: "dummy042"                    # CCD's name
+        name: "hsc042"                    # CCD's name
         index: 12 5
-        offset: 9589.34 4372.34 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 10613.0 6420.3 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
     Ccd: { 
         serial:  43                    # CCD's serial number
-        name: "dummy043"                    # CCD's name
+        name: "hsc043"                    # CCD's name
         index: 2 2
-        offset: -11637.3 -8815.99 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: -10613.0 -6768.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
     Ccd: { 
         serial:  44                    # CCD's serial number
-        name: "dummy044"                    # CCD's name
+        name: "hsc044"                    # CCD's name
         index: 13 5
-        offset: 11712.0 4372.34 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 12736.0 6420.3 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
     Ccd: { 
         serial:  45                    # CCD's serial number
-        name: "dummy045"                    # CCD's name
+        name: "hsc045"                    # CCD's name
         index: 1 2
-        offset: -13760.0 -8815.99 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: -12736.0 -6768.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
     Ccd: { 
         serial:  46                    # CCD's serial number
-        name: "dummy046"                    # CCD's name
+        name: "hsc046"                    # CCD's name
         index: 14 5
-        offset: 13834.7 4372.34 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 14859.0 6420.3 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
     Ccd: { 
         serial:  47                    # CCD's serial number
-        name: "dummy047"                    # CCD's name
+        name: "hsc047"                    # CCD's name
         index: 0 2
-        offset: -15882.7 -8815.99 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: -14859.0 -6768.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
     Ccd: { 
         serial:  48                    # CCD's serial number
-        name: "dummy048"                    # CCD's name
+        name: "hsc048"                    # CCD's name
         index: 3 6
-        offset: -9514.66 8840.67 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: -8490.7 10889.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
     Ccd: { 
         serial:  49                    # CCD's serial number
-        name: "dummy049"                    # CCD's name
+        name: "hsc049"                    # CCD's name
         index: 11 1
-        offset: 7466.67 -13284.3 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 8490.7 -11236.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
     Ccd: { 
         serial:  50                    # CCD's serial number
-        name: "dummy050"                    # CCD's name
+        name: "hsc050"                    # CCD's name
         index: 4 6
-        offset: -7391.99 8840.67 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: -6368.0 10889.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
     Ccd: { 
         serial:  51                    # CCD's serial number
-        name: "dummy051"                    # CCD's name
+        name: "hsc051"                    # CCD's name
         index: 10 1
-        offset: 5344.01 -13284.3 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 6368.0 -11236.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
     Ccd: { 
         serial:  52                    # CCD's serial number
-        name: "dummy052"                    # CCD's name
+        name: "hsc052"                    # CCD's name
         index: 5 6
-        offset: -5269.33 8840.67 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: -4245.3 10889.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
     Ccd: { 
         serial:  53                    # CCD's serial number
-        name: "dummy053"                    # CCD's name
+        name: "hsc053"                    # CCD's name
         index: 9 1
-        offset: 3221.34 -13284.3 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 4245.3 -11236.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
     Ccd: { 
         serial:  54                    # CCD's serial number
-        name: "dummy054"                    # CCD's name
+        name: "hsc054"                    # CCD's name
         index: 6 6
-        offset: -3146.66 8840.67 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: -2122.7 10889.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
     Ccd: { 
         serial:  55                    # CCD's serial number
-        name: "dummy055"                    # CCD's name
+        name: "hsc055"                    # CCD's name
         index: 8 1
-        offset: 1098.67 -13284.3 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 2122.7 -11236.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
     Ccd: { 
         serial:  56                    # CCD's serial number
-        name: "dummy056"                    # CCD's name
+        name: "hsc056"                    # CCD's name
         index: 7 6
-        offset: -1023.99 8840.67 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 0.0 10889.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
     Ccd: { 
         serial:  57                    # CCD's serial number
-        name: "dummy057"                    # CCD's name
+        name: "hsc057"                    # CCD's name
         index: 7 1
-        offset: -1023.99 -13284.3 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 0.0 -11236.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
     Ccd: { 
         serial:  58                    # CCD's serial number
-        name: "dummy058"                    # CCD's name
+        name: "hsc058"                    # CCD's name
         index: 8 6
-        offset: 1098.67 8840.67 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 2122.7 10889.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
     Ccd: { 
         serial:  59                    # CCD's serial number
-        name: "dummy059"                    # CCD's name
+        name: "hsc059"                    # CCD's name
         index: 6 1
-        offset: -3146.66 -13284.3 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: -2122.7 -11236.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
     Ccd: { 
         serial:  60                    # CCD's serial number
-        name: "dummy060"                    # CCD's name
+        name: "hsc060"                    # CCD's name
         index: 9 6
-        offset: 3221.34 8840.67 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 4245.3 10889.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
     Ccd: { 
         serial:  61                    # CCD's serial number
-        name: "dummy061"                    # CCD's name
+        name: "hsc061"                    # CCD's name
         index: 5 1
-        offset: -5269.33 -13284.3 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: -4245.3 -11236.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
     Ccd: { 
         serial:  62                    # CCD's serial number
-        name: "dummy062"                    # CCD's name
+        name: "hsc062"                    # CCD's name
         index: 10 6
-        offset: 5344.01 8840.67 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 6368.0 10889.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
     Ccd: { 
         serial:  63                    # CCD's serial number
-        name: "dummy063"                    # CCD's name
+        name: "hsc063"                    # CCD's name
         index: 4 1
-        offset: -7391.99 -13284.3 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: -6368.0 -11236.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
     Ccd: { 
         serial:  64                    # CCD's serial number
-        name: "dummy064"                    # CCD's name
+        name: "hsc064"                    # CCD's name
         index: 11 6
-        offset: 7466.67 8840.67 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 8490.7 10889.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
     Ccd: { 
         serial:  65                    # CCD's serial number
-        name: "dummy065"                    # CCD's name
+        name: "hsc065"                    # CCD's name
         index: 3 1
-        offset: -9514.66 -13284.3 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: -8490.7 -11236.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
     Ccd: { 
         serial:  66                    # CCD's serial number
-        name: "dummy066"                    # CCD's name
+        name: "hsc066"                    # CCD's name
         index: 12 6
-        offset: 9589.34 8840.67 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 10613.0 10889.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
     Ccd: { 
         serial:  67                    # CCD's serial number
-        name: "dummy067"                    # CCD's name
+        name: "hsc067"                    # CCD's name
         index: 2 1
-        offset: -11637.3 -13284.3 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: -10613.0 -11236.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
     Ccd: { 
         serial:  68                    # CCD's serial number
-        name: "dummy068"                    # CCD's name
+        name: "hsc068"                    # CCD's name
         index: 13 6
-        offset: 11712.0 8840.67 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 12736.0 10889.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
     Ccd: { 
         serial:  69                    # CCD's serial number
-        name: "dummy069"                    # CCD's name
+        name: "hsc069"                    # CCD's name
         index: 1 1
-        offset: -13760.0 -13284.3 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: -12736.0 -11236.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
     Ccd: { 
         serial:  70                    # CCD's serial number
-        name: "dummy070"                    # CCD's name
+        name: "hsc070"                    # CCD's name
         index: 4 7
-        offset: -7391.99 13309.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: -6368.0 15357.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
     Ccd: { 
         serial:  71                    # CCD's serial number
-        name: "dummy071"                    # CCD's name
+        name: "hsc071"                    # CCD's name
         index: 10 0
-        offset: 5344.01 -17752.7 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 6368.0 -15705.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
     Ccd: { 
         serial:  72                    # CCD's serial number
-        name: "dummy072"                    # CCD's name
+        name: "hsc072"                    # CCD's name
         index: 5 7
-        offset: -5269.33 13309.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: -4245.3 15357.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
     Ccd: { 
         serial:  73                    # CCD's serial number
-        name: "dummy073"                    # CCD's name
+        name: "hsc073"                    # CCD's name
         index: 9 0
-        offset: 3221.34 -17752.7 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 4245.3 -15705.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
     Ccd: { 
         serial:  74                    # CCD's serial number
-        name: "dummy074"                    # CCD's name
+        name: "hsc074"                    # CCD's name
         index: 6 7
-        offset: -3146.66 13309.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: -2122.7 15357.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
     Ccd: { 
         serial:  75                    # CCD's serial number
-        name: "dummy075"                    # CCD's name
+        name: "hsc075"                    # CCD's name
         index: 8 0
-        offset: 1098.67 -17752.7 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 2122.7 -15705.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
     Ccd: { 
         serial:  76                    # CCD's serial number
-        name: "dummy076"                    # CCD's name
+        name: "hsc076"                    # CCD's name
         index: 7 7
-        offset: -1023.99 13309.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 0.0 15357.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
     Ccd: { 
         serial:  77                    # CCD's serial number
-        name: "dummy077"                    # CCD's name
+        name: "hsc077"                    # CCD's name
         index: 7 0
-        offset: -1023.99 -17752.7 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 0.0 -15705.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
     Ccd: { 
         serial:  78                    # CCD's serial number
-        name: "dummy078"                    # CCD's name
+        name: "hsc078"                    # CCD's name
         index: 8 7
-        offset: 1098.67 13309.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 2122.7 15357.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
     Ccd: { 
         serial:  79                    # CCD's serial number
-        name: "dummy079"                    # CCD's name
+        name: "hsc079"                    # CCD's name
         index: 6 0
-        offset: -3146.66 -17752.7 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: -2122.7 -15705.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
     Ccd: { 
         serial:  80                    # CCD's serial number
-        name: "dummy080"                    # CCD's name
+        name: "hsc080"                    # CCD's name
         index: 9 7
-        offset: 3221.34 13309.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 4245.3 15357.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
     Ccd: { 
         serial:  81                    # CCD's serial number
-        name: "dummy081"                    # CCD's name
+        name: "hsc081"                    # CCD's name
         index: 5 0
-        offset: -5269.33 -17752.7 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: -4245.3 -15705.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
     Ccd: { 
         serial:  82                    # CCD's serial number
-        name: "dummy082"                    # CCD's name
+        name: "hsc082"                    # CCD's name
         index: 10 7
-        offset: 5344.01 13309.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 6368.0 15357.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
     Ccd: { 
         serial:  83                    # CCD's serial number
-        name: "dummy083"                    # CCD's name
+        name: "hsc083"                    # CCD's name
         index: 4 0
-        offset: -7391.99 -17752.7 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: -6368.0 -15705.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
     Ccd: { 
         serial:  84                    # CCD's serial number
-        name: "dummy084"                    # CCD's name
+        name: "hsc084"                    # CCD's name
         index: 12 3
-        offset: 9589.34 -4564.33 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 10613.0 -2516.3 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
     Ccd: { 
         serial:  85                    # CCD's serial number
-        name: "dummy085"                    # CCD's name
+        name: "hsc085"                    # CCD's name
         index: 2 4
-        offset: -11637.3 120.674 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: -10613.0 2168.7 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
     Ccd: { 
         serial:  86                    # CCD's serial number
-        name: "dummy086"                    # CCD's name
+        name: "hsc086"                    # CCD's name
         index: 13 3
-        offset: 11712.0 -4564.33 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 12736.0 -2516.3 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
     Ccd: { 
         serial:  87                    # CCD's serial number
-        name: "dummy087"                    # CCD's name
+        name: "hsc087"                    # CCD's name
         index: 1 4
-        offset: -13760.0 120.674 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: -12736.0 2168.7 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
     Ccd: { 
         serial:  88                    # CCD's serial number
-        name: "dummy088"                    # CCD's name
+        name: "hsc088"                    # CCD's name
         index: 14 3
-        offset: 13834.7 -4564.33 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 14859.0 -2516.3 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
     Ccd: { 
         serial:  89                    # CCD's serial number
-        name: "dummy089"                    # CCD's name
+        name: "hsc089"                    # CCD's name
         index: 0 4
-        offset: -15882.7 120.674 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: -14859.0 2168.7 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
     Ccd: { 
         serial:  90                    # CCD's serial number
-        name: "dummy090"                    # CCD's name
+        name: "hsc090"                    # CCD's name
         index: 12 2
-        offset: 9589.34 -9032.66 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 10613.0 -6984.7 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
     Ccd: { 
         serial:  91                    # CCD's serial number
-        name: "dummy091"                    # CCD's name
+        name: "hsc091"                    # CCD's name
         index: 2 5
-        offset: -11637.3 4589.01 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: -10613.0 6637.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
     Ccd: { 
         serial:  92                    # CCD's serial number
-        name: "dummy092"                    # CCD's name
+        name: "hsc092"                    # CCD's name
         index: 13 2
-        offset: 11712.0 -9032.66 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 12736.0 -6984.7 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
     Ccd: { 
         serial:  93                    # CCD's serial number
-        name: "dummy093"                    # CCD's name
+        name: "hsc093"                    # CCD's name
         index: 1 5
-        offset: -13760.0 4589.01 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: -12736.0 6637.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
     Ccd: { 
         serial:  94                    # CCD's serial number
-        name: "dummy094"                    # CCD's name
+        name: "hsc094"                    # CCD's name
         index: 14 2
-        offset: 13834.7 -9032.66 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 14859.0 -6984.7 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
     Ccd: { 
         serial:  95                    # CCD's serial number
-        name: "dummy095"                    # CCD's name
+        name: "hsc095"                    # CCD's name
         index: 0 5
-        offset: -15882.7 4589.01 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: -14859.0 6637.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
     Ccd: { 
         serial:  96                    # CCD's serial number
-        name: "dummy096"                    # CCD's name
+        name: "hsc096"                    # CCD's name
         index: 12 1
-        offset: 9589.34 -13501.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 10613.0 -11453.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
     Ccd: { 
         serial:  97                    # CCD's serial number
-        name: "dummy097"                    # CCD's name
+        name: "hsc097"                    # CCD's name
         index: 2 6
-        offset: -11637.3 9057.34 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: -10613.0 11105.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
     Ccd: { 
         serial:  98                    # CCD's serial number
-        name: "dummy098"                    # CCD's name
+        name: "hsc098"                    # CCD's name
         index: 13 1
-        offset: 11712.0 -13501.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 12736.0 -11453.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
     Ccd: { 
         serial:  99                    # CCD's serial number
-        name: "dummy099"                    # CCD's name
+        name: "hsc099"                    # CCD's name
         index: 1 6
-        offset: -13760.0 9057.34 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: -12736.0 11105.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
     Ccd: { 
         serial: 100                    # CCD's serial number
-        name: "dummy100"                    # CCD's name
+        name: "hsc100"                    # CCD's name
         index: 2 7
-        offset: -7467.7 13309.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: -6443.7 15357.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                    # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 90.0       # pitch, roll, yaw; degrees
     }
     Ccd: { 
         serial: 101                    # CCD's serial number
-        name: "dummy101"                    # CCD's name
+        name: "hsc101"                    # CCD's name
         index: 12 7
-        offset: 11642.67 13309.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 12667.0 15357.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 90.0       # pitch, roll, yaw; degrees
     }
     Ccd: { 
         serial: 102                    # CCD's serial number
-        name: "dummy102"                    # CCD's name
+        name: "hsc102"                    # CCD's name
         index: 12 0
-        offset: 11642.67 -15575.7 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 12667.0 -13528.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 90.0       # pitch, roll, yaw; degrees
     }
     Ccd: { 
         serial: 103                    # CCD's serial number
-        name: "dummy103"                    # CCD's name
+        name: "hsc103"                    # CCD's name
         index: 2 0
-        offset: -7467.7 -15575.7 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: -6443.7 -13528.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 90.0       # pitch, roll, yaw; degrees
     }
@@ -904,7 +904,7 @@ Electronic: {
     Raft: {
         name: "XXX"                     # An empty string makes the Policy parser unhappy
         Ccd: { 
-            name: "dummy000"
+            name: "hsc000"
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -931,7 +931,7 @@ Electronic: {
             }
         }
         Ccd: { 
-            name: "dummy001"
+            name: "hsc001"
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -958,7 +958,7 @@ Electronic: {
             }
         }
         Ccd: { 
-            name: "dummy002"
+            name: "hsc002"
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -985,7 +985,7 @@ Electronic: {
             }
         }
         Ccd: { 
-            name: "dummy003"
+            name: "hsc003"
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -1012,7 +1012,7 @@ Electronic: {
             }
         }
         Ccd: { 
-            name: "dummy004"
+            name: "hsc004"
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -1039,7 +1039,7 @@ Electronic: {
             }
         }
         Ccd: { 
-            name: "dummy005"
+            name: "hsc005"
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -1066,7 +1066,7 @@ Electronic: {
             }
         }
         Ccd: { 
-            name: "dummy006"
+            name: "hsc006"
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -1093,7 +1093,7 @@ Electronic: {
             }
         }
         Ccd: { 
-            name: "dummy007"
+            name: "hsc007"
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -1120,7 +1120,7 @@ Electronic: {
             }
         }
         Ccd: { 
-            name: "dummy008"
+            name: "hsc008"
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -1147,7 +1147,7 @@ Electronic: {
             }
         }
         Ccd: { 
-            name: "dummy009"
+            name: "hsc009"
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -1174,7 +1174,7 @@ Electronic: {
             }
         }
         Ccd: { 
-            name: "dummy010"
+            name: "hsc010"
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -1201,7 +1201,7 @@ Electronic: {
             }
         }
         Ccd: { 
-            name: "dummy011"
+            name: "hsc011"
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -1228,7 +1228,7 @@ Electronic: {
             }
         }
         Ccd: { 
-            name: "dummy012"
+            name: "hsc012"
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -1255,7 +1255,7 @@ Electronic: {
             }
         }
         Ccd: { 
-            name: "dummy013"
+            name: "hsc013"
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -1282,7 +1282,7 @@ Electronic: {
             }
         }
         Ccd: { 
-            name: "dummy014"
+            name: "hsc014"
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -1309,7 +1309,7 @@ Electronic: {
             }
         }
         Ccd: { 
-            name: "dummy015"
+            name: "hsc015"
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -1336,7 +1336,7 @@ Electronic: {
             }
         }
         Ccd: { 
-            name: "dummy016"
+            name: "hsc016"
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -1363,7 +1363,7 @@ Electronic: {
             }
         }
         Ccd: { 
-            name: "dummy017"
+            name: "hsc017"
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -1390,7 +1390,7 @@ Electronic: {
             }
         }
         Ccd: { 
-            name: "dummy018"
+            name: "hsc018"
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -1417,7 +1417,7 @@ Electronic: {
             }
         }
         Ccd: { 
-            name: "dummy019"
+            name: "hsc019"
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -1444,7 +1444,7 @@ Electronic: {
             }
         }
         Ccd: { 
-            name: "dummy020"
+            name: "hsc020"
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -1471,7 +1471,7 @@ Electronic: {
             }
         }
         Ccd: { 
-            name: "dummy021"
+            name: "hsc021"
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -1498,7 +1498,7 @@ Electronic: {
             }
         }
         Ccd: { 
-            name: "dummy022"
+            name: "hsc022"
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -1525,7 +1525,7 @@ Electronic: {
             }
         }
         Ccd: { 
-            name: "dummy023"
+            name: "hsc023"
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -1552,7 +1552,7 @@ Electronic: {
             }
         }
         Ccd: { 
-            name: "dummy024"
+            name: "hsc024"
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -1579,7 +1579,7 @@ Electronic: {
             }
         }
         Ccd: { 
-            name: "dummy025"
+            name: "hsc025"
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -1606,7 +1606,7 @@ Electronic: {
             }
         }
         Ccd: { 
-            name: "dummy026"
+            name: "hsc026"
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -1633,7 +1633,7 @@ Electronic: {
             }
         }
         Ccd: { 
-            name: "dummy027"
+            name: "hsc027"
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -1660,7 +1660,7 @@ Electronic: {
             }
         }
         Ccd: { 
-            name: "dummy028"
+            name: "hsc028"
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -1687,7 +1687,7 @@ Electronic: {
             }
         }
         Ccd: { 
-            name: "dummy029"
+            name: "hsc029"
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -1714,7 +1714,7 @@ Electronic: {
             }
         }
         Ccd: { 
-            name: "dummy030"
+            name: "hsc030"
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -1741,7 +1741,7 @@ Electronic: {
             }
         }
         Ccd: { 
-            name: "dummy031"
+            name: "hsc031"
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -1768,7 +1768,7 @@ Electronic: {
             }
         }
         Ccd: { 
-            name: "dummy032"
+            name: "hsc032"
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -1795,7 +1795,7 @@ Electronic: {
             }
         }
         Ccd: { 
-            name: "dummy033"
+            name: "hsc033"
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -1822,7 +1822,7 @@ Electronic: {
             }
         }
         Ccd: { 
-            name: "dummy034"
+            name: "hsc034"
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -1849,7 +1849,7 @@ Electronic: {
             }
         }
         Ccd: { 
-            name: "dummy035"
+            name: "hsc035"
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -1876,7 +1876,7 @@ Electronic: {
             }
         }
         Ccd: { 
-            name: "dummy036"
+            name: "hsc036"
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -1903,7 +1903,7 @@ Electronic: {
             }
         }
         Ccd: { 
-            name: "dummy037"
+            name: "hsc037"
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -1930,7 +1930,7 @@ Electronic: {
             }
         }
         Ccd: { 
-            name: "dummy038"
+            name: "hsc038"
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -1957,7 +1957,7 @@ Electronic: {
             }
         }
         Ccd: { 
-            name: "dummy039"
+            name: "hsc039"
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -1984,7 +1984,7 @@ Electronic: {
             }
         }
         Ccd: { 
-            name: "dummy040"
+            name: "hsc040"
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -2011,7 +2011,7 @@ Electronic: {
             }
         }
         Ccd: { 
-            name: "dummy041"
+            name: "hsc041"
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -2038,7 +2038,7 @@ Electronic: {
             }
         }
         Ccd: { 
-            name: "dummy042"
+            name: "hsc042"
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -2065,7 +2065,7 @@ Electronic: {
             }
         }
         Ccd: { 
-            name: "dummy043"
+            name: "hsc043"
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -2092,7 +2092,7 @@ Electronic: {
             }
         }
         Ccd: { 
-            name: "dummy044"
+            name: "hsc044"
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -2119,7 +2119,7 @@ Electronic: {
             }
         }
         Ccd: { 
-            name: "dummy045"
+            name: "hsc045"
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -2146,7 +2146,7 @@ Electronic: {
             }
         }
         Ccd: { 
-            name: "dummy046"
+            name: "hsc046"
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -2173,7 +2173,7 @@ Electronic: {
             }
         }
         Ccd: { 
-            name: "dummy047"
+            name: "hsc047"
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -2200,7 +2200,7 @@ Electronic: {
             }
         }
         Ccd: { 
-            name: "dummy048"
+            name: "hsc048"
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -2227,7 +2227,7 @@ Electronic: {
             }
         }
         Ccd: { 
-            name: "dummy049"
+            name: "hsc049"
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -2254,7 +2254,7 @@ Electronic: {
             }
         }
         Ccd: { 
-            name: "dummy050"
+            name: "hsc050"
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -2281,7 +2281,7 @@ Electronic: {
             }
         }
         Ccd: { 
-            name: "dummy051"
+            name: "hsc051"
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -2308,7 +2308,7 @@ Electronic: {
             }
         }
         Ccd: { 
-            name: "dummy052"
+            name: "hsc052"
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -2335,7 +2335,7 @@ Electronic: {
             }
         }
         Ccd: { 
-            name: "dummy053"
+            name: "hsc053"
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -2362,7 +2362,7 @@ Electronic: {
             }
         }
         Ccd: { 
-            name: "dummy054"
+            name: "hsc054"
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -2389,7 +2389,7 @@ Electronic: {
             }
         }
         Ccd: { 
-            name: "dummy055"
+            name: "hsc055"
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -2416,7 +2416,7 @@ Electronic: {
             }
         }
         Ccd: { 
-            name: "dummy056"
+            name: "hsc056"
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -2443,7 +2443,7 @@ Electronic: {
             }
         }
         Ccd: { 
-            name: "dummy057"
+            name: "hsc057"
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -2470,7 +2470,7 @@ Electronic: {
             }
         }
         Ccd: { 
-            name: "dummy058"
+            name: "hsc058"
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -2497,7 +2497,7 @@ Electronic: {
             }
         }
         Ccd: { 
-            name: "dummy059"
+            name: "hsc059"
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -2524,7 +2524,7 @@ Electronic: {
             }
         }
         Ccd: { 
-            name: "dummy060"
+            name: "hsc060"
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -2551,7 +2551,7 @@ Electronic: {
             }
         }
         Ccd: { 
-            name: "dummy061"
+            name: "hsc061"
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -2578,7 +2578,7 @@ Electronic: {
             }
         }
         Ccd: { 
-            name: "dummy062"
+            name: "hsc062"
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -2605,7 +2605,7 @@ Electronic: {
             }
         }
         Ccd: { 
-            name: "dummy063"
+            name: "hsc063"
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -2632,7 +2632,7 @@ Electronic: {
             }
         }
         Ccd: { 
-            name: "dummy064"
+            name: "hsc064"
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -2659,7 +2659,7 @@ Electronic: {
             }
         }
         Ccd: { 
-            name: "dummy065"
+            name: "hsc065"
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -2686,7 +2686,7 @@ Electronic: {
             }
         }
         Ccd: { 
-            name: "dummy066"
+            name: "hsc066"
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -2713,7 +2713,7 @@ Electronic: {
             }
         }
         Ccd: { 
-            name: "dummy067"
+            name: "hsc067"
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -2740,7 +2740,7 @@ Electronic: {
             }
         }
         Ccd: { 
-            name: "dummy068"
+            name: "hsc068"
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -2767,7 +2767,7 @@ Electronic: {
             }
         }
         Ccd: { 
-            name: "dummy069"
+            name: "hsc069"
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -2794,7 +2794,7 @@ Electronic: {
             }
         }
         Ccd: { 
-            name: "dummy070"
+            name: "hsc070"
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -2821,7 +2821,7 @@ Electronic: {
             }
         }
         Ccd: { 
-            name: "dummy071"
+            name: "hsc071"
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -2848,7 +2848,7 @@ Electronic: {
             }
         }
         Ccd: { 
-            name: "dummy072"
+            name: "hsc072"
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -2875,7 +2875,7 @@ Electronic: {
             }
         }
         Ccd: { 
-            name: "dummy073"
+            name: "hsc073"
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -2902,7 +2902,7 @@ Electronic: {
             }
         }
         Ccd: { 
-            name: "dummy074"
+            name: "hsc074"
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -2929,7 +2929,7 @@ Electronic: {
             }
         }
         Ccd: { 
-            name: "dummy075"
+            name: "hsc075"
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -2956,7 +2956,7 @@ Electronic: {
             }
         }
         Ccd: { 
-            name: "dummy076"
+            name: "hsc076"
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -2983,7 +2983,7 @@ Electronic: {
             }
         }
         Ccd: { 
-            name: "dummy077"
+            name: "hsc077"
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -3010,7 +3010,7 @@ Electronic: {
             }
         }
         Ccd: { 
-            name: "dummy078"
+            name: "hsc078"
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -3037,7 +3037,7 @@ Electronic: {
             }
         }
         Ccd: { 
-            name: "dummy079"
+            name: "hsc079"
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -3064,7 +3064,7 @@ Electronic: {
             }
         }
         Ccd: { 
-            name: "dummy080"
+            name: "hsc080"
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -3091,7 +3091,7 @@ Electronic: {
             }
         }
         Ccd: { 
-            name: "dummy081"
+            name: "hsc081"
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -3118,7 +3118,7 @@ Electronic: {
             }
         }
         Ccd: { 
-            name: "dummy082"
+            name: "hsc082"
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -3145,7 +3145,7 @@ Electronic: {
             }
         }
         Ccd: { 
-            name: "dummy083"
+            name: "hsc083"
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -3172,7 +3172,7 @@ Electronic: {
             }
         }
         Ccd: { 
-            name: "dummy084"
+            name: "hsc084"
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -3199,7 +3199,7 @@ Electronic: {
             }
         }
         Ccd: { 
-            name: "dummy085"
+            name: "hsc085"
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -3226,7 +3226,7 @@ Electronic: {
             }
         }
         Ccd: { 
-            name: "dummy086"
+            name: "hsc086"
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -3253,7 +3253,7 @@ Electronic: {
             }
         }
         Ccd: { 
-            name: "dummy087"
+            name: "hsc087"
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -3280,7 +3280,7 @@ Electronic: {
             }
         }
         Ccd: { 
-            name: "dummy088"
+            name: "hsc088"
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -3307,7 +3307,7 @@ Electronic: {
             }
         }
         Ccd: { 
-            name: "dummy089"
+            name: "hsc089"
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -3334,7 +3334,7 @@ Electronic: {
             }
         }
         Ccd: { 
-            name: "dummy090"
+            name: "hsc090"
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -3361,7 +3361,7 @@ Electronic: {
             }
         }
         Ccd: { 
-            name: "dummy091"
+            name: "hsc091"
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -3388,7 +3388,7 @@ Electronic: {
             }
         }
         Ccd: { 
-            name: "dummy092"
+            name: "hsc092"
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -3415,7 +3415,7 @@ Electronic: {
             }
         }
         Ccd: { 
-            name: "dummy093"
+            name: "hsc093"
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -3442,7 +3442,7 @@ Electronic: {
             }
         }
         Ccd: { 
-            name: "dummy094"
+            name: "hsc094"
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -3469,7 +3469,7 @@ Electronic: {
             }
         }
         Ccd: { 
-            name: "dummy095"
+            name: "hsc095"
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -3496,7 +3496,7 @@ Electronic: {
             }
         }
         Ccd: { 
-            name: "dummy096"
+            name: "hsc096"
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -3523,7 +3523,7 @@ Electronic: {
             }
         }
         Ccd: { 
-            name: "dummy097"
+            name: "hsc097"
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -3550,7 +3550,7 @@ Electronic: {
             }
         }
         Ccd: { 
-            name: "dummy098"
+            name: "hsc098"
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -3577,7 +3577,7 @@ Electronic: {
             }
         }
         Ccd: { 
-            name: "dummy099"
+            name: "hsc099"
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -3604,7 +3604,7 @@ Electronic: {
             }
         }
         Ccd: { 
-            name: "dummy100"
+            name: "hsc100"
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -3631,7 +3631,7 @@ Electronic: {
             }
         }
         Ccd: { 
-            name: "dummy101"
+            name: "hsc101"
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -3658,7 +3658,7 @@ Electronic: {
             }
         }
         Ccd: { 
-            name: "dummy102"
+            name: "hsc102"
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -3685,7 +3685,7 @@ Electronic: {
             }
         }
         Ccd: { 
-            name: "dummy103"
+            name: "hsc103"
             Amp: {
                 index: 0 0
                 gain: 3.0
