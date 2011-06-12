@@ -37,7 +37,7 @@ def renderImage(stars, sky, W, H, truepsfsigma):
     # Create images of each star
     starpix = []
     for (x,y,flux) in stars:
-        psfimg = truepsf.computeImage(afwGeom.makePointD(x, y))
+        psfimg = truepsf.computeImage(afwGeom.Point2D(x, y))
         s = np.zeros((H,W))
         si = lsstimagetonumpy(psfimg)
         (sh,sw) = si.shape
@@ -88,11 +88,12 @@ def doDetection(maskedImage, psf, psfsigma, bginterp=afwMath.Interpolate.AKIMA_S
                      psf.getKernel())
 
     # Only search psf-smoothed part of frame
-    llc = afwImg.PointI(psf.getKernel().getWidth()/2, psf.getKernel().getHeight()/2)
-    urc = afwImg.PointI(convolvedImage.getWidth() - 1,
-                        convolvedImage.getHeight() - 1)
-    urc -= llc
-    bbox = afwImg.BBox(llc, urc)    
+    psfw = psf.getKernel().getWidth()
+    psfh = psf.getKernel().getHeight()
+    llc = afwGeom.PointI(psfw/2, psfh/2)
+    urc = afwGeom.PointI(convolvedImage.getWidth() - 1 - psfw/2,
+                        convolvedImage.getHeight() - 1 - psfh/2)
+    bbox = afwGeom.Box2I(llc, urc)
     middle = convolvedImage.Factory(convolvedImage, bbox)
 
     # do positive detections        
@@ -101,8 +102,8 @@ def doDetection(maskedImage, psf, psfsigma, bginterp=afwMath.Interpolate.AKIMA_S
         middle, threshold, "DETECTED", minPixels)
 
     # set detection region to be the entire region
-    region = afwImg.BBox(
-        afwImg.PointI(maskedImage.getX0(), maskedImage.getY0()),
+    region = afwGeom.Box2I(
+        afwGeom.PointI(maskedImage.getX0(), maskedImage.getY0()),
         maskedImage.getWidth(), maskedImage.getHeight()
         )
     dsPositive.setRegion(region)
@@ -146,7 +147,7 @@ class TestDeblender(unittest.TestCase):
         # Create images of each star
         starpix = []
         for (x,y,flux) in stars:
-            psfimg = truepsf.computeImage(afwGeom.makePointD(x, y))
+            psfimg = truepsf.computeImage(afwGeom.Point2D(x, y))
             s = np.zeros((H,W))
             si = lsstimagetonumpy(psfimg)
             (sh,sw) = si.shape
@@ -156,7 +157,7 @@ class TestDeblender(unittest.TestCase):
             s *= flux
             starpix.append(s)
 
-        maskedImage = afwImg.MaskedImageF(W, H)
+        maskedImage = afwImg.MaskedImageF(afwGeom.Extent2I(W, H))
         image = maskedImage.getImage()
         for y in range(H):
             for x in range(W):
@@ -216,17 +217,13 @@ class TestDeblender(unittest.TestCase):
         convolvedImage.getImage().writeFits('conv1.fits')
 
         # Only search psf-smoothed part of frame
-        llc = afwImg.PointI(
-            psf.getKernel().getWidth()/2, 
-            psf.getKernel().getHeight()/2
-        )
-        urc = afwImg.PointI(
-            convolvedImage.getWidth() - 1,
-            convolvedImage.getHeight() - 1
-        )
-        urc -= llc
-        bbox = afwImg.BBox(llc, urc)    
-        middle = convolvedImage.Factory(convolvedImage, bbox)
+        psfw = psf.getKernel().getWidth()
+        psfh = psf.getKernel().getHeight()
+        llc = afwGeom.PointI(psfw/2, psfh/2)
+        urc = afwGeom.PointI(convolvedImage.getWidth() - 1 - psfw/2,
+                             convolvedImage.getHeight() - 1 - psfh/2)
+        bbox = afwGeom.Box2I(llc, urc)
+        middle = convolvedImage.Factory(convolvedImage, bbox, afwImg.PARENT)
 
         # do positive detections        
         threshold = afwDet.createThreshold(thresholdValue)
@@ -234,9 +231,9 @@ class TestDeblender(unittest.TestCase):
             middle, threshold, "DETECTED", minPixels)
 
         # set detection region to be the entire region
-        region = afwImg.BBox(
-            afwImg.PointI(maskedImage.getX0(), maskedImage.getY0()),
-            maskedImage.getWidth(), maskedImage.getHeight()
+        region = afwGeom.Box2I(
+            afwGeom.PointI(maskedImage.getX0(), maskedImage.getY0()),
+            afwGeom.Extent2I(maskedImage.getWidth(), maskedImage.getHeight())
             )
         dsPositive.setRegion(region)
 
@@ -248,10 +245,11 @@ class TestDeblender(unittest.TestCase):
         foots = dsPositive.getFootprints()
 
         # DEBUG
-        footImg = afwImg.ImageU(W, H, 0)
+        footImg = afwImg.ImageU(afwGeom.Extent2I(W, H))
+        print 'foots:', foots
         for i,f in enumerate(foots):
-            print 'footprint:', f.getNpix(), 'pix, bb is', f.getBBox()
-            print 'peaks:', len(f.getPeaks())
+            print '  footprint:', f.getNpix(), 'pix, bb is', f.getBBox()
+            print '  peaks:', len(f.getPeaks())
             f.insertIntoImage(footImg, 65535-i)
         footImg.writeFits('foot1.fits')
 
@@ -278,20 +276,19 @@ class TestDeblender(unittest.TestCase):
         objs = deblender.deblend(foots, allpeaks, maskedImage, psf)
 
         self.assertNotEqual(objs, None)
-
         self.assertEqual(2, len(objs))
 
         print 'Got deblended objects:', objs
         for i,o in enumerate(objs):
             print o
-            img = afwImg.ImageF(W, H)
+            img = afwImg.ImageF(afwGeom.Extent2I(W, H))
             o.addToImage(img, 0)
             img.writeFits('child-%02i.fits' % i)
 
             img = o.images[0]
             img.writeFits('child-%02i-b.fits' % i)
 
-            simg = afwImg.ImageF(W, H)
+            simg = afwImg.ImageF(afwGeom.Extent2I(W, H))
             for y in range(H):
                 for x in range(W):
                     simg.set(x, y, starpix[i][y, x])
@@ -305,7 +302,7 @@ class TestDeblender(unittest.TestCase):
 
             children = []
             for o in objs:
-                img = afwImg.ImageF(W, H)
+                img = afwImg.ImageF(afwGeom.Extent2I(W, H))
                 o.addToImage(img, 0)
                 a = lsstimagetonumpy(img)
                 children.append(a)

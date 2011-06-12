@@ -200,11 +200,11 @@ BOOST_AUTO_TEST_CASE(TwoStarDeblend) {
     std::cout << "Detections: " << detections->toString() << std::endl;
     std::cout << "Detections: " << detections->getFootprints()->size() << std::endl;
     //detections->setMask(mimage->getMask(), "DETECTED");
-    std::vector<afwDet::Footprint::Ptr> footprints = *(detections->getFootprints());
-    std::cout << "N Footprints: " << footprints.size() << std::endl;
+    boost::shared_ptr<std::vector<afwDet::Footprint::Ptr> > footprints = detections->getFootprints();
+    std::cout << "N Footprints: " << footprints->size() << std::endl;
     std::cout << "Footprint bboxes: " << std::endl;
-    for (size_t i=0; i<footprints.size(); i++) {
-        afwGeom::Box2I bb = footprints[i]->getBBox();
+    for (size_t i=0; i<footprints->size(); i++) {
+        afwGeom::Box2I bb = (*footprints)[i]->getBBox();
         std::printf("  (%i,%i) to (%i,%i)\n", bb.getMinX(), bb.getMinY(), bb.getMaxX(), bb.getMaxY());
     }
 
@@ -267,10 +267,14 @@ BOOST_AUTO_TEST_CASE(TwoStarDeblend) {
         *diffimg += *bgimg;
         *diffimg -= *imgList[i];
 
+        std::printf("diffimg: W=%i, H=%i\n", diffimg->getWidth(), diffimg->getHeight());
+
         Image::Ptr diffgood(new Image(*diffimg,
                                       afwGeom::Box2I(afwGeom::Point2I(mxlo, mylo),
-                                                     afwGeom::Point2I(W-mxhi-mxlo, H-myhi-mylo)),
+                                                     afwGeom::Point2I(W-mxhi-1, H-myhi-1)),
                                       afwImage::PARENT));
+
+        std::printf("diffgood: W=%i, H=%i\n", diffgood->getWidth(), diffgood->getHeight());
 
         int checkedpix = 0;
 

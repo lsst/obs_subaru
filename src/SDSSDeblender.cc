@@ -90,11 +90,13 @@ deblender::SDSSDeblender<ImageT>::debugProfiles() {
 template<typename ImageT>
 std::vector<typename deblender::DeblendedObject<ImageT>::Ptr >
 deblender::SDSSDeblender<ImageT>::deblend(
-    std::vector< afwDet::Footprint::Ptr > footprints,
+    boost::shared_ptr<std::vector< afwDet::Footprint::Ptr > > pfootprints,
     std::vector< std::vector< afwDet::Peak::Ptr > > peaks,
     boost::shared_ptr<typename afwImage::MaskedImage<typename ImageT::Pixel > > the_mimage,
     boost::shared_ptr<typename afwDet::Psf > the_psf
 ) {
+
+    std::vector< afwDet::Footprint::Ptr > footprints = *pfootprints;
 
     // Hmmm, must figure out the right API!
     std::vector<boost::shared_ptr<typename afwImage::MaskedImage<typename ImageT::Pixel > > > mimages;

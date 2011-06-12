@@ -44,7 +44,7 @@ namespace lsst {
                 virtual
                 std::vector<typename DeblendedObject<ImageT>::Ptr >
                 deblend(
-                    std::vector< boost::shared_ptr< afwDet::Footprint > > footprints,
+                        boost::shared_ptr<std::vector< boost::shared_ptr< afwDet::Footprint > > > footprints,
                     std::vector< std::vector< boost::shared_ptr< afwDet::Peak > > > peaks,
                     boost::shared_ptr<typename afwImage::MaskedImage<typename ImageT::Pixel> > maskedImage,
                     boost::shared_ptr<typename afwDet::Psf > psf
@@ -61,7 +61,7 @@ namespace lsst {
                 virtual
                 std::vector<typename DeblendedObject<ImageT>::Ptr >
                 deblend(
-                    std::vector< boost::shared_ptr< afwDet::Footprint > > footprints,
+                        boost::shared_ptr<std::vector< boost::shared_ptr< afwDet::Footprint > > > footprints,
                     std::vector< std::vector< boost::shared_ptr< afwDet::Peak > > > peaks,
                     boost::shared_ptr<typename afwImage::MaskedImage<typename ImageT::Pixel> > maskedImage,
                     boost::shared_ptr<typename afwDet::Psf > psf
