@@ -15,9 +15,9 @@ from tractorMapper import *
 
 # Required for "dynamic" measurements
 import lsst.meas.algorithms
-import lsst.meas.algorithms.psfSelectionRhl
-import lsst.meas.algorithms.psfAlgorithmRhl
-import lsst.meas.extensions.shapeHSM
+#import lsst.meas.algorithms.psfSelectionRhl
+#import lsst.meas.algorithms.psfAlgorithmRhl
+#import lsst.meas.extensions.shapeHSM
 
 
 class NullISR(pipIsr.Isr):
@@ -162,7 +162,7 @@ def run(visit, rerun, config):
         print '  ', f
         print '  ', f.getBBox()
         bbox = f.getBBox()
-        bb.append((bbox.getX0(), bbox.getY0(), bbox.getX1(), bbox.getY1()))
+        bb.append((bbox.getMinX(), bbox.getMinY(), bbox.getMaxX(), bbox.getMaxY()))
     #print 'psf', psf
     #print 'sources', sources
     #print 'footprints', footprints
@@ -256,7 +256,7 @@ def plots(visit, rerun, config, bb=[]):
         plt.plot([x0,x0,x1,x1,x0], [y0,y1,y1,y0,y0], 'b-')
 
     plt.axis(ax)
-    plt.savefig('src.png')
+    plt.savefig('src-v%04i-rr%04i.png' % (visit,rerun))
 
 
 if __name__ == "__main__":
