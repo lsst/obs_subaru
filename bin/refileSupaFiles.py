@@ -50,12 +50,13 @@ def getFrameInfo(filename):
 
     # For Suprime-cam data, set visitID to the # of days since 2008-07-21 UT. This should
     # keep it positive, smallish, and monotonically increasing with time.
-    day0 = 54668.0
+    #day0 = 54668.0
+    day0 = 51544 # 2000-01-01
     d['visitID'] = h['MJD'] - day0
-    if d['visitID'] <= 0 or d['visitID'] > 2000:
-        sys.stderr.write("%s: MJD and visitID are odd (%s and %s). We only handle new SuprimeCam detector images, since MJD %d\n" % \
-                             (filename, h['MJD'], d['visitID'], day0))
-        raise SystemExit
+#    if d['visitID'] <= 0 or d['visitID'] > 2000:
+#        sys.stderr.write("%s: MJD and visitID are odd (%s and %s). We only handle new SuprimeCam detector images, since MJD %d\n" % \
+#                             (filename, h['MJD'], d['visitID'], day0))
+#        raise SystemExit
 
     return d
 

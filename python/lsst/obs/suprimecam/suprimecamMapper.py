@@ -3,6 +3,9 @@
 import os
 import pwd
 
+import lsst.afw.geom as afwGeom
+import lsst.afw.image as afwImage
+
 from lsst.daf.butlerUtils import CameraMapper
 import lsst.pex.policy as pexPolicy
 
@@ -20,7 +23,8 @@ def fixImage(template, numCols, numRows, dataBox, biasBox):
     newData <<= data
 
     bias = Image(template, biasBox, afwImage.LOCAL)
-    newBiasBox = afwGeom.BoxI(biasBox).shift(dataBox.getDimensions().getX(), 0)
+    newBiasBox = afwGeom.BoxI(biasBox)
+    newBiasBox.shift(afwGeom.Extent2I(dataBox.getDimensions().getX(), 0))
     newBias = Image(new, newBiasBox, afwImage.LOCAL)
     newBias <<= bias
 
@@ -33,12 +37,9 @@ class SuprimecamMapper(CameraMapper):
 
         self.mit = mit
         if self.mit:
-            mitPolicy = pexPolicy.StringPolicy("""
-                camera: ../suprimecam/description/Full_Suprimecam_MIT_geom.paf
-                defects: ../suprimecam/description/mit_defects
-                """)
-            mitPolicy.mergeDefaults(policy)
-            policy = mitPolicy
+            policy.set("camera", "../suprimecam/description/Full_Suprimecam_MIT_geom.paf")
+            policy.set("defects", "../suprimecam/description/mit_defects")
+            print policy
 
         if not kwargs.get('root', None):
             try:
@@ -62,6 +63,9 @@ class SuprimecamMapper(CameraMapper):
 
         self.filters = {
             "W-J-B"   : "B",
+            "W-J-V"   : "V",
+            "W-C-RC"  : "R",
+            "W-C-IC"  : "I",
             "W-S-G+"  : "g",
             "W-S-R+"  : "r",
             "W-S-I+"  : "i",
@@ -117,7 +121,7 @@ class SuprimecamMapper(CameraMapper):
         # assumes that all CCDs are laid out (i.e., position of bias relative to the data) in the same manner.
         # To get around this, we will re-format the tricky CCDs as we read them.
 
-        if not self.mit or exposure.getDetector().getId().getSerial() is in (5, 6, 7, 8):
+        if (not self.mit) or exposure.getDetector().getId().getSerial() in (5, 6, 7, 8):
             # No correction to be made
             return exposure
 
