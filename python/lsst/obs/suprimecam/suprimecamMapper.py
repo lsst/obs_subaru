@@ -39,7 +39,6 @@ class SuprimecamMapper(CameraMapper):
         if self.mit:
             policy.set("camera", "../suprimecam/description/Full_Suprimecam_MIT_geom.paf")
             policy.set("defects", "../suprimecam/description/mit_defects")
-            print policy
 
         if not kwargs.get('root', None):
             try:
