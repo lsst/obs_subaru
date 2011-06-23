@@ -49,7 +49,7 @@ for calib in ('bias', 'dark', 'flat', 'fringe'):
                                        calib.upper() + "-*.fits*")):
         print fits
         if opts.camera.lower() in ("suprime-cam", "suprimecam", "sc"):
-            m = re.search(r'\w+/(\d{4})-(\d{2}-(\d{2})/(.-.-.{1,3})/(\d+)/\w+-(\d{7})(\d).fits', fits)
+            m = re.search(r'\w+/(\d{4})-(\d{2})-(\d{2})/(.-.-.{1,3})/(\d+)/\w+-(\d{7})(\d).fits', fits)
         elif opts.camera.lower() in ("hsc"):
             m = re.search(r'\w+/(\d{4})-(\d{2})-(\d{2})/(.-.-.{1,3})/(\d+)/\w+-(\d{5})(\d{3}).fits', fits)
         if not m:
@@ -57,10 +57,10 @@ for calib in ('bias', 'dark', 'flat', 'fringe'):
             continue
         year, month, day, filterName, mystery, num, ccd = m.groups()
 
-        dateObs = '%d-%d-%d' % (year, month, day)
+        dateObs = '%s-%s-%s' % (year, month, day)
         taiObs = dateObs
 
-        date = datetime.date(year, month, day)
+        date = datetime.date(int(year), int(month), int(day))
         validStart = (date - datetime.timedelta(opts.validity)).isoformat()
         validEnd = (date + datetime.timedelta(opts.validity)).isoformat()
 
