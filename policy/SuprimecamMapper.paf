@@ -128,6 +128,9 @@ calibrations: {
         refCols:     "visit"
         refCols:     "filter"
         filter:      true
+        validRange:  true
+        validStartName: validStart
+        validEndName: validEnd
     }
     fringe: {
         template:    "FRINGE/%(dateObs)s/%(filter)s/%(mystery)s/FRINGE-%(num)07d%(ccd)1d.fits"
@@ -142,6 +145,9 @@ calibrations: {
         refCols:     "visit"
         refCols:     "filter"
         filter:      true
+        validRange:  true
+        validStartName: validStart
+        validEndName: validEnd
     }
 }
 
