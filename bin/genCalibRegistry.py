@@ -6,17 +6,31 @@ import re
 import sqlite
 import sys
 import math
+import datetime
 
 import lsst.daf.base   as dafBase
 import lsst.afw.image  as afwImage
 
-camera = sys.argv[1]
-root = sys.argv[2]
+import optparse
 
-if camera.lower() not in ("suprime-cam", "suprimecam", "sc", "hsc"):
+# Needs optparse w/ --create, etc. CPL
+parser = optparse.OptionParser()
+parser.add_option("--create", dest="create", default=False, action="store_true", 
+                  help="Create new registry (clobber old)?")
+parser.add_option("--root", dest="root", default=".", help="Root directory")
+parser.add_option("--camera", dest="camera", default="hsc", help="Camera name: HSC|SC")
+parser.add_option("--validity", type="int", dest="validity", default=30, help="Calibration validity (days)")
+opts, args = parser.parse_args()
+
+if len(args) > 0 or len(sys.argv) == 1:
+    print "Unrecognised arguments:", sys.argv[1:]
+    parser.print_help()
+    sys.exit(1)
+
+if opts.camera.lower() not in ("suprime-cam", "suprimecam", "sc", "hsc"):
     raise RuntimeError("Camera not recognised: %s" % camera)
 
-registry = os.path.join(root, "calibRegistry.sqlite3")
+registry = os.path.join(opts.root, "calibRegistry.sqlite3")
 
 if os.path.exists(registry):
     os.unlink(registry)
@@ -24,8 +38,6 @@ conn = sqlite.connect(registry)
 
 
 for calib in ('bias', 'dark', 'flat', 'fringe'):
-
-    # Flats
     cmd = "create table " + calib.lower() + " (id integer primary key autoincrement"
     cmd += ", validStart text, validEnd text"
     cmd += ", taiObs text, dateobs text, filter text, mystery text, num int, ccd int"
@@ -33,40 +45,26 @@ for calib in ('bias', 'dark', 'flat', 'fringe'):
     conn.execute(cmd)
     conn.commit()
 
-    # ?? This can't match anything in the public directories... CPL
-    # Also SUPA vs. HSCA w.r.t. CCD ids
-    for fits in glob.glob(os.path.join(root, calib.upper(), "20*-*-*", "?-?-*", "*",
+    for fits in glob.glob(os.path.join(opts.root, calib.upper(), "20*-*-*", "?-?-*", "*",
                                        calib.upper() + "-*.fits*")):
         print fits
-        if camera.lower() in ("suprime-cam", "suprimecam", "sc"):
-            m = re.search(r'\w+/(\d{4}-\d{2}-\d{2})/(.-.-.{1,3})/(\d+)/\w+-(\d{7})(\d).fits', fits)
-        elif camera.lower() in ("hsc"):
-            m = re.search(r'\w+/(\d{4}-\d{2}-\d{2})/(.-.-.{1,3})/(\d+)/\w+-(\d{5})(\d{3}).fits', fits)
+        if opts.camera.lower() in ("suprime-cam", "suprimecam", "sc"):
+            m = re.search(r'\w+/(\d{4})-(\d{2}-(\d{2})/(.-.-.{1,3})/(\d+)/\w+-(\d{7})(\d).fits', fits)
+        elif opts.camera.lower() in ("hsc"):
+            m = re.search(r'\w+/(\d{4})-(\d{2})-(\d{2})/(.-.-.{1,3})/(\d+)/\w+-(\d{5})(\d{3}).fits', fits)
         if not m:
             print >>sys.stderr, "Warning: Unrecognized file:", fits
             continue
-        dateObs, filterName, mystery, num, ccd = m.groups()
+        year, month, day, filterName, mystery, num, ccd = m.groups()
 
-        if False:
-            # Convert to local time to get meaningful validStart, validEnd
-            md = afwImage.readMetadata(fits)
-            mjdObs = md.get("MJD")
-            taiObs = dafBase.DateTime(mjdObs, dafBase.DateTime.MJD,
-                                      dafBase.DateTime.UTC).toString()[:-1]
-            localObs = mjdObs - 10.0/24.0
-            validStart = math.floor(localObs - 0.5) + 0.5 + 10.0/24.0 # Local midday, in UTC
-            validEnd = validStart + 1.0
-            validStart = dafBase.DateTime(validStart, dafBase.DateTime.MJD,
-                                          dafBase.DateTime.UTC).toString()[:-1]
-            validEnd = dafBase.DateTime(validEnd, dafBase.DateTime.MJD,
-                                        dafBase.DateTime.UTC).toString()[:-1]
-        else:
-            # Make data valid for (almost) all time
-            validStart = "2000-01-01"
-            validEnd = "2099-12-31"
-            taiObs = dateObs
+        dateObs = '%d-%d-%d' % (year, month, day)
+        taiObs = dateObs
 
-        # print "%f --> %f --> %f %f" % (mjdObs, localObs, validStart, validEnd)
+        date = datetime.date(year, month, day)
+        validStart = (date - datetime.timedelta(opts.validity)).isoformat()
+        validEnd = (date + datetime.timedelta(opts.validity)).isoformat()
+
+        # print "%f --> %f %f" % (dateObs, validStart, validEnd)
 
         conn.execute("INSERT INTO " + calib.lower() + " VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?)",
             (validStart, validEnd, taiObs, dateObs, filterName, mystery, num, ccd))
