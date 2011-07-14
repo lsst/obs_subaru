@@ -1,18 +1,22 @@
 #!/usr/bin/env python
 
+import sys
 import os.path
 import re
 import numpy
 import pyfits
-
 import collections
+
+import lsst.pex.policy as pexPolicy
+import lsst.afw.cameraGeom as afwCG
+import lsst.afw.cameraGeom.utils as afwCGU
 
 Defect = collections.namedtuple('Defect', ['x0', 'y0', 'width', 'height'])
 
-def genDefectFits(mapperPolicy, source, targetDir):
-    if not isinstance(mapperPolicy, pexPolicy.Policy):
-        mapperPolicy = pexPolicy.Policy(mapperPolicy)
-    cameraPolicy = mapperPolicy.get("camera")
+def genDefectFits(cameraPolicy, source, targetDir):
+#    if not isinstance(mapperPolicy, pexPolicy.Policy):
+#        mapperPolicy = pexPolicy.Policy(mapperPolicy)
+#    cameraPolicy = mapperPolicy.get("camera")
     if not isinstance(cameraPolicy, pexPolicy.Policy):
         cameraPolicy = pexPolicy.Policy(cameraPolicy)
     geomPolicy = afwCGU.getGeomPolicy(cameraPolicy)
@@ -20,7 +24,7 @@ def genDefectFits(mapperPolicy, source, targetDir):
 
     ccds = dict()
     for raft in camera:
-        for ccd in raft:
+        for ccd in afwCG.cast_Raft(raft):
             ccdNum = ccd.getId().getSerial()
             ccds[ccdNum] = ccd.getId().getName()
 
@@ -30,6 +34,9 @@ def genDefectFits(mapperPolicy, source, targetDir):
 
     f = open(source, "r")
     for line in f:
+        line = re.sub("\#.*", "", line).strip()
+        if len(line) == 0:
+            continue
         ccd, x0, y0, width, height = re.split("\s+", line)
         ccd = int(ccd)
         if not ccds.has_key(ccd):
@@ -42,13 +49,20 @@ def genDefectFits(mapperPolicy, source, targetDir):
     for ccd in defects.keys():
         columns = list()
         for colName in Defect._fields:
-            col = numpy.array([d[colName] for d in defects[ccd]])
+            colData = numpy.array([d._asdict()[colName] for d in defects[ccd]])
+            col = pyfits.Column(name=colName, format="I", array=colData)
             columns.append(col)
         
         cols = pyfits.ColDefs(columns)
         table = pyfits.new_table(cols)
 
-        table.header['SERIAL'] = ccd
-        table.header['NAME'] = ccds[ccd]
+        table.header.update('SERIAL', ccd)
+        table.header.update('NAME', ccds[ccd])
 
-        table.writeto(os.path.join(targetDir, "defects_" + ccd + ".fits"))
+        table.writeto(os.path.join(targetDir, "defects_%d.fits" % ccd))
+
+if __name__ == "__main__":
+    if len(sys.argv) != 4:
+        print "USAGE: %s CAMERA_POLICY.paf DEFECTS.dat TARGET_DIR" % sys.argv[0]
+        sys.exit(1)
+    genDefectFits(sys.argv[1], sys.argv[2], sys.argv[3])
