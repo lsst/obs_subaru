@@ -14,9 +14,6 @@ import lsst.afw.cameraGeom.utils as afwCGU
 Defect = collections.namedtuple('Defect', ['x0', 'y0', 'width', 'height'])
 
 def genDefectFits(cameraPolicy, source, targetDir):
-#    if not isinstance(mapperPolicy, pexPolicy.Policy):
-#        mapperPolicy = pexPolicy.Policy(mapperPolicy)
-#    cameraPolicy = mapperPolicy.get("camera")
     if not isinstance(cameraPolicy, pexPolicy.Policy):
         cameraPolicy = pexPolicy.Policy(cameraPolicy)
     geomPolicy = afwCGU.getGeomPolicy(cameraPolicy)
@@ -28,7 +25,7 @@ def genDefectFits(cameraPolicy, source, targetDir):
             ccdNum = ccd.getId().getSerial()
             ccds[ccdNum] = ccd.getId().getName()
 
-    print ccds
+    print "CCDs from camera policy: %s" % ccds
 
     defects = dict()
 
@@ -59,7 +56,9 @@ def genDefectFits(cameraPolicy, source, targetDir):
         table.header.update('SERIAL', ccd)
         table.header.update('NAME', ccds[ccd])
 
-        table.writeto(os.path.join(targetDir, "defects_%d.fits" % ccd))
+        name = os.path.join(targetDir, "defects_%d.fits" % ccd)
+        print "Writing %d defects from CCD %d (%s) to %s" % (table.header['NAXIS2'], ccd, ccds[ccd], name)
+        table.writeto(name)
 
 if __name__ == "__main__":
     if len(sys.argv) != 4:
