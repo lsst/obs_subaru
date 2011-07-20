@@ -6,9 +6,9 @@ calibRoot: "/data/price/miyatake/CALIB/dome/"
 needCalibRegistry: true
 #calibRegistryPath: "/path/to/calibration/registry/"
 
-camera:        "../suprimecam/description/Full_Suprimecam_geom.paf"
-defects:    "../suprimecam/description/defects"
-filters:    "../suprimecam/description/SuprimecamFilters.paf"
+camera:        "../suprimecam/Full_Suprimecam_geom.paf"
+defects:    "../suprimecam/defects"
+filters:    "../suprimecam/SuprimecamFilters.paf"
 
 exposures: {
     raw: {
