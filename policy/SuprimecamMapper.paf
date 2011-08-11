@@ -268,4 +268,19 @@ datasets: {
         tables:        "None"
     }
 
+    diffsources: {
+        template:      "%(outRoot)s/rerun/%(rerun)s/diff/%(diff)05d/SRC%(patch)08d%(filter)s.boost"
+        python:        "lsst.afw.detection.PersistableSourceVector"
+        persistable:   "PersistableSourceVector"
+        storage:       "BoostStorage"
+        tables:        "raw_skytile"
+    }
+
+    diffpsf: {
+        template:      "%(outRoot)s/rerun/%(rerun)s/diff/%(diff)05d/PSF%(patch)08d%(filter)s.boost"
+        python:        "lsst.afw.detection.Psf"
+        persistable:   "Psf"
+        storage:       "BoostStorage"
+        tables:        "raw_skytile"
+    }
 }
