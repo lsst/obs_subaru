@@ -81,7 +81,7 @@ exposures: {
     }
 
     diff: {
-        template:      "%(outRoot)s/rerun/%(rerun)s/diff/%(diff)05d/STK%(patch)08d.fits"
+        template:      "%(outRoot)s/rerun/%(rerun)s/diff/%(diff)05d/DIFF%(patch)08d.fits"
         python:        "lsst.afw.image.ExposureF"
         persistable:        "ExposureF"
         storage:    "FitsStorage"
