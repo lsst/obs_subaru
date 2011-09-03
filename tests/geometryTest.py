@@ -45,7 +45,7 @@ class SuprimecamGeomTestCase(unittest.TestCase):
 
         polFile = pexPolicy.DefaultPolicyFile("obs_subaru",
                                               "Full_Suprimecam_geom.paf",
-                                              "suprimecam/description")
+                                              "suprimecam")
         self.geomPolicy = pexPolicy.Policy.createPolicy(polFile)
         self.geomPolicy.mergeDefaults(defPolicy.getDictionary())
 
