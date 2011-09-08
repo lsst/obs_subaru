@@ -8,7 +8,13 @@ Camera: {
         serial: -1 
         index: 0 0 
         offset: 0.0 0.0 
-    } 
+    }
+    Distortion: {
+	active: "RadialPolyDistortion"
+        RadialPolyDistortion: {
+    	    coeffs: 0.0 1.0 7.16417e-08 3.03146e-10 5.69338e-14 -6.61572e-18
+    	}
+    }
 } 
 Amp: { 
     height: 4177 
