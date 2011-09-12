@@ -88,6 +88,9 @@ if __name__ == '__main__':
     ss = s1 + s2
 
     # trim nearby pairs -- by brute-force
+    # (nearly -- sort by Dec and cut on that)
+    ss.sort(key=lambda x: x.getDec())
+    
     maxsep = 0.5 * afwGeom.arcseconds
     print 'maxsep', maxsep
     print maxsep.asArcseconds(), 'arcsec'
@@ -99,28 +102,35 @@ if __name__ == '__main__':
         si = ss[keep[i]]
         rdi = si.getRaDec()
         # we're going to keep si; remove any sj that is too close.
-        print 'rdi', rdi
+        #print 'rdi', rdi
         j = i + 1
         while True:
             if j >= len(keep):
                 break
-            rdj = ss[keep[j]].getRaDec()
-            print '  i', i, 'j', j
-            print '  rdj', rdj
+            sj = ss[keep[j]]
+            rdj = sj.getRaDec()
+            #print '  i', i, 'j', j
+            #print '  rdj', rdj
             sep = rdi.angularSeparation(rdj)
-            print '    ', sep
-            print '    ', sep.asArcseconds(), 'arcsec'
+            #print '    ', sep
+            #print '    ', sep.asArcseconds(), 'arcsec'
             if sep >= maxsep:
-                print '    keeping j', j, 'keep[j]', keep[j]
+                # sources are sorted by Dec, so once we've found a j with Dec greater
+                # than Dec_i + maxsep, we can skip all further j.
+                if sj.getDec() > (si.getDec() + maxsep):
+                    #print 'si.dec:', si.getDec().asDegrees(), '+ maxsep', maxsep.asDegrees(), '> sj.dec', sj.getDec().asDegrees()
+                    for k in range(j, len(keep)):
+                        assert(rdi.angularSeparation(ss[keep[k]].getRaDec()) >= maxsep)
+                    break
+                #print '    keeping j', j, 'keep[j]', keep[j]
                 j += 1
                 continue
-            print '  removing j', j, 'keep[j]', keep[j]
-            print '  sep', sep, '  <  maxsep', maxsep
+            #print '  removing j', j, 'keep[j]', keep[j]
+            #print '  sep', sep, '  <  maxsep', maxsep
             assert(sep.asArcseconds() < maxsep.asArcseconds())
             keep.pop(j)
             # j is not incremented (we've just removed an element)
         i += 1
-                
     print 'After trimming nearby pairs:', len(keep)
 
 
