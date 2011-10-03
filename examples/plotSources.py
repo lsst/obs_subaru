@@ -1,7 +1,7 @@
 
 
 def plotSources(butler=None, dataId=None, exposure=None, image=None,
-                sources=None):
+                sources=None, fn=None, bboxes=None, exposureDatatype='visitim'):
     import pylab as plt
     import numpy as np
     from matplotlib.patches import Ellipse
@@ -10,7 +10,7 @@ def plotSources(butler=None, dataId=None, exposure=None, image=None,
         if exposure is None:
             assert(butler is not None and dataId is not None)
             print 'Reading exposure'
-            exposure = butler.get('visitim', dataId)
+            exposure = butler.get(exposureDatatype, dataId)
         assert(exposure is not None)
         print 'exposure is', exposure
         print 'size', exposure.getWidth(), 'x', exposure.getHeight()
@@ -71,8 +71,9 @@ def plotSources(butler=None, dataId=None, exposure=None, image=None,
         plt.plot([xi, xi + ai * np.cos(tirad)],
                  [yi, yi + ai * np.sin(tirad)], 'r-')
 
-    for (x0,y0,x1,y1) in bb:
-        plt.plot([x0,x0,x1,x1,x0], [y0,y1,y1,y0,y0], 'b-')
+    if bboxes is not None:
+        for (x0,y0,x1,y1) in bboxes:
+            plt.plot([x0,x0,x1,x1,x0], [y0,y1,y1,y0,y0], 'b-')
 
     plt.axis(ax)
     if fn is not None:

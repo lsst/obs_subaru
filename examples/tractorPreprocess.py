@@ -162,10 +162,13 @@ def run(visit, rerun, config):
     print len(fps)
     bb = []
     for f in fps:
-        print '  ', f
+        print '  Footprint', f
         print '  ', f.getBBox()
         bbox = f.getBBox()
         bb.append((bbox.getMinX(), bbox.getMinY(), bbox.getMaxX(), bbox.getMaxY()))
+        print '   # peaks:', len(f.getPeaks())
+        for p in f.getPeaks():
+            print '    Peak', p
     #print 'psf', psf
     #print 'sources', sources
     #print 'footprints', footprints
@@ -197,7 +200,8 @@ def plots(visit, rerun, config, bb=[]):
     import plotSources
 
     plotSources.plotSources(butler=butler, dataId=dataId,
-                            fn='src-v%04i-rr%04i.png' % (visit,rerun))
+                            fn='src-v%04i-rr%04i.png' % (visit,rerun),
+                            bboxes=bb)
 
 
 if __name__ == "__main__":
