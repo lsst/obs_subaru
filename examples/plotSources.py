@@ -85,9 +85,13 @@ def plotSources(butler=None, dataId=None, exposure=None, image=None,
             print 'skipping source at xi,yi = ', (xi,yi)
             continue
         #print '  x,y', (xi, yi), 'a,b', (ai,bi), 'theta', ti
-        ca.add_artist(Ellipse([xi,yi], 2.*ai, 2.*bi, angle=ti,
-                              ec=(1,0,0,0.5), fc='none'))
-                              #ec='r', fc='none', alpha=0.5))
+        # alpha=0.25 doesn't seem to work, but lw=0.5 does.
+        el = Ellipse([xi,yi], 2.*ai, 2.*bi, angle=ti,
+                     ec='r', fc='none',
+                     lw=0.5)
+                     #alpha=0.25,
+        ca.add_artist(el)
+
         tirad = np.deg2rad(ti)
         plt.plot([xi, xi + ai * np.cos(tirad)],
                  [yi, yi + ai * np.sin(tirad)], 'r-', alpha=0.5)
