@@ -8,3 +8,8 @@ scp -r t0002/ sesame3:lsst/meas-deblend/examples/data
 and run via:
 python tractorPreprocess.py -v 2 -r 0 --debug --plots 2>&1 | tee v2.log
 
+
+You can also make plots of SuprimeCam results:
+
+python examples/suprimePlot.py -R ~dstn/lsst/ACT-data -C ~dstn/lsst/ACT-data/CALIB -v 126969 -c 5 --data-range -100 300 --roi 0 500 0 500
+
