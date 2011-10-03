@@ -122,6 +122,8 @@ def run(visit, rerun, config):
     if not os.path.exists(rrdir):
         print 'Creating directory for ouputs:', rrdir
         os.makedirs(rrdir)
+    else:
+        print 'Output directory:', rrdir
     io = pipReadWrite.ReadWrite(mapper, ['visit'], config=config)
     #ccdProc = pipProcCcd.ProcessCcd(config=config, Isr=NullISR, Calibrate=MyCalibrate)
     #raws = io.readRaw(dataId)
@@ -186,7 +188,56 @@ def run(visit, rerun, config):
     print 'writing output...'
     io.write(dataId, psf=psf, sources=sources)
     print 'done!'
+    print 'Writing bounding-boxes...'
+    io.outButler.put(bb, 'bb', dataId)
+
+    #print 'Writing footprints...'
+    #io.outButler.put(fps, 'footprints', dataId)
+
+    # serialize a python version of footprints & peaks
+    pyfoots = footprintsToPython(fps)
+    print 'Writing py footprints...'
+    io.outButler.put(pyfoots, 'pyfoots', dataId)
+
     return bb
+
+
+def footprintsFromPython(pyfoots):
+    import lsst.afw.detection as afwDet
+
+    #fplist = afwDet.FootprintList()
+    fplist = afwDet.FootprintContainerT()
+    #pklist = afwDet.PeakContainerT()
+    pklist = []
+    for bb,pks,spans in pyfoots:
+        fp = afwDet.Footprint()
+        for (x0,x1,y) in spans:
+            fp.addSpan(y,x0,x1)
+        # UMMM... no way to set Peaks in a Footprint?!
+        #
+        thispks = []
+        for fx,fy in pks:
+            thispks.append(afwDet.Peak(fx,fy))
+        pklist.append(thispks)
+        
+        fplist.push_back(fp)
+    return fplist, pklist
+
+
+def footprintsToPython(fps):
+    pyfoots = []
+    for f in fps:
+        bbox = f.getBBox()
+        bb = (bbox.getMinX(), bbox.getMinY(), bbox.getMaxX(), bbox.getMaxY())
+        pks = []
+        for p in f.getPeaks():
+            pks.append((p.getFx(), getFy()))
+        spans = []
+        for s in f.getSpans():
+            spans.append((s.getX0(), s.getX1(), s.getY()))
+        pyfoots.append((bb, pks, spans))
+    return pyfoots
+
 
 def plots(visit, rerun, config, bb=[]):
     mapper = getMapper()

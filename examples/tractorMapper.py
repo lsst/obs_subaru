@@ -65,6 +65,13 @@ class TractorMapper(Mapper):
                                    #'lsst.afw.detection.Source', 'Source'),
                                    'lsst.afw.detection.PersistableSourceVector',
                                    'PersistableSourceVector'),
+                           'bb': (os.path.join(outdir, 'bb.pickle'),
+                                  None, None),
+                           'pyfoots': (os.path.join(outdir, 'foots.pickle'),
+                                       None, None),
+                           'footprints': (os.path.join(outdir, 'foots.boost'),
+                                          'lsst.afw.detection.FootprintList',
+                                          'FootprintList'),
                            }
         '''
         for datasetType in ["raw", "bias", "dark", "flat", "fringe",
@@ -97,6 +104,8 @@ class TractorMapper(Mapper):
             storagetype = 'FitsStorage'
         elif path.endswith('.boost'):
             storagetype = 'BoostStorage'
+        elif path.endswith('.pickle'):
+            storagetype = 'PickleStorage'
         return ButlerLocation(cname, pyname, storagetype, path, dataId)
 
 
