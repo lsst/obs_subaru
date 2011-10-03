@@ -19,6 +19,7 @@ if __name__ == '__main__':
     parser.add_option('--data-range', dest='datarange', type=float, nargs=2, help='Image stretch (low, high)')
     parser.add_option('--roi', dest='roi', type=int, nargs=4, help='ROI (x0, x1, y0, y1)')
     parser.add_option('--plotsize', dest='plotsize', type=int, nargs=2, help='Plot size (w x h) inches')
+    parser.add_option('--psf', dest='psf', help='Render a PSF image at center -- to the given output filename')
     
     default = os.path.join(os.getenv("PIPETTE_DIR"), "policy", "ProcessCcdDictionary.paf")
     overrides = os.path.join(os.getenv("MEAS_DEBLENDER_DIR"), 'examples', 'suprime.paf')
@@ -47,6 +48,31 @@ if __name__ == '__main__':
     #print 'roi', opt.roi
     #print 'plotsize', opt.plotsize
 
+    expdatatype = 'calexp'
+
+    if opt.psf:
+        import lsst.afw.geom as afwGeom
+        import numpy as np
+        import pyfits
+        
+        psf = butler.get('psf', dataId)
+        print 'psf is', psf
+        if opt.roi is None:
+            exposure = butler.get(expdatatype, dataId)
+            w,h = exposure.getWidth(), exposure.getHeight()
+            x,y = w/2., h/2.
+        else:
+            x,y = (opt.roi[0] + opt.roi[1])/2., (opt.roi[2] + opt.roi[3])/2.
+        img = psf.computeImage(afwGeom.Point2D(x,y), False)
+        print 'img', img
+        w,h = img.getWidth(), img.getHeight()
+        npimg = np.empty((h,w))
+        for y in range(h):
+            for x in range(w):
+                npimg[y,x] = img.get(x,y)
+        pyfits.writeto(opt.psf, npimg, clobber=True)
+        print 'Wrote PSF image to', opt.psf
+
     import plotSources
     import pylab as plt
     bb = []
@@ -55,8 +81,8 @@ if __name__ == '__main__':
 
     plotSources.plotSources(butler=butler, dataId=dataId,
                             fn='suprime-v%06i-c%02i.png' % (opt.visit,opt.ccd),
-                            exposureDatatype='calexp',
+                            exposureDatatype=expdatatype,
                             datarange=opt.datarange,
                             roi=opt.roi,
                             bboxes=bb)
-    
+
