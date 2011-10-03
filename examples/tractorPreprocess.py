@@ -193,8 +193,11 @@ def plots(visit, rerun, config, bb=[]):
         raise RuntimeError('Rerun dir not found: "%s"' % rrdir)
     io = pipReadWrite.ReadWrite(mapper, ['visit'], config=config)
     butler = io.inButler
-    plotSources(butler=butler, dataId=dataId,
-                fn='src-v%04i-rr%04i.png' % (visit,rerun))
+
+    import plotSources
+
+    plotSources.plotSources(butler=butler, dataId=dataId,
+                            fn='src-v%04i-rr%04i.png' % (visit,rerun))
 
 
 if __name__ == "__main__":
