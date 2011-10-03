@@ -1,7 +1,8 @@
 
 
 def plotSources(butler=None, dataId=None, exposure=None, image=None,
-                sources=None, fn=None, bboxes=None, exposureDatatype='visitim'):
+                sources=None, fn=None, bboxes=None, exposureDatatype='visitim',
+                datarange=None, roi=None):
     import pylab as plt
     import numpy as np
     from matplotlib.patches import Ellipse
@@ -23,9 +24,9 @@ def plotSources(butler=None, dataId=None, exposure=None, image=None,
         print 'got sources', sources
         sources = sources.getSources()
 
-    print 'got sources', sources
-    for s in sources:
-        print '  ', s, 'x,y', s.getXAstrom(), s.getYAstrom(), 'psfFlux', s.getPsfFlux(), 'Ixx,Iyy,Ixy', s.getIxx(), s.getIyy(), s.getIxy()
+    #print 'got sources', sources
+    #for s in sources:
+    #    print '  ', s, 'x,y', s.getXAstrom(), s.getYAstrom(), 'psfFlux', s.getPsfFlux(), 'Ixx,Iyy,Ixy', s.getIxx(), s.getIyy(), s.getIxy()
 
     # old-school numpy has no rad2deg
     if not hasattr(np, 'rad2deg'):
@@ -34,17 +35,27 @@ def plotSources(butler=None, dataId=None, exposure=None, image=None,
         np.deg2rad = np.radians
 
     # this is what we are reduced to?
-    img = np.empty((image.getHeight(), image.getWidth()))
-    for row in range(image.getHeight()):
-        for col in range(image.getWidth()):
-            img[row,col] = image.get(col, row)
+    if roi is None:
+        x0,x1,y0,y1 = 0,image.getWidth(),0,image.getHeight()
+    else:
+        x0,x1,y0,y1 = roi
+    img = np.empty((y1-y0, x1-x0))
+    for r,row in enumerate(range(y0, y1)):
+        for c,col in enumerate(range(x0, x1)):
+            img[r,c] = image.get(col, row)
 
     plt.clf()
-    plt.imshow(img)
+    imargs = dict(origin='lower', interpolation='nearest')
+    if datarange is not None:
+        imargs.update(vmin=datarange[0], vmax=datarange[1])
+    if roi is not None:
+        imargs.update(extent=roi)
+
+    plt.imshow(img, **imargs)
     plt.gray()
     ax = plt.axis()
     plt.plot([s.getXAstrom() for s in sources],
-             [s.getYAstrom() for s in sources], 'r.')
+             [s.getYAstrom() for s in sources], 'r.', alpha=0.3)
 
     x2 = np.array([s.getIxx() for s in sources])
     y2 = np.array([s.getIyy() for s in sources])
@@ -55,25 +66,35 @@ def plotSources(butler=None, dataId=None, exposure=None, image=None,
     theta = np.rad2deg(np.arctan2(2.*xy, (x2 - y2)) / 2.)
     a = np.sqrt(a2)
     b = np.sqrt(b2)
-    print 'a,b', a, b
-    print 'theta', theta
+    #print 'a,b', a, b
+    #print 'theta', theta
 
     x = np.array([s.getXAstrom() for s in sources])
     y = np.array([s.getYAstrom() for s in sources])
 
     ca = plt.gca()
-    print 'x, y, a, b, theta:'
+    #print 'x, y, a, b, theta:'
+
+    # Number of radii outside image bounds at which to trim sources
+    nr = 8
+
     for xi,yi,ai,bi,ti in zip(x, y, a, b, theta):
-        print '  x,y', (xi, yi), 'a,b', (ai,bi), 'theta', ti
+        margin = nr * max(ai,bi)
+        if (xi < x0 - margin or xi > x1 + margin or
+            yi < y0 - margin or yi > y1 + margin):
+            print 'skipping source at xi,yi = ', (xi,yi)
+            continue
+        #print '  x,y', (xi, yi), 'a,b', (ai,bi), 'theta', ti
         ca.add_artist(Ellipse([xi,yi], 2.*ai, 2.*bi, angle=ti,
-                              ec='r', fc='none'))
+                              ec=(1,0,0,0.5), fc='none'))
+                              #ec='r', fc='none', alpha=0.5))
         tirad = np.deg2rad(ti)
         plt.plot([xi, xi + ai * np.cos(tirad)],
-                 [yi, yi + ai * np.sin(tirad)], 'r-')
+                 [yi, yi + ai * np.sin(tirad)], 'r-', alpha=0.5)
 
     if bboxes is not None:
         for (x0,y0,x1,y1) in bboxes:
-            plt.plot([x0,x0,x1,x1,x0], [y0,y1,y1,y0,y0], 'b-')
+            plt.plot([x0,x0,x1,x1,x0], [y0,y1,y1,y0,y0], 'b-', alpha=0.5)
 
     plt.axis(ax)
     if fn is not None:
