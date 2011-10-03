@@ -3,8 +3,12 @@
 import os
 import sys
 
+import pyfits
+
 import lsst.pipette.options as pipOptions
 import lsst.pipette.readwrite as pipReadWrite
+import lsst.afw.detection as afwDet
+import lsst.afw.geom as afwGeom
 
 from lsst.meas.deblender import deblender
 
@@ -32,6 +36,26 @@ def run(visit, rerun, config):
     print 'Peaks:'
     print pks
 
+    # HACK peaks
+    fn = mapper.getPath('truesrc', dataId)
+    srcs = pyfits.open(fn)[1].data
+    x = srcs.field('x').astype(float)
+    y = srcs.field('y').astype(float)
+    print x, y
+    pks = []
+    for foot in foots:
+        thispks = []
+        bbox = foot.getBBox()
+        bb = (bbox.getMinX(), bbox.getMinY(), bbox.getMaxX(), bbox.getMaxY())
+        print 'Looking for sources for footprint with bbox', bb
+        for xi,yi in zip(x,y):
+            if foot.contains(afwGeom.Point2I(int(round(xi)),int(round(yi)))):
+                thispks.append(afwDet.Peak(xi,yi))
+                print '  Source at', (xi,yi), 'is inside footprint with bbox', bb
+        pks.append(thispks)
+        print 'Got', len(thispks), 'sources for this footprint'
+    print 'OVERRODE peaks', pks
+
     exposureDatatype = 'visitim'
     exposure = butler.get(exposureDatatype, dataId)
     mi = exposure.getMaskedImage()
@@ -43,6 +67,10 @@ def run(visit, rerun, config):
     print 'Calling deblender...'
     objs = deblender.deblend(foots, pks, mi, psf)
     print 'got', objs
+
+    for obj in objs:
+        print 'Object:'
+        print obj
 
 
 if __name__ == "__main__":

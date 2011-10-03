@@ -97,8 +97,9 @@ def plotSources(butler=None, dataId=None, exposure=None, image=None,
                  [yi, yi + ai * np.sin(tirad)], 'r-', alpha=0.5)
 
     if bboxes is not None:
-        for (x0,y0,x1,y1) in bboxes:
+        for i,(x0,y0,x1,y1) in enumerate(bboxes):
             plt.plot([x0,x0,x1,x1,x0], [y0,y1,y1,y0,y0], 'b-', alpha=0.5)
+            plt.text(x0, y0, '%i' % i, color='b')
 
     plt.axis(ax)
     if fn is not None:

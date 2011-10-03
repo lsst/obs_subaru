@@ -72,6 +72,8 @@ class TractorMapper(Mapper):
                            'footprints': (os.path.join(outdir, 'foots.boost'),
                                           'lsst.afw.detection.FootprintList',
                                           'FootprintList'),
+                           'truesrc': (os.path.join(indir, 'srcs.fits'),
+                                       None, None),
                            }
         '''
         for datasetType in ["raw", "bias", "dark", "flat", "fringe",
