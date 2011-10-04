@@ -9,6 +9,8 @@ and run via:
 python tractorPreprocess.py -v 2 -r 0 --debug --plots 2>&1 | tee v2.log
 
 
+
+
 You can also make plots of SuprimeCam results:
 
 python examples/suprimePlot.py --data ~dstn/lsst/ACT-data -v 126969 -c 5 --data-range -100 300 --roi 0 500 0 500

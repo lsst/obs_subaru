@@ -1,5 +1,8 @@
 
 
+class Source(object):
+    pass
+
 def plotSources(butler=None, dataId=None, exposure=None, image=None,
                 sources=None, fn=None, bboxes=None, exposureDatatype='visitim',
                 datarange=None, roi=None):
@@ -77,8 +80,8 @@ def plotSources(butler=None, dataId=None, exposure=None, image=None,
 
     # Number of radii outside image bounds at which to trim sources
     nr = 8
-
-    for xi,yi,ai,bi,ti in zip(x, y, a, b, theta):
+    srcs = []
+    for xi,yi,ai,bi,ti,si in zip(x, y, a, b, theta, sources):
         margin = nr * max(ai,bi)
         if (xi < x0 - margin or xi > x1 + margin or
             yi < y0 - margin or yi > y1 + margin):
@@ -96,6 +99,15 @@ def plotSources(butler=None, dataId=None, exposure=None, image=None,
         plt.plot([xi, xi + ai * np.cos(tirad)],
                  [yi, yi + ai * np.sin(tirad)], 'r-', alpha=0.5)
 
+        s = Source()
+        s.ra, s.dec = si.getRa().asDegrees(), si.getDec().asDegrees()
+        s.x, s.y = xi, yi
+        s.a, s.b, s.theta = ai, bi, ti
+        s.flux = si.getModelFlux()
+        #print 'psf flux', s.flux
+        #print 'model flux', si.getModelFlux()
+        srcs.append(s)
+
     if bboxes is not None:
         for i,(x0,y0,x1,y1) in enumerate(bboxes):
             plt.plot([x0,x0,x1,x1,x0], [y0,y1,y1,y0,y0], 'b-', alpha=0.5)
@@ -104,3 +116,5 @@ def plotSources(butler=None, dataId=None, exposure=None, image=None,
     plt.axis(ax)
     if fn is not None:
         plt.savefig(fn)
+
+    return srcs

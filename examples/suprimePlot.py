@@ -20,6 +20,8 @@ if __name__ == '__main__':
     parser.add_option('--roi', dest='roi', type=int, nargs=4, help='ROI (x0, x1, y0, y1)')
     parser.add_option('--plotsize', dest='plotsize', type=int, nargs=2, help='Plot size (w x h) inches')
     parser.add_option('--psf', dest='psf', help='Render a PSF image at center -- to the given output filename')
+    parser.add_option('--image', dest='image', help='Write out the image in FITS format -- to the given filename')
+    parser.add_option('--sources', dest='sources', help='Write out the sources in FITS format -- to the given filename')
     
     default = os.path.join(os.getenv("PIPETTE_DIR"), "policy", "ProcessCcdDictionary.paf")
     overrides = os.path.join(os.getenv("MEAS_DEBLENDER_DIR"), 'examples', 'suprime.paf')
@@ -52,6 +54,7 @@ if __name__ == '__main__':
 
     if opt.psf:
         import lsst.afw.geom as afwGeom
+        import lsst.afw.image as afwImage
         import numpy as np
         import pyfits
         
@@ -73,16 +76,64 @@ if __name__ == '__main__':
         pyfits.writeto(opt.psf, npimg, clobber=True)
         print 'Wrote PSF image to', opt.psf
 
+    if opt.image:
+        #import numpy as np
+        #import pyfits
+        exposure = butler.get(expdatatype, dataId)
+
+        if opt.roi is None:
+            exposure.writeFits(opt.image)
+        else:
+            x0,x1,y0,y1 = opt.roi
+            subexp = afwImage.ExposureF(exposure, afwGeom.Box2I(afwGeom.Point2I(x0,y0),
+                                                                afwGeom.Point2I(x1-1,y1-1)))
+            subexp.writeFits(opt.image)
+        print 'Wrote', opt.image
+
+        # w,h = exposure.getWidth(), exposure.getHeight()
+        # if opt.roi is None:
+        #     x0,x1,y0,y1 = 0,w,0,h
+        # else:
+        #     x0,x1,y0,y1 = opt.roi
+        #     w,h = x1-x0, y1-y0
+        # 
+        # img = np.empty((h w))
+        # var = np.empty((h w))
+        # mask = np.empty((h w), int)
+        # mi = exposure.getMaskedImage()
+        # for r,row in enumerate(range(y0, y1)):
+        #     for c,col in enumerate(range(x0, x1)):
+        #         img[r,c] = mi.getImage.get(col, row)
+        #         var[r,c] = mi.getImage.get(col, row)
+        #         img[r,c] = mi.getImage.get(col, row)
+
+        
+
     import plotSources
     import pylab as plt
     bb = []
     if opt.plotsize:
         plt.figure(figsize=opt.plotsize)
 
-    plotSources.plotSources(butler=butler, dataId=dataId,
-                            fn='suprime-v%06i-c%02i.png' % (opt.visit,opt.ccd),
-                            exposureDatatype=expdatatype,
-                            datarange=opt.datarange,
-                            roi=opt.roi,
-                            bboxes=bb)
+    srcs = plotSources.plotSources(butler=butler, dataId=dataId,
+                                   fn='suprime-v%06i-c%02i.png' % (opt.visit,opt.ccd),
+                                   exposureDatatype=expdatatype,
+                                   datarange=opt.datarange,
+                                   roi=opt.roi,
+                                   bboxes=bb)
 
+    if opt.sources:
+        import pyfits
+        import numpy as np
+
+        data = dict([(c, np.array([getattr(s,c) for s in srcs]))
+                     for c in ['x','y','ra','dec','a','b','theta','flux']])
+        if opt.roi is not None:
+            x0,x1,y0,y1 = opt.roi
+            data['x'] -= x0
+            data['y'] -= y0
+
+        tab = pyfits.new_table([pyfits.Column(name=c, format='D', array=d)
+                                for c,d in data.items()])
+        tab.writeto(opt.sources, clobber=True)
+        print 'Wrote sources to', opt.sources
