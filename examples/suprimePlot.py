@@ -77,8 +77,6 @@ if __name__ == '__main__':
         print 'Wrote PSF image to', opt.psf
 
     if opt.image:
-        #import numpy as np
-        #import pyfits
         exposure = butler.get(expdatatype, dataId)
 
         if opt.roi is None:
@@ -90,22 +88,9 @@ if __name__ == '__main__':
             subexp.writeFits(opt.image)
         print 'Wrote', opt.image
 
-        # w,h = exposure.getWidth(), exposure.getHeight()
-        # if opt.roi is None:
-        #     x0,x1,y0,y1 = 0,w,0,h
-        # else:
-        #     x0,x1,y0,y1 = opt.roi
-        #     w,h = x1-x0, y1-y0
-        # 
-        # img = np.empty((h w))
-        # var = np.empty((h w))
-        # mask = np.empty((h w), int)
-        # mi = exposure.getMaskedImage()
-        # for r,row in enumerate(range(y0, y1)):
-        #     for c,col in enumerate(range(x0, x1)):
-        #         img[r,c] = mi.getImage.get(col, row)
-        #         var[r,c] = mi.getImage.get(col, row)
-        #         img[r,c] = mi.getImage.get(col, row)
+        #rawexp = butler.get('raw', dataId)
+        #print 'Raw exposure:', rawexp
+        #rawexp.writeFits('raw.fits')
 
         
 
