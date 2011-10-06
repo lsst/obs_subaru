@@ -12,6 +12,8 @@ import lsst.afw.geom as afwGeom
 
 from lsst.meas.deblender import deblender
 
+from lsst.meas.deblender import naive as naive_deblender
+
 from tractorPreprocess import getMapper, footprintsFromPython
 
 
@@ -64,13 +66,21 @@ def run(visit, rerun, config):
     psf = butler.get('psf', dataId)
     print 'PSF:', psf
 
-    print 'Calling deblender...'
-    objs = deblender.deblend(foots, pks, mi, psf)
-    print 'got', objs
+    if False:
+        print 'Calling deblender...'
+        objs = deblender.deblend(foots, pks, mi, psf)
+        print 'got', objs
+        for obj in objs:
+            print 'Object:'
+            print obj
+    else:
+        print 'Calling naive deblender...'
+        objs = naive_deblender.deblend(foots, mi, psf)
+        print 'got', objs
+        for obj in objs:
+            print 'Object:'
+            print obj
 
-    for obj in objs:
-        print 'Object:'
-        print obj
 
 
 if __name__ == "__main__":
