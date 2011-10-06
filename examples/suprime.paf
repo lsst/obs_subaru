@@ -31,9 +31,9 @@ measure: {
     source: {
 		astrom:  "SDSS"
         apFlux:  "SINC"
-#        modelFlux: "GAUSSIAN"
+        modelFlux: "GAUSSIAN"
         psfFlux: "PSF"
-#        shape: "HSM_REGAUSS"
+#       shape: "HSM_REGAUSS"
         shape: "SDSS"
     }
     shape: {
@@ -50,10 +50,10 @@ measure: {
         }
 	}
     photometry: {
-#        GAUSSIAN: {
-#            background: 0.0
-#            shiftmax: 10
-#        }
+        GAUSSIAN: {
+            background: 0.0
+            shiftmax: 10
+        }
         NAIVE: {
             radius: 9.0
         }

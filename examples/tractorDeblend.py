@@ -16,6 +16,10 @@ from lsst.meas.deblender import naive as naive_deblender
 
 from tractorPreprocess import getMapper, footprintsFromPython
 
+import matplotlib
+matplotlib.use('Agg')
+import pylab as plt
+import numpy as np
 
 def run(visit, rerun, config):
     mapper = getMapper()
@@ -75,12 +79,22 @@ def run(visit, rerun, config):
             print obj
     else:
         print 'Calling naive deblender...'
-        objs = naive_deblender.deblend(foots, mi, psf)
+        objs = naive_deblender.deblend(foots, pks, mi, psf)
         print 'got', objs
         for obj in objs:
             print 'Object:'
             print obj
-
+        for i,templs in enumerate(objs):
+            for j,templ in enumerate(templs):
+                templ.writeFits('templ-f%i-t%i.fits' % (i, j))
+                H,W = templ.getHeight(), templ.getWidth()
+                T = np.zeros((H,W))
+                for ii in range(H):
+                    for jj in range(W):
+                        T[ii,jj] = templ.get(jj,ii)
+                plt.clf()
+                plt.imshow(T, interpolation='nearest', origin='lower')
+                plt.savefig('templ-f%i-t%i.png' % (i,j))
 
 
 if __name__ == "__main__":

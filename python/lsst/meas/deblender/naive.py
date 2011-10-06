@@ -2,42 +2,53 @@
 import lsst.afw.image as afwImage
 import lsst.afw.geom  as afwGeom
 
-def deblend(footprints, maskedImage, psf):
+def deblend(footprints, peaks, maskedImage, psf):
     print 'Naive deblender starting'
     print 'footprints', footprints
     print 'maskedImage', maskedImage
     print 'psf', psf
     allt = []
     img = maskedImage.getImage()
-    for fp in footprints:
+    for fp,pks in zip(footprints,peaks):
         bb = fp.getBBox()
         W,H = bb.getWidth(), bb.getHeight()
         x0,y0 = bb.getMinX(), bb.getMinY()
         templs = []
-        for pk in fp.getPeaks():
-            template = afwImage.MaskedImage(W,H)
+        #for pk in fp.getPeaks():
+        print 'Footprint x0,y0', x0,y0
+        print 'W,H', W,H
+        for pk in pks:
+            template = afwImage.MaskedImageF(W,H)
             template.setXY0(x0,y0)
             cx,cy = pk.getIx(), pk.getIy()
             timg = template.getImage()
-            timg.set(cx,cy, img.get(cx,cy))
+            p = img.get(cx,cy)
+            timg.set(cx - x0, cy - y0, p)
             #template.set(cx,cy, 
-            for dy in range(H-cy):
-                for dx in range(-cx, W-cx):
+            for dy in range(H-(cy-y0)):
+                print 'dy', dy
+                for dx in range(-(cx-x0), W-(cx-x0)):
+                    print 'dx', dx
                     if dy == 0 and dx == 0:
                         continue
                     # twofold rotational symmetry
                     xa,ya = cx+dx, cy+dy
                     xb,yb = cx-dx, cy-dy
+                    print 'xa,ya', xa,ya
                     if not fp.contains(afwGeom.Point2I(xa, ya)):
+                        print ' (oob)'
                         continue
+                    print 'xb,yb', xb,yb
                     if not fp.contains(afwGeom.Point2I(xb, yb)):
+                        print ' (oob)'
                         continue
                     pa = img.get(xa, ya)
                     pb = img.get(xb, yb)
+                    print 'pa', pa, 'pb', pb
                     mn = min(pa,pb)
                     # Monotonic?
-                    timg.set(xa, ya, mn)
-                    timg.set(xb, yb, mn)
+                    timg.set(xa - x0, ya - y0, mn)
+                    timg.set(xb - x0, yb - y0, mn)
 
             templs.append(timg)
         allt.append(templs)
