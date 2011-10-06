@@ -79,9 +79,9 @@ def run(visit, rerun, config):
             print obj
     else:
         print 'Calling naive deblender...'
-        allt,allp = naive_deblender.deblend(foots, pks, mi, psf)
+        allt,allp,allbg,allmod = naive_deblender.deblend(foots, pks, mi, psf)
 
-        for i,(foot,templs,ports) in enumerate(zip(foots,allt,allp)):
+        for i,(foot,templs,ports,bgs,mods) in enumerate(zip(foots,allt,allp,allbg,allmod)):
             sumP = None
 
             W,H = foot.getBBox().getWidth(), foot.getBBox().getHeight()
@@ -93,24 +93,43 @@ def run(visit, rerun, config):
             mn,mx = I.min(), I.max()
             ima = dict(interpolation='nearest', origin='lower', vmin=mn, vmax=mx)
 
-            for j,(templ,port) in enumerate(zip(templs,ports)):
+            for j,(templ,port,bg,mod) in enumerate(zip(templs,ports,bgs,mods)):
                 templ.writeFits('templ-f%i-t%i.fits' % (i, j))
                 #H,W = templ.getHeight(), templ.getWidth()
                 T = np.zeros((H,W))
                 P = np.zeros((H,W))
+                B = np.zeros((H,W))
+                M = np.zeros((H,W))
                 for ii in range(H):
                     for jj in range(W):
                         T[ii,jj] = templ.get(jj,ii)
                         P[ii,jj] = port.get(jj,ii)
-                NR,NC = 2,2
+                        B[ii,jj] = bg.get(jj,ii)
+                        M[ii,jj] = mod.get(jj,ii)
+                NR,NC = 2,3
                 plt.clf()
                 plt.subplot(NR,NC,1)
                 plt.imshow(I, **ima)
+                plt.title('Image')
                 plt.colorbar()
                 plt.subplot(NR,NC,2)
                 plt.imshow(T, **ima)
+                plt.title('Template')
                 plt.subplot(NR,NC,3)
+                plt.imshow(B, **ima)
+                plt.title('Background-subtracted')
+                plt.subplot(NR,NC,4)
+                plt.imshow(M, **ima)
+                plt.title('PSF model')
+                plt.subplot(NR,NC,5)
+                res = B-M
+                mx = np.abs(res).max()
+                plt.imshow(res, interpolation='nearest', origin='lower', vmin=-mx, vmax=mx)
+                plt.colorbar()
+                plt.title('Residuals')
+                plt.subplot(NR,NC,6)
                 plt.imshow(P, **ima)
+                plt.title('Flux portion')
                 plt.savefig('templ-f%i-t%i.png' % (i,j))
 
                 if sumP is None:

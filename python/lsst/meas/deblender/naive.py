@@ -1,6 +1,8 @@
+import math
 
 import lsst.afw.image as afwImage
 import lsst.afw.geom  as afwGeom
+import lsst.afw.math  as afwMath
 
 def deblend(footprints, peaks, maskedImage, psf):
     print 'Naive deblender starting'
@@ -9,6 +11,9 @@ def deblend(footprints, peaks, maskedImage, psf):
     print 'psf', psf
     allt = []
     allp = []
+    allbgsub = []
+    allmod = []
+    
     img = maskedImage.getImage()
     for fp,pks in zip(footprints,peaks):
         bb = fp.getBBox()
@@ -16,6 +21,8 @@ def deblend(footprints, peaks, maskedImage, psf):
         x0,y0 = bb.getMinX(), bb.getMinY()
 
         templs = []
+        bgsubs = []
+        models = []
         #for pk in fp.getPeaks():
         print 'Footprint x0,y0', x0,y0
         print 'W,H', W,H
@@ -53,6 +60,76 @@ def deblend(footprints, peaks, maskedImage, psf):
                     timg.set(xb - x0, yb - y0, mn)
             templs.append(timg)
 
+        # Now try fitting a PSF + smooth background model to the template.
+        # Smooth background = ....?
+        # ... median filter?
+        # ... from our friends down at math::makeBackground?
+
+        #for timg in templs:
+        for timg in []:
+            # declare a background control object for a natural spline
+            bgctrl = afwMath.BackgroundControl(afwMath.Interpolate.NATURAL_SPLINE)
+            gridsz = 32.
+            bgctrl.setNxSample(int(math.ceil(W / gridsz)))
+            bgctrl.setNySample(int(math.ceil(H / gridsz)))
+            # bgctrl.getStatisticsControl().setNumIter(3)
+            # bgctrl.getStatisticsControl().setNumSigmaClip(2.5)
+            back = afwMath.makeBackground(timg, bgctrl)
+            bgsub = afwImage.ImageF(W,H)
+            bgsub += timg
+            bgsub -= back.getImageF()
+            bgsubs.append(bgsub)
+
+        for pk,timg in zip(pks, templs):
+            from scipy.ndimage.filters import median_filter
+            import numpy as np
+            npimg = np.zeros((H,W))
+            for y in range(H):
+                for x in range(W):
+                    npimg[y,x] = timg.get(x,y)
+            # median filter patch size
+            mfsize = 10
+            mf = median_filter(npimg, mfsize) #mode='constant', cval=0.)
+
+            bgsub = afwImage.ImageF(W,H)
+            bgsub += timg
+            for y in range(H):
+                for x in range(W):
+                    bgsub.set(x,y, bgsub.get(x,y) - mf[y,x])
+                    #bgsub = timg.get(x,y) - mf[y,x]
+            bgsubs.append(bgsub)
+
+            psfimg = psf.computeImage(afwGeom.Point2D(pk.getFx(), pk.getFy()))
+            bbox = psfimg.getBBox(afwImage.PARENT)
+            print 'Peak pos', pk.getFx(), pk.getFy()
+            print 'PSF bbox X:', bbox.getMinX(), bbox.getMaxX()
+            print 'PSF bbox Y:', bbox.getMinY(), bbox.getMaxY()
+            bbox.clip(fp.getBBox())
+            print 'clipped bbox X:', bbox.getMinX(), bbox.getMaxX()
+            print 'clipped bbox Y:', bbox.getMinY(), bbox.getMaxY()
+            px0,py0 = psfimg.getX0(), psfimg.getY0()
+
+            numer = 0.
+            denom = 0.
+            for y in range(bbox.getMinY(), bbox.getMaxY()+1):
+                for x in range(bbox.getMinX(), bbox.getMaxX()+1):
+                    p = psfimg.get(x-px0,y-py0)
+                    numer += p * bgsub.get(x-x0, y-y0)
+                    denom += p * p
+            amp = numer / denom
+            print 'PSF amplitude:', amp
+
+            model = afwImage.ImageF(W,H)
+            for y in range(H):
+                for x in range(W):
+                    #m = bgsub.get(x,y)
+                    m = 0.
+                    px,py = x+x0,y+y0
+                    if bbox.contains(afwGeom.Point2I(px,py)):
+                        m += amp * psfimg.get(px-px0, py-py0)
+                    model.set(x,y, m)
+            models.append(model)
+
         # Now apportion flux according to the templates ?
         portions = [afwImage.ImageF(W,H) for t in templs]
         for y in range(H):
@@ -68,5 +145,6 @@ def deblend(footprints, peaks, maskedImage, psf):
 
         allp.append(portions)
         allt.append(templs)
-
-    return allt, allp
+        allbgsub.append(bgsubs)
+        allmod.append(models)
+    return allt, allp, allbgsub, allmod
