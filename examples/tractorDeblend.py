@@ -79,23 +79,52 @@ def run(visit, rerun, config):
             print obj
     else:
         print 'Calling naive deblender...'
-        objs = naive_deblender.deblend(foots, pks, mi, psf)
-        print 'got', objs
-        for obj in objs:
-            print 'Object:'
-            print obj
-        for i,templs in enumerate(objs):
-            for j,templ in enumerate(templs):
+        allt,allp = naive_deblender.deblend(foots, pks, mi, psf)
+
+        for i,(foot,templs,ports) in enumerate(zip(foots,allt,allp)):
+            sumP = None
+
+            W,H = foot.getBBox().getWidth(), foot.getBBox().getHeight()
+            I = np.zeros((H,W))
+            x0,y0 = foot.getBBox().getMinX(), foot.getBBox().getMinY()
+            for ii in range(H):
+                for jj in range(W):
+                    I[ii,jj] = mi.getImage().get(jj+x0,ii+y0)
+            mn,mx = I.min(), I.max()
+            ima = dict(interpolation='nearest', origin='lower', vmin=mn, vmax=mx)
+
+            for j,(templ,port) in enumerate(zip(templs,ports)):
                 templ.writeFits('templ-f%i-t%i.fits' % (i, j))
-                H,W = templ.getHeight(), templ.getWidth()
+                #H,W = templ.getHeight(), templ.getWidth()
                 T = np.zeros((H,W))
+                P = np.zeros((H,W))
                 for ii in range(H):
                     for jj in range(W):
                         T[ii,jj] = templ.get(jj,ii)
+                        P[ii,jj] = port.get(jj,ii)
+                NR,NC = 2,2
                 plt.clf()
-                plt.imshow(T, interpolation='nearest', origin='lower')
+                plt.subplot(NR,NC,1)
+                plt.imshow(I, **ima)
+                plt.colorbar()
+                plt.subplot(NR,NC,2)
+                plt.imshow(T, **ima)
+                plt.subplot(NR,NC,3)
+                plt.imshow(P, **ima)
                 plt.savefig('templ-f%i-t%i.png' % (i,j))
 
+                if sumP is None:
+                    sumP = P
+                else:
+                    sumP += P
+            if sumP is not None:
+                plt.clf()
+                NR,NC = 1,2
+                plt.subplot(NR,NC,1)
+                plt.imshow(I, **ima)
+                plt.subplot(NR,NC,2)
+                plt.imshow(sumP, **ima)
+                plt.savefig('sump-f%i.png' % i)
 
 if __name__ == "__main__":
     parser = pipOptions.OptionParser()
