@@ -67,6 +67,7 @@ namespace lsst {
                         boost::shared_ptr<typename afwDet::Psf > psf
                     );
 
+                /*
                 // We need extra params...
                 std::vector<typename DeblendedObject<ImageT>::Ptr >
                 deblend(
@@ -74,11 +75,11 @@ namespace lsst {
                     std::vector< std::vector< boost::shared_ptr< afwDet::Peak > > > peaks,
                     boost::shared_ptr<typename afwImage::MaskedImage<typename ImageT::Pixel> > maskedImage,
 
-                    boost::shared_ptr<typename afwDet::dgPsf > psf,
+                    boost::shared_ptr<typename afwDet::Psf > psf,
                     double ffo_threshold,
                     double background
                     );
-
+                 */
 
                 std::vector< std::string > debugProfiles();
 

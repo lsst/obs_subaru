@@ -95,8 +95,9 @@ deblender::SDSSDeblender<ImageT>::deblend(
     boost::shared_ptr<typename afwImage::MaskedImage<typename ImageT::Pixel > > the_mimage,
     boost::shared_ptr<typename afwDet::Psf > the_psf
 ) {
-}
 
+/*
+}
 template<typename ImageT>
 std::vector<typename DeblendedObject<ImageT>::Ptr >
 deblender::SDSSDeblender<ImageT>::deblend(
@@ -104,10 +105,11 @@ deblender::SDSSDeblender<ImageT>::deblend(
     std::vector< std::vector< boost::shared_ptr< afwDet::Peak > > > peaks,
     boost::shared_ptr<typename afwImage::MaskedImage<typename ImageT::Pixel> > the_mimage,
 
-    boost::shared_ptr<typename afwDet::dgPsf > the_psf,
+    boost::shared_ptr<typename afwDet::Psf > the_psf,
     double ffo_threshold,
     double background
     ) {
+ */
 
     std::vector< afwDet::Footprint::Ptr > footprints = *pfootprints;
     std::vector<boost::shared_ptr<typename afwImage::MaskedImage<typename ImageT::Pixel > > > mimages;
@@ -187,7 +189,8 @@ deblender::SDSSDeblender<ImageT>::deblend(
             phpk->cpeak = static_cast<int>(0.5 + pk->getFx());
             phpk->rpeak = static_cast<int>(0.5 + pk->getFy());
             // peak height
-            phpk->peak = mimages[0]->getImage()(phpk->cpeak, phpk->rpeak);
+            typename ImageT::Ptr img = mimages[0]->getImage();
+            phpk->peak = (*img)(phpk->cpeak, phpk->rpeak);
             // FIXME -- {row,col}cErr
             phpk->rowcErr = 0.5;
             phpk->colcErr = 0.5;
@@ -296,6 +299,7 @@ deblender::SDSSDeblender<ImageT>::deblend(
     fp->deblend_min_detect = 1;
     fp->deblend_min_peak_spacing = 2;
     fp->deblend_psf_Lmin = 0.2; // ???!
+    // number of annuli in deblend-as-PSF fitting
     fp->deblend_psf_nann = 3;
     fp->deblend_psf_rad_max = 12;
     fp->deblend_npix_max = 0;
