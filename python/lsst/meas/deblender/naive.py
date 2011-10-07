@@ -65,41 +65,42 @@ def deblend(footprints, peaks, maskedImage, psf):
         # ... median filter?
         # ... from our friends down at math::makeBackground?
 
-        #for timg in templs:
-        for timg in []:
-            # declare a background control object for a natural spline
-            bgctrl = afwMath.BackgroundControl(afwMath.Interpolate.NATURAL_SPLINE)
-            gridsz = 32.
-            bgctrl.setNxSample(int(math.ceil(W / gridsz)))
-            bgctrl.setNySample(int(math.ceil(H / gridsz)))
-            # bgctrl.getStatisticsControl().setNumIter(3)
-            # bgctrl.getStatisticsControl().setNumSigmaClip(2.5)
-            back = afwMath.makeBackground(timg, bgctrl)
-            bgsub = afwImage.ImageF(W,H)
-            bgsub += timg
-            bgsub -= back.getImageF()
-            bgsubs.append(bgsub)
+        for timg in templs:
+            if True:
+                #bgctrl = afwMath.BackgroundControl(afwMath.Interpolate.NATURAL_SPLINE)
+                #gridsz = 32.
 
-        for pk,timg in zip(pks, templs):
-            from scipy.ndimage.filters import median_filter
-            import numpy as np
-            npimg = np.zeros((H,W))
-            for y in range(H):
-                for x in range(W):
-                    npimg[y,x] = timg.get(x,y)
-            # median filter patch size
-            mfsize = 10
-            mf = median_filter(npimg, mfsize) #mode='constant', cval=0.)
+                bgctrl = afwMath.BackgroundControl(afwMath.Interpolate.LINEAR)
+                gridsz = 10.
 
-            bgsub = afwImage.ImageF(W,H)
-            bgsub += timg
-            for y in range(H):
-                for x in range(W):
-                    bgsub.set(x,y, bgsub.get(x,y) - mf[y,x])
-                    #bgsub = timg.get(x,y) - mf[y,x]
-            bgsubs.append(bgsub)
+                bgctrl.setNxSample(int(math.ceil(W / gridsz)))
+                bgctrl.setNySample(int(math.ceil(H / gridsz)))
+                back = afwMath.makeBackground(timg, bgctrl)
+                bgsub = afwImage.ImageF(W,H)
+                bgsub += timg
+                bgsub -= back.getImageF()
+                bgsubs.append(bgsub)
+            else:
+                from scipy.ndimage.filters import median_filter
+                import numpy as np
+                npimg = np.zeros((H,W))
+                for y in range(H):
+                    for x in range(W):
+                        npimg[y,x] = timg.get(x,y)
+                # median filter patch size
+                mfsize = 10
+                mf = median_filter(npimg, mfsize) #mode='constant', cval=0.)
+                bgsub = afwImage.ImageF(W,H)
+                for y in range(H):
+                    for x in range(W):
+                        bgsub.set(x,y, timg.get(x,y) - mf[y,x])
+                bgsubs.append(bgsub)
 
-            psfimg = psf.computeImage(afwGeom.Point2D(pk.getFx(), pk.getFy()))
+        for pk,bgsub,timg in zip(pks, bgsubs, templs):
+            # Ask for the PSF image at the integer pixel Ix() because we made
+            # the template on an integer pixel grid
+            #psfimg = psf.computeImage(afwGeom.Point2D(pk.getFx(), pk.getFy()))
+            psfimg = psf.computeImage(afwGeom.Point2D(pk.getIx(), pk.getIy()))
             bbox = psfimg.getBBox(afwImage.PARENT)
             print 'Peak pos', pk.getFx(), pk.getFy()
             print 'PSF bbox X:', bbox.getMinX(), bbox.getMaxX()
@@ -122,7 +123,6 @@ def deblend(footprints, peaks, maskedImage, psf):
             model = afwImage.ImageF(W,H)
             for y in range(H):
                 for x in range(W):
-                    #m = bgsub.get(x,y)
                     m = 0.
                     px,py = x+x0,y+y0
                     if bbox.contains(afwGeom.Point2I(px,py)):

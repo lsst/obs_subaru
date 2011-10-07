@@ -70,14 +70,24 @@ def run(visit, rerun, config):
     psf = butler.get('psf', dataId)
     print 'PSF:', psf
 
-    if False:
+    if True:
         print 'Calling deblender...'
+
+        import lsst.meas.algorithms as measAlg
+        bb = foots[0].getBBox()
+        xc = (bb.getMinX() + bb.getMaxX()) / 2.
+        yc = (bb.getMinY() + bb.getMaxY()) / 2.
+        pa = measAlg.PsfAttributes(psf, xc, yc)
+        psfw = pa.computeGaussianWidth(measAlg.PsfAttributes.ADAPTIVE_MOMENT)
+        print 'PSF width:', psfw
+
         objs = deblender.deblend(foots, pks, mi, psf)
         print 'got', objs
         for obj in objs:
             print 'Object:'
             print obj
-    else:
+
+    if True:
         print 'Calling naive deblender...'
         allt,allp,allbg,allmod = naive_deblender.deblend(foots, pks, mi, psf)
 
@@ -108,28 +118,48 @@ def run(visit, rerun, config):
                         M[ii,jj] = mod.get(jj,ii)
                 NR,NC = 2,3
                 plt.clf()
+
                 plt.subplot(NR,NC,1)
                 plt.imshow(I, **ima)
                 plt.title('Image')
                 plt.colorbar()
+
                 plt.subplot(NR,NC,2)
                 plt.imshow(T, **ima)
                 plt.title('Template')
+
                 plt.subplot(NR,NC,3)
-                plt.imshow(B, **ima)
-                plt.title('Background-subtracted')
+                plt.imshow(P, **ima)
+                plt.title('Flux portion')
+
+                #plt.subplot(NR,NC,4)
+                #plt.imshow(B, **ima)
+                #plt.title('Background-subtracted')
+
+                backgr = T - B
+                psfbg = backgr + M
+
                 plt.subplot(NR,NC,4)
-                plt.imshow(M, **ima)
-                plt.title('PSF model')
+                plt.imshow(psfbg, **ima)
+                plt.title('PSF+bg model')
+
                 plt.subplot(NR,NC,5)
                 res = B-M
                 mx = np.abs(res).max()
                 plt.imshow(res, interpolation='nearest', origin='lower', vmin=-mx, vmax=mx)
                 plt.colorbar()
                 plt.title('Residuals')
+
                 plt.subplot(NR,NC,6)
-                plt.imshow(P, **ima)
-                plt.title('Flux portion')
+                py = pks[i][j].getIy()
+                plt.plot(T[py-y0,:], 'r-')
+                #plt.plot(T[py-y0+1,:], 'b-')
+                #plt.plot(T[py-y0-1,:], 'g-')
+
+                plt.plot(psfbg[py-y0,:], 'b-')
+
+                plt.title('Template slices')
+
                 plt.savefig('templ-f%i-t%i.png' % (i,j))
 
                 if sumP is None:

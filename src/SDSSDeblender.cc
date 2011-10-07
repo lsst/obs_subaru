@@ -95,10 +95,21 @@ deblender::SDSSDeblender<ImageT>::deblend(
     boost::shared_ptr<typename afwImage::MaskedImage<typename ImageT::Pixel > > the_mimage,
     boost::shared_ptr<typename afwDet::Psf > the_psf
 ) {
+}
+
+template<typename ImageT>
+std::vector<typename DeblendedObject<ImageT>::Ptr >
+deblender::SDSSDeblender<ImageT>::deblend(
+    boost::shared_ptr<std::vector< boost::shared_ptr< afwDet::Footprint > > > pfootprints,
+    std::vector< std::vector< boost::shared_ptr< afwDet::Peak > > > peaks,
+    boost::shared_ptr<typename afwImage::MaskedImage<typename ImageT::Pixel> > the_mimage,
+
+    boost::shared_ptr<typename afwDet::dgPsf > the_psf,
+    double ffo_threshold,
+    double background
+    ) {
 
     std::vector< afwDet::Footprint::Ptr > footprints = *pfootprints;
-
-    // Hmmm, must figure out the right API!
     std::vector<boost::shared_ptr<typename afwImage::MaskedImage<typename ImageT::Pixel > > > mimages;
     std::vector<boost::shared_ptr<typename afwDet::Psf > > psfs;
     mimages.push_back(the_mimage);
@@ -170,13 +181,13 @@ deblender::SDSSDeblender<ImageT>::deblend(
              PEAK_BAND3 | 
              PEAK_BAND4);
              */
-            // HACK -- peak height?
-            phpk->peak = 1000;
             phpk->colc = pk->getFx();
             phpk->rowc = pk->getFy();
             // we probably want to round rather than truncate...
             phpk->cpeak = static_cast<int>(0.5 + pk->getFx());
             phpk->rpeak = static_cast<int>(0.5 + pk->getFy());
+            // peak height
+            phpk->peak = mimages[0]->getImage()(phpk->cpeak, phpk->rpeak);
             // FIXME -- {row,col}cErr
             phpk->rowcErr = 0.5;
             phpk->colcErr = 0.5;
@@ -225,9 +236,10 @@ deblender::SDSSDeblender<ImageT>::deblend(
         }
         //std::printf("\n");
 
-        // measAlg::PSF  -->  photo::DGPSF
+        // afwDet::dgPSF  -->  photo::DGPSF
 
         phpsf = photo::phDgpsfNew();
+        //phpsf->
         //   HACK!!
         // make a single-gaussian.
         double psfsigma = 2.0;
