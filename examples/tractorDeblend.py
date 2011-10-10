@@ -101,9 +101,10 @@ def run(visit, rerun, config):
 
     if True:
         print 'Calling naive deblender...'
-        allt,allp,allbg,allmod,allmod2 = naive_deblender.deblend(foots, pks, mi, psf, psf_fwhm)
+        results = naive_deblender.deblend(foots, pks, mi, psf, psf_fwhm)
 
-        for i,(foot,templs,ports,bgs,mods,mods2) in enumerate(zip(foots,allt,allp,allbg,allmod,allmod2)):
+        for i,(foot,fpres) in enumerate(zip(foots,results)):
+            #(foot,templs,ports,bgs,mods,mods2) in enumerate(zip(foots,allt,allp,allbg,allmod,allmod2)):
             sumP = None
 
             W,H = foot.getBBox().getWidth(), foot.getBBox().getHeight()
@@ -112,14 +113,16 @@ def run(visit, rerun, config):
             mn,mx = I.min(), I.max()
             ima = dict(interpolation='nearest', origin='lower', vmin=mn, vmax=mx)
 
-            for j,(templ,port,bg,mod,mod2) in enumerate(zip(templs,ports,bgs,mods,mods2)):
-                templ.writeFits('templ-f%i-t%i.fits' % (i, j))
+            for j,pkres in enumerate(fpres.peaks):
+                #(templ,port,bg,mod,mod2) in enumerate(zip(templs,ports,bgs,mods,mods2)):
+                timg = pkres.timg
+                #templ.writeFits('templ-f%i-t%i.fits' % (i, j))
 
-                T = afwimgtonumpy(templ)
-                P = afwimgtonumpy(port)
-                B = afwimgtonumpy(bg)
-                M = afwimgtonumpy(mod)
-                M2 = afwimgtonumpy(mod2)
+                T = afwimgtonumpy(pkres.timg)
+                P = afwimgtonumpy(pkres.portion)
+                S = afwimgtonumpy(pkres.stamp)
+                M = afwimgtonumpy(pkres.model)
+                M2 = afwimgtonumpy(pkres.model2)
 
                 NR,NC = 2,3
                 plt.clf()
@@ -145,7 +148,7 @@ def run(visit, rerun, config):
                 #psfbg = backgr + M
 
                 plt.subplot(NR,NC,4)
-                plt.imshow(B, **ima)
+                plt.imshow(S, **ima)
                 plt.title('near-peak cutout')
                 #plt.imshow(psfbg, **ima)
                 #plt.title('PSF+bg model')

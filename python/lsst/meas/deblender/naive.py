@@ -4,63 +4,62 @@ import lsst.afw.image as afwImage
 import lsst.afw.geom  as afwGeom
 import lsst.afw.math  as afwMath
 
+class PerFootprint(object):
+    pass
+class PerPeak(object):
+    pass
+
 def deblend(footprints, peaks, maskedImage, psf, psffwhm):
     print 'Naive deblender starting'
     print 'footprints', footprints
     print 'maskedImage', maskedImage
     print 'psf', psf
-    allt = []
-    allp = []
-    allbgsub = []
-    allmod = []
-    allmod2 = []
-    
+
+    results = []
+
     img = maskedImage.getImage()
     for fp,pks in zip(footprints,peaks):
         bb = fp.getBBox()
         W,H = bb.getWidth(), bb.getHeight()
         x0,y0 = bb.getMinX(), bb.getMinY()
 
-        templs = []
-        bgsubs = []
-        models = []
-        models2 = []
-        #for pk in fp.getPeaks():
+        fpres = PerFootprint()
+        results.append(fpres)
+        fpres.peaks = []
+
         print 'Footprint x0,y0', x0,y0
         print 'W,H', W,H
+        #for pk in fp.getPeaks():
         for pk in pks:
+
+            pkres = PerPeak()
+            fpres.peaks.append(pkres)
+
             template = afwImage.MaskedImageF(W,H)
             template.setXY0(x0,y0)
             cx,cy = pk.getIx(), pk.getIy()
             timg = template.getImage()
             p = img.get(cx,cy)
             timg.set(cx - x0, cy - y0, p)
-            #template.set(cx,cy, 
             for dy in range(H-(cy-y0)):
-                #print 'dy', dy
                 for dx in range(-(cx-x0), W-(cx-x0)):
-                    #print 'dx', dx
                     if dy == 0 and dx == 0:
                         continue
                     # twofold rotational symmetry
                     xa,ya = cx+dx, cy+dy
                     xb,yb = cx-dx, cy-dy
-                    #print 'xa,ya', xa,ya
                     if not fp.contains(afwGeom.Point2I(xa, ya)):
-                        #print ' (oob)'
                         continue
-                    #print 'xb,yb', xb,yb
                     if not fp.contains(afwGeom.Point2I(xb, yb)):
-                        #print ' (oob)'
                         continue
                     pa = img.get(xa, ya)
                     pb = img.get(xb, yb)
-                    #print 'pa', pa, 'pb', pb
                     mn = min(pa,pb)
                     # Monotonic?
                     timg.set(xa - x0, ya - y0, mn)
                     timg.set(xb - x0, yb - y0, mn)
-            templs.append(timg)
+
+            pkres.timg = timg
 
         # Now try fitting a PSF + smooth background model to the template.
         # Smooth background = ....?
@@ -77,7 +76,7 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
 
 
         #for timg in templs:
-        for pk in pks:
+        for pk,pkres in zip(pks, fpres.peaks):
             if True:
                 print 'PSF FWHM', psffwhm
                 R0 = int(math.ceil(psffwhm * 2.))
@@ -87,7 +86,6 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
                 print 'S = ', S
 
                 cx,cy = pk.getFx(), pk.getFy()
-                #icx,icy = pk.getIx(), pk.getIy()
                 psfimg = psf.computeImage(afwGeom.Point2D(pk.getFx(), pk.getFy()),
                                           afwGeom.Extent2I(S, S))
                 bbox = psfimg.getBBox(afwImage.PARENT)
@@ -102,7 +100,6 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
                 ylo,yhi = bbox.getMinY(),bbox.getMaxY()
 
                 import numpy as np
-                #import np.linalg
 
                 # Number of terms -- PSF, constant, X, Y
                 NT = 4
@@ -181,10 +178,12 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
                              (x - cx)*(y - cy) * X2[5] +
                              (y - cy)**2 * X2[6])
                         model2.set(x-xlo,y-ylo, m)
-                bgsubs.append(stamp)
-                models.append(model)
-                models2.append(model2)
 
+                pkres.R0 = R0
+                pkres.R1 = R1
+                pkres.stamp = stamp
+                pkres.model = model
+                pkres.model2 = model2
 
             if False:
                 bgctrl = afwMath.BackgroundControl(afwMath.Interpolate.LINEAR)
@@ -249,10 +248,11 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
                 models.append(model)
 
         # Now apportion flux according to the templates ?
-        portions = [afwImage.ImageF(W,H) for t in templs]
+        timgs = [pkres.timg for pkres in fpres.peaks]
+        portions = [afwImage.ImageF(W,H) for t in timgs]
         for y in range(H):
             for x in range(W):
-                tvals = [t.get(x,y) for t in templs]
+                tvals = [t.get(x,y) for t in timgs]
                 #S = sum([max(0, t) for t in tvals])
                 S = sum([abs(t) for t in tvals])
                 if S == 0:
@@ -261,9 +261,7 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
                     #p.set(x,y, img.get(x0+x, y0+y) * max(0,tvals[i])/S)
                     p.set(x,y, img.get(x0+x, y0+y) * abs(t)/S)
 
-        allp.append(portions)
-        allt.append(templs)
-        allbgsub.append(bgsubs)
-        allmod.append(models)
-        allmod2.append(models2)
-    return allt, allp, allbgsub, allmod, allmod2
+        for r,p in zip(fpres.peaks, portions):
+            r.portion = p
+
+    return results
