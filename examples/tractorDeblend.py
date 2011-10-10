@@ -21,6 +21,18 @@ matplotlib.use('Agg')
 import pylab as plt
 import numpy as np
 
+def afwimgtonumpy(I, x0=0, y0=0, W=None,H=None):
+    if W is None:
+        W = I.getWidth()
+    if H is None:
+        H = I.getHeight()
+    img = np.zeros((H,W))
+    for ii in range(H):
+        for jj in range(W):
+            img[ii, jj] = I.get(jj+x0, ii+y0)
+    return img
+
+
 def run(visit, rerun, config):
     mapper = getMapper()
     dataId = { 'visit': visit, 'rerun': rerun }
@@ -70,17 +82,17 @@ def run(visit, rerun, config):
     psf = butler.get('psf', dataId)
     print 'PSF:', psf
 
-    if True:
+    import lsst.meas.algorithms as measAlg
+    bb = foots[0].getBBox()
+    xc = int((bb.getMinX() + bb.getMaxX()) / 2.)
+    yc = int((bb.getMinY() + bb.getMaxY()) / 2.)
+    pa = measAlg.PsfAttributes(psf, xc, yc)
+    psfw = pa.computeGaussianWidth(measAlg.PsfAttributes.ADAPTIVE_MOMENT)
+    print 'PSF width:', psfw
+    psf_fwhm = 2.35 * psfw
+
+    if False:
         print 'Calling deblender...'
-
-        import lsst.meas.algorithms as measAlg
-        bb = foots[0].getBBox()
-        xc = (bb.getMinX() + bb.getMaxX()) / 2.
-        yc = (bb.getMinY() + bb.getMaxY()) / 2.
-        pa = measAlg.PsfAttributes(psf, xc, yc)
-        psfw = pa.computeGaussianWidth(measAlg.PsfAttributes.ADAPTIVE_MOMENT)
-        print 'PSF width:', psfw
-
         objs = deblender.deblend(foots, pks, mi, psf)
         print 'got', objs
         for obj in objs:
@@ -89,33 +101,26 @@ def run(visit, rerun, config):
 
     if True:
         print 'Calling naive deblender...'
-        allt,allp,allbg,allmod = naive_deblender.deblend(foots, pks, mi, psf)
+        allt,allp,allbg,allmod,allmod2 = naive_deblender.deblend(foots, pks, mi, psf, psf_fwhm)
 
-        for i,(foot,templs,ports,bgs,mods) in enumerate(zip(foots,allt,allp,allbg,allmod)):
+        for i,(foot,templs,ports,bgs,mods,mods2) in enumerate(zip(foots,allt,allp,allbg,allmod,allmod2)):
             sumP = None
 
             W,H = foot.getBBox().getWidth(), foot.getBBox().getHeight()
-            I = np.zeros((H,W))
             x0,y0 = foot.getBBox().getMinX(), foot.getBBox().getMinY()
-            for ii in range(H):
-                for jj in range(W):
-                    I[ii,jj] = mi.getImage().get(jj+x0,ii+y0)
+            I = afwimgtonumpy(mi.getImage(), x0, y0, W, H)
             mn,mx = I.min(), I.max()
             ima = dict(interpolation='nearest', origin='lower', vmin=mn, vmax=mx)
 
-            for j,(templ,port,bg,mod) in enumerate(zip(templs,ports,bgs,mods)):
+            for j,(templ,port,bg,mod,mod2) in enumerate(zip(templs,ports,bgs,mods,mods2)):
                 templ.writeFits('templ-f%i-t%i.fits' % (i, j))
-                #H,W = templ.getHeight(), templ.getWidth()
-                T = np.zeros((H,W))
-                P = np.zeros((H,W))
-                B = np.zeros((H,W))
-                M = np.zeros((H,W))
-                for ii in range(H):
-                    for jj in range(W):
-                        T[ii,jj] = templ.get(jj,ii)
-                        P[ii,jj] = port.get(jj,ii)
-                        B[ii,jj] = bg.get(jj,ii)
-                        M[ii,jj] = mod.get(jj,ii)
+
+                T = afwimgtonumpy(templ)
+                P = afwimgtonumpy(port)
+                B = afwimgtonumpy(bg)
+                M = afwimgtonumpy(mod)
+                M2 = afwimgtonumpy(mod2)
+
                 NR,NC = 2,3
                 plt.clf()
 
@@ -136,29 +141,37 @@ def run(visit, rerun, config):
                 #plt.imshow(B, **ima)
                 #plt.title('Background-subtracted')
 
-                backgr = T - B
-                psfbg = backgr + M
+                #backgr = T - B
+                #psfbg = backgr + M
 
                 plt.subplot(NR,NC,4)
-                plt.imshow(psfbg, **ima)
-                plt.title('PSF+bg model')
+                plt.imshow(B, **ima)
+                plt.title('near-peak cutout')
+                #plt.imshow(psfbg, **ima)
+                #plt.title('PSF+bg model')
 
                 plt.subplot(NR,NC,5)
-                res = B-M
-                mx = np.abs(res).max()
-                plt.imshow(res, interpolation='nearest', origin='lower', vmin=-mx, vmax=mx)
-                plt.colorbar()
-                plt.title('Residuals')
+                plt.imshow(M, **ima)
+                plt.title('near-peak model')
 
                 plt.subplot(NR,NC,6)
-                py = pks[i][j].getIy()
-                plt.plot(T[py-y0,:], 'r-')
-                #plt.plot(T[py-y0+1,:], 'b-')
-                #plt.plot(T[py-y0-1,:], 'g-')
+                plt.imshow(M2, **ima)
+                plt.title('near-peak model (2)')
 
-                plt.plot(psfbg[py-y0,:], 'b-')
+                #plt.subplot(NR,NC,5)
+                #res = B-M
+                #mx = np.abs(res).max()
+                #plt.imshow(res, interpolation='nearest', origin='lower', vmin=-mx, vmax=mx)
+                #plt.colorbar()
+                #plt.title('Residuals')
 
-                plt.title('Template slices')
+                # plt.subplot(NR,NC,6)
+                # py = pks[i][j].getIy()
+                # plt.plot(T[py-y0,:], 'r-')
+                # #plt.plot(T[py-y0+1,:], 'b-')
+                # #plt.plot(T[py-y0-1,:], 'g-')
+                # plt.plot(psfbg[py-y0,:], 'b-')
+                # plt.title('Template slices')
 
                 plt.savefig('templ-f%i-t%i.png' % (i,j))
 
