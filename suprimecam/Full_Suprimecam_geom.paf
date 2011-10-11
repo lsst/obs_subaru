@@ -20,7 +20,7 @@ Amp: {
     height: 4177 
     width:  512
     extended: 8 
-    preRows: 48 
+    preRows: 0
     overclockH: 48 
     overclockV: 48
 } 
@@ -30,46 +30,46 @@ Ccd: {
     nRow: 1 
     Amp: { 
         index: 0 0 
-        readoutCorner: LLC 
     } 
     Amp: { 
         index: 1 0 
-        readoutCorner: LRC 
     }
     Amp: { 
         index: 2 0 
-        readoutCorner: LLC 
     }
     Amp: { 
         index: 3 0 
-        readoutCorner: LRC 
     }
 }
 
-CcdDiskLayout: { 
+CcdElectronicLayout: { 
     HduPerAmp: false 
     Amp: { 
         serial: 0 
         flipLR: false 
         flipTB: false 
+        nQuarter: 0
         hdu: 0 
     } 
     Amp: { 
         serial: 1 
-        flipLR: false 
+        flipLR: true 
         flipTB: false 
+        nQuarter: 0
         hdu: 0 
     } 
     Amp: { 
         serial: 2 
         flipLR: false 
         flipTB: false 
+        nQuarter: 0
         hdu: 0 
     } 
     Amp: { 
         serial: 3 
-        flipLR: false 
+        flipLR: true 
         flipTB: false 
+        nQuarter: 0
         hdu: 0 
     } 
 } 
