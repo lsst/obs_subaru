@@ -116,7 +116,7 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
                     b[ipix] = img.get(x, y)
                     ## FIXME -- include image variance!
                     w[ipix] = np.sqrt(rw)
-
+                    
                     A2[ipix,4] = (x-cx)**2
                     A2[ipix,5] = (x-cx)*(y-cy)
                     A2[ipix,6] = (y-cy)**2
