@@ -56,6 +56,7 @@ def plotSources(butler=None, dataId=None, exposure=None, image=None,
 
     plt.imshow(img, **imargs)
     plt.gray()
+    plt.colorbar()
     ax = plt.axis()
     plt.plot([s.getXAstrom() for s in sources],
              [s.getYAstrom() for s in sources], 'r.', alpha=0.3)
