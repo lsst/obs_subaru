@@ -5,7 +5,10 @@ from lsst.meas.deblender import deblender
 from lsst.meas.deblender import naive as naive_deblender
 import lsst.afw.image as afwImage
 import lsst.afw.detection as afwDet
+import lsst.afw.geom as afwGeom
 import lsst.pex.policy as pexPolicy
+from tractorPreprocess import footprintsFromPython
+import lsst.meas.algorithms as measAlg
 
 import pylab as plt
 import numpy as np
@@ -23,16 +26,18 @@ def afwimgtonumpy(I, x0=0, y0=0, W=None,H=None):
 
 
 def testDeblend(foots, pks, mi, psf):
-
-    import lsst.meas.algorithms as measAlg
     bb = foots[0].getBBox()
     xc = int((bb.getMinX() + bb.getMaxX()) / 2.)
     yc = int((bb.getMinY() + bb.getMaxY()) / 2.)
-    pa = measAlg.PsfAttributes(psf, xc, yc)
-    psfw = pa.computeGaussianWidth(measAlg.PsfAttributes.ADAPTIVE_MOMENT)
-    print 'PSF width:', psfw
-    psf_fwhm = 2.35 * psfw
 
+    if not hasattr(psf, 'getFwhm'):
+        pa = measAlg.PsfAttributes(psf, xc, yc)
+        psfw = pa.computeGaussianWidth(measAlg.PsfAttributes.ADAPTIVE_MOMENT)
+        print 'PSF width:', psfw
+        psf_fwhm = 2.35 * psfw
+    else:
+        psf_fwhm = psf.getFwhm(xc, yc)
+        
     if False:
         print 'Calling deblender...'
         objs = deblender.deblend(foots, pks, mi, psf)
@@ -52,27 +57,51 @@ def testDeblend(foots, pks, mi, psf):
             W,H = foot.getBBox().getWidth(), foot.getBBox().getHeight()
             x0,y0 = foot.getBBox().getMinX(), foot.getBBox().getMinY()
             I = afwimgtonumpy(mi.getImage(), x0, y0, W, H)
-            mn,mx = I.min(), I.max()
+            #mn,mx = I.min(), I.max()
+            #mn,mx = [np.percentile(I.ravel(), p) for p in [25,95]]
+            ss = np.sort(I.ravel())
+            mn,mx = [ss[int(p*len(ss))] for p in [0.1, 0.95]]
+            print 'mn,mx', mn,mx
+            
             ima = dict(interpolation='nearest', origin='lower', vmin=mn, vmax=mx)
+            imb = dict(interpolation='nearest', origin='lower')
 
             for j,pkres in enumerate(fpres.peaks):
                 #(templ,port,bg,mod,mod2) in enumerate(zip(templs,ports,bgs,mods,mods2)):
                 timg = pkres.timg
                 #templ.writeFits('templ-f%i-t%i.fits' % (i, j))
 
+                pk = pks[i][j]
+                print 'peak:', pk
+                print 'x,y', pk.getFx(), pk.getFy()
+                print 'footprint x0,y0', x0,y0
+                xs0,ys0 = pkres.stampxy0
+                print 'stamp xy0', xs0, ys0
+                xs1,ys1 = pkres.stampxy1
+                cx,cy = pkres.center
+
                 T = afwimgtonumpy(pkres.timg)
                 P = afwimgtonumpy(pkres.portion)
                 S = afwimgtonumpy(pkres.stamp)
+                PSF = afwimgtonumpy(pkres.psfimg)
                 M = afwimgtonumpy(pkres.model)
                 M2 = afwimgtonumpy(pkres.model2)
+
+                ss = np.sort(S.ravel())
+                cmn,cmx = [ss[int(p*len(ss))] for p in [0.1, 0.99]]
+                imc = dict(interpolation='nearest', origin='lower', vmin=cmn, vmax=cmx)
 
                 NR,NC = 2,3
                 plt.clf()
 
                 plt.subplot(NR,NC,1)
                 plt.imshow(I, **ima)
+                ax = plt.axis()
+                plt.plot([pk.getFx()], [pk.getFy()], 'r+')
+                plt.plot([xs0,xs0,xs1,xs1,xs0], [ys0,ys1,ys1,ys0,ys0], 'r-')
+                plt.axis(ax)
                 plt.title('Image')
-                plt.colorbar()
+                #plt.colorbar()
 
                 plt.subplot(NR,NC,2)
                 plt.imshow(T, **ima)
@@ -90,18 +119,28 @@ def testDeblend(foots, pks, mi, psf):
                 #psfbg = backgr + M
 
                 plt.subplot(NR,NC,4)
-                plt.imshow(S, **ima)
+                plt.imshow(S, **imc)
+                ax = plt.axis()
+                plt.plot([pk.getFx() - xs0], [pk.getFy() - ys0], 'r+')
+                plt.axis(ax)
                 plt.title('near-peak cutout')
                 #plt.imshow(psfbg, **ima)
                 #plt.title('PSF+bg model')
 
                 plt.subplot(NR,NC,5)
-                plt.imshow(M, **ima)
-                plt.title('near-peak model')
+                plt.imshow(PSF, **imb)
+                #ax = plt.axis()
+                #plt.plot([pk.getFx() - xs0], [pk.getFy() - ys0], 'r+')
+                #plt.axis(ax)
+                plt.title('PSF model')
 
                 plt.subplot(NR,NC,6)
-                plt.imshow(M2, **ima)
-                plt.title('near-peak model (2)')
+                plt.imshow(M, **imc)
+                plt.title('near-peak model')
+
+                #plt.subplot(NR,NC,6)
+                #plt.imshow(M2, **ima)
+                #plt.title('near-peak model (2)')
 
                 #plt.subplot(NR,NC,5)
                 #res = B-M
@@ -134,71 +173,119 @@ def testDeblend(foots, pks, mi, psf):
                 plt.savefig('sump-f%i.png' % i)
     
 
+'''
+class PsfDuck(object):
+    def __init__(self, psf):
+        self.psf = psf
+    def computeImage(self, ccdxy, sz):
+        pass
+'''
+
+class OffsetPsf(object):
+    def __init__(self, psf, x0=0, y0=0):
+        self.psf = psf
+        self.x0 = int(x0)
+        self.y0 = int(y0)
+    def computeImage(self, ccdxy, sz=None):
+        xy = afwGeom.Point2D(ccdxy)
+        print 'psf computeimage xy:', xy
+        xy.shift(afwGeom.Extent2D(float(self.x0), float(self.y0)))
+        args = []
+        if sz is not None:
+            args.append(sz)
+        psfimg = self.psf.computeImage(xy, *args)
+        ix0 = psfimg.getX0()
+        iy0 = psfimg.getY0()
+        print 'ix0,iy0', ix0,iy0
+        psfimg.setXY0(ix0-self.x0, iy0-self.y0)
+        return psfimg
+    def getFwhm(self, x, y):
+        pa = measAlg.PsfAttributes(self.psf, self.x0 + x, self.y0 + y)
+        psfw = pa.computeGaussianWidth(measAlg.PsfAttributes.ADAPTIVE_MOMENT)
+        return 2.35 * psfw
+        
 
 if __name__ == "__main__":
     parser = optparse.OptionParser()
     parser.add_option('--image', dest='imgfn', help='Image filename')
     parser.add_option('--psf', dest='psffn', help='PSF filename')
+    parser.add_option('--psfx0', dest='psfx0', type=int, help='PSF offset x', default=0)
+    parser.add_option('--psfy0', dest='psfy0', type=int, help='PSF offset y', default=0)
     parser.add_option('--sources', dest='srcfn', help='Source filename')
     
     opt,args = parser.parse_args()
 
     img = afwImage.ExposureF(opt.imgfn)
 
+    print 'img xy0', img.getX0(), img.getY0()
+    # 690, 2090
+    img.setXY0(afwGeom.Point2I(0,0))
+
     srcs = pyfits.open(opt.srcfn)[1].data
     x = srcs.field('x').astype(float)
     y = srcs.field('y').astype(float)
+    # FITS to LSST
+    x -= 1
+    y -= 1
+    print 'source x range', x.min(),x.max()
+    print '       y range', y.min(),y.max()
+    # [0,250]
 
-    from lsst.daf.persistence import StorageList, LogicalLocation, ReadProxy
-    from lsst.daf.persistence import Butler, Mapper, Persistence
-    from lsst.daf.persistence import ButlerLocation
-    import lsst.daf.base as dafBase
+    print img.getWidth(), img.getHeight()
+    #psfimg = pyfits.open(opt.psffn)[1].data
 
-    storageType = 'BoostStorage'
-    cname = 'lsst.afw.detection.Psf'
-    pyname = 'Psf'
-    path = opt.psffn
-    dataId = {}
+    if True:
+        from lsst.daf.persistence import StorageList, LogicalLocation, ReadProxy
+        from lsst.daf.persistence import Butler, Mapper, Persistence
+        from lsst.daf.persistence import ButlerLocation
+        import lsst.daf.base as dafBase
 
-    loc = LogicalLocation(opt.psffn)
-    storageList = StorageList()
-    additionalData = dafBase.PropertySet()
-    persistence = Persistence.getPersistence(pexPolicy.Policy())
-    print 'per:', persistence
-    print 'per.getRetrieveStorage'
-    print help(persistence.getRetrieveStorage)
-    print type(storageType)
-    print type(loc)
-    storageList.append(persistence.getRetrieveStorage(storageType, loc))
-    obj = persistence.unsafeRetrieve("Psf", storageList, additionalData)
-    print obj
+        storageType = 'BoostStorage'
+        cname = 'lsst.afw.detection.Psf'
+        pyname = 'Psf'
+        path = opt.psffn
+        dataId = {}
 
-
-
-    perspol = pexPolicy.Policy()
-    pers = Persistence.getPersistence(perspol)
-    location = ButlerLocation(cname, pyname, storageName, path, dataId)
-    additionalData = location.getAdditionalData()
-    storageName = location.getStorageName()
-    locations = location.getLocations()
-    #logLoc = LogicalLocation(locationString, additionalData)
-
-    print 'storageName', storageName
-    results = []
-    for locationString in locations:
-        print 'location string', locationString
-        logLoc = LogicalLocation(locationString, additionalData)
-        print 'logLoc', logLoc
+        loc = LogicalLocation(opt.psffn)
         storageList = StorageList()
-        print 'pers', pers
-        storage = pers.getRetrieveStorage(storageName, logLoc)
-        print 'storage', storage
-        storageList.append(storage)
-        itemData = pers.unsafeRetrieve(location.getCppType(), storageList, additionalData)
-        finalItem = pythonType.swigConvert(itemData)
-        results.append(finalItem)
+        additionalData = dafBase.PropertySet()
+        persistence = Persistence.getPersistence(pexPolicy.Policy())
+        storageList.append(persistence.getRetrieveStorage(storageType, loc))
+        obj = persistence.unsafeRetrieve("Psf", storageList, additionalData)
+        print obj
+        psf = afwDet.Psf.swigConvert(obj)
+        print 'psf', psf
+        
+        psfimg = psf.computeImage()
+        print 'Natural size:', psfimg.getWidth(), psfimg.getHeight()
 
-    print results
+        psf = OffsetPsf(psf, opt.psfx0, opt.psfy0)
 
-    afwDet.PsfFormatter(pexPolicy.Policy())
-    #psf = afwDet.Psf(opt.psffn)    
+
+    # single footprint for the whole image.
+    bb = afwGeom.Box2I(afwGeom.Point2I(0, 0), afwGeom.Extent2I(img.getWidth(), img.getHeight()))
+    pks = list(zip(x,y))
+    spans = [(0, img.getWidth()-1, yi) for yi in range(img.getHeight())]
+    foots,pks = footprintsFromPython([(bb,pks,spans)])
+    print 'Footprints', foots
+    print 'foot:', foots[0]
+    print foots[0].getBBox()
+    print 'Peaks:', pks
+
+    mi = img.getMaskedImage()
+    print 'MI xy0', mi.getX0(), mi.getY0()
+    plt.clf()
+    I = afwimgtonumpy(mi.getImage())
+    plt.imshow(I, origin='lower', interpolation='nearest',
+               vmin=-50, vmax=400)
+    flatpks = []
+    for pklist in pks:
+        flatpks += pklist
+    ax = plt.axis()
+    plt.gray()
+    plt.plot([pk.getFx() for pk in flatpks], [pk.getFy() for pk in flatpks], 'r.')
+    plt.axis(ax)
+    plt.savefig('test-srcs.png')
+
+    testDeblend(foots, pks, mi, psf)
+    

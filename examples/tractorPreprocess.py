@@ -231,7 +231,7 @@ def footprintsToPython(fps):
         bb = (bbox.getMinX(), bbox.getMinY(), bbox.getMaxX(), bbox.getMaxY())
         pks = []
         for p in f.getPeaks():
-            pks.append((p.getFx(), getFy()))
+            pks.append((p.getFx(), p.getFy()))
         spans = []
         for s in f.getSpans():
             spans.append((s.getX0(), s.getX1(), s.getY()))

@@ -69,13 +69,14 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
             print 'PSF FWHM', psffwhm
             R0 = int(math.ceil(psffwhm * 2.))
             R1 = int(math.ceil(psffwhm * 3.))
+            #R1 = int(math.ceil(psffwhm * 4.))
             print 'R0', R0, 'R1', R1
             S = 2 * R1
             print 'S = ', S
 
             cx,cy = pk.getFx(), pk.getFy()
-            psfimg = psf.computeImage(afwGeom.Point2D(pk.getFx(), pk.getFy()),
-                                      afwGeom.Extent2I(S, S))
+            psfimg = psf.computeImage(afwGeom.Point2D(cx, cy))
+            #afwGeom.Extent2I(S, S))
             bbox = psfimg.getBBox(afwImage.PARENT)
             print 'PSF bbox X:', bbox.getMinX(), bbox.getMaxX()
             print 'PSF bbox Y:', bbox.getMinY(), bbox.getMaxY()
@@ -83,9 +84,20 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
             print 'clipped bbox X:', bbox.getMinX(), bbox.getMaxX()
             print 'clipped bbox Y:', bbox.getMinY(), bbox.getMaxY()
             px0,py0 = psfimg.getX0(), psfimg.getY0()
+            print 'px0,py0', px0,py0
 
-            xlo,xhi = bbox.getMinX(),bbox.getMaxX()
-            ylo,yhi = bbox.getMinY(),bbox.getMaxY()
+            #xlo,xhi = bbox.getMinX(),bbox.getMaxX()
+            #ylo,yhi = bbox.getMinY(),bbox.getMaxY()
+            xlo = int(math.floor(cx - R1))
+            ylo = int(math.floor(cy - R1))
+            xhi = int(math.ceil (cx + R1))
+            yhi = int(math.ceil (cy + R1))
+
+            bb = fp.getBBox()
+            xlo = max(xlo, bb.getMinX())
+            ylo = max(ylo, bb.getMinY())
+            xhi = min(xhi, bb.getMaxX())
+            yhi = min(yhi, bb.getMaxY())
 
             import numpy as np
 
@@ -105,15 +117,23 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
                     R = np.hypot(x - cx, y - cy)
                     if R > R1:
                         continue
+
+                    # in psf bbox?
+                    if not bbox.contains(afwGeom.Point2I(x,y)):
+                        continue
+
                     rw = 1.
                     # ramp down weights from R0 to R1.
                     if R > R0:
                         rw = (R - R0) / (R1 - R0)
+
                     p = psfimg.get(x-px0,y-py0)
+                    im = img.get(x, y)
+
                     A[ipix,0] = p
                     A[ipix,2] = x-cx
                     A[ipix,3] = y-cy
-                    b[ipix] = img.get(x, y)
+                    b[ipix] = im
                     ## FIXME -- include image variance!
                     w[ipix] = np.sqrt(rw)
                     
@@ -144,7 +164,9 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
             print 'X2', X2
 
             SW,SH = 1+xhi-xlo, 1+yhi-ylo
+            print 'Stamp size', SW, SH
             stamp = afwImage.ImageF(SW,SH)
+            psfmod = afwImage.ImageF(SW,SH)
             model = afwImage.ImageF(SW,SH)
             model2 = afwImage.ImageF(SW,SH)
             for y in range(ylo, yhi+1):
@@ -152,27 +174,41 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
                     R = np.hypot(x - cx, y - cy)
                     if R > R1:
                         continue
-                    stamp.set(x-xlo,y-ylo, img.get(x,y))
-                    m = (psfimg.get(x-px0,y-py0) * X[0] +
+
+                    # psf
+                    if not bbox.contains(afwGeom.Point2I(x,y)):
+                        p = 0
+                    else:
+                        p = psfimg.get(x - px0, y - py0)
+                    im = img.get(x, y)
+
+                    stamp.set(x-xlo, y-ylo, im)
+                    psfmod.set(x-xlo, y-ylo, p)
+                    m = (p * X[0] +
                          1. * X[1] +
                          (x - cx) * X[2] +
                          (y - cy) * X[3])
-                    model.set(x-xlo,y-ylo, m)
-                    m = (psfimg.get(x-px0,y-py0) * X2[0] +
+                    model.set(x-xlo, y-ylo, m)
+                    m = (p * X2[0] +
                          1. * X2[1] +
                          (x - cx) * X2[2] +
                          (y - cy) * X2[3] +
                          (x - cx)**2 * X2[4] +
                          (x - cx)*(y - cy) * X2[5] +
                          (y - cy)**2 * X2[6])
-                    model2.set(x-xlo,y-ylo, m)
+                    model2.set(x-xlo, y-ylo, m)
 
             pkres.R0 = R0
             pkres.R1 = R1
             pkres.stamp = stamp
+            #pkres.psfimg = psfimg
+            pkres.psfimg = psfmod
             pkres.model = model
             pkres.model2 = model2
-
+            pkres.stampxy0 = xlo,ylo
+            pkres.stampxy1 = xhi,yhi
+            pkres.center = cx,cy
+            
         # Now apportion flux according to the templates ?
         timgs = [pkres.timg for pkres in fpres.peaks]
         portions = [afwImage.ImageF(W,H) for t in timgs]
