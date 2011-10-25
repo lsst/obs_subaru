@@ -152,14 +152,31 @@ if __name__ == "__main__":
     from lsst.daf.persistence import StorageList, LogicalLocation, ReadProxy
     from lsst.daf.persistence import Butler, Mapper, Persistence
     from lsst.daf.persistence import ButlerLocation
+    import lsst.daf.base as dafBase
 
-    perspol = pexPolicy.Policy()
-    pers = Persistence.getPersistence(perspol)
-    storageName = 'BoostStorage'
+    storageType = 'BoostStorage'
     cname = 'lsst.afw.detection.Psf'
     pyname = 'Psf'
     path = opt.psffn
     dataId = {}
+
+    loc = LogicalLocation(opt.psffn)
+    storageList = StorageList()
+    additionalData = dafBase.PropertySet()
+    persistence = Persistence.getPersistence(pexPolicy.Policy())
+    print 'per:', persistence
+    print 'per.getRetrieveStorage'
+    print help(persistence.getRetrieveStorage)
+    print type(storageType)
+    print type(loc)
+    storageList.append(persistence.getRetrieveStorage(storageType, loc))
+    obj = persistence.unsafeRetrieve("Psf", storageList, additionalData)
+    print obj
+
+
+
+    perspol = pexPolicy.Policy()
+    pers = Persistence.getPersistence(perspol)
     location = ButlerLocation(cname, pyname, storageName, path, dataId)
     additionalData = location.getAdditionalData()
     storageName = location.getStorageName()
@@ -169,6 +186,7 @@ if __name__ == "__main__":
     print 'storageName', storageName
     results = []
     for locationString in locations:
+        print 'location string', locationString
         logLoc = LogicalLocation(locationString, additionalData)
         print 'logLoc', logLoc
         storageList = StorageList()
