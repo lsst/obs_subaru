@@ -69,9 +69,9 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
         for pki,(pk,pkres) in enumerate(zip(pks, fpres.peaks)):
             print 'PSF FWHM', psffwhm
             # full-weight radius
-            R0 = int(math.ceil(psffwhm * 2.))
+            R0 = int(math.ceil(psffwhm * 1.))
             # ramp down to zero weight at this radius...
-            R1 = int(math.ceil(psffwhm * 3.))
+            R1 = int(math.ceil(psffwhm * 1.5))
             print 'R0', R0, 'R1', R1
             S = 2 * R1
             print 'S = ', S
