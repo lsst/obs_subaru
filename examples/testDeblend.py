@@ -85,12 +85,11 @@ def testDeblend(foots, pks, mi, psf):
                 S = afwimgtonumpy(pkres.stamp)
                 PSF = afwimgtonumpy(pkres.psfimg)
                 M = afwimgtonumpy(pkres.model)
-                #M2 = afwimgtonumpy(pkres.model2)
 
                 ss = np.sort(S.ravel())
                 cmn,cmx = [ss[int(p*len(ss))] for p in [0.1, 0.99]]
                 imc = dict(interpolation='nearest', origin='lower', vmin=cmn, vmax=cmx)
-                d = cmx-cmn
+                d = (cmx-cmn)/2.
                 imd = dict(interpolation='nearest', origin='lower', vmin=-d, vmax=d)
 
                 NR,NC = 2,3
@@ -143,10 +142,6 @@ def testDeblend(foots, pks, mi, psf):
                 plt.subplot(NR,NC,6)
                 plt.imshow(S-M, **imd)
                 plt.title('resids')
-
-                #plt.subplot(NR,NC,6)
-                #plt.imshow(M2, **ima)
-                #plt.title('near-peak model (2)')
 
                 #plt.subplot(NR,NC,5)
                 #res = B-M
