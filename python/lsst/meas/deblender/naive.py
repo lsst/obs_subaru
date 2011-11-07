@@ -31,8 +31,9 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
         print 'Footprint x0,y0', x0,y0
         print 'W,H', W,H
         #for pk in fp.getPeaks():
-        for pk in pks:
+        for pki,pk in enumerate(pks):
 
+            print 'computing template for', pki
             pkres = PerPeak()
             fpres.peaks.append(pkres)
 
@@ -42,23 +43,51 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
             timg = template.getImage()
             p = img.get(cx,cy)
             timg.set(cx - x0, cy - y0, p)
+            # We iterate on dy>0...
             for dy in range(H-(cy-y0)):
-                for dx in range(-(cx-x0), W-(cx-x0)):
-                    if dy == 0 and dx == 0:
+                #for dx in range(-(cx-x0), W-(cx-x0)):
+
+                for absdx in range(min(cx-x0, W-(cx-x0))):
+                    if dy == 0 and absdx == 0:
                         continue
-                    # twofold rotational symmetry
-                    xa,ya = cx+dx, cy+dy
-                    xb,yb = cx-dx, cy-dy
-                    if not fp.contains(afwGeom.Point2I(xa, ya)):
-                        continue
-                    if not fp.contains(afwGeom.Point2I(xb, yb)):
-                        continue
-                    pa = img.get(xa, ya)
-                    pb = img.get(xb, yb)
-                    mn = min(pa,pb)
-                    # Monotonic?
-                    timg.set(xa - x0, ya - y0, mn)
-                    timg.set(xb - x0, yb - y0, mn)
+
+                    # Monotonic constraint
+                    # We're working out from the center, so just need to figure out which
+                    # pixel is toward the center from where we are.
+                    v2 = absdx**2 + dy**2
+                    if absdx**2/v2 > 0.75:
+                        hx = 1
+                        hy = 0
+                    elif dy**2/v2 > 0.75:
+                        hx = 0
+                        hy = 1
+                    else:
+                        hx = hy = 1
+
+                    for signdx in [-1,1]:
+                        # don't do dx=0 twice!
+                        if absdx == 0 and signdx == 1:
+                            continue
+                        dx = absdx * signdx
+                        # twofold rotational symmetry
+                        xa,ya = cx+dx, cy+dy
+                        xb,yb = cx-dx, cy-dy
+                        if not fp.contains(afwGeom.Point2I(xa, ya)):
+                            continue
+                        if not fp.contains(afwGeom.Point2I(xb, yb)):
+                            continue
+                        pa = img.get(xa, ya)
+                        pb = img.get(xb, yb)
+                        mn = min(pa,pb)
+
+                        xm = xa - (hx * signdx)
+                        ym = ya -  hy
+                        assert(fp.contains(afwGeom.Point2I(xm,ym)))
+                        mono = img.get(xm,ym)
+                        mn = min(mn, mono)
+
+                        timg.set(xa - x0, ya - y0, mn)
+                        timg.set(xb - x0, yb - y0, mn)
 
             pkres.timg = timg
 
