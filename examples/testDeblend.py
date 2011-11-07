@@ -92,7 +92,7 @@ def testDeblend(foots, pks, mi, psf):
                 d = (cmx-cmn)/2.
                 imd = dict(interpolation='nearest', origin='lower', vmin=-d, vmax=d)
 
-                NR,NC = 2,3
+                NR,NC = 2,4
                 plt.clf()
 
                 plt.subplot(NR,NC,1)
@@ -119,7 +119,7 @@ def testDeblend(foots, pks, mi, psf):
                 #backgr = T - B
                 #psfbg = backgr + M
 
-                plt.subplot(NR,NC,4)
+                plt.subplot(NR,NC,5)
                 plt.imshow(S, **imc)
                 ax = plt.axis()
                 plt.plot([pk.getFx() - xs0], [pk.getFy() - ys0], 'r+')
@@ -132,14 +132,14 @@ def testDeblend(foots, pks, mi, psf):
                 #plt.imshow(PSF, **imb)
                 #plt.title('PSF model')
 
-                plt.subplot(NR,NC,5)
+                plt.subplot(NR,NC,6)
                 plt.imshow(M, **imc)
                 plt.title('PSF model: chisq/dof=%.2f' % (pkres.chisq/pkres.dof))
 
                 #import scipy.stats
                 #pval = scipy.stats.chi2.sf(X2, dof)
 
-                plt.subplot(NR,NC,6)
+                plt.subplot(NR,NC,8)
                 plt.imshow(S-M, **imd)
                 plt.title('resids')
 

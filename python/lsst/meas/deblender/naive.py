@@ -119,16 +119,15 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
                 otherpsfs.append(psfimg)
             print len(otherpsfs), 'other peaks within range'
 
-            # Number of terms -- PSF, constant, X, Y
-            NT = 4 + len(otherpsfs)
-            #NT2 = 7
+            # Number of terms -- PSF, constant, X, Y, + other PSFs, + PSF dx, dy
+            NT = 4 + len(otherpsfs) + 2
             # Number of pixels -- at most
             NP = (1 + yhi - ylo) * (1 + xhi - xlo)
 
             A = np.zeros((NP, NT))
-            #A2 = np.zeros((NP, NT2))
             b = np.zeros(NP)
             w = np.zeros(NP)
+            ipixes = np.zeros((NP,2), dtype=int)
             ipix = 0
             sumr = 0.
             for y in range(ylo, yhi+1):
@@ -144,6 +143,16 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
                     else:
                         p = psfimg.get(x-px0,y-py0)
 
+                    if bbox.contains(afwGeom.Point2I(x-1,y)) and bbox.contains(afwGeom.Point2I(x+1,y)):
+                        dx = (psfimg.get(x+1-px0,y-py0) - psfimg.get(x-1-px0,y-py0)) / 2.
+                    else:
+                        dx = 0.
+
+                    if bbox.contains(afwGeom.Point2I(x,y-1)) and bbox.contains(afwGeom.Point2I(x,y+1)):
+                        dy = (psfimg.get(x-px0,y+1-py0) - psfimg.get(x-px0,y-1-py0)) / 2.
+                    else:
+                        dy = 0.
+
                     rw = 1.
                     # ramp down weights from R0 to R1.
                     if R > R0:
@@ -155,70 +164,64 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
                     A[ipix,1] = 1.
                     A[ipix,2] = x-cx
                     A[ipix,3] = y-cy
-
+                    A[ipix,4] = dx
+                    A[ipix,5] = dy
+                    ipixes[ipix,:] = (x-xlo,y-ylo)
+                    
                     for j,opsf in enumerate(otherpsfs):
                         obbox = opsf.getBBox(afwImage.PARENT)
                         obbox.clip(fp.getBBox())
                         opx0,opy0 = opsf.getX0(), opsf.getY0()
                         if obbox.contains(afwGeom.Point2I(x,y)):
-                            A[ipix, 4+j] = opsf.get(x-opx0, y-opy0)
+                            A[ipix, 6+j] = opsf.get(x-opx0, y-opy0)
 
                     b[ipix] = im
                     # ramp weight * ( 1 / image variance )
                     w[ipix] = np.sqrt(rw / varimg.get(x,y))
                     sumr += rw
                     
-                    # A2[ipix,4] = (x-cx)**2
-                    # A2[ipix,5] = (x-cx)*(y-cy)
-                    # A2[ipix,6] = (y-cy)**2
-
                     ipix += 1
 
-            #A2[:,:4] = A[:,:4]
             # actual number of pixels
             NP = ipix
             A = A[:NP,:]
-            #A2 = A2[:NP,:]
             b = b[:NP]
             w = w[:NP]
+            ipixes = ipixes[:NP,:]
             print 'Npix', NP
             print 'sumr', sumr
-            A  *= w[:,np.newaxis]
-            #A2 *= w[:,np.newaxis]
+            Aw  = A * w[:,np.newaxis]
             b  *= w
-            
-            X,r,rank,s = np.linalg.lstsq(A, b)
-            print 'X', X
-            print 'r', r
-            # r is sum_pix ramp * (model - data)**2/sigma**2
-            # (weighted chi-squared)
 
-            chisq = r
+            print 'A shape', A.shape
+            print 'Aw shape', Aw.shape
+
+            X,r,rank,s = np.linalg.lstsq(Aw, b)
+            print 'X', X
+            print 'rank', rank
+            print 'r', r
+            # r is weighted chi-squared = sum_pix ramp * (model - data)**2/sigma**2
+
+            chisq = r[0]
             dof = sumr - len(X)
             print 'Chi-squared', chisq
             print 'Degrees of freedom', dof
             if False:
                 import scipy.stats
-                pval = scipy.stats.chi2.sf(X2, dof)
+                pval = scipy.stats.chi2.sf(chisq, dof)
                 print 'p value:', pval
             print 'chisq/dof =', chisq/dof
 
-            #X2,r2,rank,s = np.linalg.lstsq(A2, b)
-            #print 'X2', X2
-            #print 'r2', r2
-            
             SW,SH = 1+xhi-xlo, 1+yhi-ylo
             print 'Stamp size', SW, SH
             stamp = afwImage.ImageF(SW,SH)
             psfmod = afwImage.ImageF(SW,SH)
             model = afwImage.ImageF(SW,SH)
-            #model2 = afwImage.ImageF(SW,SH)
             for y in range(ylo, yhi+1):
                 for x in range(xlo, xhi+1):
                     R = np.hypot(x - cx, y - cy)
                     if R > R1:
                         continue
-
                     # psf
                     if not bbox.contains(afwGeom.Point2I(x,y)):
                         p = 0
@@ -228,27 +231,16 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
 
                     stamp.set(x-xlo, y-ylo, im)
                     psfmod.set(x-xlo, y-ylo, p)
-                    m = (p * X[0] +
-                         1. * X[1] +
-                         (x - cx) * X[2] +
-                         (y - cy) * X[3])
 
-                    for j,opsf in enumerate(otherpsfs):
-                        obbox = opsf.getBBox(afwImage.PARENT)
-                        obbox.clip(fp.getBBox())
-                        opx0,opy0 = opsf.getX0(), opsf.getY0()
-                        if obbox.contains(afwGeom.Point2I(x,y)):
-                            m += X[4+j] * opsf.get(x-opx0, y-opy0)
-
-                    model.set(x-xlo, y-ylo, m)
-                    # m = (p * X2[0] +
-                    #      1. * X2[1] +
-                    #      (x - cx) * X2[2] +
-                    #      (y - cy) * X2[3] +
-                    #      (x - cx)**2 * X2[4] +
-                    #      (x - cx)*(y - cy) * X2[5] +
-                    #      (y - cy)**2 * X2[6])
-                    # model2.set(x-xlo, y-ylo, m)
+            m2 = np.zeros((SH,SW))
+            print 'ipixes shape', ipixes.shape
+            print 'A shape', A.shape
+            print 'X shape', X.shape
+            for i in range(NT):
+                m2[ipixes[:,1],ipixes[:,0]] += A[:,i] * X[i]
+            for y in range(ylo, yhi+1):
+                for x in range(xlo, xhi+1):
+                    model.set(x-xlo, y-ylo, m2[y-ylo,x-xlo])
 
             pkres.R0 = R0
             pkres.R1 = R1
@@ -256,7 +248,6 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
             #pkres.psfimg = psfimg
             pkres.psfimg = psfmod
             pkres.model = model
-            #pkres.model2 = model2
             pkres.stampxy0 = xlo,ylo
             pkres.stampxy1 = xhi,yhi
             pkres.center = cx,cy
