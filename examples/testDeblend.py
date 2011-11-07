@@ -90,6 +90,8 @@ def testDeblend(foots, pks, mi, psf):
                 ss = np.sort(S.ravel())
                 cmn,cmx = [ss[int(p*len(ss))] for p in [0.1, 0.99]]
                 imc = dict(interpolation='nearest', origin='lower', vmin=cmn, vmax=cmx)
+                d = cmx-cmn
+                imd = dict(interpolation='nearest', origin='lower', vmin=-d, vmax=d)
 
                 NR,NC = 2,3
                 plt.clf()
@@ -127,16 +129,20 @@ def testDeblend(foots, pks, mi, psf):
                 #plt.imshow(psfbg, **ima)
                 #plt.title('PSF+bg model')
 
-                plt.subplot(NR,NC,5)
-                plt.imshow(PSF, **imb)
-                #ax = plt.axis()
-                #plt.plot([pk.getFx() - xs0], [pk.getFy() - ys0], 'r+')
-                #plt.axis(ax)
-                plt.title('PSF model')
+                #plt.subplot(NR,NC,5)
+                #plt.imshow(PSF, **imb)
+                #plt.title('PSF model')
 
-                plt.subplot(NR,NC,6)
+                plt.subplot(NR,NC,5)
                 plt.imshow(M, **imc)
                 plt.title('near-peak model')
+
+                #import scipy.stats
+                #pval = scipy.stats.chi2.sf(X2, dof)
+
+                plt.subplot(NR,NC,6)
+                plt.imshow(S-M, **imd)
+                plt.title('resids')
 
                 #plt.subplot(NR,NC,6)
                 #plt.imshow(M2, **ima)

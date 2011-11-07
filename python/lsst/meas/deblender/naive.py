@@ -18,6 +18,7 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
     results = []
 
     img = maskedImage.getImage()
+    varimg = maskedImage.getVariance()
     for fp,pks in zip(footprints,peaks):
         bb = fp.getBBox()
         W,H = bb.getWidth(), bb.getHeight()
@@ -112,6 +113,7 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
             b = np.zeros(NP)
             w = np.zeros(NP)
             ipix = 0
+            sumr = 0.
             for y in range(ylo, yhi+1):
                 for x in range(xlo, xhi+1):
                     R = np.hypot(x - cx, y - cy)
@@ -134,8 +136,9 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
                     A[ipix,2] = x-cx
                     A[ipix,3] = y-cy
                     b[ipix] = im
-                    ## FIXME -- include image variance!
-                    w[ipix] = np.sqrt(rw)
+                    # ramp weight * ( 1 / image variance )
+                    w[ipix] = np.sqrt(rw / varimg.get(x,y))
+                    sumr += rw
                     
                     A2[ipix,4] = (x-cx)**2
                     A2[ipix,5] = (x-cx)*(y-cy)
@@ -143,9 +146,7 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
 
                     ipix += 1
             A[:,1] = 1.
-
             A2[:,:4] = A[:,:4]
-
             # actual number of pixels
             NP = ipix
             A = A[:NP,:]
@@ -153,16 +154,29 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
             b = b[:NP]
             w = w[:NP]
             print 'Npix', NP
+            print 'sumr', sumr
             A  *= w[:,np.newaxis]
             A2 *= w[:,np.newaxis]
             b  *= w
             
             X,r,rank,s = np.linalg.lstsq(A, b)
             print 'X', X
+            print 'r', r
+            # r is sum_pix ramp * (model - data)**2/sigma**2
+            # (weighted chi-squared)
 
-            X2,r,rank,s = np.linalg.lstsq(A2, b)
+            import scipy.stats
+            chisq = r
+            dof = sumr - len(X)
+            print 'Chi-squared', chisq
+            print 'Degrees of freedom', dof
+            pval = scipy.stats.chi2.sf(X2, dof)
+            print 'p value:', pval
+
+            X2,r2,rank,s = np.linalg.lstsq(A2, b)
             print 'X2', X2
-
+            print 'r2', r2
+            
             SW,SH = 1+xhi-xlo, 1+yhi-ylo
             print 'Stamp size', SW, SH
             stamp = afwImage.ImageF(SW,SH)
