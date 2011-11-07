@@ -82,8 +82,6 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
             # distance to neighbouring peak in order to put it in the model
             R2 = R1 + psfimg.getWidth()/2.
 
-
-            #afwGeom.Extent2I(S, S))
             bbox = psfimg.getBBox(afwImage.PARENT)
             print 'PSF bbox X:', bbox.getMinX(), bbox.getMaxX()
             print 'PSF bbox Y:', bbox.getMinY(), bbox.getMaxY()
@@ -93,8 +91,6 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
             px0,py0 = psfimg.getX0(), psfimg.getY0()
             print 'px0,py0', px0,py0
 
-            #xlo,xhi = bbox.getMinX(),bbox.getMaxX()
-            #ylo,yhi = bbox.getMinY(),bbox.getMaxY()
             xlo = int(math.floor(cx - R1))
             ylo = int(math.floor(cy - R1))
             xhi = int(math.ceil (cx + R1))
@@ -123,6 +119,11 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
             NT = 4 + len(otherpsfs) + 2
             # Number of pixels -- at most
             NP = (1 + yhi - ylo) * (1 + xhi - xlo)
+
+            # indices of terms
+            I_psf = 0
+            I_dx = 4
+            I_dy = 5
 
             A = np.zeros((NP, NT))
             b = np.zeros(NP)
@@ -160,12 +161,12 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
 
                     im = img.get(x, y)
 
-                    A[ipix,0] = p
+                    A[ipix,I_psf] = p
                     A[ipix,1] = 1.
                     A[ipix,2] = x-cx
                     A[ipix,3] = y-cy
-                    A[ipix,4] = dx
-                    A[ipix,5] = dy
+                    A[ipix,I_dx] = dx
+                    A[ipix,I_dy] = dy
                     ipixes[ipix,:] = (x-xlo,y-ylo)
                     
                     for j,opsf in enumerate(otherpsfs):
@@ -216,6 +217,7 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
             print 'Stamp size', SW, SH
             stamp = afwImage.ImageF(SW,SH)
             psfmod = afwImage.ImageF(SW,SH)
+            psfderivmod = afwImage.ImageF(SW,SH)
             model = afwImage.ImageF(SW,SH)
             for y in range(ylo, yhi+1):
                 for x in range(xlo, xhi+1):
@@ -232,21 +234,26 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
                     stamp.set(x-xlo, y-ylo, im)
                     psfmod.set(x-xlo, y-ylo, p)
 
+            psfm2 = np.zeros((SH,SW))
             m2 = np.zeros((SH,SW))
             print 'ipixes shape', ipixes.shape
             print 'A shape', A.shape
             print 'X shape', X.shape
             for i in range(NT):
                 m2[ipixes[:,1],ipixes[:,0]] += A[:,i] * X[i]
+            for i in [I_psf, I_dx, I_dy]:
+                psfm2[ipixes[:,1],ipixes[:,0]] += A[:,i] * X[i]
             for y in range(ylo, yhi+1):
                 for x in range(xlo, xhi+1):
                     model.set(x-xlo, y-ylo, m2[y-ylo,x-xlo])
-
+                    psfderivmod.set(x-xlo, y-ylo, psfm2[y-ylo,x-xlo])
+            psfderivmod.setXY0(xlo,ylo)
             pkres.R0 = R0
             pkres.R1 = R1
             pkres.stamp = stamp
             #pkres.psfimg = psfimg
             pkres.psfimg = psfmod
+            pkres.psfderivimg = psfderivmod
             pkres.model = model
             pkres.stampxy0 = xlo,ylo
             pkres.stampxy1 = xhi,yhi
@@ -254,13 +261,32 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
 
             pkres.chisq = chisq
             pkres.dof = dof
+
+            # MAGIC
+            ispsf = (chisq / dof) < 1.5
+            pkres.deblend_as_psf = ispsf
+
+            if ispsf:
+                # replace the template image by the PSF + derivatives image.
+                print 'Deblending as PSF; setting template to PSF (+ spatial derivatives) model'
+                print 
+                pkres.timg = psfderivmod
             
         # Now apportion flux according to the templates ?
         timgs = [pkres.timg for pkres in fpres.peaks]
         portions = [afwImage.ImageF(W,H) for t in timgs]
         for y in range(H):
             for x in range(W):
-                tvals = [t.get(x,y) for t in timgs]
+                #tvals = [t.get(x,y) for t in timgs]
+                tvals = []
+                pt = afwGeom.Point2I(x,y)
+                for t in timgs:
+                    tbb = t.getBBox(afwImage.PARENT)
+                    tx0,ty0 = t.getX0(), t.getY0()
+                    if tbb.contains(pt):
+                        tvals.append(t.get(x-tx0,y-ty0))
+                    else:
+                        tvals.append(0)
                 #S = sum([max(0, t) for t in tvals])
                 S = sum([abs(t) for t in tvals])
                 if S == 0:
