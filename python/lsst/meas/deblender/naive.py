@@ -24,7 +24,7 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
     # find the median variance in the image...
     stats = afwMath.makeStatistics(varimg, mask, afwMath.MEDIAN)
     sigma1 = math.sqrt(stats.getValue(afwMath.MEDIAN))
-    print 'Median image sigma:', sigma1
+    #print 'Median image sigma:', sigma1
 
     for fp,pks in zip(footprints,peaks):
         bb = fp.getBBox()
@@ -51,9 +51,8 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
             timg = template.getImage()
             p = img.get(cx,cy)
             timg.set(cx - x0, cy - y0, p)
-            # We iterate on dy>0...
+            # We do dy>=0; dy<0 is handled by symmetry.
             for dy in range(H-(cy-y0)):
-                #for dx in range(-(cx-x0), W-(cx-x0)):
                 # Iterate symmetrically out from dx=0
                 for absdx in range(min(cx-x0, W-(cx-x0))):
                     if dy == 0 and absdx == 0:
@@ -72,10 +71,6 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
                     else:
                         hx = hy = 1
 
-                    #import numpy as np
-                    #print 'dy=', dy, 'absdx=', absdx, 'angle=', np.degrees(np.arctan2(dy,absdx))
-                    #print '  hx=', hx, 'hy=', hy
-
                     for signdx in [-1,1]:
                         # don't do dx=0 twice!
                         if absdx == 0 and signdx == 1:
@@ -91,20 +86,19 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
                         pa = img.get(xa, ya)
                         pb = img.get(xb, yb)
 
+                        # monotonic constraint
                         xm = xa - (hx * signdx)
                         ym = ya - hy
                         assert(fp.contains(afwGeom.Point2I(xm,ym)))
                         mono = timg.get(xm,ym)
-                        #print '  xa=', xa, 'xm=', xm, 'ya=', ya, 'ym=', ym
-                        #print '  mono=', mono
 
-                        # Add a little wiggle room to the min()...
-                        pa = min(pa, pb + sigma1)
-                        pb = min(pb, pa + sigma1)
-                        pa = min(pa, mono + sigma1)
-                        pb = min(pb, mono + sigma1)
                         #mn = min(pa,pb)
                         #mn = min(mn, mono)
+                        #pa = pb = mn
+                        pa = min(pa, pb + sigma1)
+                        pb = min(pb, pa + sigma1)
+                        pa = min(pa, mono)
+                        pb = min(pb, mono)
                         timg.set(xa - x0, ya - y0, pa)
                         timg.set(xb - x0, yb - y0, pb)
 
