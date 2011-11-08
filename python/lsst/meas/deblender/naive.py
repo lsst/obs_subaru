@@ -19,6 +19,13 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
 
     img = maskedImage.getImage()
     varimg = maskedImage.getVariance()
+
+    mask = maskedImage.getMask()
+    # find the median variance in the image...
+    stats = afwMath.makeStatistics(varimg, mask, afwMath.MEDIAN)
+    sigma1 = math.sqrt(stats.getValue(afwMath.MEDIAN))
+    print 'Median image sigma:', sigma1
+
     for fp,pks in zip(footprints,peaks):
         bb = fp.getBBox()
         W,H = bb.getWidth(), bb.getHeight()
@@ -40,13 +47,14 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
             template = afwImage.MaskedImageF(W,H)
             template.setXY0(x0,y0)
             cx,cy = pk.getIx(), pk.getIy()
+            print 'cx,cy =', cx,cy
             timg = template.getImage()
             p = img.get(cx,cy)
             timg.set(cx - x0, cy - y0, p)
             # We iterate on dy>0...
             for dy in range(H-(cy-y0)):
                 #for dx in range(-(cx-x0), W-(cx-x0)):
-
+                # Iterate symmetrically out from dx=0
                 for absdx in range(min(cx-x0, W-(cx-x0))):
                     if dy == 0 and absdx == 0:
                         continue
@@ -54,7 +62,7 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
                     # Monotonic constraint
                     # We're working out from the center, so just need to figure out which
                     # pixel is toward the center from where we are.
-                    v2 = absdx**2 + dy**2
+                    v2 = float(absdx**2 + dy**2)
                     if absdx**2/v2 > 0.75:
                         hx = 1
                         hy = 0
@@ -63,6 +71,10 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
                         hy = 1
                     else:
                         hx = hy = 1
+
+                    #import numpy as np
+                    #print 'dy=', dy, 'absdx=', absdx, 'angle=', np.degrees(np.arctan2(dy,absdx))
+                    #print '  hx=', hx, 'hy=', hy
 
                     for signdx in [-1,1]:
                         # don't do dx=0 twice!
@@ -78,16 +90,23 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
                             continue
                         pa = img.get(xa, ya)
                         pb = img.get(xb, yb)
-                        mn = min(pa,pb)
 
                         xm = xa - (hx * signdx)
-                        ym = ya -  hy
+                        ym = ya - hy
                         assert(fp.contains(afwGeom.Point2I(xm,ym)))
-                        mono = img.get(xm,ym)
-                        mn = min(mn, mono)
+                        mono = timg.get(xm,ym)
+                        #print '  xa=', xa, 'xm=', xm, 'ya=', ya, 'ym=', ym
+                        #print '  mono=', mono
 
-                        timg.set(xa - x0, ya - y0, mn)
-                        timg.set(xb - x0, yb - y0, mn)
+                        # Add a little wiggle room to the min()...
+                        pa = min(pa, pb + sigma1)
+                        pb = min(pb, pa + sigma1)
+                        pa = min(pa, mono + sigma1)
+                        pb = min(pb, mono + sigma1)
+                        #mn = min(pa,pb)
+                        #mn = min(mn, mono)
+                        timg.set(xa - x0, ya - y0, pa)
+                        timg.set(xb - x0, yb - y0, pb)
 
             pkres.timg = timg
 
