@@ -290,6 +290,7 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
                     model.set(x-xlo, y-ylo, m2[y-ylo,x-xlo])
                     psfderivmod.set(x-xlo, y-ylo, psfm2[y-ylo,x-xlo])
             psfderivmod.setXY0(xlo,ylo)
+            model.setXY0(xlo,ylo)
             pkres.R0 = R0
             pkres.R1 = R1
             pkres.stamp = stamp
@@ -304,9 +305,13 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
             pkres.chisq = chisq
             pkres.dof = dof
 
-            # MAGIC
+            # MAGIC number
             ispsf = (chisq / dof) < 1.5
             pkres.deblend_as_psf = ispsf
+
+            # FIXME -- should check that the least-squares fit values
+            # for the PSF spatial derivatives are small (< 1), and
+            # maybe replace the PSF + derivs by the shifted PSF.
 
             if ispsf:
                 # replace the template image by the PSF + derivatives image.

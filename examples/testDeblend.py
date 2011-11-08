@@ -26,6 +26,21 @@ def afwimgtonumpy(I, x0=0, y0=0, W=None,H=None):
 
 
 def testDeblend(foots, pks, mi, psf):
+
+    I = afwimgtonumpy(mi.getImage())
+    flatpks = []
+    for pklist in pks:
+        flatpks += pklist
+
+    plt.clf()
+    plt.imshow(I, origin='lower', interpolation='nearest',
+               vmin=-50, vmax=400)
+    ax = plt.axis()
+    plt.gray()
+    plt.plot([pk.getFx() for pk in flatpks], [pk.getFy() for pk in flatpks], 'r.')
+    plt.axis(ax)
+    plt.savefig('test-srcs.png')
+
     bb = foots[0].getBBox()
     xc = int((bb.getMinX() + bb.getMaxX()) / 2.)
     yc = int((bb.getMinY() + bb.getMaxY()) / 2.)
@@ -51,23 +66,23 @@ def testDeblend(foots, pks, mi, psf):
         results = naive_deblender.deblend(foots, pks, mi, psf, psf_fwhm)
 
         for i,(foot,fpres) in enumerate(zip(foots,results)):
-            #(foot,templs,ports,bgs,mods,mods2) in enumerate(zip(foots,allt,allp,allbg,allmod,allmod2)):
             sumP = None
 
             W,H = foot.getBBox().getWidth(), foot.getBBox().getHeight()
             x0,y0 = foot.getBBox().getMinX(), foot.getBBox().getMinY()
             I = afwimgtonumpy(mi.getImage(), x0, y0, W, H)
-            #mn,mx = I.min(), I.max()
-            #mn,mx = [np.percentile(I.ravel(), p) for p in [25,95]]
             ss = np.sort(I.ravel())
             mn,mx = [ss[int(p*len(ss))] for p in [0.1, 0.95]]
             print 'mn,mx', mn,mx
-            
+
+            I_nopsf = afwimgtonumpy(mi.getImage(), x0, y0, W, H)
+            pks_notpsf = []
+            pks_psf = []
+
             ima = dict(interpolation='nearest', origin='lower', vmin=mn, vmax=mx)
             imb = dict(interpolation='nearest', origin='lower')
 
             for j,pkres in enumerate(fpres.peaks):
-                #(templ,port,bg,mod,mod2) in enumerate(zip(templs,ports,bgs,mods,mods2)):
                 timg = pkres.timg
                 #templ.writeFits('templ-f%i-t%i.fits' % (i, j))
 
@@ -85,6 +100,17 @@ def testDeblend(foots, pks, mi, psf):
                 S = afwimgtonumpy(pkres.stamp)
                 PSF = afwimgtonumpy(pkres.psfimg)
                 M = afwimgtonumpy(pkres.model)
+
+                if pkres.deblend_as_psf:
+                    #mm = pkres.model
+                    mm = pkres.psfderivimg
+                    MM = afwimgtonumpy(mm)
+                    mx0,my0 = mm.getX0(), mm.getY0()
+                    mW,mH = mm.getWidth(), mm.getHeight()
+                    I_nopsf[my0:my0+mH, mx0:mx0+mW] -= MM
+                    pks_psf.append(pk)
+                else:
+                    pks_notpsf.append(pk)
 
                 ss = np.sort(S.ravel())
                 cmn,cmx = [ss[int(p*len(ss))] for p in [0.1, 0.99]]
@@ -112,51 +138,20 @@ def testDeblend(foots, pks, mi, psf):
                 plt.imshow(P, **ima)
                 plt.title('Flux portion')
 
-                #plt.subplot(NR,NC,4)
-                #plt.imshow(B, **ima)
-                #plt.title('Background-subtracted')
-
-                #backgr = T - B
-                #psfbg = backgr + M
-
                 plt.subplot(NR,NC,5)
                 plt.imshow(S, **imc)
                 ax = plt.axis()
                 plt.plot([pk.getFx() - xs0], [pk.getFy() - ys0], 'r+')
                 plt.axis(ax)
                 plt.title('near-peak cutout')
-                #plt.imshow(psfbg, **ima)
-                #plt.title('PSF+bg model')
-
-                #plt.subplot(NR,NC,5)
-                #plt.imshow(PSF, **imb)
-                #plt.title('PSF model')
 
                 plt.subplot(NR,NC,6)
                 plt.imshow(M, **imc)
                 plt.title('PSF model: chisq/dof=%.2f' % (pkres.chisq/pkres.dof))
 
-                #import scipy.stats
-                #pval = scipy.stats.chi2.sf(X2, dof)
-
                 plt.subplot(NR,NC,8)
                 plt.imshow(S-M, **imd)
                 plt.title('resids')
-
-                #plt.subplot(NR,NC,5)
-                #res = B-M
-                #mx = np.abs(res).max()
-                #plt.imshow(res, interpolation='nearest', origin='lower', vmin=-mx, vmax=mx)
-                #plt.colorbar()
-                #plt.title('Residuals')
-
-                # plt.subplot(NR,NC,6)
-                # py = pks[i][j].getIy()
-                # plt.plot(T[py-y0,:], 'r-')
-                # #plt.plot(T[py-y0+1,:], 'b-')
-                # #plt.plot(T[py-y0-1,:], 'g-')
-                # plt.plot(psfbg[py-y0,:], 'b-')
-                # plt.title('Template slices')
 
                 plt.savefig('templ-f%i-t%i.png' % (i,j))
 
@@ -164,6 +159,7 @@ def testDeblend(foots, pks, mi, psf):
                     sumP = P
                 else:
                     sumP += P
+
             if sumP is not None:
                 plt.clf()
                 NR,NC = 1,2
@@ -172,6 +168,17 @@ def testDeblend(foots, pks, mi, psf):
                 plt.subplot(NR,NC,2)
                 plt.imshow(sumP, **ima)
                 plt.savefig('sump-f%i.png' % i)
+
+            plt.clf()
+            plt.imshow(I_nopsf, origin='lower', interpolation='nearest',
+                       vmin=-50, vmax=400)
+            ax = plt.axis()
+            plt.gray()
+            plt.plot([pk.getFx() for pk in pks_notpsf], [pk.getFy() for pk in pks_notpsf], 'r.')
+            plt.plot([pk.getFx() for pk in pks_psf], [pk.getFy() for pk in pks_psf], 'g+')
+            plt.axis(ax)
+            plt.savefig('test-notpsf.png')
+
     
 
 '''
@@ -275,18 +282,6 @@ if __name__ == "__main__":
 
     mi = img.getMaskedImage()
     print 'MI xy0', mi.getX0(), mi.getY0()
-    plt.clf()
-    I = afwimgtonumpy(mi.getImage())
-    plt.imshow(I, origin='lower', interpolation='nearest',
-               vmin=-50, vmax=400)
-    flatpks = []
-    for pklist in pks:
-        flatpks += pklist
-    ax = plt.axis()
-    plt.gray()
-    plt.plot([pk.getFx() for pk in flatpks], [pk.getFy() for pk in flatpks], 'r.')
-    plt.axis(ax)
-    plt.savefig('test-srcs.png')
 
     testDeblend(foots, pks, mi, psf)
     
