@@ -9,6 +9,16 @@ from lsst.pex.policy import Policy
 import lsst.daf.persistence as dafPersist
 from lsst.obs.suprimecam import SuprimecamMapper
 
+import lsst.afw.display.ds9 as ds9
+import lsst.afw.display.utils as displayUtils
+
+import lsst.afw.cameraGeom as cameraGeom
+import lsst.afw.cameraGeom.utils as cameraGeomUtils
+try:
+    type(display)
+except NameError:
+    display = False
+
 class GetRawTestCase(unittest.TestCase):
     """Testing butler raw image retrieval"""
 
@@ -26,17 +36,25 @@ class GetRawTestCase(unittest.TestCase):
 
     def testRaw(self):
         """Test retrieval of raw image"""
-        raw = self.butler.get("raw", visit=127073, ccd=2)
-    
-        print "width: ",              raw.getWidth()
-        print "height: ",             raw.getHeight()
-        print "detector(amp) name: ", raw.getDetector().getId().getName()
+
+        frame = 0
+        for ccdNum, ccdName in [(2, "Fio"), (5, "Satsuki")]:
+            raw = self.butler.get("raw", visit=127073, ccd=ccdNum)
+
+            print "width: ",              raw.getWidth()
+            print "height: ",             raw.getHeight()
+            print "detector(amp) name: ", raw.getDetector().getId().getName()
+
+            self.assertEqual(raw.getWidth(), 2272) # untrimmed
+            self.assertEqual(raw.getHeight(), 4273) # untrimmed
+
+            self.assertEqual(raw.getFilter().getFilterProperty().getName(), "i") 
+            self.assertEqual(raw.getDetector().getId().getName(), ccdName)
+
+            if display:
+                cameraGeomUtils.showCcd(ccd, ccdImage=raw, frame=frame)
+                frame += 1
         
-        self.assertEqual(raw.getWidth(), 2272) # untrimmed
-        self.assertEqual(raw.getHeight(), 4273) # untrimmed
-    
-        self.assertEqual(raw.getFilter().getFilterProperty().getName(), "i") 
-        self.assertEqual(raw.getDetector().getId().getName(), "Fio")
 
 #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
