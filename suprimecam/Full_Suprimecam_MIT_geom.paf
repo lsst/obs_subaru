@@ -24,7 +24,6 @@ Ccd: {
     nRow: 1 
     Amp: { 
         index: 0 0 
-        readoutCorner: LLC  
     } 
 }
 
@@ -34,6 +33,7 @@ CcdDiskLayout: {
         serial: 0 
         flipLR: false 
         flipTB: false 
+        nQuarter: 0
         hdu: 0 
     } 
 } 
