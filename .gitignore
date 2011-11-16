@@ -1,0 +1,8 @@
+
+# /
+/.sconsign.dblite
+/config.log
+/.sconf_temp
+
+# /tests/
+/tests/.tests
