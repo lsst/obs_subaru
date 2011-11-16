@@ -24,6 +24,49 @@ Amp: {
     eheight: 4225
 } 
 Ccd: { 
+    ptype: "top"
+    pixelSize: 10.0e-3  # mm
+    nCol: 4
+    nRow: 1 
+    Amp: { 
+        serial: 1
+        ptype: "default"
+        flipLR: true
+        nQuarter: 2
+        hdu: 0
+        diskCoordSys: "camera"
+        index: 0 0 
+    } 
+    Amp: { 
+        serial: 2
+        ptype: "default"
+        flipLR: false
+        nQuarter: 2
+        hdu: 0
+        diskCoordSys: "camera"
+        index: 1 0 
+    } 
+    Amp: { 
+        serial: 3
+        ptype: "default"
+        flipLR: true
+        nQuarter: 2
+        hdu: 0
+        diskCoordSys: "camera"
+        index: 2 0 
+    } 
+    Amp: { 
+        serial: 4
+        ptype: "default"
+        flipLR: false
+        nQuarter: 2
+        hdu: 0
+        diskCoordSys: "camera"
+        index: 3 0 
+    } 
+}
+Ccd: { 
+    ptype: "bottom"
     pixelSize: 10.0e-3  # mm
     nCol: 4
     nRow: 1 
@@ -73,7 +116,7 @@ Raft: {
     Ccd: {
         serial: 8                       # CCD's serial number
         name: "Ponyo"                   # CCD's name
-        ptype: "default"
+        ptype: "bottom"
         index: 0 0                      # Location of CCD in Raft thought of as a grid of CCDs
         offset: -4242.1 -2123.13        # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -82,16 +125,16 @@ Raft: {
     Ccd: {
         serial: 6                       # CCD's serial number
         name: "Chihiro"                 # CCD's name
-        ptype: "default"
+        ptype: "top"
         index: 0 1                      # Location of CCD in Raft thought of as a grid of CCDs
         offset: -4245.1 2127.3          # offset of CCD center from raft center, (x, y); mm
-        nQuarter: 2                     # number of quarter turns applied to CCD when put into raft
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0        # pitch, roll, yaw; degrees
     }
     Ccd: {
         serial: 9                       # CCD's serial number
         name: "San"                     # CCD's name
-        ptype: "default"
+        ptype: "bottom"
         index: 1 0                      # Location of CCD in Raft thought of as a grid of CCDs
         offset: -2120.4 -2122.0         # offset of CCD center from raft center, (x, y); mm
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -100,16 +143,16 @@ Raft: {
     Ccd: {
         serial: 7                       # CCD's serial number
         name: "Clarisse"                # CCD's name
-        ptype: "default"
+        ptype: "top"
         index: 1 1                      # Location of CCD in Raft thought of as a grid of CCDs
         offset: -2121.2 2129.6          # offset of CCD center from raft center, (x, y); mm
-        nQuarter: 2                     # number of quarter turns applied to CCD when put into raft
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0        # pitch, roll, yaw; degrees
     }
     Ccd: {
         serial: 5                       # CCD's serial number
         name: "Satsuki"                 # CCD's name
-        ptype: "default"
+        ptype: "bottom"
         index: 2 0                      # Location of CCD in Raft thought of as a grid of CCDs
         offset: 0.0 -2126.7             # offset of CCD center from raft center, (x, y); mm
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -118,16 +161,16 @@ Raft: {
    Ccd: {
         serial: 2                       # CCD's serial number
         name: "Fio"                     # CCD's name
-        ptype: "default"
+        ptype: "top"
         index: 2 1                      # Location of CCD in Raft thought of as a grid of CCDs
         offset: 2.1 2130.3              # offset of CCD center from raft center, (x, y); mm
-        nQuarter: 2                     # number of quarter turns applied to CCD when put into raft
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0        # pitch, roll, yaw; degrees
     }
     Ccd: {
         serial: 4                       # CCD's serial number
         name: "Sheeta"                  # CCD's name
-        ptype: "default"
+        ptype: "bottom"
         index: 3 0                      # Location of CCD in Raft thought of as a grid of CCDs
         offset: 2129.9 -2120.9          # offset of CCD center from raft center, (x, y); mm
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -136,16 +179,16 @@ Raft: {
     Ccd: {
         serial: 1                       # CCD's serial number
         name: "Kiki"                    # CCD's name
-        ptype: "default"
+        ptype: "top"
         index: 3 1                      # Location of CCD in Raft thought of as a grid of CCDs
         offset: 2123.8 2129.7           # offset of CCD center from raft center, (x, y); mm
-        nQuarter: 2                     # number of quarter turns applied to CCD when put into raft
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0        # pitch, roll, yaw; degrees
     }
     Ccd: {
         serial: 3                       # CCD's serial number
         name: "Sophie"                  # CCD's name
-        ptype: "default"
+        ptype: "bottom"
         index: 4 0                      # Location of CCD in Raft thought of as a grid of CCDs
         offset: 4247.4 -2122.7         # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -154,10 +197,10 @@ Raft: {
     Ccd: {
         serial: 0                       # CCD's serial number
         name: "Nausicaa"                # CCD's name
-        ptype: "default"
+        ptype: "top"
         index: 4 1                      # Location of CCD in Raft thought of as a grid of CCDs
         offset: 4245.5 2130.0           # offset of CCD center from raft center, (x, y); mm
-        nQuarter: 2                     # number of quarter turns applied to CCD when put into raft
+        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0        # pitch, roll, yaw; degrees
     }
 }
@@ -168,7 +211,7 @@ Electronic: {
         serial: -1 
 
         Ccd: {
-            ptype: "default"
+            ptype: "bottom"
             name: "Ponyo"
             serial: 8            
             Amp: {
@@ -197,7 +240,7 @@ Electronic: {
             }
         }
         Ccd: {
-            ptype: "default"
+            ptype: "top"
             name: "Chihiro"             # CCD's name
             serial: 6
             Amp: {
@@ -226,7 +269,7 @@ Electronic: {
             }
         }
         Ccd: {
-            ptype: "default"
+            ptype: "bottom"
             name: "San"                 # CCD's name
             serial: 9
             Amp: {
@@ -255,7 +298,7 @@ Electronic: {
             }
         }
         Ccd: {
-            ptype: "default"
+            ptype: "top"
             name: "Clarisse"            # CCD's name
             serial: 7
             Amp: {
@@ -284,7 +327,7 @@ Electronic: {
             }
         }
         Ccd: {
-            ptype: "default"
+            ptype: "bottom"
             name: "Satsuki"             # CCD's name
             serial: 5
             Amp: {
@@ -313,7 +356,7 @@ Electronic: {
             }
         }
         Ccd: {
-            ptype: "default"
+            ptype: "top"
             name: "Fio"                 # CCD's name
             serial: 2
             Amp: {
@@ -342,7 +385,7 @@ Electronic: {
             }
         }
         Ccd: {
-            ptype: "default"
+            ptype: "bottom"
             name: "Sheeta"              # CCD's name
             serial: 4
             Amp: {
@@ -371,7 +414,7 @@ Electronic: {
             }
         }
         Ccd: {
-            ptype: "default"
+            ptype: "top"
             name: "Kiki"                # CCD's name
             serial: 1
             Amp: {
@@ -400,7 +443,7 @@ Electronic: {
             }
         }
         Ccd: {
-            ptype: "default"
+            ptype: "bottom"
             name: "Sophie"              # CCD's name
             serial: 3
             Amp: {
@@ -429,7 +472,7 @@ Electronic: {
             }
         }
         Ccd: {
-            ptype: "default"
+            ptype: "top"
             name: "Nausicaa"            # CCD's name
             serial: 0
             Amp: {
