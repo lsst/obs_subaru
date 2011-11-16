@@ -24,6 +24,7 @@ Raft: {
     Ccd: { 
         serial:   0                    # CCD's serial number
         name: "hsc000"                    # CCD's name
+        ptype: "default"
         index: 3 4
         offset: -8490.7 1952.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -32,6 +33,7 @@ Raft: {
     Ccd: { 
         serial:   1                    # CCD's serial number
         name: "hsc001"                    # CCD's name
+        ptype: "default"
         index: 11 3
         offset: 8490.7 -2299.7 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -40,6 +42,7 @@ Raft: {
     Ccd: { 
         serial:   2                    # CCD's serial number
         name: "hsc002"                    # CCD's name
+        ptype: "default"
         index: 4 4
         offset: -6368.0 1952.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -48,6 +51,7 @@ Raft: {
     Ccd: { 
         serial:   3                    # CCD's serial number
         name: "hsc003"                    # CCD's name
+        ptype: "default"
         index: 10 3
         offset: 6368.0 -2299.7 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -56,6 +60,7 @@ Raft: {
     Ccd: { 
         serial:   4                    # CCD's serial number
         name: "hsc004"                    # CCD's name
+        ptype: "default"
         index: 5 4
         offset: -4245.3 1952.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -64,6 +69,7 @@ Raft: {
     Ccd: { 
         serial:   5                    # CCD's serial number
         name: "hsc005"                    # CCD's name
+        ptype: "default"
         index: 9 3
         offset: 4245.3 -2299.7 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -72,6 +78,7 @@ Raft: {
     Ccd: { 
         serial:   6                    # CCD's serial number
         name: "hsc006"                    # CCD's name
+        ptype: "default"
         index: 6 4
         offset: -2122.7 1952.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -80,6 +87,7 @@ Raft: {
     Ccd: { 
         serial:   7                    # CCD's serial number
         name: "hsc007"                    # CCD's name
+        ptype: "default"
         index: 8 3
         offset: 2122.7 -2299.7 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -88,6 +96,7 @@ Raft: {
     Ccd: { 
         serial:   8                    # CCD's serial number
         name: "hsc008"                    # CCD's name
+        ptype: "default"
         index: 7 4
         offset: 0.0 1952.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -96,6 +105,7 @@ Raft: {
     Ccd: { 
         serial:   9                    # CCD's serial number
         name: "hsc009"                    # CCD's name
+        ptype: "default"
         index: 7 3
         offset: 0.0 -2299.7 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -104,6 +114,7 @@ Raft: {
     Ccd: { 
         serial:  10                    # CCD's serial number
         name: "hsc010"                    # CCD's name
+        ptype: "default"
         index: 8 4
         offset: 2122.7 1952.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -112,6 +123,7 @@ Raft: {
     Ccd: { 
         serial:  11                    # CCD's serial number
         name: "hsc011"                    # CCD's name
+        ptype: "default"
         index: 6 3
         offset: -2122.7 -2299.7 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -120,6 +132,7 @@ Raft: {
     Ccd: { 
         serial:  12                    # CCD's serial number
         name: "hsc012"                    # CCD's name
+        ptype: "default"
         index: 9 4
         offset: 4245.3 1952.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -128,6 +141,7 @@ Raft: {
     Ccd: { 
         serial:  13                    # CCD's serial number
         name: "hsc013"                    # CCD's name
+        ptype: "default"
         index: 5 3
         offset: -4245.3 -2299.7 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -136,6 +150,7 @@ Raft: {
     Ccd: { 
         serial:  14                    # CCD's serial number
         name: "hsc014"                    # CCD's name
+        ptype: "default"
         index: 10 4
         offset: 6368.0 1952.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -144,6 +159,7 @@ Raft: {
     Ccd: { 
         serial:  15                    # CCD's serial number
         name: "hsc015"                    # CCD's name
+        ptype: "default"
         index: 4 3
         offset: -6368.0 -2299.7 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -152,6 +168,7 @@ Raft: {
     Ccd: { 
         serial:  16                    # CCD's serial number
         name: "hsc016"                    # CCD's name
+        ptype: "default"
         index: 11 4
         offset: 8490.7 1952.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -160,6 +177,7 @@ Raft: {
     Ccd: { 
         serial:  17                    # CCD's serial number
         name: "hsc017"                    # CCD's name
+        ptype: "default"
         index: 3 3
         offset: -8490.7 -2299.7 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -168,6 +186,7 @@ Raft: {
     Ccd: { 
         serial:  18                    # CCD's serial number
         name: "hsc018"                    # CCD's name
+        ptype: "default"
         index: 12 4
         offset: 10613.0 1952.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -176,6 +195,7 @@ Raft: {
     Ccd: { 
         serial:  19                    # CCD's serial number
         name: "hsc019"                    # CCD's name
+        ptype: "default"
         index: 2 3
         offset: -10613.0 -2299.7 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -184,6 +204,7 @@ Raft: {
     Ccd: { 
         serial:  20                    # CCD's serial number
         name: "hsc020"                    # CCD's name
+        ptype: "default"
         index: 13 4
         offset: 12736.0 1952.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -192,6 +213,7 @@ Raft: {
     Ccd: { 
         serial:  21                    # CCD's serial number
         name: "hsc021"                    # CCD's name
+        ptype: "default"
         index: 1 3
         offset: -12736.0 -2299.7 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -200,6 +222,7 @@ Raft: {
     Ccd: { 
         serial:  22                    # CCD's serial number
         name: "hsc022"                    # CCD's name
+        ptype: "default"
         index: 14 4
         offset: 14859.0 1952.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -208,6 +231,7 @@ Raft: {
     Ccd: { 
         serial:  23                    # CCD's serial number
         name: "hsc023"                    # CCD's name
+        ptype: "default"
         index: 0 3
         offset: -14859.0 -2299.7 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -216,6 +240,7 @@ Raft: {
     Ccd: { 
         serial:  24                    # CCD's serial number
         name: "hsc024"                    # CCD's name
+        ptype: "default"
         index: 3 5
         offset: -8490.7 6420.3 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -224,6 +249,7 @@ Raft: {
     Ccd: { 
         serial:  25                    # CCD's serial number
         name: "hsc025"                    # CCD's name
+        ptype: "default"
         index: 11 2
         offset: 8490.7 -6768.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -232,6 +258,7 @@ Raft: {
     Ccd: { 
         serial:  26                    # CCD's serial number
         name: "hsc026"                    # CCD's name
+        ptype: "default"
         index: 4 5
         offset: -6368.0 6420.3 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -240,6 +267,7 @@ Raft: {
     Ccd: { 
         serial:  27                    # CCD's serial number
         name: "hsc027"                    # CCD's name
+        ptype: "default"
         index: 10 2
         offset: 6368.0 -6768.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -248,6 +276,7 @@ Raft: {
     Ccd: { 
         serial:  28                    # CCD's serial number
         name: "hsc028"                    # CCD's name
+        ptype: "default"
         index: 5 5
         offset: -4245.3 6420.3 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -256,6 +285,7 @@ Raft: {
     Ccd: { 
         serial:  29                    # CCD's serial number
         name: "hsc029"                    # CCD's name
+        ptype: "default"
         index: 9 2
         offset: 4245.3 -6768.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -264,6 +294,7 @@ Raft: {
     Ccd: { 
         serial:  30                    # CCD's serial number
         name: "hsc030"                    # CCD's name
+        ptype: "default"
         index: 6 5
         offset: -2122.7 6420.3 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -272,6 +303,7 @@ Raft: {
     Ccd: { 
         serial:  31                    # CCD's serial number
         name: "hsc031"                    # CCD's name
+        ptype: "default"
         index: 8 2
         offset: 2122.7 -6768.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -280,6 +312,7 @@ Raft: {
     Ccd: { 
         serial:  32                    # CCD's serial number
         name: "hsc032"                    # CCD's name
+        ptype: "default"
         index: 7 5
         offset: 0.0 6420.3 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -288,6 +321,7 @@ Raft: {
     Ccd: { 
         serial:  33                    # CCD's serial number
         name: "hsc033"                    # CCD's name
+        ptype: "default"
         index: 7 2
         offset: 0.0 -6768.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -296,6 +330,7 @@ Raft: {
     Ccd: { 
         serial:  34                    # CCD's serial number
         name: "hsc034"                    # CCD's name
+        ptype: "default"
         index: 8 5
         offset: 2122.7 6420.3 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -304,6 +339,7 @@ Raft: {
     Ccd: { 
         serial:  35                    # CCD's serial number
         name: "hsc035"                    # CCD's name
+        ptype: "default"
         index: 6 2
         offset: -2122.7 -6768.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -312,6 +348,7 @@ Raft: {
     Ccd: { 
         serial:  36                    # CCD's serial number
         name: "hsc036"                    # CCD's name
+        ptype: "default"
         index: 9 5
         offset: 4245.3 6420.3 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -320,6 +357,7 @@ Raft: {
     Ccd: { 
         serial:  37                    # CCD's serial number
         name: "hsc037"                    # CCD's name
+        ptype: "default"
         index: 5 2
         offset: -4245.3 -6768.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -328,6 +366,7 @@ Raft: {
     Ccd: { 
         serial:  38                    # CCD's serial number
         name: "hsc038"                    # CCD's name
+        ptype: "default"
         index: 10 5
         offset: 6368.0 6420.3 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -336,6 +375,7 @@ Raft: {
     Ccd: { 
         serial:  39                    # CCD's serial number
         name: "hsc039"                    # CCD's name
+        ptype: "default"
         index: 4 2
         offset: -6368.0 -6768.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -344,6 +384,7 @@ Raft: {
     Ccd: { 
         serial:  40                    # CCD's serial number
         name: "hsc040"                    # CCD's name
+        ptype: "default"
         index: 11 5
         offset: 8490.7 6420.3 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -352,6 +393,7 @@ Raft: {
     Ccd: { 
         serial:  41                    # CCD's serial number
         name: "hsc041"                    # CCD's name
+        ptype: "default"
         index: 3 2
         offset: -8490.7 -6768.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -360,6 +402,7 @@ Raft: {
     Ccd: { 
         serial:  42                    # CCD's serial number
         name: "hsc042"                    # CCD's name
+        ptype: "default"
         index: 12 5
         offset: 10613.0 6420.3 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -368,6 +411,7 @@ Raft: {
     Ccd: { 
         serial:  43                    # CCD's serial number
         name: "hsc043"                    # CCD's name
+        ptype: "default"
         index: 2 2
         offset: -10613.0 -6768.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -376,6 +420,7 @@ Raft: {
     Ccd: { 
         serial:  44                    # CCD's serial number
         name: "hsc044"                    # CCD's name
+        ptype: "default"
         index: 13 5
         offset: 12736.0 6420.3 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -384,6 +429,7 @@ Raft: {
     Ccd: { 
         serial:  45                    # CCD's serial number
         name: "hsc045"                    # CCD's name
+        ptype: "default"
         index: 1 2
         offset: -12736.0 -6768.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -392,6 +438,7 @@ Raft: {
     Ccd: { 
         serial:  46                    # CCD's serial number
         name: "hsc046"                    # CCD's name
+        ptype: "default"
         index: 14 5
         offset: 14859.0 6420.3 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -400,6 +447,7 @@ Raft: {
     Ccd: { 
         serial:  47                    # CCD's serial number
         name: "hsc047"                    # CCD's name
+        ptype: "default"
         index: 0 2
         offset: -14859.0 -6768.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -408,6 +456,7 @@ Raft: {
     Ccd: { 
         serial:  48                    # CCD's serial number
         name: "hsc048"                    # CCD's name
+        ptype: "default"
         index: 3 6
         offset: -8490.7 10889.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -416,6 +465,7 @@ Raft: {
     Ccd: { 
         serial:  49                    # CCD's serial number
         name: "hsc049"                    # CCD's name
+        ptype: "default"
         index: 11 1
         offset: 8490.7 -11236.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -424,6 +474,7 @@ Raft: {
     Ccd: { 
         serial:  50                    # CCD's serial number
         name: "hsc050"                    # CCD's name
+        ptype: "default"
         index: 4 6
         offset: -6368.0 10889.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -432,6 +483,7 @@ Raft: {
     Ccd: { 
         serial:  51                    # CCD's serial number
         name: "hsc051"                    # CCD's name
+        ptype: "default"
         index: 10 1
         offset: 6368.0 -11236.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -440,6 +492,7 @@ Raft: {
     Ccd: { 
         serial:  52                    # CCD's serial number
         name: "hsc052"                    # CCD's name
+        ptype: "default"
         index: 5 6
         offset: -4245.3 10889.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -448,6 +501,7 @@ Raft: {
     Ccd: { 
         serial:  53                    # CCD's serial number
         name: "hsc053"                    # CCD's name
+        ptype: "default"
         index: 9 1
         offset: 4245.3 -11236.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -456,6 +510,7 @@ Raft: {
     Ccd: { 
         serial:  54                    # CCD's serial number
         name: "hsc054"                    # CCD's name
+        ptype: "default"
         index: 6 6
         offset: -2122.7 10889.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -464,6 +519,7 @@ Raft: {
     Ccd: { 
         serial:  55                    # CCD's serial number
         name: "hsc055"                    # CCD's name
+        ptype: "default"
         index: 8 1
         offset: 2122.7 -11236.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -472,6 +528,7 @@ Raft: {
     Ccd: { 
         serial:  56                    # CCD's serial number
         name: "hsc056"                    # CCD's name
+        ptype: "default"
         index: 7 6
         offset: 0.0 10889.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -480,6 +537,7 @@ Raft: {
     Ccd: { 
         serial:  57                    # CCD's serial number
         name: "hsc057"                    # CCD's name
+        ptype: "default"
         index: 7 1
         offset: 0.0 -11236.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -488,6 +546,7 @@ Raft: {
     Ccd: { 
         serial:  58                    # CCD's serial number
         name: "hsc058"                    # CCD's name
+        ptype: "default"
         index: 8 6
         offset: 2122.7 10889.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -496,6 +555,7 @@ Raft: {
     Ccd: { 
         serial:  59                    # CCD's serial number
         name: "hsc059"                    # CCD's name
+        ptype: "default"
         index: 6 1
         offset: -2122.7 -11236.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -504,6 +564,7 @@ Raft: {
     Ccd: { 
         serial:  60                    # CCD's serial number
         name: "hsc060"                    # CCD's name
+        ptype: "default"
         index: 9 6
         offset: 4245.3 10889.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -512,6 +573,7 @@ Raft: {
     Ccd: { 
         serial:  61                    # CCD's serial number
         name: "hsc061"                    # CCD's name
+        ptype: "default"
         index: 5 1
         offset: -4245.3 -11236.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -520,6 +582,7 @@ Raft: {
     Ccd: { 
         serial:  62                    # CCD's serial number
         name: "hsc062"                    # CCD's name
+        ptype: "default"
         index: 10 6
         offset: 6368.0 10889.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -528,6 +591,7 @@ Raft: {
     Ccd: { 
         serial:  63                    # CCD's serial number
         name: "hsc063"                    # CCD's name
+        ptype: "default"
         index: 4 1
         offset: -6368.0 -11236.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -536,6 +600,7 @@ Raft: {
     Ccd: { 
         serial:  64                    # CCD's serial number
         name: "hsc064"                    # CCD's name
+        ptype: "default"
         index: 11 6
         offset: 8490.7 10889.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -544,6 +609,7 @@ Raft: {
     Ccd: { 
         serial:  65                    # CCD's serial number
         name: "hsc065"                    # CCD's name
+        ptype: "default"
         index: 3 1
         offset: -8490.7 -11236.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -552,6 +618,7 @@ Raft: {
     Ccd: { 
         serial:  66                    # CCD's serial number
         name: "hsc066"                    # CCD's name
+        ptype: "default"
         index: 12 6
         offset: 10613.0 10889.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -560,6 +627,7 @@ Raft: {
     Ccd: { 
         serial:  67                    # CCD's serial number
         name: "hsc067"                    # CCD's name
+        ptype: "default"
         index: 2 1
         offset: -10613.0 -11236.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -568,6 +636,7 @@ Raft: {
     Ccd: { 
         serial:  68                    # CCD's serial number
         name: "hsc068"                    # CCD's name
+        ptype: "default"
         index: 13 6
         offset: 12736.0 10889.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -576,6 +645,7 @@ Raft: {
     Ccd: { 
         serial:  69                    # CCD's serial number
         name: "hsc069"                    # CCD's name
+        ptype: "default"
         index: 1 1
         offset: -12736.0 -11236.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -584,6 +654,7 @@ Raft: {
     Ccd: { 
         serial:  70                    # CCD's serial number
         name: "hsc070"                    # CCD's name
+        ptype: "default"
         index: 4 7
         offset: -6368.0 15357.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -592,6 +663,7 @@ Raft: {
     Ccd: { 
         serial:  71                    # CCD's serial number
         name: "hsc071"                    # CCD's name
+        ptype: "default"
         index: 10 0
         offset: 6368.0 -15705.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -600,6 +672,7 @@ Raft: {
     Ccd: { 
         serial:  72                    # CCD's serial number
         name: "hsc072"                    # CCD's name
+        ptype: "default"
         index: 5 7
         offset: -4245.3 15357.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -608,6 +681,7 @@ Raft: {
     Ccd: { 
         serial:  73                    # CCD's serial number
         name: "hsc073"                    # CCD's name
+        ptype: "default"
         index: 9 0
         offset: 4245.3 -15705.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -616,6 +690,7 @@ Raft: {
     Ccd: { 
         serial:  74                    # CCD's serial number
         name: "hsc074"                    # CCD's name
+        ptype: "default"
         index: 6 7
         offset: -2122.7 15357.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -624,6 +699,7 @@ Raft: {
     Ccd: { 
         serial:  75                    # CCD's serial number
         name: "hsc075"                    # CCD's name
+        ptype: "default"
         index: 8 0
         offset: 2122.7 -15705.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -632,6 +708,7 @@ Raft: {
     Ccd: { 
         serial:  76                    # CCD's serial number
         name: "hsc076"                    # CCD's name
+        ptype: "default"
         index: 7 7
         offset: 0.0 15357.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -640,6 +717,7 @@ Raft: {
     Ccd: { 
         serial:  77                    # CCD's serial number
         name: "hsc077"                    # CCD's name
+        ptype: "default"
         index: 7 0
         offset: 0.0 -15705.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -648,6 +726,7 @@ Raft: {
     Ccd: { 
         serial:  78                    # CCD's serial number
         name: "hsc078"                    # CCD's name
+        ptype: "default"
         index: 8 7
         offset: 2122.7 15357.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -656,6 +735,7 @@ Raft: {
     Ccd: { 
         serial:  79                    # CCD's serial number
         name: "hsc079"                    # CCD's name
+        ptype: "default"
         index: 6 0
         offset: -2122.7 -15705.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -664,6 +744,7 @@ Raft: {
     Ccd: { 
         serial:  80                    # CCD's serial number
         name: "hsc080"                    # CCD's name
+        ptype: "default"
         index: 9 7
         offset: 4245.3 15357.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -672,6 +753,7 @@ Raft: {
     Ccd: { 
         serial:  81                    # CCD's serial number
         name: "hsc081"                    # CCD's name
+        ptype: "default"
         index: 5 0
         offset: -4245.3 -15705.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -680,6 +762,7 @@ Raft: {
     Ccd: { 
         serial:  82                    # CCD's serial number
         name: "hsc082"                    # CCD's name
+        ptype: "default"
         index: 10 7
         offset: 6368.0 15357.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -688,6 +771,7 @@ Raft: {
     Ccd: { 
         serial:  83                    # CCD's serial number
         name: "hsc083"                    # CCD's name
+        ptype: "default"
         index: 4 0
         offset: -6368.0 -15705.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -696,6 +780,7 @@ Raft: {
     Ccd: { 
         serial:  84                    # CCD's serial number
         name: "hsc084"                    # CCD's name
+        ptype: "default"
         index: 12 3
         offset: 10613.0 -2516.3 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -704,6 +789,7 @@ Raft: {
     Ccd: { 
         serial:  85                    # CCD's serial number
         name: "hsc085"                    # CCD's name
+        ptype: "default"
         index: 2 4
         offset: -10613.0 2168.7 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -712,6 +798,7 @@ Raft: {
     Ccd: { 
         serial:  86                    # CCD's serial number
         name: "hsc086"                    # CCD's name
+        ptype: "default"
         index: 13 3
         offset: 12736.0 -2516.3 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -720,6 +807,7 @@ Raft: {
     Ccd: { 
         serial:  87                    # CCD's serial number
         name: "hsc087"                    # CCD's name
+        ptype: "default"
         index: 1 4
         offset: -12736.0 2168.7 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -728,6 +816,7 @@ Raft: {
     Ccd: { 
         serial:  88                    # CCD's serial number
         name: "hsc088"                    # CCD's name
+        ptype: "default"
         index: 14 3
         offset: 14859.0 -2516.3 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -736,6 +825,7 @@ Raft: {
     Ccd: { 
         serial:  89                    # CCD's serial number
         name: "hsc089"                    # CCD's name
+        ptype: "default"
         index: 0 4
         offset: -14859.0 2168.7 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -744,6 +834,7 @@ Raft: {
     Ccd: { 
         serial:  90                    # CCD's serial number
         name: "hsc090"                    # CCD's name
+        ptype: "default"
         index: 12 2
         offset: 10613.0 -6984.7 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -752,6 +843,7 @@ Raft: {
     Ccd: { 
         serial:  91                    # CCD's serial number
         name: "hsc091"                    # CCD's name
+        ptype: "default"
         index: 2 5
         offset: -10613.0 6637.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -760,6 +852,7 @@ Raft: {
     Ccd: { 
         serial:  92                    # CCD's serial number
         name: "hsc092"                    # CCD's name
+        ptype: "default"
         index: 13 2
         offset: 12736.0 -6984.7 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -768,6 +861,7 @@ Raft: {
     Ccd: { 
         serial:  93                    # CCD's serial number
         name: "hsc093"                    # CCD's name
+        ptype: "default"
         index: 1 5
         offset: -12736.0 6637.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -776,6 +870,7 @@ Raft: {
     Ccd: { 
         serial:  94                    # CCD's serial number
         name: "hsc094"                    # CCD's name
+        ptype: "default"
         index: 14 2
         offset: 14859.0 -6984.7 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -784,6 +879,7 @@ Raft: {
     Ccd: { 
         serial:  95                    # CCD's serial number
         name: "hsc095"                    # CCD's name
+        ptype: "default"
         index: 0 5
         offset: -14859.0 6637.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -792,6 +888,7 @@ Raft: {
     Ccd: { 
         serial:  96                    # CCD's serial number
         name: "hsc096"                    # CCD's name
+        ptype: "default"
         index: 12 1
         offset: 10613.0 -11453.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -800,6 +897,7 @@ Raft: {
     Ccd: { 
         serial:  97                    # CCD's serial number
         name: "hsc097"                    # CCD's name
+        ptype: "default"
         index: 2 6
         offset: -10613.0 11105.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -808,6 +906,7 @@ Raft: {
     Ccd: { 
         serial:  98                    # CCD's serial number
         name: "hsc098"                    # CCD's name
+        ptype: "default"
         index: 13 1
         offset: 12736.0 -11453.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -816,6 +915,7 @@ Raft: {
     Ccd: { 
         serial:  99                    # CCD's serial number
         name: "hsc099"                    # CCD's name
+        ptype: "default"
         index: 1 6
         offset: -12736.0 11105.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -824,34 +924,38 @@ Raft: {
     Ccd: { 
         serial: 100                    # CCD's serial number
         name: "hsc100"                    # CCD's name
+        ptype: "default"
         index: 2 7
         offset: -6443.7 15357.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
-        nQuarter: 0                    # number of quarter turns applied to CCD when put into raft
-        orientation: 0.0 0.0 90.0       # pitch, roll, yaw; degrees
+        nQuarter: 1                    # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
     Ccd: { 
         serial: 101                    # CCD's serial number
         name: "hsc101"                    # CCD's name
+        ptype: "default"
         index: 12 7
         offset: 12667.0 15357.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
-        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
-        orientation: 0.0 0.0 90.0       # pitch, roll, yaw; degrees
+        nQuarter: 1                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
     Ccd: { 
         serial: 102                    # CCD's serial number
         name: "hsc102"                    # CCD's name
+        ptype: "default"
         index: 12 0
         offset: 12667.0 -13528.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
-        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
-        orientation: 0.0 0.0 90.0       # pitch, roll, yaw; degrees
+        nQuarter: 1                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
     Ccd: { 
         serial: 103                    # CCD's serial number
         name: "hsc103"                    # CCD's name
+        ptype: "default"
         index: 2 0
         offset: -6443.7 -13528.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
-        nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
-        orientation: 0.0 0.0 90.0       # pitch, roll, yaw; degrees
+        nQuarter: 1                     # number of quarter turns applied to CCD when put into raft
+        orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
 }
 
@@ -860,40 +964,55 @@ Raft: {
 Ccd: {
     #pixelSize: 10.0e-3                 # pixel size (mm)
     pixelSize: 1.0                      # pixel size (we're using pixels, not mm)
-
+    ptype: "default"
     nCol: 4                             # number of columns of amps; 2 == Left and Right
     nRow: 1                             # number of rows of amps
     Amp: {
         serial: 4
+        ptype: "default"
+        flipLR: false
+        nQuarter: 0
+        hdu: 0
+        diskCoordSys: "sensor"
         index: 0 0                      # Location of Amp in CCD thought of as a grid of amplifiers
-        readoutCorner: LLC              # location of first pixel read
     }
     Amp: {
         serial: 3
+        ptype: "default"
+        flipLR: true
+        nQuarter: 0
+        hdu: 0
+        diskCoordSys: "sensor"
         index: 1 0                      # Location of Amp in CCD thought of as a grid of amplifiers
-        readoutCorner: LRC              # location of first pixel read
     }
     Amp: {
         serial: 2
+        ptype: "default"
+        flipLR: false
+        nQuarter: 0
+        hdu: 0
+        diskCoordSys: "sensor"
         index: 2 0                      # Location of Amp in CCD thought of as a grid of amplifiers
-        readoutCorner: LLC              # location of first pixel read
     }
     Amp: {
         serial: 1
+        ptype: "default"
+        flipLR: true
+        nQuarter: 0
+        hdu: 0
+        diskCoordSys: "sensor"
         index: 3 0                      # Location of Amp in CCD thought of as a grid of amplifiers
-        readoutCorner: LRC              # location of first pixel read
     }
 }
 
 #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 Amp: {
-    height: 4096                        # number of physical rows
-    preRows: 48                         # extra rows before first real serial transfer
-    width: 512                          # number of physical columns
-    extended: 8                         # length of extended register
-    overclockH: 48                      # number of serial overclock pixels
-    overclockV: 48                      # number of parallel overclock pixels
+    ptype: "default"
+    datasec: 8 48 519 4143
+    biassec: 520 48 567 4143
+    ewidth: 568
+    eheight: 4192
 }
 
 #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -904,6 +1023,8 @@ Electronic: {
     Raft: {
         name: "XXX"                     # An empty string makes the Policy parser unhappy
         Ccd: { 
+            ptype: "default"
+            serial: 0 
             name: "hsc000"
             Amp: {
                 index: 0 0
@@ -932,6 +1053,8 @@ Electronic: {
         }
         Ccd: { 
             name: "hsc001"
+            ptype: "default"
+            serial: 1
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -959,6 +1082,8 @@ Electronic: {
         }
         Ccd: { 
             name: "hsc002"
+            ptype: "default"
+            serial: 2 
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -986,6 +1111,8 @@ Electronic: {
         }
         Ccd: { 
             name: "hsc003"
+            ptype: "default"
+            serial: 3 
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -1013,6 +1140,8 @@ Electronic: {
         }
         Ccd: { 
             name: "hsc004"
+            ptype: "default"
+            serial: 4 
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -1040,6 +1169,8 @@ Electronic: {
         }
         Ccd: { 
             name: "hsc005"
+            ptype: "default"
+            serial: 5
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -1067,6 +1198,8 @@ Electronic: {
         }
         Ccd: { 
             name: "hsc006"
+            ptype: "default"
+            serial: 6
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -1094,6 +1227,8 @@ Electronic: {
         }
         Ccd: { 
             name: "hsc007"
+            ptype: "default"
+            serial: 7 
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -1121,6 +1256,8 @@ Electronic: {
         }
         Ccd: { 
             name: "hsc008"
+            ptype: "default"
+            serial: 8 
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -1148,6 +1285,8 @@ Electronic: {
         }
         Ccd: { 
             name: "hsc009"
+            ptype: "default"
+            serial: 9 
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -1175,6 +1314,8 @@ Electronic: {
         }
         Ccd: { 
             name: "hsc010"
+            ptype: "default"
+            serial: 10
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -1202,6 +1343,8 @@ Electronic: {
         }
         Ccd: { 
             name: "hsc011"
+            ptype: "default"
+            serial: 11
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -1229,6 +1372,8 @@ Electronic: {
         }
         Ccd: { 
             name: "hsc012"
+            ptype: "default"
+            serial: 12
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -1256,6 +1401,8 @@ Electronic: {
         }
         Ccd: { 
             name: "hsc013"
+            ptype: "default"
+            serial: 13
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -1283,6 +1430,8 @@ Electronic: {
         }
         Ccd: { 
             name: "hsc014"
+            ptype: "default"
+            serial: 14
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -1310,6 +1459,8 @@ Electronic: {
         }
         Ccd: { 
             name: "hsc015"
+            ptype: "default"
+            serial: 15
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -1337,6 +1488,8 @@ Electronic: {
         }
         Ccd: { 
             name: "hsc016"
+            ptype: "default"
+            serial: 16
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -1364,6 +1517,8 @@ Electronic: {
         }
         Ccd: { 
             name: "hsc017"
+            ptype: "default"
+            serial: 17
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -1391,6 +1546,8 @@ Electronic: {
         }
         Ccd: { 
             name: "hsc018"
+            ptype: "default"
+            serial: 18
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -1418,6 +1575,8 @@ Electronic: {
         }
         Ccd: { 
             name: "hsc019"
+            ptype: "default"
+            serial: 19
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -1445,6 +1604,8 @@ Electronic: {
         }
         Ccd: { 
             name: "hsc020"
+            ptype: "default"
+            serial: 20
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -1472,6 +1633,8 @@ Electronic: {
         }
         Ccd: { 
             name: "hsc021"
+            ptype: "default"
+            serial: 21
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -1499,6 +1662,8 @@ Electronic: {
         }
         Ccd: { 
             name: "hsc022"
+            ptype: "default"
+            serial: 22
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -1526,6 +1691,8 @@ Electronic: {
         }
         Ccd: { 
             name: "hsc023"
+            ptype: "default"
+            serial: 23
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -1553,6 +1720,8 @@ Electronic: {
         }
         Ccd: { 
             name: "hsc024"
+            ptype: "default"
+            serial: 24
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -1580,6 +1749,8 @@ Electronic: {
         }
         Ccd: { 
             name: "hsc025"
+            ptype: "default"
+            serial: 25
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -1607,6 +1778,8 @@ Electronic: {
         }
         Ccd: { 
             name: "hsc026"
+            ptype: "default"
+            serial: 2666666 
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -1634,6 +1807,8 @@ Electronic: {
         }
         Ccd: { 
             name: "hsc027"
+            ptype: "default"
+            serial: 27
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -1661,6 +1836,8 @@ Electronic: {
         }
         Ccd: { 
             name: "hsc028"
+            ptype: "default"
+            serial: 28
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -1688,6 +1865,8 @@ Electronic: {
         }
         Ccd: { 
             name: "hsc029"
+            ptype: "default"
+            serial: 29
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -1715,6 +1894,8 @@ Electronic: {
         }
         Ccd: { 
             name: "hsc030"
+            ptype: "default"
+            serial: 30
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -1742,6 +1923,8 @@ Electronic: {
         }
         Ccd: { 
             name: "hsc031"
+            ptype: "default"
+            serial: 31
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -1769,6 +1952,8 @@ Electronic: {
         }
         Ccd: { 
             name: "hsc032"
+            ptype: "default"
+            serial: 32
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -1796,6 +1981,8 @@ Electronic: {
         }
         Ccd: { 
             name: "hsc033"
+            ptype: "default"
+            serial: 33
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -1823,6 +2010,8 @@ Electronic: {
         }
         Ccd: { 
             name: "hsc034"
+            ptype: "default"
+            serial: 34
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -1850,6 +2039,8 @@ Electronic: {
         }
         Ccd: { 
             name: "hsc035"
+            ptype: "default"
+            serial: 35
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -1877,6 +2068,8 @@ Electronic: {
         }
         Ccd: { 
             name: "hsc036"
+            ptype: "default"
+            serial: 36
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -1904,6 +2097,8 @@ Electronic: {
         }
         Ccd: { 
             name: "hsc037"
+            ptype: "default"
+            serial: 37
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -1931,6 +2126,8 @@ Electronic: {
         }
         Ccd: { 
             name: "hsc038"
+            ptype: "default"
+            serial: 38
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -1958,6 +2155,8 @@ Electronic: {
         }
         Ccd: { 
             name: "hsc039"
+            ptype: "default"
+            serial: 39
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -1985,6 +2184,8 @@ Electronic: {
         }
         Ccd: { 
             name: "hsc040"
+            ptype: "default"
+            serial: 40
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -2012,6 +2213,8 @@ Electronic: {
         }
         Ccd: { 
             name: "hsc041"
+            ptype: "default"
+            serial: 41
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -2039,6 +2242,8 @@ Electronic: {
         }
         Ccd: { 
             name: "hsc042"
+            ptype: "default"
+            serial: 42
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -2066,6 +2271,8 @@ Electronic: {
         }
         Ccd: { 
             name: "hsc043"
+            ptype: "default"
+            serial: 43
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -2093,6 +2300,8 @@ Electronic: {
         }
         Ccd: { 
             name: "hsc044"
+            ptype: "default"
+            serial: 44
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -2120,6 +2329,8 @@ Electronic: {
         }
         Ccd: { 
             name: "hsc045"
+            ptype: "default"
+            serial: 45
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -2147,6 +2358,8 @@ Electronic: {
         }
         Ccd: { 
             name: "hsc046"
+            ptype: "default"
+            serial: 46
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -2174,6 +2387,8 @@ Electronic: {
         }
         Ccd: { 
             name: "hsc047"
+            ptype: "default"
+            serial: 47
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -2201,6 +2416,8 @@ Electronic: {
         }
         Ccd: { 
             name: "hsc048"
+            ptype: "default"
+            serial: 48
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -2228,6 +2445,8 @@ Electronic: {
         }
         Ccd: { 
             name: "hsc049"
+            ptype: "default"
+            serial: 49
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -2255,6 +2474,8 @@ Electronic: {
         }
         Ccd: { 
             name: "hsc050"
+            ptype: "default"
+            serial: 50
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -2282,6 +2503,8 @@ Electronic: {
         }
         Ccd: { 
             name: "hsc051"
+            ptype: "default"
+            serial: 51
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -2309,6 +2532,8 @@ Electronic: {
         }
         Ccd: { 
             name: "hsc052"
+            ptype: "default"
+            serial: 52
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -2336,6 +2561,8 @@ Electronic: {
         }
         Ccd: { 
             name: "hsc053"
+            ptype: "default"
+            serial: 53
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -2363,6 +2590,8 @@ Electronic: {
         }
         Ccd: { 
             name: "hsc054"
+            ptype: "default"
+            serial: 54
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -2390,6 +2619,8 @@ Electronic: {
         }
         Ccd: { 
             name: "hsc055"
+            ptype: "default"
+            serial: 55
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -2417,6 +2648,8 @@ Electronic: {
         }
         Ccd: { 
             name: "hsc056"
+            ptype: "default"
+            serial: 56
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -2444,6 +2677,8 @@ Electronic: {
         }
         Ccd: { 
             name: "hsc057"
+            ptype: "default"
+            serial: 57
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -2471,6 +2706,8 @@ Electronic: {
         }
         Ccd: { 
             name: "hsc058"
+            ptype: "default"
+            serial: 58
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -2498,6 +2735,8 @@ Electronic: {
         }
         Ccd: { 
             name: "hsc059"
+            ptype: "default"
+            serial: 59
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -2525,6 +2764,8 @@ Electronic: {
         }
         Ccd: { 
             name: "hsc060"
+            ptype: "default"
+            serial: 60
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -2552,6 +2793,8 @@ Electronic: {
         }
         Ccd: { 
             name: "hsc061"
+            ptype: "default"
+            serial: 61
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -2579,6 +2822,8 @@ Electronic: {
         }
         Ccd: { 
             name: "hsc062"
+            ptype: "default"
+            serial: 62
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -2606,6 +2851,8 @@ Electronic: {
         }
         Ccd: { 
             name: "hsc063"
+            ptype: "default"
+            serial: 63
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -2633,6 +2880,8 @@ Electronic: {
         }
         Ccd: { 
             name: "hsc064"
+            ptype: "default"
+            serial: 64
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -2660,6 +2909,8 @@ Electronic: {
         }
         Ccd: { 
             name: "hsc065"
+            ptype: "default"
+            serial: 65
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -2687,6 +2938,8 @@ Electronic: {
         }
         Ccd: { 
             name: "hsc066"
+            ptype: "default"
+            serial: 66
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -2714,6 +2967,8 @@ Electronic: {
         }
         Ccd: { 
             name: "hsc067"
+            ptype: "default"
+            serial: 67
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -2741,6 +2996,8 @@ Electronic: {
         }
         Ccd: { 
             name: "hsc068"
+            ptype: "default"
+            serial: 68
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -2768,6 +3025,8 @@ Electronic: {
         }
         Ccd: { 
             name: "hsc069"
+            ptype: "default"
+            serial: 69
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -2795,6 +3054,8 @@ Electronic: {
         }
         Ccd: { 
             name: "hsc070"
+            ptype: "default"
+            serial: 70
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -2822,6 +3083,8 @@ Electronic: {
         }
         Ccd: { 
             name: "hsc071"
+            ptype: "default"
+            serial: 71
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -2849,6 +3112,8 @@ Electronic: {
         }
         Ccd: { 
             name: "hsc072"
+            ptype: "default"
+            serial: 72
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -2876,6 +3141,8 @@ Electronic: {
         }
         Ccd: { 
             name: "hsc073"
+            ptype: "default"
+            serial: 73
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -2903,6 +3170,8 @@ Electronic: {
         }
         Ccd: { 
             name: "hsc074"
+            ptype: "default"
+            serial: 74
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -2930,6 +3199,8 @@ Electronic: {
         }
         Ccd: { 
             name: "hsc075"
+            ptype: "default"
+            serial: 75
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -2957,6 +3228,8 @@ Electronic: {
         }
         Ccd: { 
             name: "hsc076"
+            ptype: "default"
+            serial: 76
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -2984,6 +3257,8 @@ Electronic: {
         }
         Ccd: { 
             name: "hsc077"
+            ptype: "default"
+            serial: 77
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -3011,6 +3286,8 @@ Electronic: {
         }
         Ccd: { 
             name: "hsc078"
+            ptype: "default"
+            serial: 78
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -3038,6 +3315,8 @@ Electronic: {
         }
         Ccd: { 
             name: "hsc079"
+            ptype: "default"
+            serial: 79
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -3065,6 +3344,8 @@ Electronic: {
         }
         Ccd: { 
             name: "hsc080"
+            ptype: "default"
+            serial: 80
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -3092,6 +3373,8 @@ Electronic: {
         }
         Ccd: { 
             name: "hsc081"
+            ptype: "default"
+            serial: 81
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -3119,6 +3402,8 @@ Electronic: {
         }
         Ccd: { 
             name: "hsc082"
+            ptype: "default"
+            serial: 82
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -3146,6 +3431,8 @@ Electronic: {
         }
         Ccd: { 
             name: "hsc083"
+            ptype: "default"
+            serial: 83
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -3173,6 +3460,8 @@ Electronic: {
         }
         Ccd: { 
             name: "hsc084"
+            ptype: "default"
+            serial: 84
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -3200,6 +3489,8 @@ Electronic: {
         }
         Ccd: { 
             name: "hsc085"
+            ptype: "default"
+            serial: 85
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -3227,6 +3518,8 @@ Electronic: {
         }
         Ccd: { 
             name: "hsc086"
+            ptype: "default"
+            serial: 86
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -3254,6 +3547,8 @@ Electronic: {
         }
         Ccd: { 
             name: "hsc087"
+            ptype: "default"
+            serial: 87
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -3281,6 +3576,8 @@ Electronic: {
         }
         Ccd: { 
             name: "hsc088"
+            ptype: "default"
+            serial: 88
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -3308,6 +3605,8 @@ Electronic: {
         }
         Ccd: { 
             name: "hsc089"
+            ptype: "default"
+            serial: 89
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -3335,6 +3634,8 @@ Electronic: {
         }
         Ccd: { 
             name: "hsc090"
+            ptype: "default"
+            serial: 90
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -3362,6 +3663,8 @@ Electronic: {
         }
         Ccd: { 
             name: "hsc091"
+            ptype: "default"
+            serial: 91
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -3389,6 +3692,8 @@ Electronic: {
         }
         Ccd: { 
             name: "hsc092"
+            ptype: "default"
+            serial: 92
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -3416,6 +3721,8 @@ Electronic: {
         }
         Ccd: { 
             name: "hsc093"
+            ptype: "default"
+            serial: 93
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -3443,6 +3750,8 @@ Electronic: {
         }
         Ccd: { 
             name: "hsc094"
+            ptype: "default"
+            serial: 94
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -3470,6 +3779,8 @@ Electronic: {
         }
         Ccd: { 
             name: "hsc095"
+            ptype: "default"
+            serial: 95
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -3497,6 +3808,8 @@ Electronic: {
         }
         Ccd: { 
             name: "hsc096"
+            ptype: "default"
+            serial: 96
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -3524,6 +3837,8 @@ Electronic: {
         }
         Ccd: { 
             name: "hsc097"
+            ptype: "default"
+            serial: 97
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -3551,6 +3866,8 @@ Electronic: {
         }
         Ccd: { 
             name: "hsc098"
+            ptype: "default"
+            serial: 98
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -3578,6 +3895,8 @@ Electronic: {
         }
         Ccd: { 
             name: "hsc099"
+            ptype: "default"
+            serial: 99
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -3605,6 +3924,8 @@ Electronic: {
         }
         Ccd: { 
             name: "hsc100"
+            ptype: "default"
+            serial: 100
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -3632,6 +3953,8 @@ Electronic: {
         }
         Ccd: { 
             name: "hsc101"
+            ptype: "default"
+            serial: 101
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -3659,6 +3982,8 @@ Electronic: {
         }
         Ccd: { 
             name: "hsc102"
+            ptype: "default"
+            serial: 102
             Amp: {
                 index: 0 0
                 gain: 3.0
@@ -3686,6 +4011,8 @@ Electronic: {
         }
         Ccd: { 
             name: "hsc103"
+            ptype: "default"
+            serial: 103
             Amp: {
                 index: 0 0
                 gain: 3.0

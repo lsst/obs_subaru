@@ -11,41 +11,36 @@ Camera: {
     } 
 } 
 Amp: { 
-    height: 4100
-    width:  2048
-    extended: 0
-    preRows: 0 
-    overclockH: 32 
-    overclockV: 0
+    ptype: "default"
+    datasec: 0 0 2047 4099
+    biassec: 2048 0 2079 4099
+    ewidth: 2080
+    eheight: 4100
 } 
 Ccd: { 
     pixelSize: 15.0e-3  # mm
+    ptype: "default"
     nCol: 1
     nRow: 1 
     Amp: { 
+        serial: 1
+        ptype: "default"
+        flipLR: false
+        nQuarter: 0
+        hdu: 0
+        diskCoordSys: "camera"
         index: 0 0 
     } 
 }
-
-CcdDiskLayout: { 
-    HduPerAmp: false 
-    Amp: { 
-        serial: 0 
-        flipLR: false 
-        flipTB: false 
-        nQuarter: 0
-        hdu: 0 
-    } 
-} 
 Raft: { 
     nCol: 5 
     nRow: 2 
     name: "R:0,0" 
     serial: -1
-
     Ccd: {
         serial: 6                       # CCD's serial number
         name: "w93c2"                   # CCD's name
+        ptype: "default"
         index: 0 0                      # Location of CCD in Raft thought of as a grid of CCDs
         offset: -4242.1 -2123.13        # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -54,6 +49,7 @@ Raft: {
     Ccd: {
         serial: 0                       # CCD's serial number
         name: "w67c1"                 # CCD's name
+        ptype: "default"
         index: 0 1                      # Location of CCD in Raft thought of as a grid of CCDs
         offset: -4245.1 2127.3          # offset of CCD center from raft center, (x, y); mm
         nQuarter: 2                     # number of quarter turns applied to CCD when put into raft
@@ -62,6 +58,7 @@ Raft: {
     Ccd: {
         serial: 7                       # CCD's serial number
         name: "w9c2"                     # CCD's name
+        ptype: "default"
         index: 1 0                      # Location of CCD in Raft thought of as a grid of CCDs
         offset: -2120.4 -2122.0         # offset of CCD center from raft center, (x, y); mm
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -70,6 +67,7 @@ Raft: {
     Ccd: {
         serial: 1                       # CCD's serial number
         name: "w6c1"                # CCD's name
+        ptype: "default"
         index: 1 1                      # Location of CCD in Raft thought of as a grid of CCDs
         offset: -2121.2 2129.6          # offset of CCD center from raft center, (x, y); mm
         nQuarter: 2                     # number of quarter turns applied to CCD when put into raft
@@ -78,6 +76,7 @@ Raft: {
     Ccd: {
         serial: 2                       # CCD's serial number
         name: "si005s"                 # CCD's name
+        ptype: "default"
         index: 2 0                      # Location of CCD in Raft thought of as a grid of CCDs
         offset: 0.0 -2126.7             # offset of CCD center from raft center, (x, y); mm
         nQuarter: 2                     # number of quarter turns applied to CCD when put into raft
@@ -86,6 +85,7 @@ Raft: {
    Ccd: {
         serial: 5                       # CCD's serial number
         name: "si006s"                     # CCD's name
+        ptype: "default"
         index: 2 1                      # Location of CCD in Raft thought of as a grid of CCDs
         offset: 2.1 2130.3              # offset of CCD center from raft center, (x, y); mm
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -94,6 +94,7 @@ Raft: {
     Ccd: {
         serial: 3                       # CCD's serial number
         name: "si001s"                  # CCD's name
+        ptype: "default"
         index: 3 0                      # Location of CCD in Raft thought of as a grid of CCDs
         offset: 2129.9 -2120.9          # offset of CCD center from raft center, (x, y); mm
         nQuarter: 2                     # number of quarter turns applied to CCD when put into raft
@@ -102,6 +103,7 @@ Raft: {
     Ccd: {
         serial: 4                       # CCD's serial number
         name: "si002s"                    # CCD's name
+        ptype: "default"
         index: 3 1                      # Location of CCD in Raft thought of as a grid of CCDs
         offset: 2123.8 2129.7           # offset of CCD center from raft center, (x, y); mm
         nQuarter: 2                     # number of quarter turns applied to CCD when put into raft
@@ -110,6 +112,7 @@ Raft: {
     Ccd: {
         serial: 8                       # CCD's serial number
         name: "w4c5"                  # CCD's name
+        ptype: "default"
         index: 4 0                      # Location of CCD in Raft thought of as a grid of CCDs
         offset: 4247.4 -2122.7         # offset of CCD center from raft center, (x, y); mm (pixels??)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
@@ -118,6 +121,7 @@ Raft: {
     Ccd: {
         serial: 9                       # CCD's serial number
         name: "w7c3"                # CCD's name
+        ptype: "default"
         index: 4 1                      # Location of CCD in Raft thought of as a grid of CCDs
         offset: 4245.5 2130.0           # offset of CCD center from raft center, (x, y); mm
         nQuarter: 2                     # number of quarter turns applied to CCD when put into raft
@@ -131,6 +135,8 @@ Electronic: {
         serial: -1 
 
         Ccd: {
+            ptype: "default"
+            serial: 6
             name: "w93c2"
             Amp: {
                 index: 0 0
@@ -140,6 +146,8 @@ Electronic: {
             }
         }
         Ccd: {
+            ptype: "default"
+            serial: 0
             name: "w67c1"             # CCD's name
             Amp: {
                 index: 0 0
@@ -149,6 +157,8 @@ Electronic: {
             }
         }
         Ccd: {
+            ptype: "default"
+            serial: 7
             name: "w9c2"                 # CCD's name
             Amp: {
                 index: 0 0
@@ -159,6 +169,8 @@ Electronic: {
 
         }
         Ccd: {
+            ptype: "default"
+            serial: 1
             name: "w6c1"            # CCD's name
             Amp: {
                 index: 0 0
@@ -168,6 +180,8 @@ Electronic: {
             }
         }
         Ccd: {
+            ptype: "default"
+            serial: 2
             name: "si005s"             # CCD's name
             Amp: {
                 index: 0 0
@@ -177,6 +191,8 @@ Electronic: {
             }
         }
         Ccd: {
+            ptype: "default"
+            serial: 5
             name: "si006s"                 # CCD's name
             Amp: {
                 index: 0 0
@@ -186,6 +202,8 @@ Electronic: {
             }
         }
         Ccd: {
+            ptype: "default"
+            serial: 3
             name: "si001s"              # CCD's name
             Amp: {
                 index: 0 0
@@ -195,6 +213,8 @@ Electronic: {
             }
         }
         Ccd: {
+            ptype: "default"
+            serial: 4
             name: "si002s"                # CCD's name
             Amp: {
                 index: 0 0
@@ -204,6 +224,8 @@ Electronic: {
             }
         }
         Ccd: {
+            ptype: "default"
+            serial: 8
             name: "w4c5"              # CCD's name
             Amp: {
                 index: 0 0
@@ -213,6 +235,8 @@ Electronic: {
             }
         }
         Ccd: {
+            ptype: "default"
+            serial: 9
             name: "w7c3"            # CCD's name
             Amp: {
                 index: 0 0
