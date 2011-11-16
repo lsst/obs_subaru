@@ -52,6 +52,11 @@ class GetRawTestCase(unittest.TestCase):
             self.assertEqual(raw.getDetector().getId().getName(), ccdName)
 
             if display:
+                ccd = cameraGeom.cast_Ccd(raw.getDetector())
+                for amp in ccd:
+                    amp = cameraGeom.cast_Amp(amp)
+                    print ccd.getId(), amp.getId(), amp.getDataSec().toString(), \
+                          amp.getBiasSec().toString(), amp.getElectronicParams().getGain()
                 cameraGeomUtils.showCcd(ccd, ccdImage=raw, frame=frame)
                 frame += 1
         
