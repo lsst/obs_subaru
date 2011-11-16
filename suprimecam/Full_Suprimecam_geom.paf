@@ -43,7 +43,7 @@ Ccd: {
         nQuarter: 0
         hdu: 0
         diskCoordSys: "camera"
-        index: 0 0 
+        index: 1 0 
     } 
     Amp: { 
         serial: 3
@@ -52,7 +52,7 @@ Ccd: {
         nQuarter: 0
         hdu: 0
         diskCoordSys: "camera"
-        index: 0 0 
+        index: 2 0 
     } 
     Amp: { 
         serial: 4
@@ -61,7 +61,7 @@ Ccd: {
         nQuarter: 0
         hdu: 0
         diskCoordSys: "camera"
-        index: 0 0 
+        index: 3 0 
     } 
 }
 Raft: { 
