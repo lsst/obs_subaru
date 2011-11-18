@@ -8,3 +8,4 @@
 config.log
 tests/.tests
 ups/*.cfgc
+python/lsst/obs/subaru/version.py
