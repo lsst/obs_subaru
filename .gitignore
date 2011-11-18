@@ -1,8 +1,10 @@
-
-# /
-/.sconsign.dblite
-/config.log
-/.sconf_temp
-
-# /tests/
-/tests/.tests
+*.dylib
+*.o
+*.os
+*.pyc
+*.so
+.sconf_temp
+.sconsign.dblite
+config.log
+tests/.tests
+ups/*.cfgc
