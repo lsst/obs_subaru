@@ -19,47 +19,50 @@ try:
 except NameError:
     display = False
 
+
+def getButler(datadir, mit=False):
+    bf = dafPersist.ButlerFactory(mapper=SuprimecamMapper(mit=mit, root=os.path.join(datadir, "science"),
+                                                          calibRoot=os.path.join(datadir, "calib")))
+    return bf.create()
+
+
 class GetRawTestCase(unittest.TestCase):
     """Testing butler raw image retrieval"""
 
     def setUp(self):
-        datadir = os.getenv("TESTDATA_SUBARU_DIR")
-        assert datadir, "testdata_subaru is not setup"
-        self.bf = dafPersist.ButlerFactory(mapper=SuprimecamMapper(
-            root=os.path.join(datadir, "science"),
-            calibRoot=os.path.join(datadir, "calib")))
-        self.butler = self.bf.create()
-
-    def tearDown(self):
-        del self.butler
-        del self.bf
+        self.datadir = os.getenv("TESTDATA_SUBARU_DIR")
+        assert self.datadir, "testdata_subaru is not setup"
 
     def testRaw(self):
         """Test retrieval of raw image"""
 
         frame = 0
-        for ccdNum, ccdName in [(2, "Fio"), (5, "Satsuki")]:
-            raw = self.butler.get("raw", visit=127073, ccd=ccdNum)
+        for expId, mit in [(22657, True), (127073, False)]:
+            for ccdNum, ccdName in [(2, "Fio"), (5, "Satsuki")]:
+                butler = getButler(self.datadir, mit)
+                raw = butler.get("raw", visit=expId, ccd=ccdNum)
 
-            print "width: ",              raw.getWidth()
-            print "height: ",             raw.getHeight()
-            print "detector(amp) name: ", raw.getDetector().getId().getName()
+                print "Visit: ", expId
+                print "MIT detector: ", mit
+                print "width: ",              raw.getWidth()
+                print "height: ",             raw.getHeight()
+                print "detector(amp) name: ", raw.getDetector().getId().getName()
 
-            self.assertEqual(raw.getWidth(), 2272) # untrimmed
-            self.assertEqual(raw.getHeight(), 4273) # untrimmed
+                self.assertEqual(raw.getWidth(), 2272) # untrimmed
+                self.assertEqual(raw.getHeight(), 4273) # untrimmed
 
-            self.assertEqual(raw.getFilter().getFilterProperty().getName(), "i") 
-            self.assertEqual(raw.getDetector().getId().getName(), ccdName)
+                self.assertEqual(raw.getFilter().getFilterProperty().getName(), "i") 
+                self.assertEqual(raw.getDetector().getId().getName(), ccdName)
 
-            if display:
-                ccd = cameraGeom.cast_Ccd(raw.getDetector())
-                for amp in ccd:
-                    amp = cameraGeom.cast_Amp(amp)
-                    print ccd.getId(), amp.getId(), amp.getDataSec().toString(), \
-                          amp.getBiasSec().toString(), amp.getElectronicParams().getGain()
-                cameraGeomUtils.showCcd(ccd, ccdImage=raw, frame=frame)
-                frame += 1
-        
+                if display:
+                    ccd = cameraGeom.cast_Ccd(raw.getDetector())
+                    for amp in ccd:
+                        amp = cameraGeom.cast_Amp(amp)
+                        print ccd.getId(), amp.getId(), amp.getDataSec().toString(), \
+                              amp.getBiasSec().toString(), amp.getElectronicParams().getGain()
+                    cameraGeomUtils.showCcd(ccd, ccdImage=raw, frame=frame)
+                    frame += 1
+
 
 #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
