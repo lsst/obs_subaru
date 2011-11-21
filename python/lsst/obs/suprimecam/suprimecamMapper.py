@@ -9,27 +9,6 @@ import lsst.afw.image as afwImage
 from lsst.daf.butlerUtils import CameraMapper
 import lsst.pex.policy as pexPolicy
 
-# Fix an image, putting the bias on the right hand side of the science data
-def fixImage(template, numCols, numRows, dataBox, biasBox):
-    if template is None:
-        return None
-
-    Image = type(template)
-    new = Image(numCols, numRows)
-
-    data = Image(template, dataBox, afwImage.LOCAL)
-    newDataBox = afwGeom.BoxI(afwGeom.Point2I(0, 0), dataBox.getDimensions())
-    newData = Image(new, newDataBox, afwImage.LOCAL)
-    newData <<= data
-
-    bias = Image(template, biasBox, afwImage.LOCAL)
-    newBiasBox = afwGeom.BoxI(biasBox)
-    newBiasBox.shift(afwGeom.Extent2I(dataBox.getDimensions().getX(), 0))
-    newBias = Image(new, newBiasBox, afwImage.LOCAL)
-    newBias <<= bias
-
-    return new
-
 class SuprimecamMapper(CameraMapper):
     def __init__(self, mit=False, rerun=None, outRoot=None, **kwargs):
         policyFile = pexPolicy.DefaultPolicyFile("obs_subaru", "SuprimecamMapper.paf", "policy")
