@@ -37,8 +37,8 @@ class SuprimecamMapper(CameraMapper):
 
         self.mit = mit
         if self.mit:
-            policy.set("camera", "../suprimecam/description/Full_Suprimecam_MIT_geom.paf")
-            policy.set("defects", "../suprimecam/description/mit_defects")
+            policy.set("camera", "../suprimecam/Full_Suprimecam_MIT_geom.paf")
+            policy.set("defects", "../suprimecam/mit_defects")
 
         if not kwargs.get('root', None):
             try:
@@ -94,58 +94,3 @@ class SuprimecamMapper(CameraMapper):
         actualId['rerun'] = self.rerun
         actualId['outRoot'] = self.outRoot
         return template % actualId
-
-    def std_raw(self, item, dataId):
-        exposure = super(SuprimecamMapper, self).std_raw(item, dataId)
-
-        # Furusawa-san writes about the MIT detectors (used in Suprime-Cam prior to July 2008): """There are
-        # two set of CCDs which have different geometry. The two kinds can be discriminated by the keyword
-        # S_XFLIP or DET-ID as below.
-        # 
-        # DET-ID S_XFLIP S_YFLIP EFP-MIN1  OVERSCAN
-        # 0 T T 33  LEFT
-        # 1 T T 33  LEFT
-        # 2 T F 33  LEFT
-        # 3 T F 33  LEFT
-        # 4 T T 33  LEFT
-        # 5 F T 1  RIGHT
-        # 6 F F 1  RIGHT
-        # 7 F F 1  RIGHT
-        # 8 F F 1  RIGHT
-        # 9 T T 33  LEFT
-        # """
-        #
-        # Unfortunately, this sort of CCD-dependent layout cannot be accounted for using the current
-        # cameraGeometry framework --- while it allows for each CCD to have a different orientation, it
-        # assumes that all CCDs are laid out (i.e., position of bias relative to the data) in the same manner.
-        # To get around this, we will re-format the tricky CCDs as we read them.
-
-        if (not self.mit) or exposure.getDetector().getId().getSerial() in (5, 6, 7, 8):
-            # No correction to be made
-            return exposure
-
-        # MIT CCD 0, 1, 2, 3, 4, 9
-        # Bias is on the left; put it on the right
-        mi = exposure.getMaskedImage()
-        image = mi.getImage()
-        Image = type(image)
-        ccd = exposure.getDetector().getId().getSerial()
-
-        biasColStart = 0                # Starting column for bias
-        dataColStart = 32               # Starting column for data
-        numCols = 2048                  # Number of data columns
-        numRows = 4100                  # Number of data (and bias) rows
-        numBias = 32                    # Number of bias columns
-
-        dataBox = afwGeom.Box2I(afwGeom.Point2I(dataColStart, 0), afwGeom.Extent2I(numCols, numRows))
-        biasBox = afwGeom.Box2I(afwGeom.Point2I(biasColStart, 0), afwGeom.Extent2I(numBias, numRows))
-
-        newImage = fixImage(mi.getImage(), numCols + numBias, numRows, dataBox, biasBox)
-        newMask = fixImage(mi.getMask(), numCols + numBias, numRows, dataBox, biasBox)
-        newVariance = fixImage(mi.getVariance(), numCols + numBias, numRows, dataBox, biasBox)
-
-        assert newImage is not None
-        newMi = type(mi)(newImage, newMask, newVariance)
-        exposure.setMaskedImage(newMi)
-
-        return exposure
