@@ -31,6 +31,14 @@ class GetRawTestCase(unittest.TestCase):
 
     def setUp(self):
         self.datadir = os.getenv("TESTDATA_SUBARU_DIR")
+        self.sizes = { True: (2080, 4100), # Old Suprime-Cam (MIT detectors)
+                       False: (2272, 4273) # New Suprime-Cam (Hamamatsu detectors)
+                       }
+        self.names = { True: ['w67c1', 'w6c1', 'si005s', 'si001s', 'si002s',
+                              'si006s', 'w93c2', 'w9c2', 'w4c5', 'w7c3'],
+                       False: ['Nausicaa', 'Kiki', 'Fio', 'Sophie', 'Sheeta',
+                               'Satsuki', 'Chihiro', 'Clarisse', 'Ponyo', 'San']
+                       }
         assert self.datadir, "testdata_subaru is not setup"
 
     def testRaw(self):
@@ -38,7 +46,7 @@ class GetRawTestCase(unittest.TestCase):
 
         frame = 0
         for expId, mit in [(22657, True), (127073, False)]:
-            for ccdNum, ccdName in [(2, "Fio"), (5, "Satsuki")]:
+            for ccdNum in [2, 5]:
                 butler = getButler(self.datadir, mit)
                 raw = butler.get("raw", visit=expId, ccd=ccdNum)
 
@@ -48,11 +56,11 @@ class GetRawTestCase(unittest.TestCase):
                 print "height: ",             raw.getHeight()
                 print "detector(amp) name: ", raw.getDetector().getId().getName()
 
-                self.assertEqual(raw.getWidth(), 2272) # untrimmed
-                self.assertEqual(raw.getHeight(), 4273) # untrimmed
+                self.assertEqual(raw.getWidth(), self.sizes[mit][0]) # untrimmed
+                self.assertEqual(raw.getHeight(), self.sizes[mit][1]) # untrimmed
 
                 self.assertEqual(raw.getFilter().getFilterProperty().getName(), "i") 
-                self.assertEqual(raw.getDetector().getId().getName(), ccdName)
+                self.assertEqual(raw.getDetector().getId().getName(), self.names[mit][ccdNum])
 
                 if display:
                     ccd = cameraGeom.cast_Ccd(raw.getDetector())
