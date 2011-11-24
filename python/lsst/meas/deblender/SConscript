@@ -1,19 +1,23 @@
 # -*- python -*-
-Import("env")
-import lsst.SConsUtils as scons
+from lsst.sconsUtils import scripts
+scripts.BasicSConscript.python(['deblenderLib'])
 
-env.CheckSwig("python", ilang="c++",
-              includedProducts="utils daf_base daf_data daf_persistence pex_exceptions pex_logging pex_policy security afw ndarray")
-env.LoadableModuleIncomplete("_deblenderLib", Split("deblenderLib.i"), LIBS=env.getlibs("meas_deblender"))
-
-env.CheckSwig("python", ilang="c",
-              includedProducts="utils daf_base daf_data daf_persistence pex_exceptions pex_logging pex_policy security afw ndarray")
-env.LoadableModuleIncomplete("_sdss", Split("sdss.i"), LIBS=env.getlibs("meas_deblender"))
-
-env.CheckSwig("python", ilang="c",
-              #includedProducts="utils daf_base daf_data daf_persistence pex_exceptions pex_logging pex_policy security afw ndarray"
-              )
-env.LoadableModuleIncomplete("_cmath", Split("cmath.i"),
-                             #LIBS=env.getlibs("meas_deblender")
-                             )
-
+# # -*- python -*-
+# Import("env")
+# import lsst.SConsUtils as scons
+# 
+# env.CheckSwig("python", ilang="c++",
+#               includedProducts="utils daf_base daf_data daf_persistence pex_exceptions pex_logging pex_policy security afw ndarray")
+# env.LoadableModuleIncomplete("_deblenderLib", Split("deblenderLib.i"), LIBS=env.getlibs("meas_deblender"))
+# 
+# env.CheckSwig("python", ilang="c",
+#               includedProducts="utils daf_base daf_data daf_persistence pex_exceptions pex_logging pex_policy security afw ndarray")
+# env.LoadableModuleIncomplete("_sdss", Split("sdss.i"), LIBS=env.getlibs("meas_deblender"))
+# 
+# env.CheckSwig("python", ilang="c",
+#               #includedProducts="utils daf_base daf_data daf_persistence pex_exceptions pex_logging pex_policy security afw ndarray"
+#               )
+# env.LoadableModuleIncomplete("_cmath", Split("cmath.i"),
+#                              #LIBS=env.getlibs("meas_deblender")
+#                              )
+# 
