@@ -24,6 +24,42 @@ def afwimgtonumpy(I, x0=0, y0=0, W=None,H=None):
             img[ii, jj] = I.get(jj+x0, ii+y0)
     return img
 
+def footprintsFromPython(pyfoots):
+    import lsst.afw.detection as afwDet
+
+    #fplist = afwDet.FootprintList()
+    fplist = afwDet.FootprintContainerT()
+    #pklist = afwDet.PeakContainerT()
+    pklist = []
+    for bb,pks,spans in pyfoots:
+        fp = afwDet.Footprint()
+        for (x0,x1,y) in spans:
+            fp.addSpan(y,x0,x1)
+        # UMMM... no way to set Peaks in a Footprint?!
+        #
+        thispks = []
+        for fx,fy in pks:
+            thispks.append(afwDet.Peak(fx,fy))
+        pklist.append(thispks)
+        
+        fplist.push_back(fp)
+    return fplist, pklist
+
+
+def footprintsToPython(fps):
+    pyfoots = []
+    for f in fps:
+        bbox = f.getBBox()
+        bb = (bbox.getMinX(), bbox.getMinY(), bbox.getMaxX(), bbox.getMaxY())
+        pks = []
+        for p in f.getPeaks():
+            pks.append((p.getFx(), p.getFy()))
+        spans = []
+        for s in f.getSpans():
+            spans.append((s.getX0(), s.getX1(), s.getY()))
+        pyfoots.append((bb, pks, spans))
+    return pyfoots
+
 
 def testDeblend(foots, pks, mi, psf):
 
