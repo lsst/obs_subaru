@@ -1,13 +1,14 @@
+import matplotlib
+matplotlib.use('Agg')
 import optparse
 import pyfits
 
-from lsst.meas.deblender import deblender
+#from lsst.meas.deblender import deblender
 from lsst.meas.deblender import naive as naive_deblender
 import lsst.afw.image as afwImage
 import lsst.afw.detection as afwDet
 import lsst.afw.geom as afwGeom
 import lsst.pex.policy as pexPolicy
-from tractorPreprocess import footprintsFromPython
 import lsst.meas.algorithms as measAlg
 
 import pylab as plt
@@ -19,9 +20,11 @@ def afwimgtonumpy(I, x0=0, y0=0, W=None,H=None):
     if H is None:
         H = I.getHeight()
     img = np.zeros((H,W))
+    imbb = I.getBBox(afwImage.PARENT)
     for ii in range(H):
         for jj in range(W):
-            img[ii, jj] = I.get(jj+x0, ii+y0)
+            if imbb.contains(afwGeom.Point2I(jj+x0, ii+y0)):
+                img[ii, jj] = I.get(jj+x0, ii+y0)
     return img
 
 def footprintsFromPython(pyfoots):
@@ -46,17 +49,27 @@ def footprintsFromPython(pyfoots):
     return fplist, pklist
 
 
-def footprintsToPython(fps):
+def footprintsToPython(fps, keepbb=None):
     pyfoots = []
+    if keepbb is not None:
+        x0,y0 = keepbb.getMinX(), keepbb.getMinY()
+    else:
+        x0,y0 = 0,0
     for f in fps:
         bbox = f.getBBox()
-        bb = (bbox.getMinX(), bbox.getMinY(), bbox.getMaxX(), bbox.getMaxY())
+        if keepbb is not None:
+            if not bbox.overlaps(keepbb):
+                continue
+        #bb = (bbox.getMinX(), bbox.getMinY(), bbox.getMaxX(), bbox.getMaxY())
+        bb = (bbox.getMinX()-x0, bbox.getMinY()-y0, bbox.getMaxX()-x0, bbox.getMaxY()-y0)
         pks = []
         for p in f.getPeaks():
-            pks.append((p.getFx(), p.getFy()))
+            #pks.append((p.getFx(), p.getFy()))
+            pks.append((p.getFx()-x0, p.getFy()-y0))
         spans = []
         for s in f.getSpans():
-            spans.append((s.getX0(), s.getX1(), s.getY()))
+            #spans.append((s.getX0(), s.getX1(), s.getY()))
+            spans.append((s.getX0()-x0, s.getX1()-x0, s.getY()-y0))
         pyfoots.append((bb, pks, spans))
     return pyfoots
 
@@ -64,10 +77,15 @@ def footprintsToPython(fps):
 def testDeblend(foots, pks, mi, psf):
 
     I = afwimgtonumpy(mi.getImage())
+    print 'numpy image:', I
+
     flatpks = []
     for pklist in pks:
         flatpks += pklist
+    print 'flat peaks:', flatpks
+    print len(flatpks), 'peaks'
 
+    print 'Plotting...'
     plt.clf()
     plt.imshow(I, origin='lower', interpolation='nearest',
                vmin=-50, vmax=400)
@@ -75,7 +93,9 @@ def testDeblend(foots, pks, mi, psf):
     plt.gray()
     plt.plot([pk.getFx() for pk in flatpks], [pk.getFy() for pk in flatpks], 'r.')
     plt.axis(ax)
-    plt.savefig('test-srcs.png')
+    fn = 'test-srcs.png'
+    plt.savefig(fn)
+    print 'saved plot', fn
 
     bb = foots[0].getBBox()
     xc = int((bb.getMinX() + bb.getMaxX()) / 2.)
@@ -99,7 +119,17 @@ def testDeblend(foots, pks, mi, psf):
 
     if True:
         print 'Calling naive deblender...'
+
+        ### HACK
+        print 'ONLY LOOKING AT LAST FOOTPRINT'
+        foots = [foots[-1]]
+        pks = [pks[-1]]
+
         results = naive_deblender.deblend(foots, pks, mi, psf, psf_fwhm)
+
+        print
+        print 'deblender finished'
+        print
 
         for i,(foot,fpres) in enumerate(zip(foots,results)):
             sumP = None
@@ -119,6 +149,10 @@ def testDeblend(foots, pks, mi, psf):
             imb = dict(interpolation='nearest', origin='lower')
 
             for j,pkres in enumerate(fpres.peaks):
+                if not hasattr(pkres, 'timg'):
+                    # probably out-of-bounds
+                    continue
+
                 timg = pkres.timg
                 #templ.writeFits('templ-f%i-t%i.fits' % (i, j))
 
@@ -255,6 +289,7 @@ if __name__ == "__main__":
     parser.add_option('--psf', dest='psffn', help='PSF filename')
     parser.add_option('--psfx0', dest='psfx0', type=int, help='PSF offset x', default=0)
     parser.add_option('--psfy0', dest='psfy0', type=int, help='PSF offset y', default=0)
+    parser.add_option('--footprints', dest='footfn', help='Read footprints from this python pickle file')
     parser.add_option('--sources', dest='srcfn', help='Source filename')
     
     opt,args = parser.parse_args()
@@ -265,15 +300,6 @@ if __name__ == "__main__":
     # 690, 2090
     img.setXY0(afwGeom.Point2I(0,0))
 
-    srcs = pyfits.open(opt.srcfn)[1].data
-    x = srcs.field('x').astype(float)
-    y = srcs.field('y').astype(float)
-    # FITS to LSST
-    x -= 1
-    y -= 1
-    print 'source x range', x.min(),x.max()
-    print '       y range', y.min(),y.max()
-    # [0,250]
 
     print img.getWidth(), img.getHeight()
     #psfimg = pyfits.open(opt.psffn)[1].data
@@ -306,15 +332,42 @@ if __name__ == "__main__":
         psf = OffsetPsf(psf, opt.psfx0, opt.psfy0)
 
 
-    # single footprint for the whole image.
-    bb = afwGeom.Box2I(afwGeom.Point2I(0, 0), afwGeom.Extent2I(img.getWidth(), img.getHeight()))
-    pks = list(zip(x,y))
-    spans = [(0, img.getWidth()-1, yi) for yi in range(img.getHeight())]
-    foots,pks = footprintsFromPython([(bb,pks,spans)])
-    print 'Footprints', foots
-    print 'foot:', foots[0]
-    print foots[0].getBBox()
-    print 'Peaks:', pks
+    if opt.footfn:
+        import cPickle
+        f = open(opt.footfn, 'rb')
+        pyfp = cPickle.load(f)
+        # necessary?
+        f.close()
+
+        foots,pks = footprintsFromPython(pyfp)
+        #print 'Got footprints:', foots
+        #print 'Got peaks:', pks
+        print 'Got', len(foots), 'footprints'
+        print 'Got', len(pks), 'peaks'
+        
+    elif opt.srcfn:
+        srcs = pyfits.open(opt.srcfn)[1].data
+        x = srcs.field('x').astype(float)
+        y = srcs.field('y').astype(float)
+        # FITS to LSST
+        x -= 1
+        y -= 1
+        print 'source x range', x.min(),x.max()
+        print '       y range', y.min(),y.max()
+        # [0,250]
+
+        # single footprint for the whole image.
+        bb = afwGeom.Box2I(afwGeom.Point2I(0, 0), afwGeom.Extent2I(img.getWidth(), img.getHeight()))
+        pks = list(zip(x,y))
+        spans = [(0, img.getWidth()-1, yi) for yi in range(img.getHeight())]
+        foots,pks = footprintsFromPython([(bb,pks,spans)])
+        print 'Footprints', foots
+        print 'foot:', foots[0]
+        print foots[0].getBBox()
+        print 'Peaks:', pks
+
+    else:
+        assert(False)
 
     mi = img.getMaskedImage()
     print 'MI xy0', mi.getX0(), mi.getY0()

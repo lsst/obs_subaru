@@ -5,6 +5,7 @@ import sys
 
 import matplotlib
 matplotlib.use('Agg')
+
 import lsst.obs.suprimecam as obsSc
 
 import lsst.pex.logging as pexLog
@@ -36,7 +37,8 @@ if __name__ == '__main__':
     #parser.add_option('--plotsize', dest='plotsize', type=int, nargs=2, help='Plot size (w x h) inches')
 
     parser.add_option('--roi', dest='roi', type=int, nargs=4, help='ROI (x0, x1, y0, y1)')
-    parser.add_option('--psf', dest='psf', help='Render a PSF image at center -- to the given output filename')
+    parser.add_option('--psf', dest='psf', help='Wrote boost-format PSF to the given output filename')
+    parser.add_option('--psfimg', dest='psfimg', help='Render a PSF image at center -- to the given output filename')
     parser.add_option('--image', dest='image', help='Write out the image in FITS format -- to the given filename')
     parser.add_option('--sources', dest='sources', help='Write out the sources in FITS format -- to the given filename')
     parser.add_option('--footprints', dest='footprints', help='Write out the footprints in pickle format -- to the given filename')
@@ -61,6 +63,7 @@ if __name__ == '__main__':
     mapper = obsSc.SuprimecamMapper(root=dataroot, calibRoot=calibroot, rerun=opt.rerun)
     io = pipReadWrite.ReadWrite(mapper, ['visit'], config=config)
     butler = io.inButler
+    outbut = io.outButler
     dataId = { 'visit': opt.visit, 'ccd': opt.ccd }
 
     print 'Reading exposure'
@@ -84,15 +87,33 @@ if __name__ == '__main__':
     print 'cal.run()...'
     psf, apcorr, brightSources, matches, matchMeta = cal.run(exposure, defects=defects)
 
+    print 'psf is', psf
+    if opt.psf:
+        from lsst.daf.persistence import Mapper, ButlerLocation, LogicalLocation
+
+        class HackMapper(Mapper):
+            def __init__(self, themap={}):
+                self.themap = themap
+            def map(self, datasetType, dataId):
+                return self.themap.get(datasetType)
+
+        mapper = HackMapper({'psf': ButlerLocation(
+            'lsst.afw.detection.Psf', 'Psf', 'BoostStorage', opt.psf, dataId)})
+        #outbut.setMapper(mapper)
+        outbut.mapper = mapper
+        outbut.put(psf, 'psf', dataId)
+        print 'Wrote psf to', opt.psf
+
+
     print 'Photometry...'
-    phot = pipPhot.Photometry()#imports=[])
+    phot = pipPhot.Photometry(config=config, log=log)#imports=[])
     print 'imports()...'
     phot.imports()
     print 'detect()...'
     footprintSet = phot.detect(exposure, psf)
-    print 'measure()...'
-    sources = phot.measure(exposure, footprintSet, psf, apcorr=apcorr, wcs=wcs)
-    print 'done!'
+    #print 'measure()...'
+    #sources = phot.measure(exposure, footprintSet, psf, apcorr=apcorr, wcs=wcs)
+    #print 'done!'
 
 
     # print 'Photometry()...'
@@ -127,16 +148,17 @@ if __name__ == '__main__':
     # io.outButler.put(pyfoots, 'pyfoots', dataId)
     # return bb
 
-    if opt.psf:
+
+    if opt.psfimg:
         import lsst.afw.geom as afwGeom
         import lsst.afw.image as afwImage
         import numpy as np
         import pyfits
         
-        psf = butler.get('psf', dataId)
+        #psf = butler.get('psf', dataId)
         print 'psf is', psf
         if opt.roi is None:
-            exposure = butler.get(expdatatype, dataId)
+            #exposure = butler.get(expdatatype, dataId)
             w,h = exposure.getWidth(), exposure.getHeight()
             x,y = w/2., h/2.
         else:
@@ -153,11 +175,13 @@ if __name__ == '__main__':
 
 
     if opt.image:
-        exposure = butler.get(expdatatype, dataId)
+        #exposure = butler.get(expdatatype, dataId)
 
         if opt.roi is None:
             exposure.writeFits(opt.image)
         else:
+            import lsst.afw.image as afwImage
+            import lsst.afw.geom as afwGeom
             x0,x1,y0,y1 = opt.roi
             subexp = afwImage.ExposureF(exposure, afwGeom.Box2I(afwGeom.Point2I(x0,y0),
                                                                 afwGeom.Point2I(x1-1,y1-1)))
@@ -187,5 +211,18 @@ if __name__ == '__main__':
 
     if opt.footprints:
         import cPickle
-        #pyfoots = footprintsToPython()
+        from testDeblend import footprintsToPython
+
+        if opt.roi is not None:
+            import lsst.afw.geom as afwGeom
+            x0,x1,y0,y1 = opt.roi
+            roibb = afwGeom.Box2I(afwGeom.Point2I(x0,y0),
+                                  afwGeom.Point2I(x1-1,y1-1))
+        else:
+            roibb = None
+        pyfoots = footprintsToPython(footprintSet.getFootprints(), keepbb=roibb)
+        out = open(opt.footprints, 'wb')
+        cPickle.dump(pyfoots, out, -1)
+        out.close()
+        print 'Wrote footprints to', opt.footprints
         

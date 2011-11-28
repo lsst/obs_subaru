@@ -26,6 +26,9 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
     sigma1 = math.sqrt(stats.getValue(afwMath.MEDIAN))
     #print 'Median image sigma:', sigma1
 
+    imbb = img.getBBox(afwImage.PARENT)
+    print 'imbb (PARENT)', imbb.getMinX(), imbb.getMaxX(), imbb.getMinY(), imbb.getMaxY()
+
     # prepare results structures
     for fp,pks in zip(footprints,peaks):
         fpres = PerFootprint()
@@ -73,6 +76,20 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
             xhi = min(xhi, bb.getMaxX())
             yhi = min(yhi, bb.getMaxY())
 
+            print 'xlo,xhi', xlo,xhi
+            print 'ylo,yhi', ylo,yhi
+
+            xlo = max(xlo, imbb.getMinX())
+            xhi = min(xhi, imbb.getMaxX())
+            ylo = max(ylo, imbb.getMinY())
+            yhi = min(yhi, imbb.getMaxY())
+            print 'xlo,xhi', xlo,xhi
+            print 'ylo,yhi', ylo,yhi
+            if xlo >= xhi or ylo >= yhi:
+                print 'Skipping this one'
+                pkres.out_of_bounds = True
+                continue
+            
             # find other peaks within range...
             otherpsfs = []
             for j,pk2 in enumerate(pks):
@@ -213,8 +230,10 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
                     psfderivmod.set(x-xlo, y-ylo, psfm2[y-ylo,x-xlo])
             for ii in range(NP):
                 x,y = ipixes[i,:]
-                stamp.set(x,y, b[ii])
-                psfmod.set(x,y, A[ii, I_psf])
+                #x,y 5 0 <type 'numpy.int64'> <type 'numpy.int64'> val -80.8212890625 <type 'numpy.float64'>
+                #print 'x,y', x,y, type(x),type(y), 'val', b[ii], type(b[ii])
+                stamp.set(int(x),int(y), float(b[ii]))
+                psfmod.set(int(x),int(y), float(A[ii, I_psf]))
                 
             psfderivmod.setXY0(xlo,ylo)
             model.setXY0(xlo,ylo)
@@ -252,24 +271,33 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
                 pkres.timg = psfderivmod
 
 
-
+    print
+    print 'Computing templates...'
+    print
 
     for fp,pks,fpres in zip(footprints,peaks,results):
+        print
         bb = fp.getBBox()
         W,H = bb.getWidth(), bb.getHeight()
         x0,y0 = bb.getMinX(), bb.getMinY()
-        print 'Footprint x0,y0', x0,y0
+        print 'Creating templates for footprint at x0,y0', x0,y0
         print 'W,H', W,H
-        #for pk in fp.getPeaks():
         for pki,(pk,pkres) in enumerate(zip(pks, fpres.peaks)):
+            if hasattr(pkres, 'out_of_bounds') and pkres.out_of_bounds:
+                print 'Skipping out-of-bounds peak', pki
+                continue
             if hasattr(pkres, 'deblend_as_psf') and pkres.deblend_as_psf:
                 print 'Skipping PSF peak', pki
                 continue
-            print 'computing template for', pki
+            print 'computing template for peak', pki
             template = afwImage.MaskedImageF(W,H)
             template.setXY0(x0,y0)
             cx,cy = pk.getIx(), pk.getIy()
             print 'cx,cy =', cx,cy
+            if not imbb.contains(afwGeom.Point2I(cx,cy)):
+                print 'center is not inside image; skipping'
+                pkres.out_of_bounds = True
+                continue
             timg = template.getImage()
             p = img.get(cx,cy)
             timg.set(cx - x0, cy - y0, p)
@@ -305,14 +333,25 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
                             continue
                         if not fp.contains(afwGeom.Point2I(xb, yb)):
                             continue
+
+                        if not imbb.contains(afwGeom.Point2I(xa, ya)):
+                            continue
+                        if not imbb.contains(afwGeom.Point2I(xb, yb)):
+                            continue
+
                         pa = img.get(xa, ya)
                         pb = img.get(xb, yb)
 
                         # monotonic constraint
                         xm = xa - (hx * signdx)
                         ym = ya - hy
-                        assert(fp.contains(afwGeom.Point2I(xm,ym)))
-                        mono = timg.get(xm,ym)
+                        #print 'xa,ya', xa,ya
+                        #print 'xb,yb', xb,yb
+                        #print 'xm,ym', xm,ym
+                        #assert(fp.contains(afwGeom.Point2I(xm,ym)))
+                        if not fp.contains(afwGeom.Point2I(xm,ym)):
+                            continue
+                        mono = timg.get(xm-x0,ym-y0)
 
                         #mn = min(pa,pb)
                         #mn = min(mn, mono)
@@ -328,10 +367,24 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
 
             
         # Now apportion flux according to the templates ?
-        timgs = [pkres.timg for pkres in fpres.peaks]
-        portions = [afwImage.ImageF(W,H) for t in timgs]
+        print 'Apportioning flux...'
+        timgs = []
+        portions = []
+        for pki,pkres in enumerate(fpres.peaks):
+            if hasattr(pkres, 'out_of_bounds') and pkres.out_of_bounds:
+                print 'Skipping out-of-bounds peak', pki
+                continue
+            timgs.append(pkres.timg)
+            p = afwImage.ImageF(W,H)
+            portions.append(p)
+            pkres.portion = p
+
+        print 'apportioning among', len(timgs), 'templates'
         for y in range(H):
             for x in range(W):
+                if not imbb.contains(afwGeom.Point2I(x0+x, y0+y)):
+                    continue
+                
                 tvals = []
                 pt = afwGeom.Point2I(x,y)
                 for t in timgs:
@@ -345,11 +398,12 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
                 S = sum([abs(t) for t in tvals])
                 if S == 0:
                     continue
+                impix = img.get(x0+x, y0+y)
                 for t,p in zip(tvals,portions):
                     #p.set(x,y, img.get(x0+x, y0+y) * max(0,tvals[i])/S)
-                    p.set(x,y, img.get(x0+x, y0+y) * abs(t)/S)
+                    p.set(x,y, impix * abs(t)/S)
 
-        for r,p in zip(fpres.peaks, portions):
-            r.portion = p
+        #for r,p in zip(fpres.peaks, portions):
+        #    r.portion = p
 
     return results
