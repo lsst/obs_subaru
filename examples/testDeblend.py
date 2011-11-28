@@ -21,10 +21,11 @@ def afwimgtonumpy(I, x0=0, y0=0, W=None,H=None):
         H = I.getHeight()
     img = np.zeros((H,W))
     imbb = I.getBBox(afwImage.PARENT)
+    imx0,imy0 = imbb.getMinX(), imbb.getMinY()
     for ii in range(H):
         for jj in range(W):
             if imbb.contains(afwGeom.Point2I(jj+x0, ii+y0)):
-                img[ii, jj] = I.get(jj+x0, ii+y0)
+                img[ii, jj] = I.get(jj+x0-imx0, ii+y0-imy0)
     return img
 
 def footprintsFromPython(pyfoots):
@@ -141,21 +142,68 @@ def testDeblend(foots, pks, mi, psf):
             mn,mx = [ss[int(p*len(ss))] for p in [0.1, 0.95]]
             print 'mn,mx', mn,mx
 
-            I_nopsf = afwimgtonumpy(mi.getImage(), x0, y0, W, H)
+            plt.clf()
+            plt.imshow(I, origin='lower', interpolation='nearest',
+                       vmin=-50, vmax=400)
+            plt.gray()
+            plt.savefig('test-foot%03i.png' % i)
+
+            #I_nopsf = afwimgtonumpy(mi.getImage(), x0, y0, W, H)
+            I_nopsf = I.copy()
             pks_notpsf = []
             pks_psf = []
 
             ima = dict(interpolation='nearest', origin='lower', vmin=mn, vmax=mx)
             imb = dict(interpolation='nearest', origin='lower')
 
+            # build the not-psf source and peak image.
+            for j,pkres in enumerate(fpres.peaks):
+                pk = pks[i][j]
+                print 'peak:', pk
+                print 'x,y', pk.getFx(), pk.getFy()
+                #if not hasattr(pkres, 'timg'):
+                #    # probably out-of-bounds
+                #    continue
+                if hasattr(pkres, 'deblend_as_psf') and pkres.deblend_as_psf:
+                #if pkres.deblend_as_psf:
+                    #mm = pkres.model
+                    mm = pkres.psfderivimg
+                    MM = afwimgtonumpy(mm)
+                    mx0,my0 = mm.getX0(), mm.getY0()
+                    mW,mH = mm.getWidth(), mm.getHeight()
+                    print 'Peak', j, 'deblended as PSF.'
+                    #plt.clf()
+                    #plt.subplot(1,2,1)
+                    #plt.imshow(I_nopsf
+                    I_nopsf[my0:my0+mH, mx0:mx0+mW] -= MM
+                    pks_psf.append(pk)
+                else:
+                    pks_notpsf.append(pk)
+
+            imbb = mi.getBBox(afwImage.PARENT)
+            imx0,imy0 = imbb.getMinX(), imbb.getMinY()
+
+            plt.clf()
+            plt.imshow(I_nopsf, origin='lower', interpolation='nearest',
+                       vmin=-50, vmax=400)
+            ax = plt.axis()
+            plt.gray()
+
+            dx = x0 - imx0
+            dy = y0 - imy0
+            print 'dx,dy', dx,dy
+            plt.plot([pk.getFx()-dx for pk in pks_notpsf], [pk.getFy()-dy for pk in pks_notpsf], 'r.')
+            plt.plot([pk.getFx()-dx for pk in pks_psf],    [pk.getFy()-dy for pk in pks_psf],    'g+')
+            plt.axis(ax)
+            plt.savefig('test-foot%03i-notpsf.png' % i)
+            
+
             for j,pkres in enumerate(fpres.peaks):
                 if not hasattr(pkres, 'timg'):
                     # probably out-of-bounds
                     continue
-
                 timg = pkres.timg
                 #templ.writeFits('templ-f%i-t%i.fits' % (i, j))
-
                 pk = pks[i][j]
                 print 'peak:', pk
                 print 'x,y', pk.getFx(), pk.getFy()
@@ -170,17 +218,6 @@ def testDeblend(foots, pks, mi, psf):
                 S = afwimgtonumpy(pkres.stamp)
                 PSF = afwimgtonumpy(pkres.psfimg)
                 M = afwimgtonumpy(pkres.model)
-
-                if pkres.deblend_as_psf:
-                    #mm = pkres.model
-                    mm = pkres.psfderivimg
-                    MM = afwimgtonumpy(mm)
-                    mx0,my0 = mm.getX0(), mm.getY0()
-                    mW,mH = mm.getWidth(), mm.getHeight()
-                    I_nopsf[my0:my0+mH, mx0:mx0+mW] -= MM
-                    pks_psf.append(pk)
-                else:
-                    pks_notpsf.append(pk)
 
                 ss = np.sort(S.ravel())
                 cmn,cmx = [ss[int(p*len(ss))] for p in [0.1, 0.99]]
@@ -239,15 +276,6 @@ def testDeblend(foots, pks, mi, psf):
                 plt.imshow(sumP, **ima)
                 plt.savefig('sump-f%i.png' % i)
 
-            plt.clf()
-            plt.imshow(I_nopsf, origin='lower', interpolation='nearest',
-                       vmin=-50, vmax=400)
-            ax = plt.axis()
-            plt.gray()
-            plt.plot([pk.getFx() for pk in pks_notpsf], [pk.getFy() for pk in pks_notpsf], 'r.')
-            plt.plot([pk.getFx() for pk in pks_psf], [pk.getFy() for pk in pks_psf], 'g+')
-            plt.axis(ax)
-            plt.savefig('test-notpsf.png')
 
     
 
