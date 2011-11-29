@@ -1,7 +1,7 @@
 import optparse
 import pyfits
 
-from lsst.meas.deblender import deblender
+#from lsst.meas.deblender import deblender
 from lsst.meas.deblender import naive as naive_deblender
 import lsst.afw.image as afwImage
 import lsst.afw.detection as afwDet
