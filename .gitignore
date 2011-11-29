@@ -3,3 +3,6 @@
 *.o
 *.pyc
 *.so
+ups/*.cfgc
+config.log
+python/lsst/meas/deblender/version.py
