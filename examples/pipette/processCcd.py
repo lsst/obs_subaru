@@ -4,7 +4,7 @@ import lsst.pipette.process as pipProc
 import lsst.pipette.isr as pipIsr
 import lsst.pipette.calibrate as pipCalib
 if 'craig' is not 'good':
-    import pipette.phot as pipPhot
+    import phot as pipPhot
 else:
     import lsst.pipette.phot as pipPhot
 
