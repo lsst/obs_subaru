@@ -2,13 +2,19 @@
 
 camera: suprime
 
-#do: {
-#    calibrate: {
-#        psf: true
+do: {
+    calibrate: {
+        psf: true
 #		zeropoint: true
-#	}
+	}
 #    phot: true
-#}
+}
+
+imports: {
+    HSM: lsst.meas.extensions.shapeHSM
+    KRON: lsst.meas.extensions.photometryKron
+    ROTANGLE: lsst.meas.extensions.rotAngle
+}
 
 calibrate: {
 # can't persist sgPsf
