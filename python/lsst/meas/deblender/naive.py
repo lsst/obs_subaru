@@ -1,4 +1,5 @@
 import math
+import numpy as np
 
 import lsst.afw.image as afwImage
 import lsst.afw.geom  as afwGeom
@@ -113,7 +114,6 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
             I_dx = 4
             I_dy = 5
 
-            import numpy as np
             A = np.zeros((NP, NT))
             b = np.zeros(NP)
             w = np.zeros(NP)
@@ -189,12 +189,19 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
             print 'rank', rank
             print 'r', r
             # r is weighted chi-squared = sum_pix ramp * (model - data)**2/sigma**2
-            chisq = r[0]
+            if len(r) > 0:
+                chisq = r[0]
+            else:
+                chisq = 1e30
             dof = sumr - len(X)
             print 'Chi-squared', chisq
             print 'Degrees of freedom', dof
-            print 'chisq/dof =', chisq/dof
-
+            try:
+                print 'chisq/dof =', chisq/dof
+            except ZeroDivisionError, e:
+                print "dof is zero!"
+                dof = 1                 # CPL
+                
             SW,SH = 1+xhi-xlo, 1+yhi-ylo
             print 'Stamp size', SW, SH
             stamp = afwImage.ImageF(SW,SH)
@@ -229,7 +236,7 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
                     model.set(x-xlo, y-ylo, m2[y-ylo,x-xlo])
                     psfderivmod.set(x-xlo, y-ylo, psfm2[y-ylo,x-xlo])
             for ii in range(NP):
-                x,y = ipixes[i,:]
+                x,y = ipixes[ii,:]
                 #x,y 5 0 <type 'numpy.int64'> <type 'numpy.int64'> val -80.8212890625 <type 'numpy.float64'>
                 #print 'x,y', x,y, type(x),type(y), 'val', b[ii], type(b[ii])
                 stamp.set(int(x),int(y), float(b[ii]))
