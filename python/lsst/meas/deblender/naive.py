@@ -310,6 +310,7 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
             p = img.get(cx,cy)
             timg.set(cx - x0, cy - y0, p)
             # We do dy>=0; dy<0 is handled by symmetry.
+            print "clawing over range(", H-(cy-y0), ") and range(", min(cx-x0, W-(cx-x0)), ")"
             for dy in range(H-(cy-y0)):
                 # Iterate symmetrically out from dx=0
                 for absdx in range(min(cx-x0, W-(cx-x0))):

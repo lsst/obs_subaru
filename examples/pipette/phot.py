@@ -68,14 +68,14 @@ class Photometry(pipProc.Process):
         """ Deblend on all the given peaks in the given single footprint. """
 
         try:
-            peaks = []
-            for pk in footprint.getPeaks():
-                peaks.append(pk)
-
             bb = footprint.getBBox()
             xc = int((bb.getMinX() + bb.getMaxX()) / 2.)
             yc = int((bb.getMinY() + bb.getMaxY()) / 2.)
 
+            if bb.getHeight() <= 1 or bb.getWidth() <= 1:
+                self.log.log(self.log.WARN, 'skipping trivial footprint')
+                return None
+            
             try:
                 psf_fwhm = psf.getFwhm(xc, yc)
             except AttributeError, e:
@@ -84,22 +84,21 @@ class Photometry(pipProc.Process):
                 self.log.log(self.log.WARN, 'PSF width fixed at %0.1f because of: %s:' % (psfw, e))
                 psf_fwhm = 2.35 * psfw
 
+            peaks = []
+            for pk in footprint.getPeaks():
+                peaks.append(pk)
+
             mi = exposure.getMaskedImage()
             bootPrints = deblendNaive.deblend([footprint], [peaks], mi, psf, psf_fwhm)
             self.log.log(self.log.INFO, "deblendOneFootprint turned %d peaks into %d objects." % (len(peaks),
                                                                                                   len(bootPrints[0].peaks)))
             if len(peaks) > 1:
-                from IPython.core.debugger import Tracer
-                debug_here = Tracer()
-
                 import numpy as np
                 import matplotlib.pyplot as pyplot
                 import plotDeblend
                 
                 plotDeblend.plotFootprint(exposure, psf, bb, bootPrints[0])
                     
-                debug_here()
-
             return bootPrints
         
         except RuntimeError, e:
