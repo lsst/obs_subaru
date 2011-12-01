@@ -4,6 +4,7 @@ import numpy
 import math
 
 import lsst.afw.geom as afwGeom
+import lsst.afw.image as afwImage
 import lsst.meas.algorithms as measAlg
 import lsst.meas.utils.sourceDetection as muDetection
 import lsst.meas.utils.sourceMeasurement as muMeasurement
@@ -43,20 +44,35 @@ class Photometry(pipProc.Process):
         do = self.config['do']['phot']
         if do['background']:
             bg, exposure = self.background(exposure); del bg
-        
-        try:
-            foots = footprintSet.getFootprints()
-            peaks = []
-            nPeaks = 0
-            for foot in foots:
-                pks = []
-                for pk in foot.getPeaks():
-                    pks.append(pk)
-                    nPeaks += 1
-                peaks.append(pks)
 
-            # UTTER BS -- CPL
-            bb = foots[0].getBBox()
+        deblendedFootprintSet = self.deblend(exposure, psf, footprintSet)
+
+        sources = self.measure(exposure, footprintSet, psf, apcorr=apcorr, wcs=wcs)
+
+        self.display('phot', exposure=exposure, sources=sources, pause=True)
+        return sources, footprintSet
+
+    def deblend(self, exposure, psf, footprintSet):
+        """ Deblend on all the given peaks in the given footprints. """
+        
+        foots = footprintSet.getFootprints()
+        deblendedFoots = []
+        for foot in foots:
+            deblendedFoot = self.deblendOneFootprint(exposure, psf, foot)
+            if deblendedFoot != None:
+                deblendedFoots.extend(deblendedFoot)
+
+        return deblendedFoots
+        
+    def deblendOneFootprint(self, exposure, psf, footprint):
+        """ Deblend on all the given peaks in the given single footprint. """
+
+        try:
+            peaks = []
+            for pk in footprint.getPeaks():
+                peaks.append(pk)
+
+            bb = footprint.getBBox()
             xc = int((bb.getMinX() + bb.getMaxX()) / 2.)
             yc = int((bb.getMinY() + bb.getMaxY()) / 2.)
 
@@ -69,18 +85,29 @@ class Photometry(pipProc.Process):
                 psf_fwhm = 2.35 * psfw
 
             mi = exposure.getMaskedImage()
-            bootPrints = deblendNaive.deblend(foots, peaks, mi, psf, psf_fwhm)
-            self.log.log(self.log.WARN, "deblending turned %d/%d footprints/peaks into %d objects: %s." % (len(foots), nPeaks,
-                                                                                                           len(bootPrints), bootPrints))
-        except Exception, e:
-            self.log.log(self.log.WARN, "no deblending, sorry: %s" % (e))
+            bootPrints = deblendNaive.deblend([footprint], [peaks], mi, psf, psf_fwhm)
+            self.log.log(self.log.INFO, "deblendOneFootprint turned %d peaks into %d objects." % (len(peaks),
+                                                                                                  len(bootPrints[0].peaks)))
+            if len(peaks) > 1:
+                from IPython.core.debugger import Tracer
+                debug_here = Tracer()
+
+                import numpy as np
+                import matplotlib.pyplot as pyplot
+                import plotDeblend
+                
+                plotDeblend.plotFootprint(exposure, psf, bb, bootPrints[0])
+                    
+                debug_here()
+
+            return bootPrints
+        
+        except RuntimeError, e:
+            self.log.log(self.log.WARN, "deblending FAILED: %s" % (e))
             import pdb; pdb.set_trace()
+            return None
             
-        sources = self.measure(exposure, footprintSet, psf, apcorr=apcorr, wcs=wcs)
-
-        self.display('phot', exposure=exposure, sources=sources, pause=True)
-        return sources, footprintSet
-
+    
     def imports(self):
         """Import modules (so they can register themselves)"""
         if self.config.has_key('imports'):
