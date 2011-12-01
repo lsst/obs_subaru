@@ -8,7 +8,8 @@ import lsst.afw.math  as afwMath
 class PerFootprint(object):
     pass
 class PerPeak(object):
-    pass
+    def __init__(self):
+        self.out_of_bounds = False
 
 def deblend(footprints, peaks, maskedImage, psf, psffwhm):
     print 'Naive deblender starting'
