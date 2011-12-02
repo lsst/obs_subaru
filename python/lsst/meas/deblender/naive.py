@@ -99,9 +99,9 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
                     continue
                 if (pk2.getFx() - cx)**2 + (pk2.getFy() - cy)**2 > R2**2:
                     continue
-                psfimg = psf.computeImage(afwGeom.Point2D(pk2.getFx(),
-                                                          pk2.getFy()))
-                otherpsfs.append(psfimg)
+                opsfimg = psf.computeImage(afwGeom.Point2D(pk2.getFx(),
+                                                           pk2.getFy()))
+                otherpsfs.append(opsfimg)
             print len(otherpsfs), 'other peaks within range'
 
             # Number of terms -- PSF, constant, X, Y, + other PSFs,
@@ -242,7 +242,7 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
                 #print 'x,y', x,y, type(x),type(y), 'val', b[ii], type(b[ii])
                 stamp.set(int(x),int(y), float(b[ii]))
                 psfmod.set(int(x),int(y), float(A[ii, I_psf]))
-                
+
             psfderivmod.setXY0(xlo,ylo)
             model.setXY0(xlo,ylo)
             stamp.setXY0(xlo,ylo)
@@ -251,6 +251,7 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
             pkres.R0 = R0
             pkres.R1 = R1
             pkres.stamp = stamp
+            pkres.psf0img = psfimg
             pkres.psfimg = psfmod
             pkres.psfderivimg = psfderivmod
             pkres.model = model
@@ -259,6 +260,9 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
             pkres.center = cx,cy
             pkres.chisq = chisq
             pkres.dof = dof
+            pkres.X = X
+            pkres.otherpsfs = len(otherpsfs)
+            pkres.w = w
 
             # MAGIC number
             ispsf = ((chisq / dof) < 1.5)
@@ -309,8 +313,8 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
             timg = template.getImage()
             p = img.get(cx,cy)
             timg.set(cx - x0, cy - y0, p)
+
             # We do dy>=0; dy<0 is handled by symmetry.
-            print "clawing over range(", H-(cy-y0), ") and range(", min(cx-x0, W-(cx-x0)), ")"
             for dy in range(H-(cy-y0)):
                 # Iterate symmetrically out from dx=0
                 for absdx in range(min(cx-x0, W-(cx-x0))):
@@ -374,7 +378,6 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
 
             pkres.timg = timg
 
-            
         # Now apportion flux according to the templates ?
         print 'Apportioning flux...'
         timgs = []
@@ -383,24 +386,30 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
             if hasattr(pkres, 'out_of_bounds') and pkres.out_of_bounds:
                 print 'Skipping out-of-bounds peak', pki
                 continue
-            timgs.append(pkres.timg)
+            timg = pkres.timg
+            timgs.append(timg)
+            if timg.getWidth() != W or timg.getHeight() != H:
+                import pdb; pdb.set_trace()
+
+            # NOTE! portions, timgs and the footprint are _currently_ all the same size, 
             p = afwImage.ImageF(W,H)
+            p.setXY0(timg.getXY0())
             portions.append(p)
             pkres.portion = p
 
         print 'apportioning among', len(timgs), 'templates'
         for y in range(H):
             for x in range(W):
-                if not imbb.contains(afwGeom.Point2I(x0+x, y0+y)):
+                impt = afwGeom.Point2I(x0+x, y0+y)
+                if not imbb.contains(impt):
                     continue
-                
+
                 tvals = []
-                pt = afwGeom.Point2I(x,y)
                 for t in timgs:
                     tbb = t.getBBox(afwImage.PARENT)
                     tx0,ty0 = t.getX0(), t.getY0()
-                    if tbb.contains(pt):
-                        tvals.append(t.get(x-tx0,y-ty0))
+                    if tbb.contains(impt):
+                        tvals.append(t.get(x+x0-tx0,y+y0-ty0))
                     else:
                         tvals.append(0)
                 #S = sum([max(0, t) for t in tvals])
