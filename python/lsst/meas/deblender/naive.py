@@ -325,7 +325,7 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
                     # We're working out from the center, so just need to figure out which
                     # pixel is toward the center from where we are.
                     v2 = float(absdx**2 + dy**2)
-                    if absdx**2/v2 > 0.75:
+                    if dy**2/v2 < 0.25:
                         hx = 1
                         hy = 0
                     elif dy**2/v2 > 0.75:
