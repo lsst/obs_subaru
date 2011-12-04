@@ -28,6 +28,11 @@ def afwimgtonumpy(I, x0=0, y0=0, W=None,H=None):
                 img[ii, jj] = I.get(jj+x0-imx0, ii+y0-imy0)
     return img
 
+def getExtent(img):
+    bb = img.getBBox(afwImage.PARENT)
+    return bb.getMinX(), bb.getMaxX(), bb.getMinY(), bb.getMaxY()
+    
+
 def footprintsFromPython(pyfoots):
     import lsst.afw.detection as afwDet
 
@@ -39,15 +44,13 @@ def footprintsFromPython(pyfoots):
         fp = afwDet.Footprint()
         for (x0,x1,y) in spans:
             fp.addSpan(y,x0,x1)
-        # UMMM... no way to set Peaks in a Footprint?!
-        #
-        thispks = []
+
+        thispks = fp.getPeaks()
         for fx,fy in pks:
             thispks.append(afwDet.Peak(fx,fy))
-        pklist.append(thispks)
-        
+
         fplist.push_back(fp)
-    return fplist, pklist
+    return fplist
 
 
 def footprintsToPython(fps, keepbb=None):
@@ -75,28 +78,29 @@ def footprintsToPython(fps, keepbb=None):
     return pyfoots
 
 
-def testDeblend(foots, pks, mi, psf):
+def testDeblend(foots, mi, psf):
 
-    I = afwimgtonumpy(mi.getImage())
-    print 'numpy image:', I
+    pks = [foot.getPeaks() for foot in foots]
 
     flatpks = []
     for pklist in pks:
         flatpks += pklist
-    print 'flat peaks:', flatpks
+    #print 'flat peaks:', flatpks
     print len(flatpks), 'peaks'
 
-    print 'Plotting...'
-    plt.clf()
-    plt.imshow(I, origin='lower', interpolation='nearest',
-               vmin=-50, vmax=400)
-    ax = plt.axis()
-    plt.gray()
-    plt.plot([pk.getFx() for pk in flatpks], [pk.getFy() for pk in flatpks], 'r.')
-    plt.axis(ax)
-    fn = 'test-srcs.png'
-    plt.savefig(fn)
-    print 'saved plot', fn
+    #I = afwimgtonumpy(mi.getImage())
+    #print 'numpy image:', I
+    # print 'Plotting...'
+    # plt.clf()
+    # plt.imshow(I, origin='lower', interpolation='nearest',
+    #            vmin=-50, vmax=400)
+    # ax = plt.axis()
+    # plt.gray()
+    # plt.plot([pk.getFx() for pk in flatpks], [pk.getFy() for pk in flatpks], 'r.')
+    # plt.axis(ax)
+    # fn = 'test-srcs.png'
+    # plt.savefig(fn)
+    # print 'saved plot', fn
 
     bb = foots[0].getBBox()
     xc = int((bb.getMinX() + bb.getMaxX()) / 2.)
@@ -132,68 +136,119 @@ def testDeblend(foots, pks, mi, psf):
         print 'deblender finished'
         print
 
+        # numpy array
+        wholeI = mi.getImage().getArray()
+        imbb = mi.getBBox(afwImage.PARENT)
+        imx0,imy0 = imbb.getMinX(), imbb.getMinY()
+
         for i,(foot,fpres) in enumerate(zip(foots,results)):
             sumP = None
 
-            W,H = foot.getBBox().getWidth(), foot.getBBox().getHeight()
-            x0,y0 = foot.getBBox().getMinX(), foot.getBBox().getMinY()
-            I = afwimgtonumpy(mi.getImage(), x0, y0, W, H)
+            fbb = foot.getBBox()
+            # ??
+            fbb.clip(imbb)
+
+            fW,fH = fbb.getWidth(), fbb.getHeight()
+            fx0,fy0 = fbb.getMinX(), fbb.getMinY()
+
+            I = wholeI[fy0-imy0 : fy0-imy0 + fH,
+                       fx0-imx0 : fx0-imx0 + fW]
+            print 'Footprint size:', fW, fH
+            print 'I shape', I.shape
+
             ss = np.sort(I.ravel())
-            mn,mx = [ss[int(p*len(ss))] for p in [0.1, 0.95]]
+            mn,mx = [ss[int(p*len(ss))] for p in [0.1, 0.99]]
             print 'mn,mx', mn,mx
+            q1,q2,q3 = [ss[int(p*len(ss))] for p in [0.25, 0.5, 0.75]]
+
+            def nlmap(X):
+                Y = (X - q2) / ((q3-q1)/2.)
+                return np.arcsinh(Y * 10.)/10.
+            def myimshow(x, *args, **kwargs):
+                mykwargs = kwargs.copy()
+                if 'vmin' in kwargs:
+                    mykwargs['vmin'] = nlmap(kwargs['vmin'])
+                if 'vmax' in kwargs:
+                    mykwargs['vmax'] = nlmap(kwargs['vmax'])
+                return plt.imshow(nlmap(x), *args, **mykwargs)
+
+            #mn = nlmap(mn)
+            #mx = nlmap(mx)
+
+            Iext = (fx0,fx0+fW,fy0,fy0+fH)
+            ima = dict(interpolation='nearest', origin='lower', vmin=mn, vmax=mx)
+            imaa = ima.copy()
+            imaa.update(dict(extent=Iext, aspect='equal'))
+            #vmin=-50, vmax=400)
+            imb = dict(interpolation='nearest', origin='lower')
 
             plt.clf()
-            plt.imshow(I, origin='lower', interpolation='nearest',
-                       vmin=-50, vmax=400)
+            myimshow(I, **imaa)
+            ax = plt.axis()
             plt.gray()
-            plt.savefig('test-foot%03i.png' % i)
+            plt.plot([pk.getFx() for pk in flatpks], [pk.getFy() for pk in flatpks], 'r.')
+            plt.axis(ax)
+            plt.savefig('test-foot%03i-normal.png' % i)
 
-            #I_nopsf = afwimgtonumpy(mi.getImage(), x0, y0, W, H)
             I_nopsf = I.copy()
             pks_notpsf = []
             pks_psf = []
 
-            ima = dict(interpolation='nearest', origin='lower', vmin=mn, vmax=mx)
-            imb = dict(interpolation='nearest', origin='lower')
-
             # build the not-psf source and peak image.
             for j,pkres in enumerate(fpres.peaks):
                 pk = pks[i][j]
-                print 'peak:', pk
-                print 'x,y', pk.getFx(), pk.getFy()
-                #if not hasattr(pkres, 'timg'):
-                #    # probably out-of-bounds
-                #    continue
-                if hasattr(pkres, 'deblend_as_psf') and pkres.deblend_as_psf:
-                #if pkres.deblend_as_psf:
-                    #mm = pkres.model
+                print 'Peak', j, 'at x,y', pk.getFx(), pk.getFy()
+                try:
+                    print 'chisq/dof', pkres.chisq/pkres.dof
+                except:
+                    pass
+                print 'deblended as PSF?', pkres.deblend_as_psf
+                if pkres.deblend_as_psf:
                     mm = pkres.psfderivimg
-                    MM = afwimgtonumpy(mm)
+                    MM = mm.getArray()
                     mx0,my0 = mm.getX0(), mm.getY0()
                     mW,mH = mm.getWidth(), mm.getHeight()
                     print 'Peak', j, 'deblended as PSF.'
-                    #plt.clf()
-                    #plt.subplot(1,2,1)
-                    #plt.imshow(I_nopsf
-                    I_nopsf[my0:my0+mH, mx0:mx0+mW] -= MM
+                    print '  x0,y0', mx0,my0
+                    print '  W,H', mW,mH
+                    I_nopsf[my0-fy0:my0-fy0+mH, mx0-fx0:mx0-fx0+mW] -= MM
                     pks_psf.append(pk)
                 else:
                     pks_notpsf.append(pk)
 
-            imbb = mi.getBBox(afwImage.PARENT)
-            imx0,imy0 = imbb.getMinX(), imbb.getMinY()
+                plt.clf()
+                plt.subplot(2,2,1)
+                ims = imb.copy()
+                try:
+                    S = pkres.stamp
+                    l,b = pkres.stampxy0
+                    r,t = pkres.stampxy1
+                    ims.update(dict(extent=(l,r,b,t)), aspect='equal')
+                except:
+                    pass
+                if hasattr(pkres, 'stamp'):
+                    myimshow(pkres.stamp.getArray(), **ims)
+                    plt.title('stamp')
+                plt.subplot(2,2,2)
+                if hasattr(pkres, 'psfimg'):
+                    myimshow(pkres.psfimg.getArray(), **ims)
+                    plt.title('psfimg')
+                plt.subplot(2,2,3)
+                if hasattr(pkres, 'psfderivimg'):
+                    myimshow(pkres.psfderivimg.getArray(), **ims)
+                    plt.title('psfderivimg')
+                plt.subplot(2,2,4)
+                if hasattr(pkres, 'model'):
+                    myimshow(pkres.model.getArray(), **ims)
+                    plt.title('model')
+                plt.savefig('test-foot%03i-stamp%03i.png' % (i,j))
 
             plt.clf()
-            plt.imshow(I_nopsf, origin='lower', interpolation='nearest',
-                       vmin=-50, vmax=400)
+            myimshow(I_nopsf, **imaa)
             ax = plt.axis()
             plt.gray()
-
-            dx = x0 - imx0
-            dy = y0 - imy0
-            print 'dx,dy', dx,dy
-            plt.plot([pk.getFx()-dx for pk in pks_notpsf], [pk.getFy()-dy for pk in pks_notpsf], 'r.')
-            plt.plot([pk.getFx()-dx for pk in pks_psf],    [pk.getFy()-dy for pk in pks_psf],    'g+')
+            plt.plot([pk.getFx() for pk in pks_notpsf], [pk.getFy() for pk in pks_notpsf], 'r.')
+            plt.plot([pk.getFx() for pk in pks_psf],    [pk.getFy() for pk in pks_psf],    'g+', lw=2, ms=8)
             plt.axis(ax)
             plt.savefig('test-foot%03i-notpsf.png' % i)
             
@@ -207,17 +262,22 @@ def testDeblend(foots, pks, mi, psf):
                 pk = pks[i][j]
                 print 'peak:', pk
                 print 'x,y', pk.getFx(), pk.getFy()
-                print 'footprint x0,y0', x0,y0
+                print 'footprint x0,y0', fx0,fy0
                 xs0,ys0 = pkres.stampxy0
                 print 'stamp xy0', xs0, ys0
                 xs1,ys1 = pkres.stampxy1
                 cx,cy = pkres.center
 
-                T = afwimgtonumpy(pkres.timg)
-                P = afwimgtonumpy(pkres.portion)
-                S = afwimgtonumpy(pkres.stamp)
-                PSF = afwimgtonumpy(pkres.psfimg)
-                M = afwimgtonumpy(pkres.model)
+                T   = pkres.timg.getArray()
+                T_ext = getExtent(pkres.timg)
+                P   = pkres.portion.getArray()
+                P_ext = getExtent(pkres.portion)
+                S   = pkres.stamp.getArray()
+                S_ext = getExtent(pkres.stamp)
+                PSF = pkres.psfimg.getArray()
+                PSF_ext = getExtent(pkres.psfimg)
+                M   = pkres.model.getArray()
+                M_ext = getExtent(pkres.model)
 
                 ss = np.sort(S.ravel())
                 cmn,cmx = [ss[int(p*len(ss))] for p in [0.1, 0.99]]
@@ -225,39 +285,38 @@ def testDeblend(foots, pks, mi, psf):
                 d = (cmx-cmn)/2.
                 imd = dict(interpolation='nearest', origin='lower', vmin=-d, vmax=d)
 
-                NR,NC = 2,4
+                NR,NC = 2,3
                 plt.clf()
 
                 plt.subplot(NR,NC,1)
-                plt.imshow(I, **ima)
+                plt.imshow(I, **imaa)
                 ax = plt.axis()
                 plt.plot([pk.getFx()], [pk.getFy()], 'r+')
                 plt.plot([xs0,xs0,xs1,xs1,xs0], [ys0,ys1,ys1,ys0,ys0], 'r-')
                 plt.axis(ax)
                 plt.title('Image')
-                #plt.colorbar()
 
                 plt.subplot(NR,NC,2)
-                plt.imshow(T, **ima)
+                plt.imshow(T, extent=T_ext, aspect='equal', **ima)
                 plt.title('Template')
 
                 plt.subplot(NR,NC,3)
-                plt.imshow(P, **ima)
+                plt.imshow(P, extent=P_ext, aspect='equal', **ima)
                 plt.title('Flux portion')
 
-                plt.subplot(NR,NC,5)
-                plt.imshow(S, **imc)
+                plt.subplot(NR,NC,4)
+                plt.imshow(S, extent=S_ext, aspect='equal', **imc)
                 ax = plt.axis()
-                plt.plot([pk.getFx() - xs0], [pk.getFy() - ys0], 'r+')
+                plt.plot([pk.getFx()], [pk.getFy()], 'r+')
                 plt.axis(ax)
                 plt.title('near-peak cutout')
 
-                plt.subplot(NR,NC,6)
-                plt.imshow(M, **imc)
+                plt.subplot(NR,NC,5)
+                plt.imshow(M, extent=M_ext, aspect='equal', **imc)
                 plt.title('PSF model: chisq/dof=%.2f' % (pkres.chisq/pkres.dof))
 
-                plt.subplot(NR,NC,8)
-                plt.imshow(S-M, **imd)
+                plt.subplot(NR,NC,6)
+                plt.imshow(S-M, extent=S_ext, aspect='equal', **imd)
                 plt.title('resids')
 
                 plt.savefig('templ-f%i-t%i.png' % (i,j))
@@ -271,9 +330,9 @@ def testDeblend(foots, pks, mi, psf):
                 plt.clf()
                 NR,NC = 1,2
                 plt.subplot(NR,NC,1)
-                plt.imshow(I, **ima)
+                myimshow(I, **imaa)
                 plt.subplot(NR,NC,2)
-                plt.imshow(sumP, **ima)
+                myimshow(sumP, **imaa)
                 plt.savefig('sump-f%i.png' % i)
 
 
@@ -326,10 +385,8 @@ if __name__ == "__main__":
 
     print 'img xy0', img.getX0(), img.getY0()
     # 690, 2090
-    img.setXY0(afwGeom.Point2I(0,0))
-
-
-    print img.getWidth(), img.getHeight()
+    #img.setXY0(afwGeom.Point2I(0,0))
+    print 'img size', img.getWidth(), img.getHeight()
     #psfimg = pyfits.open(opt.psffn)[1].data
 
     if True:
@@ -354,10 +411,9 @@ if __name__ == "__main__":
         psf = afwDet.Psf.swigConvert(obj)
         print 'psf', psf
         
-        psfimg = psf.computeImage()
-        print 'Natural size:', psfimg.getWidth(), psfimg.getHeight()
-
-        psf = OffsetPsf(psf, opt.psfx0, opt.psfy0)
+        #psfimg = psf.computeImage()
+        #print 'Natural size:', psfimg.getWidth(), psfimg.getHeight()
+        #psf = OffsetPsf(psf, opt.psfx0, opt.psfy0)
 
 
     if opt.footfn:
@@ -367,38 +423,76 @@ if __name__ == "__main__":
         # necessary?
         f.close()
 
-        foots,pks = footprintsFromPython(pyfp)
-        #print 'Got footprints:', foots
-        #print 'Got peaks:', pks
+        foots = footprintsFromPython(pyfp)
         print 'Got', len(foots), 'footprints'
-        print 'Got', len(pks), 'peaks'
-        
-    elif opt.srcfn:
-        srcs = pyfits.open(opt.srcfn)[1].data
-        x = srcs.field('x').astype(float)
-        y = srcs.field('y').astype(float)
-        # FITS to LSST
-        x -= 1
-        y -= 1
-        print 'source x range', x.min(),x.max()
-        print '       y range', y.min(),y.max()
-        # [0,250]
+        print 'Got total of', sum([len(foot.getPeaks()) for foot in foots]), 'peaks'
+        #print 'Got total of', sum([len(pklist) for pklist in pks]), 'peaks'
+        #print 'Peaks per footprint:', [len(pklist) for pklist in pks]
 
-        # single footprint for the whole image.
-        bb = afwGeom.Box2I(afwGeom.Point2I(0, 0), afwGeom.Extent2I(img.getWidth(), img.getHeight()))
-        pks = list(zip(x,y))
-        spans = [(0, img.getWidth()-1, yi) for yi in range(img.getHeight())]
-        foots,pks = footprintsFromPython([(bb,pks,spans)])
-        print 'Footprints', foots
-        print 'foot:', foots[0]
-        print foots[0].getBBox()
-        print 'Peaks:', pks
+        #for foot,pkl in zip(foots,pks):
+        #    plist = foot.getPeaks()
+        #    for pk in pkl:
+        #        plist.append(pk)
+
+        
+    # elif opt.srcfn:
+    #     srcs = pyfits.open(opt.srcfn)[1].data
+    #     x = srcs.field('x').astype(float)
+    #     y = srcs.field('y').astype(float)
+    #     # FITS to LSST
+    #     x -= 1
+    #     y -= 1
+    #     print 'source x range', x.min(),x.max()
+    #     print '       y range', y.min(),y.max()
+    #     # [0,250]
+    #     # single footprint for the whole image.
+    #     bb = afwGeom.Box2I(afwGeom.Point2I(0, 0), afwGeom.Extent2I(img.getWidth(), img.getHeight()))
+    #     pks = list(zip(x,y))
+    #     spans = [(0, img.getWidth()-1, yi) for yi in range(img.getHeight())]
+    #     foots,pks = footprintsFromPython([(bb,pks,spans)])
+    #     print 'Footprints', foots
+    #     print 'foot:', foots[0]
+    #     print foots[0].getBBox()
+    #     print 'Peaks:', pks
 
     else:
         assert(False)
 
+
+    # Trim footprints and peaks to image bounds
+    imbb = img.getBBox(afwImage.PARENT)
+    print 'Image bbox:', imbb.getMinX(), imbb.getMaxX(), imbb.getMinY(), imbb.getMaxY()
+    keepfoots = []
+    for foot in foots:
+        fbb = foot.getBBox()
+        if not imbb.overlaps(fbb):
+            continue
+        print 'Trimming footprint'
+        #print '  bbox x', fbb.getMinX(), fbb.getMaxX(), 'y', fbb.getMinY(), fbb.getMaxY()
+        #print '  n spans', foot.getSpans().size()
+        print '  pks:', len(foot.getPeaks())
+        foot.clipTo(imbb)
+        fbb = foot.getBBox()
+        #print '  after: bbox x', fbb.getMinX(), fbb.getMaxX(), 'y', fbb.getMinY(), fbb.getMaxY()
+        #print '  after: n spans', foot.getSpans().size()
+        print '  to:', len(foot.getPeaks())
+        if len(foot.getPeaks()) == 0:
+            continue
+        keepfoots.append(foot)
+    foots = keepfoots
+    # Re-grab the peaks
+    # keeppks = []
+    # for foot in foots:
+    #     pks = []
+    #     for pk in foot.getPeaks():
+    #         pks.append(pk)
+    #     keeppks.append(pks)
+    print 'Trimmed to', len(foots), 'footprints'
+    print 'Trimmed to total of', sum([len(foot.getPeaks()) for foot in foots]), 'peaks'
+            
+
     mi = img.getMaskedImage()
     print 'MI xy0', mi.getX0(), mi.getY0()
 
-    testDeblend(foots, pks, mi, psf)
+    testDeblend(foots, mi, psf)
     

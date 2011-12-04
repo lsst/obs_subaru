@@ -10,12 +10,13 @@ class PerFootprint(object):
 class PerPeak(object):
     def __init__(self):
         self.out_of_bounds = False
+        self.deblend_as_psf = False
 
 def deblend(footprints, peaks, maskedImage, psf, psffwhm):
-    print 'Naive deblender starting'
-    print 'footprints', footprints
-    print 'maskedImage', maskedImage
-    print 'psf', psf
+    print 'SDSS-lite deblender starting'
+    #print 'footprints', footprints
+    #print 'maskedImage', maskedImage
+    #print 'psf', psf
 
     results = []
 
@@ -151,7 +152,7 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
                     if R > R0:
                         rw = (R - R0) / (R1 - R0)
 
-                    im = img.get(x, y)
+                    im = img.get0(x, y)
                     A[ipix,I_psf] = p
                     A[ipix,1] = 1.
                     A[ipix,2] = x-cx
@@ -169,7 +170,7 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
 
                     b[ipix] = im
                     # ramp weight * ( 1 / image variance )
-                    w[ipix] = np.sqrt(rw / varimg.get(x,y))
+                    w[ipix] = np.sqrt(rw / varimg.get0(x,y))
                     sumr += rw
                     ipix += 1
 
@@ -269,9 +270,16 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
             if ispsf:
                 # check that the fit PSF spatial derivative terms
                 # aren't too big
-                dx,dy = X[I_dx],X[I_dy]
+                fdx,fdy = X[I_dx],X[I_dy]
+                f0 = X[I_psf]
+                # as a fraction of the PSF flux
+                dx = fdx/f0
+                dy = fdy/f0
+                print 'isPSF -- check derivatives.'
+                print 'fdx,fdy', fdx,fdy, 'vs f0', f0
                 print 'dx,dy', dx,dy
                 ispsf = ispsf and (abs(dx) < 1. and abs(dy) < 1.)
+                print '  -> isPSF is', ispsf
             pkres.deblend_as_psf = ispsf
 
             if ispsf:
@@ -292,13 +300,14 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
         bb = fp.getBBox()
         W,H = bb.getWidth(), bb.getHeight()
         x0,y0 = bb.getMinX(), bb.getMinY()
+        x1,y1 = bb.getMaxX(), bb.getMaxY()
         print 'Creating templates for footprint at x0,y0', x0,y0
         print 'W,H', W,H
         for pki,(pk,pkres) in enumerate(zip(pks, fpres.peaks)):
-            if hasattr(pkres, 'out_of_bounds') and pkres.out_of_bounds:
+            if pkres.out_of_bounds:
                 print 'Skipping out-of-bounds peak', pki
                 continue
-            if hasattr(pkres, 'deblend_as_psf') and pkres.deblend_as_psf:
+            if pkres.deblend_as_psf:
                 print 'Skipping PSF peak', pki
                 continue
             print 'computing template for peak', pki
@@ -311,7 +320,7 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
                 pkres.out_of_bounds = True
                 continue
             timg = template.getImage()
-            p = img.get(cx,cy)
+            p = img.get0(cx,cy)
             timg.set(cx - x0, cy - y0, p)
 
             # We do dy>=0; dy<0 is handled by symmetry.
@@ -352,8 +361,8 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
                         if not imbb.contains(afwGeom.Point2I(xb, yb)):
                             continue
 
-                        pa = img.get(xa, ya)
-                        pb = img.get(xb, yb)
+                        pa = img.get0(xa, ya)
+                        pb = img.get0(xb, yb)
 
                         # monotonic constraint
                         xm = xa - (hx * signdx)
@@ -383,13 +392,13 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
         timgs = []
         portions = []
         for pki,pkres in enumerate(fpres.peaks):
-            if hasattr(pkres, 'out_of_bounds') and pkres.out_of_bounds:
+            if pkres.out_of_bounds:
                 print 'Skipping out-of-bounds peak', pki
                 continue
             timg = pkres.timg
             timgs.append(timg)
-            if timg.getWidth() != W or timg.getHeight() != H:
-                import pdb; pdb.set_trace()
+            #if timg.getWidth() != W or timg.getHeight() != H:
+            #    import pdb; pdb.set_trace()
 
             # NOTE! portions, timgs and the footprint are _currently_ all the same size, 
             p = afwImage.ImageF(W,H)
@@ -398,9 +407,9 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
             pkres.portion = p
 
         print 'apportioning among', len(timgs), 'templates'
-        for y in range(H):
-            for x in range(W):
-                impt = afwGeom.Point2I(x0+x, y0+y)
+        for y in range(y0,y1+1):
+            for x in range(x0,x1+1):
+                impt = afwGeom.Point2I(x, y)
                 if not imbb.contains(impt):
                     continue
 
@@ -409,19 +418,17 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
                     tbb = t.getBBox(afwImage.PARENT)
                     tx0,ty0 = t.getX0(), t.getY0()
                     if tbb.contains(impt):
-                        tvals.append(t.get(x+x0-tx0,y+y0-ty0))
+                        tvals.append(t.get(x-tx0,y-ty0))
                     else:
                         tvals.append(0)
                 #S = sum([max(0, t) for t in tvals])
                 S = sum([abs(t) for t in tvals])
                 if S == 0:
                     continue
-                impix = img.get(x0+x, y0+y)
+                impix = img.get0(x, y)
                 for t,p in zip(tvals,portions):
                     #p.set(x,y, img.get(x0+x, y0+y) * max(0,tvals[i])/S)
-                    p.set(x,y, impix * abs(t)/S)
-
-        #for r,p in zip(fpres.peaks, portions):
-        #    r.portion = p
+                    if t != 0:
+                        p.set0(x, y, impix * abs(t)/S)
 
     return results
