@@ -14,7 +14,7 @@ import lsst.pipette.background as pipBackground
 
 from lsst.pipette.timer import timecall
 
-import lsst.meas.deblender.naive as deblendNaive
+import lsst.meas.deblender.baseline as deblendBaseline
 
 class Photometry(pipProc.Process):
     def __init__(self, thresholdMultiplier=1.0, Background=pipBackground.Background, *args, **kwargs):
@@ -89,7 +89,7 @@ class Photometry(pipProc.Process):
                 peaks.append(pk)
 
             mi = exposure.getMaskedImage()
-            bootPrints = deblendNaive.deblend([footprint], [peaks], mi, psf, psf_fwhm)
+            bootPrints = deblendBaseline.deblend([footprint], [peaks], mi, psf, psf_fwhm)
             self.log.log(self.log.INFO, "deblendOneFootprint turned %d peaks into %d objects." % (len(peaks),
                                                                                                   len(bootPrints[0].peaks)))
             if len(peaks) > 1:

@@ -4,7 +4,7 @@ import optparse
 import pyfits
 
 #from lsst.meas.deblender import deblender
-from lsst.meas.deblender import naive as naive_deblender
+from lsst.meas.deblender import baseline as baseline_deblender
 import lsst.afw.image as afwImage
 import lsst.afw.detection as afwDet
 import lsst.afw.geom as afwGeom
@@ -123,14 +123,14 @@ def testDeblend(foots, mi, psf):
             print obj
 
     if True:
-        print 'Calling naive deblender...'
+        print 'Calling baseline deblender...'
 
         ### HACK
         print 'ONLY LOOKING AT LAST FOOTPRINT'
         foots = [foots[-1]]
         pks = [pks[-1]]
 
-        results = naive_deblender.deblend(foots, pks, mi, psf, psf_fwhm)
+        results = baseline_deblender.deblend(foots, pks, mi, psf, psf_fwhm)
 
         print
         print 'deblender finished'
