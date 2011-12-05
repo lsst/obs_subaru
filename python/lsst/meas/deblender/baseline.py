@@ -12,17 +12,14 @@ class PerPeak(object):
         self.out_of_bounds = False
         self.deblend_as_psf = False
 
-def deblend(footprints, peaks, maskedImage, psf, psffwhm):
-    print 'SDSS-lite deblender starting'
-    #print 'footprints', footprints
-    #print 'maskedImage', maskedImage
-    #print 'psf', psf
+#def psfFit(psfimg, R0, R1, stamp, xlo,xhi,ylo,yhi,
+#           otherpsfs, dodxdy):
 
-    results = []
+def deblend(footprints, peaks, maskedImage, psf, psffwhm):
+    print 'Baseline deblender starting'
 
     img = maskedImage.getImage()
     varimg = maskedImage.getVariance()
-
     mask = maskedImage.getMask()
     # find the median variance in the image...
     stats = afwMath.makeStatistics(varimg, mask, afwMath.MEDIAN)
@@ -33,6 +30,7 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
     print 'imbb (PARENT)', imbb.getMinX(), imbb.getMaxX(), imbb.getMinY(), imbb.getMaxY()
 
     # prepare results structures
+    results = []
     for fp,pks in zip(footprints,peaks):
         fpres = PerFootprint()
         results.append(fpres)
@@ -41,53 +39,46 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
             pkres = PerPeak()
             fpres.peaks.append(pkres)
 
-
     # First find peaks that are well-fit by a PSF + background model.
     for fp,pks,fpres in zip(footprints,peaks,results):
+
+        fbb = fp.getBBox()
+        assert(imbb.contains(fbb))
+
         for pki,(pk,pkres) in enumerate(zip(pks, fpres.peaks)):
+
             # Fit a PSF + smooth background model (linear) to a 
             # small region around the peak
-            print 'PSF FWHM', psffwhm
-            # full-weight radius
+            # The small region is a disk out to R0, plus a ramp with decreasing weight
+            # down to R1.
             R0 = int(math.ceil(psffwhm * 1.))
             # ramp down to zero weight at this radius...
             R1 = int(math.ceil(psffwhm * 1.5))
-            print 'R0', R0, 'R1', R1
             S = 2 * R1
-            print 'S = ', S
+            #print 'R0', R0, 'R1', R1
+            #print 'S = ', S
             cx,cy = pk.getFx(), pk.getFy()
             psfimg = psf.computeImage(afwGeom.Point2D(cx, cy))
             # R2: distance to neighbouring peak in order to put it
             # into the model
             R2 = R1 + psfimg.getWidth()/2.
 
-            bbox = psfimg.getBBox(afwImage.PARENT)
-            #print 'PSF bbox X:', bbox.getMinX(), bbox.getMaxX()
-            #print 'PSF bbox Y:', bbox.getMinY(), bbox.getMaxY()
-            bbox.clip(fp.getBBox())
-            #print 'clipped bbox X:', bbox.getMinX(), bbox.getMaxX()
-            #print 'clipped bbox Y:', bbox.getMinY(), bbox.getMaxY()
+            pbb = psfimg.getBBox(afwImage.PARENT)
+            pbb.clip(fp.getBBox())
             px0,py0 = psfimg.getX0(), psfimg.getY0()
-            #print 'px0,py0', px0,py0
+
+            # The bounding-box of the local region we are going to fit ("stamp")
             xlo = int(math.floor(cx - R1))
             ylo = int(math.floor(cy - R1))
             xhi = int(math.ceil (cx + R1))
             yhi = int(math.ceil (cy + R1))
-            bb = fp.getBBox()
-            xlo = max(xlo, bb.getMinX())
-            ylo = max(ylo, bb.getMinY())
-            xhi = min(xhi, bb.getMaxX())
-            yhi = min(yhi, bb.getMaxY())
+            stampbb = afwGeom.Box2I(afwGeom.Point2I(xlo,ylo), afwGeom.Point2I(xhi,yhi))
+            stampbb.clip(fbb)
+            stamp = img.Factory(img, stampbb, afwImage.PARENT, True)
+            assert(stamp.getBBox(afwImage.PARENT) == stampbb)
 
-            print 'xlo,xhi', xlo,xhi
-            print 'ylo,yhi', ylo,yhi
-
-            xlo = max(xlo, imbb.getMinX())
-            xhi = min(xhi, imbb.getMaxX())
-            ylo = max(ylo, imbb.getMinY())
-            yhi = min(yhi, imbb.getMaxY())
-            print 'xlo,xhi', xlo,xhi
-            print 'ylo,yhi', ylo,yhi
+            xlo,xhi = stampbb.getMinX(), stampbb.getMaxX()
+            ylo,yhi = stampbb.getMinY(), stampbb.getMaxY()
             if xlo >= xhi or ylo >= yhi:
                 print 'Skipping this one'
                 pkres.out_of_bounds = True
@@ -98,25 +89,27 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
             for j,pk2 in enumerate(pks):
                 if j == pki:
                     continue
-                if (pk2.getFx() - cx)**2 + (pk2.getFy() - cy)**2 > R2**2:
+                if pk.getF().distanceSquared(pk2.getF()) > R2**2:
                     continue
-                opsfimg = psf.computeImage(afwGeom.Point2D(pk2.getFx(),
-                                                           pk2.getFy()))
+                opsfimg = psf.computeImage(pk2.getF())
                 otherpsfs.append(opsfimg)
             print len(otherpsfs), 'other peaks within range'
 
-            # Number of terms -- PSF, constant, X, Y, + other PSFs,
+            # Number of terms -- PSF flux, constant, X, Y, + other PSF fluxes
+            NT1 = 4 + len(otherpsfs)
             # + PSF dx, dy
-            NT = 4 + len(otherpsfs) + 2
+            NT2 = NT1 + 2
             # Number of pixels -- at most
             NP = (1 + yhi - ylo) * (1 + xhi - xlo)
 
             # indices of terms
             I_psf = 0
-            I_dx = 4
-            I_dy = 5
+            # start of other psf fluxes
+            I_opsf = 4
+            I_dx = NT1 + 0
+            I_dy = NT1 + 1
 
-            A = np.zeros((NP, NT))
+            A = np.zeros((NP, NT2))
             b = np.zeros(NP)
             w = np.zeros(NP)
             # pixel indices
@@ -127,23 +120,24 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
                 for x in range(xlo, xhi+1):
                     R = np.hypot(x - cx, y - cy)
                     if R > R1:
+                        stamp.set0(x, y, 0.)
                         continue
-
+                    xy = afwGeom.Point2I(x,y)
                     # in psf bbox?
-                    if not bbox.contains(afwGeom.Point2I(x,y)):
-                        p = 0
+                    if pbb.contains(xy):
+                        p = psfimg.get0(x,y)
                     else:
-                        p = psfimg.get(x-px0,y-py0)
+                        p = 0
 
-                    if (bbox.contains(afwGeom.Point2I(x-1,y)) and
-                        bbox.contains(afwGeom.Point2I(x+1,y))):
-                        dx = (psfimg.get(x+1-px0,y-py0) - psfimg.get(x-1-px0,y-py0)) / 2.
+                    if (pbb.contains(afwGeom.Point2I(x-1,y)) and
+                        pbb.contains(afwGeom.Point2I(x+1,y))):
+                        dx = (psfimg.get0(x+1,y) - psfimg.get0(x-1,y)) / 2.
                     else:
                         dx = 0.
-
-                    if (bbox.contains(afwGeom.Point2I(x,y-1)) and
-                        bbox.contains(afwGeom.Point2I(x,y+1))):
-                        dy = (psfimg.get(x-px0,y+1-py0) - psfimg.get(x-px0,y-1-py0)) / 2.
+                        
+                    if (pbb.contains(afwGeom.Point2I(x,y-1)) and
+                        pbb.contains(afwGeom.Point2I(x,y+1))):
+                        dy = (psfimg.get0(x,y+1) - psfimg.get0(x,y-1)) / 2.
                     else:
                         dy = 0.
 
@@ -152,7 +146,6 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
                     if R > R0:
                         rw = (R - R0) / (R1 - R0)
 
-                    im = img.get0(x, y)
                     A[ipix,I_psf] = p
                     A[ipix,1] = 1.
                     A[ipix,2] = x-cx
@@ -163,12 +156,10 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
                     # other nearby peak PSFs
                     for j,opsf in enumerate(otherpsfs):
                         obbox = opsf.getBBox(afwImage.PARENT)
-                        obbox.clip(fp.getBBox())
-                        opx0,opy0 = opsf.getX0(), opsf.getY0()
                         if obbox.contains(afwGeom.Point2I(x,y)):
-                            A[ipix, 6+j] = opsf.get(x-opx0, y-opy0)
+                            A[ipix, I_opsf + j] = opsf.get0(x, y)
 
-                    b[ipix] = im
+                    b[ipix] = img.get0(x, y)
                     # ramp weight * ( 1 / image variance )
                     w[ipix] = np.sqrt(rw / varimg.get0(x,y))
                     sumr += rw
@@ -180,74 +171,140 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
             b = b[:NP]
             w = w[:NP]
             ipixes = ipixes[:NP,:]
-            #print 'Npix', NP
-            #print 'sumr', sumr
             Aw  = A * w[:,np.newaxis]
             bw  = b * w
-            #print 'A shape', A.shape
-            #print 'Aw shape', Aw.shape
-            X,r,rank,s = np.linalg.lstsq(Aw, bw)
-            print 'X', X
-            print 'rank', rank
-            print 'r', r
+
+            X1,r1,rank1,s1 = np.linalg.lstsq(Aw[:,:NT1], bw)
+            X2,r2,rank2,s2 = np.linalg.lstsq(Aw, bw)
+            print 'X1', X1
+            print 'X2', X2
+            print 'ranks', rank1, rank2
+            print 'r', r1, r2
             # r is weighted chi-squared = sum_pix ramp * (model - data)**2/sigma**2
-            if len(r) > 0:
-                chisq = r[0]
+            if len(r1) > 0:
+                chisq1 = r1[0]
             else:
-                chisq = 1e30
-            dof = sumr - len(X)
-            print 'Chi-squared', chisq
-            print 'Degrees of freedom', dof
-            try:
-                print 'chisq/dof =', chisq/dof
-            except ZeroDivisionError, e:
-                print "dof is zero!"
-                dof = 1                 # CPL
+                chisq1 = 1e30
+            if len(r2) > 0:
+                chisq2 = r2[0]
+            else:
+                chisq2 = 1e30
+
+            dof1 = sumr - len(X1)
+            dof2 = sumr - len(X2)
+            # could fail...
+            assert(dof1 > 0)
+            assert(dof2 > 0)
+            print 'Chi-squareds', chisq1, chisq2
+            print 'Degrees of freedom', dof1, dof2
+            q1 = chisq1/dof1
+            q2 = chisq2/dof2
+            print 'chisq/dof =', q1,q2
+
+            # MAGIC number
+            ispsf1 = (q1 < 1.5)
+            ispsf2 = (q2 < 1.5)
+
+            # check that the fit PSF spatial derivative terms aren't too big
+            if ispsf2:
+                fdx, fdy = X2[I_dx], X2[I_dy]
+                f0 = X2[I_psf]
+                # as a fraction of the PSF flux
+                dx = fdx/f0
+                dy = fdy/f0
+                print 'isPSF -- check derivatives.'
+                #print 'fdx,fdy', fdx,fdy, 'vs f0', f0
+                print '  dx,dy', dx,dy
+                ispsf2 = ispsf2 and (abs(dx) < 1. and abs(dy) < 1.)
+                print '  -> still ok?', ispsf2
+            if ispsf2:
+                # shift the PSF by that amount and re-evaluate it.
+                psfimg2 = psf.computeImage(afwGeom.Point2D(cx + dx, cy + dy))
+                # clip
+                pbb2 = psfimg2.getBBox(afwImage.PARENT)
+                pbb2.clip(fbb)
+                print 'psfimg2', psfimg2
+                print 'pbb2', pbb2
+                print 'parent', afwImage.PARENT
+                #psfimg2 = afwImage.ImageF(psfimg2, pbb2, afwImage.PARENT)
+                psfimg2 = psfimg2.Factory(psfimg2, pbb2, afwImage.PARENT)
+                for ipix,(x,y) in enumerate(ipixes):
+                    if pbb2.contains(afwGeom.Point2I(int(x),int(y))):
+                        p = psfimg2.get0(int(x),int(y))
+                    else:
+                        p = 0
+                    A[ipix,I_psf] = p
+                Aw  = A * w[:,np.newaxis]
+                Xb,rb,rankb,sb = np.linalg.lstsq(Aw[:, :NT1], bw)
+                print 'Xb', Xb
+                if len(rb) > 0:
+                    chisqb = rb[0]
+                else:
+                    chisqb = 1e30
+                print 'chisq', chisqb
+                dofb = sumr - len(Xb)
+                print 'dof', dofb
+                qb = chisqb / dofb
+                print 'chisq/dof', qb
+                ispsf2 = (qb < 1.5)
+                q2 = qb
+                X2 = Xb
+
+
+            if ispsf1 and ispsf2:
+                if q2 < q1:
+                    Xpsf = X2
+                else:
+                    Xpsf = X1
+            elif ispsf1:
+                Xpsf = X1
+            elif ispsf2:
+                Xpsf = X2
+            else:
+                Xpsf = X2
+
+            ispsf = (ispsf1 or ispsf2)
+
+            if q1 < q2:
+                chisq = chisq1
+                dof = dof1
+            else:
+                chisq = chisq2
+                dof = dof2
+
+
+
                 
             SW,SH = 1+xhi-xlo, 1+yhi-ylo
             print 'Stamp size', SW, SH
-            stamp = afwImage.ImageF(SW,SH)
             psfmod = afwImage.ImageF(SW,SH)
+            psfmod.setXY0(xlo,ylo)
             psfderivmod = afwImage.ImageF(SW,SH)
+            psfderivmod.setXY0(xlo,ylo)
             model = afwImage.ImageF(SW,SH)
-            # for y in range(ylo, yhi+1):
-            #     for x in range(xlo, xhi+1):
-            #         R = np.hypot(x - cx, y - cy)
-            #         if R > R1:
-            #             continue
-            #         # psf
-            #         if not bbox.contains(afwGeom.Point2I(x,y)):
-            #             p = 0
-            #         else:
-            #             p = psfimg.get(x - px0, y - py0)
-            #         im = img.get(x, y)
-            #         stamp.set(x-xlo, y-ylo, im)
-            #         psfmod.set(x-xlo, y-ylo, p)
+            model.setXY0(xlo,ylo)
 
             psfm2 = np.zeros((SH,SW))
             m2 = np.zeros((SH,SW))
             print 'ipixes shape', ipixes.shape
             print 'A shape', A.shape
-            print 'X shape', X.shape
-            for i in range(NT):
-                m2[ipixes[:,1],ipixes[:,0]] += A[:,i] * X[i]
+            print 'X1 shape', X1.shape
+            print 'X2 shape', X2.shape
+            for i in range(len(Xpsf)):
+                m2[ipixes[:,1],ipixes[:,0]] += A[:,i] * Xpsf[i]
             for i in [I_psf, I_dx, I_dy]:
-                psfm2[ipixes[:,1],ipixes[:,0]] += A[:,i] * X[i]
+                if i < len(Xpsf):
+                    psfm2[ipixes[:,1],ipixes[:,0]] += A[:,i] * Xpsf[i]
+
             for y in range(ylo, yhi+1):
                 for x in range(xlo, xhi+1):
-                    model.set(x-xlo, y-ylo, m2[y-ylo,x-xlo])
-                    psfderivmod.set(x-xlo, y-ylo, psfm2[y-ylo,x-xlo])
+                    model.set0(x, y, m2[y-ylo,x-xlo])
+                    psfderivmod.set0(x, y, psfm2[y-ylo,x-xlo])
             for ii in range(NP):
                 x,y = ipixes[ii,:]
-                #x,y 5 0 <type 'numpy.int64'> <type 'numpy.int64'> val -80.8212890625 <type 'numpy.float64'>
-                #print 'x,y', x,y, type(x),type(y), 'val', b[ii], type(b[ii])
-                stamp.set(int(x),int(y), float(b[ii]))
+                #stamp.set(int(x),int(y), float(b[ii]))
                 psfmod.set(int(x),int(y), float(A[ii, I_psf]))
-
-            psfderivmod.setXY0(xlo,ylo)
-            model.setXY0(xlo,ylo)
-            stamp.setXY0(xlo,ylo)
-            psfmod.setXY0(xlo,ylo)
+            #stamp.setXY0(xlo,ylo)
 
             pkres.R0 = R0
             pkres.R1 = R1
@@ -261,25 +318,10 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
             pkres.center = cx,cy
             pkres.chisq = chisq
             pkres.dof = dof
-            pkres.X = X
+            pkres.X = Xpsf
             pkres.otherpsfs = len(otherpsfs)
             pkres.w = w
 
-            # MAGIC number
-            ispsf = ((chisq / dof) < 1.5)
-            if ispsf:
-                # check that the fit PSF spatial derivative terms
-                # aren't too big
-                fdx,fdy = X[I_dx],X[I_dy]
-                f0 = X[I_psf]
-                # as a fraction of the PSF flux
-                dx = fdx/f0
-                dy = fdy/f0
-                print 'isPSF -- check derivatives.'
-                print 'fdx,fdy', fdx,fdy, 'vs f0', f0
-                print 'dx,dy', dx,dy
-                ispsf = ispsf and (abs(dx) < 1. and abs(dy) < 1.)
-                print '  -> isPSF is', ispsf
             pkres.deblend_as_psf = ispsf
 
             if ispsf:
