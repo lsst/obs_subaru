@@ -2,6 +2,7 @@ import math
 import numpy as np
 
 import lsst.afw.image as afwImage
+import lsst.afw.detection as afwDet
 import lsst.afw.geom  as afwGeom
 import lsst.afw.math  as afwMath
 
@@ -341,6 +342,11 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
                 print 'Skipping PSF peak', pki
                 continue
             print 'computing template for peak', pki
+
+            #print 'creating heavy footprint...'
+            #heavy = afwDet.makeHeavyFootprint(fp, img)
+            #print 'n peaks:', len(heavy.getPeaks())
+
             template = afwImage.MaskedImageF(W,H)
             template.setXY0(x0,y0)
             cx,cy = pk.getIx(), pk.getIy()
