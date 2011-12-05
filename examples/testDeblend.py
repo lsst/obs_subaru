@@ -172,9 +172,6 @@ def testDeblend(foots, mi, psf):
                     mykwargs['vmax'] = nlmap(kwargs['vmax'])
                 return plt.imshow(nlmap(x), *args, **mykwargs)
 
-            #mn = nlmap(mn)
-            #mx = nlmap(mx)
-
             Iext = (fx0,fx0+fW,fy0,fy0+fH)
             ima = dict(interpolation='nearest', origin='lower', vmin=mn, vmax=mx)
             imaa = ima.copy()
@@ -220,26 +217,28 @@ def testDeblend(foots, mi, psf):
                 plt.subplot(2,2,1)
                 ims = imb.copy()
                 try:
-                    S = pkres.stamp
                     l,b = pkres.stampxy0
                     r,t = pkres.stampxy1
                     ims.update(dict(extent=(l,r,b,t)), aspect='equal')
+                    S = pkres.stamp.getArray()
+                    SG = S[S != 0]
+                    ims.update(vmin=SG.min(), vmax=SG.max())
                 except:
                     pass
                 if hasattr(pkres, 'stamp'):
-                    myimshow(pkres.stamp.getArray(), **ims)
+                    plt.imshow(pkres.stamp.getArray(), **ims)
                     plt.title('stamp')
                 plt.subplot(2,2,2)
                 if hasattr(pkres, 'psfimg'):
-                    myimshow(pkres.psfimg.getArray(), **ims)
+                    plt.imshow(pkres.psfimg.getArray(), **ims)
                     plt.title('psfimg')
                 plt.subplot(2,2,3)
                 if hasattr(pkres, 'psfderivimg'):
-                    myimshow(pkres.psfderivimg.getArray(), **ims)
+                    plt.imshow(pkres.psfderivimg.getArray(), **ims)
                     plt.title('psfderivimg')
                 plt.subplot(2,2,4)
                 if hasattr(pkres, 'model'):
-                    myimshow(pkres.model.getArray(), **ims)
+                    plt.imshow(pkres.model.getArray(), **ims)
                     plt.title('model chisq/dof = %.2f' % (pkres.chisq/pkres.dof))
                 plt.savefig('test-foot%03i-stamp%03i.png' % (i,j))
 

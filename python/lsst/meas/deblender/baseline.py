@@ -47,6 +47,9 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
 
         for pki,(pk,pkres) in enumerate(zip(pks, fpres.peaks)):
 
+            print
+            print 'Peak', pki
+
             # Fit a PSF + smooth background model (linear) to a 
             # small region around the peak
             # The small region is a disk out to R0, plus a ramp with decreasing weight
@@ -55,8 +58,7 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
             # ramp down to zero weight at this radius...
             R1 = int(math.ceil(psffwhm * 1.5))
             S = 2 * R1
-            #print 'R0', R0, 'R1', R1
-            #print 'S = ', S
+            #print 'R0', R0, 'R1', R1, 'S = ', S
             cx,cy = pk.getFx(), pk.getFy()
             psfimg = psf.computeImage(afwGeom.Point2D(cx, cy))
             # R2: distance to neighbouring peak in order to put it
@@ -225,17 +227,18 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
                 pbb2.clip(fbb)
                 print 'psfimg2', psfimg2
                 print 'pbb2', pbb2
-                print 'parent', afwImage.PARENT
-                #psfimg2 = afwImage.ImageF(psfimg2, pbb2, afwImage.PARENT)
                 psfimg2 = psfimg2.Factory(psfimg2, pbb2, afwImage.PARENT)
+                # yuck!
+                Ab = A[:,:NT1].copy()
                 for ipix,(x,y) in enumerate(ipixes):
-                    if pbb2.contains(afwGeom.Point2I(int(x),int(y))):
-                        p = psfimg2.get0(int(x),int(y))
+                    xi,yi = int(x)+xlo, int(y)+ylo
+                    if pbb2.contains(afwGeom.Point2I(xi,yi)):
+                        p = psfimg2.get0(xi,yi)
                     else:
                         p = 0
-                    A[ipix,I_psf] = p
-                Aw  = A * w[:,np.newaxis]
-                Xb,rb,rankb,sb = np.linalg.lstsq(Aw[:, :NT1], bw)
+                    Ab[ipix,I_psf] = p
+                Aw  = Ab * w[:,np.newaxis]
+                Xb,rb,rankb,sb = np.linalg.lstsq(Aw, bw)
                 print 'Xb', Xb
                 if len(rb) > 0:
                     chisqb = rb[0]
@@ -251,32 +254,20 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
                 X2 = Xb
 
 
-            if ispsf1 and ispsf2:
-                if q2 < q1:
-                    Xpsf = X2
-                else:
-                    Xpsf = X1
-            elif ispsf1:
-                Xpsf = X1
-            elif ispsf2:
+            # Which one do we keep?
+            if (((ispsf1 and ispsf2) and (q2 < q1)) or
+                (ispsf2 and not ispsf1)):
                 Xpsf = X2
-            else:
-                Xpsf = X2
-
-            ispsf = (ispsf1 or ispsf2)
-
-            if q1 < q2:
-                chisq = chisq1
-                dof = dof1
-            else:
                 chisq = chisq2
                 dof = dof2
-
-
-
+            else:
+                # (arbitrarily set to X1 when neither fits well)
+                Xpsf = X1
+                chisq = chisq1
+                dof = dof1
+            ispsf = (ispsf1 or ispsf2)
                 
             SW,SH = 1+xhi-xlo, 1+yhi-ylo
-            print 'Stamp size', SW, SH
             psfmod = afwImage.ImageF(SW,SH)
             psfmod.setXY0(xlo,ylo)
             psfderivmod = afwImage.ImageF(SW,SH)
@@ -286,10 +277,10 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
 
             psfm2 = np.zeros((SH,SW))
             m2 = np.zeros((SH,SW))
-            print 'ipixes shape', ipixes.shape
-            print 'A shape', A.shape
-            print 'X1 shape', X1.shape
-            print 'X2 shape', X2.shape
+            #print 'ipixes shape', ipixes.shape
+            #print 'A shape', A.shape
+            #print 'X1 shape', X1.shape
+            #print 'X2 shape', X2.shape
             for i in range(len(Xpsf)):
                 m2[ipixes[:,1],ipixes[:,0]] += A[:,i] * Xpsf[i]
             for i in [I_psf, I_dx, I_dy]:
@@ -302,9 +293,7 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
                     psfderivmod.set0(x, y, psfm2[y-ylo,x-xlo])
             for ii in range(NP):
                 x,y = ipixes[ii,:]
-                #stamp.set(int(x),int(y), float(b[ii]))
-                psfmod.set(int(x),int(y), float(A[ii, I_psf]))
-            #stamp.setXY0(xlo,ylo)
+                psfmod.set(int(x),int(y), float(A[ii, I_psf] * Xpsf[I_psf]))
 
             pkres.R0 = R0
             pkres.R1 = R1
@@ -321,7 +310,6 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
             pkres.X = Xpsf
             pkres.otherpsfs = len(otherpsfs)
             pkres.w = w
-
             pkres.deblend_as_psf = ispsf
 
             if ispsf:
