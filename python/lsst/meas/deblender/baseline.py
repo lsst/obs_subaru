@@ -347,6 +347,18 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
             #heavy = afwDet.makeHeavyFootprint(fp, img)
             #print 'n peaks:', len(heavy.getPeaks())
 
+            try:
+                #import lsst.meas.deblender as deb
+                print 'Trying to call C++ buildSymmetricTemplate...'
+                import lsst.meas.deblender as deb
+                butils = deb.BaselineUtilsF
+                t1 = butils.buildSymmetricTemplate(maskedImage, fp, pk)
+                print 't1:', t1
+            except Exception as e:
+                print 'error:', e
+                pass
+                
+
             template = afwImage.MaskedImageF(W,H)
             template.setXY0(x0,y0)
             cx,cy = pk.getIx(), pk.getIy()

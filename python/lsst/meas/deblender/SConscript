@@ -1,6 +1,6 @@
 # -*- python -*-
 from lsst.sconsUtils import scripts
-#scripts.BasicSConscript.python(['deblenderLib'])
+scripts.BasicSConscript.python(['deblenderLib'])
 
 # # -*- python -*-
 # Import("env")

@@ -24,8 +24,11 @@ deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::buildSymmetricTem
 	det::Footprint const& foot,
 	det::Peak const& peak) {
 
-	typename MaskedImageT::Ptr rtn(MaskedImageT(img, true));
+	MaskedImagePtrT rtn(new MaskedImageT(img, true));
 	return rtn;
 }
 
+
+// Instantiate
+template class deblend::BaselineUtils<float>;
 

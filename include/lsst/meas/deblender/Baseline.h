@@ -11,34 +11,33 @@ namespace lsst {
     namespace meas {
         namespace deblender {
 
-            //template<typename MaskedImageT>
-			template <typename ImagePixelT,
-				typename MaskPixelT=lsst::afw::image::MaskPixel,
-				typename VariancePixelT=lsst::afw::image::VariancePixel>
-			class BaselineUtils {
+            template <typename ImagePixelT,
+                      typename MaskPixelT=lsst::afw::image::MaskPixel,
+                      typename VariancePixelT=lsst::afw::image::VariancePixel>
+            class BaselineUtils {
 
-				typedef typename lsst::afw::image::MaskedImage<ImagePixelT, MaskPixelT, VariancePixelT> MaskedImageT;
-				//typedef typename lsst::afw::image::MaskedImage<ImagePixelT, MaskPixelT, VariancePixelT>::Ptr MaskedImagePtrT;
+            public:
+                typedef typename lsst::afw::image::MaskedImage<ImagePixelT, MaskPixelT, VariancePixelT> MaskedImageT;
+                typedef typename lsst::afw::image::MaskedImage<ImagePixelT, MaskPixelT, VariancePixelT>::Ptr MaskedImagePtrT;
 
-				public:
-				static typename MaskedImageT::Ptr
-				buildSymmetricTemplate(MaskedImageT const& img,
-					lsst::afw::detection::Footprint const& foot,
-					lsst::afw::detection::Peak const& pk);
+                static typename MaskedImageT::Ptr
+                buildSymmetricTemplate(MaskedImageT const& img,
+                                       lsst::afw::detection::Footprint const& foot,
+                                       lsst::afw::detection::Peak const& pk);
+                
+            };
 
-			};
-
-			/*
-			 // rtn type:
-			 lsst::afw::image::MaskedImage<ImagePixelT, MaskPixelT, VariancePixelT>::Ptr
-			 // 
-			 buildSymmetricTemplate(
-			 lsst::afw::image::MaskedImage<ImagePixelT, MaskPixelT, VariancePixelT> const& img,
-			 lsst::afw::detection::Footprint const& foot,
-			 lsst::afw::detection::Peak const& pk);
-			 */
-		}
-	}
+            /*
+             // rtn type:
+             lsst::afw::image::MaskedImage<ImagePixelT, MaskPixelT, VariancePixelT>::Ptr
+             // 
+             buildSymmetricTemplate(
+             lsst::afw::image::MaskedImage<ImagePixelT, MaskPixelT, VariancePixelT> const& img,
+             lsst::afw::detection::Footprint const& foot,
+             lsst::afw::detection::Peak const& pk);
+             */
+        }
+    }
 }
 
 #endif
