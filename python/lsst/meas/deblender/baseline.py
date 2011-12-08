@@ -361,11 +361,16 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
                 butils = deb.BaselineUtilsF
                 t1 = butils.buildSymmetricTemplate(maskedImage, fp, pk)
                 print 't1:', t1
+
+                pkres.timg = t1.getImage()
+                continue
+
             except Exception as e:
                 print 'error:', e
                 pass
                 
 
+            print 'Using python template-building code'
             template = afwImage.MaskedImageF(W,H)
             template.setXY0(x0,y0)
             timg = template.getImage()
@@ -450,8 +455,15 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
             #    import pdb; pdb.set_trace()
 
             # NOTE! portions, timgs and the footprint are _currently_ all the same size, 
-            p = afwImage.ImageF(W,H)
+            #p = afwImage.ImageF(W,H)
+            p = afwImage.ImageF(timg.getWidth(), timg.getHeight())
             p.setXY0(timg.getXY0())
+
+            tbb = timg.getBBox(afwImage.PARENT)
+            pbb = p.getBBox(afwImage.PARENT)
+            print 'Tbb:', tbb.getMinX(), tbb.getMaxX(), tbb.getMinY(), tbb.getMaxY()
+            print 'Pbb:', pbb.getMinX(), pbb.getMaxX(), pbb.getMinY(), pbb.getMaxY()
+            
             portions.append(p)
             pkres.portion = p
 
@@ -465,9 +477,9 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
                 tvals = []
                 for t in timgs:
                     tbb = t.getBBox(afwImage.PARENT)
-                    tx0,ty0 = t.getX0(), t.getY0()
+                    #tx0,ty0 = t.getX0(), t.getY0()
                     if tbb.contains(impt):
-                        tvals.append(t.get(x-tx0,y-ty0))
+                        tvals.append(t.get0(x,y))
                     else:
                         tvals.append(0)
                 #S = sum([max(0, t) for t in tvals])
