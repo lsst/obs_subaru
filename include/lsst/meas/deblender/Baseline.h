@@ -26,16 +26,6 @@ namespace lsst {
                                        lsst::afw::detection::Peak const& pk);
                 
             };
-
-            /*
-             // rtn type:
-             lsst::afw::image::MaskedImage<ImagePixelT, MaskPixelT, VariancePixelT>::Ptr
-             // 
-             buildSymmetricTemplate(
-             lsst::afw::image::MaskedImage<ImagePixelT, MaskPixelT, VariancePixelT> const& img,
-             lsst::afw::detection::Footprint const& foot,
-             lsst::afw::detection::Peak const& pk);
-             */
         }
     }
 }

@@ -347,6 +347,13 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
             #heavy = afwDet.makeHeavyFootprint(fp, img)
             #print 'n peaks:', len(heavy.getPeaks())
 
+            cx,cy = pk.getIx(), pk.getIy()
+            print 'cx,cy =', cx,cy
+            if not imbb.contains(afwGeom.Point2I(cx,cy)):
+                print 'center is not inside image; skipping'
+                pkres.out_of_bounds = True
+                continue
+
             try:
                 #import lsst.meas.deblender as deb
                 print 'Trying to call C++ buildSymmetricTemplate...'
@@ -361,12 +368,6 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
 
             template = afwImage.MaskedImageF(W,H)
             template.setXY0(x0,y0)
-            cx,cy = pk.getIx(), pk.getIy()
-            print 'cx,cy =', cx,cy
-            if not imbb.contains(afwGeom.Point2I(cx,cy)):
-                print 'center is not inside image; skipping'
-                pkres.out_of_bounds = True
-                continue
             timg = template.getImage()
             p = img.get0(cx,cy)
             timg.set(cx - x0, cy - y0, p)
