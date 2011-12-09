@@ -41,6 +41,9 @@ using namespace lsst::afw::detection;
 %include "lsst/meas/deblender/Baseline.h"
 %template(BaselineUtilsF) lsst::meas::deblender::BaselineUtils<float>;
 
+// This template is already declared in image.i
+//%template(VectorMaskedImageFPtr) std::vector< lsst::afw::image::MaskedImage<float, lsst::afw::image::MaskPixel, lsst::afw::image::VariancePixel>::Ptr >;
+
 /*
 SWIG_SHARED_PTR(DeblendedObjectFPtr, lsst::meas::deblender::DeblendedObject<lsst::afw::image::Image<float> >);
 %include "lsst/meas/deblender/deblender.h"

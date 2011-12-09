@@ -11,6 +11,14 @@ bool span_ptr_compare(det::Span::Ptr sp1, det::Span::Ptr sp2) {
 	return (*sp1 < *sp2);
 }
 
+/*
+ template<typename ImagePixelT, typename MaskPixelT, typename VariancePixelT>
+ std::vector<typename image::MaskedImage<ImagePixelT, MaskPixelT, VariancePixelT>::Ptr>
+ deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::getMaskedImagePtrVector() {
+ std::vector<MaskedImagePtrT> rtn;
+ return rtn;
+ }
+ */
 
 template<typename ImagePixelT, typename MaskPixelT, typename VariancePixelT>
 std::vector<typename image::MaskedImage<ImagePixelT, MaskPixelT, VariancePixelT>::Ptr>
@@ -20,6 +28,9 @@ deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::apportionFlux(Mas
 																			 //std::vector<typename MaskedImagePtrT> timgs) {
 
 	std::vector<MaskedImagePtrT> portions;
+
+	int ix0 = img.getX0();
+	int iy0 = img.getY0();
 
 	geom::Box2I fbb = foot.getBBox();
 	ImageT sumimg(fbb.getDimensions());
@@ -32,18 +43,18 @@ deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::apportionFlux(Mas
 		//int tx1 = tbb.getMaxX();
 		int ty0 = tbb.getMinY();
 		for (int y=tbb.getMinY(); y<=tbb.getMaxY(); ++y) {
-			typename MaskedImageT::x_iterator inptr = timg.row_begin(y - ty0);
+			typename MaskedImageT::x_iterator inptr = timg->row_begin(y - ty0);
 			typename MaskedImageT::x_iterator inend = inptr + tbb.getWidth();
 			typename ImageT::x_iterator outptr = sumimg.row_begin(y - sy0) + (tx0 - sx0);
 			for (; inptr != inend; ++inptr, ++outptr) {
-				*outptr += fabs(*inptr.image());
+				*outptr += fabs((*inptr).image());
 			}
 		}
 	}
 
 	for (size_t i=0; i<timgs.size(); ++i) {
 		MaskedImagePtrT timg = timgs[i];
-		MaskedImagePtrT port(new MaskedImageT(timg.getDimensions()));
+		MaskedImagePtrT port(new MaskedImageT(timg->getDimensions()));
 		port->setXY0(timg->getXY0());
 		portions.push_back(port);
 		geom::Box2I tbb = timg->getBBox(image::PARENT);
@@ -51,16 +62,18 @@ deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::apportionFlux(Mas
 		//int tx1 = tbb.getMaxX();
 		int ty0 = tbb.getMinY();
 		for (int y=tbb.getMinY(); y<=tbb.getMaxY(); ++y) {
-			typename MaskedImageT::x_iterator inptr = timg.row_begin(y - ty0);
-			typename MaskedImageT::x_iterator inend = inptr + tbb.getWidth();
+			typename MaskedImageT::x_iterator inptr = img.row_begin(y - iy0) + (tx0 - ix0);
+			typename MaskedImageT::x_iterator tptr = timg->row_begin(y - ty0);
+			typename MaskedImageT::x_iterator tend = tptr + tbb.getWidth();
 			typename ImageT::x_iterator sumptr = sumimg.row_begin(y - sy0) + (tx0 - sx0);
 			typename MaskedImageT::x_iterator outptr = port->row_begin(y - ty0);
-			for (; inptr != inend; ++inptr, ++outptr, ++sumptr) {
+			for (; tptr != tend; ++tptr, ++inptr, ++outptr, ++sumptr) {
 				if (*sumptr == 0)
 					continue;
-				*outptr.mask() = *inptr.mask();
-				*outptr.variance() = *inptr.variance();
-				*outptr.image() = (*inptr.image()) / (*sumptr);
+				
+				outptr.mask()     = (*inptr).mask();
+				outptr.variance() = (*inptr).variance();
+				outptr.image()    = (*inptr).image() * fabs((*tptr).image()) / (*sumptr);
 			}
 		}
 	}
@@ -179,12 +192,13 @@ deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::buildSymmetricTem
 		SpanList::const_iterator f1 = fwd;
 		int fy = cy + dy;
 		int fx0 = (*fwd)->getX0();
-		int fx1;// = (*fwd)->getX1();
+		int fx1 = -1 ;// = (*fwd)->getX1();
 		for (; f1 != spans.end(); ++f1) {
 			if ((*f1)->getY() != fy)
 				break;
 			fx1 = (*f1)->getX1();
 		}
+		assert(fx1 != -1);
 		printf("fwd: %i\n", (int)(fwd-s0));
 		printf("f0:  %i\n", (int)(f0-s0));
 		printf("f1:  %i\n", (int)(f1-s0));
@@ -192,13 +206,14 @@ deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::buildSymmetricTem
 		SpanList::const_iterator b0 = back;
 		SpanList::const_iterator b1 = back;
 		int by = cy - dy;
-		int bx0;// = (*back)->getX0();
+		int bx0 = -1; // = (*back)->getX0();
 		int bx1 = (*back)->getX1();
 		for (; b0 >= s0; b0--) {
 			if ((*b0)->getY() != by)
 				break;
 			bx0 = (*b0)->getX0();
 		}
+		assert(bx0 != -1);
 		printf("back: %i\n", (int)(back-s0));
 		printf("b0:   %i\n", (int)(b0-s0));
 		printf("b1:   %i\n", (int)(b1-s0));

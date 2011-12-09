@@ -29,11 +29,17 @@ namespace lsst {
                                        lsst::afw::detection::Footprint const& foot,
                                        lsst::afw::detection::Peak const& pk);
 
-                static std::vector<MaskedImagePtrT>
+                // Spelled out for swig's benefit...
+                //static std::vector<MaskedImagePtrT>
+                static std::vector<typename lsst::afw::image::MaskedImage<ImagePixelT,MaskPixelT,VariancePixelT>::Ptr>
                 apportionFlux(MaskedImageT const& img,
                               lsst::afw::detection::Footprint const& foot,
-                              std::vector<MaskedImagePtrT> templateImages);
-                
+                              std::vector<typename lsst::afw::image::MaskedImage<ImagePixelT,MaskPixelT,VariancePixelT>::Ptr>);
+
+                /*
+                 static std::vector<typename lsst::afw::image::MaskedImage<ImagePixelT,MaskPixelT,VariancePixelT>::Ptr>
+                 getMaskedImagePtrVector();
+                 */
             };
         }
     }
