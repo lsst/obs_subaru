@@ -271,7 +271,9 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
             SW,SH = 1+xhi-xlo, 1+yhi-ylo
             psfmod = afwImage.ImageF(SW,SH)
             psfmod.setXY0(xlo,ylo)
-            psfderivmod = afwImage.ImageF(SW,SH)
+            psfderivmodm = afwImage.MaskedImageF(SW,SH)
+            psfderivmod = psfderivmodm.getImage()
+            # psfderivmod = afwImage.ImageF(SW,SH)
             psfderivmod.setXY0(xlo,ylo)
             model = afwImage.ImageF(SW,SH)
             model.setXY0(xlo,ylo)
@@ -320,6 +322,7 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
                 print 'Deblending as PSF; setting template to PSF (+ spatial derivatives) model'
                 print 
                 pkres.timg = psfderivmod
+                pkres.tmimg = psfderivmodm
 
 
     print
@@ -362,13 +365,12 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
                 t1 = butils.buildSymmetricTemplate(maskedImage, fp, pk)
                 print 't1:', t1
 
+                pkres.tmimg = t1
                 pkres.timg = t1.getImage()
                 continue
 
             except Exception as e:
                 print 'error:', e
-                pass
-                
 
             print 'Using python template-building code'
             template = afwImage.MaskedImageF(W,H)
@@ -441,6 +443,8 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
 
             pkres.timg = timg
 
+
+
         # Now apportion flux according to the templates ?
         print 'Apportioning flux...'
         timgs = []
@@ -466,6 +470,37 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
             
             portions.append(p)
             pkres.portion = p
+
+
+
+        try:
+            print 'Calling C++ apportionFlux...'
+            import lsst.meas.deblender as deb
+            butils = deb.BaselineUtilsF
+            #vt = butils.getMaskedImagePtrVector();
+            #for t in timgs:
+            #    vt.push_back(t)
+            #for t in timgs:
+            #    print 'template image:', t
+            tmimgs = []
+            for pki,pkres in enumerate(fpres.peaks):
+                if pkres.out_of_bounds:
+                    print 'Skipping out-of-bounds peak', pki
+                    continue
+                tmimgs.append(pkres.tmimg)
+            
+            ports = butils.apportionFlux(maskedImage, fp, tmimgs)
+
+            ii = 0
+            for pki,pkres in enumerate(fpres.peaks):
+                if pkres.out_of_bounds:
+                    print 'Skipping out-of-bounds peak', pki
+                    continue
+                pkres.portion = ports[ii].getImage()
+                ii += 1
+            continue
+        except Exception as e:
+            print 'error:', e
 
         print 'apportioning among', len(timgs), 'templates'
         for y in range(y0,y1+1):

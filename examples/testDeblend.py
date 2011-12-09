@@ -125,6 +125,13 @@ def testDeblend(foots, mi, psf):
     if True:
         print 'Calling baseline deblender...'
 
+        #import lsst.meas.deblender as deb
+        #butils = deb.BaselineUtilsF
+        #vt = butils.getMaskedImagePtrVector();
+        #print 'MaskedImagePtrVector:', vt
+        #print dir(vt)
+        #print vt.push_back
+
         ### HACK
         print 'ONLY LOOKING AT LAST FOOTPRINT'
         foots = [foots[-1]]
