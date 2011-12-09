@@ -365,6 +365,9 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
                 t1 = butils.buildSymmetricTemplate(maskedImage, fp, pk)
                 print 't1:', t1
 
+                #print 'Making monotonic...'
+                #butils.makeMonotonic(t1, fp, pk)
+
                 pkres.tmimg = t1
                 pkres.timg = t1.getImage()
                 continue
@@ -477,20 +480,13 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
             print 'Calling C++ apportionFlux...'
             import lsst.meas.deblender as deb
             butils = deb.BaselineUtilsF
-            #vt = butils.getMaskedImagePtrVector();
-            #for t in timgs:
-            #    vt.push_back(t)
-            #for t in timgs:
-            #    print 'template image:', t
             tmimgs = []
             for pki,pkres in enumerate(fpres.peaks):
                 if pkres.out_of_bounds:
                     print 'Skipping out-of-bounds peak', pki
                     continue
                 tmimgs.append(pkres.tmimg)
-            
             ports = butils.apportionFlux(maskedImage, fp, tmimgs)
-
             ii = 0
             for pki,pkres in enumerate(fpres.peaks):
                 if pkres.out_of_bounds:

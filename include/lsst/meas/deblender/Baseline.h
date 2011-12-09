@@ -29,6 +29,11 @@ namespace lsst {
                                        lsst::afw::detection::Footprint const& foot,
                                        lsst::afw::detection::Peak const& pk);
 
+                static void
+                makeMonotonic(MaskedImageT & img,
+                              lsst::afw::detection::Footprint const& foot,
+                              lsst::afw::detection::Peak const& pk);
+
                 // Spelled out for swig's benefit...
                 //static std::vector<MaskedImagePtrT>
                 static std::vector<typename lsst::afw::image::MaskedImage<ImagePixelT,MaskPixelT,VariancePixelT>::Ptr>
@@ -36,10 +41,6 @@ namespace lsst {
                               lsst::afw::detection::Footprint const& foot,
                               std::vector<typename lsst::afw::image::MaskedImage<ImagePixelT,MaskPixelT,VariancePixelT>::Ptr>);
 
-                /*
-                 static std::vector<typename lsst::afw::image::MaskedImage<ImagePixelT,MaskPixelT,VariancePixelT>::Ptr>
-                 getMaskedImagePtrVector();
-                 */
             };
         }
     }

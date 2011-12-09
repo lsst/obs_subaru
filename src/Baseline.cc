@@ -11,27 +11,133 @@ bool span_ptr_compare(det::Span::Ptr sp1, det::Span::Ptr sp2) {
 	return (*sp1 < *sp2);
 }
 
-/*
- template<typename ImagePixelT, typename MaskPixelT, typename VariancePixelT>
- std::vector<typename image::MaskedImage<ImagePixelT, MaskPixelT, VariancePixelT>::Ptr>
- deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::getMaskedImagePtrVector() {
- std::vector<MaskedImagePtrT> rtn;
- return rtn;
- }
- */
+static double sinsq(double dx, double dy) {
+	return (dy*dy) / (dy*dy + dx*dx);
+}
+
+template<typename ImagePixelT, typename MaskPixelT, typename VariancePixelT>
+void
+deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::makeMonotonic(
+	MaskedImageT & mimg,
+	det::Footprint const& foot,
+	det::Peak const& peak) {
+
+	// FIXME -- ignore the Footprint and just operate on the whole image
+
+	int cx,cy;
+	cx = peak.getIx();
+	cy = peak.getIy();
+	int ix0 = mimg.getX0();
+	int iy0 = mimg.getY0();
+
+	ImagePtrT img = mimg.getImage();
+
+	/*
+	 typedef MaskedImageT::xy_locator xy_loc;
+	 xy_loc pix = img.xy_at(cx, cy);
+	 xy_loc::cached_location_t nw = pix.cache_location(-1,-1);
+	 xy_loc::cached_location_t n  = pix.cache_location( 0,-1);
+	 xy_loc::cached_location_t ne = pix.cache_location( 1,-1);
+	 xy_loc::cached_location_t w  = pix.cache_location(-1, 0);
+	 xy_loc::cached_location_t c  = pix.cache_location( 0, 0);
+	 xy_loc::cached_location_t e  = pix.cache_location( 1, 0);
+	 xy_loc::cached_location_t sw = pix.cache_location(-1, 1);
+	 xy_loc::cached_location_t s  = pix.cache_location( 0, 1);
+	 xy_loc::cached_location_t se = pix.cache_location( 1, 1);
+	 */
+
+	int DW = std::max(cx - mimg.getX0(), mimg.getX0() + mimg.getWidth() - cx);
+	int DH = std::max(cy - mimg.getY0(), mimg.getY0() + mimg.getHeight() - cy);
+
+	//for (int absdy=0;; ++absdy) {
+	//for (int signdy=-1; signdy<=1; signdy+=2) {
+	for (int dy=0; dy<DH; ++dy) {
+		for (int dx=0; dx<DW; ++dx) {
+			// find the pixels that "shadow" this pixel
+			// alo = sin^2(angle)
+			double alo,ahi;
+			// center of pixel...
+			alo = ahi = sinsq(dx, dy);
+			/*
+			 if (dy > 0 && dx > 0)
+			 // bottom-left
+			 alo = std::min(alo, sinsq(dx-0.5, dy-0.5));
+			 */
+			// bottom-right
+			if (dy > 0)
+				alo = std::min(alo, sinsq(dx+0.5, dy-0.5));
+			// top-left
+			if (dx > 0)
+				ahi = std::max(ahi, sinsq(dx-0.5, dy+0.5));
+
+			double a;
+			bool w_shadow = (dx > 0);
+			if (w_shadow) {
+				a = sinsq(dx - 1, dy);
+				w_shadow = w_shadow && (a >= alo) && (a <= ahi);
+			}
+			bool sw_shadow = (dx > 0) && (dy > 0);
+			if (sw_shadow) {
+				a = sinsq(dx - 1, dy - 1);
+				sw_shadow = sw_shadow && (a >= alo) && (a <= ahi);
+			}
+			bool s_shadow = (dy > 0);
+			if (s_shadow) {
+				a = sinsq(dx, dy - 1);
+				s_shadow = s_shadow && (a >= alo) && (a <= ahi);
+			}
+
+			printf("dx,dy = (%i, %i).  Shadowed by: %s %s %s\n", dx, dy, (w_shadow ? "W":" "), (sw_shadow ? "SW":"  "), (s_shadow ? "S":" "));
+
+			/*
+			 for (int signdx=-1; signdx<=1; signdx+=2) {
+			 int dx = absdx * signdx;
+			 }
+			 */
+
+			for (int signdx=1; signdx>=-1; signdx-=2) {
+				if (dx == 0 && signdx == -1)
+					break;
+				for (int signdy=1; signdy>=-1; signdy-=2) {
+					if (dy == 0 && signdy == -1)
+						break;
+
+					int px = cx + signdx*dx - ix0;
+					int py = cy + signdy*dy - iy0;
+					ImagePixelT pix = (*img)(px,py);
+					printf("pix: %f\n", pix);
+					if (w_shadow) {
+						pix = std::min(pix, (*img)(px - signdx, py));
+						printf("  w pix: %f -> %f\n", (*img)(px - signdx, py), pix);
+					}
+					if (s_shadow) {
+						pix = std::min(pix, (*img)(px, py - signdy));
+						printf("  s pix: %f -> %f\n", (*img)(px, py - signdy), pix);
+					}
+					if (sw_shadow) {
+						pix = std::min(pix, (*img)(px - signdx, py - signdy));
+						printf("  sw pix: %f -> %f\n", (*img)(px - signdx, py - signdy), pix);
+					}
+					(*img)(px,py) = pix;
+				}
+			}
+		}
+	}
+
+
+
+}
+
+
 
 template<typename ImagePixelT, typename MaskPixelT, typename VariancePixelT>
 std::vector<typename image::MaskedImage<ImagePixelT, MaskPixelT, VariancePixelT>::Ptr>
 deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::apportionFlux(MaskedImageT const& img,
 																			 det::Footprint const& foot,
 																			 std::vector<typename image::MaskedImage<ImagePixelT, MaskPixelT, VariancePixelT>::Ptr> timgs) {
-																			 //std::vector<typename MaskedImagePtrT> timgs) {
-
 	std::vector<MaskedImagePtrT> portions;
-
 	int ix0 = img.getX0();
 	int iy0 = img.getY0();
-
 	geom::Box2I fbb = foot.getBBox();
 	ImageT sumimg(fbb.getDimensions());
 	int sx0 = fbb.getMinX();
@@ -70,7 +176,6 @@ deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::apportionFlux(Mas
 			for (; tptr != tend; ++tptr, ++inptr, ++outptr, ++sumptr) {
 				if (*sumptr == 0)
 					continue;
-				
 				outptr.mask()     = (*inptr).mask();
 				outptr.variance() = (*inptr).variance();
 				outptr.image()    = (*inptr).image() * fabs((*tptr).image()) / (*sumptr);
@@ -90,13 +195,8 @@ deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::buildSymmetricTem
 
     //typedef ImageT::const_xy_locator xy_loc;
 	typedef typename MaskedImageT::const_xy_locator xy_loc;
-
 	typedef typename det::Footprint::SpanList SpanList;
 
-	///// FIXME -- this should be the size of the FOOTPRINT,
-	// not the IMAGE.
- 	//MaskedImagePtrT timg(new MaskedImageT(img.getDimensions()));
-	//timg->setXY0(img.getXY0());
 	geom::Box2I fbb = foot.getBBox();
 	MaskedImagePtrT timg(new MaskedImageT(fbb.getDimensions()));
 	timg->setXY0(fbb.getMinX(), fbb.getMinY());
@@ -125,19 +225,6 @@ deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::buildSymmetricTem
 	int cx,cy;
 	cx = peak.getIx();
 	cy = peak.getIy();
-
-	/*
-	 xy_loc pix = img.xy_at(cx, cy);
-	 xy_loc::cached_location_t nw = pix.cache_location(-1,-1);
-	 xy_loc::cached_location_t n  = pix.cache_location( 0,-1);
-	 xy_loc::cached_location_t ne = pix.cache_location( 1,-1);
-	 xy_loc::cached_location_t w  = pix.cache_location(-1, 0);
-	 xy_loc::cached_location_t c  = pix.cache_location( 0, 0);
-	 xy_loc::cached_location_t e  = pix.cache_location( 1, 0);
-	 xy_loc::cached_location_t sw = pix.cache_location(-1, 1);
-	 xy_loc::cached_location_t s  = pix.cache_location( 0, 1);
-	 xy_loc::cached_location_t se = pix.cache_location( 1, 1);
-	 */
 
 	// Find the Span containing the peak.
 	det::Span::Ptr target(new det::Span(cy, cx, cx));
@@ -290,24 +377,7 @@ deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::buildSymmetricTem
 		dy++;
 	}
 
-
-
-
-	//for (det::SpanList::iterator it=spans.begin(); 
-
-
-	/*
-	 for (int y = 1; y != in.getHeight() - 1; ++y) {
-	 // "dot" means "cursor location" in emacs
-	 xy_loc dot = in.xy_at(1, y), end = in.xy_at(in.getWidth() - 1, y); 
-	 for (ImageT::x_iterator optr = out2->row_begin(y) + 1; dot != end; ++dot.x(), ++optr) {
-	 *optr = dot[nw] + 2*dot[n] +   dot[ne] +
-	 2*dot[w]  + 4*dot[c] + 2*dot[e] +
-	 dot[sw] + 2*dot[s] +   dot[se];
-	 }
-	 }
-	 */
-
+	makeMonotonic(*timg, foot, peak);
 
 	return timg;
 }
