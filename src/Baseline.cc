@@ -37,6 +37,7 @@ deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::buildSymmetricTem
 
 	// Copy the image under the footprint.
 	const SpanList spans = foot.getSpans();
+	/*
 	int inx0 = img.getX0();
 	int iny0 = img.getY0();
 	int outx0 = timg->getX0();
@@ -53,6 +54,7 @@ deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::buildSymmetricTem
 		for (; inptr != inend; ++inptr, ++outptr)
 			*outptr = *inptr;
 	}
+	 */
 
 	int cx,cy;
 	cx = peak.getIx();
@@ -202,10 +204,12 @@ deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::buildSymmetricTem
 				ImagePixelT pix = std::min(theimg->get0(fx, fy), theimg->get0(bx,by));
 				targetimg->set0(fx, fy, pix);
 				targetimg->set0(bx, by, pix);
-			} else if ((fwd != f1) && (*fwd)->contains(fx)) {
-				targetimg->set0(fx, fy, theimg->get0(fx, fy));
-			} else if ((back != b0) && (*back)->contains(bx)) {
-				targetimg->set0(bx, by, theimg->get0(bx, by));
+				/*
+				 } else if ((fwd != f1) && (*fwd)->contains(fx)) {
+				 targetimg->set0(fx, fy, theimg->get0(fx, fy));
+				 } else if ((back != b0) && (*back)->contains(bx)) {
+				 targetimg->set0(bx, by, theimg->get0(bx, by));
+				 */
 			}
 			// else: gap in both the forward and reverse directions.
 		}
