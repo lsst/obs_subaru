@@ -12,16 +12,69 @@ bool span_ptr_compare(det::Span::Ptr sp1, det::Span::Ptr sp2) {
 }
 
 
+template<typename ImagePixelT, typename MaskPixelT, typename VariancePixelT>
+std::vector<typename image::MaskedImage<ImagePixelT, MaskPixelT, VariancePixelT>::Ptr>
+deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::apportionFlux(MaskedImageT const& img,
+																			 det::Footprint const& foot,
+																			 std::vector<typename image::MaskedImage<ImagePixelT, MaskPixelT, VariancePixelT>::Ptr> timgs) {
+																			 //std::vector<typename MaskedImagePtrT> timgs) {
+
+	std::vector<MaskedImagePtrT> portions;
+
+	geom::Box2I fbb = foot.getBBox();
+	ImageT sumimg(fbb.getDimensions());
+	int sx0 = fbb.getMinX();
+	int sy0 = fbb.getMinY();
+	for (size_t i=0; i<timgs.size(); ++i) {
+		MaskedImagePtrT timg = timgs[i];
+		geom::Box2I tbb = timg->getBBox(image::PARENT);
+		int tx0 = tbb.getMinX();
+		//int tx1 = tbb.getMaxX();
+		int ty0 = tbb.getMinY();
+		for (int y=tbb.getMinY(); y<=tbb.getMaxY(); ++y) {
+			typename MaskedImageT::x_iterator inptr = timg.row_begin(y - ty0);
+			typename MaskedImageT::x_iterator inend = inptr + tbb.getWidth();
+			typename ImageT::x_iterator outptr = sumimg.row_begin(y - sy0) + (tx0 - sx0);
+			for (; inptr != inend; ++inptr, ++outptr) {
+				*outptr += fabs(*inptr.image());
+			}
+		}
+	}
+
+	for (size_t i=0; i<timgs.size(); ++i) {
+		MaskedImagePtrT timg = timgs[i];
+		MaskedImagePtrT port(new MaskedImageT(timg.getDimensions()));
+		port->setXY0(timg->getXY0());
+		portions.push_back(port);
+		geom::Box2I tbb = timg->getBBox(image::PARENT);
+		int tx0 = tbb.getMinX();
+		//int tx1 = tbb.getMaxX();
+		int ty0 = tbb.getMinY();
+		for (int y=tbb.getMinY(); y<=tbb.getMaxY(); ++y) {
+			typename MaskedImageT::x_iterator inptr = timg.row_begin(y - ty0);
+			typename MaskedImageT::x_iterator inend = inptr + tbb.getWidth();
+			typename ImageT::x_iterator sumptr = sumimg.row_begin(y - sy0) + (tx0 - sx0);
+			typename MaskedImageT::x_iterator outptr = port->row_begin(y - ty0);
+			for (; inptr != inend; ++inptr, ++outptr, ++sumptr) {
+				if (*sumptr == 0)
+					continue;
+				*outptr.mask() = *inptr.mask();
+				*outptr.variance() = *inptr.variance();
+				*outptr.image() = (*inptr.image()) / (*sumptr);
+			}
+		}
+	}
+	return portions;
+}
+
 
 template<typename ImagePixelT, typename MaskPixelT, typename VariancePixelT>
-typename deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::MaskedImageT::Ptr
+typename deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::MaskedImagePtrT
 deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::buildSymmetricTemplate(
 	MaskedImageT const& img,
 	det::Footprint const& foot,
 	det::Peak const& peak) {
 
-	typedef typename image::Image<ImagePixelT> ImageT;
-	typedef typename image::Image<ImagePixelT>::Ptr ImagePtrT;
     //typedef ImageT::const_xy_locator xy_loc;
 	typedef typename MaskedImageT::const_xy_locator xy_loc;
 

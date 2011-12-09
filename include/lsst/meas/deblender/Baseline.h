@@ -3,6 +3,8 @@
 #define LSST_DEBLENDER_BASELINE_H
 //!
 
+#include <vector>
+
 #include "lsst/afw/image/Image.h"
 #include "lsst/afw/image/MaskedImage.h"
 #include "lsst/afw/detection.h"
@@ -19,11 +21,18 @@ namespace lsst {
             public:
                 typedef typename lsst::afw::image::MaskedImage<ImagePixelT, MaskPixelT, VariancePixelT> MaskedImageT;
                 typedef typename lsst::afw::image::MaskedImage<ImagePixelT, MaskPixelT, VariancePixelT>::Ptr MaskedImagePtrT;
+                typedef typename lsst::afw::image::Image<ImagePixelT> ImageT;
+                typedef typename lsst::afw::image::Image<ImagePixelT>::Ptr ImagePtrT;
 
-                static typename MaskedImageT::Ptr
+                static MaskedImagePtrT
                 buildSymmetricTemplate(MaskedImageT const& img,
                                        lsst::afw::detection::Footprint const& foot,
                                        lsst::afw::detection::Peak const& pk);
+
+                static std::vector<MaskedImagePtrT>
+                apportionFlux(MaskedImageT const& img,
+                              lsst::afw::detection::Footprint const& foot,
+                              std::vector<MaskedImagePtrT> templateImages);
                 
             };
         }
