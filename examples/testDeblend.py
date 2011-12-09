@@ -142,8 +142,6 @@ def testDeblend(foots, mi, psf):
         imx0,imy0 = imbb.getMinX(), imbb.getMinY()
 
         for i,(foot,fpres) in enumerate(zip(foots,results)):
-            sumP = None
-
             fbb = foot.getBBox()
             # ??
             fbb.clip(imbb)
@@ -151,10 +149,14 @@ def testDeblend(foots, mi, psf):
             fW,fH = fbb.getWidth(), fbb.getHeight()
             fx0,fy0 = fbb.getMinX(), fbb.getMinY()
 
+            ### Note, "I" has the same shape as the FOOTPRINT;
+            # its origin in "fx0,fy0", NOT "imx0,imy0".
             I = wholeI[fy0-imy0 : fy0-imy0 + fH,
                        fx0-imx0 : fx0-imx0 + fW]
             print 'Footprint size:', fW, fH
             print 'I shape', I.shape
+
+            sumP = np.zeros_like(I)
 
             ss = np.sort(I.ravel())
             mn,mx = [ss[int(p*len(ss))] for p in [0.1, 0.99]]
@@ -320,10 +322,13 @@ def testDeblend(foots, mi, psf):
 
                 plt.savefig('templ-f%i-t%i.png' % (i,j))
 
-                if sumP is None:
-                    sumP = P
-                else:
-                    sumP += P
+                pbb = pkres.portion.getBBox(afwImage.PARENT)
+                x0,y0 = pbb.getMinX(), pbb.getMinY()
+                W,H = pbb.getWidth(), pbb.getHeight()
+                print 'sumP shape', sumP.shape
+                print 'P shape', P.shape
+                print 'cut sumP shape', sumP[y0-fy0:y0-fy0+H, x0-fx0:x0-fx0+W].shape
+                sumP[y0-fy0:y0-fy0+H, x0-fx0:x0-fx0+W] += P
 
             if sumP is not None:
                 plt.clf()
