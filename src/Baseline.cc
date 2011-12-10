@@ -29,6 +29,8 @@ deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::makeMonotonic(
 	cy = peak.getIy();
 	int ix0 = mimg.getX0();
 	int iy0 = mimg.getY0();
+	int iW = mimg.getWidth();
+	int iH = mimg.getHeight();
 
 	ImagePtrT img = mimg.getImage();
 
@@ -87,7 +89,7 @@ deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::makeMonotonic(
 				s_shadow = s_shadow && (a >= alo) && (a <= ahi);
 			}
 
-			printf("dx,dy = (%i, %i).  Shadowed by: %s %s %s\n", dx, dy, (w_shadow ? "W":" "), (sw_shadow ? "SW":"  "), (s_shadow ? "S":" "));
+			printf("cx,cy=(%i,%i), cx,cy-ixy0=(%i,%i), dx,dy = (%i, %i).  Shadowed by: %s %s %s\n", cx, cy, cx-ix0, cy-iy0, dx, dy, (w_shadow ? "W":" "), (sw_shadow ? "SW":"  "), (s_shadow ? "S":" "));
 
 			/*
 			 for (int signdx=-1; signdx<=1; signdx+=2) {
@@ -104,21 +106,26 @@ deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::makeMonotonic(
 
 					int px = cx + signdx*dx - ix0;
 					int py = cy + signdy*dy - iy0;
+					if (px < 0 || px >= iW || py < 0 || py >= iH)
+						continue;
 					ImagePixelT pix = (*img)(px,py);
-					printf("pix: %f\n", pix);
-					if (w_shadow) {
+					printf("pix (%i,%i): %f\n", px, py, pix);
+					assert(pix > -100000);
+					if (w_shadow && (px-signdx >= 0) && (px-signdx < iW)) {
 						pix = std::min(pix, (*img)(px - signdx, py));
-						printf("  w pix: %f -> %f\n", (*img)(px - signdx, py), pix);
+						printf("  w pix (%i,%i): %f -> %f\n", px-signdx, py, (*img)(px - signdx, py), pix);
 					}
-					if (s_shadow) {
+					if (s_shadow && (py-signdy >= 0) && (py-signdy < iH)) {
 						pix = std::min(pix, (*img)(px, py - signdy));
-						printf("  s pix: %f -> %f\n", (*img)(px, py - signdy), pix);
+						printf("  s pix (%i,%i): %f -> %f\n", px, py-signdy, (*img)(px, py - signdy), pix);
 					}
-					if (sw_shadow) {
+					if (sw_shadow && (px-signdx >= 0) && (px-signdx < iW) &&
+						(py-signdy >= 0) && (py-signdy < iH)) {
 						pix = std::min(pix, (*img)(px - signdx, py - signdy));
-						printf("  sw pix: %f -> %f\n", (*img)(px - signdx, py - signdy), pix);
+						printf("  sw pix (%i,%i): %f -> %f\n", px-signdx, py-signdy, (*img)(px - signdx, py - signdy), pix);
 					}
 					(*img)(px,py) = pix;
+					assert(pix > -100000);
 				}
 			}
 		}
@@ -151,9 +158,10 @@ deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::apportionFlux(Mas
 		for (int y=tbb.getMinY(); y<=tbb.getMaxY(); ++y) {
 			typename MaskedImageT::x_iterator inptr = timg->row_begin(y - ty0);
 			typename MaskedImageT::x_iterator inend = inptr + tbb.getWidth();
-			typename ImageT::x_iterator outptr = sumimg.row_begin(y - sy0) + (tx0 - sx0);
-			for (; inptr != inend; ++inptr, ++outptr) {
-				*outptr += fabs((*inptr).image());
+			typename ImageT::x_iterator sumptr = sumimg.row_begin(y - sy0) + (tx0 - sx0);
+			for (; inptr != inend; ++inptr, ++sumptr) {
+				//*sumptr += fabs((*inptr).image());
+				*sumptr += std::max((ImagePixelT)0., (*inptr).image());
 			}
 		}
 	}
@@ -178,7 +186,8 @@ deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::apportionFlux(Mas
 					continue;
 				outptr.mask()     = (*inptr).mask();
 				outptr.variance() = (*inptr).variance();
-				outptr.image()    = (*inptr).image() * fabs((*tptr).image()) / (*sumptr);
+				//outptr.image()    = (*inptr).image() * fabs((*tptr).image()) / (*sumptr);
+				outptr.image()    = (*inptr).image() * std::max((ImagePixelT)0., (*tptr).image()) / (*sumptr);
 			}
 		}
 	}
@@ -245,7 +254,7 @@ deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::buildSymmetricTem
 	peakspan--;
 	det::Span::Ptr sp = *peakspan;
 	assert(sp->contains(cx,cy));
-	printf("Span containing peak (%i,%i): (x=[%i,%i], y=%i)\n", cx, cy, sp->getX0(), sp->getX1(), sp->getY());
+	// printf("Span containing peak (%i,%i): (x=[%i,%i], y=%i)\n", cx, cy, sp->getX0(), sp->getX1(), sp->getY());
 
 	SpanList::const_iterator fwd = peakspan;
 	SpanList::const_iterator back = peakspan;
@@ -264,8 +273,8 @@ deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::buildSymmetricTem
 	 */
 	const SpanList::const_iterator s0 = spans.begin();
 
-	printf("spans.begin: %i, end %i\n", (int)(spans.begin()-s0), (int)(spans.end()-s0));
-	printf("peakspan: %i\n", (int)(peakspan-s0));
+	// printf("spans.begin: %i, end %i\n", (int)(spans.begin()-s0), (int)(spans.end()-s0));
+	// printf("peakspan: %i\n", (int)(peakspan-s0));
 
 	/*
 	 For every pixel that has a symmetric partner,
@@ -274,7 +283,7 @@ deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::buildSymmetricTem
 
 	while ((fwd < spans.end()) && (back >= s0)) {
 		// For row "dy", find the range of x values?
-		printf("dy = %i\n", dy);
+		// printf("dy = %i\n", dy);
 		SpanList::const_iterator f0 = fwd;
 		SpanList::const_iterator f1 = fwd;
 		int fy = cy + dy;
@@ -286,9 +295,9 @@ deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::buildSymmetricTem
 			fx1 = (*f1)->getX1();
 		}
 		assert(fx1 != -1);
-		printf("fwd: %i\n", (int)(fwd-s0));
-		printf("f0:  %i\n", (int)(f0-s0));
-		printf("f1:  %i\n", (int)(f1-s0));
+		// printf("fwd: %i\n", (int)(fwd-s0));
+		// printf("f0:  %i\n", (int)(f0-s0));
+		// printf("f1:  %i\n", (int)(f1-s0));
 
 		SpanList::const_iterator b0 = back;
 		SpanList::const_iterator b1 = back;
@@ -301,29 +310,29 @@ deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::buildSymmetricTem
 			bx0 = (*b0)->getX0();
 		}
 		assert(bx0 != -1);
-		printf("back: %i\n", (int)(back-s0));
-		printf("b0:   %i\n", (int)(b0-s0));
-		printf("b1:   %i\n", (int)(b1-s0));
+		// printf("back: %i\n", (int)(back-s0));
+		// printf("b0:   %i\n", (int)(b0-s0));
+		// printf("b1:   %i\n", (int)(b1-s0));
 
 		SpanList::const_iterator sp;
-		for (sp=f0; sp<f1; ++sp)
-			printf("  forward: %i, x = [%i, %i], y = %i\n", (int)(sp-s0), (*sp)->getX0(), (*sp)->getX1(), (*sp)->getY());
-		for (sp=b1; sp>b0; --sp)
-			printf("  back   : %i, x = [%i, %i], y = %i\n", (int)(sp-s0), (*sp)->getX0(), (*sp)->getX1(), (*sp)->getY());
+		/*
+		 for (sp=f0; sp<f1; ++sp)
+		 printf("  forward: %i, x = [%i, %i], y = %i\n", (int)(sp-s0), (*sp)->getX0(), (*sp)->getX1(), (*sp)->getY());
+		 for (sp=b1; sp>b0; --sp)
+		 printf("  back   : %i, x = [%i, %i], y = %i\n", (int)(sp-s0), (*sp)->getX0(), (*sp)->getX1(), (*sp)->getY());
+		 */
 
-		printf("dy=%i: fy=%i, fx=[%i, %i].  by=%i, bx=[%i, %i]\n",
-			   dy, fy, fx0, fx1, by, bx0, bx1);
+		//printf("dy=%i: fy=%i, fx=[%i, %i].  by=%i, bx=[%i, %i]\n", dy, fy, fx0, fx1, by, bx0, bx1);
 
 		int dx0, dx1;
 		dx0 = std::max(fx0 - cx, cx - bx1);
 		dx1 = std::min(fx1 - cx, cx - bx0);
-		printf("dx = [%i, %i]  --> forward [%i, %i], back [%i, %i]\n",
-			   dx0, dx1, cx+dx0, cx+dx1, cx-dx1, cx-dx0);
+		//printf("dx = [%i, %i]  --> forward [%i, %i], back [%i, %i]\n", dx0, dx1, cx+dx0, cx+dx1, cx-dx1, cx-dx0);
 
 		for (int dx=dx0; dx<=dx1; dx++) {
 			int fx = cx + dx;
 			int bx = cx - dx;
-			printf("  dx = %i,  fx=%i, bx=%i\n", dx, fx, bx);
+			//printf("  dx = %i,  fx=%i, bx=%i\n", dx, fx, bx);
 
 			// We test all dx values within the valid range, but we
 			// have to be a bit careful since there may be gaps in one
@@ -342,14 +351,16 @@ deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::buildSymmetricTem
 				assert(fwd != f1);
 			}
 
-			if (fwd != f1)
-				printf("    fwd : y=%i, x=[%i,%i]\n", (*fwd)->getY(), (*fwd)->getX0(), (*fwd)->getX1());
-			else
-				printf("    fwd : done\n");
-			if (back != b0)
-				printf("    back: y=%i, x=[%i,%i]\n", (*back)->getY(), (*back)->getX0(), (*back)->getX1());
-			else
-				printf("    back: done\n");
+			/*
+			 if (fwd != f1)
+			 printf("    fwd : y=%i, x=[%i,%i]\n", (*fwd)->getY(), (*fwd)->getX0(), (*fwd)->getX1());
+			 else
+			 printf("    fwd : done\n");
+			 if (back != b0)
+			 printf("    back: y=%i, x=[%i,%i]\n", (*back)->getY(), (*back)->getX0(), (*back)->getX1());
+			 else
+			 printf("    back: done\n");
+			 */
 
 			// HACK -- MaskedPixel...
 			ImagePtrT theimg = img.getImage();
@@ -369,15 +380,15 @@ deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::buildSymmetricTem
 			// else: gap in both the forward and reverse directions.
 		}
 
-		printf("fwd : %i.  f0=%i, f1=%i\n", (int)(fwd-s0), (int)(f0-s0), (int)(f1-s0));
-		printf("back: %i.  b0=%i, b1=%i\n", (int)(back-s0), (int)(b0-s0), (int)(b1-s0));
+		//printf("fwd : %i.  f0=%i, f1=%i\n", (int)(fwd-s0), (int)(f0-s0), (int)(f1-s0));
+		//printf("back: %i.  b0=%i, b1=%i\n", (int)(back-s0), (int)(b0-s0), (int)(b1-s0));
 
 		fwd = f1;
 		back = b0;
 		dy++;
 	}
 
-	makeMonotonic(*timg, foot, peak);
+	//makeMonotonic(*timg, foot, peak);
 
 	return timg;
 }

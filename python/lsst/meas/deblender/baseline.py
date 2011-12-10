@@ -365,8 +365,8 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
                 t1 = butils.buildSymmetricTemplate(maskedImage, fp, pk)
                 print 't1:', t1
 
-                #print 'Making monotonic...'
-                #butils.makeMonotonic(t1, fp, pk)
+                print 'Making monotonic...'
+                butils.makeMonotonic(t1, fp, pk)
 
                 pkres.tmimg = t1
                 pkres.timg = t1.getImage()
