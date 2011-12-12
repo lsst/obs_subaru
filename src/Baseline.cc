@@ -17,6 +17,65 @@ static double sinsq(double dx, double dy) {
 
 template<typename ImagePixelT, typename MaskPixelT, typename VariancePixelT>
 void
+deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::
+medianFilter(MaskedImageT const& img,
+			 MaskedImageT & out,
+			 int halfsize) {
+	int S = halfsize*2 + 1;
+	int SS = S*S;
+	typedef typename MaskedImageT::xy_locator xy_loc;
+	xy_loc pix = img.xy_at(halfsize,halfsize);
+	std::vector<typename xy_loc::cached_location_t> locs;
+	//typename xy_loc::cached_location_t locs[SS];
+	for (int i=0; i<S; ++i) {
+		for (int j=0; j<S; ++j) {
+			//locs[i*S + j] = pix.cache_location(j-halfsize, i-halfsize);
+			locs.push_back(pix.cache_location(j-halfsize, i-halfsize));
+		}
+	}
+	int W = img.getWidth();
+	int H = img.getHeight();
+	ImagePixelT vals[S*S];
+	for (int y=halfsize; y<=H-halfsize; ++y) {
+        xy_loc inpix = img.xy_at(halfsize, y), end = img.xy_at(W-halfsize, y);
+        for (typename MaskedImageT::x_iterator optr = out.row_begin(y) + halfsize; inpix != end; ++inpix.x(), ++optr) {
+			for (int i=0; i<SS; ++i)
+				vals[i] = inpix[locs[i]].image();
+			std::nth_element(vals, vals+SS/2, vals+SS);
+			//std::nth_element(vals.begin(), vals.begin()+SS/2, vals.end());
+			optr.image() = vals[SS/2];
+			optr.mask() = inpix.mask();
+			optr.variance() = inpix.variance();
+		}
+	}
+
+	// grumble grumble margins
+	for (int y=0; y<2*halfsize; ++y) {
+		int iy = y;
+		if (y >= halfsize)
+			iy = H - 1 - (y-halfsize);
+        typename MaskedImageT::x_iterator optr = out.row_begin(iy);
+        typename MaskedImageT::x_iterator iptr = img.row_begin(iy), end=img.row_end(iy);
+		for (; iptr != end; ++iptr,++optr)
+			*optr = *iptr;
+	}
+	for (int y=halfsize; y<H-halfsize; ++y) {
+        typename MaskedImageT::x_iterator optr = out.row_begin(y);
+        typename MaskedImageT::x_iterator iptr = img.row_begin(y), end=img.row_begin(y)+halfsize;
+		for (; iptr != end; ++iptr,++optr)
+			*optr = *iptr;
+		iptr = img.row_begin(y) + ((W-1) - halfsize);
+		end  = img.row_begin(y) + (W-1);
+		optr = out.row_begin(y) + ((W-1) - halfsize);
+		for (; iptr != end; ++iptr,++optr)
+			*optr = *iptr;
+	}
+
+}
+
+
+template<typename ImagePixelT, typename MaskPixelT, typename VariancePixelT>
+void
 deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::makeMonotonic(
 	MaskedImageT & mimg,
 	det::Footprint const& foot,
@@ -89,7 +148,7 @@ deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::makeMonotonic(
 				s_shadow = s_shadow && (a >= alo) && (a <= ahi);
 			}
 
-			printf("cx,cy=(%i,%i), cx,cy-ixy0=(%i,%i), dx,dy = (%i, %i).  Shadowed by: %s %s %s\n", cx, cy, cx-ix0, cy-iy0, dx, dy, (w_shadow ? "W":" "), (sw_shadow ? "SW":"  "), (s_shadow ? "S":" "));
+			//printf("cx,cy=(%i,%i), cx,cy-ixy0=(%i,%i), dx,dy = (%i, %i).  Shadowed by: %s %s %s\n", cx, cy, cx-ix0, cy-iy0, dx, dy, (w_shadow ? "W":" "), (sw_shadow ? "SW":"  "), (s_shadow ? "S":" "));
 
 			/*
 			 for (int signdx=-1; signdx<=1; signdx+=2) {
@@ -109,20 +168,20 @@ deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::makeMonotonic(
 					if (px < 0 || px >= iW || py < 0 || py >= iH)
 						continue;
 					ImagePixelT pix = (*img)(px,py);
-					printf("pix (%i,%i): %f\n", px, py, pix);
+					//printf("pix (%i,%i): %f\n", px, py, pix);
 					assert(pix > -100000);
 					if (w_shadow && (px-signdx >= 0) && (px-signdx < iW)) {
 						pix = std::min(pix, (*img)(px - signdx, py));
-						printf("  w pix (%i,%i): %f -> %f\n", px-signdx, py, (*img)(px - signdx, py), pix);
+						//printf("  w pix (%i,%i): %f -> %f\n", px-signdx, py, (*img)(px - signdx, py), pix);
 					}
 					if (s_shadow && (py-signdy >= 0) && (py-signdy < iH)) {
 						pix = std::min(pix, (*img)(px, py - signdy));
-						printf("  s pix (%i,%i): %f -> %f\n", px, py-signdy, (*img)(px, py - signdy), pix);
+						//printf("  s pix (%i,%i): %f -> %f\n", px, py-signdy, (*img)(px, py - signdy), pix);
 					}
 					if (sw_shadow && (px-signdx >= 0) && (px-signdx < iW) &&
 						(py-signdy >= 0) && (py-signdy < iH)) {
 						pix = std::min(pix, (*img)(px - signdx, py - signdy));
-						printf("  sw pix (%i,%i): %f -> %f\n", px-signdx, py-signdy, (*img)(px - signdx, py - signdy), pix);
+						//printf("  sw pix (%i,%i): %f -> %f\n", px-signdx, py-signdy, (*img)(px - signdx, py - signdy), pix);
 					}
 					(*img)(px,py) = pix;
 					assert(pix > -100000);
