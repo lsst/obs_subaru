@@ -365,6 +365,37 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
                 t1 = butils.buildSymmetricTemplate(maskedImage, fp, pk)
                 print 't1:', t1
 
+                # Smooth / filter
+                sig = 0.5
+                G = afwMath.GaussianFunction1D(sig)
+                S = 1+int(math.ceil(sig*4.))
+                #print type(S), G
+                kern = afwMath.SeparableKernel(S, S, G, G)
+                #smoothed = afwImage.Factory(t1.getImage().getDimensions())
+                # Place output back into input -- so create a copy first
+                t1im = t1.getImage()
+                inimg = t1im.Factory(t1im, True)
+                outimg = t1im
+                #import numpy as np
+                #for iy in range(inimg.getHeight()):
+                #    for ix in range(inimg.getWidth()):
+                #        if not np.isfinite(inimg.get(ix,iy)):
+                #            print 'input img', ix, iy, inimg.get(ix,iy)
+                #        assert(np.isfinite(inimg.get(ix,iy)))
+                ctrl = afwMath.ConvolutionControl()
+                ctrl.setDoCopyEdge(True)
+                afwMath.convolve(outimg, inimg, kern, ctrl)
+                #for iy in range(outimg.getHeight()):
+                #    for ix in range(outimg.getWidth()):
+                #        if not np.isfinite(outimg.get(ix,iy)):
+                #            print 'output img', ix, iy, outimg.get(ix,iy)
+                #        #assert(np.isfinite(outimg.get(ix,iy)))
+
+                print 't1.image:', t1.getImage()
+
+                print 'Making monotonic...'
+                butils.makeMonotonic(t1, fp, pk)
+
                 pkres.tmimg = t1
                 pkres.timg = t1.getImage()
                 continue
@@ -477,20 +508,13 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
             print 'Calling C++ apportionFlux...'
             import lsst.meas.deblender as deb
             butils = deb.BaselineUtilsF
-            #vt = butils.getMaskedImagePtrVector();
-            #for t in timgs:
-            #    vt.push_back(t)
-            #for t in timgs:
-            #    print 'template image:', t
             tmimgs = []
             for pki,pkres in enumerate(fpres.peaks):
                 if pkres.out_of_bounds:
                     print 'Skipping out-of-bounds peak', pki
                     continue
                 tmimgs.append(pkres.tmimg)
-            
             ports = butils.apportionFlux(maskedImage, fp, tmimgs)
-
             ii = 0
             for pki,pkres in enumerate(fpres.peaks):
                 if pkres.out_of_bounds:
