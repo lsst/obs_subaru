@@ -1,8 +1,5 @@
 #<?cfg paf policy ?>
 
-# This camera geometry file sets up HSC as a raft of 104x1 CCDs, due to limitations of the camera geometry
-# code to support gaps in the raft.
-
 Camera: {
     serial: 0
     name: "HSC"
