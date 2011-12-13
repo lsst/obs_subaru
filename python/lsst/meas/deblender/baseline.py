@@ -486,6 +486,31 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
 
         # Now apportion flux according to the templates ?
         print 'Apportioning flux...'
+
+        try:
+            print 'Calling C++ apportionFlux...'
+            import lsst.meas.deblender as deb
+            butils = deb.BaselineUtilsF
+            tmimgs = []
+            for pki,pkres in enumerate(fpres.peaks):
+                if pkres.out_of_bounds:
+                    print 'Skipping out-of-bounds peak', pki
+                    continue
+                tmimgs.append(pkres.tmimg)
+            ports = butils.apportionFlux(maskedImage, fp, tmimgs)
+            ii = 0
+            for pki,pkres in enumerate(fpres.peaks):
+                if pkres.out_of_bounds:
+                    print 'Skipping out-of-bounds peak', pki
+                    continue
+                pkres.mportion = ports[ii]
+                pkres.portion = ports[ii].getImage()
+                ii += 1
+            continue
+        except Exception as e:
+            print 'error:', e
+
+
         timgs = []
         portions = []
         for pki,pkres in enumerate(fpres.peaks):
@@ -509,30 +534,6 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
             
             portions.append(p)
             pkres.portion = p
-
-
-
-        try:
-            print 'Calling C++ apportionFlux...'
-            import lsst.meas.deblender as deb
-            butils = deb.BaselineUtilsF
-            tmimgs = []
-            for pki,pkres in enumerate(fpres.peaks):
-                if pkres.out_of_bounds:
-                    print 'Skipping out-of-bounds peak', pki
-                    continue
-                tmimgs.append(pkres.tmimg)
-            ports = butils.apportionFlux(maskedImage, fp, tmimgs)
-            ii = 0
-            for pki,pkres in enumerate(fpres.peaks):
-                if pkres.out_of_bounds:
-                    print 'Skipping out-of-bounds peak', pki
-                    continue
-                pkres.portion = ports[ii].getImage()
-                ii += 1
-            continue
-        except Exception as e:
-            print 'error:', e
 
         print 'apportioning among', len(timgs), 'templates'
         for y in range(y0,y1+1):
@@ -558,5 +559,37 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
                     #p.set(x,y, img.get(x0+x, y0+y) * max(0,tvals[i])/S)
                     if t != 0:
                         p.set0(x, y, impix * abs(t)/S)
+
+
+
+    print
+    print 'Creating heavy footprints...'
+    print
+
+    for fpi,(fp,pks,fpres) in enumerate(zip(footprints,peaks,results)):
+        for pki,(pk,pkres) in enumerate(zip(pks, fpres.peaks)):
+            foot = fp
+            if pkres.out_of_bounds:
+                print 'Skipping out-of-bounds peak', pki
+                continue
+            if pkres.deblend_as_psf:
+                print 'Creating fake footprint for deblended as PSF peak'
+                p = pkres.mportion
+                foot = afwDet.Footprint()
+                #splist = foot.getSpans()
+                x0 = p.getX0()
+                y0 = p.getY0()
+                W = p.getWidth()
+                H = p.getHeight()
+                print 'Flux portion shape:', W, H
+                for y in range(H):
+                    #splist.push_back(afwDet.Span(y0+y, x0, x0+W-1))
+                    foot.addSpan(y0+y, x0, x0+W-1)
+                foot.normalize()
+                print 'fake footprint area:', foot.getArea()
+                
+            print 'Creating heavy footprint for footprint', fpi, 'peak', pki
+            pkres.heavy = afwDet.makeHeavyFootprint(foot, pkres.mportion)
+
 
     return results
