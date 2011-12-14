@@ -30,6 +30,11 @@ namespace lsst {
                                        lsst::afw::detection::Peak const& pk);
 
                 static void
+                medianFilter(MaskedImageT const& img,
+                             MaskedImageT & outimg,
+                             int halfsize);
+
+                static void
                 makeMonotonic(MaskedImageT & img,
                               lsst::afw::detection::Footprint const& foot,
                               lsst::afw::detection::Peak const& pk);
