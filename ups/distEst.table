@@ -1,5 +1,5 @@
-setupRequired(hscBase)
 setupRequired(utils)
+setupRequired(afw)
 
 # The only time the pipette PYTHONPATH is needed is when pipette imports our module.
 # So avoid dependency loops for now.
