@@ -37,7 +37,9 @@ import lsst.pipette.distortion as pipDist
 import hsc.meas.match.distest as distest
 import hsc.meas.match.hscDistortion as hscDist
 
-TOLERANCE = 0.01                        # Tolerance for difference after reversing, pixels
+TOLERANCE = 0.3                        # Tolerance for difference after reversing, pixels
+TOLERANCE_EDGE = 1.25                   # Tolerance for difference, edge chips
+EDGE = [ 100, 101, 102, 103 ]
 
 class PipetteTestCase(unittest.TestCase):
     """A test for Pipette's distortion in the forward+backward transformation"""
@@ -70,8 +72,9 @@ class PipetteTestCase(unittest.TestCase):
                     forward = dist.actualToIdeal(afwGeom.PointD(x, y))
                     backward = dist.idealToActual(forward)
                     diff = math.hypot(backward.getX() - x, backward.getY() - y)
-                    self.assertLess(diff, TOLERANCE, "Not invariant: %s %f,%f --> %s --> %s (%f)" % \
-                                        (ccd.getId().getSerial(), x, y, forward, backward, diff))
+                    tol = TOLERANCE if ccd.getId().getSerial() not in EDGE else TOLERANCE_EDGE
+                    self.assertLess(diff, tol, "Not invariant: %s %f,%f --> %s --> %s (%f > %f)" % \
+                                        (ccd.getId().getSerial(), x, y, forward, backward, diff, tol))
 
 def suite():
     utilsTests.init()

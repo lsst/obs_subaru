@@ -4,4 +4,3 @@ scripts.BasicSConstruct("distEst",
                         versionString = "hg",
                         versionModuleName = "python/hsc/meas/match/version.py",
                         )
-

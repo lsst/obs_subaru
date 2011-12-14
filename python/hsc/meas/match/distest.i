@@ -2,13 +2,14 @@
 %include "typemaps.i"
 %{
 // This part is passed through into modified C++ code
-// usually header files to be included in the modified C++ code
-// are listed.
+// usually header files (and necessary declarations)
+// to be included in the modified C++ code are listed.
 #include<cstdio>
 #include<cstdlib>
 #include<cmath>
 #include "hsc/meas/match/distest.h"
-#include "hsc/meas/match/distest_utils.h"
+#include "hsc/meas/match/distest_utils2.h"
+#include "hsc/meas/match/LeastSquares.h"
 %}
 %{
 // This part should include definitions of newly defined
@@ -21,6 +22,7 @@ namespace hsc {
 namespace meas { 
 namespace match {
         void getDistortedPosition(float x_undist, float y_undist, float *OUTPUT, float *OUTPUT, float elevation);
+        void getDistortedPositionIterative(float x_undist, float y_undist, float *OUTPUT, float *OUTPUT, float elevation);
         void getUndistortedPosition(float x_dist, float y_dist, float *OUTPUT, float *OUTPUT, float elevation);
 } 
 }
