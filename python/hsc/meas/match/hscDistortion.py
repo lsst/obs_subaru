@@ -12,18 +12,10 @@ class HscDistortion(pipDist.CameraDistortion):
         @param ccd Ccd for distortion (sets position relative to center)
         @param config Configuration for distortion
         """
-
-        # Taken from pipette.distortion.RadialDistortion, but not checked
-        # for rotations, etc.
-
-        position = ccd.getCenter()        # Centre of CCD on focal plane
-        center = ccd.getSize() / ccd.getPixelSize() / 2.0 # Central pixel
-
         self.ccd = ccd
-
-        # Pixels from focal plane center to CCD corner
-        self.x0 = position.getX() - center.getX()
-        self.y0 = position.getY() - center.getY()
+        self.pixelSize = ccd.getPixelSize()
+        self.transform = ccd.getGlobalTransform()
+        self.inverseTransform = self.transform.invert()
 
     def _distortPosition(self, x, y, direction=None, elevation=60.0, copy=True):
         """Distort/undistort a position.
@@ -34,29 +26,19 @@ class HscDistortion(pipDist.CameraDistortion):
         @returns Copy of input source with distorted/undistorted coordinates
         """
 
-        if False:
-            point = afwGeom.makePointD(x, y)
-            point = self.ccd.getPositionFromPixel(point)
-            pixelSize = self.ccd.getPixelSize()
-            x, y = point.getX() / pixelSize, point.getY() / pixelSize
-        else:
-            x += self.x0
-            y += self.y0
-
         if direction == "toIdeal":
+            point = self.transform(afwGeom.makePoint(x, y))
+            x, y = point.getX() / self.pixelSize, point.getY() / self.pixelSize
             distX, distY = distest.getUndistortedPosition(x, y, elevation)
-        elif direction == "toActual":
-            distX, distY = distest.getDistortedPosition(x, y, elevation)
-        else:
-            raise RuntimeError("unknown distortion direction: %s" % (direction))
+            return distX, disty
 
-        if False:
-            point.setX(distX * pixelSize)
-            point.setY(distY * pixelSize)
-            point = self.ccd.getPixelFromPosition(point)
+        if direction == "toActual":
+            undistX, undistY = distEst.getDistortedPosition(x, y, elevation)
+            point = afwGeom.makePoint(undistX * self.pixelSize, undistY * self.pixelSize)
+            point = self.inverseTransform(point)
             return point.getX(), point.getY()
-        else:
-            return distX - self.x0, distY - self.y0
+
+        raise RuntimeError("unknown distortion direction: %s" % (direction))
     
     # Need to get elevation in here -- CPL
     def actualToIdeal(self, sources, copy=True):
