@@ -28,8 +28,14 @@ import lsst.utils.tests as utilsTests
 
 import math
 
-import hsc.meas.match.distest as distest
+import lsst.afw.cameraGeom as cameraGeom
+import lsst.afw.geom as afwGeom
+import lsst.obs.hscSim as hscSim
+import lsst.pipette.config as pipConfig
 import lsst.pipette.distortion as pipDist
+
+import hsc.meas.match.distest as distest
+import hsc.meas.match.hscDistortion as hscDist
 
 TOLERANCE = 0.01                        # Tolerance for difference after reversing, pixels
 
@@ -41,11 +47,15 @@ class PipetteTestCase(unittest.TestCase):
         assert Eups.isSetup("pipette"), "pipette is not setup"
         assert Eups.isSetup("obs_subaru"), "obs_subaru is not setup"
 
-        mapper = subaru.HscMapper()
+        mapper = hscSim.HscSimMapper()
         self.camera = mapper.camera
+
+        self.config = pipConfig.Config()
+        self.config['class'] = "hsc.meas.match.hscDistortion.HscDistortion"
 
     def tearDown(self):
         del self.camera
+        del self.config
 
     def testInvariance(self):
         for raft in self.camera:
@@ -53,12 +63,13 @@ class PipetteTestCase(unittest.TestCase):
             for ccd in raft:
                 ccd = cameraGeom.cast_Ccd(ccd)
                 dist = pipDist.createDistortion(ccd, self.config)
+                self.assertTrue(isinstance(dist, hscDist.HscDistortion))
                 size = ccd.getSize()
                 height, width = size.getX(), size.getY()
                 for x, y in ((0.0,0.0), (0.0, height), (0.0, width), (height, width), (height/2.0,width/2.0)):
                     forward = dist.actualToIdeal(afwGeom.PointD(x, y))
                     backward = dist.idealToActual(forward)
-                    diff = math.hypot(backward.getX() - x, backward - y)
+                    diff = math.hypot(backward.getX() - x, backward.getY() - y)
                     self.assertLess(diff, TOLERANCE, "Not invariant: %s %f,%f --> %s --> %s (%f)" % \
                                         (ccd.getId().getSerial(), x, y, forward, backward, diff))
 
