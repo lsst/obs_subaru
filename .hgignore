@@ -22,6 +22,8 @@ tmp*
 */summ.*
 submit.condor
 eups*
+ups/distEst.cfgc
+python/hsc/meas/match/version.py
 
 *_wrap.cc
 .tests/*
