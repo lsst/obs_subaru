@@ -58,7 +58,7 @@ class GetRawTestCase(unittest.TestCase):
             self.assertEqual(raw.getFilter().getFilterProperty().getName(), "g")
             self.assertEqual(ccd.getId().getName(), "hsc%03d" % ccdNum)
 
-            trimmed = ccd.getAllPixels(True).getDimensions()
+            trimmed = ccd.getAllPixelsNoRotation(True).getDimensions()
             self.assertEqual(trimmed.getX(), self.trimmedSize[0])
             self.assertEqual(trimmed.getY(), self.trimmedSize[1])
 
