@@ -46,21 +46,21 @@ class GetRawTestCase(unittest.TestCase):
         for ccdNum in self.ccdList:
             butler = getButler(self.datadir)
             raw = butler.get("raw", visit=self.expId, ccd=ccdNum)
-            ccd = raw.getDetector()
+            ccd = cameraGeom.cast_Ccd(raw.getDetector())
 
-            print "Visit: ", expId
+            print "Visit: ", self.expId
             print "width: ",              raw.getWidth()
             print "height: ",             raw.getHeight()
             print "detector(amp) name: ", ccd.getId().getName()
 
             self.assertEqual(raw.getWidth(), self.untrimmedSize[0])
             self.assertEqual(raw.getHeight(), self.untrimmedSize[1])
-            self.assertEqual(raw.getFilter().getFilterProperty().getName(), "i") 
-            self.assertEqual(ccd.getId().getName(), "%03d" % ccdNum)
+            self.assertEqual(raw.getFilter().getFilterProperty().getName(), "g")
+            self.assertEqual(ccd.getId().getName(), "hsc%03d" % ccdNum)
 
             trimmed = ccd.getAllPixels(True).getDimensions()
-            self.assertEqual(trimmed.getWidth(), self.trimmedSize[0])
-            self.assertEqual(trimmed.getHeight(), self.trimmedSize[1])
+            self.assertEqual(trimmed.getX(), self.trimmedSize[0])
+            self.assertEqual(trimmed.getY(), self.trimmedSize[1])
 
             for amp in ccd:
                 amp = cameraGeom.cast_Amp(amp)
