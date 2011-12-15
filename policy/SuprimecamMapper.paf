@@ -1,7 +1,7 @@
 #<?cfg paf policy ?>
 
-#root: "/data/Subaru"
-calibRoot: "/data/price/miyatake/CALIB/dome/"
+#root: "/path/to/data"
+#calibRoot: "/path/to/calibration"
 #registryPath: "/path/to/registry/"
 needCalibRegistry: true
 #calibRegistryPath: "/path/to/calibration/registry/"

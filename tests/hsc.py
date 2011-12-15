@@ -7,7 +7,7 @@ import lsst.utils.tests as utilsTests
 
 from lsst.pex.policy import Policy
 import lsst.daf.persistence as dafPersist
-from lsst.obs.suprimecam import SuprimecamMapper
+from lsst.obs.hscSim import HscSimMapper
 
 import lsst.afw.display.ds9 as ds9
 import lsst.afw.display.utils as displayUtils
@@ -22,7 +22,7 @@ except NameError:
 
 
 def getButler(datadir):
-    bf = dafPersist.ButlerFactory(mapper=SuprimecamMapper(root=os.path.join(datadir, "hsc")))
+    bf = dafPersist.ButlerFactory(mapper=HscSimMapper(root=os.path.join(datadir, "hsc")))
     return bf.create()
 
 
