@@ -12,6 +12,7 @@ from lsst.obs.suprimecam import SuprimecamMapper
 import lsst.afw.display.ds9 as ds9
 import lsst.afw.display.utils as displayUtils
 
+import lsst.afw.geom as afwGeom
 import lsst.afw.cameraGeom as cameraGeom
 import lsst.afw.cameraGeom.utils as cameraGeomUtils
 try:
@@ -44,7 +45,7 @@ class GetRawTestCase(unittest.TestCase):
         frame = 0
         for ccdNum in self.ccdList:
             butler = getButler(self.datadir)
-            raw = butler.get("raw", visit=self.expId, ccd=ccd)
+            raw = butler.get("raw", visit=self.expId, ccd=ccdNum)
             ccd = raw.getDetector()
 
             print "Visit: ", expId
