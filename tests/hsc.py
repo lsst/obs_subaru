@@ -35,7 +35,7 @@ class GetRawTestCase(unittest.TestCase):
         self.ccdList = (0, 100)
         self.untrimmedSize = (2272, 4273)
         self.trimmedSize = (2048, 4096)
-        self.ampBox = afwGeom.Box2I(afwGeom.Point2I(0, 0), afwGeom.ExtentI(512, 2048))
+        self.ampSize = (512, 4096)
 
         assert self.datadir, "testdata_subaru is not setup"
 
@@ -64,7 +64,9 @@ class GetRawTestCase(unittest.TestCase):
 
             for amp in ccd:
                 amp = cameraGeom.cast_Amp(amp)
-                self.assertEqual(amp.getDataSec(True), self.ampBox)
+                datasec = amp.getDataSec(True)
+                self.assertEqual(datasec.getWidth(), self.ampSize[0])
+                self.assertEqual(datasec.getHeight(), self.ampSize[1])
 
             if display:
                 ccd = cameraGeom.cast_Ccd(raw.getDetector())
