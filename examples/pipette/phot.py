@@ -5,6 +5,8 @@ import math
 
 import lsst.afw.geom as afwGeom
 import lsst.afw.image as afwImage
+import lsst.afw.detection as afwDet
+import lsst.pex.logging as pexLog
 import lsst.meas.algorithms as measAlg
 import lsst.meas.utils.sourceDetection as muDetection
 import lsst.meas.utils.sourceMeasurement as muMeasurement
@@ -15,6 +17,9 @@ import lsst.pipette.background as pipBackground
 from lsst.pipette.timer import timecall
 
 import lsst.meas.deblender.baseline as deblendBaseline
+
+from IPython.core.debugger import Tracer
+debug_here = Tracer()
 
 class Photometry(pipProc.Process):
     def __init__(self, thresholdMultiplier=1.0, Background=pipBackground.Background, *args, **kwargs):
@@ -38,32 +43,58 @@ class Photometry(pipProc.Process):
         assert psf, "No psf provided"
 
         self.imports()
-        
+
         footprintSet = self.detect(exposure, psf)
 
         do = self.config['do']['phot']
         if do['background']:
             bg, exposure = self.background(exposure); del bg
 
-        deblendedFootprintSet = self.deblend(exposure, psf, footprintSet)
+        # Hacked in wcs for testing -- CPL
+        self.log.log(self.log.WARN, 'starting deblend')
+        deblendedFootprintSet = self.deblend(exposure, psf, footprintSet, wcs=wcs)
 
         sources = self.measure(exposure, footprintSet, psf, apcorr=apcorr, wcs=wcs)
 
         self.display('phot', exposure=exposure, sources=sources, pause=True)
         return sources, footprintSet
 
-    def deblend(self, exposure, psf, footprintSet):
+    def deblend(self, exposure, psf, footprintSet, wcs=None):
         """ Deblend on all the given peaks in the given footprints. """
-        
+
+        import plotDeblend
+
         foots = footprintSet.getFootprints()
         deblendedFoots = []
-        for foot in foots:
-            deblendedFoot = self.deblendOneFootprint(exposure, psf, foot)
-            if deblendedFoot != None:
-                deblendedFoots.extend(deblendedFoot)
+        deblendedSources = []
 
-        return deblendedFoots
-        
+        # For now, deep copy the entire exposure, so we can stuff the templates.
+        xexposure = afwImage.ExposureF(exposure, exposure.getBBox(),
+                                       afwImage.LOCAL, True)
+
+        for foot in foots[:50]:
+            deblendedFoot = self.deblendOneFootprint(exposure, psf, foot)
+            if not deblendedFoot:
+                self.log.log(self.log.WARN, 'skipped trivial footprint')
+                continue
+            deblendedFoots.append(deblendedFoot)
+
+            # We should have one PerFootprint object, with n PerPeaks, each of
+            # which has one .heavy HeavyFootprint.
+            for pk in deblendedFoot[0].peaks:
+                if pk.out_of_bounds:
+                    continue
+                feet = [pk.heavy]
+                peakSources = self.measure(xexposure, feet, psf, apcorr=None, wcs=wcs)
+                assert(len(peakSources) <= 1)
+                peakSource = peakSources[0]
+                pk.source = peakSource
+                deblendedSources.append(peakSource)
+                plotDeblend.plotFootprint(xexposure, psf, deblendedFoot[0])
+
+        debug_here()
+        return deblendedFoots, deblendedSources
+
     def deblendOneFootprint(self, exposure, psf, footprint):
         """ Deblend on all the given peaks in the given single footprint. """
 
@@ -72,10 +103,11 @@ class Photometry(pipProc.Process):
             xc = int((bb.getMinX() + bb.getMaxX()) / 2.)
             yc = int((bb.getMinY() + bb.getMaxY()) / 2.)
 
-            if bb.getHeight() <= 1 or bb.getWidth() <= 1:
+            # Muffle the skinny crap for now -- CPL testing
+            if bb.getHeight() <= 3 or bb.getWidth() <= 3:
                 self.log.log(self.log.WARN, 'skipping trivial footprint')
                 return None
-            
+
             try:
                 psf_fwhm = psf.getFwhm(xc, yc)
             except AttributeError, e:
@@ -89,24 +121,18 @@ class Photometry(pipProc.Process):
                 peaks.append(pk)
 
             mi = exposure.getMaskedImage()
+            # Should probably pass in the full exposure
             bootPrints = deblendBaseline.deblend([footprint], [peaks], mi, psf, psf_fwhm)
             self.log.log(self.log.INFO, "deblendOneFootprint turned %d peaks into %d objects." % (len(peaks),
                                                                                                   len(bootPrints[0].peaks)))
-            if len(peaks) > 1:
-                import numpy as np
-                import matplotlib.pyplot as pyplot
-                import plotDeblend
-                
-                plotDeblend.plotFootprint(exposure, psf, bb, bootPrints[0])
-                    
             return bootPrints
-        
+
         except RuntimeError, e:
             self.log.log(self.log.WARN, "deblending FAILED: %s" % (e))
             import pdb; pdb.set_trace()
             return None
-            
-    
+
+
     def imports(self):
         """Import modules (so they can register themselves)"""
         if self.config.has_key('imports'):
@@ -150,8 +176,8 @@ class Photometry(pipProc.Process):
         self.log.log(self.log.INFO, "Detected %d sources to %g sigma." % (numPos, policy['thresholdValue']))
         return posSources
 
-    @timecall
-    def measure(self, exposure, footprintSet, psf, apcorr=None, wcs=None):
+    # @timecall
+    def measure(self, exposure, footprints, psf, apcorr=None, wcs=None):
         """Measure sources
 
         @param exposure Exposure to process
@@ -162,14 +188,40 @@ class Photometry(pipProc.Process):
         @return Source list
         """
         assert exposure, "No exposure provided"
-        assert footprintSet, "No footprintSet provided"
+        assert footprints, "No footprints provided"
         assert psf, "No psf provided"
         policy = self.config['measure'].getPolicy()
-        footprints = []                    # Footprints to measure
-        num = len(footprintSet.getFootprints())
+        num = len(footprints)
         self.log.log(self.log.INFO, "Measuring %d positive sources" % num)
-        footprints.append([footprintSet.getFootprints(), False])
-        sources = muMeasurement.sourceMeasurement(exposure, psf, footprints, policy)
+
+        doReplace = True
+        if doReplace:
+            # debug_here()
+            mi = exposure.getMaskedImage()
+            sources = []
+
+            # Needs:
+            #  - to fill with noise...
+            # Questions:
+            #  - do the need to fill/clear beyond the footprint?
+            #
+            for i, foot in enumerate(footprints):
+                if not isinstance(foot, afwDet.HeavyFootprintF):
+                    self.log.log(self.log.WARN, "footprint %d is not heavy" % (i))
+                    debug_here()
+
+                self.log.log(self.log.INFO, "measuring off heavy footprint %d" % (i))
+                mi.set(0)
+                foot.insert(mi)
+                footprints = [[[afwDet.Footprint(foot)], False]]
+                sources1 = muMeasurement.sourceMeasurement(exposure, psf, footprints, policy)
+                if sources1:
+                    sources.extend(sources1)
+                else:
+                    self.log.log(self.log.WARN, "could not measure a source in heavy footprint %d" % (i))
+        else:
+            footprints.append([footprints, False])
+            sources = muMeasurement.sourceMeasurement(exposure, psf, footprints, policy)
 
         if wcs is not None:
             muMeasurement.computeSkyCoords(wcs, sources)

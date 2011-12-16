@@ -6,6 +6,8 @@ from mpl_toolkits.axes_grid1 import ImageGrid
 
 import lsst.afw.image as afwImage
 
+clippedCm = None
+
 def setupPyplot():
     global clippedCm
 
@@ -45,12 +47,13 @@ def imgScale(img):
     ns = len(s)
     return flatImg[s[0.05*ns]], flatImg[s[0.99*ns]]
 
-def plotFootprint(exposure, psf, bb, bootPrint):
+def plotFootprint(exposure, psf, bootPrint):
 
     mi = exposure.getMaskedImage()
     imgbb = mi.getBBox()
-
-    footImg = afwImage.ImageF(mi.getImage(), bb).getArray()
+    bb = bootPrint.getBBox()
+    
+    footImg = afwImage.ImageF(mi.getImage(), imgbb).getArray()
     residImg = np.array(footImg, copy=True)
     bbExtent = (bb.getMinX(), bb.getMaxX(),
                 bb.getMinY(), bb.getMaxY())
@@ -166,7 +169,7 @@ def plotFootprint(exposure, psf, bb, bootPrint):
              extent=bbExtent)
 
     pyplot.show()
-    debug_here()
+    # debug_here()
 
 
 setupPyplot()

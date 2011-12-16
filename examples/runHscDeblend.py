@@ -17,6 +17,9 @@ import lsst.pipette.ioHacks as pipExtraIO
 from lsst.pipette.specific.hscDc2 import CalibrateHscDc2
 from lsst.pipette.specific.suprimecam import ProcessCcdSuprimeCam
 
+from IPython.core.debugger import Tracer
+debug_here = Tracer()
+
 class DeferredHSCState(object):
     def __init__(self, dataId, io, matchlist, matchMeta, sources, brightSources, exposure):
         self.dataId = dataId

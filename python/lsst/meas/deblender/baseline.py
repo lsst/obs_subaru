@@ -33,6 +33,7 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
     # prepare results structures
     results = []
     for fp,pks in zip(footprints,peaks):
+        fp.normalize()
         fpres = PerFootprint()
         results.append(fpres)
         fpres.peaks = []
@@ -86,7 +87,7 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
                 print 'Skipping this one'
                 pkres.out_of_bounds = True
                 continue
-            
+
             # find other peaks within range...
             otherpsfs = []
             for j,pk2 in enumerate(pks):
@@ -195,11 +196,15 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm):
 
             dof1 = sumr - len(X1)
             dof2 = sumr - len(X2)
-            # could fail...
-            assert(dof1 > 0)
-            assert(dof2 > 0)
             print 'Chi-squareds', chisq1, chisq2
             print 'Degrees of freedom', dof1, dof2
+            # could fail...
+            if dof1 <= 0 or dof2 <= 0:
+                print 'Skipping this one, with bad DOF...'
+                pkres.out_of_bounds = True
+                continue
+                import pdb; pdb.set_trace()
+
             q1 = chisq1/dof1
             q2 = chisq2/dof2
             print 'chisq/dof =', q1,q2
