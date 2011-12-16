@@ -22,7 +22,7 @@ class HscDistortion(pipDist.CameraDistortion):
 
     def _rotate(self, x, y, reverse=False):
         sin = - self.sin if reverse else self.sin
-        return self.cos * x - self.sin * y, self.cos * y + self.sin * x
+        return self.cos * x + self.sin * y, self.cos * y - self.sin * x
 
     def _distortPosition(self, x, y, direction=None, elevation=60.0, copy=True):
         """Distort/undistort a position.
