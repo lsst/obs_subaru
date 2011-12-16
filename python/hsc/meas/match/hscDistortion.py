@@ -1,3 +1,4 @@
+import math
 import lsst.afw.geom as afwGeom
 import lsst.afw.image as afwImage
 import lsst.pipette.distortion as pipDist
@@ -16,6 +17,12 @@ class HscDistortion(pipDist.CameraDistortion):
         self.pixelSize = ccd.getPixelSize()
         self.transform = ccd.getGlobalTransform()
         self.inverseTransform = self.transform.invert()
+        angle = ccd.getOrientation().getNQuarter() * math.pi/2
+        self.cos, self.sin = math.cos(angle), math.sin(angle)
+
+    def _rotate(self, x, y, reverse=False):
+        sin = - self.sin if reverse else self.sin
+        return self.cos * x - self.sin * y, self.cos * y + self.sin * x
 
     def _distortPosition(self, x, y, direction=None, elevation=60.0, copy=True):
         """Distort/undistort a position.
@@ -30,9 +37,10 @@ class HscDistortion(pipDist.CameraDistortion):
             point = self.transform(afwGeom.PointD(x, y))
             x, y = point.getX() / self.pixelSize, point.getY() / self.pixelSize
             distX, distY = distest.getUndistortedPosition(x, y, elevation)
-            return distX, distY
+            return self.rotate(distX, distY, reverse=False)
 
         if direction == "toActual":
+            x, y = self.rotate(x, y, reverse=True)
             undistX, undistY = distest.getDistortedPosition(x, y, elevation)
             point = afwGeom.PointD(undistX * self.pixelSize, undistY * self.pixelSize)
             point = self.inverseTransform(point)
