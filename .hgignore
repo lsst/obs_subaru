@@ -24,6 +24,7 @@ submit.condor
 eups*
 ups/distEst.cfgc
 python/hsc/meas/match/version.py
+python/hsc/meas/match/distest.py
 
 *_wrap.cc
 .tests/*
