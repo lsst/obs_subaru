@@ -42,6 +42,7 @@ class SuprimecamMapper(CameraMapper):
         self.filters = {
             "W-J-B"   : "B",
             "W-J-V"   : "V",
+            "W-J-VR"  : "VR",
             "W-C-RC"  : "R",
             "W-C-IC"  : "I",
             "W-S-G+"  : "g",
