@@ -18,6 +18,11 @@ Filter: {
     alias: "W-C-RC"
 }
 Filter: {
+    name: "VR"
+    lambdaEff: 600.0 # ?
+    alias: "W-J-VR"
+}
+Filter: {
     name: "I"
     lambdaEff: 800.0 # ?
     alias: "W-C-IC"
