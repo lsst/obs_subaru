@@ -33,9 +33,10 @@ class GetRawTestCase(unittest.TestCase):
         self.datadir = os.getenv("TESTDATA_SUBARU_DIR")
         self.expId = 204
         self.ccdList = (0, 100)
+        self.rotated = (False, True)
         self.untrimmedSize = (2272, 4273)
         self.trimmedSize = (2048, 4096)
-        self.ampBox = afwGeom.Box2I(afwGeom.Point2I(0, 0), afwGeom.ExtentI(512, 2048))
+        self.ampSize = (512, 4096)
 
         assert self.datadir, "testdata_subaru is not setup"
 
@@ -43,28 +44,45 @@ class GetRawTestCase(unittest.TestCase):
         """Test retrieval of raw image"""
 
         frame = 0
-        for ccdNum in self.ccdList:
+        for ccdNum, rotated in zip(self.ccdList, self.rotated):
             butler = getButler(self.datadir)
             raw = butler.get("raw", visit=self.expId, ccd=ccdNum)
-            ccd = raw.getDetector()
+            ccd = cameraGeom.cast_Ccd(raw.getDetector())
 
-            print "Visit: ", expId
+            print "Visit: ", self.expId
             print "width: ",              raw.getWidth()
             print "height: ",             raw.getHeight()
             print "detector(amp) name: ", ccd.getId().getName()
 
             self.assertEqual(raw.getWidth(), self.untrimmedSize[0])
             self.assertEqual(raw.getHeight(), self.untrimmedSize[1])
-            self.assertEqual(raw.getFilter().getFilterProperty().getName(), "i") 
-            self.assertEqual(ccd.getId().getName(), "%03d" % ccdNum)
+            self.assertEqual(raw.getFilter().getFilterProperty().getName(), "g")
+            self.assertEqual(ccd.getId().getName(), "hsc%03d" % ccdNum)
 
-            trimmed = ccd.getAllPixels(True).getDimensions()
-            self.assertEqual(trimmed.getWidth(), self.trimmedSize[0])
-            self.assertEqual(trimmed.getHeight(), self.trimmedSize[1])
+            # CCD size
+            trimmed = ccd.getAllPixelsNoRotation(True).getDimensions()
+            self.assertEqual(trimmed.getX(), self.trimmedSize[0])
+            self.assertEqual(trimmed.getY(), self.trimmedSize[1])
 
-            for amp in ccd:
+            # Size in camera coordinates
+            camera = ccd.getAllPixels(True).getDimensions()
+            self.assertEqual(camera.getX(), self.trimmedSize[0] if not rotated else self.trimmedSize[1])
+            self.assertEqual(camera.getY(), self.trimmedSize[1] if not rotated else self.trimmedSize[0])
+
+            for i, amp in enumerate(ccd):
                 amp = cameraGeom.cast_Amp(amp)
-                self.assertEqual(amp.getDataSec(True), self.ampBox)
+
+                # Amplifier on CCD
+                datasec = amp.getAllPixelsNoRotation(True)
+                self.assertEqual(datasec.getWidth(), self.ampSize[0])
+                self.assertEqual(datasec.getHeight(), self.ampSize[1])
+                self.assertEqual(datasec.getMinX(), (3-i) * self.ampSize[0])
+                self.assertEqual(datasec.getMinY(), 0)
+
+                # Amplifier on disk
+                datasec = amp.getDiskDataSec()
+                self.assertEqual(datasec.getWidth(), self.ampSize[0])
+                self.assertEqual(datasec.getHeight(), self.ampSize[1])
 
             if display:
                 ccd = cameraGeom.cast_Ccd(raw.getDetector())
