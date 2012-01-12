@@ -32,7 +32,7 @@ import lsst.obs.hscSim as hscSim
 import lsst.pipette.config as pipConfig
 import lsst.pipette.distortion as pipDist
 
-SAMPLE = 100
+SAMPLE = 2
 
 
 def main(camera, distortionConfig):
@@ -49,7 +49,7 @@ def main(camera, distortionConfig):
         for ccd in raft:
             ccd = cameraGeom.cast_Ccd(ccd)
             size = ccd.getSize()
-            width, height = size.getX(), size.getY()
+            width, height = 2048, 4096
             dist = pipDist.createDistortion(ccd, distortionConfig)
             corners = ((0.0,0.0), (0.0, height), (width, height), (width, 0.0), (0.0, 0.0))
             for (x0, y0), (x1, y1) in zip(corners[0:4],corners[1:5]):
@@ -68,6 +68,8 @@ def main(camera, distortionConfig):
                     xDistort.append(distorted.getX())
                     yDistort.append(distorted.getY())
 
+                print zip(xList, yList)
+                print zip(xDistort, yDistort)
                 ax.plot(xDistort, yDistort, 'k-')
 
     plt.show()
