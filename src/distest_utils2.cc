@@ -112,17 +112,19 @@ void convUndist2DistPosIterative(float x_undist, float y_undist, float *x_dist, 
 
     for(int N=0;;N++){
 
-        fprintf(stderr, "debug: distpos_iter: %d\n", N);
 
         ret = F_CS_CCD2SKY_XY(el_interpol_order, elevation, Coef, x_dist_tmp, y_dist_tmp, &x_sky_tmp, &y_sky_tmp);
 
-        fprintf(stderr, "debug: distpos_iter: EL: %f CCD(%f,%f) -> SKY(%f,%f)\n", 
-                elevation, x_dist_tmp, y_dist_tmp, x_sky_tmp, y_sky_tmp);
 
         double diff_x = x_undist - x_sky_tmp;
         double diff_y = y_undist - y_sky_tmp;
 
+#if 0
+        fprintf(stderr, "debug: distpos_iter: %d\n", N);
+        fprintf(stderr, "debug: distpos_iter: EL: %f CCD(%f,%f) -> SKY(%f,%f)\n", 
+                elevation, x_dist_tmp, y_dist_tmp, x_sky_tmp, y_sky_tmp);
         fprintf(stderr, "debug: distpos_iter: %f  %f\n", diff_x, diff_y);
+#endif
 
         if( fabs(diff_x) < TOLERANCE && fabs(diff_y) < TOLERANCE )
             break;
