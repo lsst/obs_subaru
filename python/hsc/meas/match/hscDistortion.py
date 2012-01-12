@@ -41,7 +41,7 @@ class HscDistortion(pipDist.CameraDistortion):
 
         if direction == "toActual":
             x, y = self._rotate(x, y, reverse=True)
-            undistX, undistY = distest.getDistortedPosition(x, y, elevation)
+            undistX, undistY = distest.getDistortedPositionIterative(x, y, elevation)
             point = afwGeom.PointD(undistX * self.pixelSize, undistY * self.pixelSize)
             point = self.inverseTransform(point)
             return point.getX(), point.getY()
