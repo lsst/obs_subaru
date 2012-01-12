@@ -32,7 +32,7 @@ import lsst.obs.hscSim as hscSim
 import lsst.pipette.config as pipConfig
 import lsst.pipette.distortion as pipDist
 
-SAMPLE = 2
+SAMPLE = 100
 
 
 def main(camera, distortionConfig):
@@ -68,8 +68,6 @@ def main(camera, distortionConfig):
                     xDistort.append(distorted.getX())
                     yDistort.append(distorted.getY())
 
-                print zip(xList, yList)
-                print zip(xDistort, yDistort)
                 ax.plot(xDistort, yDistort, 'k-')
 
     plt.show()
