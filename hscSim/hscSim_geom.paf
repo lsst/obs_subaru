@@ -1027,25 +1027,25 @@ Electronic: {
                 index: 0 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 1 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 2 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 3 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
         }
         Ccd: { 
@@ -1056,25 +1056,25 @@ Electronic: {
                 index: 0 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 1 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 2 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 3 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
         }
         Ccd: { 
@@ -1085,25 +1085,25 @@ Electronic: {
                 index: 0 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 1 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 2 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 3 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
         }
         Ccd: { 
@@ -1114,25 +1114,25 @@ Electronic: {
                 index: 0 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 1 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 2 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 3 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
         }
         Ccd: { 
@@ -1143,25 +1143,25 @@ Electronic: {
                 index: 0 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 1 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 2 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 3 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
         }
         Ccd: { 
@@ -1172,25 +1172,25 @@ Electronic: {
                 index: 0 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 1 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 2 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 3 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
         }
         Ccd: { 
@@ -1201,25 +1201,25 @@ Electronic: {
                 index: 0 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 1 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 2 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 3 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
         }
         Ccd: { 
@@ -1230,25 +1230,25 @@ Electronic: {
                 index: 0 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 1 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 2 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 3 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
         }
         Ccd: { 
@@ -1259,25 +1259,25 @@ Electronic: {
                 index: 0 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 1 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 2 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 3 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
         }
         Ccd: { 
@@ -1288,25 +1288,25 @@ Electronic: {
                 index: 0 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 1 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 2 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 3 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
         }
         Ccd: { 
@@ -1317,25 +1317,25 @@ Electronic: {
                 index: 0 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 1 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 2 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 3 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
         }
         Ccd: { 
@@ -1346,25 +1346,25 @@ Electronic: {
                 index: 0 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 1 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 2 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 3 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
         }
         Ccd: { 
@@ -1375,25 +1375,25 @@ Electronic: {
                 index: 0 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 1 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 2 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 3 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
         }
         Ccd: { 
@@ -1404,25 +1404,25 @@ Electronic: {
                 index: 0 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 1 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 2 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 3 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
         }
         Ccd: { 
@@ -1433,25 +1433,25 @@ Electronic: {
                 index: 0 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 1 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 2 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 3 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
         }
         Ccd: { 
@@ -1462,25 +1462,25 @@ Electronic: {
                 index: 0 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 1 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 2 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 3 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
         }
         Ccd: { 
@@ -1491,25 +1491,25 @@ Electronic: {
                 index: 0 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 1 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 2 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 3 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
         }
         Ccd: { 
@@ -1520,25 +1520,25 @@ Electronic: {
                 index: 0 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 1 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 2 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 3 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
         }
         Ccd: { 
@@ -1549,25 +1549,25 @@ Electronic: {
                 index: 0 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 1 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 2 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 3 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
         }
         Ccd: { 
@@ -1578,25 +1578,25 @@ Electronic: {
                 index: 0 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 1 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 2 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 3 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
         }
         Ccd: { 
@@ -1607,25 +1607,25 @@ Electronic: {
                 index: 0 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 1 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 2 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 3 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
         }
         Ccd: { 
@@ -1636,25 +1636,25 @@ Electronic: {
                 index: 0 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 1 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 2 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 3 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
         }
         Ccd: { 
@@ -1665,25 +1665,25 @@ Electronic: {
                 index: 0 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 1 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 2 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 3 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
         }
         Ccd: { 
@@ -1694,25 +1694,25 @@ Electronic: {
                 index: 0 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 1 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 2 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 3 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
         }
         Ccd: { 
@@ -1723,25 +1723,25 @@ Electronic: {
                 index: 0 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 1 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 2 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 3 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
         }
         Ccd: { 
@@ -1752,25 +1752,25 @@ Electronic: {
                 index: 0 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 1 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 2 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 3 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
         }
         Ccd: { 
@@ -1781,25 +1781,25 @@ Electronic: {
                 index: 0 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 1 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 2 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 3 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
         }
         Ccd: { 
@@ -1810,25 +1810,25 @@ Electronic: {
                 index: 0 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 1 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 2 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 3 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
         }
         Ccd: { 
@@ -1839,25 +1839,25 @@ Electronic: {
                 index: 0 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 1 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 2 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 3 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
         }
         Ccd: { 
@@ -1868,25 +1868,25 @@ Electronic: {
                 index: 0 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 1 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 2 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 3 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
         }
         Ccd: { 
@@ -1897,25 +1897,25 @@ Electronic: {
                 index: 0 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 1 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 2 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 3 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
         }
         Ccd: { 
@@ -1926,25 +1926,25 @@ Electronic: {
                 index: 0 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 1 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 2 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 3 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
         }
         Ccd: { 
@@ -1955,25 +1955,25 @@ Electronic: {
                 index: 0 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 1 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 2 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 3 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
         }
         Ccd: { 
@@ -1984,25 +1984,25 @@ Electronic: {
                 index: 0 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 1 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 2 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 3 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
         }
         Ccd: { 
@@ -2013,25 +2013,25 @@ Electronic: {
                 index: 0 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 1 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 2 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 3 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
         }
         Ccd: { 
@@ -2042,25 +2042,25 @@ Electronic: {
                 index: 0 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 1 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 2 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 3 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
         }
         Ccd: { 
@@ -2071,25 +2071,25 @@ Electronic: {
                 index: 0 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 1 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 2 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 3 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
         }
         Ccd: { 
@@ -2100,25 +2100,25 @@ Electronic: {
                 index: 0 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 1 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 2 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 3 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
         }
         Ccd: { 
@@ -2129,25 +2129,25 @@ Electronic: {
                 index: 0 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 1 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 2 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 3 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
         }
         Ccd: { 
@@ -2158,25 +2158,25 @@ Electronic: {
                 index: 0 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 1 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 2 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 3 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
         }
         Ccd: { 
@@ -2187,25 +2187,25 @@ Electronic: {
                 index: 0 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 1 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 2 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 3 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
         }
         Ccd: { 
@@ -2216,25 +2216,25 @@ Electronic: {
                 index: 0 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 1 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 2 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 3 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
         }
         Ccd: { 
@@ -2245,25 +2245,25 @@ Electronic: {
                 index: 0 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 1 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 2 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 3 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
         }
         Ccd: { 
@@ -2274,25 +2274,25 @@ Electronic: {
                 index: 0 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 1 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 2 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 3 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
         }
         Ccd: { 
@@ -2303,25 +2303,25 @@ Electronic: {
                 index: 0 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 1 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 2 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 3 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
         }
         Ccd: { 
@@ -2332,25 +2332,25 @@ Electronic: {
                 index: 0 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 1 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 2 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 3 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
         }
         Ccd: { 
@@ -2361,25 +2361,25 @@ Electronic: {
                 index: 0 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 1 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 2 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 3 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
         }
         Ccd: { 
@@ -2390,25 +2390,25 @@ Electronic: {
                 index: 0 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 1 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 2 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 3 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
         }
         Ccd: { 
@@ -2419,25 +2419,25 @@ Electronic: {
                 index: 0 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 1 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 2 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 3 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
         }
         Ccd: { 
@@ -2448,25 +2448,25 @@ Electronic: {
                 index: 0 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 1 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 2 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 3 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
         }
         Ccd: { 
@@ -2477,25 +2477,25 @@ Electronic: {
                 index: 0 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 1 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 2 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 3 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
         }
         Ccd: { 
@@ -2506,25 +2506,25 @@ Electronic: {
                 index: 0 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 1 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 2 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 3 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
         }
         Ccd: { 
@@ -2535,25 +2535,25 @@ Electronic: {
                 index: 0 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 1 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 2 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 3 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
         }
         Ccd: { 
@@ -2564,25 +2564,25 @@ Electronic: {
                 index: 0 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 1 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 2 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 3 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
         }
         Ccd: { 
@@ -2593,25 +2593,25 @@ Electronic: {
                 index: 0 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 1 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 2 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 3 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
         }
         Ccd: { 
@@ -2622,25 +2622,25 @@ Electronic: {
                 index: 0 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 1 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 2 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 3 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
         }
         Ccd: { 
@@ -2651,25 +2651,25 @@ Electronic: {
                 index: 0 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 1 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 2 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 3 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
         }
         Ccd: { 
@@ -2680,25 +2680,25 @@ Electronic: {
                 index: 0 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 1 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 2 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 3 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
         }
         Ccd: { 
@@ -2709,25 +2709,25 @@ Electronic: {
                 index: 0 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 1 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 2 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 3 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
         }
         Ccd: { 
@@ -2738,25 +2738,25 @@ Electronic: {
                 index: 0 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 1 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 2 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 3 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
         }
         Ccd: { 
@@ -2767,25 +2767,25 @@ Electronic: {
                 index: 0 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 1 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 2 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 3 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
         }
         Ccd: { 
@@ -2796,25 +2796,25 @@ Electronic: {
                 index: 0 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 1 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 2 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 3 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
         }
         Ccd: { 
@@ -2825,25 +2825,25 @@ Electronic: {
                 index: 0 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 1 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 2 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 3 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
         }
         Ccd: { 
@@ -2854,25 +2854,25 @@ Electronic: {
                 index: 0 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 1 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 2 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 3 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
         }
         Ccd: { 
@@ -2883,25 +2883,25 @@ Electronic: {
                 index: 0 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 1 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 2 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 3 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
         }
         Ccd: { 
@@ -2912,25 +2912,25 @@ Electronic: {
                 index: 0 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 1 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 2 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 3 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
         }
         Ccd: { 
@@ -2941,25 +2941,25 @@ Electronic: {
                 index: 0 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 1 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 2 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 3 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
         }
         Ccd: { 
@@ -2970,25 +2970,25 @@ Electronic: {
                 index: 0 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 1 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 2 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 3 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
         }
         Ccd: { 
@@ -2999,25 +2999,25 @@ Electronic: {
                 index: 0 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 1 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 2 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 3 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
         }
         Ccd: { 
@@ -3028,25 +3028,25 @@ Electronic: {
                 index: 0 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 1 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 2 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 3 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
         }
         Ccd: { 
@@ -3057,25 +3057,25 @@ Electronic: {
                 index: 0 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 1 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 2 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 3 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
         }
         Ccd: { 
@@ -3086,25 +3086,25 @@ Electronic: {
                 index: 0 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 1 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 2 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 3 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
         }
         Ccd: { 
@@ -3115,25 +3115,25 @@ Electronic: {
                 index: 0 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 1 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 2 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 3 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
         }
         Ccd: { 
@@ -3144,25 +3144,25 @@ Electronic: {
                 index: 0 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 1 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 2 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 3 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
         }
         Ccd: { 
@@ -3173,25 +3173,25 @@ Electronic: {
                 index: 0 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 1 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 2 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 3 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
         }
         Ccd: { 
@@ -3202,25 +3202,25 @@ Electronic: {
                 index: 0 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 1 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 2 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 3 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
         }
         Ccd: { 
@@ -3231,25 +3231,25 @@ Electronic: {
                 index: 0 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 1 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 2 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 3 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
         }
         Ccd: { 
@@ -3260,25 +3260,25 @@ Electronic: {
                 index: 0 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 1 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 2 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 3 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
         }
         Ccd: { 
@@ -3289,25 +3289,25 @@ Electronic: {
                 index: 0 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 1 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 2 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 3 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
         }
         Ccd: { 
@@ -3318,25 +3318,25 @@ Electronic: {
                 index: 0 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 1 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 2 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 3 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
         }
         Ccd: { 
@@ -3347,25 +3347,25 @@ Electronic: {
                 index: 0 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 1 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 2 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 3 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
         }
         Ccd: { 
@@ -3376,25 +3376,25 @@ Electronic: {
                 index: 0 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 1 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 2 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 3 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
         }
         Ccd: { 
@@ -3405,25 +3405,25 @@ Electronic: {
                 index: 0 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 1 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 2 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 3 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
         }
         Ccd: { 
@@ -3434,25 +3434,25 @@ Electronic: {
                 index: 0 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 1 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 2 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 3 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
         }
         Ccd: { 
@@ -3463,25 +3463,25 @@ Electronic: {
                 index: 0 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 1 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 2 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 3 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
         }
         Ccd: { 
@@ -3492,25 +3492,25 @@ Electronic: {
                 index: 0 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 1 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 2 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 3 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
         }
         Ccd: { 
@@ -3521,25 +3521,25 @@ Electronic: {
                 index: 0 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 1 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 2 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 3 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
         }
         Ccd: { 
@@ -3550,25 +3550,25 @@ Electronic: {
                 index: 0 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 1 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 2 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 3 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
         }
         Ccd: { 
@@ -3579,25 +3579,25 @@ Electronic: {
                 index: 0 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 1 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 2 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 3 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
         }
         Ccd: { 
@@ -3608,25 +3608,25 @@ Electronic: {
                 index: 0 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 1 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 2 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 3 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
         }
         Ccd: { 
@@ -3637,25 +3637,25 @@ Electronic: {
                 index: 0 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 1 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 2 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 3 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
         }
         Ccd: { 
@@ -3666,25 +3666,25 @@ Electronic: {
                 index: 0 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 1 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 2 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 3 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
         }
         Ccd: { 
@@ -3695,25 +3695,25 @@ Electronic: {
                 index: 0 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 1 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 2 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 3 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
         }
         Ccd: { 
@@ -3724,25 +3724,25 @@ Electronic: {
                 index: 0 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 1 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 2 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 3 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
         }
         Ccd: { 
@@ -3753,25 +3753,25 @@ Electronic: {
                 index: 0 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 1 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 2 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 3 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
         }
         Ccd: { 
@@ -3782,25 +3782,25 @@ Electronic: {
                 index: 0 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 1 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 2 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 3 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
         }
         Ccd: { 
@@ -3811,25 +3811,25 @@ Electronic: {
                 index: 0 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 1 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 2 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 3 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
         }
         Ccd: { 
@@ -3840,25 +3840,25 @@ Electronic: {
                 index: 0 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 1 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 2 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 3 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
         }
         Ccd: { 
@@ -3869,25 +3869,25 @@ Electronic: {
                 index: 0 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 1 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 2 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 3 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
         }
         Ccd: { 
@@ -3898,25 +3898,25 @@ Electronic: {
                 index: 0 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 1 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 2 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 3 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
         }
         Ccd: { 
@@ -3927,25 +3927,25 @@ Electronic: {
                 index: 0 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 1 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 2 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 3 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
         }
         Ccd: { 
@@ -3956,25 +3956,25 @@ Electronic: {
                 index: 0 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 1 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 2 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 3 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
         }
         Ccd: { 
@@ -3985,25 +3985,25 @@ Electronic: {
                 index: 0 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 1 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 2 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 3 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
         }
         Ccd: { 
@@ -4014,25 +4014,25 @@ Electronic: {
                 index: 0 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 1 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 2 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
             Amp: {
                 index: 3 0
                 gain: 3.0
                 readNoise: 10.0
-                saturationLevel: 59000.0
+                saturationLevel: 64000.0
             }
         }
 
