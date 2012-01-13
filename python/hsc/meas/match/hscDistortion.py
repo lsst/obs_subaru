@@ -24,7 +24,7 @@ class HscDistortion(pipDist.CameraDistortion):
         sin = - self.sin if reverse else self.sin
         return self.cos * x + sin * y, self.cos * y - sin * x
 
-    def _distortPosition(self, x, y, direction=None, elevation=60.0, copy=True):
+    def _distortPosition(self, x, y, direction=None, elevation=30.0, copy=True):
         """Distort/undistort a position.
 
         @param x X coordinate to distort. pixels from focal plane center.
