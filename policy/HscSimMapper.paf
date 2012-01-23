@@ -9,7 +9,6 @@ needCalibRegistry: true
 
 camera:        "../hscSim/hscSim_geom.paf"
 #defects:    "../hscSim/hscSim_defects.paf"
-filters:    "../hscSim/hscSim_filters.paf"
 
 skytiles: {
     resolutionPix: 700    # Resolution for skytiles: 700 --> 500 arcsec sides

@@ -8,7 +8,6 @@ needCalibRegistry: true
 
 camera:        "../suprimecam/Full_Suprimecam_geom.paf"
 defects:    "../suprimecam/defects"
-filters:    "../suprimecam/SuprimecamFilters.paf"
 
 exposures: {
     raw: {
