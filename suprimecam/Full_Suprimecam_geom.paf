@@ -16,12 +16,12 @@ Camera: {
     #    }
     #}
 } 
-Amp: { 
+Amp: {
     ptype: "default"
-    datasec: 8 0 519 4176
-    biassec: 520 0 567 4176
+    datasec: 8 48 519 4224
+    biassec: 520 48 567 4224
     ewidth: 568
-    eheight: 4225
+    eheight: 4273
 } 
 Ccd: { 
     ptype: "top"
