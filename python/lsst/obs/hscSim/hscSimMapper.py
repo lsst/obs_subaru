@@ -4,6 +4,7 @@ import os
 import pwd
 
 from lsst.daf.butlerUtils import CameraMapper
+import lsst.afw.image.utils as afwImageUtils
 import lsst.pex.policy as pexPolicy
 
 class HscSimMapper(CameraMapper):
@@ -30,7 +31,19 @@ class HscSimMapper(CameraMapper):
 
         super(HscSimMapper, self).__init__(policy, policyFile.getRepositoryPath(),
                                            provided=['rerun', 'outRoot'], **kwargs)
-
+        
+        # SDSS g': http://www.naoj.org/Observing/Instruments/SCam/txt/g.txt
+        # SDSS r': http://www.naoj.org/Observing/Instruments/SCam/txt/r.txt
+        # SDSS i': http://www.naoj.org/Observing/Instruments/SCam/txt/i.txt
+        # SDSS z': http://www.naoj.org/Observing/Instruments/SCam/txt/z.txt
+        # y-band: Shimasaku et al., 2005, PASJ, 57, 447
+        
+        afwImageUtils.defineFilter(name='g', lambdaEff=477, alias=['W-S-G+'])
+        afwImageUtils.defineFilter(name='r', lambdaEff=623, alias=['W-S-R+'])
+        afwImageUtils.defineFilter(name='i', lambdaEff=775, alias=['W-S-I+'])
+        afwImageUtils.defineFilter(name='z', lambdaEff=925, alias=['W-S-Z+'])
+        afwImageUtils.defineFilter(name='y', lambdaEff=990, alias=['W-S-ZR'])
+        
         self.filters = {
             "W-J-B"   : "B",
             "W-S-G+"  : "g",

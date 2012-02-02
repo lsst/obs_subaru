@@ -5,6 +5,7 @@ import pwd
 
 import lsst.afw.geom as afwGeom
 import lsst.afw.image as afwImage
+import lsst.afw.image.utils as afwImageUtils
 
 from lsst.daf.butlerUtils import CameraMapper
 import lsst.pex.policy as pexPolicy
@@ -38,6 +39,17 @@ class SuprimecamMapper(CameraMapper):
 
         super(SuprimecamMapper, self).__init__(policy, policyFile.getRepositoryPath(),
                                                provided=['rerun', 'outRoot'], **kwargs)
+
+        afwImageUtils.defineFilter('B',  lambdaEff=400,  alias=['W-J-B'])
+        afwImageUtils.defineFilter('V',  lambdaEff=550,  alias=['W-J-V'])
+        afwImageUtils.defineFilter('R',  lambdaEff=650,  alias=['W-C-RC'])
+        afwImageUtils.defineFilter('VR', lambdaEff=600,  alias=['W-J-VR'])
+        afwImageUtils.defineFilter('I',  lambdaEff=800,  alias=['W-C-IC'])
+        afwImageUtils.defineFilter('g',  lambdaEff=450,  alias=['W-S-G+'])
+        afwImageUtils.defineFilter('r',  lambdaEff=600,  alias=['W-S-R+'])
+        afwImageUtils.defineFilter('i',  lambdaEff=770,  alias=['W-S-I+'])
+        afwImageUtils.defineFilter('z',  lambdaEff=900,  alias=['W-S-Z+'])
+        afwImageUtils.defineFilter('y',  lambdaEff=1000, alias=['W-S-ZR'])
 
         self.filters = {
             "W-J-B"   : "B",
