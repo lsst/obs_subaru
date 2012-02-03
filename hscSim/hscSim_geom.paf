@@ -965,7 +965,7 @@ Ccd: {
     nCol: 4                             # number of columns of amps; 2 == Left and Right
     nRow: 1                             # number of rows of amps
     Amp: {
-        serial: 4
+        serial: 1
         ptype: "default"
         flipLR: false
         nQuarter: 0
@@ -974,7 +974,7 @@ Ccd: {
         index: 0 0                      # Location of Amp in CCD thought of as a grid of amplifiers
     }
     Amp: {
-        serial: 3
+        serial: 2
         ptype: "default"
         flipLR: true
         nQuarter: 0
@@ -983,7 +983,7 @@ Ccd: {
         index: 1 0                      # Location of Amp in CCD thought of as a grid of amplifiers
     }
     Amp: {
-        serial: 2
+        serial: 3
         ptype: "default"
         flipLR: false
         nQuarter: 0
@@ -992,7 +992,7 @@ Ccd: {
         index: 2 0                      # Location of Amp in CCD thought of as a grid of amplifiers
     }
     Amp: {
-        serial: 1
+        serial: 4
         ptype: "default"
         flipLR: true
         nQuarter: 0
@@ -1006,10 +1006,10 @@ Ccd: {
 
 Amp: {
     ptype: "default"
-    datasec: 8 48 519 4143
-    biassec: 520 48 567 4143
+    datasec: 8 48 519 4225
+    biassec: 520 48 567 4225
     ewidth: 568
-    eheight: 4192
+    eheight: 4273
 }
 
 #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
