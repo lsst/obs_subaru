@@ -23,7 +23,7 @@ Raft: {
         name: "hsc000"                    # CCD's name
         ptype: "default"
         index: 3 4
-        offset: -8490.7 1952.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: -8490.7 1952.0 # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
@@ -32,7 +32,7 @@ Raft: {
         name: "hsc001"                    # CCD's name
         ptype: "default"
         index: 11 3
-        offset: 8490.7 -2299.7 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 8490.7 -2299.7 # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
@@ -41,7 +41,7 @@ Raft: {
         name: "hsc002"                    # CCD's name
         ptype: "default"
         index: 4 4
-        offset: -6368.0 1952.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: -6368.0 1952.0 # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
@@ -50,7 +50,7 @@ Raft: {
         name: "hsc003"                    # CCD's name
         ptype: "default"
         index: 10 3
-        offset: 6368.0 -2299.7 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 6368.0 -2299.7 # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
@@ -59,7 +59,7 @@ Raft: {
         name: "hsc004"                    # CCD's name
         ptype: "default"
         index: 5 4
-        offset: -4245.3 1952.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: -4245.3 1952.0 # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
@@ -68,7 +68,7 @@ Raft: {
         name: "hsc005"                    # CCD's name
         ptype: "default"
         index: 9 3
-        offset: 4245.3 -2299.7 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 4245.3 -2299.7 # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
@@ -77,7 +77,7 @@ Raft: {
         name: "hsc006"                    # CCD's name
         ptype: "default"
         index: 6 4
-        offset: -2122.7 1952.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: -2122.7 1952.0 # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
@@ -86,7 +86,7 @@ Raft: {
         name: "hsc007"                    # CCD's name
         ptype: "default"
         index: 8 3
-        offset: 2122.7 -2299.7 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 2122.7 -2299.7 # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
@@ -95,7 +95,7 @@ Raft: {
         name: "hsc008"                    # CCD's name
         ptype: "default"
         index: 7 4
-        offset: 0.0 1952.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 0.0 1952.0 # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
@@ -104,7 +104,7 @@ Raft: {
         name: "hsc009"                    # CCD's name
         ptype: "default"
         index: 7 3
-        offset: 0.0 -2299.7 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 0.0 -2299.7 # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
@@ -113,7 +113,7 @@ Raft: {
         name: "hsc010"                    # CCD's name
         ptype: "default"
         index: 8 4
-        offset: 2122.7 1952.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 2122.7 1952.0 # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
@@ -122,7 +122,7 @@ Raft: {
         name: "hsc011"                    # CCD's name
         ptype: "default"
         index: 6 3
-        offset: -2122.7 -2299.7 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: -2122.7 -2299.7 # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
@@ -131,7 +131,7 @@ Raft: {
         name: "hsc012"                    # CCD's name
         ptype: "default"
         index: 9 4
-        offset: 4245.3 1952.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 4245.3 1952.0 # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
@@ -140,7 +140,7 @@ Raft: {
         name: "hsc013"                    # CCD's name
         ptype: "default"
         index: 5 3
-        offset: -4245.3 -2299.7 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: -4245.3 -2299.7 # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
@@ -149,7 +149,7 @@ Raft: {
         name: "hsc014"                    # CCD's name
         ptype: "default"
         index: 10 4
-        offset: 6368.0 1952.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 6368.0 1952.0 # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
@@ -158,7 +158,7 @@ Raft: {
         name: "hsc015"                    # CCD's name
         ptype: "default"
         index: 4 3
-        offset: -6368.0 -2299.7 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: -6368.0 -2299.7 # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
@@ -167,7 +167,7 @@ Raft: {
         name: "hsc016"                    # CCD's name
         ptype: "default"
         index: 11 4
-        offset: 8490.7 1952.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 8490.7 1952.0 # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
@@ -176,7 +176,7 @@ Raft: {
         name: "hsc017"                    # CCD's name
         ptype: "default"
         index: 3 3
-        offset: -8490.7 -2299.7 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: -8490.7 -2299.7 # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
@@ -185,7 +185,7 @@ Raft: {
         name: "hsc018"                    # CCD's name
         ptype: "default"
         index: 12 4
-        offset: 10613.0 1952.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 10613.0 1952.0 # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
@@ -194,7 +194,7 @@ Raft: {
         name: "hsc019"                    # CCD's name
         ptype: "default"
         index: 2 3
-        offset: -10613.0 -2299.7 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: -10613.0 -2299.7 # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
@@ -203,7 +203,7 @@ Raft: {
         name: "hsc020"                    # CCD's name
         ptype: "default"
         index: 13 4
-        offset: 12736.0 1952.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 12736.0 1952.0 # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
@@ -212,7 +212,7 @@ Raft: {
         name: "hsc021"                    # CCD's name
         ptype: "default"
         index: 1 3
-        offset: -12736.0 -2299.7 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: -12736.0 -2299.7 # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
@@ -221,7 +221,7 @@ Raft: {
         name: "hsc022"                    # CCD's name
         ptype: "default"
         index: 14 4
-        offset: 14859.0 1952.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 14859.0 1952.0 # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
@@ -230,7 +230,7 @@ Raft: {
         name: "hsc023"                    # CCD's name
         ptype: "default"
         index: 0 3
-        offset: -14859.0 -2299.7 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: -14859.0 -2299.7 # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
@@ -239,7 +239,7 @@ Raft: {
         name: "hsc024"                    # CCD's name
         ptype: "default"
         index: 3 5
-        offset: -8490.7 6420.3 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: -8490.7 6420.3 # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
@@ -248,7 +248,7 @@ Raft: {
         name: "hsc025"                    # CCD's name
         ptype: "default"
         index: 11 2
-        offset: 8490.7 -6768.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 8490.7 -6768.0 # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
@@ -257,7 +257,7 @@ Raft: {
         name: "hsc026"                    # CCD's name
         ptype: "default"
         index: 4 5
-        offset: -6368.0 6420.3 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: -6368.0 6420.3 # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
@@ -266,7 +266,7 @@ Raft: {
         name: "hsc027"                    # CCD's name
         ptype: "default"
         index: 10 2
-        offset: 6368.0 -6768.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 6368.0 -6768.0 # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
@@ -275,7 +275,7 @@ Raft: {
         name: "hsc028"                    # CCD's name
         ptype: "default"
         index: 5 5
-        offset: -4245.3 6420.3 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: -4245.3 6420.3 # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
@@ -284,7 +284,7 @@ Raft: {
         name: "hsc029"                    # CCD's name
         ptype: "default"
         index: 9 2
-        offset: 4245.3 -6768.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 4245.3 -6768.0 # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
@@ -293,7 +293,7 @@ Raft: {
         name: "hsc030"                    # CCD's name
         ptype: "default"
         index: 6 5
-        offset: -2122.7 6420.3 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: -2122.7 6420.3 # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
@@ -302,7 +302,7 @@ Raft: {
         name: "hsc031"                    # CCD's name
         ptype: "default"
         index: 8 2
-        offset: 2122.7 -6768.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 2122.7 -6768.0 # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
@@ -311,7 +311,7 @@ Raft: {
         name: "hsc032"                    # CCD's name
         ptype: "default"
         index: 7 5
-        offset: 0.0 6420.3 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 0.0 6420.3 # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
@@ -320,7 +320,7 @@ Raft: {
         name: "hsc033"                    # CCD's name
         ptype: "default"
         index: 7 2
-        offset: 0.0 -6768.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 0.0 -6768.0 # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
@@ -329,7 +329,7 @@ Raft: {
         name: "hsc034"                    # CCD's name
         ptype: "default"
         index: 8 5
-        offset: 2122.7 6420.3 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 2122.7 6420.3 # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
@@ -338,7 +338,7 @@ Raft: {
         name: "hsc035"                    # CCD's name
         ptype: "default"
         index: 6 2
-        offset: -2122.7 -6768.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: -2122.7 -6768.0 # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
@@ -347,7 +347,7 @@ Raft: {
         name: "hsc036"                    # CCD's name
         ptype: "default"
         index: 9 5
-        offset: 4245.3 6420.3 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 4245.3 6420.3 # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
@@ -356,7 +356,7 @@ Raft: {
         name: "hsc037"                    # CCD's name
         ptype: "default"
         index: 5 2
-        offset: -4245.3 -6768.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: -4245.3 -6768.0 # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
@@ -365,7 +365,7 @@ Raft: {
         name: "hsc038"                    # CCD's name
         ptype: "default"
         index: 10 5
-        offset: 6368.0 6420.3 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 6368.0 6420.3 # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
@@ -374,7 +374,7 @@ Raft: {
         name: "hsc039"                    # CCD's name
         ptype: "default"
         index: 4 2
-        offset: -6368.0 -6768.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: -6368.0 -6768.0 # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
@@ -383,7 +383,7 @@ Raft: {
         name: "hsc040"                    # CCD's name
         ptype: "default"
         index: 11 5
-        offset: 8490.7 6420.3 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 8490.7 6420.3 # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
@@ -392,7 +392,7 @@ Raft: {
         name: "hsc041"                    # CCD's name
         ptype: "default"
         index: 3 2
-        offset: -8490.7 -6768.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: -8490.7 -6768.0 # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
@@ -401,7 +401,7 @@ Raft: {
         name: "hsc042"                    # CCD's name
         ptype: "default"
         index: 12 5
-        offset: 10613.0 6420.3 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 10613.0 6420.3 # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
@@ -410,7 +410,7 @@ Raft: {
         name: "hsc043"                    # CCD's name
         ptype: "default"
         index: 2 2
-        offset: -10613.0 -6768.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: -10613.0 -6768.0 # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
@@ -419,7 +419,7 @@ Raft: {
         name: "hsc044"                    # CCD's name
         ptype: "default"
         index: 13 5
-        offset: 12736.0 6420.3 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 12736.0 6420.3 # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
@@ -428,7 +428,7 @@ Raft: {
         name: "hsc045"                    # CCD's name
         ptype: "default"
         index: 1 2
-        offset: -12736.0 -6768.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: -12736.0 -6768.0 # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
@@ -437,7 +437,7 @@ Raft: {
         name: "hsc046"                    # CCD's name
         ptype: "default"
         index: 14 5
-        offset: 14859.0 6420.3 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 14859.0 6420.3 # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
@@ -446,7 +446,7 @@ Raft: {
         name: "hsc047"                    # CCD's name
         ptype: "default"
         index: 0 2
-        offset: -14859.0 -6768.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: -14859.0 -6768.0 # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
@@ -455,7 +455,7 @@ Raft: {
         name: "hsc048"                    # CCD's name
         ptype: "default"
         index: 3 6
-        offset: -8490.7 10889.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: -8490.7 10889.0 # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
@@ -464,7 +464,7 @@ Raft: {
         name: "hsc049"                    # CCD's name
         ptype: "default"
         index: 11 1
-        offset: 8490.7 -11236.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 8490.7 -11236.0 # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
@@ -473,7 +473,7 @@ Raft: {
         name: "hsc050"                    # CCD's name
         ptype: "default"
         index: 4 6
-        offset: -6368.0 10889.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: -6368.0 10889.0 # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
@@ -482,7 +482,7 @@ Raft: {
         name: "hsc051"                    # CCD's name
         ptype: "default"
         index: 10 1
-        offset: 6368.0 -11236.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 6368.0 -11236.0 # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
@@ -491,7 +491,7 @@ Raft: {
         name: "hsc052"                    # CCD's name
         ptype: "default"
         index: 5 6
-        offset: -4245.3 10889.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: -4245.3 10889.0 # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
@@ -500,7 +500,7 @@ Raft: {
         name: "hsc053"                    # CCD's name
         ptype: "default"
         index: 9 1
-        offset: 4245.3 -11236.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 4245.3 -11236.0 # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
@@ -509,7 +509,7 @@ Raft: {
         name: "hsc054"                    # CCD's name
         ptype: "default"
         index: 6 6
-        offset: -2122.7 10889.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: -2122.7 10889.0 # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
@@ -518,7 +518,7 @@ Raft: {
         name: "hsc055"                    # CCD's name
         ptype: "default"
         index: 8 1
-        offset: 2122.7 -11236.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 2122.7 -11236.0 # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
@@ -527,7 +527,7 @@ Raft: {
         name: "hsc056"                    # CCD's name
         ptype: "default"
         index: 7 6
-        offset: 0.0 10889.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 0.0 10889.0 # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
@@ -536,7 +536,7 @@ Raft: {
         name: "hsc057"                    # CCD's name
         ptype: "default"
         index: 7 1
-        offset: 0.0 -11236.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 0.0 -11236.0 # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
@@ -545,7 +545,7 @@ Raft: {
         name: "hsc058"                    # CCD's name
         ptype: "default"
         index: 8 6
-        offset: 2122.7 10889.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 2122.7 10889.0 # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
@@ -554,7 +554,7 @@ Raft: {
         name: "hsc059"                    # CCD's name
         ptype: "default"
         index: 6 1
-        offset: -2122.7 -11236.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: -2122.7 -11236.0 # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
@@ -563,7 +563,7 @@ Raft: {
         name: "hsc060"                    # CCD's name
         ptype: "default"
         index: 9 6
-        offset: 4245.3 10889.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 4245.3 10889.0 # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
@@ -572,7 +572,7 @@ Raft: {
         name: "hsc061"                    # CCD's name
         ptype: "default"
         index: 5 1
-        offset: -4245.3 -11236.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: -4245.3 -11236.0 # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
@@ -581,7 +581,7 @@ Raft: {
         name: "hsc062"                    # CCD's name
         ptype: "default"
         index: 10 6
-        offset: 6368.0 10889.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 6368.0 10889.0 # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
@@ -590,7 +590,7 @@ Raft: {
         name: "hsc063"                    # CCD's name
         ptype: "default"
         index: 4 1
-        offset: -6368.0 -11236.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: -6368.0 -11236.0 # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
@@ -599,7 +599,7 @@ Raft: {
         name: "hsc064"                    # CCD's name
         ptype: "default"
         index: 11 6
-        offset: 8490.7 10889.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 8490.7 10889.0 # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
@@ -608,7 +608,7 @@ Raft: {
         name: "hsc065"                    # CCD's name
         ptype: "default"
         index: 3 1
-        offset: -8490.7 -11236.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: -8490.7 -11236.0 # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
@@ -617,7 +617,7 @@ Raft: {
         name: "hsc066"                    # CCD's name
         ptype: "default"
         index: 12 6
-        offset: 10613.0 10889.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 10613.0 10889.0 # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
@@ -626,7 +626,7 @@ Raft: {
         name: "hsc067"                    # CCD's name
         ptype: "default"
         index: 2 1
-        offset: -10613.0 -11236.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: -10613.0 -11236.0 # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
@@ -635,7 +635,7 @@ Raft: {
         name: "hsc068"                    # CCD's name
         ptype: "default"
         index: 13 6
-        offset: 12736.0 10889.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 12736.0 10889.0 # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
@@ -644,7 +644,7 @@ Raft: {
         name: "hsc069"                    # CCD's name
         ptype: "default"
         index: 1 1
-        offset: -12736.0 -11236.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: -12736.0 -11236.0 # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
@@ -653,7 +653,7 @@ Raft: {
         name: "hsc070"                    # CCD's name
         ptype: "default"
         index: 4 7
-        offset: -6368.0 15357.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: -6368.0 15357.0 # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
@@ -662,7 +662,7 @@ Raft: {
         name: "hsc071"                    # CCD's name
         ptype: "default"
         index: 10 0
-        offset: 6368.0 -15705.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 6368.0 -15705.0 # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
@@ -671,7 +671,7 @@ Raft: {
         name: "hsc072"                    # CCD's name
         ptype: "default"
         index: 5 7
-        offset: -4245.3 15357.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: -4245.3 15357.0 # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
@@ -680,7 +680,7 @@ Raft: {
         name: "hsc073"                    # CCD's name
         ptype: "default"
         index: 9 0
-        offset: 4245.3 -15705.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 4245.3 -15705.0 # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
@@ -689,7 +689,7 @@ Raft: {
         name: "hsc074"                    # CCD's name
         ptype: "default"
         index: 6 7
-        offset: -2122.7 15357.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: -2122.7 15357.0 # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
@@ -698,7 +698,7 @@ Raft: {
         name: "hsc075"                    # CCD's name
         ptype: "default"
         index: 8 0
-        offset: 2122.7 -15705.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 2122.7 -15705.0 # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
@@ -707,7 +707,7 @@ Raft: {
         name: "hsc076"                    # CCD's name
         ptype: "default"
         index: 7 7
-        offset: 0.0 15357.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 0.0 15357.0 # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
@@ -716,7 +716,7 @@ Raft: {
         name: "hsc077"                    # CCD's name
         ptype: "default"
         index: 7 0
-        offset: 0.0 -15705.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 0.0 -15705.0 # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
@@ -725,7 +725,7 @@ Raft: {
         name: "hsc078"                    # CCD's name
         ptype: "default"
         index: 8 7
-        offset: 2122.7 15357.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 2122.7 15357.0 # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
@@ -734,7 +734,7 @@ Raft: {
         name: "hsc079"                    # CCD's name
         ptype: "default"
         index: 6 0
-        offset: -2122.7 -15705.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: -2122.7 -15705.0 # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
@@ -743,7 +743,7 @@ Raft: {
         name: "hsc080"                    # CCD's name
         ptype: "default"
         index: 9 7
-        offset: 4245.3 15357.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 4245.3 15357.0 # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
@@ -752,7 +752,7 @@ Raft: {
         name: "hsc081"                    # CCD's name
         ptype: "default"
         index: 5 0
-        offset: -4245.3 -15705.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: -4245.3 -15705.0 # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
@@ -761,7 +761,7 @@ Raft: {
         name: "hsc082"                    # CCD's name
         ptype: "default"
         index: 10 7
-        offset: 6368.0 15357.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 6368.0 15357.0 # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
@@ -770,7 +770,7 @@ Raft: {
         name: "hsc083"                    # CCD's name
         ptype: "default"
         index: 4 0
-        offset: -6368.0 -15705.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: -6368.0 -15705.0 # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
@@ -779,7 +779,7 @@ Raft: {
         name: "hsc084"                    # CCD's name
         ptype: "default"
         index: 12 3
-        offset: 10613.0 -2516.3 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 10613.0 -2516.3 # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
@@ -788,7 +788,7 @@ Raft: {
         name: "hsc085"                    # CCD's name
         ptype: "default"
         index: 2 4
-        offset: -10613.0 2168.7 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: -10613.0 2168.7 # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
@@ -797,7 +797,7 @@ Raft: {
         name: "hsc086"                    # CCD's name
         ptype: "default"
         index: 13 3
-        offset: 12736.0 -2516.3 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 12736.0 -2516.3 # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
@@ -806,7 +806,7 @@ Raft: {
         name: "hsc087"                    # CCD's name
         ptype: "default"
         index: 1 4
-        offset: -12736.0 2168.7 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: -12736.0 2168.7 # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
@@ -815,7 +815,7 @@ Raft: {
         name: "hsc088"                    # CCD's name
         ptype: "default"
         index: 14 3
-        offset: 14859.0 -2516.3 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 14859.0 -2516.3 # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
@@ -824,7 +824,7 @@ Raft: {
         name: "hsc089"                    # CCD's name
         ptype: "default"
         index: 0 4
-        offset: -14859.0 2168.7 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: -14859.0 2168.7 # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
@@ -833,7 +833,7 @@ Raft: {
         name: "hsc090"                    # CCD's name
         ptype: "default"
         index: 12 2
-        offset: 10613.0 -6984.7 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 10613.0 -6984.7 # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
@@ -842,7 +842,7 @@ Raft: {
         name: "hsc091"                    # CCD's name
         ptype: "default"
         index: 2 5
-        offset: -10613.0 6637.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: -10613.0 6637.0 # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
@@ -851,7 +851,7 @@ Raft: {
         name: "hsc092"                    # CCD's name
         ptype: "default"
         index: 13 2
-        offset: 12736.0 -6984.7 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 12736.0 -6984.7 # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
@@ -860,7 +860,7 @@ Raft: {
         name: "hsc093"                    # CCD's name
         ptype: "default"
         index: 1 5
-        offset: -12736.0 6637.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: -12736.0 6637.0 # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
@@ -869,7 +869,7 @@ Raft: {
         name: "hsc094"                    # CCD's name
         ptype: "default"
         index: 14 2
-        offset: 14859.0 -6984.7 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 14859.0 -6984.7 # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
@@ -878,7 +878,7 @@ Raft: {
         name: "hsc095"                    # CCD's name
         ptype: "default"
         index: 0 5
-        offset: -14859.0 6637.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: -14859.0 6637.0 # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
@@ -887,7 +887,7 @@ Raft: {
         name: "hsc096"                    # CCD's name
         ptype: "default"
         index: 12 1
-        offset: 10613.0 -11453.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 10613.0 -11453.0 # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
@@ -896,7 +896,7 @@ Raft: {
         name: "hsc097"                    # CCD's name
         ptype: "default"
         index: 2 6
-        offset: -10613.0 11105.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: -10613.0 11105.0 # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
@@ -905,7 +905,7 @@ Raft: {
         name: "hsc098"                    # CCD's name
         ptype: "default"
         index: 13 1
-        offset: 12736.0 -11453.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 12736.0 -11453.0 # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
@@ -914,7 +914,7 @@ Raft: {
         name: "hsc099"                    # CCD's name
         ptype: "default"
         index: 1 6
-        offset: -12736.0 11105.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: -12736.0 11105.0 # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
@@ -923,7 +923,7 @@ Raft: {
         name: "hsc100"                    # CCD's name
         ptype: "default"
         index: 2 7
-        offset: -9551.9 14294.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: -9551.9 14294.0 # offset of CCD center from raft center, (x, y)
         nQuarter: 1                    # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
@@ -932,7 +932,7 @@ Raft: {
         name: "hsc101"                    # CCD's name
         ptype: "default"
         index: 12 7
-        offset: 9551.9 14294.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 9551.9 14294.0 # offset of CCD center from raft center, (x, y)
         nQuarter: 1                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
@@ -941,7 +941,7 @@ Raft: {
         name: "hsc102"                    # CCD's name
         ptype: "default"
         index: 12 0
-        offset: 9551.9 -14294.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: 9551.9 -14294.0 # offset of CCD center from raft center, (x, y)
         nQuarter: 1                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
@@ -950,7 +950,7 @@ Raft: {
         name: "hsc103"                    # CCD's name
         ptype: "default"
         index: 2 0
-        offset: -9551.9 -14294.0 # offset of CCD center from raft center, (x, y); mm (pixels??)
+        offset: -9551.9 -14294.0 # offset of CCD center from raft center, (x, y)
         nQuarter: 1                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0       # pitch, roll, yaw; degrees
     }
@@ -959,7 +959,6 @@ Raft: {
 #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 Ccd: {
-    #pixelSize: 10.0e-3                 # pixel size (mm)
     pixelSize: 1.0                      # pixel size (we're using pixels, not mm)
     ptype: "default"
     nCol: 4                             # number of columns of amps; 2 == Left and Right
