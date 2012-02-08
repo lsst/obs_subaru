@@ -11,7 +11,7 @@ from lsst.daf.butlerUtils import CameraMapper
 import lsst.pex.policy as pexPolicy
 
 class SuprimecamMapper(CameraMapper):
-    def __init__(self, mit=False, rerun=None, outRoot=None, **kwargs):
+    def __init__(self, mit=False, rerun=None, outputRoot=None, **kwargs):
         policyFile = pexPolicy.DefaultPolicyFile("obs_subaru", "SuprimecamMapper.paf", "policy")
         policy = pexPolicy.Policy(policyFile)
 
@@ -28,14 +28,14 @@ class SuprimecamMapper(CameraMapper):
                     kwargs['calibRoot'] += "_MIT"                
             except:
                 raise RuntimeError("Either $SUPRIME_DATA_DIR or root= must be specified")
-        if outRoot is None:
+        if outputRoot is None:
             if policy.exists('outRoot'):
-                outRoot = policy.get('outRoot')
+                outputRoot = policy.get('outRoot')
             else:
-                outRoot = kwargs['root']
+                outputRoot = kwargs['root']
 
         self.rerun = rerun if rerun is not None else pwd.getpwuid(os.geteuid())[0]
-        self.outRoot = outRoot
+        self.outRoot = outputRoot
 
         super(SuprimecamMapper, self).__init__(policy, policyFile.getRepositoryPath(),
                                                provided=['rerun', 'outRoot'], **kwargs)
