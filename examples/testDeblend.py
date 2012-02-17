@@ -36,8 +36,10 @@ def getExtent(img):
 def footprintsFromPython(pyfoots):
     import lsst.afw.detection as afwDet
 
-    #fplist = afwDet.FootprintList()
-    fplist = afwDet.FootprintContainerT()
+    #fplist = afwDet.FootprintSet.FootprintList()
+    #fplist = afwDet.FootprintSet()
+    fplist = afwDet.FootprintList()
+    #fplist = afwDet.FootprintContainerT()
     #pklist = afwDet.PeakContainerT()
     pklist = []
     for bb,pks,spans in pyfoots:

@@ -335,9 +335,10 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm,
                 V = A[:,i]*Xpsf[i]
                 print 'V shape', V.shape
                 for (x,y),v in zip(ipixes, A[:,i]*Xpsf[i]):
-                    model.set(x, y, v)
+                    ix,iy = int(x),int(y)
+                    model.set(ix, iy, model.get(ix,iy) + float(v))
                     if i in [I_psf, I_dx, I_dy]:
-                        psfderivmod.set(x, y, v)
+                        psfderivmod.set(ix, iy, psfderivmod.get(ix,iy) + float(v))
                         
             # Build numpy arrays... obviated by .getArray() ?
             # psfm2 = np.zeros((SH,SW))
