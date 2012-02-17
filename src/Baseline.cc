@@ -2,10 +2,30 @@
 #include "lsst/meas/deblender/Baseline.h"
 #include "lsst/afw/geom/Box.h"
 
+#include "lsst/meas/algorithms/detail/SdssShape.h"
+
 namespace image = lsst::afw::image;
 namespace det = lsst::afw::detection;
 namespace deblend = lsst::meas::deblender;
 namespace geom = lsst::afw::geom;
+namespace malg = lsst::meas::algorithms;
+//namespace malgdet = lsst::meas::algorithms::detail;
+
+template<typename ImageT>
+std::vector<double>
+fitEllipse(ImageT const& image, double bkgd, double xc, double yc) {
+	double shiftmax = 5.0;
+	malg::detail::SdssShapeImpl shape;
+	bool ok = malg::detail::getAdaptiveMoments(image, bkgd, xc, yc, shiftmax, &shape);
+	std::vector<double> vals;
+	vals.push_back(shape.getX());
+	vals.push_back(shape.getY());
+	vals.push_back(shape.getI0());
+	vals.push_back(shape.getIxx());
+	vals.push_back(shape.getIyy());
+	vals.push_back(shape.getIxy());
+	return vals;
+}
 
 bool span_ptr_compare(det::Span::Ptr sp1, det::Span::Ptr sp2) {
 	return (*sp1 < *sp2);

@@ -331,7 +331,6 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm,
             for i in range(len(Xpsf)):
                 print 'ipixes shape:', ipixes.shape
                 print 'ipixes len:', len(ipixes)
-                #for j,(x,y) in enumerate(ipixes):
                 V = A[:,i]*Xpsf[i]
                 print 'V shape', V.shape
                 for (x,y),v in zip(ipixes, A[:,i]*Xpsf[i]):
@@ -340,19 +339,6 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm,
                     if i in [I_psf, I_dx, I_dy]:
                         psfderivmod.set(ix, iy, psfderivmod.get(ix,iy) + float(v))
                         
-            # Build numpy arrays... obviated by .getArray() ?
-            # psfm2 = np.zeros((SH,SW))
-            # m2 = np.zeros((SH,SW))
-            # for i in range(len(Xpsf)):
-            #     m2[ipixes[:,1],ipixes[:,0]] += A[:,i] * Xpsf[i]
-            # for i in [I_psf, I_dx, I_dy]:
-            #     if i < len(Xpsf):
-            #         psfm2[ipixes[:,1],ipixes[:,0]] += A[:,i] * Xpsf[i]
-
-            # for y in range(ylo, yhi+1):
-            #     for x in range(xlo, xhi+1):
-            #         model.set0(x, y, m2[y-ylo,x-xlo])
-            #         psfderivmod.set0(x, y, psfm2[y-ylo,x-xlo])
             for ii in range(NP):
                 x,y = ipixes[ii,:]
                 psfmod.set(int(x),int(y), float(A[ii, I_psf] * Xpsf[I_psf]))
@@ -377,7 +363,6 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm,
             if ispsf:
                 # replace the template image by the PSF + derivatives
                 # image.
-                # FIXME -- replace the PSF + derivs by the shifted PSF?
                 print 'Deblending as PSF; setting template to PSF (+ spatial derivatives) model'
                 print 
                 pkres.timg = psfderivmod
