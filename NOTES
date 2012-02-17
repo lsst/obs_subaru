@@ -1,0 +1,20 @@
+------------------------------------------------
+2012-02-17 - dstn
+
+Build with master:
+  utils
+  pex_config
+  afw
+  meas_algorithms
+
+and meas_deblender tickets/1091
+
+Test patch from Suprime data of an ACT cluster:
+
+python examples/testDeblend.py --image examples/data/act-img.fits \
+  --psf examples/data/act.psf --footprints examples/data/act.fp \
+  --psfx0 690 --psfy0 2090 
+
+
+
+
