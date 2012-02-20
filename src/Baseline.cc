@@ -196,7 +196,7 @@ deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::makeMonotonic(
 					(*img)(px,py) = minpix;
 					if (pix > minpix + sigma1)
 						(*mask)(px,py) |= mono1sig;
-					assert(pix > -100000);
+					assert(minpix > -100000);
 				}
 			}
 		}

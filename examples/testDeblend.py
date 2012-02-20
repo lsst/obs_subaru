@@ -82,7 +82,7 @@ def footprintsToPython(fps, keepbb=None):
 
 def testDeblend(foots, mi, psf):
 
-    plt.figure(figsize=(9,6))
+    plt.figure(figsize=(9,7))
 
     pks = [foot.getPeaks() for foot in foots]
 
@@ -232,8 +232,6 @@ def testDeblend(foots, mi, psf):
                 else:
                     pks_notpsf.append(pk)
 
-                plt.clf()
-                plt.subplot(2,2,1)
                 ims = imb.copy()
                 try:
                     l,b = pkres.stampxy0
@@ -244,24 +242,26 @@ def testDeblend(foots, mi, psf):
                     ims.update(vmin=SG.min(), vmax=SG.max())
                 except:
                     pass
-                if hasattr(pkres, 'stamp'):
-                    plt.imshow(pkres.stamp.getArray(), **ims)
-                    plt.title('stamp')
-                plt.subplot(2,2,2)
-                if hasattr(pkres, 'psfimg'):
-                    plt.imshow(pkres.psfimg.getArray(), **ims)
-                    plt.title('psfimg')
-                plt.subplot(2,2,3)
-                if hasattr(pkres, 'psfderivimg'):
-                    plt.imshow(pkres.psfderivimg.getArray(), **ims)
-                    plt.title('psfderivimg')
-                plt.subplot(2,2,4)
-                if hasattr(pkres, 'model'):
-                    plt.imshow(pkres.model.getArray(), **ims)
-                    plt.title('model chisq/dof = %.2f' % (pkres.chisq/pkres.dof),
-                              fontsize='small')
-                plt.savefig('test-foot%03i-stamp%03i.png' % (i,j))
 
+                # plt.clf()
+                # plt.subplot(2,2,1)
+                # if hasattr(pkres, 'stamp'):
+                #     plt.imshow(pkres.stamp.getArray(), **ims)
+                #     plt.title('stamp')
+                # plt.subplot(2,2,2)
+                # if hasattr(pkres, 'psfimg'):
+                #     plt.imshow(pkres.psfimg.getArray(), **ims)
+                #     plt.title('psfimg')
+                # plt.subplot(2,2,3)
+                # if hasattr(pkres, 'psfderivimg'):
+                #     plt.imshow(pkres.psfderivimg.getArray(), **ims)
+                #     plt.title('psfderivimg')
+                # plt.subplot(2,2,4)
+                # if hasattr(pkres, 'model'):
+                #     plt.imshow(pkres.model.getArray(), **ims)
+                #     plt.title('model chisq/dof = %.2f' % (pkres.chisq/pkres.dof),
+                #               fontsize='small')
+                # plt.savefig('test-foot%03i-stamp%03i.png' % (i,j))
 
                 if not hasattr(pkres, 'timg'):
                     # probably out-of-bounds
@@ -339,6 +339,7 @@ def testDeblend(foots, mi, psf):
                 dxy = np.vstack((dx.ravel(), dy.ravel())).T
                 Cidxy = np.dot(Cinv, dxy.T)
                 Mah = np.sum(dxy * Cidxy.T, axis=1)
+                assert(all(Mah >= 0))
                 E = np.exp(-0.5 * Mah).reshape(T.shape)
                 E /= E.max()
                 E *= i0
@@ -348,8 +349,8 @@ def testDeblend(foots, mi, psf):
                 plt.subplot(NR,NC,3)
                 myimshow(E, extent=T_ext, aspect='equal', **ima)
                 ax = plt.axis()
-                plt.plot(tx0+xc, ty0+yc, 'r+', alpha=0.5)
-                for nsig in [1,2,3]:
+                #plt.plot(tx0+xc, ty0+yc, 'r+', alpha=0.5)
+                for nsig in [1,2]:
                     el = Ellipse([tx0+xc,ty0+yc], 2.*a*nsig, 2.*b*nsig, angle=theta,
                                  ec='r', fc='none', alpha=0.5)
                     plt.gca().add_artist(el)
@@ -412,15 +413,53 @@ def testDeblend(foots, mi, psf):
                 plt.yticks([])
                 plt.title('MONO bit')
 
-
                 plt.savefig('templ-f%i-t%i.png' % (i,j))
+
+                # Plot elliptical fit vs template pixel values
+                plt.clf()
+                #p1 = plt.semilogy(np.sqrt(Mah.ravel()), T.ravel(), 'ro', mec='None', mfc='r', ms=3, alpha=0.5, ls='None', mew=0)
+                kwa = dict(ms=3, alpha=0.5, mew=0)
+                mn = 1.
+                MM = Mah.ravel()
+                TT = T.ravel()
+                EE = E.ravel()
+                II = np.logical_or(TT > mn, EE > mn)
+                XX = np.sqrt(MM[II])
+                p1 = plt.semilogy(XX, TT[II], 'ro', zorder=22, **kwa)
+                p2 = plt.semilogy(XX, EE[II], 'bo', zorder=21, **kwa)
+                ax = plt.axis()
+                YY = I.ravel()[II]
+                p3 = plt.semilogy(XX, YY, 'go', zorder=20, **kwa)
+                bins = np.arange(int(np.ceil(XX.max())+1))
+                med = []
+                iqr = []
+                xx = []
+                for blo,bhi in zip(bins[:-1],bins[1:]):
+                    JJ = (XX >= blo) * (XX < bhi)
+                    yy = YY[JJ]
+                    xx.append((blo+bhi)/2.)
+                    pcts = np.percentile(yy, [50,25,75])
+                    med.append(pcts[0])
+                    iqr.append(pcts[2]-pcts[1])
+                p4a,(p4b,p4c),(p4d,) = plt.errorbar(xx, med, yerr=iqr, fmt='ko', ecolor='k')
+                for x in [p4a,p4b,p4c,p4d]:
+                    x.set_zorder(23)
+
+                #print 'axis', ax
+                print 'T range', T.min(), T.max()
+                print 'E range', E.min(), E.max()
+                plt.ylim(mn, ax[3])
+                plt.xlabel('sqrt(Mahalanobis distance)')
+                plt.ylabel('counts')
+                plt.legend((p3[0],p1[0],p2[0]), ('Image', 'Template', 'Elliptical model'))
+                plt.savefig('ellipse-f%i-t%i.png' % (i,j))
 
                 pbb = pkres.portion.getBBox(afwImage.PARENT)
                 x0,y0 = pbb.getMinX(), pbb.getMinY()
                 W,H = pbb.getWidth(), pbb.getHeight()
-                print 'sumP shape', sumP.shape
-                print 'P shape', P.shape
-                print 'cut sumP shape', sumP[y0-fy0:y0-fy0+H, x0-fx0:x0-fx0+W].shape
+                #print 'sumP shape', sumP.shape
+                #print 'P shape', P.shape
+                #print 'cut sumP shape', sumP[y0-fy0:y0-fy0+H, x0-fx0:x0-fx0+W].shape
                 sumP[y0-fy0:y0-fy0+H, x0-fx0:x0-fx0+W] += P
 
 
