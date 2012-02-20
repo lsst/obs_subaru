@@ -17,6 +17,7 @@ fitEllipse(ImageT const& image, double bkgd, double xc, double yc) {
 	double shiftmax = 5.0;
 	malg::detail::SdssShapeImpl shape;
 	bool ok = malg::detail::getAdaptiveMoments(image, bkgd, xc, yc, shiftmax, &shape);
+	assert(ok);
 	std::vector<double> vals;
 	vals.push_back(shape.getX());
 	vals.push_back(shape.getY());
@@ -99,7 +100,8 @@ void
 deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::makeMonotonic(
 	MaskedImageT & mimg,
 	det::Footprint const& foot,
-	det::Peak const& peak) {
+	det::Peak const& peak,
+	double sigma1) {
 
 	// FIXME -- ignore the Footprint and just operate on the whole image
 
@@ -112,26 +114,13 @@ deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::makeMonotonic(
 	int iH = mimg.getHeight();
 
 	ImagePtrT img = mimg.getImage();
+	MaskPtrT mask = mimg.getMask();
 
-	/*
-	 typedef MaskedImageT::xy_locator xy_loc;
-	 xy_loc pix = img.xy_at(cx, cy);
-	 xy_loc::cached_location_t nw = pix.cache_location(-1,-1);
-	 xy_loc::cached_location_t n  = pix.cache_location( 0,-1);
-	 xy_loc::cached_location_t ne = pix.cache_location( 1,-1);
-	 xy_loc::cached_location_t w  = pix.cache_location(-1, 0);
-	 xy_loc::cached_location_t c  = pix.cache_location( 0, 0);
-	 xy_loc::cached_location_t e  = pix.cache_location( 1, 0);
-	 xy_loc::cached_location_t sw = pix.cache_location(-1, 1);
-	 xy_loc::cached_location_t s  = pix.cache_location( 0, 1);
-	 xy_loc::cached_location_t se = pix.cache_location( 1, 1);
-	 */
+	MaskPixelT mono1sig = mask->getPlaneBitMask("MONOTONIC_1SIG");
 
 	int DW = std::max(cx - mimg.getX0(), mimg.getX0() + mimg.getWidth() - cx);
 	int DH = std::max(cy - mimg.getY0(), mimg.getY0() + mimg.getHeight() - cy);
 
-	//for (int absdy=0;; ++absdy) {
-	//for (int signdy=-1; signdy<=1; signdy+=2) {
 	for (int dy=0; dy<DH; ++dy) {
 		for (int dx=0; dx<DW; ++dx) {
 			// find the pixels that "shadow" this pixel
@@ -188,22 +177,25 @@ deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::makeMonotonic(
 					if (px < 0 || px >= iW || py < 0 || py >= iH)
 						continue;
 					ImagePixelT pix = (*img)(px,py);
+					ImagePixelT minpix = pix;
 					//printf("pix (%i,%i): %f\n", px, py, pix);
 					assert(pix > -100000);
 					if (w_shadow && (px-signdx >= 0) && (px-signdx < iW)) {
-						pix = std::min(pix, (*img)(px - signdx, py));
+						minpix = std::min(minpix, (*img)(px - signdx, py));
 						//printf("  w pix (%i,%i): %f -> %f\n", px-signdx, py, (*img)(px - signdx, py), pix);
 					}
 					if (s_shadow && (py-signdy >= 0) && (py-signdy < iH)) {
-						pix = std::min(pix, (*img)(px, py - signdy));
+						minpix = std::min(minpix, (*img)(px, py - signdy));
 						//printf("  s pix (%i,%i): %f -> %f\n", px, py-signdy, (*img)(px, py - signdy), pix);
 					}
 					if (sw_shadow && (px-signdx >= 0) && (px-signdx < iW) &&
 						(py-signdy >= 0) && (py-signdy < iH)) {
-						pix = std::min(pix, (*img)(px - signdx, py - signdy));
+						minpix = std::min(minpix, (*img)(px - signdx, py - signdy));
 						//printf("  sw pix (%i,%i): %f -> %f\n", px-signdx, py-signdy, (*img)(px - signdx, py - signdy), pix);
 					}
-					(*img)(px,py) = pix;
+					(*img)(px,py) = minpix;
+					if (pix > minpix + sigma1)
+						(*mask)(px,py) |= mono1sig;
 					assert(pix > -100000);
 				}
 			}
@@ -279,7 +271,8 @@ typename deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::MaskedIm
 deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::buildSymmetricTemplate(
 	MaskedImageT const& img,
 	det::Footprint const& foot,
-	det::Peak const& peak) {
+	det::Peak const& peak,
+	double sigma1) {
 
     //typedef ImageT::const_xy_locator xy_loc;
 	typedef typename MaskedImageT::const_xy_locator xy_loc;
@@ -288,6 +281,9 @@ deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::buildSymmetricTem
 	geom::Box2I fbb = foot.getBBox();
 	MaskedImagePtrT timg(new MaskedImageT(fbb.getDimensions()));
 	timg->setXY0(fbb.getMinX(), fbb.getMinY());
+
+	MaskPixelT symm1sig = img.getMask()->getPlaneBitMask("SYMM_1SIG");
+	MaskPixelT symm3sig = img.getMask()->getPlaneBitMask("SYMM_3SIG");
 
 	// Copy the image under the footprint.
 	const SpanList spans = foot.getSpans();
@@ -363,7 +359,7 @@ deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::buildSymmetricTem
 	while ((fwd < spans.end()) && (back >= s0)) {
 		// For row "dy", find the range of x values?
 		// printf("dy = %i\n", dy);
-		SpanList::const_iterator f0 = fwd;
+		//SpanList::const_iterator f0 = fwd;
 		SpanList::const_iterator f1 = fwd;
 		int fy = cy + dy;
 		int fx0 = (*fwd)->getX0();
@@ -379,7 +375,7 @@ deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::buildSymmetricTem
 		// printf("f1:  %i\n", (int)(f1-s0));
 
 		SpanList::const_iterator b0 = back;
-		SpanList::const_iterator b1 = back;
+		//SpanList::const_iterator b1 = back;
 		int by = cy - dy;
 		int bx0 = -1; // = (*back)->getX0();
 		int bx1 = (*back)->getX1();
@@ -444,17 +440,27 @@ deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::buildSymmetricTem
 			// HACK -- MaskedPixel...
 			ImagePtrT theimg = img.getImage();
 			ImagePtrT targetimg = timg->getImage();
+			MaskPtrT targetmask = timg->getMask();
 			// FIXME -- one of these conditions is redundant...
 			if ((fwd != f1) && (*fwd)->contains(fx) && (back != b0) && (*back)->contains(bx)) {
-				ImagePixelT pix = std::min(theimg->get0(fx, fy), theimg->get0(bx,by));
+				ImagePixelT pixf = theimg->get0(fx, fy);
+				ImagePixelT pixb = theimg->get0(bx, by);
+				ImagePixelT pix = std::min(pixf, pixb);
 				targetimg->set0(fx, fy, pix);
 				targetimg->set0(bx, by, pix);
-				/*
-				 } else if ((fwd != f1) && (*fwd)->contains(fx)) {
-				 targetimg->set0(fx, fy, theimg->get0(fx, fy));
-				 } else if ((back != b0) && (*back)->contains(bx)) {
-				 targetimg->set0(bx, by, theimg->get0(bx, by));
-				 */
+				// Set the "symm1sig" mask bit for pixels that have been pulled down by the
+				// symmetry constraint.
+				if (pixf >= pix + 1.*sigma1)
+					targetmask->set0(fx, fy, targetmask->get0(fx, fy) | symm1sig);
+				if (pixb >= pix + 1.*sigma1)
+					targetmask->set0(bx, by, targetmask->get0(bx, by) | symm1sig);
+
+				if (pixf >= pix + 3.*sigma1)
+					targetmask->set0(fx, fy, targetmask->get0(fx, fy) | symm3sig);
+				if (pixb >= pix + 3.*sigma1)
+					targetmask->set0(bx, by, targetmask->get0(bx, by) | symm3sig);
+				
+
 			}
 			// else: gap in both the forward and reverse directions.
 		}
@@ -466,8 +472,6 @@ deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::buildSymmetricTem
 		back = b0;
 		dy++;
 	}
-
-	//makeMonotonic(*timg, foot, peak);
 
 	return timg;
 }

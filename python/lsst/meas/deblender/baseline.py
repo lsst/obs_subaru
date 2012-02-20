@@ -46,7 +46,6 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm,
     import lsst.meas.deblender as deb
     butils = deb.BaselineUtilsF
 
-
     img = maskedImage.getImage()
     varimg = maskedImage.getVariance()
     mask = maskedImage.getMask()
@@ -68,6 +67,20 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm,
         for pki,pk in enumerate(pks):
             pkres = PerPeak()
             fpres.peaks.append(pkres)
+
+
+    print 'Start: mask planes:'
+    mask.printMaskPlanes()
+
+    for nm in ['SYMM_1SIG', 'SYMM_3SIG', 'MONOTONIC_1SIG']:
+        bit = mask.addMaskPlane(nm)
+        val = mask.getPlaneBitMask(nm)
+        print 'Added', nm, '=', val
+
+    print 'New mask planes:'
+    mask.printMaskPlanes()
+
+
 
     # First find peaks that are well-fit by a PSF + background model.
     for fp,pks,fpres in zip(footprints,peaks,results):
@@ -402,7 +415,7 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm,
                 continue
 
             print 'Calling C++ buildSymmetricTemplate...'
-            t1 = butils.buildSymmetricTemplate(maskedImage, fp, pk)
+            t1 = butils.buildSymmetricTemplate(maskedImage, fp, pk, sigma1)
             print 't1:', t1
 
             # Smooth / filter
@@ -431,7 +444,7 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm,
             print 't1.image:', t1.getImage()
 
             print 'Making monotonic...'
-            butils.makeMonotonic(t1, fp, pk)
+            butils.makeMonotonic(t1, fp, pk, sigma1)
 
             pkres.tmimg = t1
             pkres.timg = t1.getImage()

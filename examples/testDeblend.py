@@ -383,6 +383,21 @@ def testDeblend(foots, mi, psf):
                 plt.yticks([])
                 plt.title('chisq/dof=%.2f' % (pkres.chisq/pkres.dof))
 
+                tmask = pkres.tmimg.getMask()
+                symm1 = tmask.getPlaneBitMask('SYMM_1SIG')
+                symm3 = tmask.getPlaneBitMask('SYMM_3SIG')
+                bitset1 = ((tmask.getArray() & symm1) > 0)
+                bitset3 = ((tmask.getArray() & symm3) > 0)
+                
+                plt.subplot(NR,NC,8)
+                plt.imshow(bitset3 * 2 + bitset1, extent=T_ext, **imb)
+                ax = plt.axis()
+                plt.plot([pk.getFx()], [pk.getFy()], 'r+')
+                plt.axis(ax)
+                plt.xticks([])
+                plt.yticks([])
+                plt.title('SYMM bits')
+
                 plt.savefig('templ-f%i-t%i.png' % (i,j))
 
                 pbb = pkres.portion.getBBox(afwImage.PARENT)

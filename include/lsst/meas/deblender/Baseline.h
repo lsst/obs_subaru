@@ -22,7 +22,9 @@ namespace lsst {
                 typedef typename lsst::afw::image::MaskedImage<ImagePixelT, MaskPixelT, VariancePixelT> MaskedImageT;
                 typedef typename lsst::afw::image::MaskedImage<ImagePixelT, MaskPixelT, VariancePixelT>::Ptr MaskedImagePtrT;
                 typedef typename lsst::afw::image::Image<ImagePixelT> ImageT;
+                typedef typename lsst::afw::image::Mask<MaskPixelT> MaskT;
                 typedef typename lsst::afw::image::Image<ImagePixelT>::Ptr ImagePtrT;
+                typedef typename lsst::afw::image::Mask<MaskPixelT>::Ptr MaskPtrT;
 
                 static std::vector<double>
                 fitEllipse(ImageT const& img,
@@ -31,7 +33,8 @@ namespace lsst {
                 static MaskedImagePtrT
                 buildSymmetricTemplate(MaskedImageT const& img,
                                        lsst::afw::detection::Footprint const& foot,
-                                       lsst::afw::detection::Peak const& pk);
+                                       lsst::afw::detection::Peak const& pk,
+                    double sigma1);
 
                 static void
                 medianFilter(MaskedImageT const& img,
@@ -41,7 +44,8 @@ namespace lsst {
                 static void
                 makeMonotonic(MaskedImageT & img,
                               lsst::afw::detection::Footprint const& foot,
-                              lsst::afw::detection::Peak const& pk);
+                              lsst::afw::detection::Peak const& pk,
+                    double sigma1);
 
                 // Spelled out for swig's benefit...
                 //static std::vector<MaskedImagePtrT>
