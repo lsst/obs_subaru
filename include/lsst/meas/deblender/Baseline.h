@@ -24,6 +24,10 @@ namespace lsst {
                 typedef typename lsst::afw::image::Image<ImagePixelT> ImageT;
                 typedef typename lsst::afw::image::Image<ImagePixelT>::Ptr ImagePtrT;
 
+                static std::vector<double>
+                fitEllipse(ImageT const& img,
+                           double bkgd, double xc, double yc);
+
                 static MaskedImagePtrT
                 buildSymmetricTemplate(MaskedImageT const& img,
                                        lsst::afw::detection::Footprint const& foot,

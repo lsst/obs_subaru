@@ -206,6 +206,21 @@ def testDeblend(foots, mi, psf):
             for j,pkres in enumerate(fpres.peaks):
                 pk = pks[i][j]
                 print 'Peak', j, 'at x,y', pk.getFx(), pk.getFy()
+
+                # timg = getattr(pkres, 'timg', None)
+                # if timg is not None:
+                #     import lsst.meas.deblender as deb
+                #     butils = deb.BaselineUtilsF
+                #     px,py = pk.getFx(), pk.getFy()
+                #     print 'peak x,y', px,py
+                #     tx0,ty0 = timg.getX0(),timg.getY0()
+                #     print 'timg x0,y0', tx0, ty0
+                #     ell = butils.fitEllipse(timg, 0, px-tx0, py-ty0)
+                #     print 'got ellipse fit:', ell
+                #     for x in ell:
+                #         print '  ', x
+                
+
                 try:
                     print 'chisq/dof', pkres.chisq/pkres.dof
                 except:
@@ -253,17 +268,7 @@ def testDeblend(foots, mi, psf):
                     plt.title('model chisq/dof = %.2f' % (pkres.chisq/pkres.dof))
                 plt.savefig('test-foot%03i-stamp%03i.png' % (i,j))
 
-            plt.clf()
-            myimshow(I_nopsf, **imaa)
-            ax = plt.axis()
-            plt.gray()
-            plt.plot([pk.getFx() for pk in pks_notpsf], [pk.getFy() for pk in pks_notpsf], 'r.')
-            plt.plot([pk.getFx() for pk in pks_psf],    [pk.getFy() for pk in pks_psf],    'g+', lw=2, ms=8)
-            plt.axis(ax)
-            plt.savefig('test-foot%03i-notpsf.png' % i)
-            
 
-            for j,pkres in enumerate(fpres.peaks):
                 if not hasattr(pkres, 'timg'):
                     # probably out-of-bounds
                     continue
@@ -295,7 +300,7 @@ def testDeblend(foots, mi, psf):
                 d = (cmx-cmn)/2.
                 imd = dict(interpolation='nearest', origin='lower', vmin=-d, vmax=d)
 
-                NR,NC = 2,3
+                NR,NC = 2,4
                 plt.clf()
 
                 plt.subplot(NR,NC,1)
@@ -310,22 +315,68 @@ def testDeblend(foots, mi, psf):
                 myimshow(T, extent=T_ext, aspect='equal', **ima)
                 plt.title('Template')
 
+                import lsst.meas.deblender as deb
+                from matplotlib.patches import Ellipse
+                butils = deb.BaselineUtilsF
+                px,py = pk.getFx(), pk.getFy()
+                tx0,ty0 = timg.getX0(),timg.getY0()
+                ell = butils.fitEllipse(timg, 0, px-tx0, py-ty0)
+                print 'got ellipse fit:', ell
+                (xc,yc,i0,ixx,iyy,ixy) = ell
+
+                x2 = ixx
+                y2 = iyy
+                xy = ixy
+                # SExtractor manual v2.5, pg 29.
+                a2 = (x2 + y2)/2. + np.sqrt(((x2 - y2)/2.)**2 + xy**2)
+                b2 = (x2 + y2)/2. - np.sqrt(((x2 - y2)/2.)**2 + xy**2)
+                theta = np.rad2deg(np.arctan2(2.*xy, (x2 - y2)) / 2.)
+                a = np.sqrt(a2)
+                b = np.sqrt(b2)
+
+                # Produce model ellipse
+                th,tw = T.shape
+                X,Y = np.meshgrid(np.arange(tx0, tx0+tw), np.arange(ty0, ty0+th))
+                dx,dy = (X - (tx0+xc)), (Y - (ty0+yc))
+                C = np.array([[ ixx, ixy ], [ ixy, iyy ]])
+                Cinv = np.linalg.inv(C)
+                dxy = np.vstack((dx.ravel(), dy.ravel())).T
+                Cidxy = np.dot(Cinv, dxy.T)
+                Mah = np.sum(dxy * Cidxy.T, axis=1)
+                E = np.exp(-0.5 * Mah).reshape(T.shape)
+                E /= E.max()
+                E *= i0
+                print 'E range', E.min(), E.max()
+                print 'T range', T.min(), T.max()
+
                 plt.subplot(NR,NC,3)
+                #myimshow(E, extent=T_ext, aspect='equal', vmin=0, vmax=i0, **imb)
+                myimshow(E, extent=T_ext, aspect='equal', **ima)
+                ax = plt.axis()
+                plt.plot(tx0+xc, ty0+yc, 'r+', alpha=0.5)
+                for nsig in [1,2,3]:
+                    el = Ellipse([tx0+xc,ty0+yc], 2.*a*nsig, 2.*b*nsig, angle=theta,
+                                 ec='r', fc='none', alpha=0.5)
+                    plt.gca().add_artist(el)
+                plt.axis(ax)
+                plt.title('Ellipse')
+
+                plt.subplot(NR,NC,4)
                 myimshow(P, extent=P_ext, aspect='equal', **ima)
                 plt.title('Flux portion')
 
-                plt.subplot(NR,NC,4)
+                plt.subplot(NR,NC,5)
                 plt.imshow(S, extent=S_ext, aspect='equal', **imc)
                 ax = plt.axis()
                 plt.plot([pk.getFx()], [pk.getFy()], 'r+')
                 plt.axis(ax)
                 plt.title('near-peak cutout')
 
-                plt.subplot(NR,NC,5)
+                plt.subplot(NR,NC,6)
                 plt.imshow(M, extent=M_ext, aspect='equal', **imc)
                 plt.title('PSF model: chisq/dof=%.2f' % (pkres.chisq/pkres.dof))
 
-                plt.subplot(NR,NC,6)
+                plt.subplot(NR,NC,7)
                 plt.imshow(S-M, extent=S_ext, aspect='equal', **imd)
                 plt.title('resids')
 
@@ -339,6 +390,16 @@ def testDeblend(foots, mi, psf):
                 print 'cut sumP shape', sumP[y0-fy0:y0-fy0+H, x0-fx0:x0-fx0+W].shape
                 sumP[y0-fy0:y0-fy0+H, x0-fx0:x0-fx0+W] += P
 
+
+            plt.clf()
+            myimshow(I_nopsf, **imaa)
+            ax = plt.axis()
+            plt.gray()
+            plt.plot([pk.getFx() for pk in pks_notpsf], [pk.getFy() for pk in pks_notpsf], 'r.')
+            plt.plot([pk.getFx() for pk in pks_psf],    [pk.getFy() for pk in pks_psf],    'g+', lw=2, ms=8)
+            plt.axis(ax)
+            plt.savefig('test-foot%03i-notpsf.png' % i)
+            
             if sumP is not None:
                 plt.clf()
                 NR,NC = 1,2
@@ -347,7 +408,6 @@ def testDeblend(foots, mi, psf):
                 plt.subplot(NR,NC,2)
                 myimshow(sumP, **imaa)
                 plt.savefig('sump-f%i.png' % i)
-
 
     
 

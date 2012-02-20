@@ -9,10 +9,10 @@ namespace det = lsst::afw::detection;
 namespace deblend = lsst::meas::deblender;
 namespace geom = lsst::afw::geom;
 namespace malg = lsst::meas::algorithms;
-//namespace malgdet = lsst::meas::algorithms::detail;
 
-template<typename ImageT>
+template<typename ImagePixelT, typename MaskPixelT, typename VariancePixelT>
 std::vector<double>
+deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::
 fitEllipse(ImageT const& image, double bkgd, double xc, double yc) {
 	double shiftmax = 5.0;
 	malg::detail::SdssShapeImpl shape;
