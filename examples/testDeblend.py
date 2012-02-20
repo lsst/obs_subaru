@@ -168,14 +168,19 @@ def testDeblend(foots, mi, psf):
             sumP = np.zeros_like(I)
 
             ss = np.sort(I.ravel())
-            mn,mx = [ss[int(p*len(ss))] for p in [0.1, 0.99]]
+            #mn,mx = [ss[int(p*len(ss))] for p in [0.1, 0.99]]
+            mn,mx = [ss[int(p*len(ss))] for p in [0.01, 0.99]]
             print 'mn,mx', mn,mx
             q1,q2,q3 = [ss[int(p*len(ss))] for p in [0.25, 0.5, 0.75]]
 
             def nlmap(X):
                 Y = (X - q2) / ((q3-q1)/2.)
-                return np.arcsinh(Y * 10.)/10.
+                S = 10.
+                #S = 100.
+                return np.arcsinh(Y * S)/S
             def myimshow(x, *args, **kwargs):
+                if False:
+                    return plt.imshow(x, *args, **kwargs)
                 mykwargs = kwargs.copy()
                 if 'vmin' in kwargs:
                     mykwargs['vmin'] = nlmap(kwargs['vmin'])
@@ -206,20 +211,6 @@ def testDeblend(foots, mi, psf):
             for j,pkres in enumerate(fpres.peaks):
                 pk = pks[i][j]
                 print 'Peak', j, 'at x,y', pk.getFx(), pk.getFy()
-
-                # timg = getattr(pkres, 'timg', None)
-                # if timg is not None:
-                #     import lsst.meas.deblender as deb
-                #     butils = deb.BaselineUtilsF
-                #     px,py = pk.getFx(), pk.getFy()
-                #     print 'peak x,y', px,py
-                #     tx0,ty0 = timg.getX0(),timg.getY0()
-                #     print 'timg x0,y0', tx0, ty0
-                #     ell = butils.fitEllipse(timg, 0, px-tx0, py-ty0)
-                #     print 'got ellipse fit:', ell
-                #     for x in ell:
-                #         print '  ', x
-                
 
                 try:
                     print 'chisq/dof', pkres.chisq/pkres.dof
@@ -265,7 +256,8 @@ def testDeblend(foots, mi, psf):
                 plt.subplot(2,2,4)
                 if hasattr(pkres, 'model'):
                     plt.imshow(pkres.model.getArray(), **ims)
-                    plt.title('model chisq/dof = %.2f' % (pkres.chisq/pkres.dof))
+                    plt.title('model chisq/dof = %.2f' % (pkres.chisq/pkres.dof),
+                              fontsize='small')
                 plt.savefig('test-foot%03i-stamp%03i.png' % (i,j))
 
 
@@ -313,6 +305,8 @@ def testDeblend(foots, mi, psf):
 
                 plt.subplot(NR,NC,2)
                 myimshow(T, extent=T_ext, aspect='equal', **ima)
+                plt.xticks([])
+                plt.yticks([])
                 plt.title('Template')
 
                 import lsst.meas.deblender as deb
@@ -350,7 +344,6 @@ def testDeblend(foots, mi, psf):
                 print 'T range', T.min(), T.max()
 
                 plt.subplot(NR,NC,3)
-                #myimshow(E, extent=T_ext, aspect='equal', vmin=0, vmax=i0, **imb)
                 myimshow(E, extent=T_ext, aspect='equal', **ima)
                 ax = plt.axis()
                 plt.plot(tx0+xc, ty0+yc, 'r+', alpha=0.5)
@@ -359,10 +352,14 @@ def testDeblend(foots, mi, psf):
                                  ec='r', fc='none', alpha=0.5)
                     plt.gca().add_artist(el)
                 plt.axis(ax)
-                plt.title('Ellipse')
+                plt.xticks([])
+                plt.yticks([])
+                plt.title('Ellipse: %.1fx%.1f' % (a,b), fontsize='small')
 
                 plt.subplot(NR,NC,4)
                 myimshow(P, extent=P_ext, aspect='equal', **ima)
+                plt.xticks([])
+                plt.yticks([])
                 plt.title('Flux portion')
 
                 plt.subplot(NR,NC,5)
@@ -370,15 +367,21 @@ def testDeblend(foots, mi, psf):
                 ax = plt.axis()
                 plt.plot([pk.getFx()], [pk.getFy()], 'r+')
                 plt.axis(ax)
-                plt.title('near-peak cutout')
+                plt.xticks([])
+                plt.yticks([])
+                plt.title('stamp')
 
                 plt.subplot(NR,NC,6)
                 plt.imshow(M, extent=M_ext, aspect='equal', **imc)
-                plt.title('PSF model: chisq/dof=%.2f' % (pkres.chisq/pkres.dof))
+                plt.xticks([])
+                plt.yticks([])
+                plt.title('PSF mod')
 
                 plt.subplot(NR,NC,7)
                 plt.imshow(S-M, extent=S_ext, aspect='equal', **imd)
-                plt.title('resids')
+                plt.xticks([])
+                plt.yticks([])
+                plt.title('chisq/dof=%.2f' % (pkres.chisq/pkres.dof))
 
                 plt.savefig('templ-f%i-t%i.png' % (i,j))
 
