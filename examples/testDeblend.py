@@ -82,6 +82,8 @@ def footprintsToPython(fps, keepbb=None):
 
 def testDeblend(foots, mi, psf):
 
+    plt.figure(figsize=(9,6))
+
     pks = [foot.getPeaks() for foot in foots]
 
     flatpks = []
@@ -292,7 +294,7 @@ def testDeblend(foots, mi, psf):
                 d = (cmx-cmn)/2.
                 imd = dict(interpolation='nearest', origin='lower', vmin=-d, vmax=d)
 
-                NR,NC = 2,4
+                NR,NC = 3,4
                 plt.clf()
 
                 plt.subplot(NR,NC,1)
@@ -362,7 +364,7 @@ def testDeblend(foots, mi, psf):
                 plt.yticks([])
                 plt.title('Flux portion')
 
-                plt.subplot(NR,NC,5)
+                plt.subplot(NR,NC,9)
                 plt.imshow(S, extent=S_ext, aspect='equal', **imc)
                 ax = plt.axis()
                 plt.plot([pk.getFx()], [pk.getFy()], 'r+')
@@ -371,13 +373,13 @@ def testDeblend(foots, mi, psf):
                 plt.yticks([])
                 plt.title('stamp')
 
-                plt.subplot(NR,NC,6)
+                plt.subplot(NR,NC,10)
                 plt.imshow(M, extent=M_ext, aspect='equal', **imc)
                 plt.xticks([])
                 plt.yticks([])
                 plt.title('PSF mod')
 
-                plt.subplot(NR,NC,7)
+                plt.subplot(NR,NC,11)
                 plt.imshow(S-M, extent=S_ext, aspect='equal', **imd)
                 plt.xticks([])
                 plt.yticks([])
@@ -389,14 +391,27 @@ def testDeblend(foots, mi, psf):
                 bitset1 = ((tmask.getArray() & symm1) > 0)
                 bitset3 = ((tmask.getArray() & symm3) > 0)
                 
-                plt.subplot(NR,NC,8)
+                plt.subplot(NR,NC,5)
                 plt.imshow(bitset3 * 2 + bitset1, extent=T_ext, **imb)
                 ax = plt.axis()
-                plt.plot([pk.getFx()], [pk.getFy()], 'r+')
+                plt.plot([pk.getFx()], [pk.getFy()], 'r.')
                 plt.axis(ax)
                 plt.xticks([])
                 plt.yticks([])
                 plt.title('SYMM bits')
+
+                mono1 = tmask.getPlaneBitMask('MONOTONIC_1SIG')
+                bitset1 = ((tmask.getArray() & mono1) > 0)
+                
+                plt.subplot(NR,NC,6)
+                plt.imshow(bitset1, extent=T_ext, **imb)
+                ax = plt.axis()
+                plt.plot([pk.getFx()], [pk.getFy()], 'r.')
+                plt.axis(ax)
+                plt.xticks([])
+                plt.yticks([])
+                plt.title('MONO bit')
+
 
                 plt.savefig('templ-f%i-t%i.png' % (i,j))
 
