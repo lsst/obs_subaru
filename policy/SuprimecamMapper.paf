@@ -130,7 +130,7 @@ exposures: {
 
 calibrations: {
     bias: {
-        template:    "BIAS/%(dateObs)s/%(filter)s/%(mystery)s/BIAS-%(num)07d%(ccd)1d.fits"
+        template:    "BIAS/%(calibDate)s/%(filter)s/%(mystery)s/BIAS-%(num)07d%(ccd)1d.fits"
         python:        "lsst.afw.image.ExposureF"
         persistable:        "ExposureF"
         storage:    "FitsStorage"
@@ -142,7 +142,7 @@ calibrations: {
         refCols:     "filter"
     }
     dark: {
-        template:    "DARK/%(dateObs)s/%(filter)s/%(mystery)s/DARK-%(num)07d%(ccd)1d.fits"
+        template:    "DARK/%(calibDate)s/%(filter)s/%(mystery)s/DARK-%(num)07d%(ccd)1d.fits"
         python:        "lsst.afw.image.ExposureF"
         persistable:        "ExposureF"
         storage:    "FitsStorage"
@@ -154,7 +154,7 @@ calibrations: {
         refCols:     "filter"
     }
     bgflat: {
-        template:    "BGFLAT/%(dateObs)s/%(filter)s/%(mystery)s/BGFLAT-%(num)07d%(ccd)1d.fits"
+        template:    "BGFLAT/%(calibDate)s/%(filter)s/%(mystery)s/BGFLAT-%(num)07d%(ccd)1d.fits"
         python:        "lsst.afw.image.ExposureF"
         persistable:        "ExposureF"
         storage:    "FitsStorage"
@@ -172,7 +172,7 @@ calibrations: {
         validEndName: validEnd
     }
     flat: {
-        template:    "FLAT/%(dateObs)s/%(filter)s/%(mystery)s/FLAT-%(num)07d%(ccd)1d.fits"
+        template:    "FLAT/%(calibDate)s/%(filter)s/%(mystery)s/FLAT-%(num)07d%(ccd)1d.fits"
         python:        "lsst.afw.image.ExposureF"
         persistable:        "ExposureF"
         storage:    "FitsStorage"
@@ -190,7 +190,7 @@ calibrations: {
         validEndName: validEnd
     }
     fringe: {
-        template:    "FRINGE/%(dateObs)s/%(filter)s/%(mystery)s/FRINGE-%(num)07d%(ccd)1d.fits"
+        template:    "FRINGE/%(calibDate)s/%(filter)s/%(mystery)s/FRINGE-%(num)07d%(ccd)1d.fits"
         python:        "lsst.afw.image.ExposureF"
         persistable:        "ExposureF"
         storage:    "FitsStorage"
