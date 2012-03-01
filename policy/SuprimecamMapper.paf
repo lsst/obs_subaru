@@ -231,7 +231,7 @@ datasets: {
     icMatch: {
         template:      "%(outRoot)s/rerun/%(rerun)s/%(pointing)05d/%(filter)s/output/OBJ%(visit)07d%(ccd)1d.fits"
         python:        "lsst.afw.table.BaseCatalog"
-        persistable:        "FitsCatalogStorage"
+        persistable:        "BaseCatalog"
         storage:    "FitsCatalogStorage"
         tables:        "raw"
         tables:        "raw_visit"
@@ -283,10 +283,10 @@ datasets: {
     }
 
     diffsources: {
-        template:      "%(outRoot)s/rerun/%(rerun)s/diff/%(diff)05d/SRC%(patch)08d%(filter)s.boost"
-        python:        "lsst.afw.detection.PersistableSourceVector"
-        persistable:   "PersistableSourceVector"
-        storage:       "BoostStorage"
+        template:      "%(outRoot)s/rerun/%(rerun)s/diff/%(diff)05d/SRC%(patch)08d%(filter)s.fits"
+        python:        "lsst.afw.table.SourceCatalog"
+        persistable:   "SourceCatalog"
+        storage:       "FitsCatalogStorage"
         tables:        "raw_skytile"
     }
 
