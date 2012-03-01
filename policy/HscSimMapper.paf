@@ -157,41 +157,26 @@ datasets: {
         tables:        "raw_visit"
     }
     src: {
-        template:      "%(outRoot)s/rerun/%(rerun)s/%(pointing)05d/%(filter)s/output/SRC%(visit)05d%(ccd)03d.boost"
-        python:        "lsst.afw.detection.PersistableSourceVector"
-        persistable:        "PersistableSourceVector"
-        storage:    "BoostStorage"
-        tables:        "raw"
-        tables:        "raw_visit"
-    }
-    source: {
         template:      "%(outRoot)s/rerun/%(rerun)s/%(pointing)05d/%(filter)s/output/SRC%(visit)05d%(ccd)03d.fits"
-        python:        "lsst.afw.detection.PersistableSourceVector"
-        persistable:   "PersistableSourceVector"
-        storage:       "PyfitsStorage"
+        python:        "lsst.afw.table.SourceCatalog"
+        persistable:        "SourceCatalog"
+        storage:    "FitsCatalogStorage"
         tables:        "raw"
         tables:        "raw_visit"
     }
     icMatch: {
         template:      "%(outRoot)s/rerun/%(rerun)s/%(pointing)05d/%(filter)s/output/OBJ%(visit)05d%(ccd)03d.fits"
-        python:        "lsst.afw.detection.PersistableSourceMatchVector"
-        persistable:   "PersistableSourceMatchVector"
-        storage:       "FitsStorage"
+        python:        "lsst.afw.table.BaseCatalog"
+        persistable:   "BaseCatalog"
+        storage:       "FitsCatalogStorage"
         tables:        "raw"
         tables:        "raw_visit"
     }
-    matchFull: {
-        template:      "%(outRoot)s/rerun/%(rerun)s/%(pointing)05d/%(filter)s/output/MLA%(visit)05d%(ccd)03d.fits"
-        python:        "lsst.afw.detection.PersistableSourceVector"
-        persistable:   "PersistableSourceVector"
-        storage:       "PyfitsStorage"
-	tables:		"raw"
-    }
     icSrc: {
-        template:      "%(outRoot)s/rerun/%(rerun)s/%(pointing)05d/%(filter)s/output/MS%(visit)05d%(ccd)03d.boost"
-        python:        "lsst.afw.detection.PersistableSourceVector"
-        persistable:   "PersistableSourceVector"
-        storage:       "BoostStorage"
+        template:      "%(outRoot)s/rerun/%(rerun)s/%(pointing)05d/%(filter)s/output/MS%(visit)05d%(ccd)03d.fits"
+        python:        "lsst.afw.table.SourceCatalog"
+        persistable:   "SourceCatalog"
+        storage:       "FitsCatalogStorage"
         tables:        "raw"
         tables:        "raw_visit"
     }
@@ -211,10 +196,10 @@ datasets: {
     }
 
     stacksources: {
-        template:      "%(outRoot)s/rerun/%(rerun)s/stack/%(stack)05d/SRC%(patch)08d%(filter)s.boost"
-        python:        "lsst.afw.detection.PersistableSourceVector"
-        persistable:   "PersistableSourceVector"
-        storage:       "BoostStorage"
+        template:      "%(outRoot)s/rerun/%(rerun)s/stack/%(stack)05d/SRC%(patch)08d%(filter)s.fits"
+        python:        "lsst.afw.table.SourceCatalog"
+        persistable:   "SourceCatalog"
+        storage:       "FitsCatalogStorage"
         tables:        "raw_skyTile"
     }
 
