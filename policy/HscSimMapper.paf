@@ -156,6 +156,14 @@ datasets: {
         tables:        "raw"
         tables:        "raw_visit"
     }
+    apCorr: {
+        template:      "%(outRoot)s/rerun/%(rerun)s/%(pointing)05d/%(filter)s/output/APC%(visit)05d%(ccd)03d.pickle"
+        python:        "lsst.meas.algorithms.ApertureCorrection"
+        persistable:        "ApertureCorrection"
+        storage:    "PickleStorage"
+        tables:        raw
+        tables:        raw_visit
+    }
     src: {
         template:      "%(outRoot)s/rerun/%(rerun)s/%(pointing)05d/%(filter)s/output/SRC%(visit)05d%(ccd)03d.fits"
         python:        "lsst.afw.table.SourceCatalog"
