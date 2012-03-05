@@ -15,6 +15,8 @@ python examples/testDeblend.py --image examples/data/act-img.fits \
   --psf examples/data/act.psf --footprints examples/data/act.fp \
   --psfx0 690 --psfy0 2090 
 
+-------
+For a 2012-03-01 attempt at running hsc data in the pipette world:
 
-
+examples/runHscDeblend.py -I suprimecam --output=/Users/cloomis/HSC/output -f126969 -c 5
 
