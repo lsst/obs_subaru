@@ -173,7 +173,7 @@ datasets: {
         tables:        "raw_visit"
     }
     icMatch: {
-        template:      "%(outRoot)s/rerun/%(rerun)s/%(pointing)05d/%(filter)s/output/OBJ%(visit)05d%(ccd)03d.fits"
+        template:      "%(outRoot)s/rerun/%(rerun)s/%(pointing)05d/%(filter)s/output/MATCH%(visit)05d%(ccd)03d.fits"
         python:        "lsst.afw.table.BaseCatalog"
         persistable:   "BaseCatalog"
         storage:       "FitsCatalogStorage"
@@ -181,7 +181,7 @@ datasets: {
         tables:        "raw_visit"
     }
     icSrc: {
-        template:      "%(outRoot)s/rerun/%(rerun)s/%(pointing)05d/%(filter)s/output/MS%(visit)05d%(ccd)03d.fits"
+        template:      "%(outRoot)s/rerun/%(rerun)s/%(pointing)05d/%(filter)s/output/ICSRC%(visit)05d%(ccd)03d.fits"
         python:        "lsst.afw.table.SourceCatalog"
         persistable:   "SourceCatalog"
         storage:       "FitsCatalogStorage"

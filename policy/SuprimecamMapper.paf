@@ -213,7 +213,7 @@ calibrations: {
 
 datasets: {
     psf: {
-        template:      "%(outRoot)s/rerun/%(rerun)s/%(pointing)05d/%(filter)s/output/PSF%(visit)07d%(ccd)1d.fits"
+        template:      "%(outRoot)s/rerun/%(rerun)s/%(pointing)05d/%(filter)s/output/PSF%(visit)07d%(ccd)1d.boost"
         python:        "lsst.afw.detection.Psf"
         persistable:        "Psf"
         storage:    "BoostStorage"
@@ -237,7 +237,7 @@ datasets: {
         tables:        "raw_visit"
     }
     icMatch: {
-        template:      "%(outRoot)s/rerun/%(rerun)s/%(pointing)05d/%(filter)s/output/OBJ%(visit)07d%(ccd)1d.fits"
+        template:      "%(outRoot)s/rerun/%(rerun)s/%(pointing)05d/%(filter)s/output/MATCH%(visit)07d%(ccd)1d.fits"
         python:        "lsst.afw.table.BaseCatalog"
         persistable:        "BaseCatalog"
         storage:    "FitsCatalogStorage"
@@ -245,7 +245,7 @@ datasets: {
         tables:        "raw_visit"
     }
     icSrc: {
-        template:      "%(outRoot)s/rerun/%(rerun)s/%(pointing)05d/%(filter)s/output/MS%(visit)07d%(ccd)1d.fits"
+        template:      "%(outRoot)s/rerun/%(rerun)s/%(pointing)05d/%(filter)s/output/ICSRC%(visit)07d%(ccd)1d.fits"
         python:        "lsst.afw.table.SourceCatalog"
         persistable:   "SourceCatalog"
         storage:       "FitsCatalogStorage"
