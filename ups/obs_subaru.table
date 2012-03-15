@@ -1,3 +1,4 @@
+setupRequired(daf_persistence >= 5.0.0.1)
 setupRequired(daf_butlerUtils >= 3.0.3)
 setupRequired(skypix >= 3.0.3)
 setupRequired(pysqlite >= 2.6.0)
