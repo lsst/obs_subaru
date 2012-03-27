@@ -1,10 +1,6 @@
 setupRequired(utils)
 setupRequired(afw)
 
-# The only time the pipette PYTHONPATH is needed is when pipette imports our module.
-# So avoid dependency loops for now.
-# setupOptional(pipette)
-
 envPrepend(LD_LIBRARY_PATH, ${PRODUCT_DIR}/lib)
 envPrepend(DYLD_LIBRARY_PATH, ${PRODUCT_DIR}/lib)
 
