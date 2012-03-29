@@ -5,7 +5,9 @@ import pwd
 
 from lsst.daf.butlerUtils import CameraMapper
 import lsst.afw.image.utils as afwImageUtils
+import lsst.afw.geom as afwGeom
 import lsst.pex.policy as pexPolicy
+from .hscSimLib import HscDistortion
 
 class HscSimMapper(CameraMapper):
     """Provides abstract-physical mapping for HSC Simulation data"""
@@ -32,12 +34,17 @@ class HscSimMapper(CameraMapper):
         super(HscSimMapper, self).__init__(policy, policyFile.getRepositoryPath(),
                                            provided=['rerun', 'outRoot'], **kwargs)
         
+        # Distortion isn't pluggable, so we'll put in our own
+        elevation = 45 * afwGeom.degrees
+        distortion = HscDistortion(elevation)
+        self.camera.setDistortion(distortion)
+        
         # SDSS g': http://www.naoj.org/Observing/Instruments/SCam/txt/g.txt
         # SDSS r': http://www.naoj.org/Observing/Instruments/SCam/txt/r.txt
         # SDSS i': http://www.naoj.org/Observing/Instruments/SCam/txt/i.txt
         # SDSS z': http://www.naoj.org/Observing/Instruments/SCam/txt/z.txt
         # y-band: Shimasaku et al., 2005, PASJ, 57, 447
-        
+
         afwImageUtils.defineFilter(name='g', lambdaEff=477, alias=['W-S-G+'])
         afwImageUtils.defineFilter(name='r', lambdaEff=623, alias=['W-S-R+'])
         afwImageUtils.defineFilter(name='i', lambdaEff=775, alias=['W-S-I+'])
