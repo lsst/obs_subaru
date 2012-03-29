@@ -43,7 +43,7 @@ public:
 
 private:
     /// Transform a position
-    afw::geom::Point2D lsst::obs::hscSim::HscDistortion::_transform(
+    afw::geom::Point2D _transform(
         afw::geom::Point2D const& p,    /// Position to transform
         bool forward                    /// Transform is forward?
         ) const;
