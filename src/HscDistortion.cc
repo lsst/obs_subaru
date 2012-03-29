@@ -1,6 +1,6 @@
 #include "lsst/obs/hscSim/HscDistortion.h"
 
-#ifdef HAVE_HSC_MEAS_MATCH_DISTEST_H
+#ifdef HAVE_HSC_DISTEST_H
 
 #include "hsc/meas/match/distest.h"
 
