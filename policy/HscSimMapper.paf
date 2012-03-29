@@ -125,11 +125,15 @@ calibrations: {
         tables:     "flat"
         columns: "ccd"
         columns: "filter"
+        columns: "taiObs"
         reference:   "raw_visit"
         refCols:     "visit"
         refCols:     "filter"
         filter:      true
-    }
+        validRange:  true
+        validStartName: validStart
+        validEndName: validEnd 
+   }
     fringe: {
         template:    "FRINGE/%(calibDate)s/%(filter)s/%(mystery)s/FRINGE-%(num)05d%(ccd)03d.fits"
         python:        "lsst.afw.image.ExposureF"
