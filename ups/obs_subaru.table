@@ -2,6 +2,8 @@ setupRequired(daf_butlerUtils >= 3.0.3)
 setupRequired(skypix >= 3.0.3)
 setupRequired(pysqlite >= 2.6.0)
 
+setupOptional(distEst)
+
 setupOptional(suprime_data)
 
 setupOptional(testdata_subaru)
