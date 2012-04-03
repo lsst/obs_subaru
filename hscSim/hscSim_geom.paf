@@ -1009,8 +1009,8 @@ Amp: {
 #    datasec: 8 48 519 4225
 #    biassec: 520 48 567 4225
 ### Calibrations are only good for the following
-    datasec: 8 48 519 4134
-    biassec: 520 48 567 4134
+    datasec: 8 48 519 4143
+    biassec: 520 48 567 4143
 
     ewidth: 568
     eheight: 4273
