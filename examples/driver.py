@@ -61,16 +61,17 @@ if __name__ == '__main__':
     for dr in dataRef:
         print '  ', dr
 
+            
     conf = procCcd.ProcessCcdConfig()
-    #conf.doIsr = False
-    #conf.doCalibrate = False
     conf.doIsr = True
     conf.doCalibrate = True
+    #conf.doIsr = True
+    #conf.doCalibrate = True
 
     conf.doDetection = True
     conf.doMeasurement = True
     conf.doWriteSources = True
-    conf.doWriteCalibrate = False
+    conf.doWriteCalibrate = True
 
     conf.calibrate.doComputeApCorr = False
     conf.calibrate.doAstrometry = False
@@ -91,5 +92,19 @@ if __name__ == '__main__':
     conf.validate()
 
     for dr in dataRef:
+
+        doIsr = False
+        doCalib = False
+        print 'dr', dr
+        try:
+            psf = dr.get('psf')
+            print 'PSF:', psf
+        except:
+            print 'No PSF'
+            doCalib = True
+
+        conf.doIsr = doIsr
+        conf.doCalibrate = doCalib
+
         proc.run(dr)
     
