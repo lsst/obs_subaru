@@ -12,7 +12,7 @@ lsst::afw::geom::Point2D lsst::obs::hscSim::HscDistortion::_transform(
     ) const
 {
     float x, y;                     // Transformed position
-    if (forward) {
+    if (!forward) {
         hsc::meas::match::getUndistortedPosition(p.getX(), p.getY(), &x, &y, _elevation.asDegrees());
     } else if (_iterative) {
         hsc::meas::match::getDistortedPositionIterative(p.getX(), p.getY(), &x, &y, _elevation.asDegrees());
