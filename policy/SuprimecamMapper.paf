@@ -305,4 +305,13 @@ datasets: {
         storage:       "BoostStorage"
         tables:        "raw_skytile"
     }
+
+    warppsf: {
+        template:      "%(outRoot)s/rerun/%(rerun)s/%(pointing)05d/%(filter)s/warp/WARPPSF%(visit)07d%(ccd)d.boost"
+        python:        "lsst.afw.detection.Psf"
+        persistable:   "Psf"
+        storage:       "BoostStorage"
+        tables:        "raw_skytile"
+    }
+
 }
