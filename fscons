@@ -1,8 +1,0 @@
-#! /bin/bash
-
-source /usr/local/lsst/loadLSST.sh
-setup -r .
-#export PYTHONPATH=${SCONSDISTRIB_DIR}/python:${PYTHONPATH}
-setup scons
-export SCONSFLAGS="--implicit-deps-unchanged --max-drift=1"
-scons $*

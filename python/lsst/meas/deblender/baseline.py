@@ -6,6 +6,9 @@ import lsst.afw.detection as afwDet
 import lsst.afw.geom  as afwGeom
 import lsst.afw.math  as afwMath
 
+# below...
+#import lsst.meas.deblender as deb
+
 # Result objects; will probably go away as we push more results
 # into earlier-created Source objects, but useful for now for
 # hauling debugging results around.
