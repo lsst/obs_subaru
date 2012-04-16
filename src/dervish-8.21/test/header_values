@@ -1,6 +1,0 @@
-hdrInsWithAscii $hdrone  NAME PAMELA name
-hdrInsWithAscii $hdrone  MIDINT R middleinit 
-hdrInsWithAscii $hdrone  LAST HUSBAND lastname
-hdrInsWithAscii $hdrone  SEX FEMALE sex 
-hdrInsWithAscii $hdrone  TITLE TECHII title
-

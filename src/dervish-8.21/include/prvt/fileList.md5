@@ -1,7 +1,0 @@
-7e53b987e69b9743a91bee5d5140ffe0  ./.cvsignore
-94d1b96c2edf972b749a88c552b3c120  ./Makefile
-5d6f12fd27bdf11bffb05ec64f8c1cd2  ./errStackP.h
-c30b45c10b3f5d8b0099d5f2986887c3  ./region_p.h
-d8799b65fcd9c63e775d6c12e378ae40  ./seCode.h
-62d757c3ad20757a1fcb5261330fddb0  ./shGarbage_p.h
-10409ff82029979526aa0edccd9c5f60  ./utils_p.h

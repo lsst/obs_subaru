@@ -1,4 +1,0 @@
-hdrInsWithInt $hdrone  AGE 24 age 
-hdrInsWithDbl $hdrone  TAX .0987 tax
-hdrInsWithInt $hdrone  YEARS 3 years 
-

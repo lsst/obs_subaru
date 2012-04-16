@@ -1,4 +1,0 @@
-diskio_gen.c
-diskio_gen.h
-make_io
-shSchemaTransPsr.c shSchemaTransLex.c shSEvalLex.c shSEvalGrammar.c

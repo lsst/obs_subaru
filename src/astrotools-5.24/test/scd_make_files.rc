@@ -1,8 +1,0 @@
-#!/bin/sh
-#
-# create test files - a null file and one that produces negative compression
-#
-# . /usr/local/etc/setups.sh
-#setup dervish
-$DERVISH_DIR/bin/dervish -f scd_make_files.tcl
-$DERVISH_DIR/bin/dervish -f scd_make_types.tcl

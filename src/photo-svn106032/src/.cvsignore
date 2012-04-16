@@ -1,5 +1,0 @@
-diskio_gen.[ch]
-read_atlas_gen.c
-make_interp make_photom_coeffs assemblePPM
-.config
-.phConsts.c .phObjc.h
