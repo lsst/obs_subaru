@@ -80,7 +80,7 @@ def footprintsToPython(fps, keepbb=None):
     return pyfoots
 
 
-def testDeblend(foots, mi, psf):
+def testDeblend(foots, mi, psf, verbose):
 
     plt.figure(figsize=(9,7))
 
@@ -127,25 +127,15 @@ def testDeblend(foots, mi, psf):
             print obj
 
     if True:
-        print 'Calling baseline deblender...'
-
-        #import lsst.meas.deblender as deb
-        #butils = deb.BaselineUtilsF
-        #vt = butils.getMaskedImagePtrVector();
-        #print 'MaskedImagePtrVector:', vt
-        #print dir(vt)
-        #print vt.push_back
-
         ### HACK
         print 'ONLY LOOKING AT LAST FOOTPRINT'
         foots = [foots[-1]]
         pks = [pks[-1]]
 
-        results = baseline_deblender.deblend(foots, pks, mi, psf, psf_fwhm)
-
-        print
+        print 'Calling baseline deblender...'
+        results = baseline_deblender.deblend(foots, pks, mi, psf, psf_fwhm,
+                                             verbose=verbose)
         print 'deblender finished'
-        print
 
         # numpy array
         wholeI = mi.getImage().getArray()
@@ -523,6 +513,7 @@ if __name__ == "__main__":
     parser.add_option('--psfy0', dest='psfy0', type=int, help='PSF offset y', default=0)
     parser.add_option('--footprints', dest='footfn', help='Read footprints from this python pickle file')
     parser.add_option('--sources', dest='srcfn', help='Source filename')
+    parser.add_option('-v', dest='verbose', default=False, action='store_true', help='Verbose')
     
     opt,args = parser.parse_args()
 
@@ -639,5 +630,5 @@ if __name__ == "__main__":
     mi = img.getMaskedImage()
     print 'MI xy0', mi.getX0(), mi.getY0()
 
-    testDeblend(foots, mi, psf)
+    testDeblend(foots, mi, psf, opt.verbose)
     

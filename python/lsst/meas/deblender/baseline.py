@@ -19,13 +19,11 @@ class PerPeak(object):
         self.out_of_bounds = False
         self.deblend_as_psf = False
 
-#def psfFit(psfimg, R0, R1, stamp, xlo,xhi,ylo,yhi,
-#           otherpsfs, dodxdy):
-
 def deblend(footprints, peaks, maskedImage, psf, psffwhm,
             psf_chisq_cut1 = 1.5,
             psf_chisq_cut2 = 1.5,
-            psf_chisq_cut2b = 1.5
+            psf_chisq_cut2b = 1.5,
+            log=None, verbose=False,
             ):
     '''
     Deblend the given list of footprints (containing the given list of
@@ -44,7 +42,13 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm,
     decentering.  The model is accepted if its chi-squared-per-DOF is
     less than this value.
     '''
-    print 'Baseline deblender starting'
+    if log is None:
+        import lsst.pex.logging as pexLogging
+        loglvl = pexLogging.Log.INFO
+        if verbose:
+            loglvl = pexLogging.Log.DEBUG
+        log = pexLogging.Log(pexLogging.Log.getDefaultLog(), 'meas_deblender.baseline',
+                             loglvl)
 
     import lsst.meas.deblender as deb
     butils = deb.BaselineUtilsF
@@ -58,7 +62,7 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm,
     #print 'Median image sigma:', sigma1
 
     imbb = img.getBBox(afwImage.PARENT)
-    print 'imbb (PARENT)', imbb.getMinX(), imbb.getMaxX(), imbb.getMinY(), imbb.getMaxY()
+    log.logdebug('imbb (PARENT): %i,%i,%i,%i' % (imbb.getMinX(), imbb.getMaxX(), imbb.getMinY(), imbb.getMaxY()))
 
     # prepare results structures
     results = []
@@ -71,31 +75,21 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm,
             pkres = PerPeak()
             fpres.peaks.append(pkres)
 
-
-    print 'Start: mask planes:'
-    mask.printMaskPlanes()
-
+    #print 'Initial mask planes:'
+    #mask.printMaskPlanes()
     for nm in ['SYMM_1SIG', 'SYMM_3SIG', 'MONOTONIC_1SIG']:
         bit = mask.addMaskPlane(nm)
         val = mask.getPlaneBitMask(nm)
-        print 'Added', nm, '=', val
-
-    print 'New mask planes:'
-    mask.printMaskPlanes()
-
-
+        #print 'Added', nm, '=', val
+    #print 'New mask planes:'
+    #mask.printMaskPlanes()
 
     # First find peaks that are well-fit by a PSF + background model.
     for fp,pks,fpres in zip(footprints,peaks,results):
-
         fbb = fp.getBBox()
         assert(imbb.contains(fbb))
-
         for pki,(pk,pkres) in enumerate(zip(pks, fpres.peaks)):
-
-            print
-            print 'Peak', pki
-
+            log.logdebug('Peak %i' % pki)
             # Fit a PSF + smooth background model (linear) to a 
             # small region around the peak
             # The small region is a disk out to R0, plus a ramp with decreasing weight
@@ -104,7 +98,6 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm,
             # ramp down to zero weight at this radius...
             R1 = int(math.ceil(psffwhm * 1.5))
             S = 2 * R1
-            #print 'R0', R0, 'R1', R1, 'S = ', S
             cx,cy = pk.getFx(), pk.getFy()
             psfimg = psf.computeImage(afwGeom.Point2D(cx, cy))
             # R2: distance to neighbouring peak in order to put it
@@ -125,7 +118,7 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm,
             xlo,xhi = stampbb.getMinX(), stampbb.getMaxX()
             ylo,yhi = stampbb.getMinY(), stampbb.getMaxY()
             if xlo >= xhi or ylo >= yhi:
-                print 'Skipping this one: out of bounds'
+                log.logdebug('Skipping this peak: out of bounds')
                 pkres.out_of_bounds = True
                 continue
             # Cut out the postage stamp we are going to fit.
@@ -141,27 +134,25 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm,
                     continue
                 opsfimg = psf.computeImage(pk2.getF())
                 otherpeaks.append(opsfimg)
-            print len(otherpeaks), 'other peaks within range'
+            log.logdebug('%i other peaks within range' % len(otherpeaks))
 
             # Now we are going to do a least-squares fit for the flux
             # in this PSF, plus a decenter term, a linear sky, and
             # fluxes of nearby sources (assumed point sources).  Build
             # up the matrix...
-
             # Number of terms -- PSF flux, constant, X, Y, + other PSF fluxes
             NT1 = 4 + len(otherpeaks)
             # + PSF dx, dy
             NT2 = NT1 + 2
             # Number of pixels -- at most
             NP = (1 + yhi - ylo) * (1 + xhi - xlo)
-
             # indices of terms
             I_psf = 0
             # start of other psf fluxes
             I_opsf = 4
             I_dx = NT1 + 0
             I_dy = NT1 + 1
-
+            # Matrix, rhs and weight
             A = np.zeros((NP, NT2))
             b = np.zeros(NP)
             w = np.zeros(NP)
@@ -179,13 +170,11 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm,
                         stamp.set0(x, y, 0.)
                         continue
                     xy = afwGeom.Point2I(x,y)
-
                     # Get the PSF contribution at this pixel
                     if pbb.contains(xy):
                         p = psfimg.get0(x,y)
                     else:
                         p = 0
-
                     # Get the decenter (dx,dy) terms at this pixel
                     # FIXME: we do symmetric finite difference; should
                     # probably use the sinc-shifted PSF instead!
@@ -199,12 +188,10 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm,
                         dy = (psfimg.get0(x,y+1) - psfimg.get0(x,y-1)) / 2.
                     else:
                         dy = 0.
-
                     # Ramp down weights for pixels between R0 and R1.
                     rw = 1.
                     if R > R0:
                         rw = (R - R0) / (R1 - R0)
-
                     # PSF flux
                     A[ipix,I_psf] = p
                     # constant sky
@@ -221,7 +208,6 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm,
                         obbox = opsf.getBBox(afwImage.PARENT)
                         if obbox.contains(afwGeom.Point2I(x,y)):
                             A[ipix, I_opsf + j] = opsf.get0(x, y)
-
                     b[ipix] = img.get0(x, y)
                     # weight = ramp weight * ( 1 / image variance )
                     w[ipix] = np.sqrt(rw / varimg.get0(x,y))
@@ -236,16 +222,15 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm,
             ipixes = ipixes[:NP,:]
             Aw  = A * w[:,np.newaxis]
             bw  = b * w
-
             # We do fits with and without the decenter terms.
             # Since the dx,dy terms are at the end of the matrix,
             # we can do that just by trimming off those elements.
             X1,r1,rank1,s1 = np.linalg.lstsq(Aw[:,:NT1], bw)
             X2,r2,rank2,s2 = np.linalg.lstsq(Aw, bw)
-            print 'X1', X1
-            print 'X2', X2
-            print 'ranks', rank1, rank2
-            print 'r', r1, r2
+            #print 'X1', X1
+            #print 'X2', X2
+            #print 'ranks', rank1, rank2
+            #print 'r', r1, r2
             # r is weighted chi-squared = sum over pixels:  ramp * (model - data)**2/sigma**2
             if len(r1) > 0:
                 chisq1 = r1[0]
@@ -258,17 +243,17 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm,
 
             dof1 = sumr - len(X1)
             dof2 = sumr - len(X2)
-            print 'Chi-squareds', chisq1, chisq2
-            print 'Degrees of freedom', dof1, dof2
+            #print 'Chi-squareds', chisq1, chisq2
+            #print 'Degrees of freedom', dof1, dof2
             # This can happen if we're very close to the edge (?)
             if dof1 <= 0 or dof2 <= 0:
-                print 'Skipping this one, with bad DOF...'
+                log.logdebug('Skipping this peak: bad DOF %g, %g' % (dof1, dof2))
                 pkres.out_of_bounds = True
                 continue
 
             q1 = chisq1/dof1
             q2 = chisq2/dof2
-            print 'chisq/dof =', q1,q2
+            log.logdebug('PSF fits: chisq/dof = %g, %g' % (q1,q2))
 
             # MAGIC number
             ispsf1 = (q1 < psf_chisq_cut1)
@@ -281,19 +266,17 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm,
                 # as a fraction of the PSF flux
                 dx = fdx/f0
                 dy = fdy/f0
-                print 'isPSF -- check derivatives.'
-                #print 'fdx,fdy', fdx,fdy, 'vs f0', f0
-                print '  dx,dy', dx,dy
                 ispsf2 = ispsf2 and (abs(dx) < 1. and abs(dy) < 1.)
-                print '  -> still ok?', ispsf2
-            # shift the PSF by that amount and re-evaluate it.
+                log.logdebug('isPSF2 -- checking derivatives: dx,dy = %g, %g -> %s' %
+                             (dx,dy, str(ispsf2)))
+
+            # Looks like a shifted PSF: try actually shifting the PSF by that amount
+            # and re-evaluate the fit.
             if ispsf2:
                 psfimg2 = psf.computeImage(afwGeom.Point2D(cx + dx, cy + dy))
                 # clip
                 pbb2 = psfimg2.getBBox(afwImage.PARENT)
                 pbb2.clip(fbb)
-                print 'psfimg2', psfimg2
-                print 'pbb2', pbb2
                 psfimg2 = psfimg2.Factory(psfimg2, pbb2, afwImage.PARENT)
                 # yuck!  Update the PSF terms in the least-squares fit matrix.
                 Ab = A[:,:NT1].copy()
@@ -307,19 +290,20 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm,
                 Aw  = Ab * w[:,np.newaxis]
                 # re-solve...
                 Xb,rb,rankb,sb = np.linalg.lstsq(Aw, bw)
-                print 'Xb', Xb
+                #print 'Xb', Xb
                 if len(rb) > 0:
                     chisqb = rb[0]
                 else:
                     chisqb = 1e30
-                print 'chisq', chisqb
+                #print 'chisq', chisqb
                 dofb = sumr - len(Xb)
-                print 'dof', dofb
+                #print 'dof', dofb
                 qb = chisqb / dofb
-                print 'chisq/dof', qb
+                #print 'chisq/dof', qb
                 ispsf2 = (qb < psf_chisq_cut2b)
                 q2 = qb
                 X2 = Xb
+                log.logdebug('shifted PSF: new chisq/dof = %g; good? %s' % (qb, ispsf2))
 
 
             # Which one do we keep?
@@ -328,13 +312,16 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm,
                 Xpsf = X2
                 chisq = chisq2
                 dof = dof2
+                log.logdebug('Keeping shifted-PSF model')
             else:
                 # (arbitrarily set to X1 when neither fits well)
                 Xpsf = X1
                 chisq = chisq1
                 dof = dof1
+                log.logdebug('Keeping unshifted PSF model')
             ispsf = (ispsf1 or ispsf2)
                 
+            # Save the PSF models in images for posterity.
             SW,SH = 1+xhi-xlo, 1+yhi-ylo
             psfmod = afwImage.ImageF(SW,SH)
             psfmod.setXY0(xlo,ylo)
@@ -343,22 +330,18 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm,
             psfderivmod.setXY0(xlo,ylo)
             model = afwImage.ImageF(SW,SH)
             model.setXY0(xlo,ylo)
-
             for i in range(len(Xpsf)):
-                print 'ipixes shape:', ipixes.shape
-                print 'ipixes len:', len(ipixes)
                 V = A[:,i]*Xpsf[i]
-                print 'V shape', V.shape
                 for (x,y),v in zip(ipixes, A[:,i]*Xpsf[i]):
                     ix,iy = int(x),int(y)
                     model.set(ix, iy, model.get(ix,iy) + float(v))
                     if i in [I_psf, I_dx, I_dy]:
                         psfderivmod.set(ix, iy, psfderivmod.get(ix,iy) + float(v))
-                        
             for ii in range(NP):
                 x,y = ipixes[ii,:]
                 psfmod.set(int(x),int(y), float(A[ii, I_psf] * Xpsf[I_psf]))
 
+            # Save things we learned about this peak for posterity...
             pkres.R0 = R0
             pkres.R1 = R1
             pkres.stamp = stamp
@@ -379,48 +362,37 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm,
             if ispsf:
                 # replace the template image by the PSF + derivatives
                 # image.
-                print 'Deblending as PSF; setting template to PSF (+ spatial derivatives) model'
-                print 
+                log.logdebug('Deblending as PSF; setting template to PSF model')
                 pkres.timg = psfderivmod
                 pkres.tmimg = psfderivmodm
 
-
-    print
-    print 'Computing templates...'
-    print
+    log.logdebug('Computing templates...')
 
     for fp,pks,fpres in zip(footprints,peaks,results):
-        print
         bb = fp.getBBox()
         W,H = bb.getWidth(), bb.getHeight()
         x0,y0 = bb.getMinX(), bb.getMinY()
         x1,y1 = bb.getMaxX(), bb.getMaxY()
-        print 'Creating templates for footprint at x0,y0', x0,y0
-        print 'W,H', W,H
+        log.logdebug('Creating templates for footprint at x0,y0,W,H = (%i,%i, %i,%i)' % (x0,y0,W,H))
         for pki,(pk,pkres) in enumerate(zip(pks, fpres.peaks)):
             if pkres.out_of_bounds:
-                print 'Skipping out-of-bounds peak', pki
+                #log.logdebug('Skipping out-of-bounds peak %i' % pki)
                 continue
             if pkres.deblend_as_psf:
-                print 'Skipping PSF peak', pki
+                #log.logdebug('Skipping PSF peak %i' % pki)
                 continue
-            print 'computing template for peak', pki
-
             #print 'creating heavy footprint...'
             #heavy = afwDet.makeHeavyFootprint(fp, img)
             #print 'n peaks:', len(heavy.getPeaks())
-
             cx,cy = pk.getIx(), pk.getIy()
-            print 'cx,cy =', cx,cy
+            #print 'cx,cy =', cx,cy
             if not imbb.contains(afwGeom.Point2I(cx,cy)):
-                print 'center is not inside image; skipping'
+                log.logdebug('Peak center is not inside image; skipping %i' % pki)
                 pkres.out_of_bounds = True
                 continue
 
-            print 'Calling C++ buildSymmetricTemplate...'
+            log.logdebug('computing template for peak %i' % pki)
             t1 = butils.buildSymmetricTemplate(maskedImage, fp, pk, sigma1)
-            print 't1:', t1
-
             # Smooth / filter
             if False:
                 sig = 0.5
@@ -438,52 +410,44 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm,
                 afwMath.convolve(outimg, inimg, kern, ctrl)
             else:
                 # Place output back into input -- so create a copy first
-                print 'Median filtering...'
+                log.logdebug('Median filtering template %i' % pki)
                 t1im = t1 #.getImage()
                 inimg = t1im.Factory(t1im, True)
                 outimg = t1im
                 butils.medianFilter(inimg, outimg, 2)
 
-            print 't1.image:', t1.getImage()
-
-            print 'Making monotonic...'
+            log.logdebug('Making template %i monotonic' % pki)
             butils.makeMonotonic(t1, fp, pk, sigma1)
 
             pkres.tmimg = t1
             pkres.timg = t1.getImage()
 
-
         # Now apportion flux according to the templates
-        print 'Apportioning flux...'
-
-        print 'Calling C++ apportionFlux...'
         tmimgs = []
         for pki,pkres in enumerate(fpres.peaks):
             if pkres.out_of_bounds:
-                print 'Skipping out-of-bounds peak', pki
+                #print 'Skipping out-of-bounds peak', pki
                 continue
             tmimgs.append(pkres.tmimg)
+        log.logdebug('Apportioning flux among %i templates' % len(tmimgs))
         ports = butils.apportionFlux(maskedImage, fp, tmimgs)
         ii = 0
         for pki,pkres in enumerate(fpres.peaks):
             if pkres.out_of_bounds:
-                print 'Skipping out-of-bounds peak', pki
+                #print 'Skipping out-of-bounds peak', pki
                 continue
             pkres.mportion = ports[ii]
             pkres.portion = ports[ii].getImage()
             ii += 1
 
-
-    print 'Creating heavy footprints...'
-
     for fpi,(fp,pks,fpres) in enumerate(zip(footprints,peaks,results)):
         for pki,(pk,pkres) in enumerate(zip(pks, fpres.peaks)):
             foot = fp
             if pkres.out_of_bounds:
-                print 'Skipping out-of-bounds peak', pki
+                #print 'Skipping out-of-bounds peak', pki
                 continue
             if pkres.deblend_as_psf:
-                print 'Creating fake footprint for deblended as PSF peak'
+                #print 'Creating fake footprint for deblended-as-PSF peak'
                 p = pkres.mportion
                 foot = afwDet.Footprint()
                 #splist = foot.getSpans()
@@ -491,15 +455,13 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm,
                 y0 = p.getY0()
                 W = p.getWidth()
                 H = p.getHeight()
-                print 'Flux portion shape:', W, H
+                #print 'Flux portion shape:', W, H
                 for y in range(H):
                     #splist.push_back(afwDet.Span(y0+y, x0, x0+W-1))
                     foot.addSpan(y0+y, x0, x0+W-1)
                 foot.normalize()
-                print 'fake footprint area:', foot.getArea()
-                
-            print 'Creating heavy footprint for footprint', fpi, 'peak', pki
+                #print 'fake footprint area:', foot.getArea()
+            #print 'Creating heavy footprint for footprint', fpi, 'peak', pki
             pkres.heavy = afwDet.makeHeavyFootprint(foot, pkres.mportion)
-
 
     return results
