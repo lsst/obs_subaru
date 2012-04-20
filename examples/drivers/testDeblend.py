@@ -415,44 +415,44 @@ def testDeblend(foots, mi, psf):
 
                 plt.savefig('templ-f%i-t%i.png' % (i,j))
 
-                # Plot elliptical fit vs template pixel values
-                plt.clf()
-                #p1 = plt.semilogy(np.sqrt(Mah.ravel()), T.ravel(), 'ro', mec='None', mfc='r', ms=3, alpha=0.5, ls='None', mew=0)
-                kwa = dict(ms=3, alpha=0.5, mew=0)
-                mn = 1.
-                MM = Mah.ravel()
-                TT = T.ravel()
-                EE = E.ravel()
-                II = np.logical_or(TT > mn, EE > mn)
-                XX = np.sqrt(MM[II])
-                p1 = plt.semilogy(XX, TT[II], 'ro', zorder=22, **kwa)
-                p2 = plt.semilogy(XX, EE[II], 'bo', zorder=21, **kwa)
-                ax = plt.axis()
-                YY = I.ravel()[II]
-                p3 = plt.semilogy(XX, YY, 'go', zorder=20, **kwa)
-                bins = np.arange(int(np.ceil(XX.max())+1))
-                med = []
-                iqr = []
-                xx = []
-                for blo,bhi in zip(bins[:-1],bins[1:]):
-                    JJ = (XX >= blo) * (XX < bhi)
-                    yy = YY[JJ]
-                    xx.append((blo+bhi)/2.)
-                    pcts = np.percentile(yy, [50,25,75])
-                    med.append(pcts[0])
-                    iqr.append(pcts[2]-pcts[1])
-                p4a,(p4b,p4c),(p4d,) = plt.errorbar(xx, med, yerr=iqr, fmt='ko', ecolor='k')
-                for x in [p4a,p4b,p4c,p4d]:
-                    x.set_zorder(23)
-
-                #print 'axis', ax
-                print 'T range', T.min(), T.max()
-                print 'E range', E.min(), E.max()
-                plt.ylim(mn, ax[3])
-                plt.xlabel('sqrt(Mahalanobis distance)')
-                plt.ylabel('counts')
-                plt.legend((p3[0],p1[0],p2[0]), ('Image', 'Template', 'Elliptical model'))
-                plt.savefig('ellipse-f%i-t%i.png' % (i,j))
+                # # Plot elliptical fit vs template pixel values
+                # plt.clf()
+                # #p1 = plt.semilogy(np.sqrt(Mah.ravel()), T.ravel(), 'ro', mec='None', mfc='r', ms=3, alpha=0.5, ls='None', mew=0)
+                # kwa = dict(ms=3, alpha=0.5, mew=0)
+                # mn = 1.
+                # MM = Mah.ravel()
+                # TT = T.ravel()
+                # EE = E.ravel()
+                # II = np.logical_or(TT > mn, EE > mn)
+                # XX = np.sqrt(MM[II])
+                # p1 = plt.semilogy(XX, TT[II], 'ro', zorder=22, **kwa)
+                # p2 = plt.semilogy(XX, EE[II], 'bo', zorder=21, **kwa)
+                # ax = plt.axis()
+                # YY = I.ravel()[II]
+                # p3 = plt.semilogy(XX, YY, 'go', zorder=20, **kwa)
+                # bins = np.arange(int(np.ceil(XX.max())+1))
+                # med = []
+                # iqr = []
+                # xx = []
+                # for blo,bhi in zip(bins[:-1],bins[1:]):
+                #     JJ = (XX >= blo) * (XX < bhi)
+                #     yy = YY[JJ]
+                #     xx.append((blo+bhi)/2.)
+                #     pcts = np.percentile(yy, [50,25,75])
+                #     med.append(pcts[0])
+                #     iqr.append(pcts[2]-pcts[1])
+                # p4a,(p4b,p4c),(p4d,) = plt.errorbar(xx, med, yerr=iqr, fmt='ko', ecolor='k')
+                # for x in [p4a,p4b,p4c,p4d]:
+                #     x.set_zorder(23)
+                # 
+                # #print 'axis', ax
+                # print 'T range', T.min(), T.max()
+                # print 'E range', E.min(), E.max()
+                # plt.ylim(mn, ax[3])
+                # plt.xlabel('sqrt(Mahalanobis distance)')
+                # plt.ylabel('counts')
+                # plt.legend((p3[0],p1[0],p2[0]), ('Image', 'Template', 'Elliptical model'))
+                # plt.savefig('ellipse-f%i-t%i.png' % (i,j))
 
                 pbb = pkres.portion.getBBox(afwImage.PARENT)
                 x0,y0 = pbb.getMinX(), pbb.getMinY()
