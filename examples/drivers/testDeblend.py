@@ -118,14 +118,6 @@ def testDeblend(foots, mi, psf, verbose):
     else:
         psf_fwhm = psf.getFwhm(xc, yc)
         
-    if False:
-        print 'Calling deblender...'
-        objs = deblender.deblend(foots, pks, mi, psf)
-        print 'got', objs
-        for obj in objs:
-            print 'Object:'
-            print obj
-
     if True:
         ### HACK
         print 'ONLY LOOKING AT LAST FOOTPRINT'
