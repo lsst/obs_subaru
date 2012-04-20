@@ -1,6 +1,5 @@
 setupRequired(utils)
 setupRequired(afw)
-setupRequired(meas_utils)
 setupRequired(meas_algorithms)
 
 envAppend(LD_LIBRARY_PATH, ${PRODUCT_DIR}/lib)
