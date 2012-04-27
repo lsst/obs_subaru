@@ -305,4 +305,20 @@ datasets: {
         storage:       "BoostStorage"
         tables:        "raw_skytile"
     }
+    processCcd_config: {
+        template:      "%(outRoot)s/%(pointing)05d/%(filter)s/output/CFG%(visit)07d%(ccd)1d.py"
+        python:        "lsst.pex.config.Config"
+        persistable:      "Config"
+        storage:    "ConfigStorage"
+        tables:        raw
+        tables:        raw_skyTile
+    }
+    processCcd_metadata: {
+        template:      "%(outRoot)s/%(pointing)05d/%(filter)s/output/MD%(visit)07d%(ccd)1d.boost"
+        python:        "lsst.daf.base.PropertySet"
+        persistable:        "PropertySet"
+        storage:    "BoostStorage"
+        tables:        raw
+        tables:        raw_skyTile
+    }
 }
