@@ -1005,8 +1005,13 @@ Ccd: {
 
 Amp: {
     ptype: "default"
-    datasec: 8 48 519 4225
-    biassec: 520 48 567 4225
+### XXX These are the full frame
+#    datasec: 8 48 519 4225
+#    biassec: 520 48 567 4225
+### Calibrations are only good for the following
+    datasec: 8 48 519 4143
+    biassec: 520 48 567 4143
+
     ewidth: 568
     eheight: 4273
 }

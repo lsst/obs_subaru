@@ -3,10 +3,14 @@ setupRequired(daf_butlerUtils >= 3.0.3)
 setupRequired(skypix >= 3.0.3)
 setupRequired(pysqlite >= 2.6.0)
 
+setupOptional(distEst)
+
 setupOptional(suprime_data)
 
 setupOptional(testdata_subaru)
 
+envPrepend(LD_LIBRARY_PATH, ${PRODUCT_DIR}/lib)
+envAppend(DYLD_LIBRARY_PATH, ${PRODUCT_DIR}/lib)
 envAppend(PYTHONPATH, ${PRODUCT_DIR}/python)
 envAppend(PATH, ${PRODUCT_DIR}/bin)
 

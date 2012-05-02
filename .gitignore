@@ -9,3 +9,5 @@ config.log
 tests/.tests
 ups/*.cfgc
 python/lsst/obs/subaru/version.py
+python/lsst/obs/hscSim/hscSimLib.py
+python/lsst/obs/hscSim/hscSimLib_wrap.cc
