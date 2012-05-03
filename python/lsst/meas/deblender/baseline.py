@@ -13,6 +13,7 @@ import lsst.afw.math  as afwMath
 # into earlier-created Source objects, but useful for now for
 # hauling debugging results around.
 class PerFootprint(object):
+    # .peaks: PerPeak objects
     pass
 class PerPeak(object):
     def __init__(self):
@@ -24,6 +25,7 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm,
             psf_chisq_cut2 = 1.5,
             psf_chisq_cut2b = 1.5,
             log=None, verbose=False,
+            sigma1=None,
             ):
     '''
     Deblend the given list of footprints (containing the given list of
@@ -56,10 +58,11 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm,
     img = maskedImage.getImage()
     varimg = maskedImage.getVariance()
     mask = maskedImage.getMask()
-    # find the median variance in the image...
-    stats = afwMath.makeStatistics(varimg, mask, afwMath.MEDIAN)
-    sigma1 = math.sqrt(stats.getValue(afwMath.MEDIAN))
-    #print 'Median image sigma:', sigma1
+
+    if sigma1 is None:
+        # FIXME -- just within the bbox?
+        stats = afwMath.makeStatistics(varimg, mask, afwMath.MEDIAN)
+        sigma1 = math.sqrt(stats.getValue(afwMath.MEDIAN))
 
     imbb = img.getBBox(afwImage.PARENT)
     log.logdebug('imbb (PARENT): %i,%i,%i,%i' % (imbb.getMinX(), imbb.getMaxX(), imbb.getMinY(), imbb.getMaxY()))
@@ -462,6 +465,9 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm,
                 foot.normalize()
                 #print 'fake footprint area:', foot.getArea()
             #print 'Creating heavy footprint for footprint', fpi, 'peak', pki
-            pkres.heavy = afwDet.makeHeavyFootprint(foot, pkres.mportion)
+            heavy = afwDet.makeHeavyFootprint(foot, pkres.mportion)
+            heavy.getPeaks().push_back(pk)
+            pkres.heavy = heavy
+            
 
     return results

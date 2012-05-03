@@ -1,3 +1,4 @@
+import math
 import lsst.pipe.base as pipeBase
 import lsst.pipe.tasks.processCcd as procCcd
 import lsst.daf.persistence as dafPersist
@@ -5,6 +6,7 @@ import lsst.obs.suprimecam as obsSc
 
 import lsst.daf.base as dafBase
 import lsst.afw.table as afwTable
+import lsst.afw.math as afwMath
 from lsst.ip.isr import IsrTask
 from lsst.pipe.tasks.calibrate import CalibrateTask
 
@@ -29,7 +31,6 @@ if __name__ == '__main__':
 
             
     conf = procCcd.ProcessCcdConfig()
-    #conf.measurement.doRemoveOtherSources = True
 
     #conf.doDetection = True
     #conf.doMeasurement = True
@@ -56,12 +57,12 @@ if __name__ == '__main__':
     for dr in dataRef:
         print 'dr', dr
         # Only do ISR, Calibration, and Measurement if necessary...
-        doIsr   = False
-        doCalib = False
-        doMeas  = False
+        doIsr    = False
+        doCalib  = False
+        doDetect = False
         print 'calexp', mapper.map('calexp', dr.dataId)
         print 'psf', mapper.map('psf', dr.dataId)
-        print 'icSrc', mapper.map('icSrc', dr.dataId)
+        print 'src', mapper.map('src', dr.dataId)
         try:
             psf = dr.get('psf')
             print 'PSF:', psf
@@ -74,24 +75,28 @@ if __name__ == '__main__':
         except:
             print 'No calexp'
             doCalib = True
+        # "icSrc" are created during 'calibrate'; only bright guys
+        # "src"   are created during 'detection'
+        # (then are passed to measurement to get filled in)
         try:
-            srcs = dr.get('icSrc')
+            srcs = dr.get('src')
             print 'Srcs', srcs
         except:
             print 'No sources'
-            doMeas = True
+            doDetect = True
 
-        conf.doIsr = doIsr
-        conf.doCalibrate = doCalib
+        conf.doIsr            = doIsr
+        conf.doCalibrate      = doCalib
+        conf.doWriteCalibrate = doCalib
+        conf.doDetection      = doDetect
+        conf.doWriteSources   = doDetect
 
-        conf.doDetection = doMeas
-        conf.doMeasurement = doMeas
-        conf.doWriteSources = doMeas
-        conf.doWriteCalibrate = doMeas
+        conf.doMeasurement = False
 
         proc.run(dr)
-    
-        srcs = dr.get('icSrc')
+
+        # Now we deblend and run measurement on the deblended hierarchy.
+        srcs = dr.get('src')
         print 'Srcs', srcs
 
         exposure = dr.get('calexp')
@@ -104,26 +109,67 @@ if __name__ == '__main__':
         from lsst.meas.deblender.baseline import deblend
         import lsst.meas.algorithms as measAlg
 
+        # find the median stdev in the image...
+        stats = afwMath.makeStatistics(mi.getVariance(), mi.getMask(), afwMath.MEDIAN)
+        sigma1 = math.sqrt(stats.getValue(afwMath.MEDIAN))
+
+        schema = srcs.getSchema()
+        #print 'Schema keys:', schema.getNames()
+        #cen = schema.find('centroid.naive')
+        xkey = schema.find('centroid.naive.x').key
+        ykey = schema.find('centroid.naive.y').key
+        #xkey,ykey = schema.find('x').key, schema.find('y').key
+
+        n0 = len(srcs)
         for src in srcs:
             # SourceRecords
-            print '  ', src
+            #print '  ', src
             fp = src.getFootprint()
-            print '  fp', fp
+            #print '  fp', fp
             pks = fp.getPeaks()
-            print '  pks:', len(pks), pks
+            #print '  pks:', len(pks), pks
+            if len(pks) < 2:
+                continue
 
             bb = fp.getBBox()
             xc = int((bb.getMinX() + bb.getMaxX()) / 2.)
             yc = int((bb.getMinY() + bb.getMaxY()) / 2.)
 
-
-            if not hasattr(psf, 'getFwhm'):
+            if hasattr(psf, 'getFwhm'):
+                psf_fwhm = psf.getFwhm(xc, yc)
+            else:
                 pa = measAlg.PsfAttributes(psf, xc, yc)
                 psfw = pa.computeGaussianWidth(measAlg.PsfAttributes.ADAPTIVE_MOMENT)
                 #print 'PSF width:', psfw
                 psf_fwhm = 2.35 * psfw
-            else:
-                psf_fwhm = psf.getFwhm(xc, yc)
-            print 'Deblending...'
-            X = deblend([fp], [pks], mi, psf, psf_fwhm)
-            print 'Got', X
+
+            print 'Deblending', len(pks), 'peaks'
+            X = deblend([fp], [pks], mi, psf, psf_fwhm, sigma1=sigma1)
+            #print 'Got', X
+            res = X[0]
+            for pkres in res.peaks:
+                child = srcs.addNew()
+                child.setParent(src.getId())
+                child.setFootprint(pkres.heavy)
+                # == pk.getF{xy}(), for now
+                x,y = pkres.center
+                child.set(xkey, x)
+                child.set(ykey, y)
+                # for a in dir(src):
+                #     if not a.startswith('get'):
+                #         continue
+                #     try:
+                #         print a, getattr(src, a)()
+                #     except:
+                #         pass
+        n1 = len(srcs)
+
+        print 'Deblending:', n0, 'sources ->', n1
+
+
+        print 'Measuring...'
+        conf.measurement.doRemoveOtherSources = True
+        proc.measurement.run(exposure, srcs)
+        print 'Writing FITS...'
+        srcs.writeFits('deblended-srcs.fits')
+
