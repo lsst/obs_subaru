@@ -51,8 +51,8 @@ class GetRawTestCase(unittest.TestCase):
         self.ccdList = (0, 100)
         self.rotated = (False, True)
         self.untrimmedSize = (2272, 4273)
-        self.trimmedSize = (2048, 4178)
-        self.ampSize = (512, 4178)
+        self.trimmedSize = (2048, 4096)
+        self.ampSize = (512, 4096)
 
         assert self.datadir, "testdata_subaru is not setup"
 
