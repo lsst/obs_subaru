@@ -1,3 +1,4 @@
+import os
 import math
 import lsst.pipe.base as pipeBase
 import lsst.pipe.tasks.processCcd as procCcd
@@ -6,7 +7,8 @@ import lsst.obs.suprimecam as obsSc
 
 import lsst.daf.base as dafBase
 import lsst.afw.table as afwTable
-import lsst.afw.math as afwMath
+import lsst.afw.math  as afwMath
+import lsst.afw.image as afwImage
 from lsst.ip.isr import IsrTask
 from lsst.pipe.tasks.calibrate import CalibrateTask
 
@@ -15,8 +17,9 @@ def printConfig(conf):
         print '  ', k, v
 
 if __name__ == '__main__':
-    mapperArgs = dict(root='/lsst/home/dstn/lsst/ACT-data/rerun/dstn',
-                      calibRoot='/lsst/home/dstn/lsst/ACT-data/CALIB')
+    basedir = os.path.join(os.environ['HOME'], 'lsst', 'ACT-data')
+    mapperArgs = dict(root=os.path.join(basedir, 'rerun/dstn'),
+                      calibRoot=os.path.join(basedir, 'CALIB'))
     mapper = obsSc.SuprimecamMapper(**mapperArgs)
     butlerFactory = dafPersist.ButlerFactory(mapper = mapper)
     butler = butlerFactory.create()
@@ -99,6 +102,15 @@ if __name__ == '__main__':
         srcs = dr.get('src')
         print 'Srcs', srcs
 
+        # Make sure the IdFactory exists and doesn't duplicate IDs
+        # (until Jim finishes #2083)
+        f = srcs.getTable().getIdFactory()
+        if f is None:
+            f = afwTable.IdFactory.makeSimple()
+            srcs.getTable().setIdFactory(f)
+        f.notify(max([src.getId() for src in srcs]))
+        f = srcs.getTable().getIdFactory()
+
         exposure = dr.get('calexp')
         print 'Exposure', exposure
         mi = exposure.getMaskedImage()
@@ -113,13 +125,14 @@ if __name__ == '__main__':
         stats = afwMath.makeStatistics(mi.getVariance(), mi.getMask(), afwMath.MEDIAN)
         sigma1 = math.sqrt(stats.getValue(afwMath.MEDIAN))
 
+        ### HACK
+        #srcs = srcs[:20]
+
         schema = srcs.getSchema()
-        #print 'Schema keys:', schema.getNames()
-        #cen = schema.find('centroid.naive')
         xkey = schema.find('centroid.naive.x').key
         ykey = schema.find('centroid.naive.y').key
-        #xkey,ykey = schema.find('x').key, schema.find('y').key
 
+        heavies = {}
         n0 = len(srcs)
         for src in srcs:
             # SourceRecords
@@ -145,7 +158,6 @@ if __name__ == '__main__':
 
             print 'Deblending', len(pks), 'peaks'
             X = deblend([fp], [pks], mi, psf, psf_fwhm, sigma1=sigma1)
-            #print 'Got', X
             res = X[0]
             for pkres in res.peaks:
                 child = srcs.addNew()
@@ -155,21 +167,28 @@ if __name__ == '__main__':
                 x,y = pkres.center
                 child.set(xkey, x)
                 child.set(ykey, y)
-                # for a in dir(src):
-                #     if not a.startswith('get'):
-                #         continue
-                #     try:
-                #         print a, getattr(src, a)()
-                #     except:
-                #         pass
+                heavies[child.getId()] = pkres.heavy
         n1 = len(srcs)
 
         print 'Deblending:', n0, 'sources ->', n1
-
 
         print 'Measuring...'
         conf.measurement.doRemoveOtherSources = True
         proc.measurement.run(exposure, srcs)
         print 'Writing FITS...'
         srcs.writeFits('deblended-srcs.fits')
+
+        # Write heavy footprints as well.
+        keys = heavies.keys()
+        keys.sort()
+        for k in keys:
+            h = heavies[k]
+            bb = h.getBBox()
+            mim = afwImage.MaskedImageF(bb.getWidth(), bb.getHeight())
+            mim.setXY0(bb.getMinX(), bb.getMinY())
+            h.insert(mim)
+            fn = 'deblend-heavy-%04i.fits' % k
+            mim.writeFits(fn)
+            print 'Wrote', fn
+
 
