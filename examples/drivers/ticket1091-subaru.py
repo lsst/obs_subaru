@@ -1,3 +1,8 @@
+import matplotlib
+matplotlib.use('Agg')
+import pylab as plt
+import numpy as np
+
 import os
 import math
 import lsst.pipe.base as pipeBase
@@ -9,36 +14,93 @@ import lsst.daf.base as dafBase
 import lsst.afw.table as afwTable
 import lsst.afw.math  as afwMath
 import lsst.afw.image as afwImage
+import lsst.afw.detection as afwDet
 from lsst.ip.isr import IsrTask
 from lsst.pipe.tasks.calibrate import CalibrateTask
 
-def printConfig(conf):
-    for k,v in conf.items():
-        print '  ', k, v
+def getFamilies(cat):
+    '''
+    Returns [ (parent0, children0), (parent1, children1), ...]
+    '''
+    # parent -> [children] map.
+    children = {}
+    for src in cat:
+        pid = src.getParent()
+        if not pid:
+            continue
+        if pid in children:
+            children[pid].append(src)
+        else:
+            children[pid] = [src]
+    keys = children.keys()
+    keys.sort()
+    return [ (cat.find(pid), children[pid]) for pid in keys ]
 
-if __name__ == '__main__':
+def getExtent(bb):
+    # so verbose...
+    return (bb.getMinX(), bb.getMaxX(), bb.getMinY(), bb.getMaxY())
+
+def cutCatalog(cat, ndeblends):
+    # We want to select the first "ndeblends" parents and all their children.
+    fams = getFamilies(cat)
+    fams = fams[:ndeblends]
+    keepcat = afwTable.SourceCatalog(cat.getTable())
+    for p,kids in fams:
+        keepcat.append(p)
+        for k in kids:
+            keepcat.append(k)
+    keepcat.sort()
+    return keepcat
+
+def readCatalog(sourcefn, heavypat, ndeblends=0):
+    if not os.path.exists(sourcefn):
+        print 'No source catalog:', sourcefn
+        return None
+    print 'Reading catalog:', sourcefn
+    cat = afwTable.SourceCatalog.readFits(sourcefn)
+    print len(cat), 'sources'
+    cat.sort()
+
+    if ndeblends:
+        cat = cutCatalog(cat, ndeblends)
+        print 'Cut to', len(cat), 'sources'
+    
+    print 'Reading heavyFootprints...'
+    for src in cat:
+        if not src.getParent():
+            continue
+        heavyfn = heavypat % src.getId()
+        if not os.path.exists(heavyfn):
+            print 'No heavy footprint:', heavyfn
+            return None
+        mim = afwImage.MaskedImageF(heavyfn)
+        heavy = afwDet.makeHeavyFootprint(src.getFootprint(), mim)
+        src.setFootprint(heavy)
+    return cat
+
+def getButler():
     basedir = os.path.join(os.environ['HOME'], 'lsst', 'ACT-data')
     mapperArgs = dict(root=os.path.join(basedir, 'rerun/dstn'),
                       calibRoot=os.path.join(basedir, 'CALIB'))
     mapper = obsSc.SuprimecamMapper(**mapperArgs)
     butlerFactory = dafPersist.ButlerFactory(mapper = mapper)
     butler = butlerFactory.create()
+    return butler
+
+def getDataref():
+    butler = getButler()
     print 'Butler', butler
     dataRef = butler.subset('raw', dataId = dict(visit=126969, ccd=5))
     print 'dataRef:', dataRef
-    #dataRef.butlerSubset = dataRef
-    #print 'dataRef:', dataRef
     print 'len(dataRef):', len(dataRef)
     for dr in dataRef:
         print '  ', dr
+    return dataRef
 
+def runDeblend(sourcefn, heavypat):
+    dataRef = getDataref()
             
     conf = procCcd.ProcessCcdConfig()
-
-    #conf.doDetection = True
-    #conf.doMeasurement = True
-    #conf.doWriteSources = True
-    #conf.doWriteCalibrate = True
 
     conf.calibrate.doComputeApCorr = False
     conf.calibrate.doAstrometry = False
@@ -176,7 +238,7 @@ if __name__ == '__main__':
         conf.measurement.doRemoveOtherSources = True
         proc.measurement.run(exposure, srcs)
         print 'Writing FITS...'
-        srcs.writeFits('deblended-srcs.fits')
+        srcs.writeFits(sourcefn)
 
         # Write heavy footprints as well.
         keys = heavies.keys()
@@ -187,8 +249,134 @@ if __name__ == '__main__':
             mim = afwImage.MaskedImageF(bb.getWidth(), bb.getHeight())
             mim.setXY0(bb.getMinX(), bb.getMinY())
             h.insert(mim)
-            fn = 'deblend-heavy-%04i.fits' % k
+            fn = heavypat % k
             mim.writeFits(fn)
             print 'Wrote', fn
+    return srcs
 
 
+if __name__ == '__main__':
+    from optparse import OptionParser
+    parser = OptionParser()
+    parser.add_option('--force', '-f', dest='force', action='store_true', default=False,
+                      help='Force re-running the deblender?')
+    parser.add_option('-s', '--sources', dest='sourcefn', default='deblended-srcs.fits',
+                      help='Output filename for source table (FITS)')
+    parser.add_option('-H', '--heavy', dest='heavypat', default='deblend-heavy-%04i.fits',
+                      help='Output filename pattern for heavy footprints (with %i pattern); FITS')
+    parser.add_option('--nkeep', '-n', dest='nkeep', default=0, type=int,
+                      help='Cut to the first N deblend families')
+    opt,args = parser.parse_args()
+
+    cat = None
+    if not opt.force:
+        cat = readCatalog(opt.sourcefn, opt.heavypat, ndeblends=opt.nkeep)
+    if cat is None:
+        cat = runDeblend(opt.sourcefn, opt.heavypat)
+        if opt.nkeep:
+            cat = cutCatalog(cat, opt.nkeep)
+
+    # get the exposure too.
+    dataRef = getDataref()
+    # dataRef doesn't support indexing, but it does support iteration?
+    for dr in dataRef:
+        break
+    #dr = dataRef[0]
+    exposure = dr.get('calexp')
+    print 'Exposure', exposure
+    mi = exposure.getMaskedImage()
+
+    stats = afwMath.makeStatistics(mi.getVariance(), mi.getMask(), afwMath.MEDIAN)
+    sigma1 = math.sqrt(stats.getValue(afwMath.MEDIAN))
+
+    fams = getFamilies(cat)
+    for j,(parent,children) in enumerate(fams):
+
+        #print 'Parent:', parent
+        #print 'Children:', len(children)
+        #for c in children:
+        #    print '  ', c
+        # Insert the parent's footprint pixels into a new blank image
+        fp = afwDet.makeHeavyFootprint(parent.getFootprint(), mi)
+        bb = fp.getBBox()
+        im = afwImage.ImageF(bb.getWidth(), bb.getHeight())
+        im.setXY0(bb.getMinX(), bb.getMinY())
+        fp.insert(im)
+        pim = im.getArray()
+
+        # Insert the children's footprints into images too
+        chims = []
+        for ch in children:
+            fp = ch.getFootprint()
+            #print 'child', ch
+            #print 'fp', fp
+            fp = afwDet.cast_HeavyFootprintF(fp)
+            #print '-> fp', fp
+            bb = fp.getBBox()
+            im = afwImage.ImageF(bb.getWidth(), bb.getHeight())
+            im.setXY0(bb.getMinX(), bb.getMinY())
+            fp.insert(im)
+            chims.append(im.getArray())
+
+        N = 1 + len(chims)
+        S = math.ceil(math.sqrt(N))
+        C = S
+        R = math.ceil(float(N) / C)
+
+        #, vmin=pim.min(), vmax=pim.max())
+        def nlmap(X):
+            return np.arcsinh(X / (3.*sigma1))
+        def myimshow(im, **kwargs):
+            kwargs = kwargs.copy()
+            mn = kwargs.get('vmin', -5*sigma1)
+            kwargs['vmin'] = nlmap(mn)
+            mx = kwargs.get('vmax', 100*sigma1)
+            kwargs['vmax'] = nlmap(mx)
+            # arcsinh:
+            # 1->1
+            # 3->2
+            # 10->3
+            # 100->5
+            plt.imshow(nlmap(im), **kwargs)
+
+        print 'max', pim.max()/sigma1, 'sigma'
+        imargs = dict(interpolation='nearest', origin='lower',
+                      vmax=pim.max())
+
+        plt.figure(figsize=(8,8))
+        plt.clf()
+        plt.subplots_adjust(left=0.05, right=0.95, bottom=0.05, top=0.9,
+                            wspace=0.05, hspace=0.05)
+
+        # plot a: nonlinear map; pad each child to the parent area.
+        plt.subplot(R, C, 1)
+        pext = getExtent(parent.getFootprint().getBBox())
+        myimshow(pim, extent=pext, **imargs)
+        plt.xticks([])
+        plt.yticks([])
+        m = 0.25
+        pax = [pext[0]-m, pext[1]+m, pext[2]-m, pext[3]+m]
+        #plt.axis(pax)
+        plt.title('parent %i' % parent.getId())
+        plt.gray()
+        Rx,Ry = [],[]
+        for i,im in enumerate(chims):
+            plt.subplot(R, C, i+2)
+            bb = children[i].getFootprint().getBBox()
+            ext = getExtent(bb)
+            myimshow(im, extent=ext, **imargs)
+            plt.xticks([])
+            plt.yticks([])
+            plt.axis(pax)
+            plt.title('child %i' % children[i].getId())
+            plt.gray()
+            xx = [ext[0],ext[1],ext[1],ext[0],ext[0]]
+            yy = [ext[2],ext[2],ext[3],ext[3],ext[2]]
+            plt.plot(xx, yy, 'r-')
+            Rx.append(xx)
+            Ry.append(yy)
+        plt.subplot(R, C, 1)
+        plt.plot(np.array(Rx).T, np.array(Ry).T, 'r-')
+        plt.axis(pax)
+        plt.savefig('deblend-%04i-a.png' % j)
+            
