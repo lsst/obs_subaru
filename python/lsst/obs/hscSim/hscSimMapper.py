@@ -23,10 +23,7 @@ class HscSimMapper(CameraMapper):
                 raise RuntimeError("Either $SUPRIME_DATA_DIR or root= must be specified")
 
         if not kwargs.get('calibRoot', None):
-            try:
-                kwargs['calibRoot'] = os.path.join(os.environ.get('SUPRIME_DATA_DIR'), 'HSC', 'CALIB')
-            except:
-                raise RuntimeError("Either $SUPRIME_DATA_DIR or root= must be specified")
+            kwargs['calibRoot'] = os.path.join(kwargs['root'], 'CALIB')
 
         if outRoot is None:
             if policy.exists('outRoot'):
