@@ -125,7 +125,7 @@ def runDeblend(sourcefn, heavypat, forcedet):
 
     for dr in dataRef:
         print 'dr', dr
-        # Only do ISR, Calibration, and Measurement if necessary...
+        # Only do ISR, Calibration, and Detection if necessary...
         doIsr    = False
         doCalib  = False
         doDetect = False
@@ -162,120 +162,28 @@ def runDeblend(sourcefn, heavypat, forcedet):
         conf.doCalibrate      = doCalib
         conf.doWriteCalibrate = doCalib
         conf.doDetection      = doDetect
-        conf.doWriteSources   = doDetect
+        #conf.doWriteSources   = doDetect
 
-        # Tricksy: set doMeasurement so the schema gets populated...
+        conf.doDeblend = True
+        conf.doWriteSources = True
         conf.doMeasurement = True
-        proc = procCcd.ProcessCcdTask(config=conf, name='ProcessCcd')
-        # ... then unset it so measurement doesn't run (yet)
-        conf.doMeasurement = False
-
-        # Add flag bits for deblending results
-        schema = proc.schema
-        psfkey = schema.addField('deblend.deblended-as-psf', type='Flag',
-                                 doc='Deblender thought this source looked like a PSF')
-        oobkey = schema.addField('deblend.out-of-bounds', type='Flag',
-                                 doc='Deblender thought this source was too close to an edge')
-
-        schema = proc.schema
-        psfkey = schema.find('deblend.deblended-as-psf').key
-        oobkey = schema.find('deblend.out-of-bounds').key
-
-        proc.run(dr)
-
-        # Now we deblend and run measurement on the deblended hierarchy.
-        print 'Reading sources from', mapper.map('src', dr.dataId)
-        srcs = dr.get('src')
-        print 'Srcs', srcs
-
-        # Make sure the IdFactory exists and doesn't duplicate IDs
-        # (until Jim finishes #2083)
-        f = srcs.getTable().getIdFactory()
-        if f is None:
-            f = afwTable.IdFactory.makeSimple()
-            srcs.getTable().setIdFactory(f)
-        f.notify(max([src.getId() for src in srcs]))
-        f = srcs.getTable().getIdFactory()
-
-        schema = srcs.getSchema()
-        psfkey = schema.find('deblend.deblended-as-psf').key
-        oobkey = schema.find('deblend.out-of-bounds').key
-
-        print 'psfkey:', psfkey
-        print 'oobkey:', oobkey
-
-        exposure = dr.get('calexp')
-        print 'Exposure', exposure
-        mi = exposure.getMaskedImage()
-
-        psf = dr.get('psf')
-        print 'PSF:', psf
-
-        from lsst.meas.deblender.baseline import deblend
-        import lsst.meas.algorithms as measAlg
-
-        # find the median stdev in the image...
-        stats = afwMath.makeStatistics(mi.getVariance(), mi.getMask(), afwMath.MEDIAN)
-        sigma1 = math.sqrt(stats.getValue(afwMath.MEDIAN))
-
-        xkey = schema.find('centroid.naive.x').key
-        ykey = schema.find('centroid.naive.y').key
-
-        heavies = {}
-        n0 = len(srcs)
-        for src in srcs:
-            # SourceRecords
-            #print '  ', src
-            fp = src.getFootprint()
-            #print '  fp', fp
-            pks = fp.getPeaks()
-            #print '  pks:', len(pks), pks
-            if len(pks) < 2:
-                continue
-
-            bb = fp.getBBox()
-            xc = int((bb.getMinX() + bb.getMaxX()) / 2.)
-            yc = int((bb.getMinY() + bb.getMaxY()) / 2.)
-
-            if hasattr(psf, 'getFwhm'):
-                psf_fwhm = psf.getFwhm(xc, yc)
-            else:
-                pa = measAlg.PsfAttributes(psf, xc, yc)
-                psfw = pa.computeGaussianWidth(measAlg.PsfAttributes.ADAPTIVE_MOMENT)
-                #print 'PSF width:', psfw
-                psf_fwhm = 2.35 * psfw
-
-            print 'Deblending', len(pks), 'peaks'
-            X = deblend([fp], [pks], mi, psf, psf_fwhm, sigma1=sigma1)
-            res = X[0]
-            for pkres in res.peaks:
-                child = srcs.addNew()
-                child.setParent(src.getId())
-                child.setFootprint(pkres.heavy)
-                x,y = pkres.center
-                child.set(xkey, x)
-                child.set(ykey, y)
-                # Interesting, they're "numpy.bool_"s, hence the cast to bool
-                #print 'deblend_as_psf:', pkres.deblend_as_psf
-                #print '  ', type(pkres.deblend_as_psf)
-                child.set(psfkey, bool(pkres.deblend_as_psf))
-                child.set(oobkey, bool(pkres.out_of_bounds))
-                heavies[child.getId()] = pkres.heavy
-        n1 = len(srcs)
-
-        print 'Deblending:', n0, 'sources ->', n1
-
-        print 'Measuring...'
         conf.measurement.doRemoveOtherSources = True
-        proc.measurement.run(exposure, srcs)
+
+        proc = procCcd.ProcessCcdTask(config=conf, name='ProcessCcd')
+        res = proc.run(dr)
+
+        srcs = res.sources
+
+        # Not required any more?
         print 'Writing FITS...'
         srcs.writeFits(sourcefn)
 
         # Write heavy footprints as well.
-        keys = heavies.keys()
-        keys.sort()
-        for k in keys:
-            h = heavies[k]
+        for src in srcs:
+            if not src.getParent():
+                continue
+            k = src.getId()
+            h = afwDet.cast_HeavyFootprintF(src.getFootprint())
             bb = h.getBBox()
             mim = afwImage.MaskedImageF(bb.getWidth(), bb.getHeight())
             mim.setXY0(bb.getMinX(), bb.getMinY())
@@ -283,6 +191,7 @@ def runDeblend(sourcefn, heavypat, forcedet):
             fn = heavypat % k
             mim.writeFits(fn)
             print 'Wrote', fn
+
     return srcs
 
 def getEllipses(src, nsigs=[1.], **kwargs):
