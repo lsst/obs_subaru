@@ -1,5 +1,6 @@
 import matplotlib
 matplotlib.use('Agg')
+from matplotlib.patches import Ellipse
 import pylab as plt
 import numpy as np
 
@@ -101,7 +102,7 @@ def getDataref():
         print '  ', dr
     return dataRef
 
-def runDeblend(sourcefn, heavypat):
+def runDeblend(sourcefn, heavypat, forcedet):
     dataRef = getDataref()
     mapper = getMapper()
             
@@ -117,8 +118,6 @@ def runDeblend(sourcefn, heavypat):
     cr.min_DN = 500.
     cr.niteration = 3
     cr.nCrPixelMax = 1000000
-
-    proc = procCcd.ProcessCcdTask(config=conf, name='ProcessCcd')
 
     conf.calibrate.measurement.doApplyApCorr = False
     conf.measurement.doApplyApCorr = False
@@ -155,17 +154,37 @@ def runDeblend(sourcefn, heavypat):
             print 'No sources'
             doDetect = True
 
+        if forcedet:
+            print 'Forcing detection'
+            doDetect = True
+
         conf.doIsr            = doIsr
         conf.doCalibrate      = doCalib
         conf.doWriteCalibrate = doCalib
         conf.doDetection      = doDetect
         conf.doWriteSources   = doDetect
 
+        # Tricksy: set doMeasurement so the schema gets populated...
+        conf.doMeasurement = True
+        proc = procCcd.ProcessCcdTask(config=conf, name='ProcessCcd')
+        # ... then unset it so measurement doesn't run (yet)
         conf.doMeasurement = False
+
+        # Add flag bits for deblending results
+        schema = proc.schema
+        psfkey = schema.addField('deblend.deblended-as-psf', type='Flag',
+                                 doc='Deblender thought this source looked like a PSF')
+        oobkey = schema.addField('deblend.out-of-bounds', type='Flag',
+                                 doc='Deblender thought this source was too close to an edge')
+
+        schema = proc.schema
+        psfkey = schema.find('deblend.deblended-as-psf').key
+        oobkey = schema.find('deblend.out-of-bounds').key
 
         proc.run(dr)
 
         # Now we deblend and run measurement on the deblended hierarchy.
+        print 'Reading sources from', mapper.map('src', dr.dataId)
         srcs = dr.get('src')
         print 'Srcs', srcs
 
@@ -178,16 +197,9 @@ def runDeblend(sourcefn, heavypat):
         f.notify(max([src.getId() for src in srcs]))
         f = srcs.getTable().getIdFactory()
 
-        # Add flag bits for deblending results
         schema = srcs.getSchema()
-        psfkey = schema.addField('deblend.deblended_as_psf', type='Flag',
-                                 doc='Deblender thought this source looked like a PSF')
-        oobkey = schema.addField('deblend.out_of_bounds', type='Flag',
-                                 doc='Deblender thought this source was too close to an edge')
-        schema.find('deblend.deblended_as_psf')
-
-        schema = srcs.getSchema()
-        schema.find('deblend.deblended_as_psf')
+        psfkey = schema.find('deblend.deblended-as-psf').key
+        oobkey = schema.find('deblend.out-of-bounds').key
 
         print 'psfkey:', psfkey
         print 'oobkey:', oobkey
@@ -240,11 +252,10 @@ def runDeblend(sourcefn, heavypat):
                 child = srcs.addNew()
                 child.setParent(src.getId())
                 child.setFootprint(pkres.heavy)
-                # == pk.getF{xy}(), for now
                 x,y = pkres.center
                 child.set(xkey, x)
                 child.set(ykey, y)
-                # Interesting, they're "numpy.bool_"s!
+                # Interesting, they're "numpy.bool_"s, hence the cast to bool
                 #print 'deblend_as_psf:', pkres.deblend_as_psf
                 #print '  ', type(pkres.deblend_as_psf)
                 child.set(psfkey, bool(pkres.deblend_as_psf))
@@ -274,12 +285,36 @@ def runDeblend(sourcefn, heavypat):
             print 'Wrote', fn
     return srcs
 
+def getEllipses(src, nsigs=[1.], **kwargs):
+    xc = src.getX()
+    yc = src.getY()
+    x2 = src.getIxx()
+    y2 = src.getIyy()
+    xy = src.getIxy()
+    # SExtractor manual v2.5, pg 29.
+    a2 = (x2 + y2)/2. + np.sqrt(((x2 - y2)/2.)**2 + xy**2)
+    b2 = (x2 + y2)/2. - np.sqrt(((x2 - y2)/2.)**2 + xy**2)
+    theta = np.rad2deg(np.arctan2(2.*xy, (x2 - y2)) / 2.)
+    a = np.sqrt(a2)
+    b = np.sqrt(b2)
+    ells = []
+    for nsig in nsigs:
+        ells.append(Ellipse([xc,yc], 2.*a*nsig, 2.*b*nsig, angle=theta, **kwargs))
+    return ells
+
+def drawEllipses(src, **kwargs):
+    els = getEllipses(src, **kwargs)
+    for el in els:
+        plt.gca().add_artist(el)
+    return els
 
 if __name__ == '__main__':
     from optparse import OptionParser
     parser = OptionParser()
     parser.add_option('--force', '-f', dest='force', action='store_true', default=False,
                       help='Force re-running the deblender?')
+    parser.add_option('--force-det', '-d', dest='forcedet', action='store_true', default=False,
+                      help='Force re-running the detection stage?')
     parser.add_option('-s', '--sources', dest='sourcefn', default='deblended-srcs.fits',
                       help='Output filename for source table (FITS)')
     parser.add_option('-H', '--heavy', dest='heavypat', default='deblend-heavy-%04i.fits',
@@ -292,7 +327,7 @@ if __name__ == '__main__':
     if not opt.force:
         cat = readCatalog(opt.sourcefn, opt.heavypat, ndeblends=opt.nkeep)
     if cat is None:
-        cat = runDeblend(opt.sourcefn, opt.heavypat)
+        cat = runDeblend(opt.sourcefn, opt.heavypat, opt.forcedet)
         if opt.nkeep:
             cat = cutCatalog(cat, opt.nkeep)
 
@@ -310,7 +345,7 @@ if __name__ == '__main__':
     sigma1 = math.sqrt(stats.getValue(afwMath.MEDIAN))
 
     schema = cat.getSchema()
-    psfkey = schema.find("deblend.deblended_as_psf").key
+    psfkey = schema.find("deblend.deblended-as-psf").key
 
     fams = getFamilies(cat)
     for j,(parent,children) in enumerate(fams):
@@ -375,16 +410,18 @@ if __name__ == '__main__':
         plt.subplot(R, C, 1)
         pext = getExtent(parent.getFootprint().getBBox())
         myimshow(pim, extent=pext, **imargs)
+        plt.gray()
         plt.xticks([])
         plt.yticks([])
         m = 0.25
         pax = [pext[0]-m, pext[1]+m, pext[2]-m, pext[3]+m]
         #plt.axis(pax)
         plt.title('parent %i' % parent.getId())
-        plt.gray()
         Rx,Ry = [],[]
         tts = []
         ccs = []
+        #Es = []
+        xys = []
         for i,im in enumerate(chims):
             child = children[i]
             ispsf = child.get(psfkey)
@@ -392,9 +429,9 @@ if __name__ == '__main__':
             bb = child.getFootprint().getBBox()
             ext = getExtent(bb)
             myimshow(im, extent=ext, **imargs)
+            plt.gray()
             plt.xticks([])
             plt.yticks([])
-            plt.axis(pax)
             tt = 'child %i' % child.getId()
             if ispsf:
                 cc = 'g'
@@ -404,16 +441,44 @@ if __name__ == '__main__':
             tts.append(tt)
             ccs.append(cc)
             plt.title(tt)
-            plt.gray()
             xx = [ext[0],ext[1],ext[1],ext[0],ext[0]]
             yy = [ext[2],ext[2],ext[3],ext[3],ext[2]]
-            plt.plot(xx, yy, '-', color=cc)
             Rx.append(xx)
             Ry.append(yy)
+            plt.plot(xx, yy, '-', color=cc)
+            plt.plot([child.getX()], [child.getY()], 'x', color=cc)
+            xys.append((child.getX(), child.getY(), cc))
+            if not ispsf:
+                drawEllipses(child, ec=cc, fc='none', alpha=0.7)
+                #els = getEllipses(child, ec=cc, fc='none')
+                #for el in els:
+                #    plt.gca().add_artist(el)
+                #Es.append(els)
+            #else:
+            #    Es.append([])
+
+            plt.axis(pax)
+        # Go back to the parent plot and add child bboxes
         plt.subplot(R, C, 1)
         # plt.plot(np.array(Rx).T, np.array(Ry).T, 'r-')
         for rx,ry,cc in zip(Rx, Ry, ccs):
             plt.plot(rx, ry, '-', color=cc)
+
+        # for el in getEllipses(parent, ec='b', fc='none'):
+        #    plt.gca().add_artist(el)
+        # add child centers and ellipses...
+        for x,y,cc in xys:
+            plt.plot([x],[y],'x',color=cc)
+        #for els in Es:
+        #    for el in els:
+        #        plt.gca().add_artist(el)
+        for child,cc in zip(children,ccs):
+            ispsf = child.get(psfkey)
+            if ispsf:
+                continue
+            drawEllipses(child, ec=cc, fc='none', alpha=0.7)
+        drawEllipses(parent, ec='b', fc='none', alpha=0.7)
+        
         plt.axis(pax)
         plt.savefig('deblend-%04i-a.png' % j)
             
@@ -425,11 +490,19 @@ if __name__ == '__main__':
             ext = getExtent(bb)
             imargs.update(vmax=max(3.*sigma1, im.max()))
             myimshow(im, extent=ext, **imargs)
+            plt.gray()
             plt.xticks([])
             plt.yticks([])
-            plt.axis(ext)
             plt.title(tts[i])
-            plt.gray()
+            cc = ccs[i]
+            x,y,nil = xys[i]
+            plt.plot([x], [y], 'x', color=cc)
+            ispsf = child.get(psfkey)
+            if not ispsf:
+                drawEllipses(child, ec=cc, fc='none', alpha=0.7)
+            #for el in Es[i]:
+            #    plt.gca().add_artist(el)
+            plt.axis(ext)
         plt.savefig('deblend-%04i-b.png' % j)
 
         
