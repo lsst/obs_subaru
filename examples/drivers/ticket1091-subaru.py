@@ -415,12 +415,10 @@ if __name__ == '__main__':
         plt.yticks([])
         m = 0.25
         pax = [pext[0]-m, pext[1]+m, pext[2]-m, pext[3]+m]
-        #plt.axis(pax)
         plt.title('parent %i' % parent.getId())
         Rx,Ry = [],[]
         tts = []
         ccs = []
-        #Es = []
         xys = []
         for i,im in enumerate(chims):
             child = children[i]
@@ -450,35 +448,21 @@ if __name__ == '__main__':
             xys.append((child.getX(), child.getY(), cc))
             if not ispsf:
                 drawEllipses(child, ec=cc, fc='none', alpha=0.7)
-                #els = getEllipses(child, ec=cc, fc='none')
-                #for el in els:
-                #    plt.gca().add_artist(el)
-                #Es.append(els)
-            #else:
-            #    Es.append([])
-
             plt.axis(pax)
         # Go back to the parent plot and add child bboxes
         plt.subplot(R, C, 1)
         # plt.plot(np.array(Rx).T, np.array(Ry).T, 'r-')
         for rx,ry,cc in zip(Rx, Ry, ccs):
             plt.plot(rx, ry, '-', color=cc)
-
-        # for el in getEllipses(parent, ec='b', fc='none'):
-        #    plt.gca().add_artist(el)
         # add child centers and ellipses...
         for x,y,cc in xys:
             plt.plot([x],[y],'x',color=cc)
-        #for els in Es:
-        #    for el in els:
-        #        plt.gca().add_artist(el)
         for child,cc in zip(children,ccs):
             ispsf = child.get(psfkey)
             if ispsf:
                 continue
             drawEllipses(child, ec=cc, fc='none', alpha=0.7)
         drawEllipses(parent, ec='b', fc='none', alpha=0.7)
-        
         plt.axis(pax)
         plt.savefig('deblend-%04i-a.png' % j)
             
@@ -500,8 +484,6 @@ if __name__ == '__main__':
             ispsf = child.get(psfkey)
             if not ispsf:
                 drawEllipses(child, ec=cc, fc='none', alpha=0.7)
-            #for el in Es[i]:
-            #    plt.gca().add_artist(el)
             plt.axis(ext)
         plt.savefig('deblend-%04i-b.png' % j)
 
