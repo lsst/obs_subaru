@@ -1,5 +1,6 @@
 
 #include "lsst/meas/deblender/Baseline.h"
+#include "lsst/pex/logging.h"
 #include "lsst/afw/geom/Box.h"
 
 #include "lsst/meas/algorithms/detail/SdssShape.h"
@@ -9,6 +10,7 @@ namespace det = lsst::afw::detection;
 namespace deblend = lsst::meas::deblender;
 namespace geom = lsst::afw::geom;
 namespace malg = lsst::meas::algorithms;
+namespace pexLog = lsst::pex::logging;
 
 template<typename ImagePixelT, typename MaskPixelT, typename VariancePixelT>
 std::vector<double>
@@ -59,7 +61,8 @@ medianFilter(MaskedImageT const& img,
 	ImagePixelT vals[S*S];
 	for (int y=halfsize; y<=H-halfsize; ++y) {
         xy_loc inpix = img.xy_at(halfsize, y), end = img.xy_at(W-halfsize, y);
-        for (typename MaskedImageT::x_iterator optr = out.row_begin(y) + halfsize; inpix != end; ++inpix.x(), ++optr) {
+        for (typename MaskedImageT::x_iterator optr = out.row_begin(y) + halfsize;
+             inpix != end; ++inpix.x(), ++optr) {
 			for (int i=0; i<SS; ++i)
 				vals[i] = inpix[locs[i]].image();
 			std::nth_element(vals, vals+SS/2, vals+SS);
@@ -274,19 +277,24 @@ deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::buildSymmetricTem
 	det::Peak const& peak,
 	double sigma1) {
 
-    //typedef ImageT::const_xy_locator xy_loc;
 	typedef typename MaskedImageT::const_xy_locator xy_loc;
 	typedef typename det::Footprint::SpanList SpanList;
 
+    pexLog::Log log(pexLog::Log::getDefaultLog(), "lsst.meas.deblender", pexLog::Log::INFO);
+    bool debugging = (log.getThreshold() <= pexLog::Log::DEBUG);
+
+    // The result image will be at most as large as the footprint
 	geom::Box2I fbb = foot.getBBox();
 	MaskedImagePtrT timg(new MaskedImageT(fbb.getDimensions()));
 	timg->setXY0(fbb.getMinX(), fbb.getMinY());
+    // we'll track the bounding-box of the image here.
+    geom::Box2I tbb;
 
 	MaskPixelT symm1sig = img.getMask()->getPlaneBitMask("SYMM_1SIG");
 	MaskPixelT symm3sig = img.getMask()->getPlaneBitMask("SYMM_3SIG");
 
-	// Copy the image under the footprint.
 	const SpanList spans = foot.getSpans();
+	// Copy the image under the footprint?  Nope.
 	/*
 	int inx0 = img.getX0();
 	int iny0 = img.getY0();
@@ -306,30 +314,28 @@ deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::buildSymmetricTem
 	}
 	 */
 
-	int cx,cy;
-	cx = peak.getIx();
-	cy = peak.getIy();
+	int cx = peak.getIx();
+	int cy = peak.getIy();
 
 	// Find the Span containing the peak.
 	det::Span::Ptr target(new det::Span(cy, cx, cx));
-	//SpanList::const_iterator peakspan = std::lower_bound(spans.begin(), spans.end(), target);
-	SpanList::const_iterator peakspan = std::lower_bound(spans.begin(), spans.end(), target, span_ptr_compare);
+	SpanList::const_iterator peakspan =
+        std::lower_bound(spans.begin(), spans.end(), target, span_ptr_compare);
 
 	// lower_bound returns the first position where "target" could be inserted;
 	// ie, the first Span larger than "target".  The Span containing "target"
 	// should be peakspan-1.
-	// "Returns the furthermost Span i such that, for every Span j in
-	//  [first, i), *j < target."
 	if (peakspan == spans.begin()) {
 		det::Span::Ptr sp = *peakspan;
 		assert(!sp->contains(cx,cy));
-		printf("Span containing peak not found.\n");
+        log.fatalf("Span containing peak (%i,%i) not found.", cx, cy);
 		assert(0);
 	}
 	peakspan--;
 	det::Span::Ptr sp = *peakspan;
 	assert(sp->contains(cx,cy));
-	// printf("Span containing peak (%i,%i): (x=[%i,%i], y=%i)\n", cx, cy, sp->getX0(), sp->getX1(), sp->getY());
+	log.debugf("Span containing peak (%i,%i): (x=[%i,%i], y=%i)\n",
+               cx, cy, sp->getX0(), sp->getX1(), sp->getY());
 
 	SpanList::const_iterator fwd = peakspan;
 	SpanList::const_iterator back = peakspan;
@@ -342,82 +348,95 @@ deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::buildSymmetricTem
 	 -set some Mask bit?
 	 -set "pix" and "symm" to their min
 
+     ???
 	 If the symmetric pixel "symm" is outside the Footprint:
 	 -set some Mask bit?
 	 -copy "pix" from the input.
 	 */
 	const SpanList::const_iterator s0 = spans.begin();
 
-	// printf("spans.begin: %i, end %i\n", (int)(spans.begin()-s0), (int)(spans.end()-s0));
-	// printf("peakspan: %i\n", (int)(peakspan-s0));
+	log.debugf("spans.begin: %i, end %i\n", (int)(spans.begin()-s0), (int)(spans.end()-s0));
+	log.debugf("peakspan: %i\n", (int)(peakspan-s0));
 
-	/*
-	 For every pixel that has a symmetric partner,
-	 set both pixels to their min.
-	 */
+    ImagePtrT theimg = img.getImage();
+    ImagePtrT targetimg  = timg->getImage();
+    MaskPtrT  targetmask = timg->getMask();
 
 	while ((fwd < spans.end()) && (back >= s0)) {
-		// For row "dy", find the range of x values?
-		// printf("dy = %i\n", dy);
-		//SpanList::const_iterator f0 = fwd;
+
+        // We will look at the symmetric rows cy +- dy
+        // For row fy = cy + dy we'll iterate forward (in increasing x)
+        // For row by = cy - dy we'll iterate backward (decreasing x)
+
+        // Find the range of X values for "forward" row "fy".
+        // Also find and remember the last span, "f1"
 		SpanList::const_iterator f1 = fwd;
 		int fy = cy + dy;
 		int fx0 = (*fwd)->getX0();
-		int fx1 = -1 ;// = (*fwd)->getX1();
+		int fx1 = -1;
+        // There may be multiple spans for this row.
 		for (; f1 != spans.end(); ++f1) {
 			if ((*f1)->getY() != fy)
 				break;
 			fx1 = (*f1)->getX1();
 		}
 		assert(fx1 != -1);
-		// printf("fwd: %i\n", (int)(fwd-s0));
-		// printf("f0:  %i\n", (int)(f0-s0));
-		// printf("f1:  %i\n", (int)(f1-s0));
+        log.debugf("dy:  %i\n", dy);
+		log.debugf("fwd: %i\n", (int)(fwd-s0));
+		log.debugf("f1:  %i\n", (int)(f1-s0));
 
+        // Find the range of X values for the "backward" row "by".
+        // Also find and remember the last span, "b0"
 		SpanList::const_iterator b0 = back;
-		//SpanList::const_iterator b1 = back;
 		int by = cy - dy;
-		int bx0 = -1; // = (*back)->getX0();
+		int bx0 = -1;
 		int bx1 = (*back)->getX1();
+        // There may be multiple spans
 		for (; b0 >= s0; b0--) {
 			if ((*b0)->getY() != by)
 				break;
 			bx0 = (*b0)->getX0();
 		}
 		assert(bx0 != -1);
-		// printf("back: %i\n", (int)(back-s0));
-		// printf("b0:   %i\n", (int)(b0-s0));
-		// printf("b1:   %i\n", (int)(b1-s0));
+		log.debugf("back: %i\n", (int)(back-s0));
+		log.debugf("b0:   %i\n", (int)(b0-s0));
 
-		SpanList::const_iterator sp;
-		/*
-		 for (sp=f0; sp<f1; ++sp)
-		 printf("  forward: %i, x = [%i, %i], y = %i\n", (int)(sp-s0), (*sp)->getX0(), (*sp)->getX1(), (*sp)->getY());
-		 for (sp=b1; sp>b0; --sp)
-		 printf("  back   : %i, x = [%i, %i], y = %i\n", (int)(sp-s0), (*sp)->getX0(), (*sp)->getX1(), (*sp)->getY());
-		 */
+        if (debugging) {
+            SpanList::const_iterator sp;
+            for (sp=fwd; sp<f1; ++sp)
+                log.debugf("  forward: %i, x = [%i, %i], y = %i\n", (int)(sp-s0),
+                           (*sp)->getX0(), (*sp)->getX1(), (*sp)->getY());
+            for (sp=back; sp>b0; --sp)
+                log.debugf("  back   : %i, x = [%i, %i], y = %i\n", (int)(sp-s0),
+                           (*sp)->getX0(), (*sp)->getX1(), (*sp)->getY());
+            log.debugf("dy=%i: fy=%i, fx=[%i, %i].  by=%i, bx=[%i, %i]\n",
+                       dy, fy, fx0, fx1, by, bx0, bx1);
+        }
 
-		//printf("dy=%i: fy=%i, fx=[%i, %i].  by=%i, bx=[%i, %i]\n", dy, fy, fx0, fx1, by, bx0, bx1);
-
+        // Find the range of dx values (from cx) covered by rows "fy" AND "by".
 		int dx0, dx1;
 		dx0 = std::max(fx0 - cx, cx - bx1);
 		dx1 = std::min(fx1 - cx, cx - bx0);
-		//printf("dx = [%i, %i]  --> forward [%i, %i], back [%i, %i]\n", dx0, dx1, cx+dx0, cx+dx1, cx-dx1, cx-dx0);
+		log.debugf("dx = [%i, %i]  --> forward [%i, %i], back [%i, %i]\n",
+                   dx0, dx1, cx+dx0, cx+dx1, cx-dx1, cx-dx0);
 
 		for (int dx=dx0; dx<=dx1; dx++) {
 			int fx = cx + dx;
 			int bx = cx - dx;
-			//printf("  dx = %i,  fx=%i, bx=%i\n", dx, fx, bx);
+			log.debugf("  dx = %i,  fx=%i, bx=%i\n", dx, fx, bx);
 
 			// We test all dx values within the valid range, but we
 			// have to be a bit careful since there may be gaps in one
 			// or both directions.
 
-			if ((fwd != f1) && (fx > (*fwd)->getX1()))
+            // move to the next forward span?
+			if ((fwd != f1) && (fx > (*fwd)->getX1())) {
 				fwd++;
-			if ((back != b0) && (bx < (*back)->getX0()))
+            }
+            // move to the next backward span?
+            if ((back != b0) && (bx < (*back)->getX0())) {
 				back--;
-
+            }
 			// They shouldn't both be "done".
 			if (fwd == f1) {
 				assert(back != b0);
@@ -426,53 +445,70 @@ deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::buildSymmetricTem
 				assert(fwd != f1);
 			}
 
-			/*
-			 if (fwd != f1)
-			 printf("    fwd : y=%i, x=[%i,%i]\n", (*fwd)->getY(), (*fwd)->getX0(), (*fwd)->getX1());
-			 else
-			 printf("    fwd : done\n");
-			 if (back != b0)
-			 printf("    back: y=%i, x=[%i,%i]\n", (*back)->getY(), (*back)->getX0(), (*back)->getX1());
-			 else
-			 printf("    back: done\n");
-			 */
+            if (debugging) {
+                if (fwd != f1) {
+                    log.debugf("    fwd : y=%i, x=[%i,%i]\n",
+                               (*fwd)->getY(), (*fwd)->getX0(), (*fwd)->getX1());
+                } else {
+                    log.debugf("    fwd : done\n");
+                }
+                if (back != b0) {
+                    log.debugf("    back: y=%i, x=[%i,%i]\n",
+                               (*back)->getY(), (*back)->getX0(), (*back)->getX1());
+                } else {
+                    log.debugf("    back: done\n");
+                }
+            }
 
-			// HACK -- MaskedPixel...
-			ImagePtrT theimg = img.getImage();
-			ImagePtrT targetimg = timg->getImage();
-			MaskPtrT targetmask = timg->getMask();
+			// FIXME -- CURRENTLY WE IGNORE THE MASK PLANE!
+            // options include ORing the mask bits, or being clever about ignoring
+            // some masked pixels, or copying the mask bits of the min pixel
 			// FIXME -- one of these conditions is redundant...
 			if ((fwd != f1) && (*fwd)->contains(fx) && (back != b0) && (*back)->contains(bx)) {
+                // FIXME -- we could do this with image iterators
+                // instead.  But first profile to show that it's
+                // necessary and an improvement.
 				ImagePixelT pixf = theimg->get0(fx, fy);
 				ImagePixelT pixb = theimg->get0(bx, by);
 				ImagePixelT pix = std::min(pixf, pixb);
 				targetimg->set0(fx, fy, pix);
 				targetimg->set0(bx, by, pix);
-				// Set the "symm1sig" mask bit for pixels that have been pulled down by the
-				// symmetry constraint.
-				if (pixf >= pix + 1.*sigma1)
+
+                // FIXME -- use symmetry to avoid doing both these "include"s.
+                tbb.include(geom::Point2I(fx, fy));
+                tbb.include(geom::Point2I(bx, by));
+
+				// Set the "symm1sig" mask bit for pixels that have
+				// been pulled down by the symmetry constraint, and
+				// the "symm3sig" mask bit for pixels pulled down by 3
+				// sigma.
+				if (pixf >= pix + 1.*sigma1) {
 					targetmask->set0(fx, fy, targetmask->get0(fx, fy) | symm1sig);
-				if (pixb >= pix + 1.*sigma1)
+                    if (pixf >= pix + 3.*sigma1) {
+                        targetmask->set0(fx, fy, targetmask->get0(fx, fy) | symm3sig);
+                    }
+                }
+				if (pixb >= pix + 1.*sigma1) {
 					targetmask->set0(bx, by, targetmask->get0(bx, by) | symm1sig);
-
-				if (pixf >= pix + 3.*sigma1)
-					targetmask->set0(fx, fy, targetmask->get0(fx, fy) | symm3sig);
-				if (pixb >= pix + 3.*sigma1)
-					targetmask->set0(bx, by, targetmask->get0(bx, by) | symm3sig);
-				
-
+                    if (pixb >= pix + 3.*sigma1) {
+                        targetmask->set0(bx, by, targetmask->get0(bx, by) | symm3sig);
+                    }
+                }
 			}
 			// else: gap in both the forward and reverse directions.
 		}
 
-		//printf("fwd : %i.  f0=%i, f1=%i\n", (int)(fwd-s0), (int)(f0-s0), (int)(f1-s0));
-		//printf("back: %i.  b0=%i, b1=%i\n", (int)(back-s0), (int)(b0-s0), (int)(b1-s0));
+		log.debugf("fwd : %i, f1=%i\n", (int)(fwd-s0),  (int)(f1-s0));
+		log.debugf("back: %i, b0=%i\n", (int)(back-s0), (int)(b0-s0));
 
 		fwd = f1;
 		back = b0;
 		dy++;
 	}
 
+    // Clip the result image to "tbb" (via this deep copy, ugh)
+    timg = MaskedImagePtrT(new MaskedImageT(*timg, tbb, image::PARENT, true));
+    
 	return timg;
 }
 

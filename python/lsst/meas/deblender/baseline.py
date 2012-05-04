@@ -13,7 +13,7 @@ import lsst.afw.math  as afwMath
 # into earlier-created Source objects, but useful for now for
 # hauling debugging results around.
 class PerFootprint(object):
-    # .peaks: PerPeak objects
+    # .peaks: list of PerPeak objects
     pass
 class PerPeak(object):
     def __init__(self):
@@ -412,12 +412,13 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm,
                 ctrl.setDoCopyEdge(True)
                 afwMath.convolve(outimg, inimg, kern, ctrl)
             else:
-                # Place output back into input -- so create a copy first
-                log.logdebug('Median filtering template %i' % pki)
-                t1im = t1 #.getImage()
-                inimg = t1im.Factory(t1im, True)
-                outimg = t1im
-                butils.medianFilter(inimg, outimg, 2)
+                if t1.getWidth() > 5 and t1.getHeight() > 5:
+                    # Place output back into input -- so create a copy first
+                    log.logdebug('Median filtering template %i' % pki)
+                    t1im = t1 #.getImage()
+                    inimg = t1im.Factory(t1im, True)
+                    outimg = t1im
+                    butils.medianFilter(inimg, outimg, 2)
 
             log.logdebug('Making template %i monotonic' % pki)
             butils.makeMonotonic(t1, fp, pk, sigma1)
@@ -465,7 +466,17 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm,
                 foot.normalize()
                 #print 'fake footprint area:', foot.getArea()
             #print 'Creating heavy footprint for footprint', fpi, 'peak', pki
-            heavy = afwDet.makeHeavyFootprint(foot, pkres.mportion)
+
+            #heavy = afwDet.makeHeavyFootprint(foot, pkres.mportion)
+            thisfp = afwDet.Footprint(foot)
+
+            mbb = pkres.mportion.getBBox(afwImage.PARENT)
+            #print 'mbb:', mbb
+            #print 'fbb:', thisfp.getBBox()
+            thisfp.clipTo(mbb)
+            #print 'after clipping:', thisfp.getBBox()
+            #print 'after clipping:', len(thisfp.getSpans()), 'spans'
+            heavy = afwDet.makeHeavyFootprint(thisfp, pkres.mportion)
             heavy.getPeaks().push_back(pk)
             pkres.heavy = heavy
             

@@ -78,11 +78,15 @@ def readCatalog(sourcefn, heavypat, ndeblends=0):
         src.setFootprint(heavy)
     return cat
 
-def getButler():
+def getMapper():
     basedir = os.path.join(os.environ['HOME'], 'lsst', 'ACT-data')
     mapperArgs = dict(root=os.path.join(basedir, 'rerun/dstn'),
                       calibRoot=os.path.join(basedir, 'CALIB'))
     mapper = obsSc.SuprimecamMapper(**mapperArgs)
+    return mapper
+
+def getButler():
+    mapper = getMapper()
     butlerFactory = dafPersist.ButlerFactory(mapper = mapper)
     butler = butlerFactory.create()
     return butler
@@ -99,6 +103,7 @@ def getDataref():
 
 def runDeblend(sourcefn, heavypat):
     dataRef = getDataref()
+    mapper = getMapper()
             
     conf = procCcd.ProcessCcdConfig()
 
@@ -173,6 +178,20 @@ def runDeblend(sourcefn, heavypat):
         f.notify(max([src.getId() for src in srcs]))
         f = srcs.getTable().getIdFactory()
 
+        # Add flag bits for deblending results
+        schema = srcs.getSchema()
+        psfkey = schema.addField('deblend.deblended_as_psf', type='Flag',
+                                 doc='Deblender thought this source looked like a PSF')
+        oobkey = schema.addField('deblend.out_of_bounds', type='Flag',
+                                 doc='Deblender thought this source was too close to an edge')
+        schema.find('deblend.deblended_as_psf')
+
+        schema = srcs.getSchema()
+        schema.find('deblend.deblended_as_psf')
+
+        print 'psfkey:', psfkey
+        print 'oobkey:', oobkey
+
         exposure = dr.get('calexp')
         print 'Exposure', exposure
         mi = exposure.getMaskedImage()
@@ -187,10 +206,6 @@ def runDeblend(sourcefn, heavypat):
         stats = afwMath.makeStatistics(mi.getVariance(), mi.getMask(), afwMath.MEDIAN)
         sigma1 = math.sqrt(stats.getValue(afwMath.MEDIAN))
 
-        ### HACK
-        #srcs = srcs[:20]
-
-        schema = srcs.getSchema()
         xkey = schema.find('centroid.naive.x').key
         ykey = schema.find('centroid.naive.y').key
 
@@ -229,6 +244,11 @@ def runDeblend(sourcefn, heavypat):
                 x,y = pkres.center
                 child.set(xkey, x)
                 child.set(ykey, y)
+                # Interesting, they're "numpy.bool_"s!
+                #print 'deblend_as_psf:', pkres.deblend_as_psf
+                #print '  ', type(pkres.deblend_as_psf)
+                child.set(psfkey, bool(pkres.deblend_as_psf))
+                child.set(oobkey, bool(pkres.out_of_bounds))
                 heavies[child.getId()] = pkres.heavy
         n1 = len(srcs)
 
@@ -288,6 +308,9 @@ if __name__ == '__main__':
 
     stats = afwMath.makeStatistics(mi.getVariance(), mi.getMask(), afwMath.MEDIAN)
     sigma1 = math.sqrt(stats.getValue(afwMath.MEDIAN))
+
+    schema = cat.getSchema()
+    psfkey = schema.find("deblend.deblended_as_psf").key
 
     fams = getFamilies(cat)
     for j,(parent,children) in enumerate(fams):
@@ -360,23 +383,53 @@ if __name__ == '__main__':
         plt.title('parent %i' % parent.getId())
         plt.gray()
         Rx,Ry = [],[]
+        tts = []
+        ccs = []
         for i,im in enumerate(chims):
+            child = children[i]
+            ispsf = child.get(psfkey)
             plt.subplot(R, C, i+2)
-            bb = children[i].getFootprint().getBBox()
+            bb = child.getFootprint().getBBox()
             ext = getExtent(bb)
             myimshow(im, extent=ext, **imargs)
             plt.xticks([])
             plt.yticks([])
             plt.axis(pax)
-            plt.title('child %i' % children[i].getId())
+            tt = 'child %i' % child.getId()
+            if ispsf:
+                cc = 'g'
+                tt += ' (psf)'
+            else:
+                cc = 'r'
+            tts.append(tt)
+            ccs.append(cc)
+            plt.title(tt)
             plt.gray()
             xx = [ext[0],ext[1],ext[1],ext[0],ext[0]]
             yy = [ext[2],ext[2],ext[3],ext[3],ext[2]]
-            plt.plot(xx, yy, 'r-')
+            plt.plot(xx, yy, '-', color=cc)
             Rx.append(xx)
             Ry.append(yy)
         plt.subplot(R, C, 1)
-        plt.plot(np.array(Rx).T, np.array(Ry).T, 'r-')
+        # plt.plot(np.array(Rx).T, np.array(Ry).T, 'r-')
+        for rx,ry,cc in zip(Rx, Ry, ccs):
+            plt.plot(rx, ry, '-', color=cc)
         plt.axis(pax)
         plt.savefig('deblend-%04i-a.png' % j)
             
+        # plot b: keep the parent plot; plot each child with its own stretch and bounding-box
+        for i,im in enumerate(chims):
+            child = children[i]
+            plt.subplot(R, C, i+2)
+            bb = child.getFootprint().getBBox()
+            ext = getExtent(bb)
+            imargs.update(vmax=max(3.*sigma1, im.max()))
+            myimshow(im, extent=ext, **imargs)
+            plt.xticks([])
+            plt.yticks([])
+            plt.axis(ext)
+            plt.title(tts[i])
+            plt.gray()
+        plt.savefig('deblend-%04i-b.png' % j)
+
+        
