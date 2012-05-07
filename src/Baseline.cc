@@ -270,7 +270,14 @@ deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::apportionFlux(Mas
 
 
 template<typename ImagePixelT, typename MaskPixelT, typename VariancePixelT>
-typename deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::MaskedImagePtrT
+//typename deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::MaskedImagePtrT
+//typename deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::HeavyFootprintT
+/*std::pair<
+    typename deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::MaskedImagePtrT,
+    lsst::afw::detection::Footprint
+    >
+ */
+deblend::MaskedImageAndFootprint<ImagePixelT, MaskPixelT, VariancePixelT>
 deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::buildSymmetricTemplate(
 	MaskedImageT const& img,
 	det::Footprint const& foot,
@@ -285,10 +292,13 @@ deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::buildSymmetricTem
 
     // The result image will be at most as large as the footprint
 	geom::Box2I fbb = foot.getBBox();
-	MaskedImagePtrT timg(new MaskedImageT(fbb.getDimensions()));
-	timg->setXY0(fbb.getMinX(), fbb.getMinY());
+	MaskedImageT timg(fbb.getDimensions());
+	timg.setXY0(fbb.getMinX(), fbb.getMinY());
     // we'll track the bounding-box of the image here.
     geom::Box2I tbb;
+    //
+    det::Footprint tfoot;
+    det::Footprint tfoot2;
 
 	MaskPixelT symm1sig = img.getMask()->getPlaneBitMask("SYMM_1SIG");
 	MaskPixelT symm3sig = img.getMask()->getPlaneBitMask("SYMM_3SIG");
@@ -321,7 +331,6 @@ deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::buildSymmetricTem
 	det::Span::Ptr target(new det::Span(cy, cx, cx));
 	SpanList::const_iterator peakspan =
         std::lower_bound(spans.begin(), spans.end(), target, span_ptr_compare);
-
 	// lower_bound returns the first position where "target" could be inserted;
 	// ie, the first Span larger than "target".  The Span containing "target"
 	// should be peakspan-1.
@@ -340,27 +349,13 @@ deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::buildSymmetricTem
 	SpanList::const_iterator fwd = peakspan;
 	SpanList::const_iterator back = peakspan;
 	int dy = 0;
-
-	/*
-	 For every pixel "pix" inside the Footprint:
-
-	 If the symmetric pixel "symm" is inside the Footprint:
-	 -set some Mask bit?
-	 -set "pix" and "symm" to their min
-
-     ???
-	 If the symmetric pixel "symm" is outside the Footprint:
-	 -set some Mask bit?
-	 -copy "pix" from the input.
-	 */
 	const SpanList::const_iterator s0 = spans.begin();
-
 	log.debugf("spans.begin: %i, end %i\n", (int)(spans.begin()-s0), (int)(spans.end()-s0));
 	log.debugf("peakspan: %i\n", (int)(peakspan-s0));
 
     ImagePtrT theimg = img.getImage();
-    ImagePtrT targetimg  = timg->getImage();
-    MaskPtrT  targetmask = timg->getMask();
+    ImagePtrT targetimg  = timg.getImage();
+    MaskPtrT  targetmask = timg.getMask();
 
 	while ((fwd < spans.end()) && (back >= s0)) {
 
@@ -369,44 +364,44 @@ deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::buildSymmetricTem
         // For row by = cy - dy we'll iterate backward (decreasing x)
 
         // Find the range of X values for "forward" row "fy".
-        // Also find and remember the last span, "f1"
-		SpanList::const_iterator f1 = fwd;
+        // Also find and remember the last span, "fend"
+		SpanList::const_iterator fend = fwd;
 		int fy = cy + dy;
 		int fx0 = (*fwd)->getX0();
 		int fx1 = -1;
         // There may be multiple spans for this row.
-		for (; f1 != spans.end(); ++f1) {
-			if ((*f1)->getY() != fy)
+		for (; fend != spans.end(); ++fend) {
+			if ((*fend)->getY() != fy)
 				break;
-			fx1 = (*f1)->getX1();
+			fx1 = (*fend)->getX1();
 		}
 		assert(fx1 != -1);
-        log.debugf("dy:  %i\n", dy);
-		log.debugf("fwd: %i\n", (int)(fwd-s0));
-		log.debugf("f1:  %i\n", (int)(f1-s0));
+        log.debugf("dy:   %i\n", dy);
+		log.debugf("fwd:  %i\n", (int)(fwd-s0));
+		log.debugf("fend: %i\n", (int)(fend-s0));
 
         // Find the range of X values for the "backward" row "by".
-        // Also find and remember the last span, "b0"
-		SpanList::const_iterator b0 = back;
+        // Also find and remember the last span, "bend"
+		SpanList::const_iterator bend = back;
 		int by = cy - dy;
 		int bx0 = -1;
 		int bx1 = (*back)->getX1();
         // There may be multiple spans
-		for (; b0 >= s0; b0--) {
-			if ((*b0)->getY() != by)
+		for (; bend >= s0; bend--) {
+			if ((*bend)->getY() != by)
 				break;
-			bx0 = (*b0)->getX0();
+			bx0 = (*bend)->getX0();
 		}
 		assert(bx0 != -1);
 		log.debugf("back: %i\n", (int)(back-s0));
-		log.debugf("b0:   %i\n", (int)(b0-s0));
+		log.debugf("bend: %i\n", (int)(bend-s0));
 
         if (debugging) {
             SpanList::const_iterator sp;
-            for (sp=fwd; sp<f1; ++sp)
+            for (sp=fwd; sp<fend; ++sp)
                 log.debugf("  forward: %i, x = [%i, %i], y = %i\n", (int)(sp-s0),
                            (*sp)->getX0(), (*sp)->getX1(), (*sp)->getY());
-            for (sp=back; sp>b0; --sp)
+            for (sp=back; sp>bend; --sp)
                 log.debugf("  back   : %i, x = [%i, %i], y = %i\n", (int)(sp-s0),
                            (*sp)->getX0(), (*sp)->getX1(), (*sp)->getY());
             log.debugf("dy=%i: fy=%i, fx=[%i, %i].  by=%i, bx=[%i, %i]\n",
@@ -420,6 +415,8 @@ deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::buildSymmetricTem
 		log.debugf("dx = [%i, %i]  --> forward [%i, %i], back [%i, %i]\n",
                    dx0, dx1, cx+dx0, cx+dx1, cx-dx1, cx-dx0);
 
+        bool newspan = true;
+
 		for (int dx=dx0; dx<=dx1; dx++) {
 			int fx = cx + dx;
 			int bx = cx - dx;
@@ -430,29 +427,45 @@ deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::buildSymmetricTem
 			// or both directions.
 
             // move to the next forward span?
-			if ((fwd != f1) && (fx > (*fwd)->getX1())) {
+			//if ((fwd != fend) && (fx > (*fwd)->getX1())) {
+            if (fx > (*fwd)->getX1()) {
+                assert(fwd != fend);
 				fwd++;
+                newspan = true;
             }
             // move to the next backward span?
-            if ((back != b0) && (bx < (*back)->getX0())) {
+            //if ((back != bend) && (bx < (*back)->getX0())) {
+            if (bx < (*back)->getX0()) {
+                assert(back != bend);
 				back--;
+                newspan = true;
             }
-			// They shouldn't both be "done".
-			if (fwd == f1) {
-				assert(back != b0);
+			// They shouldn't both be "done" (because that would imply dx > dx1)
+			if (fwd == fend) {
+				assert(back != bend);
 			}
-			if (back == b0) {
-				assert(fwd != f1);
+			if (back == bend) {
+				assert(fwd != fend);
 			}
 
+            if (newspan) {
+                // add the intersection of the forward and backward spans to this child's footprint
+                int dxlo,dxhi;
+                dxlo = std::max((*fwd)->getX0() - cx, cx - (*back)->getX1());
+                dxhi = std::min((*fwd)->getX1() - cx, cx - (*back)->getX0());
+                tfoot2.addSpan(fy, cx + dxlo, cx + dxhi);
+                tfoot2.addSpan(by, cx - dxhi, cx - dxlo);
+                newspan = false;
+            }
+
             if (debugging) {
-                if (fwd != f1) {
+                if (fwd != fend) {
                     log.debugf("    fwd : y=%i, x=[%i,%i]\n",
                                (*fwd)->getY(), (*fwd)->getX0(), (*fwd)->getX1());
                 } else {
                     log.debugf("    fwd : done\n");
                 }
-                if (back != b0) {
+                if (back != bend) {
                     log.debugf("    back: y=%i, x=[%i,%i]\n",
                                (*back)->getY(), (*back)->getX0(), (*back)->getX1());
                 } else {
@@ -464,7 +477,7 @@ deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::buildSymmetricTem
             // options include ORing the mask bits, or being clever about ignoring
             // some masked pixels, or copying the mask bits of the min pixel
 			// FIXME -- one of these conditions is redundant...
-			if ((fwd != f1) && (*fwd)->contains(fx) && (back != b0) && (*back)->contains(bx)) {
+			if ((fwd != fend) && (*fwd)->contains(fx) && (back != bend) && (*back)->contains(bx)) {
                 // FIXME -- we could do this with image iterators
                 // instead.  But first profile to show that it's
                 // necessary and an improvement.
@@ -477,6 +490,9 @@ deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::buildSymmetricTem
                 // FIXME -- use symmetry to avoid doing both these "include"s.
                 tbb.include(geom::Point2I(fx, fy));
                 tbb.include(geom::Point2I(bx, by));
+
+                tfoot.addSpan(fy, fx, fx);
+                tfoot.addSpan(by, bx, bx);
 
 				// Set the "symm1sig" mask bit for pixels that have
 				// been pulled down by the symmetry constraint, and
@@ -498,21 +514,73 @@ deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::buildSymmetricTem
 			// else: gap in both the forward and reverse directions.
 		}
 
-		log.debugf("fwd : %i, f1=%i\n", (int)(fwd-s0),  (int)(f1-s0));
-		log.debugf("back: %i, b0=%i\n", (int)(back-s0), (int)(b0-s0));
+		log.debugf("fwd : %i, fend=%i\n", (int)(fwd-s0),  (int)(fend-s0));
+		log.debugf("back: %i, bend=%i\n", (int)(back-s0), (int)(bend-s0));
 
-		fwd = f1;
-		back = b0;
+		fwd = fend;
+		back = bend;
 		dy++;
 	}
 
+    tfoot.normalize();
+    tfoot2.normalize();
+    //assert(tfoot == tfoot2);
+    SpanList sp1 = tfoot.getSpans();
+    SpanList sp2 = tfoot2.getSpans();
+    /*
+     printf("sp1 has %i:\n", sp1.size());
+     for (SpanList::const_iterator spit1 = sp1.begin();
+     spit1 != sp1.end(); spit1++) {
+     printf("  y %i, x [%i, %i]\n", (*spit1)->getY(), (*spit1)->getX0(), (*spit1)->getX1());
+     }
+     printf("sp2 has %i:\n", sp2.size());
+     for (SpanList::const_iterator spit2 = sp2.begin();
+     spit2 != sp2.end(); spit2++) {
+     printf("  y %i, x [%i, %i]\n", (*spit2)->getY(), (*spit2)->getX0(), (*spit2)->getX1());
+     }
+     */
+
+    assert(sp1.size() == sp2.size());
+    for (SpanList::const_iterator spit1 = sp1.begin(),
+             spit2 = sp2.begin();
+         spit1 != sp1.end() && spit2 != sp2.end();
+         spit1++, spit2++) {
+        //printf("  y %i/%i, x0 %i/%i, x1 %i/%i\n", (*spit1)->getY(), (*spit2)->getY(), (*spit1)->getX0(), (*spit2)->getX0(), (*spit1)->getX1(), (*spit2)->getX1());
+        assert((*spit1)->getY()  == (*spit2)->getY());
+        assert((*spit1)->getX0() == (*spit2)->getX0());
+        assert((*spit1)->getX1() == (*spit2)->getX1());
+    }
+
     // Clip the result image to "tbb" (via this deep copy, ugh)
-    timg = MaskedImagePtrT(new MaskedImageT(*timg, tbb, image::PARENT, true));
-    
-	return timg;
+    MaskedImagePtrT rimg(new MaskedImageT(timg, tbb, image::PARENT, true));
+	//return timg;
+    //return det::makeHeavyFootprint(tfoot2, timg);
+    //return det::makeHeavyFootprint(tfoot2, timg);
+
+    MaskedImageAndFootprint<ImagePixelT, MaskPixelT, VariancePixelT> rtn;
+    rtn.mi = rimg;
+    rtn.fp = tfoot2;
+    return rtn;
+    //return std::pair<MaskedImagePtrT, det::Footprint>(rimg, tfoot2);
+}
+
+template<typename ImagePixelT, typename MaskPixelT, typename VariancePixelT>
+std::pair<boost::shared_ptr<lsst::afw::image::MaskedImage<ImagePixelT,MaskPixelT,VariancePixelT> >, lsst::afw::detection::Footprint>
+deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::buildSymmetricTemplate2(
+	MaskedImageT const& img,
+	det::Footprint const& foot,
+	det::Peak const& peak,
+	double sigma1) {
+    det::Footprint fp;
+    MaskedImagePtrT mi;
+    return std::pair<MaskedImagePtrT, det::Footprint>(mi, fp);
 }
 
 
 // Instantiate
 template class deblend::BaselineUtils<float>;
+
+template class deblend::MaskedImageAndFootprint<float>;
+
+template class std::pair<boost::shared_ptr<lsst::afw::image::MaskedImage<float> >, lsst::afw::detection::Footprint>;
 

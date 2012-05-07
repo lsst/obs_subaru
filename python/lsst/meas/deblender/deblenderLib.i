@@ -14,6 +14,8 @@ Python interface to lsst::meas::deblender classes
 #include <list>
 #include <boost/shared_ptr.hpp>
 #include "lsst/meas/deblender/Baseline.h"
+#include "lsst/afw/table.h"
+#include "lsst/afw/detection.h"
 #include "lsst/pex/logging.h"
 #include "lsst/afw/cameraGeom.h"
 %}
@@ -36,10 +38,13 @@ using namespace lsst::afw::detection;
 
 %import "lsst/afw/image/imageLib.i"
 %import "lsst/afw/detection/detectionLib.i"
-%include "lsst/afw/image/lsstImageTypes.i"     // Image/Mask types and typedefs
+ //%include "lsst/afw/image/lsstImageTypes.i"     // Image/Mask types and typedefs
 
 %include "lsst/meas/deblender/Baseline.h"
 %template(BaselineUtilsF) lsst::meas::deblender::BaselineUtils<float>;
+%template(MaskedImageFAndFootprint) lsst::meas::deblender::MaskedImageAndFootprint<float>;
+
+%template(pairMaskedImageFAndFootprint) std::pair<boost::shared_ptr<lsst::afw::image::MaskedImage<float, lsst::afw::image::MaskPixel, lsst::afw::image::VariancePixel> >, lsst::afw::detection::Footprint>;
 
 /******************************************************************************/
 // Local Variables: ***

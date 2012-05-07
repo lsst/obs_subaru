@@ -395,7 +395,11 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm,
                 continue
 
             log.logdebug('computing template for peak %i' % pki)
-            t1 = butils.buildSymmetricTemplate(maskedImage, fp, pk, sigma1)
+            #t1,tfoot = butils.buildSymmetricTemplate(maskedImage, fp, pk, sigma1)
+            res = butils.buildSymmetricTemplate(maskedImage, fp, pk, sigma1)
+            print 'res:', res
+            t1 = res.mi
+            tfoot = res.fp
             # Smooth / filter
             if False:
                 sig = 0.5
@@ -425,6 +429,7 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm,
 
             pkres.tmimg = t1
             pkres.timg = t1.getImage()
+            pkres.tfoot = tfoot
 
         # Now apportion flux according to the templates
         tmimgs = []
@@ -454,29 +459,25 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm,
                 #print 'Creating fake footprint for deblended-as-PSF peak'
                 p = pkres.mportion
                 foot = afwDet.Footprint()
-                #splist = foot.getSpans()
                 x0 = p.getX0()
                 y0 = p.getY0()
                 W = p.getWidth()
                 H = p.getHeight()
-                #print 'Flux portion shape:', W, H
                 for y in range(H):
-                    #splist.push_back(afwDet.Span(y0+y, x0, x0+W-1))
                     foot.addSpan(y0+y, x0, x0+W-1)
                 foot.normalize()
-                #print 'fake footprint area:', foot.getArea()
+
             #print 'Creating heavy footprint for footprint', fpi, 'peak', pki
-
-            #heavy = afwDet.makeHeavyFootprint(foot, pkres.mportion)
-            thisfp = afwDet.Footprint(foot)
-
-            mbb = pkres.mportion.getBBox(afwImage.PARENT)
+            # Copy the parent's footprint and modify it
+            #thisfp = afwDet.Footprint(foot)
+            #mbb = pkres.mportion.getBBox(afwImage.PARENT)
             #print 'mbb:', mbb
             #print 'fbb:', thisfp.getBBox()
-            thisfp.clipTo(mbb)
+            #thisfp.clipTo(mbb)
             #print 'after clipping:', thisfp.getBBox()
             #print 'after clipping:', len(thisfp.getSpans()), 'spans'
-            heavy = afwDet.makeHeavyFootprint(thisfp, pkres.mportion)
+            #heavy = afwDet.makeHeavyFootprint(thisfp, pkres.mportion)
+            heavy = afwDet.makeHeavyFootprint(pkres.tfoot, pkres.mportion)
             heavy.getPeaks().push_back(pk)
             pkres.heavy = heavy
             
