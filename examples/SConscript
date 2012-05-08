@@ -1,0 +1,12 @@
+#from lsst.sconsUtils import scripts
+#scripts.BasicSConscript.python(['oh-the-horror'])
+#state.env.SwigLoadableModule('_oh-the-horror', 'oh-the-horror.i', SWIGFLAGS="-I.")
+
+from lsst.sconsUtils import env, targets
+targets["python"].extend(
+    env.SwigLoadableModule(
+        "_oh-the-horror", ["oh-the-horror.i"],
+        SWIGFLAGS=(env["SWIGFLAGS"] + ["-I.", "-Iexamples"]),
+        LIBS=env.getLibs("main python")
+    )
+)
