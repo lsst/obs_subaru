@@ -42,9 +42,9 @@ using namespace lsst::afw::detection;
 
 %include "lsst/meas/deblender/Baseline.h"
 %template(BaselineUtilsF) lsst::meas::deblender::BaselineUtils<float>;
-%template(MaskedImageFAndFootprint) lsst::meas::deblender::MaskedImageAndFootprint<float>;
 
-%template(pairMaskedImageFAndFootprint) std::pair<boost::shared_ptr<lsst::afw::image::MaskedImage<float, lsst::afw::image::MaskPixel, lsst::afw::image::VariancePixel> >, lsst::afw::detection::Footprint>;
+// %template(MaskedImageFAndFootprint) lsst::meas::deblender::MaskedImageAndFootprint<float>;
+// %template(pairMaskedImageFAndFootprint) std::pair<boost::shared_ptr<lsst::afw::image::MaskedImage<float, lsst::afw::image::MaskPixel, lsst::afw::image::VariancePixel> >, lsst::afw::detection::Footprint>;
 
 /******************************************************************************/
 // Local Variables: ***

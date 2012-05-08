@@ -396,10 +396,14 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm,
 
             log.logdebug('computing template for peak %i' % pki)
             #t1,tfoot = butils.buildSymmetricTemplate(maskedImage, fp, pk, sigma1)
-            res = butils.buildSymmetricTemplate(maskedImage, fp, pk, sigma1)
-            print 'res:', res
-            t1 = res.mi
-            tfoot = res.fp
+            #res = butils.buildSymmetricTemplate(maskedImage, fp, pk, sigma1)
+            #print 'res:', res
+            #t1 = res.mi
+            #tfoot = res.fp
+
+            tfoot = afwDet.Footprint()
+            t1 = butils.buildSymmetricTemplate(maskedImage, fp, pk, sigma1, tfoot)
+
             # Smooth / filter
             if False:
                 sig = 0.5
@@ -451,7 +455,7 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm,
 
     for fpi,(fp,pks,fpres) in enumerate(zip(footprints,peaks,results)):
         for pki,(pk,pkres) in enumerate(zip(pks, fpres.peaks)):
-            foot = fp
+            #foot = fp
             if pkres.out_of_bounds:
                 #print 'Skipping out-of-bounds peak', pki
                 continue
@@ -467,6 +471,9 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm,
                     foot.addSpan(y0+y, x0, x0+W-1)
                 foot.normalize()
 
+            else:
+                foot = pkres.tfoot
+                
             #print 'Creating heavy footprint for footprint', fpi, 'peak', pki
             # Copy the parent's footprint and modify it
             #thisfp = afwDet.Footprint(foot)
@@ -477,7 +484,7 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm,
             #print 'after clipping:', thisfp.getBBox()
             #print 'after clipping:', len(thisfp.getSpans()), 'spans'
             #heavy = afwDet.makeHeavyFootprint(thisfp, pkres.mportion)
-            heavy = afwDet.makeHeavyFootprint(pkres.tfoot, pkres.mportion)
+            heavy = afwDet.makeHeavyFootprint(foot, pkres.mportion)
             heavy.getPeaks().push_back(pk)
             pkres.heavy = heavy
             

@@ -18,7 +18,7 @@ namespace lsst {
 
         /* I was having trouble convincing SWIG that there is such a thing as a std::pair
          of these objects...
-         */
+
         template <typename ImagePixelT,
                   typename MaskPixelT=lsst::afw::image::MaskPixel,
                   typename VariancePixelT=lsst::afw::image::VariancePixel>
@@ -27,6 +27,7 @@ namespace lsst {
             boost::shared_ptr<lsst::afw::image::MaskedImage<ImagePixelT, MaskPixelT, VariancePixelT> > mi;
             lsst::afw::detection::Footprint fp;
         };
+         */
 
             template <typename ImagePixelT,
                       typename MaskPixelT=lsst::afw::image::MaskPixel,
@@ -49,19 +50,34 @@ namespace lsst {
                 //static MaskedImagePtrT
                 //static HeavyFootprintT
                 //std::pair<MaskedImagePtrT, lsst::afw::detection::Footprint>
+                /*
+                 static
+                 lsst::meas::deblender::MaskedImageAndFootprint<ImagePixelT, MaskPixelT, VariancePixelT>
+                 buildSymmetricTemplate(MaskedImageT const& img,
+                 lsst::afw::detection::Footprint const& foot,
+                 lsst::afw::detection::Peak const& pk,
+                 double sigma1);
+
+                 static
+                 std::pair<typename boost::shared_ptr<lsst::afw::image::MaskedImage<ImagePixelT,MaskPixelT,VariancePixelT> >, lsst::afw::detection::Footprint>
+                 buildSymmetricTemplate2(MaskedImageT const& img,
+                 lsst::afw::detection::Footprint const& foot,
+                 lsst::afw::detection::Peak const& pk,
+                 double sigma1);
+                 */
+
                 static
-                lsst::meas::deblender::MaskedImageAndFootprint<ImagePixelT, MaskPixelT, VariancePixelT>
+                lsst::afw::detection::Footprint::Ptr
+                symmetrizeFootprint(lsst::afw::detection::Footprint const& foot,
+                                    int cx, int cy);
+
+                static
+                typename lsst::afw::image::MaskedImage<ImagePixelT,MaskPixelT,VariancePixelT>::Ptr
                 buildSymmetricTemplate(MaskedImageT const& img,
                                        lsst::afw::detection::Footprint const& foot,
                                        lsst::afw::detection::Peak const& pk,
-                    double sigma1);
-
-                static
-                std::pair<typename boost::shared_ptr<lsst::afw::image::MaskedImage<ImagePixelT,MaskPixelT,VariancePixelT> >, lsst::afw::detection::Footprint>
-                buildSymmetricTemplate2(MaskedImageT const& img,
-                                        lsst::afw::detection::Footprint const& foot,
-                                        lsst::afw::detection::Peak const& pk,
-                                        double sigma1);
+                                       double sigma1,
+                                       lsst::afw::detection::Footprint& outfoot);
 
                 static void
                 medianFilter(MaskedImageT const& img,
