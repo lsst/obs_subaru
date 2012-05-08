@@ -280,8 +280,8 @@ deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::symmetrizeFootpri
     assert(foot.isNormalized());
 
     pexLog::Log log(pexLog::Log::getDefaultLog(), "lsst.meas.deblender",
-					pexLog::Log::DEBUG);
-					//pexLog::Log::INFO);
+					//pexLog::Log::DEBUG);
+					pexLog::Log::INFO);
     bool debugging = (log.getThreshold() <= pexLog::Log::DEBUG);
 
     // compute correct answer dumbly
@@ -308,23 +308,82 @@ deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::symmetrizeFootpri
 	// lower_bound returns the first position where "target" could be inserted;
 	// ie, the first Span larger than "target".  The Span containing "target"
 	// should be peakspan-1.
-	if (peakspan == spans.begin()) {
-		det::Span::Ptr sp = *peakspan;
-		assert(!sp->contains(cx,cy));
-        log.fatalf("Span containing (%i,%i) not found.", cx, cy);
-		assert(0);
-	}
+	assert(peakspan != spans.begin());
 	peakspan--;
 	det::Span::Ptr sp = *peakspan;
 	assert(sp->contains(cx,cy));
 	log.debugf("Span containing (%i,%i): (x=[%i,%i], y=%i)",
                cx, cy, sp->getX0(), sp->getX1(), sp->getY());
 
-	SpanList::const_iterator fwd = peakspan;
+	SpanList::const_iterator fwd  = peakspan;
 	SpanList::const_iterator back = peakspan;
 	int dy = 0;
 	log.debugf("spans len: %i", (int)(spans.end()-spans.begin()));
 	log.debugf("peakspan: %i", (int)(peakspan-spans.begin()));
+
+	while ((fwd < spans.end()) && (back >= spans.begin())) {
+		int fy = cy + dy;
+		int by = cy - dy;
+
+		int fx0 = (*fwd)->getX0();
+		int bx1 = (*back)->getX1();
+
+		int fdx = fx0 - cx;
+		int bdx = cx - bx1;
+
+		SpanList::const_iterator fend;
+		for (fend = fwd; fend != spans.end(); ++fend) {
+			if ((*fend)->getY() != fy)
+				break;
+		}
+		SpanList::const_iterator bend;
+		for (bend=back; bend >= spans.begin(); --bend) {
+			if ((*bend)->getY() != by)
+				break;
+		}
+
+		if (fdx > bdx) {
+			int bx = cx - fdx;
+			// advance "back" until the first possibly-overlapping span is found.
+			while ((back != bend) && (*back)->getX0() > bx) {
+				back--;
+			}
+		} else if (bdx > fdx) {
+			int fx = cx + bdx;
+			// advance "fwd" until the first possibly-overlapping span is found.
+			while ((fwd != fend) && (*fwd)->getX1() < fx) {
+				fwd++;
+			}
+		}
+
+		if ((back == bend) || (fwd == fend)) {
+			back = bend;
+			fwd  = fend;
+			dy++;
+			continue;
+		}
+
+		int dxlo = std::max((*fwd)->getX0() - cx, cx - (*back)->getX1());
+		int dxhi = std::min((*fwd)->getX1() - cx, cx - (*back)->getX0());
+		printf("fy,by %i,%i, dx [%i, %i] --> [%i, %i], [%i, %i]\n", fy, by,
+			   dxlo, dxhi, cx+dxlo, cx+dxhi, cx-dxhi, cx-dxlo);
+		if (dxlo <= dxhi) {
+			sfoot->addSpan(fy, cx + dxlo, cx + dxhi);
+			sfoot->addSpan(by, cx - dxhi, cx - dxlo);
+		}
+
+		fdx = (*fwd)->getX1() - cx;
+		bdx = cx - (*back)->getX0();
+		if (fdx < bdx) {
+			fwd++;
+		} else {
+			back--;
+		}
+	}
+	
+
+	/*
+
 
 	while ((fwd < spans.end()) && (back >= spans.begin())) {
         // We will look at the symmetric rows cy +- dy
@@ -474,6 +533,10 @@ deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::symmetrizeFootpri
 		back = bend;
 		dy++;
 	}
+
+
+	 */
+
     sfoot->normalize();
 
     SpanList sp1 = truefoot.getSpans();
@@ -803,6 +866,18 @@ deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::buildSymmetricTem
         assert((*spit1)->getX0() == (*spit2)->getX0());
         assert((*spit1)->getX1() == (*spit2)->getX1());
     }
+
+    SpanList sp3 = sfoot->getSpans();
+    assert(sp1.size() == sp3.size());
+    for (SpanList::const_iterator spit1 = sp1.begin(),
+             spit3 = sp3.begin();
+         spit1 != sp1.end() && spit3 != sp3.end();
+         spit1++, spit3++) {
+        assert((*spit1)->getY()  == (*spit3)->getY());
+        assert((*spit1)->getX0() == (*spit3)->getX0());
+        assert((*spit1)->getX1() == (*spit3)->getX1());
+    }
+
 
     // Clip the result image to "tbb" (via this deep copy, ugh)
     MaskedImagePtrT rimg(new MaskedImageT(timg, tbb, image::PARENT, true));
