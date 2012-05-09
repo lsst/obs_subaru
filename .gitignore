@@ -6,3 +6,10 @@
 ups/*.cfgc
 config.log
 python/lsst/meas/deblender/version.py
+test-*.png
+templ-*.png
+measure-*.png
+sump-*.png
+deblend-pre*.png
+deblend-heavy*.fits
+deblend-*.png
