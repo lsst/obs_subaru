@@ -180,6 +180,7 @@ class DebugDeblendTask(measAlg.SourceDeblendTask):
             self.drill = None
         #self.plotmasks = kwargs.pop('plotmasks', True)
         #self.plotregion = None
+        self.plotnum = 0
         super(DebugDeblendTask, self).__init__(*args, **kwargs)
 
     def run(self, exposure, sources, psf):
@@ -208,33 +209,160 @@ class DebugDeblendTask(measAlg.SourceDeblendTask):
         pim = footprintToImage(parent.getFootprint(), mi).getArray()
         plt.imshow(pim, extent=pext, **imargs)
         plt.gray()
-        #plt.xticks([])
-        #plt.yticks([])
         plt.title('parent %i' % pid)
         pks = fp.getPeaks()
         plt.plot([pk.getIx() for pk in pks], [pk.getIy() for pk in pks], 'rx')
         plt.axis(pext)
-        self.savefig('pre-%04i-im' % pid)
+        self.savefig('%04i-pim' % self.plotnum)
 
         plt.clf()
         mask = mi.getMask()
-        #print 'Mask planes:'
-        #mask.printMaskPlanes()
         mim = mask.getArray()
         bitmask = mask.getPlaneBitMask('DETECTED')
         plt.imshow((mim & bitmask) > 0, **imargs)
         plt.gray()
-        #plt.xticks([])
-        #plt.yticks([])
         plt.title('parent %i DET' % pid)
         pks = fp.getPeaks()
         plt.plot([pk.getIx() for pk in pks], [pk.getIy() for pk in pks], 'rx')
         plt.axis(pext)
-        self.savefig('pre-%04i-mask' % pid)
+        self.savefig('%04i-pmask' % self.plotnum)
 
     def postSingleDeblendHook(self, exposure, srcs, i, npre, kids, fp, psf, psf_fwhm, sigma1, res):
-        pass
 
+        schema = srcs.getSchema()
+        psfkey = schema.find("deblend.deblended-as-psf").key
+        print 'Key A:', psfkey
+        print schema.find("deblend.deblended-as-psf")
+        psfkey = self.psfkey
+        print 'Key B:', psfkey
+
+        xkey = schema.find('centroid.naive.x').key
+        ykey = schema.find('centroid.naive.y').key
+
+        mi = exposure.getMaskedImage()
+        parent = srcs[i]
+        pid = parent.getId()
+        pim = footprintToImage(parent.getFootprint(), mi).getArray()
+        chims = [footprintToImage(ch.getFootprint()).getArray() for ch in kids]
+        N = 1 + len(chims)
+        S = math.ceil(math.sqrt(N))
+        C = S
+        R = math.ceil(float(N) / C)
+        def nlmap(X):
+            return np.arcsinh(X / (3.*sigma1))
+        def myimshow(im, **kwargs):
+            kwargs = kwargs.copy()
+            mn = kwargs.get('vmin', -5*sigma1)
+            kwargs['vmin'] = nlmap(mn)
+            mx = kwargs.get('vmax', 100*sigma1)
+            kwargs['vmax'] = nlmap(mx)
+            plt.imshow(nlmap(im), **kwargs)
+        imargs = dict(interpolation='nearest', origin='lower',
+                      vmax=pim.max())
+        plt.figure(figsize=(8,8))
+        plt.clf()
+        plt.subplots_adjust(left=0.05, right=0.95, bottom=0.05, top=0.9,
+                            wspace=0.05, hspace=0.05)
+        # plot a: nonlinear map; pad each child to the parent area.
+        plt.subplot(R, C, 1)
+        pext = getExtent(parent.getFootprint().getBBox())
+        myimshow(pim, extent=pext, **imargs)
+        plt.gray()
+        plt.xticks([])
+        plt.yticks([])
+        m = 0.25
+        pax = [pext[0]-m, pext[1]+m, pext[2]-m, pext[3]+m]
+        plt.title('parent %i' % parent.getId())
+        Rx,Ry = [],[]
+        tts = []
+        stys = []
+        xys = []
+        for i,im in enumerate(chims):
+            child = kids[i]
+            plt.subplot(R, C, i+2)
+            fp = child.getFootprint()
+            bb = fp.getBBox()
+            ext = getExtent(bb)
+            myimshow(im, extent=ext, **imargs)
+            plt.gray()
+            plt.xticks([])
+            plt.yticks([])
+            tt = 'child %i' % child.getId()
+            ispsf = child.get(psfkey)
+            print 'child', child.getId(), 'ispsf:', ispsf
+            if ispsf:
+                sty1 = dict(color='g')
+                sty2 = dict(color=(0.1,0.5,0.1), lw=2, alpha=0.5)
+                tt += ' (psf)'
+            else:
+                sty1 = dict(color='r')
+                sty2 = dict(color=(0.8,0.1,0.1), lw=2, alpha=0.5)
+            tts.append(tt)
+            stys.append(sty1)
+            plt.title(tt)
+            # bounding box
+            xx = [ext[0],ext[1],ext[1],ext[0],ext[0]]
+            yy = [ext[2],ext[2],ext[3],ext[3],ext[2]]
+            plt.plot(xx, yy, '-', **sty1)
+            Rx.append(xx)
+            Ry.append(yy)
+            # peak(s)
+            px = [pk.getFx() for pk in fp.getPeaks()]
+            py = [pk.getFy() for pk in fp.getPeaks()]
+            plt.plot(px, py, 'x', **sty2)
+            xys.append((px, py, sty2))
+            # centroid
+            print 'Getting x,y...'
+            x,y = child.get(xkey), child.get(ykey)
+            print 'ok'
+            plt.plot([x], [y], 'x', **sty1)
+            xys.append(([x], [y], sty1))
+            # ellipse
+            #if not ispsf:
+            #    drawEllipses(child, ec=sty1['color'], fc='none', alpha=0.7)
+            plt.axis(pax)
+        # Go back to the parent plot and add child bboxes
+        plt.subplot(R, C, 1)
+        for rx,ry,sty in zip(Rx, Ry, stys):
+            plt.plot(rx, ry, '-', **sty)
+        # add child centers and ellipses...
+        for x,y,sty in xys:
+            plt.plot(x, y, 'x', **sty)
+        for child,sty in zip(kids,stys):
+            ispsf = child.get(psfkey)
+            if ispsf:
+                continue
+            #drawEllipses(child, ec=sty['color'], fc='none', alpha=0.7)
+        print 'get parent x,y...'
+        plt.plot([parent.get(xkey)],[parent.get(ykey)],'x',color='b')
+        print 'ok'
+        #drawEllipses(parent, ec='b', fc='none', alpha=0.7)
+        plt.axis(pax)
+        self.savefig('%04i-posta' % self.plotnum)
+
+        # plot b: keep the parent plot; plot each child with its own stretch and bounding-box
+        for i,im in enumerate(chims):
+            child = kids[i]
+            plt.subplot(R, C, i+2)
+            bb = child.getFootprint().getBBox()
+            ext = getExtent(bb)
+            imargs.update(vmax=max(3.*sigma1, im.max()))
+            myimshow(im, extent=ext, **imargs)
+            plt.gray()
+            plt.xticks([])
+            plt.yticks([])
+            plt.title(tts[i])
+            sty = stys[i]
+            x,y,nil = xys[i]
+            plt.plot([x], [y], 'x', **sty)
+            ispsf = child.get(psfkey)
+            #if not ispsf:
+            #    drawEllipses(child, ec=sty['color'], fc='none', alpha=0.7)
+            plt.axis(ext)
+        
+        self.savefig('%04i-postb' % self.plotnum)
+
+        self.plotnum += 1
 
 
 def footprintToImage(fp, mi=None):
@@ -448,30 +576,35 @@ def runDeblend(sourcefn, heavypat, forcedet, verbose=False, drill=[]):
         proc.log.setThreshold(pexLog.Log.DEBUG)
 
         if debugPlots:
+            log = None
+            if verbose:
+                log = pexLog.Log(proc.log, 'measurement')
+                log.setThreshold(pexLog.Log.DEBUG)
             proc.measurement = DebugSourceMeasTask(proc.schema,
                                                    algMetadata=proc.algMetadata,
                                                    config=conf.measurement,
+                                                   log=log,
                                                    plotmasks = False,
                                                    prefix = 'measure-')
 
         if debugDeblend:
+            log = None
+            if verbose:
+                log = pexLog.Log(proc.log, 'deblend')
+                log.setThreshold(pexLog.Log.DEBUG)
             proc.deblend = DebugDeblendTask(proc.schema,
-                                            #algMetadata=proc.algMetadata,
                                             config=conf.measurement,
+                                            log=log,
                                             prefix = 'deblend-',
                                             drill=drill)
 
-        if debugPlots: # and doMeasurement:
+        if debugPlots:
             conf.doMeasurement = True
-        if debugDeblend: # and doDeblend:
+        if debugDeblend:
             conf.doDeblend = True
 
         res = proc.run(dr, sources=srcs)
         srcs = res.sources
-
-        #if debugPlots:
-        #    print 'Running measurement...'
-        #    proc.measurement.run(res.exposure, res.sources)
 
         print 'Writing FITS...'
         srcs.writeFits(sourcefn)
@@ -560,25 +693,14 @@ if __name__ == '__main__':
     fams = getFamilies(cat)
     for j,(parent,children) in enumerate(fams):
 
-        #print 'Parent:', parent
-        #print 'Children:', len(children)
-        #for c in children:
-        #    print '  ', c
-
-        # Insert the parent's footprint pixels into a new blank image
         pim = footprintToImage(parent.getFootprint(), mi).getArray()
-
-        # Insert the children's footprints into images too
-        chims = []
-        for ch in children:
-            chims.append(footprintToImage(ch.getFootprint()).getArray())
+        chims = [footprintToImage(ch.getFootprint()).getArray() for ch in kids]
 
         N = 1 + len(chims)
         S = math.ceil(math.sqrt(N))
         C = S
         R = math.ceil(float(N) / C)
 
-        #, vmin=pim.min(), vmax=pim.max())
         def nlmap(X):
             return np.arcsinh(X / (3.*sigma1))
         def myimshow(im, **kwargs):
