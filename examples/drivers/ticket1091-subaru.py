@@ -433,19 +433,18 @@ def getButler():
     butler = butlerFactory.create()
     return butler
 
-def getDataref():
+def getDataref(visit=126969, ccd=5):
     butler = getButler()
     print 'Butler', butler
-    dataRef = butler.subset('raw', dataId = dict(visit=126969, ccd=5))
+    dataRef = butler.subset('raw', dataId = dict(visit=visit, ccd=ccd))
     print 'dataRef:', dataRef
     print 'len(dataRef):', len(dataRef)
     for dr in dataRef:
         print '  ', dr
     return dataRef
 
-def runDeblend(sourcefn, heavypat, forcedet, verbose=False, drill=[],
+def runDeblend(dataRef, sourcefn, heavypat, forcedet, verbose=False, drill=[],
                debugDeblend=True, debugMeas=True):
-    dataRef = getDataref()
     mapper = getMapper()
             
     conf = procCcd.ProcessCcdConfig()
@@ -466,7 +465,6 @@ def runDeblend(sourcefn, heavypat, forcedet, verbose=False, drill=[],
     conf.validate()
 
     for dr in dataRef:
-        print 'dr', dr
         # Only do ISR, Calibration, and Detection if necessary...
         doIsr    = False
         doCalib  = False
@@ -495,6 +493,16 @@ def runDeblend(sourcefn, heavypat, forcedet, verbose=False, drill=[],
         except:
             print 'No sources'
             doDetect = True
+            srcs = None
+
+        if doCalib:
+            try:
+                postisr = dr.get('postISRCCD')
+                print 'post-ISR CCD:', postisr
+            except:
+                print 'No post-ISR CCD'
+                doIsr = True
+            print 'post-isr CCD', mapper.map('postISRCCD', dr.dataId)
 
         if forcedet:
             print 'Forcing detection'
@@ -556,7 +564,7 @@ def runDeblend(sourcefn, heavypat, forcedet, verbose=False, drill=[],
                 log = pexLog.Log(proc.log, 'deblend')
                 log.setThreshold(pexLog.Log.DEBUG)
             proc.deblend = DebugDeblendTask(proc.schema,
-                                            config=conf.measurement,
+                                            config=conf.deblend,
                                             log=log,
                                             prefix = 'deblend-',
                                             drill=drill)
@@ -591,30 +599,30 @@ def runDeblend(sourcefn, heavypat, forcedet, verbose=False, drill=[],
         #         newsrcs.copyRecord(src, smapper)
 
 
-        print 'proc.schema:', proc.schema
-        print 'srcs.schema:', srcs.getSchema()
-
-        print
-        print 'Schemas equal (proc.schema, srcs.schema):', (proc.schema == srcs.getSchema())
-        print
-        assert(proc.schema == srcs.getSchema())
+        #print 'proc.schema:', proc.schema
+        #print 'srcs.schema:', srcs.getSchema()
+        #print
+        #print 'Schemas equal (proc.schema, srcs.schema):', (proc.schema == srcs.getSchema())
+        #print
+        if srcs:
+            assert(proc.schema == srcs.getSchema())
 
         conf.doDetection = doDetect
 
         res = proc.run(dr, sources=srcs)
 
-        print 'proc.schema:', proc.schema
-        print 'srcs.schema:', srcs.getSchema()
-        print 'res.sources schema:', res.sources.getSchema()
-
-        print
-        print 'Schemas equal (proc.schema, srcs.schema):', (proc.schema == srcs.getSchema())
-        print 'Schemas equal (proc.schema, res.sources.schema):', (proc.schema == res.sources.getSchema())
-        print 'Schemas equal (srcs.schema, res.sources.schema):', (srcs.schema == res.sources.getSchema())
-        print
-        assert(proc.schema == srcs.getSchema())
+        #print 'proc.schema:', proc.schema
+        #print 'srcs.schema:', srcs.getSchema()
+        #print 'res.sources schema:', res.sources.getSchema()
+        #print
+        #print 'Schemas equal (proc.schema, srcs.schema):', (proc.schema == srcs.getSchema())
+        #print 'Schemas equal (proc.schema, res.sources.schema):', (proc.schema == res.sources.getSchema())
+        #print 'Schemas equal (srcs.schema, res.sources.schema):', (srcs.schema == res.sources.getSchema())
+        #print
+        if srcs:
+            assert(proc.schema == srcs.getSchema())
+            assert(srcs.getSchema() == res.sources.getSchema())
         assert(proc.schema == res.sources.getSchema())
-        assert(srcs.getSchema() == res.sources.getSchema())
 
         srcs = res.sources
 
@@ -684,14 +692,26 @@ def main():
                       help='Do not make measurement plots')
     parser.add_option('--no-after-plots', dest='noafterplots', action='store_true',
                       help='Do not make post-deblend+measure plots')
+    parser.add_option('--visit', dest='visit', type=int, help='Suprimecam visit id')
+    parser.add_option('--ccd', dest='ccd', type=int, help='Suprimecam CCD number')
     parser.add_option('-v', dest='verbose', action='store_true')
     opt,args = parser.parse_args()
+
+    # get the exposure too.
+    kwargs = {}
+    if opt.visit:
+        kwargs['visit'] = opt.visit
+    if opt.ccd:
+        kwargs['ccd'] = opt.ccd
+    if len(kwargs):
+        print 'Getting', kwargs
+    dataRef = getDataref(**kwargs)
 
     cat = None
     if not opt.force:
         cat = readCatalog(opt.sourcefn, opt.heavypat, ndeblends=opt.nkeep)
     if cat is None:
-        cat = runDeblend(opt.sourcefn, opt.heavypat, opt.forcedet, opt.verbose, opt.drill,
+        cat = runDeblend(dataRef, opt.sourcefn, opt.heavypat, opt.forcedet, opt.verbose, opt.drill,
                          opt.deblendplots, opt.measplots)
     if opt.nkeep:
         cat = cutCatalog(cat, opt.nkeep)
@@ -699,8 +719,6 @@ def main():
     if opt.noafterplots:
         return
 
-    # get the exposure too.
-    dataRef = getDataref()
     # dataRef doesn't support indexing, but it does support iteration?
     for dr in dataRef:
         break
