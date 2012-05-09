@@ -18,9 +18,6 @@ import lsst.afw.math  as afwMath
 import lsst.afw.image as afwImage
 import lsst.afw.detection as afwDet
 
-debugPlots = True
-debugDeblend = True
-#if debugPlots:
 #
 # Plot the image that is passed to the measurement algorithms
 #
@@ -228,141 +225,128 @@ class DebugDeblendTask(measAlg.SourceDeblendTask):
         self.savefig('%04i-pmask' % self.plotnum)
 
     def postSingleDeblendHook(self, exposure, srcs, i, npre, kids, fp, psf, psf_fwhm, sigma1, res):
-
-        schema = srcs.getSchema()
-        psfkey = schema.find("deblend.deblended-as-psf").key
-        print 'Key A:', psfkey
-        print schema.find("deblend.deblended-as-psf")
-        psfkey = self.psfkey
-        print 'Key B:', psfkey
-
-        xkey = schema.find('centroid.naive.x').key
-        ykey = schema.find('centroid.naive.y').key
-
         mi = exposure.getMaskedImage()
         parent = srcs[i]
-        pid = parent.getId()
-        pim = footprintToImage(parent.getFootprint(), mi).getArray()
-        chims = [footprintToImage(ch.getFootprint()).getArray() for ch in kids]
-        N = 1 + len(chims)
-        S = math.ceil(math.sqrt(N))
-        C = S
-        R = math.ceil(float(N) / C)
-        def nlmap(X):
-            return np.arcsinh(X / (3.*sigma1))
-        def myimshow(im, **kwargs):
-            kwargs = kwargs.copy()
-            mn = kwargs.get('vmin', -5*sigma1)
-            kwargs['vmin'] = nlmap(mn)
-            mx = kwargs.get('vmax', 100*sigma1)
-            kwargs['vmax'] = nlmap(mx)
-            plt.imshow(nlmap(im), **kwargs)
-        imargs = dict(interpolation='nearest', origin='lower',
-                      vmax=pim.max())
-        plt.figure(figsize=(8,8))
-        plt.clf()
-        plt.subplots_adjust(left=0.05, right=0.95, bottom=0.05, top=0.9,
-                            wspace=0.05, hspace=0.05)
-        # plot a: nonlinear map; pad each child to the parent area.
-        plt.subplot(R, C, 1)
-        pext = getExtent(parent.getFootprint().getBBox())
-        myimshow(pim, extent=pext, **imargs)
+        plotDeblendFamily(mi, parent, kids, srcs, sigma1, ellipses=False)
+        self.savefig('%04i-posta' % self.plotnum)
+        plotDeblendFamily(mi, parent, kids, srcs, sigma1, plotb=True, ellipses=False)
+        self.savefig('%04i-postb' % self.plotnum)
+        self.plotnum += 1
+
+def plotDeblendFamily(mi, parent, kids, srcs, sigma1, plotb=False, ellipses=True):
+    schema = srcs.getSchema()
+    psfkey = schema.find("deblend.deblended-as-psf").key
+    xkey = schema.find('centroid.naive.x').key
+    ykey = schema.find('centroid.naive.y').key
+
+    pid = parent.getId()
+    pim = footprintToImage(parent.getFootprint(), mi).getArray()
+    chims = [footprintToImage(ch.getFootprint()).getArray() for ch in kids]
+    N = 1 + len(chims)
+    S = math.ceil(math.sqrt(N))
+    C = S
+    R = math.ceil(float(N) / C)
+    def nlmap(X):
+        return np.arcsinh(X / (3.*sigma1))
+    def myimshow(im, **kwargs):
+        kwargs = kwargs.copy()
+        mn = kwargs.get('vmin', -5*sigma1)
+        kwargs['vmin'] = nlmap(mn)
+        mx = kwargs.get('vmax', 100*sigma1)
+        kwargs['vmax'] = nlmap(mx)
+        plt.imshow(nlmap(im), **kwargs)
+    imargs = dict(interpolation='nearest', origin='lower',
+                  vmax=pim.max())
+    plt.figure(figsize=(8,8))
+    plt.clf()
+    plt.subplots_adjust(left=0.05, right=0.95, bottom=0.05, top=0.9,
+                        wspace=0.05, hspace=0.1)
+
+    plt.subplot(R, C, 1)
+    pext = getExtent(parent.getFootprint().getBBox())
+    myimshow(pim, extent=pext, **imargs)
+    plt.gray()
+    plt.xticks([])
+    plt.yticks([])
+    m = 0.25
+    pax = [pext[0]-m, pext[1]+m, pext[2]-m, pext[3]+m]
+    plt.title('parent %i' % parent.getId())
+    Rx,Ry = [],[]
+    tts = []
+    stys = []
+    xys = []
+    for i,im in enumerate(chims):
+        child = kids[i]
+        plt.subplot(R, C, i+2)
+        fp = child.getFootprint()
+        bb = fp.getBBox()
+        ext = getExtent(bb)
+
+        if plotb:
+            ima = imargs.copy()
+            ima.update(vmax=max(3.*sigma1, im.max()))
+        else:
+            ima = imargs
+
+        myimshow(im, extent=ext, **ima)
         plt.gray()
         plt.xticks([])
         plt.yticks([])
-        m = 0.25
-        pax = [pext[0]-m, pext[1]+m, pext[2]-m, pext[3]+m]
-        plt.title('parent %i' % parent.getId())
-        Rx,Ry = [],[]
-        tts = []
-        stys = []
-        xys = []
-        for i,im in enumerate(chims):
-            child = kids[i]
-            plt.subplot(R, C, i+2)
-            fp = child.getFootprint()
-            bb = fp.getBBox()
-            ext = getExtent(bb)
-            myimshow(im, extent=ext, **imargs)
-            plt.gray()
-            plt.xticks([])
-            plt.yticks([])
-            tt = 'child %i' % child.getId()
-            ispsf = child.get(psfkey)
-            print 'child', child.getId(), 'ispsf:', ispsf
-            if ispsf:
-                sty1 = dict(color='g')
-                sty2 = dict(color=(0.1,0.5,0.1), lw=2, alpha=0.5)
-                tt += ' (psf)'
-            else:
-                sty1 = dict(color='r')
-                sty2 = dict(color=(0.8,0.1,0.1), lw=2, alpha=0.5)
-            tts.append(tt)
-            stys.append(sty1)
-            plt.title(tt)
-            # bounding box
-            xx = [ext[0],ext[1],ext[1],ext[0],ext[0]]
-            yy = [ext[2],ext[2],ext[3],ext[3],ext[2]]
-            plt.plot(xx, yy, '-', **sty1)
-            Rx.append(xx)
-            Ry.append(yy)
-            # peak(s)
-            px = [pk.getFx() for pk in fp.getPeaks()]
-            py = [pk.getFy() for pk in fp.getPeaks()]
-            plt.plot(px, py, 'x', **sty2)
-            xys.append((px, py, sty2))
-            # centroid
-            print 'Getting x,y...'
-            x,y = child.get(xkey), child.get(ykey)
-            print 'ok'
-            plt.plot([x], [y], 'x', **sty1)
-            xys.append(([x], [y], sty1))
-            # ellipse
-            #if not ispsf:
-            #    drawEllipses(child, ec=sty1['color'], fc='none', alpha=0.7)
+        tt = 'child %i' % child.getId()
+        ispsf = child.get(psfkey)
+        print 'child', child.getId(), 'ispsf:', ispsf
+        if ispsf:
+            sty1 = dict(color='g')
+            sty2 = dict(color=(0.1,0.5,0.1), lw=2, alpha=0.5)
+            tt += ' (psf)'
+        else:
+            sty1 = dict(color='r')
+            sty2 = dict(color=(0.8,0.1,0.1), lw=2, alpha=0.5)
+        tts.append(tt)
+        stys.append(sty1)
+        plt.title(tt)
+        # bounding box
+        xx = [ext[0],ext[1],ext[1],ext[0],ext[0]]
+        yy = [ext[2],ext[2],ext[3],ext[3],ext[2]]
+        plt.plot(xx, yy, '-', **sty1)
+        Rx.append(xx)
+        Ry.append(yy)
+        # peak(s)
+        px = [pk.getFx() for pk in fp.getPeaks()]
+        py = [pk.getFy() for pk in fp.getPeaks()]
+        plt.plot(px, py, 'x', **sty2)
+        xys.append((px, py, sty2))
+        # centroid
+        x,y = child.get(xkey), child.get(ykey)
+        plt.plot([x], [y], 'x', **sty1)
+        xys.append(([x], [y], sty1))
+        # ellipse
+        if ellipses and not ispsf:
+            drawEllipses(child, ec=sty1['color'], fc='none', alpha=0.7)
+
+        if plotb:
+            plt.axis(ext)
+        else:
             plt.axis(pax)
-        # Go back to the parent plot and add child bboxes
-        plt.subplot(R, C, 1)
-        for rx,ry,sty in zip(Rx, Ry, stys):
-            plt.plot(rx, ry, '-', **sty)
-        # add child centers and ellipses...
-        for x,y,sty in xys:
-            plt.plot(x, y, 'x', **sty)
+            
+    # Go back to the parent plot and add child bboxes
+    plt.subplot(R, C, 1)
+    for rx,ry,sty in zip(Rx, Ry, stys):
+        plt.plot(rx, ry, '-', **sty)
+    # add child centers and ellipses...
+    for x,y,sty in xys:
+        plt.plot(x, y, 'x', **sty)
+    if ellipses:
         for child,sty in zip(kids,stys):
             ispsf = child.get(psfkey)
             if ispsf:
                 continue
-            #drawEllipses(child, ec=sty['color'], fc='none', alpha=0.7)
-        print 'get parent x,y...'
-        plt.plot([parent.get(xkey)],[parent.get(ykey)],'x',color='b')
-        print 'ok'
-        #drawEllipses(parent, ec='b', fc='none', alpha=0.7)
-        plt.axis(pax)
-        self.savefig('%04i-posta' % self.plotnum)
+            drawEllipses(child, ec=sty['color'], fc='none', alpha=0.7)
+    plt.plot([parent.get(xkey)],[parent.get(ykey)],'x',color='b')
+    if ellipses:
+        drawEllipses(parent, ec='b', fc='none', alpha=0.7)
+    plt.axis(pax)
 
-        # plot b: keep the parent plot; plot each child with its own stretch and bounding-box
-        for i,im in enumerate(chims):
-            child = kids[i]
-            plt.subplot(R, C, i+2)
-            bb = child.getFootprint().getBBox()
-            ext = getExtent(bb)
-            imargs.update(vmax=max(3.*sigma1, im.max()))
-            myimshow(im, extent=ext, **imargs)
-            plt.gray()
-            plt.xticks([])
-            plt.yticks([])
-            plt.title(tts[i])
-            sty = stys[i]
-            x,y,nil = xys[i]
-            plt.plot([x], [y], 'x', **sty)
-            ispsf = child.get(psfkey)
-            #if not ispsf:
-            #    drawEllipses(child, ec=sty['color'], fc='none', alpha=0.7)
-            plt.axis(ext)
-        
-        self.savefig('%04i-postb' % self.plotnum)
-
-        self.plotnum += 1
 
 
 def footprintToImage(fp, mi=None):
@@ -459,7 +443,8 @@ def getDataref():
         print '  ', dr
     return dataRef
 
-def runDeblend(sourcefn, heavypat, forcedet, verbose=False, drill=[]):
+def runDeblend(sourcefn, heavypat, forcedet, verbose=False, drill=[],
+               debugDeblend=True, debugMeas=True):
     dataRef = getDataref()
     mapper = getMapper()
             
@@ -520,24 +505,6 @@ def runDeblend(sourcefn, heavypat, forcedet, verbose=False, drill=[]):
         conf.doWriteCalibrate = doCalib
         conf.doDetection      = doDetect
 
-        if False and doDetect:
-            # Run processCcd only up to detection, with deblending and
-            # measurement turned off, so that we can save the sources,
-            # without the meas & deblend additions to the schema, as
-            # they are at that point.
-            conf.doDeblend = False
-            conf.doMeasurement = False
-            conf.doWriteSources = True
-            print 'Running up to detection...'
-            proc = procCcd.ProcessCcdTask(config=conf, name='ProcessCcd')
-            proc.log.setThreshold(pexLog.Log.DEBUG)
-            res = proc.run(dr)
-            srcs = res.sources
-            #srcs = dr.get('src')
-            conf.doIsr       = False
-            conf.doCalibrate = False
-            conf.doDetection = False
-
         if not doDetect:
             # Massage the sources into a pre-deblended state.
             print 'Got', len(srcs), 'sources'
@@ -562,30 +529,26 @@ def runDeblend(sourcefn, heavypat, forcedet, verbose=False, drill=[]):
             f.notify(maxid)
             print 'Max ID in catalog:', maxid
 
+            # still set conf.doDetection = True here so the schema gets populated properly...
+            conf.doDetection = True
+
         conf.doDeblend = True
         conf.doMeasurement = True
-        if debugPlots:
-            conf.doMeasurement = False
-        if debugDeblend:
-            conf.doDeblend = False
-
         conf.doWriteSources = True
         conf.measurement.doRemoveOtherSources = True
 
-        proc = procCcd.ProcessCcdTask(config=conf, name='ProcessCcd')
-        proc.log.setThreshold(pexLog.Log.DEBUG)
+        if debugDeblend:
+            conf.doDeblend = False
+            # We have to add the schema elements in the right order...
+            conf.doMeasurement = False
+        if debugMeas:
+            conf.doMeasurement = False
 
-        if debugPlots:
-            log = None
-            if verbose:
-                log = pexLog.Log(proc.log, 'measurement')
-                log.setThreshold(pexLog.Log.DEBUG)
-            proc.measurement = DebugSourceMeasTask(proc.schema,
-                                                   algMetadata=proc.algMetadata,
-                                                   config=conf.measurement,
-                                                   log=log,
-                                                   plotmasks = False,
-                                                   prefix = 'measure-')
+        proc = procCcd.ProcessCcdTask(config=conf, name='ProcessCcd')
+        if verbose:
+            proc.log.setThreshold(pexLog.Log.DEBUG)
+
+        #### FIXME -- there could be a schema mismatch if only one of debugDeblend/debugMeas is on.
 
         if debugDeblend:
             log = None
@@ -597,16 +560,68 @@ def runDeblend(sourcefn, heavypat, forcedet, verbose=False, drill=[]):
                                             log=log,
                                             prefix = 'deblend-',
                                             drill=drill)
-
-        if debugPlots:
-            conf.doMeasurement = True
-        if debugDeblend:
             conf.doDeblend = True
+            if not debugMeas:
+                # Put in the normal measurement subtask; we have to do this to ensure
+                # the schema elements get added in the right order.
+                proc.measurement = measAlg.SourceMeasurementTask(proc.schema,
+                                                                 algMetadata=proc.algMetadata,
+                                                                 config=conf.measurement)
+                conf.doMeasurement = True
+
+        if debugMeas:
+            log = None
+            if verbose:
+                log = pexLog.Log(proc.log, 'measurement')
+                log.setThreshold(pexLog.Log.DEBUG)
+            proc.measurement = DebugSourceMeasTask(proc.schema,
+                                                   algMetadata=proc.algMetadata,
+                                                   config=conf.measurement,
+                                                   log=log,
+                                                   plotmasks = False,
+                                                   prefix = 'measure-')
+            conf.doMeasurement = True
+
+        # if not doDetect:
+        #     # Remap "srcs" schema to proc.schema
+        #     print 'Remapping srcs to proc.schema...'
+        #     smapper = afwTable.SchemaMapper(srcs.getSchema())
+        #     newsrcs = afwTable.SourceCatalog(proc.schema)
+        #     for src in srcs:
+        #         newsrcs.copyRecord(src, smapper)
+
+
+        print 'proc.schema:', proc.schema
+        print 'srcs.schema:', srcs.getSchema()
+
+        print
+        print 'Schemas equal (proc.schema, srcs.schema):', (proc.schema == srcs.getSchema())
+        print
+        assert(proc.schema == srcs.getSchema())
+
+        conf.doDetection = doDetect
 
         res = proc.run(dr, sources=srcs)
+
+        print 'proc.schema:', proc.schema
+        print 'srcs.schema:', srcs.getSchema()
+        print 'res.sources schema:', res.sources.getSchema()
+
+        print
+        print 'Schemas equal (proc.schema, srcs.schema):', (proc.schema == srcs.getSchema())
+        print 'Schemas equal (proc.schema, res.sources.schema):', (proc.schema == res.sources.getSchema())
+        print 'Schemas equal (srcs.schema, res.sources.schema):', (srcs.schema == res.sources.getSchema())
+        print
+        assert(proc.schema == srcs.getSchema())
+        assert(proc.schema == res.sources.getSchema())
+        assert(srcs.getSchema() == res.sources.getSchema())
+
         srcs = res.sources
 
-        print 'Writing FITS...'
+        print 'processCCD.run() finished; srcs should have been written to:'
+        print '  ', mapper.map('src', dr.dataId)
+
+        print 'Writing FITS to', sourcefn
         srcs.writeFits(sourcefn)
 
         # Write heavy footprints as well.
@@ -648,7 +663,7 @@ def drawEllipses(src, **kwargs):
         plt.gca().add_artist(el)
     return els
 
-if __name__ == '__main__':
+def main():
     from optparse import OptionParser
     parser = OptionParser()
     parser.add_option('--force', '-f', dest='force', action='store_true', default=False,
@@ -663,6 +678,12 @@ if __name__ == '__main__':
                       help='Cut to the first N deblend families')
     parser.add_option('--drill', '-D', dest='drill', action='append', type=int, default=[],
                       help='Drill down on individual source IDs')
+    parser.add_option('--no-deblend-plots', dest='deblendplots', action='store_false', default=True,
+                      help='Do not make deblend plots')
+    parser.add_option('--no-measure-plots', dest='measplots', action='store_false', default=True,
+                      help='Do not make measurement plots')
+    parser.add_option('--no-after-plots', dest='noafterplots', action='store_true',
+                      help='Do not make post-deblend+measure plots')
     parser.add_option('-v', dest='verbose', action='store_true')
     opt,args = parser.parse_args()
 
@@ -670,9 +691,13 @@ if __name__ == '__main__':
     if not opt.force:
         cat = readCatalog(opt.sourcefn, opt.heavypat, ndeblends=opt.nkeep)
     if cat is None:
-        cat = runDeblend(opt.sourcefn, opt.heavypat, opt.forcedet, opt.verbose, opt.drill)
-        if opt.nkeep:
-            cat = cutCatalog(cat, opt.nkeep)
+        cat = runDeblend(opt.sourcefn, opt.heavypat, opt.forcedet, opt.verbose, opt.drill,
+                         opt.deblendplots, opt.measplots)
+    if opt.nkeep:
+        cat = cutCatalog(cat, opt.nkeep)
+
+    if opt.noafterplots:
+        return
 
     # get the exposure too.
     dataRef = getDataref()
@@ -687,134 +712,19 @@ if __name__ == '__main__':
     stats = afwMath.makeStatistics(mi.getVariance(), mi.getMask(), afwMath.MEDIAN)
     sigma1 = math.sqrt(stats.getValue(afwMath.MEDIAN))
 
-    schema = cat.getSchema()
-    psfkey = schema.find("deblend.deblended-as-psf").key
-
     fams = getFamilies(cat)
     for j,(parent,children) in enumerate(fams):
-
-        pim = footprintToImage(parent.getFootprint(), mi).getArray()
-        chims = [footprintToImage(ch.getFootprint()).getArray() for ch in kids]
-
-        N = 1 + len(chims)
-        S = math.ceil(math.sqrt(N))
-        C = S
-        R = math.ceil(float(N) / C)
-
-        def nlmap(X):
-            return np.arcsinh(X / (3.*sigma1))
-        def myimshow(im, **kwargs):
-            kwargs = kwargs.copy()
-            mn = kwargs.get('vmin', -5*sigma1)
-            kwargs['vmin'] = nlmap(mn)
-            mx = kwargs.get('vmax', 100*sigma1)
-            kwargs['vmax'] = nlmap(mx)
-            # arcsinh:
-            # 1->1
-            # 3->2
-            # 10->3
-            # 100->5
-            plt.imshow(nlmap(im), **kwargs)
-
-        print 'max', pim.max()/sigma1, 'sigma'
-        imargs = dict(interpolation='nearest', origin='lower',
-                      vmax=pim.max())
-
-        plt.figure(figsize=(8,8))
-        plt.clf()
-        plt.subplots_adjust(left=0.05, right=0.95, bottom=0.05, top=0.9,
-                            wspace=0.05, hspace=0.05)
-
-        # plot a: nonlinear map; pad each child to the parent area.
-        plt.subplot(R, C, 1)
-        pext = getExtent(parent.getFootprint().getBBox())
-        myimshow(pim, extent=pext, **imargs)
-        plt.gray()
-        plt.xticks([])
-        plt.yticks([])
-        m = 0.25
-        pax = [pext[0]-m, pext[1]+m, pext[2]-m, pext[3]+m]
-        plt.title('parent %i' % parent.getId())
-        Rx,Ry = [],[]
-        tts = []
-        ccs = []
-        xys = []
-        for i,im in enumerate(chims):
-            child = children[i]
-            plt.subplot(R, C, i+2)
-            fp = child.getFootprint()
-            bb = fp.getBBox()
-            ext = getExtent(bb)
-            myimshow(im, extent=ext, **imargs)
-            plt.gray()
-            plt.xticks([])
-            plt.yticks([])
-            tt = 'child %i' % child.getId()
-            ispsf = child.get(psfkey)
-            if ispsf:
-                cc = 'g'
-                cc2 = (0.1,0.5,0.1)
-                tt += ' (psf)'
-            else:
-                cc = 'r'
-                cc2 = (0.8,0.1,0.1)
-            tts.append(tt)
-            ccs.append(cc)
-            plt.title(tt)
-            # bounding box
-            xx = [ext[0],ext[1],ext[1],ext[0],ext[0]]
-            yy = [ext[2],ext[2],ext[3],ext[3],ext[2]]
-            plt.plot(xx, yy, '-', color=cc)
-            Rx.append(xx)
-            Ry.append(yy)
-            # peak(s)
-            px = [pk.getFx() for pk in fp.getPeaks()]
-            py = [pk.getFy() for pk in fp.getPeaks()]
-            plt.plot(px, py, 'x', color=cc2)
-            xys.append((px, py, cc2))
-            # centroid
-            plt.plot([child.getX()], [child.getY()], 'x', color=cc)
-            xys.append(([child.getX()], [child.getY()], cc))
-            # ellipse
-            if not ispsf:
-                drawEllipses(child, ec=cc, fc='none', alpha=0.7)
-            plt.axis(pax)
-        # Go back to the parent plot and add child bboxes
-        plt.subplot(R, C, 1)
-        for rx,ry,cc in zip(Rx, Ry, ccs):
-            plt.plot(rx, ry, '-', color=cc)
-        # add child centers and ellipses...
-        for x,y,cc in xys:
-            plt.plot(x, y, 'x',color=cc)
-        for child,cc in zip(children,ccs):
-            ispsf = child.get(psfkey)
-            if ispsf:
-                continue
-            drawEllipses(child, ec=cc, fc='none', alpha=0.7)
-        plt.plot([parent.getX()],[parent.getY()],'x',color='b')
-        drawEllipses(parent, ec='b', fc='none', alpha=0.7)
-        plt.axis(pax)
-        plt.savefig('deblend-%04i-a.png' % j)
-            
-        # plot b: keep the parent plot; plot each child with its own stretch and bounding-box
-        for i,im in enumerate(chims):
-            child = children[i]
-            plt.subplot(R, C, i+2)
-            bb = child.getFootprint().getBBox()
-            ext = getExtent(bb)
-            imargs.update(vmax=max(3.*sigma1, im.max()))
-            myimshow(im, extent=ext, **imargs)
-            plt.gray()
-            plt.xticks([])
-            plt.yticks([])
-            plt.title(tts[i])
-            cc = ccs[i]
-            x,y,nil = xys[i]
-            plt.plot([x], [y], 'x', color=cc)
-            ispsf = child.get(psfkey)
-            if not ispsf:
-                drawEllipses(child, ec=cc, fc='none', alpha=0.7)
-            plt.axis(ext)
-        plt.savefig('deblend-%04i-b.png' % j)
+        plotDeblendFamily(mi, parent, children, cat, sigma1, ellipses=True)
+        fn = 'deblend-%04i-a.png' % j
+        plt.savefig(fn)
+        print 'saved', fn
+        plotDeblendFamily(mi, parent, children, cat, sigma1, ellipses=True, plotb=True)
+        fn = 'deblend-%04i-b.png' % j
+        plt.savefig(fn)
+        print 'saved', fn
 
         
+
+if __name__ == '__main__':
+    main()
+    
