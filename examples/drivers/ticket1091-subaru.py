@@ -175,9 +175,22 @@ class DebugSourceMeasTask(measAlg.SourceMeasurementTask):
 class DebugDeblendTask(measAlg.SourceDeblendTask):
     def __init__(self, *args, **kwargs):
         self.prefix = kwargs.pop('prefix', '')
+        self.drill = kwargs.pop('drill', [])
+        if not len(self.drill):
+            self.drill = None
         #self.plotmasks = kwargs.pop('plotmasks', True)
         #self.plotregion = None
         super(DebugDeblendTask, self).__init__(*args, **kwargs)
+
+    def run(self, exposure, sources, psf):
+        if self.drill:
+            keep = afwTable.SourceCatalog(sources.getTable())
+            for src in sources:
+                if src.getId() in self.drill:
+                    keep.append(src)
+            keep.sort()
+            sources = keep
+        self.deblend(exposure, sources, psf)
 
     def savefig(self, fn):
         plotfn = '%s%s.png' % (self.prefix, fn)
@@ -187,6 +200,7 @@ class DebugDeblendTask(measAlg.SourceDeblendTask):
     def preSingleDeblendHook(self, exposure, srcs, i, fp, psf, psf_fwhm, sigma1):
         mi = exposure.getMaskedImage()
         parent = srcs[i]
+        pid = parent.getId()
         plt.clf()
         fp = parent.getFootprint()
         pext = getExtent(fp.getBBox())
@@ -194,13 +208,29 @@ class DebugDeblendTask(measAlg.SourceDeblendTask):
         pim = footprintToImage(parent.getFootprint(), mi).getArray()
         plt.imshow(pim, extent=pext, **imargs)
         plt.gray()
-        plt.xticks([])
-        plt.yticks([])
-        plt.title('parent %i' % parent.getId())
+        #plt.xticks([])
+        #plt.yticks([])
+        plt.title('parent %i' % pid)
         pks = fp.getPeaks()
         plt.plot([pk.getIx() for pk in pks], [pk.getIy() for pk in pks], 'rx')
         plt.axis(pext)
-        self.savefig('pre%04i' % i)
+        self.savefig('pre-%04i-im' % pid)
+
+        plt.clf()
+        mask = mi.getMask()
+        #print 'Mask planes:'
+        #mask.printMaskPlanes()
+        mim = mask.getArray()
+        bitmask = mask.getPlaneBitMask('DETECTED')
+        plt.imshow((mim & bitmask) > 0, **imargs)
+        plt.gray()
+        #plt.xticks([])
+        #plt.yticks([])
+        plt.title('parent %i DET' % pid)
+        pks = fp.getPeaks()
+        plt.plot([pk.getIx() for pk in pks], [pk.getIy() for pk in pks], 'rx')
+        plt.axis(pext)
+        self.savefig('pre-%04i-mask' % pid)
 
     def postSingleDeblendHook(self, exposure, srcs, i, npre, kids, fp, psf, psf_fwhm, sigma1, res):
         pass
@@ -301,7 +331,7 @@ def getDataref():
         print '  ', dr
     return dataRef
 
-def runDeblend(sourcefn, heavypat, forcedet, verbose=False):
+def runDeblend(sourcefn, heavypat, forcedet, verbose=False, drill=[]):
     dataRef = getDataref()
     mapper = getMapper()
             
@@ -428,7 +458,8 @@ def runDeblend(sourcefn, heavypat, forcedet, verbose=False):
             proc.deblend = DebugDeblendTask(proc.schema,
                                             #algMetadata=proc.algMetadata,
                                             config=conf.measurement,
-                                            prefix = 'deblend-')
+                                            prefix = 'deblend-',
+                                            drill=drill)
 
         if debugPlots: # and doMeasurement:
             conf.doMeasurement = True
@@ -497,6 +528,8 @@ if __name__ == '__main__':
                       help='Output filename pattern for heavy footprints (with %i pattern); FITS')
     parser.add_option('--nkeep', '-n', dest='nkeep', default=0, type=int,
                       help='Cut to the first N deblend families')
+    parser.add_option('--drill', '-D', dest='drill', action='append', type=int, default=[],
+                      help='Drill down on individual source IDs')
     parser.add_option('-v', dest='verbose', action='store_true')
     opt,args = parser.parse_args()
 
@@ -504,7 +537,7 @@ if __name__ == '__main__':
     if not opt.force:
         cat = readCatalog(opt.sourcefn, opt.heavypat, ndeblends=opt.nkeep)
     if cat is None:
-        cat = runDeblend(opt.sourcefn, opt.heavypat, opt.forcedet, opt.verbose)
+        cat = runDeblend(opt.sourcefn, opt.heavypat, opt.forcedet, opt.verbose, opt.drill)
         if opt.nkeep:
             cat = cutCatalog(cat, opt.nkeep)
 
