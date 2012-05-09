@@ -283,22 +283,24 @@ deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::symmetrizeFootpri
 					//pexLog::Log::DEBUG);
 					pexLog::Log::INFO);
 
-    // compute correct answer dumbly
-    det::Footprint truefoot;
-    geom::Box2I bbox = foot.getBBox();
-    for (int y=bbox.getMinY(); y<=bbox.getMaxY(); y++) {
-        for (int x=bbox.getMinX(); x<=bbox.getMaxX(); x++) {
-            int dy = y - cy;
-            int dx = x - cx;
-            int x2 = cx - dx;
-            int y2 = cy - dy;
-            if (foot.contains(geom::Point2I(x,  y)) &&
-                foot.contains(geom::Point2I(x2, y2))) {
-                truefoot.addSpan(y, x, x);
-            }
-        }
-    }
-    truefoot.normalize();
+	/*
+	 // compute correct answer dumbly
+	 det::Footprint truefoot;
+	 geom::Box2I bbox = foot.getBBox();
+	 for (int y=bbox.getMinY(); y<=bbox.getMaxY(); y++) {
+	 for (int x=bbox.getMinX(); x<=bbox.getMaxX(); x++) {
+	 int dy = y - cy;
+	 int dx = x - cx;
+	 int x2 = cx - dx;
+	 int y2 = cy - dy;
+	 if (foot.contains(geom::Point2I(x,  y)) &&
+	 foot.contains(geom::Point2I(x2, y2))) {
+	 truefoot.addSpan(y, x, x);
+	 }
+	 }
+	 }
+	 truefoot.normalize();
+	 */
 
 	// Find the Span containing the peak.
 	det::Span::Ptr target(new det::Span(cy, cx, cx));
@@ -307,7 +309,10 @@ deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::symmetrizeFootpri
 	// lower_bound returns the first position where "target" could be inserted;
 	// ie, the first Span larger than "target".  The Span containing "target"
 	// should be peakspan-1.
-	assert(peakspan != spans.begin());
+	if (peakspan == spans.begin()) {
+		log.warnf("Failed to find span containing (%i,%i): before the beginning of this footprint");
+		return det::Footprint::Ptr();
+	}
 	peakspan--;
 	det::Span::Ptr sp = *peakspan;
 	if (!(sp->contains(cx,cy))) {
@@ -315,7 +320,7 @@ deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::symmetrizeFootpri
 		log.warnf("Failed to find span containing (%i,%i): nearest is %i, [%i,%i].  Footprint bbox is [%i,%i],[%i,%i]",
 				  cx, cy, sp->getY(), sp->getX0(), sp->getX1(),
 				  fbb.getMinX(), fbb.getMaxX(), fbb.getMinY(), fbb.getMaxY());
-		return sfoot;
+		return det::Footprint::Ptr();
 	}
 	assert(sp->contains(cx,cy));
 	log.debugf("Span containing (%i,%i): (x=[%i,%i], y=%i)",
@@ -433,50 +438,55 @@ deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::symmetrizeFootpri
 	}
     sfoot->normalize();
 
-    SpanList sp1 = truefoot.getSpans();
-    SpanList sp2 = sfoot->getSpans();
-
-    for (SpanList::const_iterator spit1 = sp1.begin(),
-             spit2 = sp2.begin();
-         spit1 != sp1.end() && spit2 != sp2.end();
-         spit1++, spit2++) {
-        //printf("\n");
-        printf(" true   y %i, x [%i, %i]\n", (*spit1)->getY(), (*spit1)->getX0(), (*spit1)->getX1());
-        printf(" sfoot  y %i, x [%i, %i]\n", (*spit2)->getY(), (*spit2)->getX0(), (*spit2)->getX1());
-        if (((*spit1)->getY()  != (*spit2)->getY()) ||
-            ((*spit1)->getX0() != (*spit2)->getX0()) ||
-            ((*spit1)->getX1() != (*spit2)->getX1())) {
-            printf("*******************************************\n");
-        }
-    }
-    assert(sp1.size() == sp2.size());
-    for (SpanList::const_iterator spit1 = sp1.begin(),
-             spit2 = sp2.begin();
-         spit1 != sp1.end() && spit2 != sp2.end();
-         spit1++, spit2++) {
-        assert((*spit1)->getY()  == (*spit2)->getY());
-        assert((*spit1)->getX0() == (*spit2)->getX0());
-        assert((*spit1)->getX1() == (*spit2)->getX1());
-    }
+	/*
+	 SpanList sp1 = truefoot.getSpans();
+	 SpanList sp2 = sfoot->getSpans();
+	 for (SpanList::const_iterator spit1 = sp1.begin(),
+	 spit2 = sp2.begin();
+	 spit1 != sp1.end() && spit2 != sp2.end();
+	 spit1++, spit2++) {
+	 //printf("\n");
+	 printf(" true   y %i, x [%i, %i]\n", (*spit1)->getY(), (*spit1)->getX0(), (*spit1)->getX1());
+	 printf(" sfoot  y %i, x [%i, %i]\n", (*spit2)->getY(), (*spit2)->getX0(), (*spit2)->getX1());
+	 if (((*spit1)->getY()  != (*spit2)->getY()) ||
+	 ((*spit1)->getX0() != (*spit2)->getX0()) ||
+	 ((*spit1)->getX1() != (*spit2)->getX1())) {
+	 printf("*******************************************\n");
+	 }
+	 }
+	 assert(sp1.size() == sp2.size());
+	 for (SpanList::const_iterator spit1 = sp1.begin(),
+	 spit2 = sp2.begin();
+	 spit1 != sp1.end() && spit2 != sp2.end();
+	 spit1++, spit2++) {
+	 assert((*spit1)->getY()  == (*spit2)->getY());
+	 assert((*spit1)->getX0() == (*spit2)->getX0());
+	 assert((*spit1)->getX1() == (*spit2)->getX1());
+	 }
+	 */
 
     return sfoot;
 }
 
 template<typename ImagePixelT, typename MaskPixelT, typename VariancePixelT>
-typename lsst::afw::image::MaskedImage<ImagePixelT,MaskPixelT,VariancePixelT>::Ptr
+std::pair<typename lsst::afw::image::MaskedImage<ImagePixelT,MaskPixelT,VariancePixelT>::Ptr,
+		  typename lsst::afw::detection::Footprint::Ptr>
 deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::buildSymmetricTemplate(
 	MaskedImageT const& img,
 	det::Footprint const& foot,
 	det::Peak const& peak,
-	double sigma1,
-	det::Footprint& outfoot) {
+	double sigma1) {
 
 	typedef typename MaskedImageT::const_xy_locator xy_loc;
 	typedef typename det::Footprint::SpanList SpanList;
+	//typedef std::pair<MaskedImagePtrT, FootprintPtrT>
 
 	int cx = peak.getIx();
 	int cy = peak.getIy();
-    det::Footprint::Ptr sfoot = symmetrizeFootprint(foot, cx, cy);
+    FootprintPtrT sfoot = symmetrizeFootprint(foot, cx, cy);
+	if (!sfoot) {
+		return std::pair<MaskedImagePtrT, FootprintPtrT>(MaskedImagePtrT(), sfoot);
+	}
 
     pexLog::Log log(pexLog::Log::getDefaultLog(), "lsst.meas.deblender", pexLog::Log::INFO);
     //bool debugging = (log.getThreshold() <= pexLog::Log::DEBUG);
@@ -539,13 +549,16 @@ deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::buildSymmetricTem
     // Clip the result image to "tbb" (via this deep copy, ugh)
     MaskedImagePtrT rimg(new MaskedImageT(timg, sfoot->getBBox(), image::PARENT, true));
 
-    SpanList sp2 = sfoot->getSpans();
-    for (SpanList::const_iterator spit2 = sp2.begin(); spit2 != sp2.end(); spit2++) {
-        //outfoot.addSpan(*spit2);
-        outfoot.addSpan((*spit2)->getY(), (*spit2)->getX0(), (*spit2)->getX1());
-    }
+	/*
+	 SpanList sp2 = sfoot->getSpans();
+	 for (SpanList::const_iterator spit2 = sp2.begin(); spit2 != sp2.end(); spit2++) {
+	 //outfoot.addSpan(*spit2);
+	 outfoot.addSpan((*spit2)->getY(), (*spit2)->getX0(), (*spit2)->getX1());
+	 }
+	 */
 
-    return rimg;
+	return std::pair<MaskedImagePtrT, FootprintPtrT>(rimg, sfoot);
+    //return rimg;
 }
 
 /*
