@@ -20,7 +20,7 @@ class PerPeak(object):
         self.out_of_bounds = False
         self.deblend_as_psf = False
 
-def deblend(footprints, peaks, maskedImage, psf, psffwhm,
+def deblend(footprints, maskedImage, psf, psffwhm,
             psf_chisq_cut1 = 1.5,
             psf_chisq_cut2 = 1.5,
             psf_chisq_cut2b = 1.5,
@@ -58,6 +58,8 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm,
     img = maskedImage.getImage()
     varimg = maskedImage.getVariance()
     mask = maskedImage.getMask()
+
+    peaks = [fp.getPeaks() for fp in footprints]
 
     if sigma1 is None:
         # FIXME -- just within the bbox?
@@ -166,13 +168,17 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm,
             # for each postage stamp pixel...
             for y in range(ylo, yhi+1):
                 for x in range(xlo, xhi+1):
+                    xy = afwGeom.Point2I(x,y)
+                    # within the parent footprint?
+                    if not fp.contains(xy):
+                        stamp.set0(x, y, 0.)
+                        continue
                     # is it within the radius we're going to fit (ie,
                     # circle inscribed in the postage stamp square)?
                     R = np.hypot(x - cx, y - cy)
                     if R > R1:
                         stamp.set0(x, y, 0.)
                         continue
-                    xy = afwGeom.Point2I(x,y)
                     # Get the PSF contribution at this pixel
                     if pbb.contains(xy):
                         p = psfimg.get0(x,y)
@@ -258,7 +264,6 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm,
             q2 = chisq2/dof2
             log.logdebug('PSF fits: chisq/dof = %g, %g' % (q1,q2))
 
-            # MAGIC number
             ispsf1 = (q1 < psf_chisq_cut1)
             ispsf2 = (q2 < psf_chisq_cut2)
 
@@ -308,7 +313,6 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm,
                 X2 = Xb
                 log.logdebug('shifted PSF: new chisq/dof = %g; good? %s' % (qb, ispsf2))
 
-
             # Which one do we keep?
             if (((ispsf1 and ispsf2) and (q2 < q1)) or
                 (ispsf2 and not ispsf1)):
@@ -343,6 +347,10 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm,
             for ii in range(NP):
                 x,y = ipixes[ii,:]
                 psfmod.set(int(x),int(y), float(A[ii, I_psf] * Xpsf[I_psf]))
+            modelfp = afwDet.Footprint()
+            for (x,y) in ipixes:
+                modelfp.addSpan(int(y+ylo), int(x+xlo), int(x+xlo))
+            modelfp.normalize()
 
             # Save things we learned about this peak for posterity...
             pkres.R0 = R0
@@ -368,6 +376,7 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm,
                 log.logdebug('Deblending as PSF; setting template to PSF model')
                 pkres.timg = psfderivmod
                 pkres.tmimg = psfderivmodm
+                pkres.tfoot = modelfp
 
     log.logdebug('Computing templates...')
 
@@ -394,7 +403,7 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm,
                 pkres.out_of_bounds = True
                 continue
 
-            log.logdebug('computing template for peak %i' % pki)
+            log.logdebug('computing template for peak %i at (%i,%i)' % (pki, cx, cy))
             #t1,tfoot = butils.buildSymmetricTemplate(maskedImage, fp, pk, sigma1)
             #res = butils.buildSymmetricTemplate(maskedImage, fp, pk, sigma1)
             #print 'res:', res
@@ -460,16 +469,20 @@ def deblend(footprints, peaks, maskedImage, psf, psffwhm,
                 #print 'Skipping out-of-bounds peak', pki
                 continue
             if pkres.deblend_as_psf:
-                #print 'Creating fake footprint for deblended-as-PSF peak'
-                p = pkres.mportion
-                foot = afwDet.Footprint()
-                x0 = p.getX0()
-                y0 = p.getY0()
-                W = p.getWidth()
-                H = p.getHeight()
-                for y in range(H):
-                    foot.addSpan(y0+y, x0, x0+W-1)
-                foot.normalize()
+                # #print 'Creating fake footprint for deblended-as-PSF peak'
+                # p = pkres.mportion
+                # # foot = afwDet.Footprint()
+                # # x0 = p.getX0()
+                # # y0 = p.getY0()
+                # # W = p.getWidth()
+                # # H = p.getHeight()
+                # # for y in range(H):
+                # #     foot.addSpan(y0+y, x0, x0+W-1)
+                # #foot.normalize()
+                # # clip parent to PSF image bbox.
+                # foot = afwDet.Footprint(fp)
+                # foot.clipTo(p.getBBox(afwImage.PARENT))
+                foot = pkres.tfoot
 
             else:
                 foot = pkres.tfoot
