@@ -32,19 +32,16 @@ using namespace lsst::afw::detection;
 
 %include "lsst/p_lsstSwig.i"
 %include "lsst/base.h"                  // PTR(); should be in p_lsstSwig.i
- //%include "lsst/daf/base/persistenceMacros.i"
 
 %lsst_exceptions();
 
 %import "lsst/afw/image/imageLib.i"
 %import "lsst/afw/detection/detectionLib.i"
- //%include "lsst/afw/image/lsstImageTypes.i"     // Image/Mask types and typedefs
 
 %include "lsst/meas/deblender/Baseline.h"
 %template(BaselineUtilsF) lsst::meas::deblender::BaselineUtils<float>;
 
-// %template(MaskedImageFAndFootprint) lsst::meas::deblender::MaskedImageAndFootprint<float>;
-// %template(pairMaskedImageFAndFootprint) std::pair<boost::shared_ptr<lsst::afw::image::MaskedImage<float, lsst::afw::image::MaskPixel, lsst::afw::image::VariancePixel> >, lsst::afw::detection::Footprint>;
+%template(pairMaskedImageFPtrAndFootprintPtr) std::pair<lsst::meas::deblender::BaselineUtils<float>::MaskedImagePtrT, lsst::meas::deblender::BaselineUtils<float>::FootprintPtrT>;
 
 /******************************************************************************/
 // Local Variables: ***

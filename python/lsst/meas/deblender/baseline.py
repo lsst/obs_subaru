@@ -410,8 +410,16 @@ def deblend(footprints, maskedImage, psf, psffwhm,
             #t1 = res.mi
             #tfoot = res.fp
 
-            tfoot = afwDet.Footprint()
-            t1 = butils.buildSymmetricTemplate(maskedImage, fp, pk, sigma1, tfoot)
+            #tfoot = afwDet.Footprint()
+            #t1 = butils.buildSymmetricTemplate(maskedImage, fp, pk, sigma1, tfoot)
+            
+            res = butils.buildSymmetricTemplate(maskedImage, fp, pk, sigma1)
+            t1 = res[0]
+            tfoot = res[1]
+            if t1 is None:
+                log.logdebug('Peak %i at (%i,%i): failed to build symmetric template' % (pki, cx,cy))
+                pkres.out_of_bounds = True
+                continue
 
             # Smooth / filter
             if False:
