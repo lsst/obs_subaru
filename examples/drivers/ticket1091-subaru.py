@@ -19,150 +19,204 @@ import lsst.afw.image as afwImage
 import lsst.afw.detection as afwDet
 
 debugPlots = True
-if debugPlots:
-    #
-    # Plot the image that is passed to the measurement algorithms
-    #
-    import pylab as plt
-    import numpy as np
-    import lsst.meas.algorithms as measAlg
-    import lsst.afw.math as afwMath
-    class DebugSourceMeasTask(measAlg.SourceMeasurementTask):
-        def __init__(self, *args, **kwargs):
-            self.prefix = kwargs.pop('prefix', '')
-            self.plotmasks = kwargs.pop('plotmasks', True)
-            self.plotregion = None
-            super(DebugSourceMeasTask, self).__init__(*args, **kwargs)
-        def __str__(self):
-            return 'DebugSourceMeasTask'
-        def _plotimage(self, im):
-            if self.plotregion is not None:
-                xlo,xhi,ylo,yhi = self.plotregion
-            plt.clf()
-            if not isinstance(im, np.ndarray):
-                im = im.getArray()
-            if self.plotregion is not None:
-                plt.imshow(im[ylo:yhi, xlo:xhi],
-                           extent=[xlo,xhi,ylo,yhi], **self.plotargs)
-            else:
-                plt.imshow(im, **self.plotargs)
-            plt.gray()
-        def savefig(self, fn):
-            plotfn = '%s%s.png' % (self.prefix, fn)
-            plt.savefig(plotfn)
-            print 'wrote', plotfn
-        def preMeasureHook(self, exposure, sources):
-            measAlg.SourceMeasurementTask.preMeasureHook(self, exposure, sources)
-            mi = exposure.getMaskedImage()
-            im = mi.getImage()
-            s = afwMath.makeStatistics(im, afwMath.STDEVCLIP + afwMath.MEANCLIP)
-            mn = s.getValue(afwMath.MEANCLIP)
-            std = s.getValue(afwMath.STDEVCLIP)
-            lo = mn -  3*std
-            hi = mn + 20*std
-            self.plotargs = dict(interpolation='nearest', origin='lower',
-                                 vmin=lo, vmax=hi)
-            #self.plotregion = (100, 500, 100, 500)
-            #self.nplots = 0
-            self._plotimage(im)
-            self.savefig('pre')
+debugDeblend = True
+#if debugPlots:
+#
+# Plot the image that is passed to the measurement algorithms
+#
+import pylab as plt
+import numpy as np
+import lsst.meas.algorithms as measAlg
+import lsst.afw.math as afwMath
+class DebugSourceMeasTask(measAlg.SourceMeasurementTask):
+    def __init__(self, *args, **kwargs):
+        self.prefix = kwargs.pop('prefix', '')
+        self.plotmasks = kwargs.pop('plotmasks', True)
+        self.plotregion = None
+        super(DebugSourceMeasTask, self).__init__(*args, **kwargs)
+    def __str__(self):
+        return 'DebugSourceMeasTask'
+    def _plotimage(self, im):
+        if self.plotregion is not None:
+            xlo,xhi,ylo,yhi = self.plotregion
+        plt.clf()
+        if not isinstance(im, np.ndarray):
+            im = im.getArray()
+        if self.plotregion is not None:
+            plt.imshow(im[ylo:yhi, xlo:xhi],
+                       extent=[xlo,xhi,ylo,yhi], **self.plotargs)
+        else:
+            plt.imshow(im, **self.plotargs)
+        plt.gray()
+    def savefig(self, fn):
+        plotfn = '%s%s.png' % (self.prefix, fn)
+        plt.savefig(plotfn)
+        print 'wrote', plotfn
+    def preMeasureHook(self, exposure, sources):
+        measAlg.SourceMeasurementTask.preMeasureHook(self, exposure, sources)
+        mi = exposure.getMaskedImage()
+        im = mi.getImage()
+        s = afwMath.makeStatistics(im, afwMath.STDEVCLIP + afwMath.MEANCLIP)
+        mn = s.getValue(afwMath.MEANCLIP)
+        std = s.getValue(afwMath.STDEVCLIP)
+        lo = mn -  3*std
+        hi = mn + 20*std
+        self.plotargs = dict(interpolation='nearest', origin='lower',
+                             vmin=lo, vmax=hi)
+        #self.plotregion = (100, 500, 100, 500)
+        #self.nplots = 0
+        self._plotimage(im)
+        self.savefig('pre')
 
-            # Save the parents & children in order.
-            self.plotorder = []
-            fams = getFamilies(sources)
-            for p,ch in fams:
-                self.plotorder.append(p.getId())
-                self.plotorder.extend([c.getId() for c in ch])
-            print 'Will save', len(self.plotorder), 'plots'
+        # Save the parents & children in order.
+        self.plotorder = []
+        fams = getFamilies(sources)
+        for p,ch in fams:
+            self.plotorder.append(p.getId())
+            self.plotorder.extend([c.getId() for c in ch])
+        print 'Will save', len(self.plotorder), 'plots'
 
-            # remember the deblend parents
-            # pset = set()
-            # for src in sources:
-            #     p = src.getParent()
-            #     if not p:
-            #         continue
-            #     pset.add(p)
-            # self.parents = list(pset)
-            
-        def postMeasureHook(self, exposure, sources):
-            measAlg.SourceMeasurementTask.postMeasureHook(self, exposure, sources)
-            mi = exposure.getMaskedImage()
-            im = mi.getImage()
-            self._plotimage(im)
-            self.savefig('post')
-        def preSingleMeasureHook(self, exposure, sources, i):
-            measAlg.SourceMeasurementTask.preSingleMeasureHook(self, exposure, sources, i)
-            if i != -1:
-                return
-            if not self.plotmasks:
-                return
-            mi = exposure.getMaskedImage()
-            mask = mi.getMask()
-            print 'Mask planes:'
-            mask.printMaskPlanes()
-            oldargs = self.plotargs
-            args = oldargs.copy()
-            args.update(vmin=0, vmax=1)
-            self.plotargs = args
-            ma = mask.getArray()
-            for i in range(mask.getNumPlanesUsed()):
-                bitmask = (1 << i)
-                mim = ((ma & bitmask) > 0)
-                self._plotimage(mim)
-                plt.title('Mask plane %i' % i)
-                self.savefig('mask-bit%02i' % i)
-            self.plotargs = oldargs
-        def postSingleMeasureHook(self, exposure, sources, i):
-            measAlg.SourceMeasurementTask.postSingleMeasureHook(self, exposure, sources, i)
-            src = sources[i]
-            if self.plotregion is not None:
-                xlo,xhi,ylo,yhi = self.plotregion
-                x,y = src.getX(), src.getY()
-                if x < xlo or x > xhi or y < ylo or y > yhi:
-                    return
-                if (not np.isfinite(x)) or (not np.isfinite(y)):
-                    return
-            #if not (src.getId() in self.parents or src.getParent()):
-            if not src.getId() in self.plotorder:
-                print 'source', src.getId(), 'not blended'
-                return
-            iplot = self.plotorder.index(src.getId())
-            print 'saving', iplot
-
-            bb = src.getFootprint().getBBox()
-            bb.grow(50)
-            #x0 = max(0, bb.getMinX())
-            #x1 = min(exposure.getWidth(), bb.getMaxX())
-            #y0 = max(0, bb.getMinY())
-            #y1 = min(exposure.getHeight(), bb.getMaxY())
-            bb.clip(exposure.getBBox())
-            #self.plotregion = (x0,x1,y0,y1)
-            self.plotregion = getExtent(bb)
-            
-            mi = exposure.getMaskedImage()
-            im = mi.getImage()
-            self._plotimage(im)
-            #self.savefig('meas%04i' % self.nplots)
-            self.savefig('meas%04i' % iplot)
-            mask = mi.getMask()
-            thisbitmask = mask.getPlaneBitMask('THISDET')
-            otherbitmask = mask.getPlaneBitMask('OTHERDET')
-            ma = mask.getArray()
-            thisim  = ((ma & thisbitmask) > 0)
-            otherim = ((ma & otherbitmask) > 0)
-            mim = (thisim * 1.) + (otherim * 0.4)
-            oldargs = self.plotargs
-            args = oldargs.copy()
-            args.update(vmin=0, vmax=1)
-            self.plotargs = args
+        # remember the deblend parents
+        # pset = set()
+        # for src in sources:
+        #     p = src.getParent()
+        #     if not p:
+        #         continue
+        #     pset.add(p)
+        # self.parents = list(pset)
+        
+    def postMeasureHook(self, exposure, sources):
+        measAlg.SourceMeasurementTask.postMeasureHook(self, exposure, sources)
+        mi = exposure.getMaskedImage()
+        im = mi.getImage()
+        self._plotimage(im)
+        self.savefig('post')
+    def preSingleMeasureHook(self, exposure, sources, i):
+        measAlg.SourceMeasurementTask.preSingleMeasureHook(self, exposure, sources, i)
+        if i != -1:
+            return
+        if not self.plotmasks:
+            return
+        mi = exposure.getMaskedImage()
+        mask = mi.getMask()
+        print 'Mask planes:'
+        mask.printMaskPlanes()
+        oldargs = self.plotargs
+        args = oldargs.copy()
+        args.update(vmin=0, vmax=1)
+        self.plotargs = args
+        ma = mask.getArray()
+        for i in range(mask.getNumPlanesUsed()):
+            bitmask = (1 << i)
+            mim = ((ma & bitmask) > 0)
             self._plotimage(mim)
-            self.plotargs = oldargs
-            self.savefig('meas%04i-mask' % iplot)
-            #self.savefig('meas%02i-mask' % self.nplots)
-            #self.nplots += 1
-            ###
-            self.plotregion = None
+            plt.title('Mask plane %i' % i)
+            self.savefig('mask-bit%02i' % i)
+        self.plotargs = oldargs
+    def postSingleMeasureHook(self, exposure, sources, i):
+        measAlg.SourceMeasurementTask.postSingleMeasureHook(self, exposure, sources, i)
+        src = sources[i]
+        if not src.getId() in self.plotorder:
+            print 'source', src.getId(), 'not blended'
+            return
+        iplot = self.plotorder.index(src.getId())
+        if iplot > 100:
+            print 'skipping', iplot
+            return
+        if self.plotregion is not None:
+            xlo,xhi,ylo,yhi = self.plotregion
+            x,y = src.getX(), src.getY()
+            if x < xlo or x > xhi or y < ylo or y > yhi:
+                return
+            if (not np.isfinite(x)) or (not np.isfinite(y)):
+                return
+        #if not (src.getId() in self.parents or src.getParent()):
+        print 'saving', iplot
 
+        if src.getParent():
+            bb = sources.find(src.getParent()).getFootprint().getBBox()
+        else:
+            bb = src.getFootprint().getBBox()
+        bb.grow(50)
+        #x0 = max(0, bb.getMinX())
+        #x1 = min(exposure.getWidth(), bb.getMaxX())
+        #y0 = max(0, bb.getMinY())
+        #y1 = min(exposure.getHeight(), bb.getMaxY())
+        bb.clip(exposure.getBBox())
+        #self.plotregion = (x0,x1,y0,y1)
+        self.plotregion = getExtent(bb)
+        
+        mi = exposure.getMaskedImage()
+        im = mi.getImage()
+        self._plotimage(im)
+        #self.savefig('meas%04i' % self.nplots)
+        self.savefig('meas%04i' % iplot)
+        mask = mi.getMask()
+        thisbitmask = mask.getPlaneBitMask('THISDET')
+        otherbitmask = mask.getPlaneBitMask('OTHERDET')
+        ma = mask.getArray()
+        thisim  = ((ma & thisbitmask) > 0)
+        otherim = ((ma & otherbitmask) > 0)
+        mim = (thisim * 1.) + (otherim * 0.4)
+        oldargs = self.plotargs
+        args = oldargs.copy()
+        args.update(vmin=0, vmax=1)
+        self.plotargs = args
+        self._plotimage(mim)
+        self.plotargs = oldargs
+        self.savefig('meas%04i-mask' % iplot)
+        #self.savefig('meas%02i-mask' % self.nplots)
+        #self.nplots += 1
+        ###
+        self.plotregion = None
+
+
+
+class DebugDeblendTask(measAlg.SourceDeblendTask):
+    def __init__(self, *args, **kwargs):
+        self.prefix = kwargs.pop('prefix', '')
+        #self.plotmasks = kwargs.pop('plotmasks', True)
+        #self.plotregion = None
+        super(DebugDeblendTask, self).__init__(*args, **kwargs)
+
+    def savefig(self, fn):
+        plotfn = '%s%s.png' % (self.prefix, fn)
+        plt.savefig(plotfn)
+        print 'wrote', plotfn
+
+    def preSingleDeblendHook(self, exposure, srcs, i, fp, psf, psf_fwhm, sigma1):
+        mi = exposure.getMaskedImage()
+        parent = srcs[i]
+        plt.clf()
+        fp = parent.getFootprint()
+        pext = getExtent(fp.getBBox())
+        imargs = dict(interpolation='nearest', origin='lower')
+        pim = footprintToImage(parent.getFootprint(), mi).getArray()
+        plt.imshow(pim, extent=pext, **imargs)
+        plt.gray()
+        plt.xticks([])
+        plt.yticks([])
+        plt.title('parent %i' % parent.getId())
+        pks = fp.getPeaks()
+        plt.plot([pk.getIx() for pk in pks], [pk.getIy() for pk in pks], 'rx')
+        plt.axis(pext)
+        self.savefig('pre%04i' % i)
+
+    def postSingleDeblendHook(self, exposure, srcs, i, npre, kids, fp, psf, psf_fwhm, sigma1, res):
+        pass
+
+
+
+def footprintToImage(fp, mi=None):
+    if mi is not None:
+        fp = afwDet.makeHeavyFootprint(fp, mi)
+    else:
+        fp = afwDet.cast_HeavyFootprintF(fp)
+    bb = fp.getBBox()
+    im = afwImage.ImageF(bb.getWidth(), bb.getHeight())
+    im.setXY0(bb.getMinX(), bb.getMinY())
+    fp.insert(im)
+    return im
 
 def getFamilies(cat):
     '''
@@ -247,7 +301,7 @@ def getDataref():
         print '  ', dr
     return dataRef
 
-def runDeblend(sourcefn, heavypat, forcedet):
+def runDeblend(sourcefn, heavypat, forcedet, verbose=False):
     dataRef = getDataref()
     mapper = getMapper()
             
@@ -354,8 +408,8 @@ def runDeblend(sourcefn, heavypat, forcedet):
         conf.doMeasurement = True
         if debugPlots:
             conf.doMeasurement = False
-        # Don't write out sources to the standard place
-        #conf.doWriteSources = False
+        if debugDeblend:
+            conf.doDeblend = False
 
         conf.doWriteSources = True
         conf.measurement.doRemoveOtherSources = True
@@ -367,15 +421,26 @@ def runDeblend(sourcefn, heavypat, forcedet):
             proc.measurement = DebugSourceMeasTask(proc.schema,
                                                    algMetadata=proc.algMetadata,
                                                    config=conf.measurement,
-                                                   plotmasks = False)
-            proc.measurement.prefix = 'measure-'
+                                                   plotmasks = False,
+                                                   prefix = 'measure-')
+
+        if debugDeblend:
+            proc.deblend = DebugDeblendTask(proc.schema,
+                                            #algMetadata=proc.algMetadata,
+                                            config=conf.measurement,
+                                            prefix = 'deblend-')
+
+        if debugPlots: # and doMeasurement:
+            conf.doMeasurement = True
+        if debugDeblend: # and doDeblend:
+            conf.doDeblend = True
 
         res = proc.run(dr, sources=srcs)
         srcs = res.sources
 
-        if debugPlots:
-            print 'Running measurement...'
-            proc.measurement.run(res.exposure, res.sources)
+        #if debugPlots:
+        #    print 'Running measurement...'
+        #    proc.measurement.run(res.exposure, res.sources)
 
         print 'Writing FITS...'
         srcs.writeFits(sourcefn)
@@ -432,13 +497,14 @@ if __name__ == '__main__':
                       help='Output filename pattern for heavy footprints (with %i pattern); FITS')
     parser.add_option('--nkeep', '-n', dest='nkeep', default=0, type=int,
                       help='Cut to the first N deblend families')
+    parser.add_option('-v', dest='verbose', action='store_true')
     opt,args = parser.parse_args()
 
     cat = None
     if not opt.force:
         cat = readCatalog(opt.sourcefn, opt.heavypat, ndeblends=opt.nkeep)
     if cat is None:
-        cat = runDeblend(opt.sourcefn, opt.heavypat, opt.forcedet)
+        cat = runDeblend(opt.sourcefn, opt.heavypat, opt.forcedet, opt.verbose)
         if opt.nkeep:
             cat = cutCatalog(cat, opt.nkeep)
 
@@ -465,27 +531,14 @@ if __name__ == '__main__':
         #print 'Children:', len(children)
         #for c in children:
         #    print '  ', c
+
         # Insert the parent's footprint pixels into a new blank image
-        fp = afwDet.makeHeavyFootprint(parent.getFootprint(), mi)
-        bb = fp.getBBox()
-        im = afwImage.ImageF(bb.getWidth(), bb.getHeight())
-        im.setXY0(bb.getMinX(), bb.getMinY())
-        fp.insert(im)
-        pim = im.getArray()
+        pim = footprintToImage(parent.getFootprint(), mi).getArray()
 
         # Insert the children's footprints into images too
         chims = []
         for ch in children:
-            fp = ch.getFootprint()
-            #print 'child', ch
-            #print 'fp', fp
-            fp = afwDet.cast_HeavyFootprintF(fp)
-            #print '-> fp', fp
-            bb = fp.getBBox()
-            im = afwImage.ImageF(bb.getWidth(), bb.getHeight())
-            im.setXY0(bb.getMinX(), bb.getMinY())
-            fp.insert(im)
-            chims.append(im.getArray())
+            chims.append(footprintToImage(ch.getFootprint()).getArray())
 
         N = 1 + len(chims)
         S = math.ceil(math.sqrt(N))
