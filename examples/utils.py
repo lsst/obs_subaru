@@ -309,8 +309,8 @@ def getExtent(bb):
 def cutCatalog(cat, ndeblends, keepids=None):
     fams = getFamilies(cat)
     if keepids:
-        print 'Keeping ids:', keepids
-        print 'parent ids:', [p.getId() for p,kids in fams]
+        #print 'Keeping ids:', keepids
+        #print 'parent ids:', [p.getId() for p,kids in fams]
         fams = [(p,kids) for (p,kids) in fams if p.getId() in keepids]
     if ndeblends:
         # We want to select the first "ndeblends" parents and all their children.
