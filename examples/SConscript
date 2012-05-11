@@ -1,8 +1,0 @@
-from lsst.sconsUtils import env, targets
-targets["python"].extend(
-    env.SwigLoadableModule(
-        "_horror", ["oh-the-horror.i"],
-        SWIGFLAGS=(env["SWIGFLAGS"] + ["-I.", "-Iexamples"]),
-        LIBS=env.getLibs("main python")
-    )
-)
