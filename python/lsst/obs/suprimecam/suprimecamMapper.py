@@ -46,16 +46,26 @@ class SuprimecamMapper(CameraMapper):
         super(SuprimecamMapper, self).__init__(policy, policyFile.getRepositoryPath(),
                                                provided=['rerun', 'outRoot'], **kwargs)
 
+        # Johnson filters
         afwImageUtils.defineFilter('B',  lambdaEff=400,  alias=['W-J-B'])
         afwImageUtils.defineFilter('V',  lambdaEff=550,  alias=['W-J-V'])
-        afwImageUtils.defineFilter('R',  lambdaEff=650,  alias=['W-C-RC'])
         afwImageUtils.defineFilter('VR', lambdaEff=600,  alias=['W-J-VR'])
+
+        # Cousins filters
+        afwImageUtils.defineFilter('R',  lambdaEff=650,  alias=['W-C-RC'])
         afwImageUtils.defineFilter('I',  lambdaEff=800,  alias=['W-C-IC'])
+
+        # Sloan filters
         afwImageUtils.defineFilter('g',  lambdaEff=450,  alias=['W-S-G+'])
         afwImageUtils.defineFilter('r',  lambdaEff=600,  alias=['W-S-R+'])
         afwImageUtils.defineFilter('i',  lambdaEff=770,  alias=['W-S-I+'])
         afwImageUtils.defineFilter('z',  lambdaEff=900,  alias=['W-S-Z+'])
         afwImageUtils.defineFilter('y',  lambdaEff=1000, alias=['W-S-ZR'])
+
+        # Narrow-band filters
+        afwImageUtils.defineFilter('NB704',  lambdaEff=704,  alias=['N-B-L704'])
+        afwImageUtils.defineFilter('NB711',  lambdaEff=711,  alias=['N-B-L711'])
+       
 
         self.filters = {
             "W-J-B"   : "B",
@@ -68,6 +78,8 @@ class SuprimecamMapper(CameraMapper):
             "W-S-I+"  : "i",
             "W-S-Z+"  : "z",
             "W-S-ZR"  : "y",
+            "N-B-L704": "NB704",
+            "N-B-L711": "NB711",
             }
 
     def _extractAmpId(self, dataId):
