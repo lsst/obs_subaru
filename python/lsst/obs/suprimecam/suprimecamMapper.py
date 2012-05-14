@@ -11,7 +11,7 @@ from lsst.daf.butlerUtils import CameraMapper
 import lsst.pex.policy as pexPolicy
 
 class SuprimecamMapper(CameraMapper):
-    def __init__(self, mit=False, rerun=None, outputRoot=None, **kwargs):
+    def __init__(self, mit=False, outputRoot=None, **kwargs):
         policyFile = pexPolicy.DefaultPolicyFile("obs_subaru", "SuprimecamMapper.paf", "policy")
         policy = pexPolicy.Policy(policyFile)
 
@@ -40,11 +40,11 @@ class SuprimecamMapper(CameraMapper):
             else:
                 outputRoot = kwargs['root']
 
-        self.rerun = rerun if rerun is not None else pwd.getpwuid(os.geteuid())[0]
         self.outRoot = outputRoot
 
         super(SuprimecamMapper, self).__init__(policy, policyFile.getRepositoryPath(),
-                                               provided=['rerun', 'outRoot'], **kwargs)
+                                               provided=['outRoot'],
+                                               outputRoot=outputRoot, **kwargs)
 
         # Johnson filters
         afwImageUtils.defineFilter('B',  lambdaEff=400,  alias=['W-J-B'])
@@ -95,12 +95,9 @@ class SuprimecamMapper(CameraMapper):
 
     def _transformId(self, dataId):
         actualId = dataId.copy()
-        if actualId.has_key("rerun"):
-            del actualId["rerun"]
         return actualId
 
     def _mapActualToPath(self, template, dataId):
         actualId = self._transformId(dataId)
-        actualId['rerun'] = self.rerun
         actualId['outRoot'] = self.outRoot
         return template % actualId
