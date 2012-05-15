@@ -27,6 +27,7 @@ def deblend(footprints, maskedImage, psf, psffwhm,
             fit_psfs = True,
             median_smooth_template=True,
             monotonic_template=True,
+            lstsq_weight_templates=False,
             log=None, verbose=False,
             sigma1=None,
             ):
@@ -122,13 +123,11 @@ def deblend(footprints, maskedImage, psf, psffwhm,
                 log.logdebug('Peak %i at (%i,%i): failed to build symmetric template' % (pki, cx,cy))
                 pkres.out_of_bounds = True
                 continue
-
             # Smooth / filter
             if False:
                 sig = 0.5
                 G = afwMath.GaussianFunction1D(sig)
                 S = 1+int(math.ceil(sig*4.))
-                #print type(S), G
                 kern = afwMath.SeparableKernel(S, S, G, G)
                 #smoothed = afwImage.Factory(t1.getImage().getDimensions())
                 # Place output back into input -- so create a copy first
@@ -156,60 +155,56 @@ def deblend(footprints, maskedImage, psf, psffwhm,
             pkres.timg = t1.getImage()
             pkres.tfoot = tfoot
 
-        # Now apportion flux according to the templates
         tmimgs = []
+        ibi = [] # in-bounds indices
         for pki,pkres in enumerate(fpres.peaks):
             if pkres.out_of_bounds:
-                #print 'Skipping out-of-bounds peak', pki
                 continue
             tmimgs.append(pkres.tmimg)
+            ibi.append(pki)
+
+        if lstsq_weight_templates:
+            # Reweight the templates by doing a least-squares fit to the image
+            # FIXME -- do we need to use scipy.sparse.linalg?
+            fbb = fp.getBBox()
+            FW = fbb.getWidth()
+            fx0, fy0 = fbb.getMinX(), fbb.getMinY()
+            fx1, fy1 = fbb.getMaxX(), fbb.getMaxY()
+            A = np.zeros((fbb.getWidth()*fbb.getHeight(), len(tmimgs)))
+            b = img.getArray()[fy0:fy1+1, fx0:fx1+1].ravel()
+
+            for mim,i in zip(tmimgs, ibi):
+                bb = mim.getBBox(afwImage.PARENT)
+                ix0,iy0 = bb.getMinX(), bb.getMinY()
+                pkres = fpres.peaks[i]
+                foot = pkres.tfoot
+                ima = mim.getImage().getArray()
+                for sp in foot.getSpans():
+                    sy, sx0, sx1 = sp.getY(), sp.getX0(), sp.getX1()
+                    imrow = ima[sy-iy0, sx0-ix0 : 1+sx1-ix0]
+                    r0 = (sy-fy0)*FW
+                    A[r0 + sx0-fx0: r0+1+sx1-fx0, i] = imrow
+            X1,r1,rank1,s1 = np.linalg.lstsq(A, b)
+            print 'Template weights:', X1
+            del A
+            del b
+
+            for mim,i,w in zip(tmimgs, ibi, X1):
+                im = mim.getImage()
+                im *= w
+                fpres.peaks[i].tweight = w
+
+        # Now apportion flux according to the templates
         log.logdebug('Apportioning flux among %i templates' % len(tmimgs))
         ports = butils.apportionFlux(maskedImage, fp, tmimgs)
         ii = 0
-        for pki,pkres in enumerate(fpres.peaks):
+        for (pk, pkres) in zip(pks, fpres.peaks):
             if pkres.out_of_bounds:
-                #print 'Skipping out-of-bounds peak', pki
                 continue
             pkres.mportion = ports[ii]
             pkres.portion = ports[ii].getImage()
             ii += 1
-
-    for fpi,(fp,pks,fpres) in enumerate(zip(footprints,peaks,results)):
-        for pki,(pk,pkres) in enumerate(zip(pks, fpres.peaks)):
-            #foot = fp
-            if pkres.out_of_bounds:
-                #print 'Skipping out-of-bounds peak', pki
-                continue
-            if pkres.deblend_as_psf:
-                # #print 'Creating fake footprint for deblended-as-PSF peak'
-                # p = pkres.mportion
-                # # foot = afwDet.Footprint()
-                # # x0 = p.getX0()
-                # # y0 = p.getY0()
-                # # W = p.getWidth()
-                # # H = p.getHeight()
-                # # for y in range(H):
-                # #     foot.addSpan(y0+y, x0, x0+W-1)
-                # #foot.normalize()
-                # # clip parent to PSF image bbox.
-                # foot = afwDet.Footprint(fp)
-                # foot.clipTo(p.getBBox(afwImage.PARENT))
-                foot = pkres.tfoot
-
-            else:
-                foot = pkres.tfoot
-                
-            #print 'Creating heavy footprint for footprint', fpi, 'peak', pki
-            # Copy the parent's footprint and modify it
-            #thisfp = afwDet.Footprint(foot)
-            #mbb = pkres.mportion.getBBox(afwImage.PARENT)
-            #print 'mbb:', mbb
-            #print 'fbb:', thisfp.getBBox()
-            #thisfp.clipTo(mbb)
-            #print 'after clipping:', thisfp.getBBox()
-            #print 'after clipping:', len(thisfp.getSpans()), 'spans'
-            #heavy = afwDet.makeHeavyFootprint(thisfp, pkres.mportion)
-            heavy = afwDet.makeHeavyFootprint(foot, pkres.mportion)
+            heavy = afwDet.makeHeavyFootprint(pkres.tfoot, pkres.mportion)
             heavy.getPeaks().push_back(pk)
             pkres.heavy = heavy
             

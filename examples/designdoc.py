@@ -78,8 +78,8 @@ def main():
                         wspace=0.05, hspace=0.1)
     # SDSS intro
     for j,(parent,children) in enumerate(fams):
-        print 'parent', parent
-        print 'children', children
+        print 'parent', parent.getId()
+        print 'children', [ch.getId() for ch in children]
         pid = parent.getId()
         fp = parent.getFootprint()
         bb = fp.getBBox()
@@ -118,20 +118,30 @@ def main():
             psf_fwhm = 2.35 * psfw
 
         X = deblend([fp], mi, psf, psf_fwhm, sigma1=sigma1, fit_psfs=False,
-                    median_smooth_template=False, monotonic_template=False)
+                    median_smooth_template=False, monotonic_template=False,
+                    lstsq_weight_templates=True)
         res = X[0]
-        print res
 
         k = 0
         for pkres,pk in zip(res.peaks, pks):
-            #print dir(pkres)
             if not hasattr(pkres, 'timg'):
                 continue
             if not hasattr(pkres, 'heavy'):
                 continue
+
+            w = pkres.tweight
             cfp = pkres.heavy
             cbb = cfp.getBBox()
             cext = getExtent(cbb)
+            plt.clf()
+            myimshow(pkres.timg.getArray() / w, extent=cext, **imargs)
+            plt.gray()
+            plt.xticks([])
+            plt.yticks([])
+            plt.plot([pk.getIx()], [pk.getIy()], 'r+', mew=2, ms=10, alpha=0.6)
+            plt.axis(pext)
+            plt.savefig(opt.prefix + '%04i-t%i.png' % (pid,k))
+
             plt.clf()
             myimshow(pkres.timg.getArray(), extent=cext, **imargs)
             plt.gray()
@@ -139,7 +149,7 @@ def main():
             plt.yticks([])
             plt.plot([pk.getIx()], [pk.getIy()], 'r+', mew=2, ms=10, alpha=0.6)
             plt.axis(pext)
-            plt.savefig(opt.prefix + '%04i-t%i.png' % (pid,k))
+            plt.savefig(opt.prefix + '%04i-tw%i.png' % (pid,k))
 
             cim = footprintToImage(cfp).getArray()
             plt.clf()
