@@ -1,8 +1,12 @@
 \documentclass[10pt,letter]{article}
 \usepackage{graphicx}
+\usepackage{fullpage}
+\usepackage{multirow}
 
 \author{Dustin Lang}
-\title{Design of a Deblender}
+\title{Development of a Deblender}
+
+\newcommand{\figref}[1]{Figure~\ref{#1}}
 
 \begin{document}
 \maketitle
@@ -28,7 +32,7 @@ looking at the results on real data.
 % Arbitrarily choose visit 108792 -- G-band
 
 
-\section{Starting ansatz}
+\section{Starting ansatz: The SDSS deblender}
 
 The initial ansatz, due to Robert Lupton \cite{rhldeblend} and
 implemented in the SDSS \emph{Photo} software, is that astronomical
@@ -58,9 +62,13 @@ Finally, the counts in each image pixel are split between the
 templates covering that pixel in proportion to the values of the
 templates.
 
-\begin{figure}
-\newcommand{\exfig}[1]{\includegraphics[width=0.2\textwidth]{design-0828-#1}}
-\newcommand{\lrow}[1]{\raisebox{0.1\textwidth}{\emph{(#1)}}}
+This process is illustrated in \figref{fig:sdss1}.
+
+% python examples/designdoc.py --drill 828
+\begin{figure}[p]
+\newcommand{\exfig}[1]{\includegraphics[width=0.12\textheight]{design-0828-#1}}
+\newcommand{\lrow}[1]{\raisebox{0.05\textheight}{\emph{(#1)}}}
+\begin{center}
 \begin{tabular}{cccc}
   \lrow{a} & & \exfig{image} \\
   \lrow{b} & & \exfig{parent} \\
@@ -70,14 +78,66 @@ templates.
   \lrow{f} & \exfig{f1} & \exfig{f0} & \exfig{f2} \\
   \lrow{g} & \exfig{h1} & \exfig{h0} & \exfig{h2} \\
 \end{tabular}
+\end{center}
 \caption{Top row \emph{(a)}: image.
   Row \emph{(b)}: parent footprint.  Peaks are marked with red \textbf{+} marks.
   Row \emph{(c)}: symmetric templates.
   Row \emph{(d)}: least-squares weighted templates.
   Row \emph{(e)}: sum of weighted templates.
   Row \emph{(f)}: fraction of flux apportioned to each child (black = 0\%, white = 100\%).
-  Row \emph{(g)}: flux belonging to each child.}
+  Row \emph{(g)}: flux belonging to each child.\label{fig:sdss1}}
 \end{figure}
+
+
+
+
+\section{Tweak: Monotonic templates}
+
+See \figref{fig:mono1} for an example of the ``three-in-a-row''
+effect, where three sources in a line cause the middle template to
+pick up flux from its siblings.
+
+
+
+%python examples/designdoc.py --drill 1173 --figh 2.5
+\begin{figure}[p]
+\newcommand{\exfig}[1]{\includegraphics[width=0.12\textheight]{design-1173-#1}}
+\newcommand{\lrow}[1]{\raisebox{0.03\textheight}{#1}}
+\begin{center}
+\begin{tabular}{rccc}
+  \lrow{Parent footprint} & & \exfig{parent} \\
+  \lrow{Weighted templates} & \exfig{tw0} & \exfig{tw1} & \exfig{tw2} \\
+  \lrow{Flux fractions}     & \exfig{f0} & \exfig{f1} & \exfig{f2} \\
+  \lrow{Deblended children} & \exfig{h0} & \exfig{h1} & \exfig{h2} \\
+\end{tabular}
+\vspace{3em}
+%
+%\end{center}
+%\caption{\label{fig:mono1}}
+%\end{figure}
+% python examples/designdoc.py --drill 2439 --figw 3
+%\begin{figure}[p]
+\renewcommand{\exfig}[1]{\includegraphics[height=0.12\textheight,angle=90]{design-2439-#1}}
+%\newcommand{\lrow}[1]{\raisebox{0.03\textheight}{#1}}
+%\begin{center}
+\begin{tabular}{rcccc}
+  \lrow{Parent footprint} & \multicolumn{4}{c}{\exfig{parent}} \\
+  \lrow{Weighted templates} & \exfig{tw0} & \exfig{tw1} & \exfig{tw2} & \exfig{tw3} \\
+  \lrow{Flux fractions}     & \exfig{f0} & \exfig{f1} & \exfig{f2}    & \exfig{f3} \\
+  \lrow{Deblended children} & \exfig{h0} & \exfig{h1} & \exfig{h2}    & \exfig{h3} \\
+\end{tabular}
+\end{center}
+\caption{Two examples of the ``three-in-a-row'' failure mode: when
+  three sources are aligned, the middle template can have a large
+  value near its siblings' peaks since they are arranged symmetrically
+  around the middle peak.  The result is that the middle peak
+  ``steals'' flux from its siblings.\label{fig:mono1}}
+\end{figure}
+
+
+
+
+
 
 
 \end{document}
