@@ -38,6 +38,8 @@ def main():
                       help='Produce plots for the SDSS section.')
     parser.add_option('--mono', dest='sec', action='store_const', const='mono',
                       help='Produce plots for the "monotonic" section.')
+    parser.add_option('--median', dest='sec', action='store_const', const='median',
+                      help='Produce plots for the "median filter" section.')
 
     opt,args = parser.parse_args()
 
@@ -163,6 +165,10 @@ def main():
             kwargs.update(fit_psfs=False,
                           median_smooth_template=False, monotonic_template=True,
                           lstsq_weight_templates=True)
+        elif opt.sec == 'median':
+            kwargs.update(fit_psfs=False,
+                          median_smooth_template=True, monotonic_template=True,
+                          lstsq_weight_templates=True)
         else:
             raise 'Unknown section: "%s"' % opt.sec
         X = deblend([fp], mi, psf, psf_fwhm, **kwargs)
@@ -256,7 +262,7 @@ def main():
             plt.xticks([])
             plt.yticks([])
             plt.plot([pk.getIx()], [pk.getIy()], **pksty)
-            plt.gca().set_axis_bgcolor((1,1,0.8))
+            plt.gca().set_axis_bgcolor((0.9,0.9,0.5))
             plt.axis(pext)
             savefig('%04i-f%i' % (pid,mapchild(k)))
 
