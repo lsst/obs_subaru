@@ -31,6 +31,14 @@ looking at the results on real data.
 % 
 % Arbitrarily choose visit 108792 -- G-band
 
+% SDSS section
+% python examples/designdoc.py --drill 828 --order 1,0,2
+
+% Monotonic section
+% python examples/designdoc.py --drill 1173 --figh 2.5
+% python examples/designdoc.py --drill 1173 --figh 2.5 --mono --prefix design-mono-
+% python examples/designdoc.py --drill 2439 --figw 3 --order 3,0,1,2
+% python examples/designdoc.py --drill 2439 --figw 3 --order 3,0,1,2 --mono --prefix design-mono-
 
 \section{Starting ansatz: The SDSS deblender}
 
@@ -64,7 +72,6 @@ templates.
 
 This process is illustrated in \figref{fig:sdss1}.
 
-% python examples/designdoc.py --drill 828
 \begin{figure}[p]
 \newcommand{\exfig}[1]{\includegraphics[width=0.12\textheight]{design-0828-#1}}
 \newcommand{\lrow}[1]{\raisebox{0.05\textheight}{\emph{(#1)}}}
@@ -72,11 +79,11 @@ This process is illustrated in \figref{fig:sdss1}.
 \begin{tabular}{cccc}
   \lrow{a} & & \exfig{image} \\
   \lrow{b} & & \exfig{parent} \\
-  \lrow{c} & \exfig{t1} & \exfig{t0} & \exfig{t2} \\
-  \lrow{d} & \exfig{tw1} & \exfig{tw0} & \exfig{tw2} \\
+  \lrow{c} & \exfig{t0} & \exfig{t1} & \exfig{t2} \\
+  \lrow{d} & \exfig{tw0} & \exfig{tw1} & \exfig{tw2} \\
   \lrow{e} & & \exfig{tsum} \\
-  \lrow{f} & \exfig{f1} & \exfig{f0} & \exfig{f2} \\
-  \lrow{g} & \exfig{h1} & \exfig{h0} & \exfig{h2} \\
+  \lrow{f} & \exfig{f0} & \exfig{f1} & \exfig{f2} \\
+  \lrow{g} & \exfig{h0} & \exfig{h1} & \exfig{h2} \\
 \end{tabular}
 \end{center}
 \caption{Top row \emph{(a)}: image.
@@ -99,7 +106,6 @@ pick up flux from its siblings.
 
 
 
-%python examples/designdoc.py --drill 1173 --figh 2.5
 \begin{figure}[p]
 \newcommand{\exfig}[1]{\includegraphics[width=0.12\textheight]{design-1173-#1}}
 \newcommand{\lrow}[1]{\raisebox{0.03\textheight}{#1}}
@@ -110,16 +116,10 @@ pick up flux from its siblings.
   \lrow{Flux fractions}     & \exfig{f0} & \exfig{f1} & \exfig{f2} \\
   \lrow{Deblended children} & \exfig{h0} & \exfig{h1} & \exfig{h2} \\
 \end{tabular}
+%
 \vspace{3em}
 %
-%\end{center}
-%\caption{\label{fig:mono1}}
-%\end{figure}
-% python examples/designdoc.py --drill 2439 --figw 3
-%\begin{figure}[p]
 \renewcommand{\exfig}[1]{\includegraphics[height=0.12\textheight,angle=90]{design-2439-#1}}
-%\newcommand{\lrow}[1]{\raisebox{0.03\textheight}{#1}}
-%\begin{center}
 \begin{tabular}{rcccc}
   \lrow{Parent footprint} & \multicolumn{4}{c}{\exfig{parent}} \\
   \lrow{Weighted templates} & \exfig{tw0} & \exfig{tw1} & \exfig{tw2} & \exfig{tw3} \\
@@ -132,6 +132,42 @@ pick up flux from its siblings.
   value near its siblings' peaks since they are arranged symmetrically
   around the middle peak.  The result is that the middle peak
   ``steals'' flux from its siblings.\label{fig:mono1}}
+\end{figure}
+
+
+
+\begin{figure}[p]
+\newcommand{\lrow}[1]{\raisebox{0.03\textheight}{#1}}
+\begin{center}
+\newcommand{\exfig}[1]{\includegraphics[height=0.12\textheight,angle=90]{design-mono-2439-#1}}
+\newcommand{\befig}[1]{\includegraphics[height=0.12\textheight,angle=90]{design-2439-#1}}
+\begin{tabular}{rcccc}
+  \lrow{Parent footprint} & \multicolumn{4}{c}{\exfig{parent}} \\
+  \lrow{Weighted templates (before)} & \befig{tw0} & \befig{tw1} & \befig{tw2} & \befig{tw3} \\
+  \lrow{Weighted templates} & \exfig{tw0} & \exfig{tw1} & \exfig{tw2} & \exfig{tw3} \\
+  \lrow{Flux fractions}     & \exfig{f0} & \exfig{f1} & \exfig{f2}    & \exfig{f3} \\
+  \lrow{Deblended children (before)} & \befig{h0} & \befig{h1} & \befig{h2}    & \befig{h3} \\
+  \lrow{Deblended children} & \exfig{h0} & \exfig{h1} & \exfig{h2}    & \exfig{h3} \\
+\end{tabular}
+\end{center}
+\caption{Monotonic templates.\label{fig:mono2}}
+\end{figure}
+
+\begin{figure}[p]
+\newcommand{\lrow}[1]{\raisebox{0.03\textheight}{#1}}
+\begin{center}
+\newcommand{\exfig}[1]{\includegraphics[width=0.12\textheight]{design-mono-1173-#1}}
+\newcommand{\befig}[1]{\includegraphics[width=0.12\textheight]{design-1173-#1}}
+\begin{tabular}{rcccc}
+  \lrow{Parent footprint} & \multicolumn{3}{c}{\exfig{parent}} \\
+  \lrow{Weighted templates (before)} & \befig{tw0} & \befig{tw1} & \befig{tw2} \\
+  \lrow{Weighted templates} & \exfig{tw0} & \exfig{tw1} & \exfig{tw2} \\
+  \lrow{Flux fractions}     & \exfig{f0} & \exfig{f1} & \exfig{f2}    \\
+  \lrow{Deblended children (before)} & \befig{h0} & \befig{h1} & \befig{h2} \\
+  \lrow{Deblended children} & \exfig{h0} & \exfig{h1} & \exfig{h2}   \\
+\end{tabular}
+\end{center}
+\caption{Monotonic templates.\label{fig:mono3}}
 \end{figure}
 
 
