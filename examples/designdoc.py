@@ -20,15 +20,48 @@ def main():
     parser = OptionParser()
     parser.add_option('-H', '--heavy', dest='heavypat', default='heavy-%(visit)i-%(ccd)i-%(id)04i.fits',
                       help='Output filename pattern for heavy footprints (with %i pattern); FITS')
-    #parser.add_option('--drill', '-D', dest='drill', action='append', type=int, default=[],
-    #                  help='Drill down on individual source IDs')
     parser.add_option('--drill', '-D', dest='drill', action='append', type=str, default=[],
                       help='Drill down on individual source IDs')
     parser.add_option('--visit', dest='visit', type=int, default=108792, help='Suprimecam visit id')
     parser.add_option('--ccd', dest='ccd', type=int, default=5, help='Suprimecam CCD number')
     parser.add_option('--prefix', dest='prefix', default='design-', help='plot filename prefix')
+    parser.add_option('--suffix', dest='suffix', default=None, help='plot filename suffix (default: ".png")')
+    parser.add_option('--pdf', dest='pdf', action='store_true', default=False, help='save in PDF format?')
     parser.add_option('-v', dest='verbose', action='store_true')
+    parser.add_option('--figw', dest='figw', type=float, help='Figure window width (inches)',
+                      default=4.)
+    parser.add_option('--figh', dest='figh', type=float, help='Figure window height (inches)',
+                      default=4.)
+    parser.add_option('--order', dest='order', type=str, help='Child order: eg 3,0,1,2')
+
+    parser.add_option('--sdss', dest='sec', action='store_const', const='sdss',
+                      help='Produce plots for the SDSS section.')
+    parser.add_option('--mono', dest='sec', action='store_const', const='mono',
+                      help='Produce plots for the "monotonic" section.')
+
     opt,args = parser.parse_args()
+
+    if opt.sec is None:
+        opt.sec = 'sdss'
+    if opt.pdf:
+        if opt.suffix is None:
+            opt.suffix = ''
+        opt.suffix += '.pdf'
+    if not opt.suffix:
+        opt.suffix = '.png'
+
+    if opt.order is not None:
+        opt.order = [int(x) for x in opt.order.split(',')]
+        invorder = np.zeros(len(opt.order))
+        invorder[opt.order] = np.arange(len(opt.order))
+
+    def mapchild(i):
+        if opt.order is None:
+            return i
+        return invorder[i]
+
+    def savefig(fn):
+        plt.savefig(opt.prefix + fn + opt.suffix)
 
     dr = getDataref(opt.visit, opt.ccd)
 
@@ -57,7 +90,7 @@ def main():
             print 'parent', parent
             print 'children', children
             plotDeblendFamily(mi, parent, children, cat, sigma1, ellipses=False)
-            fn = opt.prefix + '%04i.png' % parent.getId()
+            fn = '%04i.png' % parent.getId()
             plt.savefig(fn)
             print 'wrote', fn
 
@@ -72,13 +105,12 @@ def main():
         mx = kwargs.get('vmax', 100*sigma1)
         kwargs['vmax'] = nlmap(mx)
         plt.imshow(nlmap(im), **kwargs)
-    plt.figure(figsize=(4,4))
+    plt.figure(figsize=(opt.figw, opt.figh))
     plt.subplot(1,1,1)
     #plt.subplots_adjust(left=0.05, right=0.95, bottom=0.05, top=0.9,
     #                    wspace=0.05, hspace=0.1)
     plt.subplots_adjust(left=0.01, right=0.99, bottom=0.01, top=0.99,
                         wspace=0.05, hspace=0.1)
-    # SDSS intro
     for j,(parent,children) in enumerate(fams):
         print 'parent', parent.getId()
         print 'children', [ch.getId() for ch in children]
@@ -88,20 +120,15 @@ def main():
         pim = footprintToImage(parent.getFootprint(), mi).getArray()
         pext = getExtent(bb)
         px0,py0 = pext[0],pext[2]
-        imargs = dict(interpolation='nearest', origin='lower',
-                      vmax=pim.max() * 0.95)
-
+        imargs = dict(interpolation='nearest', origin='lower', vmax=pim.max() * 0.95, vmin=-3.*sigma1)
         pksty = dict(linestyle='None', marker='+', color='r', mew=3, ms=20, alpha=0.6)
-
-        #print 'pext', pext[1]-pext[0], pext[3]-pext[2]
-        #print 'img size', pim.shape
 
         plt.clf()
         myimshow(afwImage.ImageF(mi.getImage(), bb, afwImage.PARENT).getArray(), **imargs)
         plt.gray()
         plt.xticks([])
         plt.yticks([])
-        plt.savefig(opt.prefix + '%04i-image.png' % pid)
+        savefig('%04i-image' % pid)
         
         plt.clf()
         myimshow(pim, extent=pext, **imargs)
@@ -111,7 +138,7 @@ def main():
         plt.xticks([])
         plt.yticks([])
         plt.axis(pext)
-        plt.savefig(opt.prefix + '%04i-parent.png' % pid)
+        savefig('%04i-parent' % pid)
 
         from lsst.meas.deblender.baseline import deblend
 
@@ -125,9 +152,20 @@ def main():
             psfw = pa.computeGaussianWidth(measAlg.PsfAttributes.ADAPTIVE_MOMENT)
             psf_fwhm = 2.35 * psfw
 
-        X = deblend([fp], mi, psf, psf_fwhm, sigma1=sigma1, fit_psfs=False,
-                    median_smooth_template=False, monotonic_template=False,
-                    lstsq_weight_templates=True)
+        # SDSS intro
+        kwargs = dict(sigma1=sigma1)
+
+        if opt.sec == 'sdss':
+            kwargs.update(fit_psfs=False,
+                          median_smooth_template=False, monotonic_template=False,
+                          lstsq_weight_templates=True)
+        elif opt.sec == 'mono':
+            kwargs.update(fit_psfs=False,
+                          median_smooth_template=False, monotonic_template=True,
+                          lstsq_weight_templates=True)
+        else:
+            raise 'Unknown section: "%s"' % opt.sec
+        X = deblend([fp], mi, psf, psf_fwhm, **kwargs)
         res = X[0]
 
         tsum = np.zeros((bb.getHeight(), bb.getWidth()))
@@ -138,11 +176,18 @@ def main():
             if not hasattr(pkres, 'heavy'):
                 continue
 
+            kk = mapchild(k)
+
             w = pkres.tweight
             cfp = pkres.heavy
             cbb = cfp.getBBox()
+            msk = afwImage.ImageF(cbb.getWidth(), cbb.getHeight())
+            msk.setXY0(cbb.getMinX(), cbb.getMinY())
+            afwDet.setImageFromFootprint(msk, cfp, 1.)
             cext = getExtent(cbb)
-            tim = pkres.timg.getArray()
+            tim = pkres.timg
+            tim *= msk
+            tim = tim.getArray()
             (x0,x1,y0,y1) = cext
             tsum[y0-py0:y1-py0, x0-px0:x1-px0] += tim
             cim = footprintToImage(cfp).getArray()
@@ -154,7 +199,7 @@ def main():
             plt.yticks([])
             plt.plot([pk.getIx()], [pk.getIy()], **pksty)
             plt.axis(pext)
-            plt.savefig(opt.prefix + '%04i-t%i.png' % (pid,k))
+            savefig('%04i-t%i' % (pid,kk))
 
             plt.clf()
             myimshow(tim, extent=cext, **imargs)
@@ -163,7 +208,7 @@ def main():
             plt.yticks([])
             plt.plot([pk.getIx()], [pk.getIy()], **pksty)
             plt.axis(pext)
-            plt.savefig(opt.prefix + '%04i-tw%i.png' % (pid,k))
+            savefig('%04i-tw%i' % (pid,kk))
 
             plt.clf()
             myimshow(cim, extent=cext, **imargs)
@@ -172,7 +217,7 @@ def main():
             plt.yticks([])
             plt.plot([pk.getIx()], [pk.getIy()], **pksty)
             plt.axis(pext)
-            plt.savefig(opt.prefix + '%04i-h%i.png' % (pid,k))
+            savefig('%04i-h%i' % (pid,kk))
 
             k += 1
 
@@ -183,7 +228,7 @@ def main():
         plt.yticks([])
         plt.plot([pk.getIx() for pk in pks], [pk.getIy() for pk in pks], **pksty)
         plt.axis(pext)
-        plt.savefig(opt.prefix + '%04i-tsum.png' % (pid))
+        savefig('%04i-tsum' % (pid))
 
         k = 0
         for pkres,pk in zip(res.peaks, pks):
@@ -198,6 +243,12 @@ def main():
             (x0,x1,y0,y1) = cext
             frac = tim / tsum[y0-py0:y1-py0, x0-px0:x1-px0]
 
+            msk = afwImage.ImageF(cbb.getWidth(), cbb.getHeight())
+            msk.setXY0(cbb.getMinX(), cbb.getMinY())
+            afwDet.setImageFromFootprint(msk, cfp, 1.)
+            msk = msk.getArray()
+            frac[msk == 0.] = np.nan
+            
             plt.clf()
             plt.imshow(frac, extent=cext, interpolation='nearest', origin='lower', vmin=0, vmax=1)
             #plt.plot([x0,x0,x1,x1,x0], [y0,y1,y1,y0,y0], 'k-')
@@ -207,7 +258,7 @@ def main():
             plt.plot([pk.getIx()], [pk.getIy()], **pksty)
             plt.gca().set_axis_bgcolor((1,1,0.8))
             plt.axis(pext)
-            plt.savefig(opt.prefix + '%04i-f%i.png' % (pid,k))
+            savefig('%04i-f%i' % (pid,mapchild(k)))
 
             k += 1
 
