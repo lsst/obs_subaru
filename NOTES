@@ -20,3 +20,18 @@ For a 2012-03-01 attempt at running hsc data in the pipette world:
 
 examples/runHscDeblend.py -I suprimecam --output=/Users/cloomis/HSC/output -f126969 -c 5
 
+
+---------------------------
+2012-04-02 - dstn
+
+Reviewing photo's deblend.c
+
+* "We've got all the templates, so it's time to reconsider some of
+those choices of DEBLENDED_AS_PSF.  In particular, if we created a PSF
+template from a peak superimposed on a significant pedestal, but
+there's no other template to provide that pedestal, clear
+DEBLENDED_AS_PSF"
+
+
+
+
