@@ -11,6 +11,21 @@ This document describes the iterative design of a deblender through
 experiments.  It is presented as a sequence of refinements guided by
 looking at the results on real data.
 
+
+%  hg clone hsc-gw2.mtk.nao.ac.jp://ana/hgrepo/supaDb
+%  python bin/supa_ingest.py ham.sql3 data/SUP_20{09,10}.txt
+%  (echo "# id filter ra decl expTime type mode object"; sqlite3 ../supaDb/ham.sql3 "select id,filter,ra,decl,expTime,type,mode,object from suprimecam where type='OBJECT' and exptime>119 and filter like 'W%' and mode like 'IMAG%';") > ham.txt
+%  python select.py
+%
+% obj SDSS1115 : 79 exposures
+% Filter W-S-G+ with 4 exposures, total exptime 1200.0 ( [ 300.] )
+% Filter W-S-I+ with 8 exposures, total exptime 1920.0 ( [ 240.] )
+% Filter W-S-R+ with 7 exposures, total exptime 2100.0 ( [ 300.] )
+% Filter W-S-Z+ with 60 exposures, total exptime 7200.0 ( [ 120.] )
+% 
+% Arbitrarily choose visit 108792 -- G-band
+
+
 \section{Starting ansatz}
 
 The initial ansatz, due to Robert Lupton \cite{rhldeblend} and
@@ -37,6 +52,9 @@ Having built a template for each peak, the SDSS deblender computes the
 least-squares \emph{weight} for each template to best reproduce the
 observed image.
 
+Finally, the counts in each image pixel are split between the
+templates covering that pixel in proportion to the values of the
+templates.
 
 \end{document}
 
