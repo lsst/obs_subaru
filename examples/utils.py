@@ -302,9 +302,9 @@ def getFamilies(cat):
     keys.sort()
     return [ (cat.find(pid), children[pid]) for pid in keys ]
 
-def getExtent(bb):
+def getExtent(bb, addHigh=1):
     # so verbose...
-    return (bb.getMinX(), bb.getMaxX(), bb.getMinY(), bb.getMaxY())
+    return (bb.getMinX(), bb.getMaxX()+addHigh, bb.getMinY(), bb.getMaxY()+addHigh)
 
 def cutCatalog(cat, ndeblends, keepids=None):
     fams = getFamilies(cat)

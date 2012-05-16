@@ -74,7 +74,9 @@ def main():
         plt.imshow(nlmap(im), **kwargs)
     plt.figure(figsize=(4,4))
     plt.subplot(1,1,1)
-    plt.subplots_adjust(left=0.05, right=0.95, bottom=0.05, top=0.9,
+    #plt.subplots_adjust(left=0.05, right=0.95, bottom=0.05, top=0.9,
+    #                    wspace=0.05, hspace=0.1)
+    plt.subplots_adjust(left=0.01, right=0.99, bottom=0.01, top=0.99,
                         wspace=0.05, hspace=0.1)
     # SDSS intro
     for j,(parent,children) in enumerate(fams):
@@ -85,25 +87,31 @@ def main():
         bb = fp.getBBox()
         pim = footprintToImage(parent.getFootprint(), mi).getArray()
         pext = getExtent(bb)
+        px0,py0 = pext[0],pext[2]
         imargs = dict(interpolation='nearest', origin='lower',
-                      vmax=pim.max())
+                      vmax=pim.max() * 0.95)
+
+        pksty = dict(linestyle='None', marker='+', color='r', mew=3, ms=20, alpha=0.6)
+
+        #print 'pext', pext[1]-pext[0], pext[3]-pext[2]
+        #print 'img size', pim.shape
 
         plt.clf()
         myimshow(afwImage.ImageF(mi.getImage(), bb, afwImage.PARENT).getArray(), **imargs)
         plt.gray()
         plt.xticks([])
         plt.yticks([])
-        plt.savefig(opt.prefix + 'image-%04i.png' % pid)
+        plt.savefig(opt.prefix + '%04i-image.png' % pid)
         
         plt.clf()
         myimshow(pim, extent=pext, **imargs)
         plt.gray()
         pks = fp.getPeaks()
-        plt.plot([pk.getIx() for pk in pks], [pk.getIy() for pk in pks], 'r+', mew=2, ms=10, alpha=0.6)
+        plt.plot([pk.getIx() for pk in pks], [pk.getIy() for pk in pks], **pksty)
         plt.xticks([])
         plt.yticks([])
         plt.axis(pext)
-        plt.savefig(opt.prefix + 'parent-%04i.png' % pid)
+        plt.savefig(opt.prefix + '%04i-parent.png' % pid)
 
         from lsst.meas.deblender.baseline import deblend
 
@@ -122,6 +130,7 @@ def main():
                     lstsq_weight_templates=True)
         res = X[0]
 
+        tsum = np.zeros((bb.getHeight(), bb.getWidth()))
         k = 0
         for pkres,pk in zip(res.peaks, pks):
             if not hasattr(pkres, 'timg'):
@@ -133,40 +142,74 @@ def main():
             cfp = pkres.heavy
             cbb = cfp.getBBox()
             cext = getExtent(cbb)
+            tim = pkres.timg.getArray()
+            (x0,x1,y0,y1) = cext
+            tsum[y0-py0:y1-py0, x0-px0:x1-px0] += tim
+            cim = footprintToImage(cfp).getArray()
+
             plt.clf()
             myimshow(pkres.timg.getArray() / w, extent=cext, **imargs)
             plt.gray()
             plt.xticks([])
             plt.yticks([])
-            plt.plot([pk.getIx()], [pk.getIy()], 'r+', mew=2, ms=10, alpha=0.6)
+            plt.plot([pk.getIx()], [pk.getIy()], **pksty)
             plt.axis(pext)
             plt.savefig(opt.prefix + '%04i-t%i.png' % (pid,k))
 
             plt.clf()
-            myimshow(pkres.timg.getArray(), extent=cext, **imargs)
+            myimshow(tim, extent=cext, **imargs)
             plt.gray()
             plt.xticks([])
             plt.yticks([])
-            plt.plot([pk.getIx()], [pk.getIy()], 'r+', mew=2, ms=10, alpha=0.6)
+            plt.plot([pk.getIx()], [pk.getIy()], **pksty)
             plt.axis(pext)
             plt.savefig(opt.prefix + '%04i-tw%i.png' % (pid,k))
 
-            cim = footprintToImage(cfp).getArray()
             plt.clf()
             myimshow(cim, extent=cext, **imargs)
             plt.gray()
             plt.xticks([])
             plt.yticks([])
-            plt.plot([pk.getIx()], [pk.getIy()], 'r+', mew=2, ms=10, alpha=0.6)
+            plt.plot([pk.getIx()], [pk.getIy()], **pksty)
             plt.axis(pext)
             plt.savefig(opt.prefix + '%04i-h%i.png' % (pid,k))
 
             k += 1
 
+        plt.clf()
+        myimshow(tsum, extent=pext, **imargs)
+        plt.gray()
+        plt.xticks([])
+        plt.yticks([])
+        plt.plot([pk.getIx() for pk in pks], [pk.getIy() for pk in pks], **pksty)
+        plt.axis(pext)
+        plt.savefig(opt.prefix + '%04i-tsum.png' % (pid))
 
+        k = 0
+        for pkres,pk in zip(res.peaks, pks):
+            if not hasattr(pkres, 'timg'):
+                continue
+            if not hasattr(pkres, 'heavy'):
+                continue
+            cfp = pkres.heavy
+            cbb = cfp.getBBox()
+            cext = getExtent(cbb)
+            tim = pkres.timg.getArray()
+            (x0,x1,y0,y1) = cext
+            frac = tim / tsum[y0-py0:y1-py0, x0-px0:x1-px0]
 
+            plt.clf()
+            plt.imshow(frac, extent=cext, interpolation='nearest', origin='lower', vmin=0, vmax=1)
+            #plt.plot([x0,x0,x1,x1,x0], [y0,y1,y1,y0,y0], 'k-')
+            plt.gray()
+            plt.xticks([])
+            plt.yticks([])
+            plt.plot([pk.getIx()], [pk.getIy()], **pksty)
+            plt.gca().set_axis_bgcolor((1,1,0.8))
+            plt.axis(pext)
+            plt.savefig(opt.prefix + '%04i-f%i.png' % (pid,k))
 
-
+            k += 1
 
 if __name__ == '__main__':
     main()

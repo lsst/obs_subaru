@@ -30,7 +30,7 @@ fitEllipse(ImageT const& image, double bkgd, double xc, double yc) {
 	return vals;
 }
 
-bool span_ptr_compare(det::Span::Ptr sp1, det::Span::Ptr sp2) {
+static bool span_ptr_compare(det::Span::Ptr sp1, det::Span::Ptr sp2) {
 	return (*sp1 < *sp2);
 }
 
@@ -97,7 +97,8 @@ medianFilter(MaskedImageT const& img,
 
 template<typename ImagePixelT, typename MaskPixelT, typename VariancePixelT>
 void
-deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::makeMonotonic(
+deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::
+makeMonotonic(
 	MaskedImageT & mimg,
 	det::Footprint const& foot,
 	det::Peak const& peak,
@@ -195,12 +196,15 @@ std::vector<typename image::MaskedImage<ImagePixelT, MaskPixelT, VariancePixelT>
 deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::
 apportionFlux(MaskedImageT const& img,
 			  det::Footprint const& foot,
-			  std::vector<MaskedImagePtrT> timgs) {
+			  std::vector<MaskedImagePtrT> timgs,
+			  ImagePtrT sumimg) {
 	std::vector<MaskedImagePtrT> portions;
 	int ix0 = img.getX0();
 	int iy0 = img.getY0();
 	geom::Box2I fbb = foot.getBBox();
-	ImageT sumimg(fbb.getDimensions());
+	if (!sumimg) {
+		sumimg = ImagePtrT(new ImageT(fbb.getDimensions()));
+	}
 	int sx0 = fbb.getMinX();
 	int sy0 = fbb.getMinY();
 	for (size_t i=0; i<timgs.size(); ++i) {
@@ -211,7 +215,7 @@ apportionFlux(MaskedImageT const& img,
 		for (int y=tbb.getMinY(); y<=tbb.getMaxY(); ++y) {
 			typename MaskedImageT::x_iterator inptr = timg->row_begin(y - ty0);
 			typename MaskedImageT::x_iterator inend = inptr + tbb.getWidth();
-			typename ImageT::x_iterator sumptr = sumimg.row_begin(y - sy0) + (tx0 - sx0);
+			typename ImageT::x_iterator sumptr = sumimg->row_begin(y - sy0) + (tx0 - sx0);
 			for (; inptr != inend; ++inptr, ++sumptr) {
 				*sumptr += std::max((ImagePixelT)0., (*inptr).image());
 			}
@@ -230,7 +234,7 @@ apportionFlux(MaskedImageT const& img,
 			typename MaskedImageT::x_iterator inptr = img.row_begin(y - iy0) + (tx0 - ix0);
 			typename MaskedImageT::x_iterator tptr = timg->row_begin(y - ty0);
 			typename MaskedImageT::x_iterator tend = tptr + tbb.getWidth();
-			typename ImageT::x_iterator sumptr = sumimg.row_begin(y - sy0) + (tx0 - sx0);
+			typename ImageT::x_iterator sumptr = sumimg->row_begin(y - sy0) + (tx0 - sx0);
 			typename MaskedImageT::x_iterator outptr = port->row_begin(y - ty0);
 			for (; tptr != tend; ++tptr, ++inptr, ++outptr, ++sumptr) {
 				if (*sumptr == 0)
@@ -246,9 +250,11 @@ apportionFlux(MaskedImageT const& img,
 
 template<typename ImagePixelT, typename MaskPixelT, typename VariancePixelT>
 lsst::afw::detection::Footprint::Ptr
-deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::symmetrizeFootprint(
-    lsst::afw::detection::Footprint const& foot,
+deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::
+symmetrizeFootprint(
+    det::Footprint const& foot,
     int cx, int cy) {
+
 	typedef typename det::Footprint::SpanList SpanList;
 
     det::Footprint::Ptr sfoot(new det::Footprint);
@@ -447,7 +453,8 @@ deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::symmetrizeFootpri
 template<typename ImagePixelT, typename MaskPixelT, typename VariancePixelT>
 std::pair<typename lsst::afw::image::MaskedImage<ImagePixelT,MaskPixelT,VariancePixelT>::Ptr,
 		  typename lsst::afw::detection::Footprint::Ptr>
-deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::buildSymmetricTemplate(
+deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::
+buildSymmetricTemplate(
 	MaskedImageT const& img,
 	det::Footprint const& foot,
 	det::Peak const& peak,
