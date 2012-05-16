@@ -40,7 +40,9 @@ looking at the results on real data.
 
 \section{Starting ansatz: The SDSS deblender}
 
-The initial ansatz, due to Robert Lupton \cite{rhldeblend} and
+The initial ansatz,\footnote{%
+  \emph{ansatz:} an educated guess that is verified later by its results (Wikipedia).}
+ due to Robert Lupton \cite{rhldeblend} and
 implemented in the SDSS \emph{Photo} software, is that astronomical
 sources have two-fold rotational symmetry and a peak in the center.
 This is a fiendishly clever observation that will take us a long way.
@@ -92,14 +94,30 @@ This process is illustrated in \figref{fig:sdss1}.
 
 
 
+\clearpage
 
 \section{Tweak: Monotonic templates}
+
 
 See \figref{fig:mono1} for an example of the ``three-in-a-row''
 effect, where three sources in a line cause the middle template to
 pick up flux from its siblings.
 
 
+We can attempt to remedy this problem by adding a term to the ansatz:
+we expect a galaxy profile to have a central peak, twofold rotational
+symmetry, and a \emph{monotonically decreasing} profile.  We produce
+the template as before, then apply the \emph{monotonic} constraint by
+starting from the center pixel and ``casting the shadow'' of each
+pixel and ensuring that all pixels in the shadow have value at most
+that of the shadowing pixel.
+
+
+While the monotonic constraint largely solves the ``three-in-a-row''
+problem, it introduces strong ``ray'' artifacts into the template.
+These are due to negative-going noisy pixels, which cast long shadows
+on the template.  One might worry that these artifacts would introduce
+biases in the galaxy shape measurements.
 
 
 
@@ -167,6 +185,55 @@ pick up flux from its siblings.
 \end{tabular}
 \end{center}
 \caption{Deblending results using monotonic templates for the example shown in
+  \figref{fig:mono1} (bottom).\label{fig:mono3}}
+\end{figure}
+
+
+\clearpage
+
+\section{Tweak: Median filtered templates}
+
+
+One strategy for countering the ``ray'' artifacts is to reduce the
+number and strength of negative-going noisy pixels.  One option is to
+apply a median-filter to the template before applying the monotonic
+constraint.
+
+
+
+
+
+\begin{figure}[p]
+\begin{center}
+\newcommand{\exfig}[1]{\includegraphics[width=0.12\textheight]{design-med-1173-#1}}
+\newcommand{\befig}[1]{\includegraphics[width=0.12\textheight]{design-mono-1173-#1}}
+\begin{tabular}{m{1in}CCC}
+  Parent footprint & & \exfig{parent} & \\
+  Weighted templates (before) & \befig{tw0} & \befig{tw1} & \befig{tw2} \\
+  Weighted templates & \exfig{tw0} & \exfig{tw1} & \exfig{tw2} \\
+  Flux fractions     & \exfig{f0} & \exfig{f1} & \exfig{f2}    \\
+  Deblended children (before) & \befig{h0} & \befig{h1} & \befig{h2} \\
+  Deblended children & \exfig{h0} & \exfig{h1} & \exfig{h2}   \\
+\end{tabular}
+\end{center}
+\caption{Deblending results using median-filtered monotonic templates for the example shown in
+  \figref{fig:mono1} (top).\label{fig:mono2}}
+\end{figure}
+
+\begin{figure}[p]
+\begin{center}
+\newcommand{\exfig}[1]{\includegraphics[height=0.12\textheight,angle=90]{design-med-2439-#1}}
+\newcommand{\befig}[1]{\includegraphics[height=0.12\textheight,angle=90]{design-mono-2439-#1}}
+\begin{tabular}{m{1in}CCCC}
+  Parent footprint & \mcol{4}{\exfig{parent}} \\
+  Weighted templates (before) & \befig{tw0} & \befig{tw1} & \befig{tw2} & \befig{tw3} \\
+  Weighted templates & \exfig{tw0} & \exfig{tw1} & \exfig{tw2} & \exfig{tw3} \\
+  Flux fractions     & \exfig{f0} & \exfig{f1} & \exfig{f2}    & \exfig{f3} \\
+  Deblended children (before) & \befig{h0} & \befig{h1} & \befig{h2}    & \befig{h3} \\
+  Deblended children & \exfig{h0} & \exfig{h1} & \exfig{h2}    & \exfig{h3} \\
+\end{tabular}
+\end{center}
+\caption{Deblending results using median-filtered monotonic templates for the example shown in
   \figref{fig:mono1} (bottom).\label{fig:mono3}}
 \end{figure}
 
