@@ -49,10 +49,8 @@ medianFilter(MaskedImageT const& img,
 	typedef typename MaskedImageT::xy_locator xy_loc;
 	xy_loc pix = img.xy_at(halfsize,halfsize);
 	std::vector<typename xy_loc::cached_location_t> locs;
-	//typename xy_loc::cached_location_t locs[SS];
 	for (int i=0; i<S; ++i) {
 		for (int j=0; j<S; ++j) {
-			//locs[i*S + j] = pix.cache_location(j-halfsize, i-halfsize);
 			locs.push_back(pix.cache_location(j-halfsize, i-halfsize));
 		}
 	}
@@ -66,7 +64,6 @@ medianFilter(MaskedImageT const& img,
 			for (int i=0; i<SS; ++i)
 				vals[i] = inpix[locs[i]].image();
 			std::nth_element(vals, vals+SS/2, vals+SS);
-			//std::nth_element(vals.begin(), vals.begin()+SS/2, vals.end());
 			optr.image() = vals[SS/2];
 			optr.mask() = inpix.mask();
 			optr.variance() = inpix.variance();
@@ -106,11 +103,10 @@ deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::makeMonotonic(
 	det::Peak const& peak,
 	double sigma1) {
 
-	// FIXME -- ignore the Footprint and just operate on the whole image
+	// FIXME -- we ignore the Footprint and just operate on the whole image
 
-	int cx,cy;
-	cx = peak.getIx();
-	cy = peak.getIy();
+	int cx = peak.getIx();
+	int cy = peak.getIy();
 	int ix0 = mimg.getX0();
 	int iy0 = mimg.getY0();
 	int iW = mimg.getWidth();
@@ -131,11 +127,6 @@ deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::makeMonotonic(
 			double alo,ahi;
 			// center of pixel...
 			alo = ahi = sinsq(dx, dy);
-			/*
-			 if (dy > 0 && dx > 0)
-			 // bottom-left
-			 alo = std::min(alo, sinsq(dx-0.5, dy-0.5));
-			 */
 			// bottom-right
 			if (dy > 0)
 				alo = std::min(alo, sinsq(dx+0.5, dy-0.5));
@@ -159,15 +150,6 @@ deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::makeMonotonic(
 				a = sinsq(dx, dy - 1);
 				s_shadow = s_shadow && (a >= alo) && (a <= ahi);
 			}
-
-			//printf("cx,cy=(%i,%i), cx,cy-ixy0=(%i,%i), dx,dy = (%i, %i).  Shadowed by: %s %s %s\n", cx, cy, cx-ix0, cy-iy0, dx, dy, (w_shadow ? "W":" "), (sw_shadow ? "SW":"  "), (s_shadow ? "S":" "));
-
-			/*
-			 for (int signdx=-1; signdx<=1; signdx+=2) {
-			 int dx = absdx * signdx;
-			 }
-			 */
-
 			for (int signdx=1; signdx>=-1; signdx-=2) {
 				if (dx == 0 && signdx == -1)
 					break;
@@ -204,18 +186,16 @@ deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::makeMonotonic(
 			}
 		}
 	}
-
-
-
 }
 
 
 
 template<typename ImagePixelT, typename MaskPixelT, typename VariancePixelT>
 std::vector<typename image::MaskedImage<ImagePixelT, MaskPixelT, VariancePixelT>::Ptr>
-deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::apportionFlux(MaskedImageT const& img,
-																			 det::Footprint const& foot,
-																			 std::vector<typename image::MaskedImage<ImagePixelT, MaskPixelT, VariancePixelT>::Ptr> timgs) {
+deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::
+apportionFlux(MaskedImageT const& img,
+			  det::Footprint const& foot,
+			  std::vector<MaskedImagePtrT> timgs) {
 	std::vector<MaskedImagePtrT> portions;
 	int ix0 = img.getX0();
 	int iy0 = img.getY0();
@@ -227,14 +207,12 @@ deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::apportionFlux(Mas
 		MaskedImagePtrT timg = timgs[i];
 		geom::Box2I tbb = timg->getBBox(image::PARENT);
 		int tx0 = tbb.getMinX();
-		//int tx1 = tbb.getMaxX();
 		int ty0 = tbb.getMinY();
 		for (int y=tbb.getMinY(); y<=tbb.getMaxY(); ++y) {
 			typename MaskedImageT::x_iterator inptr = timg->row_begin(y - ty0);
 			typename MaskedImageT::x_iterator inend = inptr + tbb.getWidth();
 			typename ImageT::x_iterator sumptr = sumimg.row_begin(y - sy0) + (tx0 - sx0);
 			for (; inptr != inend; ++inptr, ++sumptr) {
-				//*sumptr += fabs((*inptr).image());
 				*sumptr += std::max((ImagePixelT)0., (*inptr).image());
 			}
 		}
@@ -247,7 +225,6 @@ deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::apportionFlux(Mas
 		portions.push_back(port);
 		geom::Box2I tbb = timg->getBBox(image::PARENT);
 		int tx0 = tbb.getMinX();
-		//int tx1 = tbb.getMaxX();
 		int ty0 = tbb.getMinY();
 		for (int y=tbb.getMinY(); y<=tbb.getMaxY(); ++y) {
 			typename MaskedImageT::x_iterator inptr = img.row_begin(y - iy0) + (tx0 - ix0);
@@ -260,7 +237,6 @@ deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::apportionFlux(Mas
 					continue;
 				outptr.mask()     = (*inptr).mask();
 				outptr.variance() = (*inptr).variance();
-				//outptr.image()    = (*inptr).image() * fabs((*tptr).image()) / (*sumptr);
 				outptr.image()    = (*inptr).image() * std::max((ImagePixelT)0., (*tptr).image()) / (*sumptr);
 			}
 		}
@@ -310,7 +286,7 @@ deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::symmetrizeFootpri
 	// ie, the first Span larger than "target".  The Span containing "target"
 	// should be peakspan-1.
 	if (peakspan == spans.begin()) {
-		log.warnf("Failed to find span containing (%i,%i): before the beginning of this footprint");
+		log.warnf("Failed to find span containing (%i,%i): before the beginning of this footprint", cx, cy);
 		return det::Footprint::Ptr();
 	}
 	peakspan--;
@@ -479,7 +455,6 @@ deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::buildSymmetricTem
 
 	typedef typename MaskedImageT::const_xy_locator xy_loc;
 	typedef typename det::Footprint::SpanList SpanList;
-	//typedef std::pair<MaskedImagePtrT, FootprintPtrT>
 
 	int cx = peak.getIx();
 	int cy = peak.getIy();
@@ -487,9 +462,7 @@ deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::buildSymmetricTem
 	if (!sfoot) {
 		return std::pair<MaskedImagePtrT, FootprintPtrT>(MaskedImagePtrT(), sfoot);
 	}
-
     pexLog::Log log(pexLog::Log::getDefaultLog(), "lsst.meas.deblender", pexLog::Log::INFO);
-    //bool debugging = (log.getThreshold() <= pexLog::Log::DEBUG);
 
     // The result image will be at most as large as the footprint
 	geom::Box2I fbb = foot.getBBox();
@@ -516,7 +489,6 @@ deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::buildSymmetricTem
 			// FIXME -- CURRENTLY WE IGNORE THE MASK PLANE!
             // options include ORing the mask bits, or being clever about ignoring
             // some masked pixels, or copying the mask bits of the min pixel
-			// FIXME -- one of these conditions is redundant...
 
 			// FIXME -- we could do this with image iterators
 			// instead.  But first profile to show that it's
@@ -549,37 +521,9 @@ deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::buildSymmetricTem
     // Clip the result image to "tbb" (via this deep copy, ugh)
     MaskedImagePtrT rimg(new MaskedImageT(timg, sfoot->getBBox(), image::PARENT, true));
 
-	/*
-	 SpanList sp2 = sfoot->getSpans();
-	 for (SpanList::const_iterator spit2 = sp2.begin(); spit2 != sp2.end(); spit2++) {
-	 //outfoot.addSpan(*spit2);
-	 outfoot.addSpan((*spit2)->getY(), (*spit2)->getX0(), (*spit2)->getX1());
-	 }
-	 */
-
 	return std::pair<MaskedImagePtrT, FootprintPtrT>(rimg, sfoot);
-    //return rimg;
 }
-
-/*
-template<typename ImagePixelT, typename MaskPixelT, typename VariancePixelT>
-std::pair<boost::shared_ptr<lsst::afw::image::MaskedImage<ImagePixelT,MaskPixelT,VariancePixelT> >, lsst::afw::detection::Footprint>
-deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::buildSymmetricTemplate2(
-	MaskedImageT const& img,
-	det::Footprint const& foot,
-	det::Peak const& peak,
-	double sigma1) {
-    det::Footprint fp;
-    MaskedImagePtrT mi;
-    return std::pair<MaskedImagePtrT, det::Footprint>(mi, fp);
-}
- */
 
 // Instantiate
 template class deblend::BaselineUtils<float>;
 
-/*
-template class deblend::MaskedImageAndFootprint<float>;
-
-template class std::pair<boost::shared_ptr<lsst::afw::image::MaskedImage<float> >, lsst::afw::detection::Footprint>;
- */

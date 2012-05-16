@@ -8,7 +8,6 @@
 
 #include "lsst/afw/image/Image.h"
 #include "lsst/afw/image/MaskedImage.h"
-//#include "lsst/afw/detection.h"
 #include "lsst/afw/detection/Footprint.h"
 #include "lsst/afw/detection/Peak.h"
 
@@ -42,7 +41,6 @@ namespace lsst {
                 symmetrizeFootprint(lsst::afw::detection::Footprint const& foot,
                                     int cx, int cy);
 
-                //typename lsst::afw::image::MaskedImage<ImagePixelT,MaskPixelT,VariancePixelT>::Ptr
                 static
                 std::pair<MaskedImagePtrT, FootprintPtrT>
                 buildSymmetricTemplate(MaskedImageT const& img,
@@ -62,8 +60,9 @@ namespace lsst {
                     double sigma1);
 
                 // Spelled out for swig's benefit...
-                //static std::vector<MaskedImagePtrT>
-                static std::vector<typename lsst::afw::image::MaskedImage<ImagePixelT,MaskPixelT,VariancePixelT>::Ptr>
+                //static std::vector<typename lsst::afw::image::MaskedImage<ImagePixelT,MaskPixelT,VariancePixelT>::Ptr>
+                static
+                std::vector<MaskedImagePtrT>
                 apportionFlux(MaskedImageT const& img,
                               lsst::afw::detection::Footprint const& foot,
                               std::vector<typename lsst::afw::image::MaskedImage<ImagePixelT,MaskPixelT,VariancePixelT>::Ptr>);
