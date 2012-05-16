@@ -57,15 +57,15 @@ namespace lsst {
                 makeMonotonic(MaskedImageT & img,
                               lsst::afw::detection::Footprint const& foot,
                               lsst::afw::detection::Peak const& pk,
-                    double sigma1);
+                              double sigma1);
 
-                // Spelled out for swig's benefit...
-                //static std::vector<typename lsst::afw::image::MaskedImage<ImagePixelT,MaskPixelT,VariancePixelT>::Ptr>
+                // swig doesn't seem to understand std::vector<MaskedImagePtrT>...
                 static
-                std::vector<MaskedImagePtrT>
-                apportionFlux(MaskedImageT const& img,
+                std::vector<typename lsst::afw::image::MaskedImage<ImagePixelT, MaskPixelT, VariancePixelT>::Ptr>
+                 apportionFlux(MaskedImageT const& img,
                               lsst::afw::detection::Footprint const& foot,
-                              std::vector<typename lsst::afw::image::MaskedImage<ImagePixelT,MaskPixelT,VariancePixelT>::Ptr>);
+                              std::vector<typename lsst::afw::image::MaskedImage<ImagePixelT, MaskPixelT, VariancePixelT>::Ptr>,
+                              ImagePtrT sumimg = ImagePtrT());
 
             };
         }

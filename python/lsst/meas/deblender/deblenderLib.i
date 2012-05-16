@@ -39,8 +39,8 @@ using namespace lsst::afw::detection;
 %import "lsst/afw/detection/detectionLib.i"
 
 %include "lsst/meas/deblender/Baseline.h"
-%template(BaselineUtilsF) lsst::meas::deblender::BaselineUtils<float>;
 
+%template(BaselineUtilsF) lsst::meas::deblender::BaselineUtils<float>;
 %template(pairMaskedImageFPtrAndFootprintPtr) std::pair<lsst::meas::deblender::BaselineUtils<float>::MaskedImagePtrT, lsst::meas::deblender::BaselineUtils<float>::FootprintPtrT>;
 
 /******************************************************************************/
