@@ -314,4 +314,13 @@ datasets: {
         tables:        "raw_skytile"
     }
 
+    forcedsources: {
+        template:      "%(outRoot)s/%(pointing)05d/%(filter)s/output/FORCED%(visit)07d%(ccd)1d.fits"
+        python:        "lsst.afw.table.SourceCatalog"
+        persistable:   "SourceCatalog"
+        storage:       "FitsCatalogStorage"
+        tables:        "raw_skytile"
+    }
+
+
 }
