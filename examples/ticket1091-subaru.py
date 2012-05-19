@@ -181,7 +181,7 @@ def runDeblend(dataRef, sourcefn, heavypat, forcedet, verbose=False, drill=[],
 
     conf.doDeblend = True
     conf.doMeasurement = True
-    conf.doWriteSources = True
+    conf.doWriteSources = False
     conf.measurement.doRemoveOtherSources = True
 
     if debugDeblend:
@@ -264,6 +264,9 @@ def runDeblend(dataRef, sourcefn, heavypat, forcedet, verbose=False, drill=[],
     assert(proc.schema == res.sources.getSchema())
 
     srcs = res.sources
+
+    srcs.getTable().setWriteHeavyFootprints(True)
+    dr.put(srcs, 'src')
 
     print 'processCCD.run() finished; srcs should have been written to:'
     print '  ', mapper.map('src', dr.dataId)
