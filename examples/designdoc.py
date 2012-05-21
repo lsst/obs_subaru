@@ -171,8 +171,7 @@ def main():
                           lstsq_weight_templates=True)
         else:
             raise 'Unknown section: "%s"' % opt.sec
-        X = deblend([fp], mi, psf, psf_fwhm, **kwargs)
-        res = X[0]
+        res = deblend(fp, mi, psf, psf_fwhm, **kwargs)
 
         tsum = np.zeros((bb.getHeight(), bb.getWidth()))
         k = 0

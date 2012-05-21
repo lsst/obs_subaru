@@ -146,6 +146,7 @@ def runDeblend(dataRef, sourcefn, heavypat, forcedet, verbose=False, drill=[],
     if forcedet:
         print 'Forcing detection'
         doDetect = True
+        srcs = None
 
     conf.doIsr            = doIsr
     conf.doCalibrate      = doCalib
