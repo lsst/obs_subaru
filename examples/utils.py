@@ -341,7 +341,12 @@ def readCatalog(sourcefn, heavypat, ndeblends=0, dataref=None,
                 patargs=dict()):
     if sourcefn is None:
         cat = dataref.get('src')
-        assert(cat)
+	try:
+	    if not cat:
+		return None
+	except:
+	    return None
+
     else:
         if not os.path.exists(sourcefn):
             print 'No source catalog:', sourcefn
