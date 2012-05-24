@@ -12,3 +12,4 @@ python examples/designdoc.py --drill 2439 --figw 3 --order 3,0,1,2 --mono --pref
 # Median-filter section
 python examples/designdoc.py --drill 1173 --figh 2.5 --median --prefix design-med- --pdf
 python examples/designdoc.py --drill 2439 --figw 3 --order 3,0,1,2 --median --prefix design-med- --pdf
+

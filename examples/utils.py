@@ -342,36 +342,68 @@ def readCatalog(sourcefn, heavypat, ndeblends=0, dataref=None, keepids=None,
         cat = cutCatalog(cat, ndeblends, keepids)
         print 'Cut to', len(cat), 'sources'
 
-    print 'Reading heavyFootprints...'
-    for src in cat:
-        if not src.getParent():
-            continue
-        dd = patargs.copy()
-        dd.update(id=src.getId())
-        heavyfn = heavypat % dd
-        if not os.path.exists(heavyfn):
-            print 'No heavy footprint:', heavyfn
-            return None
-        mim = afwImage.MaskedImageF(heavyfn)
-        heavy = afwDet.makeHeavyFootprint(src.getFootprint(), mim)
-        src.setFootprint(heavy)
+    if heavypat is not None:
+        print 'Reading heavyFootprints...'
+        for src in cat:
+            if not src.getParent():
+                continue
+            dd = patargs.copy()
+            dd.update(id=src.getId())
+            heavyfn = heavypat % dd
+            if not os.path.exists(heavyfn):
+                print 'No heavy footprint:', heavyfn
+                return None
+            mim = afwImage.MaskedImageF(heavyfn)
+            heavy = afwDet.makeHeavyFootprint(src.getFootprint(), mim)
+            src.setFootprint(heavy)
     return cat
 
-def getMapper():
-    basedir = os.path.join(os.environ['HOME'], 'lsst', 'ACT-data')
-    mapperArgs = dict(root=os.path.join(basedir, 'rerun/dstn'),
-                      calibRoot=os.path.join(basedir, 'CALIB'))
-    mapper = obsSc.SuprimecamMapper(**mapperArgs)
-    return mapper
+def datarefToMapper(dr):
+    return dr.butlerSubset.butler.mapper
 
-def getButler():
-    mapper = getMapper()
+def getMapper(rootdir=None, calibdir=None, outrootdir=None):
+    if rootdir is None:
+        rootdir = os.path.join(os.environ['HOME'], 'lsst', 'ACT-data')
+    if calibdir is None:
+        calibdir = os.path.join(rootdir, 'CALIB')
+    mapperArgs = dict(root=rootdir, calibRoot=calibdir, outputRoot=outrootdir)
+    mapper = obsSc.SuprimecamMapper(**mapperArgs)
+    #return mapper
+    wrap = WrapperMapper(mapper)
+    return wrap
+
+class WrapperMapper(object):
+    def __init__(self, real):
+        self.real = real
+    def map(self, *args):
+        print 'Mapping', args
+        R = self.real.map(*args)
+        print '->', R
+        return R
+    # relay
+    def getKeys(self, *args):
+        return self.real.getKeys(*args)
+    def getDatasetTypes(self):
+        return self.real.getDatasetTypes()
+    def queryMetadata(self, *args):
+        return self.real.queryMetadata(*args)
+    def canStandardize(self, *args):
+        return self.real.canStandardize(*args)
+    def standardize(self, *args):
+        return self.real.standardize(*args)
+    def validate(self, *args):
+        return self.real.validate(*args)
+    def getDefaultLevel(self, *args):
+        return self.real.getDefaultLevel(*args)
+
+def getButler(rootdir=None, calibdir=None, outrootdir=None):
+    mapper = getMapper(rootdir, calibdir, outrootdir)
     butlerFactory = dafPersist.ButlerFactory(mapper = mapper)
     butler = butlerFactory.create()
     return butler
 
-def getDataref(visit=126969, ccd=5, single=True):
-    butler = getButler()
+def getDataref(visit=126969, ccd=5, single=True, rootdir=None, calibdir=None, outrootdir=None):
+    butler = getButler(rootdir=rootdir, calibdir=calibdir, outrootdir=outrootdir)
     print 'Butler', butler
     dataRef = butler.subset('raw', dataId = dict(visit=visit, ccd=ccd))
     print 'dataRef:', dataRef

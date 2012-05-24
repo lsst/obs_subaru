@@ -82,11 +82,12 @@ class DebugDeblendTask(measAlg.SourceDeblendTask):
         self.savefig('%04i-postb' % self.plotnum)
         self.plotnum += 1
 
-def runDeblend(dataRef, sourcefn, heavypat, forcedet, verbose=False, drill=[],
+def runDeblend(dataRef, sourcefn, forceisr=False, forcecalib=False, forcedet=False,
+               verbose=False, drill=[],
                debugDeblend=True, debugMeas=True):
     dr = dataRef
-    mapper = getMapper()
-            
+    mapper = datarefToMapper(dr)
+
     conf = procCcd.ProcessCcdConfig()
 
     conf.calibrate.doComputeApCorr = False
@@ -104,13 +105,13 @@ def runDeblend(dataRef, sourcefn, heavypat, forcedet, verbose=False, drill=[],
     conf.measurement.doApplyApCorr = False
     conf.validate()
 
-    # Only do ISR, Calibration, and Detection if necessary...
+    # Only do ISR, Calibration, and Detection if necessary (or forced)
     doIsr    = False
     doCalib  = False
     doDetect = False
-    print 'calexp', mapper.map('calexp', dr.dataId)
-    print 'psf', mapper.map('psf', dr.dataId)
-    print 'src', mapper.map('src', dr.dataId)
+    print 'Looking for calexp', mapper.map('calexp', dr.dataId)
+    print 'Looking for psf', mapper.map('psf', dr.dataId)
+    print 'Looking for src', mapper.map('src', dr.dataId)
     try:
         psf = dr.get('psf')
         print 'PSF:', psf
@@ -123,9 +124,6 @@ def runDeblend(dataRef, sourcefn, heavypat, forcedet, verbose=False, drill=[],
     except:
         print 'No calexp'
         doCalib = True
-    # "icSrc" are created during 'calibrate'; only bright guys
-    # "src"   are created during 'detection'
-    # (then are passed to measurement to get filled in)
     try:
         srcs = dr.get('src')
         print 'Srcs', srcs
@@ -135,14 +133,20 @@ def runDeblend(dataRef, sourcefn, heavypat, forcedet, verbose=False, drill=[],
         srcs = None
 
     if doCalib:
+        print 'Looking for postISRCCD', mapper.map('postISRCCD', dr.dataId)
         try:
             postisr = dr.get('postISRCCD')
             print 'post-ISR CCD:', postisr
         except:
             print 'No post-ISR CCD'
             doIsr = True
-        print 'post-isr CCD', mapper.map('postISRCCD', dr.dataId)
 
+    if forceisr:
+        print 'Forcing ISR'
+        doIsr = True
+    if forcecalib:
+        print 'Forcing calibration'
+        doCalib = True
     if forcedet:
         print 'Forcing detection'
         doDetect = True
@@ -196,8 +200,6 @@ def runDeblend(dataRef, sourcefn, heavypat, forcedet, verbose=False, drill=[],
     if verbose:
         proc.log.setThreshold(pexLog.Log.DEBUG)
 
-    #### FIXME -- there could be a schema mismatch if only one of debugDeblend/debugMeas is on.
-
     if debugDeblend:
         log = None
         if verbose:
@@ -229,15 +231,6 @@ def runDeblend(dataRef, sourcefn, heavypat, forcedet, verbose=False, drill=[],
                                                plotmasks = False,
                                                prefix = 'measure-')
         conf.doMeasurement = True
-
-    # if not doDetect:
-    #     # Remap "srcs" schema to proc.schema
-    #     print 'Remapping srcs to proc.schema...'
-    #     smapper = afwTable.SchemaMapper(srcs.getSchema())
-    #     newsrcs = afwTable.SourceCatalog(proc.schema)
-    #     for src in srcs:
-    #         newsrcs.copyRecord(src, smapper)
-
 
     #print 'proc.schema:', proc.schema
     #print 'srcs.schema:', srcs.getSchema()
@@ -277,14 +270,22 @@ def runDeblend(dataRef, sourcefn, heavypat, forcedet, verbose=False, drill=[],
 def main():
     from optparse import OptionParser
     parser = OptionParser()
+    parser.add_option('--root', '-r', dest='root', help='Root directory for Subaru data')
+    parser.add_option('--outroot', '-o', dest='outroot', help='Output root directory for Subaru data')
     parser.add_option('--force', '-f', dest='force', action='store_true', default=False,
                       help='Force re-running the deblender?')
     parser.add_option('--force-det', '-d', dest='forcedet', action='store_true', default=False,
                       help='Force re-running the detection stage?')
+    parser.add_option('--force-calib', dest='forcecalib', action='store_true', default=False,
+                      help='Force re-running the Calibration stage?')
+    parser.add_option('--force-isr', dest='forceisr', action='store_true', default=False,
+                      help='Force re-running the ISR stage?')
     parser.add_option('-s', '--sources', dest='sourcefn', default=None, #'deblended-srcs.fits',
                       help='Output filename for source table (FITS)')
     parser.add_option('-H', '--heavy', dest='heavypat', default='heavy-%(visit)i-%(ccd)i-%(id)04i.fits',
                       help='Output filename pattern for heavy footprints (with %i pattern); FITS')
+    parser.add_option('--no-heavy', dest='noheavy', action='store_true',
+                      help='Do not save heavy footprints as FITS images')
     parser.add_option('--nkeep', '-n', dest='nkeep', default=0, type=int,
                       help='Cut to the first N deblend families')
     parser.add_option('--drill', '-D', dest='drill', action='append', type=int, default=[],
@@ -295,34 +296,39 @@ def main():
                       help='Do not make measurement plots')
     parser.add_option('--no-after-plots', dest='noafterplots', action='store_true',
                       help='Do not make post-deblend+measure plots')
-    parser.add_option('--visit', dest='visit', type=int, default=126969, help='Suprimecam visit id')
+    parser.add_option('--visit', dest='visit', type=int, default=108792, help='Suprimecam visit id')
     parser.add_option('--ccd', dest='ccd', type=int, default=5, help='Suprimecam CCD number')
     parser.add_option('-v', dest='verbose', action='store_true')
     opt,args = parser.parse_args()
 
-    dr = getDataref(visit=opt.visit, ccd=opt.ccd)
+    dr = getDataref(visit=opt.visit, ccd=opt.ccd, rootdir=opt.root, outrootdir=opt.outroot)
 
+    if opt.noheavy:
+        opt.heavypat = None
+    
     cat = None
     if not opt.force:
         cat = readCatalog(opt.sourcefn, opt.heavypat, ndeblends=opt.nkeep, dataref=dr,
                           patargs=dict(visit=opt.visit, ccd=opt.ccd))
     if cat is None:
-        cat = runDeblend(dr, opt.sourcefn, opt.heavypat, opt.forcedet, opt.verbose, opt.drill,
-                         opt.deblendplots, opt.measplots)
+        cat = runDeblend(dr, opt.sourcefn,
+                         opt.forceisr, opt.forcecalib, opt.forcedet,
+                         opt.verbose, opt.drill, opt.deblendplots, opt.measplots)
 
         if opt.sourcefn:
             print 'Writing FITS to', opt.sourcefn
             cat.writeFits(opt.sourcefn)
 
         # Write heavy footprints
-        for src in cat:
-            if not src.getParent():
-                continue
-            k = src.getId()
-            mim = footprintToImage(src.getFootprint())
-            fn = opt.heavypat % dict(visit=opt.visit, ccd=opt.ccd, id=k)
-            mim.writeFits(fn)
-            print 'Wrote', fn
+        if opt.heavypat is not None:
+            for src in cat:
+                if not src.getParent():
+                    continue
+                k = src.getId()
+                mim = footprintToImage(src.getFootprint())
+                fn = opt.heavypat % dict(visit=opt.visit, ccd=opt.ccd, id=k)
+                mim.writeFits(fn)
+                print 'Wrote', fn
         
     if opt.nkeep:
         cat = cutCatalog(cat, opt.nkeep)

@@ -18,8 +18,10 @@ from utils import *
 def main():
     from optparse import OptionParser
     parser = OptionParser()
-    parser.add_option('-H', '--heavy', dest='heavypat', default='heavy-%(visit)i-%(ccd)i-%(id)04i.fits',
-                      help='Output filename pattern for heavy footprints (with %i pattern); FITS')
+    parser.add_option('--root', dest='root', help='Root directory for Subaru data')
+    parser.add_option('--outroot', '-o', dest='outroot', help='Output root directory for Subaru data')
+    parser.add_option('-H', '--heavy', dest='heavypat', #default='heavy-%(visit)i-%(ccd)i-%(id)04i.fits',
+                      help='Input filename pattern for heavy footprints (with %i pattern); FITS')
     parser.add_option('--drill', '-D', dest='drill', action='append', type=str, default=[],
                       help='Drill down on individual source IDs')
     parser.add_option('--visit', dest='visit', type=int, default=108792, help='Suprimecam visit id')
@@ -65,7 +67,7 @@ def main():
     def savefig(fn):
         plt.savefig(opt.prefix + fn + opt.suffix)
 
-    dr = getDataref(opt.visit, opt.ccd)
+    dr = getDataref(opt.visit, opt.ccd, rootdir=opt.root, outrootdir=opt.outroot)
 
     keepids = None
     if len(opt.drill):
