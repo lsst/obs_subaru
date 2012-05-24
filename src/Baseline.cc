@@ -121,6 +121,7 @@ makeMonotonic(
 	int DW = std::max(cx - mimg.getX0(), mimg.getX0() + mimg.getWidth() - cx);
 	int DH = std::max(cy - mimg.getY0(), mimg.getY0() + mimg.getHeight() - cy);
 
+	/*
 	for (int dy=0; dy<DH; ++dy) {
 		for (int dx=0; dx<DW; ++dx) {
 			// find the pixels that "shadow" this pixel
@@ -151,6 +152,8 @@ makeMonotonic(
 				a = sinsq(dx, dy - 1);
 				s_shadow = s_shadow && (a >= alo) && (a <= ahi);
 			}
+			printf("dx,dy %i,%i: shadowed from %s%s%s\n", dx, dy,
+				   (w_shadow ? "W " : "  "), (sw_shadow ? "SW ": "   "), (s_shadow ? "S" : ""));
 			for (int signdx=1; signdx>=-1; signdx-=2) {
 				if (dx == 0 && signdx == -1)
 					break;
@@ -162,22 +165,23 @@ makeMonotonic(
 					int py = cy + signdy*dy - iy0;
 					if (px < 0 || px >= iW || py < 0 || py >= iH)
 						continue;
+
 					ImagePixelT pix = (*img)(px,py);
 					ImagePixelT minpix = pix;
-					//printf("pix (%i,%i): %f\n", px, py, pix);
+					printf("  pix at dx,dy (%+i, %+i) [%i,%i]: %f\n", signdx*dx, signdy*dy, px, py, pix);
 					assert(pix > -100000);
 					if (w_shadow && (px-signdx >= 0) && (px-signdx < iW)) {
 						minpix = std::min(minpix, (*img)(px - signdx, py));
-						//printf("  w pix (%i,%i): %f -> %f\n", px-signdx, py, (*img)(px - signdx, py), pix);
+						printf("    w pix (%i,%i): %f -> %f\n", px-signdx, py, (*img)(px - signdx, py), pix);
 					}
 					if (s_shadow && (py-signdy >= 0) && (py-signdy < iH)) {
 						minpix = std::min(minpix, (*img)(px, py - signdy));
-						//printf("  s pix (%i,%i): %f -> %f\n", px, py-signdy, (*img)(px, py - signdy), pix);
+						printf("    s pix (%i,%i): %f -> %f\n", px, py-signdy, (*img)(px, py - signdy), pix);
 					}
 					if (sw_shadow && (px-signdx >= 0) && (px-signdx < iW) &&
 						(py-signdy >= 0) && (py-signdy < iH)) {
 						minpix = std::min(minpix, (*img)(px - signdx, py - signdy));
-						//printf("  sw pix (%i,%i): %f -> %f\n", px-signdx, py-signdy, (*img)(px - signdx, py - signdy), pix);
+						printf("    sw pix (%i,%i): %f -> %f\n", px-signdx, py-signdy, (*img)(px - signdx, py - signdy), pix);
 					}
 					(*img)(px,py) = minpix;
 					if (pix > minpix + sigma1)
@@ -187,6 +191,122 @@ makeMonotonic(
 			}
 		}
 	}
+	 */
+
+	for (int dy=0; dy<DH; ++dy) {
+		for (int dx=0; dx<DW; ++dx) {
+			// find the pixels that this pixel "shadows"
+			// alo = sin^2(angle)
+			double alo,ahi;
+
+			if (dx == 0 && dy == 0) {
+				alo = 0.;
+				ahi = 1.;
+			} else {
+				// center of pixel...
+				alo = ahi = sinsq(dx, dy);
+			}
+			// bottom-right
+			if (dy > 0) {
+				alo = std::min(alo, sinsq(dx+0.5, dy-0.5));
+			}
+			// top-left
+			if (dx > 0) {
+				ahi = std::max(ahi, sinsq(dx-0.5, dy+0.5));
+			}
+			
+			double a;
+			// Does this pixel shadow the one to the east?
+			a = sinsq(dx + 1, dy);
+			bool shadows_e = (a >= alo && a <= ahi);
+			// Northeast?
+			a = sinsq(dx + 1, dy + 1);
+			bool shadows_ne = (a >= alo && a <= ahi);
+			// North?
+			a = sinsq(dx, dy + 1);
+			bool shadows_n = (a >= alo && a <= ahi);
+			
+			printf("dx,dy %i,%i: shadows %s%s%s\n", dx, dy,
+				   (shadows_e ? "E " : "  "), (shadows_ne ? "NE " : "   "), (shadows_n ? "N " : "  "));
+
+			// Apply this dx,dy in the four quadrants
+
+			// First +dx, then -dx
+			for (int signdx=1; signdx>=-1; signdx-=2) {
+				//if (dx == 0 && signdx == -1)
+				//break;
+				// First +dy, then -dy
+				for (int signdy=1; signdy>=-1; signdy-=2) {
+					//if (dy == 0 && signdy == -1)
+					//break;
+
+					// the pixel in this quadrant...
+					int px = cx + signdx*dx - ix0;
+					int py = cy + signdy*dy - iy0;
+					if (px < 0 || px >= iW || py < 0 || py >= iH)
+						continue;
+					ImagePixelT pix = (*img)(px,py);
+
+					printf("  pix at dx,dy (%+i, %+i) [%i,%i]: %f\n", signdx*dx, signdy*dy, px, py, pix);
+
+					ImagePixelT spix;
+
+					if (shadows_e) {
+						int sx = px + signdx;
+						// pixel to the east: shadowed and in-bounds?
+						if (sx >= 0 && sx < iW) {
+							spix = (*img)(sx, py);
+							printf("    pix to E  [%i,%i]: %.1f", sx, py, spix);
+							if (spix > pix) {
+								(*img)(sx, py) = pix;
+								printf("                   --->   %.1f", pix);
+							}
+							printf("\n");
+						}
+					}
+					if (shadows_ne) {
+						int sx = px + signdx;
+						int sy = py + signdy;
+						// pixel to the north-east: shadowed and in-bounds?
+						if (sx >= 0 && sx < iW && sy >= 0 && sy <= iH) {
+							spix = (*img)(sx, sy);
+							printf("    pix to NE [%i,%i]: %.1f", sx, sy, spix);
+							if (spix > pix) {
+								(*img)(sx, sy) = pix;
+								printf("                   --->   %.1f", pix);
+							}
+							printf("\n");
+						}
+					}
+					if (shadows_n) {
+						int sy = py + signdy;
+						// pixel to the north: shadowed and in-bounds?
+						if (sy >= 0 && sy < iH) {
+							spix = (*img)(px, sy);
+							printf("    pix to N  [%i,%i]: %.1f", px, sy, spix);
+							if (spix > pix) {
+								(*img)(px, sy) = pix;
+								printf("                   --->   %.1f", pix);
+							}
+							printf("\n");
+						}
+					}
+					//assert(pix > -100000);
+					//printf("    w pix (%i,%i): %f -> %f\n", px-signdx, py, (*img)(px - signdx, py), pix);
+					//printf("    s pix (%i,%i): %f -> %f\n", px, py-signdy, (*img)(px, py - signdy), pix);
+					//printf("    sw pix (%i,%i): %f -> %f\n", px-signdx, py-signdy, (*img)(px - signdx, py - signdy), pix);
+
+					//if (pix > minpix + sigma1)
+					//(*mask)(px,py) |= mono1sig;
+					//assert(minpix > -100000);
+				}
+			}
+		}
+	}
+
+
+
+
 }
 
 

@@ -219,6 +219,18 @@ def main():
             tsum[y0-py0:y1-py0, x0-px0:x1-px0] += tim
             cim = footprintToImage(cfp).getArray()
 
+            if opt.sec == 'median':
+                for im,nm in [(pkres.symm, 'symm'), (pkres.median, 'med')]:
+                    #print 'im:', im
+                    plt.clf()
+                    myimshow(im.getArray(), extent=cext, **imargs)
+                    plt.gray()
+                    plt.xticks([])
+                    plt.yticks([])
+                    plt.plot([pk.getIx()], [pk.getIy()], **pksty)
+                    plt.axis(pext)
+                    savefig(pid, nm + '%i' % (kk))
+
             plt.clf()
             myimshow(pkres.timg.getArray() / w, extent=cext, **imargs)
             plt.gray()

@@ -119,6 +119,9 @@ def deblend(footprint, maskedImage, psf, psffwhm,
             pkres.out_of_bounds = True
             continue
 
+        # for debugging purposes: copy the original symmetric template
+        pkres.symm = t1.getImage().Factory(t1.getImage(), True)
+
         # Smooth / filter
         if False:
             sig = 0.5
@@ -137,10 +140,12 @@ def deblend(footprint, maskedImage, psf, psffwhm,
             if t1.getWidth() > 5 and t1.getHeight() > 5:
                 log.logdebug('Median filtering template %i' % pkres.pki)
                 # We want the output to go in "t1", so copy it into "inimg" for input
-                t1im = t1
-                inimg = t1im.Factory(t1im, True)
-                outimg = t1im
+                inimg = t1.Factory(t1, True)
+                outimg = t1
                 butils.medianFilter(inimg, outimg, 2)
+
+                # save for debugging purposes
+                pkres.median = t1.getImage().Factory(t1.getImage(), True)
 
         if monotonic_template:
             log.logdebug('Making template %i monotonic' % pkres.pki)
