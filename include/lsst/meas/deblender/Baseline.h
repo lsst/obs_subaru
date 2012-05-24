@@ -46,7 +46,8 @@ namespace lsst {
                 buildSymmetricTemplate(MaskedImageT const& img,
                                        lsst::afw::detection::Footprint const& foot,
                                        lsst::afw::detection::Peak const& pk,
-                                       double sigma1);
+                                       double sigma1,
+                                       bool minZero);
 
                 static void
                 medianFilter(MaskedImageT const& img,

@@ -7,6 +7,7 @@ from matplotlib.patches import Ellipse
 import lsst.daf.persistence as dafPersist
 import lsst.afw.math as afwMath
 import lsst.afw.image as afwImage
+import lsst.afw.geom as afwGeom
 import lsst.afw.detection as afwDet
 import lsst.afw.table as afwTable
 import lsst.meas.algorithms as measAlg
@@ -194,7 +195,8 @@ def plotDeblendFamily(mi, parent, kids, srcs, sigma1, plotb=False, ellipses=True
     plt.yticks([])
     m = 0.25
     pax = [pext[0]-m, pext[1]+m, pext[2]-m, pext[3]+m]
-    plt.title('parent %i' % parent.getId())
+    pk = parent.getFootprint().getPeaks()[0]
+    plt.title('parent %i @ (%i,%i)' % (parent.getId(), pk.getIx(), pk.getIy()))
     Rx,Ry = [],[]
     tts = []
     stys = []
@@ -306,12 +308,22 @@ def getExtent(bb, addHigh=1):
     # so verbose...
     return (bb.getMinX(), bb.getMaxX()+addHigh, bb.getMinY(), bb.getMaxY()+addHigh)
 
-def cutCatalog(cat, ndeblends, keepids=None):
+def cutCatalog(cat, ndeblends, keepids=None, keepxys=None):
     fams = getFamilies(cat)
     if keepids:
         #print 'Keeping ids:', keepids
         #print 'parent ids:', [p.getId() for p,kids in fams]
         fams = [(p,kids) for (p,kids) in fams if p.getId() in keepids]
+    if keepxys:
+        keep = []
+        pts = [afwGeom.Point2I(x,y) for x,y in keepxys]
+        for p,kids in fams:
+            for pt in pts:
+                if p.getFootprint().contains(pt):
+                    keep.append((p,kids))
+                    break
+        fams = keep
+        
     if ndeblends:
         # We want to select the first "ndeblends" parents and all their children.
         fams = fams[:ndeblends]
@@ -324,7 +336,8 @@ def cutCatalog(cat, ndeblends, keepids=None):
     keepcat.sort()
     return keepcat
 
-def readCatalog(sourcefn, heavypat, ndeblends=0, dataref=None, keepids=None,
+def readCatalog(sourcefn, heavypat, ndeblends=0, dataref=None,
+                keepids=None, keepxys=None,
                 patargs=dict()):
     if sourcefn is None:
         cat = dataref.get('src')
@@ -338,8 +351,8 @@ def readCatalog(sourcefn, heavypat, ndeblends=0, dataref=None, keepids=None,
         print len(cat), 'sources'
     cat.sort()
 
-    if ndeblends or keepids:
-        cat = cutCatalog(cat, ndeblends, keepids)
+    if ndeblends or keepids or keepxys:
+        cat = cutCatalog(cat, ndeblends, keepids, keepxys)
         print 'Cut to', len(cat), 'sources'
 
     if heavypat is not None:
@@ -402,7 +415,7 @@ def getButler(rootdir=None, calibdir=None, outrootdir=None):
     butler = butlerFactory.create()
     return butler
 
-def getDataref(visit=126969, ccd=5, single=True, rootdir=None, calibdir=None, outrootdir=None):
+def getDataref(visit, ccd, single=True, rootdir=None, calibdir=None, outrootdir=None):
     butler = getButler(rootdir=rootdir, calibdir=calibdir, outrootdir=outrootdir)
     print 'Butler', butler
     dataRef = butler.subset('raw', dataId = dict(visit=visit, ccd=ccd))

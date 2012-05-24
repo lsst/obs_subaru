@@ -111,7 +111,7 @@ def deblend(footprint, maskedImage, psf, psffwhm,
             pkres.out_of_bounds = True
             continue
         log.logdebug('computing template for peak %i at (%i,%i)' % (pkres.pki, cx, cy))
-        S = butils.buildSymmetricTemplate(maskedImage, fp, pk, sigma1)
+        S = butils.buildSymmetricTemplate(maskedImage, fp, pk, sigma1, True)
         # SWIG doesn't know how to unpack an std::pair into a 2-tuple...
         t1, tfoot = S[0], S[1]
         if t1 is None:
@@ -135,8 +135,8 @@ def deblend(footprint, maskedImage, psf, psffwhm,
 
         if median_smooth_template:
             if t1.getWidth() > 5 and t1.getHeight() > 5:
-                # Place output back into input -- so create a copy first
                 log.logdebug('Median filtering template %i' % pkres.pki)
+                # We want the output to go in "t1", so copy it into "inimg" for input
                 t1im = t1
                 inimg = t1im.Factory(t1im, True)
                 outimg = t1im
@@ -161,12 +161,12 @@ def deblend(footprint, maskedImage, psf, psffwhm,
     if lstsq_weight_templates:
         # Reweight the templates by doing a least-squares fit to the image
         A = np.zeros((W * H, len(tmimgs)))
-        b = img.getArray()[fy0:fy1+1, fx0:fx1+1].ravel()
+        b = img.getArray()[y0:y1+1, x0:x1+1].ravel()
 
         for mim,i in zip(tmimgs, ibi):
             ibb = mim.getBBox(afwImage.PARENT)
             ix0,iy0 = ibb.getMinX(), ibb.getMinY()
-            pkres = fpres.peaks[i]
+            pkres = res.peaks[i]
             foot = pkres.tfoot
             ima = mim.getImage().getArray()
             for sp in foot.getSpans():
@@ -182,7 +182,7 @@ def deblend(footprint, maskedImage, psf, psffwhm,
         for mim,i,w in zip(tmimgs, ibi, X1):
             im = mim.getImage()
             im *= w
-            fpres.peaks[i].tweight = w
+            res.peaks[i].tweight = w
 
     # Now apportion flux according to the templates
     log.logdebug('Apportioning flux among %i templates' % len(tmimgs))

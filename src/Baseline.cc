@@ -458,7 +458,8 @@ buildSymmetricTemplate(
 	MaskedImageT const& img,
 	det::Footprint const& foot,
 	det::Peak const& peak,
-	double sigma1) {
+	double sigma1,
+	bool minZero) {
 
 	typedef typename MaskedImageT::const_xy_locator xy_loc;
 	typedef typename det::Footprint::SpanList SpanList;
@@ -503,6 +504,9 @@ buildSymmetricTemplate(
 			ImagePixelT pixf = theimg->get0(fx, fy);
 			ImagePixelT pixb = theimg->get0(bx, by);
 			ImagePixelT pix = std::min(pixf, pixb);
+			if (minZero) {
+				pix = std::max(pix, static_cast<ImagePixelT>(0));
+			}
 			targetimg->set0(fx, fy, pix);
 			targetimg->set0(bx, by, pix);
 

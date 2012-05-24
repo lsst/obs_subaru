@@ -24,10 +24,13 @@ def main():
                       help='Input filename pattern for heavy footprints (with %i pattern); FITS')
     parser.add_option('--drill', '-D', dest='drill', action='append', type=str, default=[],
                       help='Drill down on individual source IDs')
+    parser.add_option('--drillxy', dest='drillxy', action='append', type=str, default=[],
+                      help='Drill down on individual source positions, eg 132,46;54,67')
     parser.add_option('--visit', dest='visit', type=int, default=108792, help='Suprimecam visit id')
     parser.add_option('--ccd', dest='ccd', type=int, default=5, help='Suprimecam CCD number')
     parser.add_option('--prefix', dest='prefix', default='design-', help='plot filename prefix')
     parser.add_option('--suffix', dest='suffix', default=None, help='plot filename suffix (default: ".png")')
+    parser.add_option('--pat', dest='pat', help='Plot filename pattern: eg, "design-%(pid)04i-%(name).png"; overrides --prefix and --suffix')
     parser.add_option('--pdf', dest='pdf', action='store_true', default=False, help='save in PDF format?')
     parser.add_option('-v', dest='verbose', action='store_true')
     parser.add_option('--figw', dest='figw', type=float, help='Figure window width (inches)',
@@ -54,6 +57,11 @@ def main():
     if not opt.suffix:
         opt.suffix = '.png'
 
+    if opt.pat:
+        plotpattern = opt.pat
+    else:
+        plotpattern = opt.prefix + '%(pid)04i-%(name)s' + opt.suffix
+
     if opt.order is not None:
         opt.order = [int(x) for x in opt.order.split(',')]
         invorder = np.zeros(len(opt.order))
@@ -64,8 +72,9 @@ def main():
             return i
         return invorder[i]
 
-    def savefig(fn):
-        plt.savefig(opt.prefix + fn + opt.suffix)
+    def savefig(pid, figname):
+        fn = plotpattern % dict(pid=pid, name=figname)
+        plt.savefig(fn)
 
     dr = getDataref(opt.visit, opt.ccd, rootdir=opt.root, outrootdir=opt.outroot)
 
@@ -76,8 +85,19 @@ def main():
             for dd in d.split(','):
                 keepids.append(int(dd))
         print 'Keeping parent ids', keepids
+
+    keepxys = None
+    if len(opt.drillxy):
+        keepxys = []
+        for d in opt.drillxy:
+            for dd in d.split(';'):
+                xy = dd.split(',')
+                assert(len(xy) == 2)
+                keepxys.append((int(xy[0]),int(xy[1])))
+        print 'Keeping parents at xy', keepxys
         
     cat = readCatalog(None, opt.heavypat, dataref=dr, keepids=keepids,
+                      keepxys=keepxys,
                       patargs=dict(visit=opt.visit, ccd=opt.ccd))
     print 'Got', len(cat), 'sources'
     
@@ -132,7 +152,7 @@ def main():
         plt.gray()
         plt.xticks([])
         plt.yticks([])
-        savefig('%04i-image' % pid)
+        savefig(pid, 'image')
         
         plt.clf()
         myimshow(pim, extent=pext, **imargs)
@@ -142,7 +162,7 @@ def main():
         plt.xticks([])
         plt.yticks([])
         plt.axis(pext)
-        savefig('%04i-parent' % pid)
+        savefig(pid, 'parent')
 
         from lsst.meas.deblender.baseline import deblend
 
@@ -206,7 +226,7 @@ def main():
             plt.yticks([])
             plt.plot([pk.getIx()], [pk.getIy()], **pksty)
             plt.axis(pext)
-            savefig('%04i-t%i' % (pid,kk))
+            savefig(pid, 't%i' % (kk))
 
             plt.clf()
             myimshow(tim, extent=cext, **imargs)
@@ -215,7 +235,7 @@ def main():
             plt.yticks([])
             plt.plot([pk.getIx()], [pk.getIy()], **pksty)
             plt.axis(pext)
-            savefig('%04i-tw%i' % (pid,kk))
+            savefig(pid, 'tw%i' % (kk))
 
             plt.clf()
             myimshow(cim, extent=cext, **imargs)
@@ -224,7 +244,7 @@ def main():
             plt.yticks([])
             plt.plot([pk.getIx()], [pk.getIy()], **pksty)
             plt.axis(pext)
-            savefig('%04i-h%i' % (pid,kk))
+            savefig(pid, 'h%i' % (kk))
 
             k += 1
 
@@ -235,7 +255,7 @@ def main():
         plt.yticks([])
         plt.plot([pk.getIx() for pk in pks], [pk.getIy() for pk in pks], **pksty)
         plt.axis(pext)
-        savefig('%04i-tsum' % (pid))
+        savefig(pid, 'tsum')
 
         k = 0
         for pkres,pk in zip(res.peaks, pks):
@@ -265,7 +285,7 @@ def main():
             plt.plot([pk.getIx()], [pk.getIy()], **pksty)
             plt.gca().set_axis_bgcolor((0.9,0.9,0.5))
             plt.axis(pext)
-            savefig('%04i-f%i' % (pid,mapchild(k)))
+            savefig(pid, 'f%i' % (mapchild(k)))
 
             k += 1
 
