@@ -1,8 +1,13 @@
 \documentclass[10pt,letter]{article}
 \usepackage{graphicx}
+\graphicspath{{design-figs/}}
 \usepackage{fullpage}
 \usepackage{multirow}
 \usepackage{array}
+
+% Add used figures to git:
+
+% for x in $(grep 'use .*pdf' design.log | sed 's/<use //g' | tr '>' ' '); do git add $x; done
 
 \author{Dustin Lang}
 \title{Development of a Deblender}
@@ -73,7 +78,7 @@ templates.
 This process is illustrated in \figref{fig:sdss1}.
 
 \begin{figure}[p]
-\newcommand{\exfig}[1]{\includegraphics[width=0.12\textheight]{design-0828-#1}}
+\newcommand{\exfig}[1]{\includegraphics[width=0.12\textheight]{design-sdss-#1}}
 \begin{center}
 \begin{tabular}{m{1.5in}CCC}
   Original image& & \exfig{image} \\
@@ -124,7 +129,7 @@ biases in the galaxy shape measurements.
 
 \begin{figure}[p]
 \setlength{\colw}{0.12\textheight}
-\newcommand{\exfig}[1]{\includegraphics[width=\colw]{design-1173-#1}}
+\newcommand{\exfig}[1]{\includegraphics[width=\colw]{design-mono1-#1}}
 \begin{center}
 \begin{tabular}{m{1in}CCC}
   Parent footprint & & \exfig{parent} \\
@@ -136,7 +141,7 @@ biases in the galaxy shape measurements.
 \vspace{3em}
 %
 \setlength{\colw}{0.12\textheight}
-\renewcommand{\exfig}[1]{\includegraphics[height=\colw,angle=90]{design-2439-#1}}
+\renewcommand{\exfig}[1]{\includegraphics[height=\colw,angle=90]{design-mono3-#1}}
 \begin{tabular}{m{1in}CCCC}
   Parent footprint & \mcol{4}{\exfig{parent}} \\
   Weighted templates & \exfig{tw0} & \exfig{tw1} & \exfig{tw2} & \exfig{tw3} \\
@@ -156,8 +161,8 @@ biases in the galaxy shape measurements.
 
 \begin{figure}[p]
 \begin{center}
-\newcommand{\exfig}[1]{\includegraphics[width=0.12\textheight]{design-mono-1173-#1}}
-\newcommand{\befig}[1]{\includegraphics[width=0.12\textheight]{design-1173-#1}}
+\newcommand{\exfig}[1]{\includegraphics[width=0.12\textheight]{design-mono2-#1}}
+\newcommand{\befig}[1]{\includegraphics[width=0.12\textheight]{design-mono1-#1}}
 \begin{tabular}{m{1in}CCC}
   Parent footprint & & \exfig{parent} & \\
   Weighted templates (before) & \befig{tw0} & \befig{tw1} & \befig{tw2} \\
@@ -173,8 +178,8 @@ biases in the galaxy shape measurements.
 
 \begin{figure}[p]
 \begin{center}
-\newcommand{\exfig}[1]{\includegraphics[height=0.12\textheight,angle=90]{design-mono-2439-#1}}
-\newcommand{\befig}[1]{\includegraphics[height=0.12\textheight,angle=90]{design-2439-#1}}
+\newcommand{\exfig}[1]{\includegraphics[height=0.12\textheight,angle=90]{design-mono4-#1}}
+\newcommand{\befig}[1]{\includegraphics[height=0.12\textheight,angle=90]{design-mono3-#1}}
 \begin{tabular}{m{1in}CCCC}
   Parent footprint & \mcol{4}{\exfig{parent}} \\
   Weighted templates (before) & \befig{tw0} & \befig{tw1} & \befig{tw2} & \befig{tw3} \\
@@ -205,8 +210,8 @@ constraint.
 
 \begin{figure}[p]
 \begin{center}
-\newcommand{\exfig}[1]{\includegraphics[width=0.12\textheight]{design-med-1173-#1}}
-\newcommand{\befig}[1]{\includegraphics[width=0.12\textheight]{design-mono-1173-#1}}
+\newcommand{\exfig}[1]{\includegraphics[width=0.12\textheight]{design-med1-#1}}
+\newcommand{\befig}[1]{\includegraphics[width=0.12\textheight]{design-mono2-#1}}
 \begin{tabular}{m{1in}CCC}
   Parent footprint & & \exfig{parent} & \\
   Weighted templates (before) & \befig{tw0} & \befig{tw1} & \befig{tw2} \\
@@ -222,8 +227,8 @@ constraint.
 
 \begin{figure}[p]
 \begin{center}
-\newcommand{\exfig}[1]{\includegraphics[height=0.12\textheight,angle=90]{design-med-2439-#1}}
-\newcommand{\befig}[1]{\includegraphics[height=0.12\textheight,angle=90]{design-mono-2439-#1}}
+\newcommand{\exfig}[1]{\includegraphics[height=0.12\textheight,angle=90]{design-med2-#1}}
+\newcommand{\befig}[1]{\includegraphics[height=0.12\textheight,angle=90]{design-mono4-#1}}
 \begin{tabular}{m{1in}CCCC}
   Parent footprint & \mcol{4}{\exfig{parent}} \\
   Weighted templates (before) & \befig{tw0} & \befig{tw1} & \befig{tw2} & \befig{tw3} \\
