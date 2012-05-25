@@ -1,4 +1,6 @@
 
+#include <list>
+
 #include "lsst/meas/deblender/Baseline.h"
 #include "lsst/pex/logging.h"
 #include "lsst/afw/geom/Box.h"
@@ -94,6 +96,77 @@ medianFilter(MaskedImageT const& img,
 
 }
 
+namespace {
+//template<typename ImagePixelT>
+class Shadow {
+public:
+	//Shadow(double lo, double hi, ImagePixelT val, double R=0) :
+	Shadow(double lo, double hi, float val, double R=0) :
+		_lo(lo), _hi(hi), _val(val), _R(R) {}
+
+	//bool operator<(const Shadow<typename ImagePixelT> other) const {
+	bool operator<(const Shadow other) const {
+		return _lo < other._lo;
+	}
+
+	bool operator<(const double a) const {
+		return _lo < a;
+	}
+	/*
+	 bool operator<=(const double a) const {
+	 return _lo <= a;
+	 }
+	 */
+
+	double _lo;
+	double _hi;
+	//ImagePixelT _val;
+	float _val;
+	double _R;
+};
+
+	/* neeeded for std::upper_bound
+	 bool operator<(double a, const Shadow s) {
+	 return a < s._lo;
+	 }
+	 */
+	/*
+	 bool operator>=(double a, const Shadow s) {
+	 return a >= s._lo;
+	 }
+	 */
+
+};
+
+static double rad2deg(double x) {
+	return 180./(M_PI) * x;
+}
+
+static double myatan2(double y, double x) {
+	double a = std::atan2(y, x);
+	if (a < 0.) {
+		a += (2.*M_PI);
+	}
+	return a;
+}
+
+/*
+ static double hypot(double x1, double x2) {
+ return std::sqrt(x1*x1 + x2*x2);
+ }
+ */
+
+typedef Shadow ShadowT;
+static void printShadows(std::vector<ShadowT>& shadows) {
+	typedef std::vector<ShadowT>::iterator shadowiter;
+	printf("Shadows:\n");
+	for (shadowiter sh=shadows.begin(); sh != shadows.end(); sh++) {
+		printf("  [%.1f, %.1f), %.1f\n", rad2deg(sh->_lo), rad2deg(sh->_hi), sh->_val);
+	}
+}
+
+
+
 
 template<typename ImagePixelT, typename MaskPixelT, typename VariancePixelT>
 void
@@ -121,9 +194,227 @@ makeMonotonic(
 	int DW = std::max(cx - mimg.getX0(), mimg.getX0() + mimg.getWidth() - cx);
 	int DH = std::max(cy - mimg.getY0(), mimg.getY0() + mimg.getHeight() - cy);
 
+	//typedef Shadow<typename ImagePixelT> ShadowT;
+	typedef Shadow ShadowT;
+
+	//std::list<ShadowT> shadows;
+	// requires less thinking...
+	std::vector<ShadowT> shadows;
+
+	// FIXME -- overkill
+	shadows.reserve(iW * iH);
+
+	typedef std::vector<ShadowT>::iterator shadowiter;
+
+	// peak pixel
+	shadows.push_back(ShadowT(0, 2.*M_PI, (*img)(cx,cy), 0.));
+
+	for (int absdy=0; absdy<=DH; ++absdy) {
+		for (int absdx=0; absdx<=DW; ++absdx) {
+			// FIXME -- we could use a monotonic nonlinear mapping (like sin^2(theta) + f(quadrant))
+			// instead of the angle per se.
+			//double a = sinsq(dx, dy);
+
+			for (int signdx=1; signdx>=-1; signdx-=2) {
+				if (absdx == 0 && signdx == -1)
+					break;
+				for (int signdy=1; signdy>=-1; signdy-=2) {
+					if (absdy == 0 && signdy == -1)
+						break;
+
+					// FIXME -- might be better to switch the nesting of the quadrants and absdx,dy loops
+
+					int dx = absdx * signdx;
+					int dy = absdy * signdy;
+
+					int px = cx + dx - ix0;
+					int py = cy + dy - iy0;
+					if (px < 0 || px >= iW || py < 0 || py >= iH)
+						continue;
+
+					shadowiter sh;
+
+					double a = myatan2(dy, dx);
+					ImagePixelT pix = (*img)(px,py);
+
+					printf("\n");
+					printf("dx=%i, dy=%i, a=%.1f deg, pix=%.1f\n", dx, dy, rad2deg(a), pix);
+					printShadows(shadows);
+
+					sh = std::lower_bound(shadows.begin(), shadows.end(), a);
+
+					if (sh == shadows.begin()) {
+						//printf("-> begin\n");
+					} else if (sh == shadows.end()) {
+						//printf("-> end\n");
+						sh--;
+					} else {
+						//printf("-> %.1f deg\n", rad2deg(sh->_lo));
+					}
+
+					if (a < sh->_lo) {
+						assert(sh != shadows.begin());
+						sh--;
+					}
+					/*
+					 else if (a >= sh->_hi) {
+					 if (sh == shadows.begin()) {
+					 sh = shadows.end()-1;
+					 } else {
+					 sh--;
+					 }
+					 }
+					 */
+
+					printf("falls in:  [%.1f, %.1f), %.1f\n", rad2deg(sh->_lo), rad2deg(sh->_hi), sh->_val);
+
+					assert(a >= sh->_lo);
+					assert(a <= sh->_hi);
+
+					const double DSH = 0.4;
+
+					if (sh->_val <= pix) {
+						(*img)(px,py) = sh->_val;
+						printf("shadowed.\n");
+					} else {
+						double alo, ahi;
+						// insert
+						if ((dy == 0) && (signdx > 0)) {
+							// special-case zero-angle wrap-around
+							// [0, x)
+							printf("inserting wrap-around pair\n");
+							ahi = myatan2(dy + DSH, dx - DSH);
+							alo = 0.;
+							// update old first element.
+							shadows.begin()->_lo = ahi;
+							shadows.insert(shadows.begin(), ShadowT(alo, ahi, pix, hypot(dx, dy)));
+
+							// [-x, 2PI)
+							alo = myatan2(dy - DSH, dx - DSH);
+							ahi = 2.*M_PI;
+							// update old last element.
+							(shadows.end()-1)->_hi = alo;
+							shadows.insert(shadows.end(), ShadowT(alo, ahi, pix, hypot(dx, dy)));
+
+							printShadows(shadows);
+
+						} else {
+							// FIXME -- we know these will be the bottom-right and top-left,
+							// mod quadrant...
+							alo = ahi = a;
+							double aa;
+							aa = myatan2(dy - DSH, dx - DSH);
+							alo = std::min(alo, aa);
+							ahi = std::max(ahi, aa);
+							aa = myatan2(dy - DSH, dx + DSH);
+							alo = std::min(alo, aa);
+							ahi = std::max(ahi, aa);
+							aa = myatan2(dy + DSH, dx - DSH);
+							alo = std::min(alo, aa);
+							ahi = std::max(ahi, aa);
+							aa = myatan2(dy + DSH, dx + DSH);
+							alo = std::min(alo, aa);
+							ahi = std::max(ahi, aa);
+
+							printf("  New shadow [%.1f, %.1f), %.1f\n", rad2deg(alo), rad2deg(ahi), pix);
+
+							ShadowT newsh = ShadowT(alo, ahi, pix, hypot(dx, dy));
+
+							if (alo == sh->_lo && ahi == sh->_hi) {
+								printf("special case 1: new range == old range!\n");
+								*sh = newsh;
+							} else {
+
+								if ((newsh._lo < sh->_lo) &&
+									(sh != shadows.begin())) {
+									// check previous guy:
+									printf("  prev value: %.1f\n", (sh-1)->_val);
+									if ((sh-1)->_val < pix) {
+										// previous is smaller; clip newsh
+										newsh._lo = (sh-1)->_hi;
+										printf("  clipping new guy to [%.1f, %.1f), %.1f\n", rad2deg(newsh._lo), rad2deg(newsh._hi), pix);
+									} else {
+										// previous is bigger; clip previous
+										(sh-1)->_hi = newsh._lo;
+										printf("  clipping prev guy to [%.1f, %.1f), %.1f\n", rad2deg((sh-1)->_lo), rad2deg((sh-1)->_hi), (sh-1)->_val);
+									}
+								}
+								if ((newsh._hi > sh->_hi) &&
+									(sh+1 != shadows.end())) {
+									// check next guy:
+									printf("  next value: %.1f\n", (sh+1)->_val);
+									if ((sh+1)->_val < pix) {
+										// next is smaller; clip newsh
+										newsh._hi = (sh+1)->_lo;
+										printf("  clipping new guy to [%.1f, %.1f), %.1f\n", rad2deg(newsh._lo), rad2deg(newsh._hi), pix);
+									} else {
+										// next is bigger; clip next guy
+										(sh+1)->_lo = newsh._hi;
+										printf("  clipping next guy to [%.1f, %.1f), %.1f\n", rad2deg((sh+1)->_lo), rad2deg((sh+1)->_hi), (sh+1)->_val);
+									}
+								}
+
+								if (newsh._lo <= sh->_lo && newsh._hi >= sh->_hi) {
+
+									printf("case 1a: newsh is larger than (replaces) sh\n");
+									*sh = newsh;
+
+								} else if (newsh._lo <= sh->_lo) {
+									// && ahi < sh->_hi
+
+									printf("case 1b: inserting *before* sh\n");
+									// clip sh
+									sh->_lo = newsh._hi;
+									// newsh gets inserted *before* sh
+									shadows.insert(sh, newsh);
+
+								} else if (newsh._lo > sh->_lo && newsh._hi < sh->_hi) {
+
+									printf("case 3: splitting sh\n");
+									// splits sh; order will be:
+									//   sh  --  newsh  -- sh2
+									ShadowT sh2(newsh._hi, sh->_hi, sh->_val, sh->_R);
+									// sh's range gets clipped
+									sh->_hi = newsh._lo;
+									shadowiter ish = shadows.insert(sh+1, newsh);
+									// insert sh2 after newsh
+									shadows.insert(ish+1, sh2);
+
+								} else {
+
+									printf("case 2: inserting after sh\n");
+									// alo > sh->_lo  &&  ahi > sh->_hi
+									// insert after sh
+									// sh's range gets clipped
+									sh->_hi = newsh._lo;
+									// newsh gets inserted *after* sh
+									shadows.insert(sh+1, newsh);
+								}
+							}
+							printShadows(shadows);
+						}
+					}
+
+					// Check that it still satisfies constraints...
+					sh = shadows.begin();
+					assert(sh->_lo == 0.);
+					for (; sh != shadows.end(); sh++) {
+						// FIXME -- this allows empty ranges
+						assert(sh->_lo <= sh->_hi);
+						if (sh+1 != shadows.end())
+							assert(sh->_hi == (sh+1)->_lo);
+					}
+					sh--;
+					assert(fabs(sh->_hi - 2.*M_PI) < 1e-12);
+
+
+				}
+			}
+		}
+	}
+
+
 	/*
-	for (int dy=0; dy<DH; ++dy) {
-		for (int dx=0; dx<DW; ++dx) {
 			// find the pixels that "shadow" this pixel
 			// alo = sin^2(angle)
 			double alo,ahi;
@@ -191,7 +482,6 @@ makeMonotonic(
 			}
 		}
 	}
-	 */
 
 	for (int dy=0; dy<DH; ++dy) {
 		for (int dx=0; dx<DW; ++dx) {
@@ -303,7 +593,7 @@ makeMonotonic(
 			}
 		}
 	}
-
+	 */
 
 
 
