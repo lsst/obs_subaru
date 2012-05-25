@@ -37,7 +37,7 @@ if os.path.exists(registry):
     os.unlink(registry)
 conn = sqlite.connect(registry)
 
-Row = collections.namedtuple("Row", ["calibDate", "filter", "mystery", "num", "ccd"])
+Row = collections.namedtuple("Row", ["calibDate", "mystery", "num", "ccd"])
 
 for calib in ('bias', 'dark', 'flat', 'fringe'):
     cmd = "create table " + calib.lower() + " (id integer primary key autoincrement"
@@ -47,7 +47,7 @@ for calib in ('bias', 'dark', 'flat', 'fringe'):
     conn.execute(cmd)
     conn.commit()
 
-    rows = list()
+    rowsPerFilter = dict()
 
     for fits in glob.glob(os.path.join(opts.root, calib.upper(), "20*-*-*", "?-?-*", "*",
                                        calib.upper() + "-*.fits*")):
@@ -62,34 +62,38 @@ for calib in ('bias', 'dark', 'flat', 'fringe'):
         year, month, day, filterName, mystery, num, ccd = m.groups()
 
         date = datetime.date(int(year), int(month), int(day))
-        rows.append(Row(date, filterName, mystery, num, ccd))
+        if filterName not in rowsPerFilter:
+            rowsPerFilter[filterName] = list()
+        rowsPerFilter[filterName].append(Row(date, mystery, num, ccd))
+
 
     # Fix up the validStart,validEnd so there are no overlaps
-    rows.sort(key=lambda row: row.calibDate)
-    validity = datetime.timedelta(opts.validity)
-    valids = collections.OrderedDict([(row.calibDate, [row.calibDate - validity,
-                                                       row.calibDate + validity]) for row in rows])
-    dates = valids.keys()
-    numDates = len(dates)
-    midpoints = [ t1 + (t2 - t1)//2 for t1, t2 in zip(dates[:numDates-1], dates[1:]) ]
-    for i, (date, midpoint) in enumerate(zip(dates[:numDates-1], midpoints)):
-        if valids[date][1] > midpoint:
-            nextDate = dates[i+1]
-            #print "Adjusting: %d %s --> %s : %s vs %s" % (i, date, nextDate, valids[date][1], midpoint)
-            valids[nextDate][0] = midpoint
-            valids[date][1] = midpoint
-    del midpoints
-    del dates
+    for filterName, rows in rowsPerFilter.items():
+        rows.sort(key=lambda row: row.calibDate)
+        validity = datetime.timedelta(opts.validity)
+        valids = collections.OrderedDict([(row.calibDate, [row.calibDate - validity,
+                                                           row.calibDate + validity]) for row in rows])
+        dates = valids.keys()
+        numDates = len(dates)
+        midpoints = [ t1 + (t2 - t1)//2 for t1, t2 in zip(dates[:numDates-1], dates[1:]) ]
+        for i, (date, midpoint) in enumerate(zip(dates[:numDates-1], midpoints)):
+            if valids[date][1] > midpoint:
+                nextDate = dates[i+1]
+                #print "Adjusting: %d %s --> %s : %s vs %s" % (i, date, nextDate, valids[date][1], midpoint)
+                valids[nextDate][0] = midpoint
+                valids[date][1] = midpoint
+        del midpoints
+        del dates
 
-    for row in rows:
-        calibDate = row.calibDate.isoformat()
-        validStart = valids[row.calibDate][0].isoformat()
-        validEnd = valids[row.calibDate][1].isoformat()
+        for row in rows:
+            calibDate = row.calibDate.isoformat()
+            validStart = valids[row.calibDate][0].isoformat()
+            validEnd = valids[row.calibDate][1].isoformat()
 
-        # print "%f --> %f %f" % (calibDate, validStart, validEnd)
+            # print "%f --> %f %f" % (calibDate, validStart, validEnd)
 
-        conn.execute("INSERT INTO " + calib.lower() + " VALUES (NULL, ?, ?, ?, ?, ?, ?, ?)",
-                     (validStart, validEnd, calibDate, row.filter, row.mystery, row.num, row.ccd))
+            conn.execute("INSERT INTO " + calib.lower() + " VALUES (NULL, ?, ?, ?, ?, ?, ?, ?)",
+                         (validStart, validEnd, calibDate, filterName, row.mystery, row.num, row.ccd))
         
 
 conn.commit()
