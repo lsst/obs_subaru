@@ -323,35 +323,92 @@ makeMonotonic(
 							if (alo == sh->_lo && ahi == sh->_hi) {
 								printf("special case 1: new range == old range!\n");
 								*sh = newsh;
+
+							} else if (alo >= sh->_lo && ahi <= sh->_hi) {
+
+								printf("special case 2: new range is within old range!\n");
+								// new guy is contained within old guy; old guy is split
+								//   sh  --  newsh  -- sh2
+								// sh's range gets clipped
+								ShadowT sh2(newsh._hi, sh->_hi, sh->_val, sh->_R);
+								sh->_hi = newsh._lo;
+								shadowiter ish = shadows.insert(sh+1, newsh);
+								// insert sh2 after newsh
+								shadows.insert(ish+1, sh2);
+
 							} else {
 
+								assert(alo > 0);
+
+								shadowiter shmax = sh;
+
+								// seek backward until we find the sh containing alo.
+								//while (newsh._lo < sh->_lo) {
+								while ((newsh._lo < sh->_lo) && (sh->_val >= pix)) {
+									assert(sh != shadows.begin());
+									// ?
+									assert(sh->_val >= pix);
+									sh--;
+								}
+								/*
+								 assert(newsh._lo >= sh->_lo);
+								 assert(newsh._lo <= sh->_hi);
+								 */
+								printf("  sh: [%.1f, %.1f), %.1f\n", rad2deg(sh->_lo), rad2deg(sh->_hi), sh->_val);
+
+								// seek forward until we find the sh containing ahi.
+								//while (newsh._hi > shmax->_hi) {
+								while ((newsh._hi > shmax->_hi) && (shmax->_val >= pix)) {
+									// ?
+									assert(shmax->_val >= pix);
+									shmax++;
+									assert(shmax != shadows.end());
+								}
+								/*
+								 assert(newsh._hi >= shmax->_lo);
+								 assert(newsh._hi <= shmax->_hi);
+								 */
+								printf("  shmax: [%.1f, %.1f), %.1f\n", rad2deg(shmax->_lo), rad2deg(shmax->_hi), shmax->_val);
+
+								// low end: adjust boundary
+								printf("  sh value: %.1f\n", sh->_val);
+								if (sh->_val < pix) {
+									// existing one smaller; clip newsh
+									newsh._lo = sh->_hi;
+									printf("  clipping new guy to [%.1f, %.1f), %.1f\n", rad2deg(newsh._lo), rad2deg(newsh._hi), pix);
+								} else {
+									// existing one is bigger; clip
+									sh->_hi = newsh._lo;
+									printf("  clipping low guy to [%.1f, %.1f), %.1f\n", rad2deg((sh)->_lo), rad2deg((sh)->_hi), (sh)->_val);
+								}
+
+								// high end: adjust boundary
+								printf("  shmax value: %.1f\n", shmax->_val);
+								if (shmax->_val < pix) {
+									// next is smaller; clip newsh
+									newsh._hi = shmax->_lo;
+									printf("  clipping new guy to [%.1f, %.1f), %.1f\n", rad2deg(newsh._lo), rad2deg(newsh._hi), pix);
+								} else {
+									// next is bigger; clip next guy
+									shmax->_lo = newsh._hi;
+									printf("  clipping shmax to [%.1f, %.1f), %.1f\n", rad2deg((shmax)->_lo), rad2deg((shmax)->_hi), (shmax)->_val);
+								}
+
+								size_t nrange = shmax - sh;
+								shadowiter shnew = shadows.insert(shmax, newsh);
+								sh = shnew - nrange;
+								sh++;
+								shadows.erase(sh, shnew);
+
+								/*
 								if ((newsh._lo < sh->_lo) &&
 									(sh != shadows.begin())) {
 									// check previous guy:
 									printf("  prev value: %.1f\n", (sh-1)->_val);
 									if ((sh-1)->_val < pix) {
-										// previous is smaller; clip newsh
-										newsh._lo = (sh-1)->_hi;
-										printf("  clipping new guy to [%.1f, %.1f), %.1f\n", rad2deg(newsh._lo), rad2deg(newsh._hi), pix);
-									} else {
-										// previous is bigger; clip previous
-										(sh-1)->_hi = newsh._lo;
-										printf("  clipping prev guy to [%.1f, %.1f), %.1f\n", rad2deg((sh-1)->_lo), rad2deg((sh-1)->_hi), (sh-1)->_val);
-									}
 								}
 								if ((newsh._hi > sh->_hi) &&
 									(sh+1 != shadows.end())) {
-									// check next guy:
-									printf("  next value: %.1f\n", (sh+1)->_val);
-									if ((sh+1)->_val < pix) {
-										// next is smaller; clip newsh
-										newsh._hi = (sh+1)->_lo;
-										printf("  clipping new guy to [%.1f, %.1f), %.1f\n", rad2deg(newsh._lo), rad2deg(newsh._hi), pix);
-									} else {
-										// next is bigger; clip next guy
-										(sh+1)->_lo = newsh._hi;
-										printf("  clipping next guy to [%.1f, %.1f), %.1f\n", rad2deg((sh+1)->_lo), rad2deg((sh+1)->_hi), (sh+1)->_val);
-									}
 								}
 
 								if (newsh._lo <= sh->_lo && newsh._hi >= sh->_hi) {
@@ -390,6 +447,8 @@ makeMonotonic(
 									// newsh gets inserted *after* sh
 									shadows.insert(sh+1, newsh);
 								}
+							}
+								 */
 							}
 							printShadows(shadows);
 						}
