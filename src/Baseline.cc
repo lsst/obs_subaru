@@ -7,6 +7,10 @@
 
 #include "lsst/meas/algorithms/detail/SdssShape.h"
 
+#include <boost/math/special_functions/round.hpp>
+
+using boost::math::iround;
+
 namespace image = lsst::afw::image;
 namespace det = lsst::afw::detection;
 namespace deblend = lsst::meas::deblender;
@@ -166,12 +170,125 @@ static void printShadows(std::vector<ShadowT>& shadows) {
 }
 
 
-
-
 template<typename ImagePixelT, typename MaskPixelT, typename VariancePixelT>
 void
 deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::
 makeMonotonic(
+	MaskedImageT & mimg,
+	det::Footprint const& foot,
+	det::Peak const& peak,
+	double sigma1) {
+
+	int cx = peak.getIx();
+	int cy = peak.getIy();
+	int ix0 = mimg.getX0();
+	int iy0 = mimg.getY0();
+	int iW = mimg.getWidth();
+	int iH = mimg.getHeight();
+
+	ImagePtrT img = mimg.getImage();
+	MaskPtrT mask = mimg.getMask();
+
+	MaskPixelT mono1sig = mask->getPlaneBitMask("MONOTONIC_1SIG");
+
+	int DW = std::max(cx - mimg.getX0(), mimg.getX0() + mimg.getWidth() - cx);
+	int DH = std::max(cy - mimg.getY0(), mimg.getY0() + mimg.getHeight() - cy);
+
+	ImagePtrT origimg = ImagePtrT(new ImageT(*img, true));
+
+	const int S = 5;
+
+	int s;
+	for (s = 0; s < std::max(DW,DH); s += S) {
+		int p;
+		for (p=0; p<S; p++) {
+			// visit pixels with L_inf distance = s + p from the center
+			// (ie, the s+p'th square ring of pixels)
+			int L = s+p;
+			int i;
+
+			int x = L, y = -L;
+			int dx, dy;
+			int leg;
+			for (i=0; i<(8*L); i++, x += dx, y += dy) {
+				if (i % (2*L) == 0) {
+					leg = (i/(2*L));
+					dx = ( leg    % 2) * (-1 + 2*(leg/2));
+					dy = ((leg+1) % 2) * ( 1 - 2*(leg/2));
+					//printf("Leg %i: dx=%i, dy=%i\n", leg, dx, dy);
+				}
+				//printf("x = %i %+i, y = %i %+i\n", x, dx, y, dy);
+
+				int px = cx + x - ix0;
+				int py = cy + y - iy0;
+				if (px < 0 || px >= iW || py < 0 || py >= iH)
+					continue;
+				ImagePixelT pix = (*origimg)(px,py);
+
+				//printf("Visiting pixel x,y = %i,%i\n", x, y);
+
+				// Cast this pixel's shadow S pixels long in a cone centered on angle "a"
+				//double a = std::atan2(dy, dx);
+				double ds0, ds1;
+				int shx, shy;
+				int psx, psy;
+				double A = 0.3;
+				if (dx == 0) {
+					ds0 = (double(y) / double(x)) - A;
+					ds1 = ds0 + 2.0 * A;
+					for (shx=1; shx<=S; shx++) {
+						int xs = (x>0?1:-1);
+						psx = cx + x + (xs*shx) - ix0;
+						if (psx < 0 || psx >= iW)
+							continue;
+						for (shy = iround(shx * ds0); shy <= iround(shx * ds1); shy++) {
+							psy = cy + y + xs*shy - iy0;
+							if (psy < 0 || psy >= iH)
+								continue;
+							//(*tempimg)(psx, psy) = std::min((*tempimg)(psx, psy), pix);
+							(*img)(psx, psy) = std::min((*img)(psx, psy), pix);
+						}
+					}
+					
+				} else {
+					ds0 = (double(x) / double(y)) - A;
+					ds1 = ds0 + 2.0 * A;
+					for (shy=1; shy<=S; shy++) {
+						int ys = (y>0?1:-1);
+						psy = cy + y + (ys*shy) - iy0;
+						if (psy < 0 || psy >= iH)
+							continue;
+						for (shx = iround(shy * ds0); shx <= iround(shy * ds1); shx++) {
+							psx = cx + x + ys*shx - ix0;
+							if (psx < 0 || psx >= iW)
+								continue;
+							//printf("  shadowing %i, %i\n", shx, shy);
+							(*img)(psx, psy) = std::min((*img)(psx, psy), pix);
+						}
+					}
+				}
+			}
+		}
+		//printf("Finished phase %i\n", s);
+		//*img <<= *tempimg;
+		*origimg <<= *img;
+		//printf("BREAK\n");
+		//break;
+
+	}
+
+}
+
+#if 0
+template<typename ImagePixelT, typename MaskPixelT, typename VariancePixelT>
+/*
+void
+deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::
+makeMonotonic(
+ */
+static void
+makeMonotonic2(
+
 	MaskedImageT & mimg,
 	det::Footprint const& foot,
 	det::Peak const& peak,
@@ -653,10 +770,8 @@ makeMonotonic(
 		}
 	}
 	 */
-
-
-
 }
+#endif
 
 
 

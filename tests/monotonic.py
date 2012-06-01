@@ -9,8 +9,9 @@ import lsst.meas.deblender as measDeblend
 
 def main000():
     butils = measDeblend.BaselineUtilsF
-    mim = afwImg.MaskedImageF(10, 10)
-    x0,y0 = 5,5
+    S = 20
+    mim = afwImg.MaskedImageF(S,S)
+    x0,y0 = S/2, S/2
     im = mim.getImage().getArray()
     foot = afwDet.Footprint()
     peak = afwDet.Peak(x0, y0)
@@ -22,7 +23,7 @@ def main000():
 
     im[:,:] = 5.
     im[y0,x0] = 10.
-    im[y0-1, x0] = 1.
+    im[y0, x0 + 2] = 1.
 
     plt.clf()
     plt.imshow(im, origin='lower', interpolation='nearest')
@@ -77,135 +78,48 @@ def randoms(S=10, N=1, GA=10, GS=10):
         plt.savefig('Rim%im.png' % i)
    
 
-def main():
+def cardinal():
     butils = measDeblend.BaselineUtilsF
 
-    mim = afwImg.MaskedImageF(10, 10)
-    x0,y0 = 5,5
-    #mim = afwImg.MaskedImageF(100, 100)
-    #x0,y0 = 50,50
+    S = 20
+    mim = afwImg.MaskedImageF(S,S)
+    x0,y0 = S/2, S/2
+
     im = mim.getImage().getArray()
     foot = afwDet.Footprint()
     peak = afwDet.Peak(x0, y0)
     
-    im[:,:] = 5.
-    im[y0,x0] = 10.
-
     mask = mim.getMask()
     for nm in ['SYMM_1SIG', 'SYMM_3SIG', 'MONOTONIC_1SIG']:
         bit = mask.addMaskPlane(nm)
         val = mask.getPlaneBitMask(nm)
 
-    plt.clf()
-    plt.imshow(im, origin='lower', interpolation='nearest')
-    plt.savefig('im1.png')
+    R = 2
+    xx,yy = [],[]
+    x,y = R,-R
+    for dx,dy in [(0,1), (-1,0), (0,-1), (1,0)]:
+        xx.extend(x + dx * np.arange(2*R))
+        yy.extend(y + dy * np.arange(2*R))
+        x += dx*2*R
+        y += dy*2*R
 
-    butils.makeMonotonic(mim, foot, peak, 1.)
-    mono = mim
+    for i,(dx,dy) in enumerate(zip(xx,yy)):
+        im[:,:] = 5.
+        im[y0,x0] = 10.
+        im[y0 + dy, x0 + dx] = 1.
+        mn,mx = im.min(), im.max()
+        plota = dict(origin='lower', interpolation='nearest', vmin=mn, vmax=mx)
 
-    plt.clf()
-    plt.imshow(mono.getImage().getArray(), origin='lower', interpolation='nearest')
-    plt.savefig('mono1.png')
-
-    im[:,:] = 5.
-    im[y0,x0] = 10.
-    im[y0-1, x0] = 1.
-
-    plt.clf()
-    plt.imshow(im, origin='lower', interpolation='nearest')
-    plt.savefig('im2.png')
-    butils.makeMonotonic(mim, foot, peak, 1.)
-    plt.clf()
-    plt.imshow(mono.getImage().getArray(), origin='lower', interpolation='nearest')
-    plt.savefig('mono2.png')
-
-    im[:,:] = 5.
-    im[y0,x0] = 10.
-    im[y0, x0-1] = 1.
-
-    plt.clf()
-    plt.imshow(im, origin='lower', interpolation='nearest')
-    plt.savefig('im3.png')
-
-    butils.makeMonotonic(mim, foot, peak, 1.)
-
-    plt.clf()
-    plt.imshow(mono.getImage().getArray(), origin='lower', interpolation='nearest')
-    plt.savefig('mono3.png')
-
-    im[:,:] = 5.
-    im[y0,x0] = 10.
-    im[y0+1, x0] = 1.
-
-    plt.clf()
-    plt.imshow(im, origin='lower', interpolation='nearest')
-    plt.savefig('im4.png')
-    butils.makeMonotonic(mim, foot, peak, 1.)
-    plt.clf()
-    plt.imshow(mono.getImage().getArray(), origin='lower', interpolation='nearest')
-    plt.savefig('mono4.png')
-
-    im[:,:] = 5.
-    im[y0,x0] = 10.
-    im[y0, x0+1] = 1.
-
-    plt.clf()
-    plt.imshow(im, origin='lower', interpolation='nearest')
-    plt.savefig('im5.png')
-    butils.makeMonotonic(mim, foot, peak, 1.)
-    plt.clf()
-    plt.imshow(mono.getImage().getArray(), origin='lower', interpolation='nearest')
-    plt.savefig('mono5.png')
-
-    im[:,:] = 5.
-    im[y0,x0] = 10.
-    im[y0+1, x0+1] = 1.
-
-    plt.clf()
-    plt.imshow(im, origin='lower', interpolation='nearest')
-    plt.savefig('im6.png')
-    butils.makeMonotonic(mim, foot, peak, 1.)
-    plt.clf()
-    plt.imshow(mono.getImage().getArray(), origin='lower', interpolation='nearest')
-    plt.savefig('mono6.png')
-
-    im[:,:] = 5.
-    im[y0,x0] = 10.
-    im[y0-1, x0+1] = 1.
-
-    plt.clf()
-    plt.imshow(im, origin='lower', interpolation='nearest')
-    plt.savefig('im7.png')
-    butils.makeMonotonic(mim, foot, peak, 1.)
-    plt.clf()
-    plt.imshow(mono.getImage().getArray(), origin='lower', interpolation='nearest')
-    plt.savefig('mono7.png')
-
-    im[:,:] = 5.
-    im[y0,x0] = 10.
-    im[y0-1, x0-1] = 1.
-
-    plt.clf()
-    plt.imshow(im, origin='lower', interpolation='nearest')
-    plt.savefig('im8.png')
-    butils.makeMonotonic(mim, foot, peak, 1.)
-    plt.clf()
-    plt.imshow(mono.getImage().getArray(), origin='lower', interpolation='nearest')
-    plt.savefig('mono8.png')
-
-    im[:,:] = 5.
-    im[y0,x0] = 10.
-    im[y0+1, x0-1] = 1.
-
-    plt.clf()
-    plt.imshow(im, origin='lower', interpolation='nearest')
-    plt.savefig('im9.png')
-    butils.makeMonotonic(mim, foot, peak, 1.)
-    plt.clf()
-    plt.imshow(mono.getImage().getArray(), origin='lower', interpolation='nearest')
-    plt.savefig('mono9.png')
-
+        plt.clf()
+        plt.imshow(im, **plota)
+        plt.savefig('im%i.png' % i)
+        butils.makeMonotonic(mim, foot, peak, 1.)
+        plt.clf()
+        plt.imshow(mim.getImage().getArray(), **plota)
+        plt.savefig('im%im.png' % i)
 
 if __name__ == '__main__':
-    #main()
-    randoms(S=100, N=10)
+    cardinal()
+    #main000()
+    #randoms(S=100, N=10)
+    randoms(S=100, N=1)
