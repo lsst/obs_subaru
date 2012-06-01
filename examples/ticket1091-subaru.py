@@ -280,12 +280,10 @@ def main():
                       help='Force re-running the Calibration stage?')
     parser.add_option('--force-isr', dest='forceisr', action='store_true', default=False,
                       help='Force re-running the ISR stage?')
-    parser.add_option('-s', '--sources', dest='sourcefn', default=None, #'deblended-srcs.fits',
+    parser.add_option('-s', '--sources', dest='sourcefn', default=None,
                       help='Output filename for source table (FITS)')
-    parser.add_option('-H', '--heavy', dest='heavypat', default='heavy-%(visit)i-%(ccd)i-%(id)04i.fits',
-                      help='Output filename pattern for heavy footprints (with %i pattern); FITS')
-    parser.add_option('--no-heavy', dest='noheavy', action='store_true',
-                      help='Do not save heavy footprints as FITS images')
+    parser.add_option('-H', '--heavy', dest='heavypat', default=None, 
+                      help='Output filename pattern for heavy footprints (with %i pattern); FITS.  "yes" for heavy-VVVV-CC-IDID.fits')
     parser.add_option('--nkeep', '-n', dest='nkeep', default=0, type=int,
                       help='Cut to the first N deblend families')
     parser.add_option('--drill', '-D', dest='drill', action='append', type=int, default=[],
@@ -296,6 +294,7 @@ def main():
                       help='Do not make measurement plots')
     parser.add_option('--no-after-plots', dest='noafterplots', action='store_true',
                       help='Do not make post-deblend+measure plots')
+    parser.add_option('--no-plots', dest='noplots', action='store_true', help='No plots at all; --no-deblend-plots, --no-measure-plots, --no-after-plots')
     parser.add_option('--visit', dest='visit', type=int, default=108792, help='Suprimecam visit id')
     parser.add_option('--ccd', dest='ccd', type=int, default=5, help='Suprimecam CCD number')
     parser.add_option('-v', dest='verbose', action='store_true')
@@ -303,8 +302,13 @@ def main():
 
     dr = getDataref(visit=opt.visit, ccd=opt.ccd, rootdir=opt.root, outrootdir=opt.outroot)
 
-    if opt.noheavy:
-        opt.heavypat = None
+    if opt.heavypat == 'yes':
+        opt.heavypat = 'heavy-%(visit)i-%(ccd)i-%(id)04i.fits'
+
+    if opt.noplots:
+        opt.deblendplots = False
+        opt.measplots = False
+        opt.noafterplots = True
     
     cat = None
     if not opt.force:
