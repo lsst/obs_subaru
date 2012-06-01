@@ -126,6 +126,19 @@ exposures: {
         level:        "Skytile"
         tables:        "raw_skytile"
     }
+
+    mosaicCalib: {
+        template:    "%(outRoot)s/%(pointing)05d/%(filter)s/output/CALIB%(visit)07d%(ccd)1d-%(tract)d.fits"
+        python:      "lsst.afw.image.ExposureU"
+        persistable: "ExposureU"
+        storage:     "FitsStorage"
+        columns:     pointing
+        columns:     filter
+        columns:     visit
+        columns:     ccd
+        tables:      raw
+    }
+
 }
 
 calibrations: {
@@ -313,8 +326,6 @@ datasets: {
         storage:       "BoostStorage"
         tables:        "raw_skytile"
     }
-
-
 
     deepCoadd: {
         template:    "deepCoadd/%(filter)s/%(tract)d/%(patch)s.fits"
