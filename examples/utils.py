@@ -11,7 +11,35 @@ import lsst.afw.geom as afwGeom
 import lsst.afw.detection as afwDet
 import lsst.afw.table as afwTable
 import lsst.meas.algorithms as measAlg
-import lsst.obs.suprimecam as obsSc
+
+def addToParser(parser):
+    if parser is None:
+        from optparse import OptionParser
+        parser = OptionParser()
+    parser.add_option('--force', '-f', dest='force', action='store_true', default=False,
+                      help='Force re-running the deblender?')
+    parser.add_option('--force-det', '-d', dest='forcedet', action='store_true', default=False,
+                      help='Force re-running the detection stage?')
+    parser.add_option('--force-calib', dest='forcecalib', action='store_true', default=False,
+                      help='Force re-running the Calibration stage?')
+    parser.add_option('--force-isr', dest='forceisr', action='store_true', default=False,
+                      help='Force re-running the ISR stage?')
+    parser.add_option('-s', '--sources', dest='sourcefn', default=None,
+                      help='Output filename for source table (FITS)')
+    parser.add_option('-H', '--heavy', dest='heavypat', default=None, 
+                      help='Output filename pattern for heavy footprints (with %i pattern); FITS.  "yes" for heavy-VVVV-CC-IDID.fits')
+    parser.add_option('--nkeep', '-n', dest='nkeep', default=0, type=int,
+                      help='Cut to the first N deblend families')
+    parser.add_option('--drill', '-D', dest='drill', action='append', type=int, default=[],
+                      help='Drill down on individual source IDs')
+    parser.add_option('--no-deblend-plots', dest='deblendplots', action='store_false', default=True,
+                      help='Do not make deblend plots')
+    parser.add_option('--no-measure-plots', dest='measplots', action='store_false', default=True,
+                      help='Do not make measurement plots')
+    parser.add_option('--no-after-plots', dest='noafterplots', action='store_true',
+                      help='Do not make post-deblend+measure plots')
+    parser.add_option('--no-plots', dest='noplots', action='store_true', help='No plots at all; --no-deblend-plots, --no-measure-plots, --no-after-plots')
+    parser.add_option('-v', dest='verbose', action='store_true')
 
 class DebugSourceMeasTask(measAlg.SourceMeasurementTask):
     '''Plot the image that is passed to the measurement algorithms'''
@@ -379,17 +407,6 @@ def readCatalog(sourcefn, heavypat, ndeblends=0, dataref=None,
 def datarefToMapper(dr):
     return dr.butlerSubset.butler.mapper
 
-def getMapper(rootdir=None, calibdir=None, outrootdir=None):
-    if rootdir is None:
-        rootdir = os.path.join(os.environ['HOME'], 'lsst', 'ACT-data')
-    if calibdir is None:
-        calibdir = os.path.join(rootdir, 'CALIB')
-    mapperArgs = dict(root=rootdir, calibRoot=calibdir, outputRoot=outrootdir)
-    mapper = obsSc.SuprimecamMapper(**mapperArgs)
-    #return mapper
-    wrap = WrapperMapper(mapper)
-    return wrap
-
 class WrapperMapper(object):
     def __init__(self, real):
         self.real = real
@@ -413,30 +430,6 @@ class WrapperMapper(object):
         return self.real.validate(*args)
     def getDefaultLevel(self, *args):
         return self.real.getDefaultLevel(*args)
-
-def getButler(rootdir=None, calibdir=None, outrootdir=None):
-    mapper = getMapper(rootdir, calibdir, outrootdir)
-    butlerFactory = dafPersist.ButlerFactory(mapper = mapper)
-    butler = butlerFactory.create()
-    return butler
-
-def getDataref(visit, ccd, single=True, rootdir=None, calibdir=None, outrootdir=None):
-    butler = getButler(rootdir=rootdir, calibdir=calibdir, outrootdir=outrootdir)
-    print 'Butler', butler
-    dataRef = butler.subset('raw', dataId = dict(visit=visit, ccd=ccd))
-    print 'dataRef:', dataRef
-    print 'len(dataRef):', len(dataRef)
-    for dr in dataRef:
-        print '  ', dr
-    if single:
-        assert(len(dataRef) == 1)
-        # dataRef doesn't support indexing, but it does support iteration?
-        dr = None
-        for dr in dataRef:
-            break
-        assert(dr)
-        return dr
-    return dataRef
 
 def getEllipses(src, nsigs=[1.], **kwargs):
     xc = src.getX()

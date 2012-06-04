@@ -14,6 +14,7 @@ import lsst.afw.image as afwImage
 import lsst.afw.detection as afwDet
 
 from utils import *
+from suprime import *
 
 def main():
     from optparse import OptionParser
@@ -76,7 +77,7 @@ def main():
         fn = plotpattern % dict(pid=pid, name=figname)
         plt.savefig(fn)
 
-    dr = getDataref(opt.visit, opt.ccd, rootdir=opt.root, outrootdir=opt.outroot)
+    dr = getSuprimeDataref(opt.visit, opt.ccd, rootdir=opt.root, outrootdir=opt.outroot)
 
     keepids = None
     if len(opt.drill):
