@@ -137,6 +137,15 @@ exposures: {
         columns:     visit
         columns:     ccd
         tables:      raw
+        level:       Ccd
+    }
+
+    coaddTempExp: {
+        template:    "%(outRoot)s/coaddTemp/%(filter)s/%(tract)d/TEMP%(visit)07d%(ccd)1d-%(patch)s.fits"
+        python:      "lsst.afw.image.ExposureF"
+        persistable: "ExposureF"
+        storage:     "FitsStorage"
+        tables:      raw
     }
 
 }
