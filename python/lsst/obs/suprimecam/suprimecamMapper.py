@@ -89,3 +89,23 @@ class SuprimecamMapper(CameraMapper):
         actualId = self._transformId(dataId)
         actualId['outRoot'] = self.outRoot
         return template % actualId
+
+###############################################################################
+
+    def _computeCcdExposureId(self, dataId):
+        """Compute the 64-bit (long) identifier for a CCD exposure.
+
+        @param dataId (dict) Data identifier with visit, ccd
+        """
+
+        pathId = self._transformId(dataId)
+        visit = pathId['visit']
+        ccd = pathId['ccd']
+        return visit*10 + ccd
+
+    def bypass_ccdExposureId(self, datasetType, pythonType, location, dataId):
+        return self._computeCcdExposureId(dataId)
+    def bypass_ccdExposureId_bits(self, datasetType, pythonType, location, dataId):
+        return 32 # not really, but this leaves plenty of space for sources
+
+###############################################################################
