@@ -26,6 +26,7 @@ def main():
     opt,args = parser.parse_args()
 
     dr = getSuprimeDataref(visit=opt.visit, ccd=opt.ccd, rootdir=opt.root, outrootdir=opt.outroot)
+    print dr
 
     if opt.heavypat == 'yes':
         opt.heavypat = 'heavy-%(visit)i-%(ccd)i-%(id)04i.fits'
