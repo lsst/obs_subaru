@@ -410,6 +410,20 @@ def datarefToMapper(dr):
 class WrapperMapper(object):
     def __init__(self, real):
         self.real = real
+        for x in dir(real):
+            if not x.startswith('bypass_'):
+                continue
+            class relay_bypass(object):
+                def __init__(self, real, attr):
+                    self.func = getattr(real, attr)
+                    self.attr = attr
+                def __call__(self, *args):
+                    #print 'relaying', self.attr
+                    #print 'to', self.func
+                    return self.func(*args)
+            setattr(self, x, relay_bypass(self.real, x))
+            #print 'Wrapping', x
+            
     def map(self, *args):
         print 'Mapping', args
         R = self.real.map(*args)

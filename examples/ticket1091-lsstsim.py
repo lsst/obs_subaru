@@ -1,6 +1,6 @@
 import matplotlib
 matplotlib.use('Agg')
-import lsst.pipe.tasks.processCcdLsstSim as procCcd
+import lsst.pipe.tasks.processCcd as procCcd
 from lsst.obs.lsstSim import LsstSimMapper
 
 from utils import *
@@ -8,8 +8,8 @@ from ticket1091 import *
 
 def _getLsstMapper(**kwargs):
     mapper = LsstSimMapper(**kwargs)
-    return mapper
-    #return WrapperMapper(mapper)
+    #return mapper
+    return WrapperMapper(mapper)
 
 def _getLsstButler(rootdir=None, calibdir=None, outrootdir=None):
     mapper = _getLsstMapper(root=rootdir, calibRoot=calibdir, outputRoot=outrootdir)
@@ -20,8 +20,7 @@ def _getLsstButler(rootdir=None, calibdir=None, outrootdir=None):
 def getLsstDataref(visit, raft, sensor, single=True, rootdir=None, calibdir=None, outrootdir=None):
     butler = _getLsstButler(rootdir=rootdir, calibdir=calibdir, outrootdir=outrootdir)
     print 'Butler', butler
-    dataRef = butler.subset('raw', dataId = dict(visit=visit, raft=raft, sensor=sensor,))
-                                                 #snap=0))
+    dataRef = butler.subset('raw', dataId = dict(visit=visit, raft=raft, sensor=sensor))
     print 'dataRef:', dataRef
     print 'len(dataRef):', len(dataRef)
     for dr in dataRef:
@@ -37,8 +36,9 @@ def getLsstDataref(visit, raft, sensor, single=True, rootdir=None, calibdir=None
     return dataRef
 
 def tweak_config(conf):
-    if conf.doIsr:
-        conf.doSnapCombine
+    #if conf.doIsr:
+    #   conf.doSnapCombine
+    pass
 
 def main():
     from optparse import OptionParser
@@ -51,15 +51,6 @@ def main():
     addToParser(parser)
     opt,args = parser.parse_args()
 
-    #if True:
-    #    mapper = LsstSimMapper(root=opt.root, outputRoot=opt.outroot)
-    #    print 'visitCCD', mapper.map('visitCCD', dict(visit=opt.visit, raft=opt.raft, sensor=opt.sensor, snap=0))
-    #    print 'visitCCD', mapper.map('visitCCD', dict(visit=opt.visit, raft=opt.raft, sensor=opt.sensor))
-    #     #print 'visitCCD', datarefToMapper(dr).map('visitCCD', dr.dataId)
-    #     #butlerFactory = dafPersist.ButlerFactory(mapper = mapper)
-    #     #butler = butlerFactory.create()
-
-
     dr = getLsstDataref(visit=opt.visit, raft=opt.raft, sensor=opt.sensor,
                         rootdir=opt.root, outrootdir=opt.outroot)
 
@@ -68,15 +59,22 @@ def main():
 
     patargs=dict(visit=opt.visit, raft=opt.raft, sensor=opt.sensor)
 
-    conf = procCcd.ProcessCcdLsstSimConfig()
-    conf.doSnapCombine = False
-    conf.doWriteIsr = False
-    conf.doWriteSnapCombine = True
-    proc = procCcd.ProcessCcdLsstSimTask
+    conf = procCcd.ProcessCcdConfig()
+
+    if False:
+        # obs_lsstSim/config/processCcd.py
+        from lsst.obs.lsstSim import LsstSimIsrTask
+        conf.isr.retarget(LsstSimIsrTask)
+    else:
+        conf.load(os.path.join(os.environ.get('OBS_LSSTSIM_DIR'), 'config', 'processCcd.py'))
+
+    conf.isr.doSnapCombine = False
+    conf.isr.doWriteSnaps = False
+
+    proc = procCcd.ProcessCcdTask
 
     t1091main(dr, opt, conf, proc, patargs=patargs,
               rundeblendargs=dict(calibInput='postISRCCD', tweak_config=tweak_config))
-              #rundeblendargs=dict(calibInput='visitCCD', tweak_config=tweak_config))
               
 
 if __name__ == '__main__':

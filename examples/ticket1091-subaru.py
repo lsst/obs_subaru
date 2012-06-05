@@ -33,7 +33,34 @@ def main():
     patargs=dict(visit=opt.visit, ccd=opt.ccd)
 
     conf = procCcd.ProcessCcdConfig()
+
+    # for dt in ['raw', 'flat', 'dark', 'bias']:
+    #     try:
+    #         print dt, dr.get(dt)
+    #     except:
+    #         pass
+    conf.load(os.path.join(os.environ.get('OBS_SUBARU_DIR'), 'config', 'processCcd.py'))
+    conf.load(os.path.join(os.environ.get('OBS_SUBARU_DIR'), 'config', 'suprimecam', 'processCcd.py'))
+
     tweak_config(conf)
+    #conf.calibrate.background.binSize = 256
+    #conf.calibrate.background.binSize = 512
+
+    #from lsst.obs.subaru.isr import SubaruIsrTask
+    #conf.isr.retarget(SubaruIsrTask)
+
+    try:
+        dr.get('bias', immediate=True)
+    except:
+        print '"bias" data product not found; disabling'
+        conf.isr.doBias = False
+
+    try:
+        dr.get('dark', immediate=True)
+    except:
+        print '"dark" data product not found; disabling'
+        conf.isr.doDark = False
+
     proc = procCcd.ProcessCcdTask
 
     t1091main(dr, opt, conf, proc, patargs=patargs)

@@ -18,6 +18,7 @@ Python interface to lsst::meas::deblender classes
 #include "lsst/afw/detection.h"
 #include "lsst/pex/logging.h"
 #include "lsst/afw/cameraGeom.h"
+#include "lsst/afw/math.h"
 %}
 
 %inline %{
