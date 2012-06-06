@@ -167,7 +167,8 @@ def runDeblend(dataRef, sourcefn, conf, procclass, forceisr=False, forcecalib=Fa
 
     conf.doDeblend = True
     conf.doMeasurement = True
-    conf.doWriteSources = False
+    conf.doWriteSources = True
+    conf.doWriteHeavyFootprintsInSources = True
     conf.measurement.doRemoveOtherSources = True
 
     if debugDeblend:
@@ -218,11 +219,7 @@ def runDeblend(dataRef, sourcefn, conf, procclass, forceisr=False, forcecalib=Fa
         assert(proc.schema == srcs.getSchema())
         assert(srcs.getSchema() == res.sources.getSchema())
     assert(proc.schema == res.sources.getSchema())
-
     srcs = res.sources
-
-    srcs.getTable().setWriteHeavyFootprints(True)
-    dr.put(srcs, 'src')
 
     print 'Processing finished; srcs should have been written to:'
     print '  ', mapper.map('src', dr.dataId)
