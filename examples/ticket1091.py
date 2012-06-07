@@ -227,8 +227,14 @@ def runDeblend(dataRef, sourcefn, conf, procclass, forceisr=False, forcecalib=Fa
     return srcs
 
 
-def t1091main(dr, opt, conf, proc, patargs={}, rundeblendargs={}):
-              
+
+# for multiprocess.Pool.map()
+def _plotfunc((args, kwargs, fn)):
+    plotDeblendFamilyReal(*args, **kwargs)
+    plt.savefig(fn)
+    print 'saved', fn
+
+def t1091main(dr, opt, conf, proc, patargs={}, rundeblendargs={}, pool=None):
     if opt.noplots:
         opt.deblendplots = False
         opt.measplots = False
@@ -267,17 +273,35 @@ def t1091main(dr, opt, conf, proc, patargs={}, rundeblendargs={}):
     if opt.noafterplots:
         return
 
+    but = datarefToButler(dr)
+    idbits = but.get('ccdExposureId_bits')
+    idmask = (1 << idbits)-1
+    
     exposure = dr.get('calexp')
     print 'Exposure', exposure
     mi = exposure.getMaskedImage()
     sigma1 = get_sigma1(mi)
     fams = getFamilies(cat)
+
+    A = []
     for j,(parent,children) in enumerate(fams):
-        plotDeblendFamily(mi, parent, children, cat, sigma1, ellipses=True)
-        fn = 'deblend-%04i-a.png' % j
-        plt.savefig(fn)
-        print 'saved', fn
-        plotDeblendFamily(mi, parent, children, cat, sigma1, ellipses=True, plotb=True)
-        fn = 'deblend-%04i-b.png' % j
-        plt.savefig(fn)
-        print 'saved', fn
+        args = (mi, parent, children, cat, sigma1)
+        fn1 = 'deblend-%04i-a.png' % j
+        kwargs1 = dict(ellipses=True, idmask=idmask)
+        fn2 = 'deblend-%04i-b.png' % j
+        kwargs2 = dict(ellipses=True, plotb=True, idmask=idmask)
+
+        if pool is None:
+            plotDeblendFamily(*args, **kwargs1)
+            plt.savefig(fn1)
+            print 'saved', fn1
+            plotDeblendFamily(*args, **kwargs2)
+            plt.savefig(fn2)
+            print 'saved', fn2
+
+        else:
+            A.append((plotDeblendFamilyPre(*args, **kwargs1), kwargs1, fn1))
+            A.append((plotDeblendFamilyPre(*args, **kwargs2), kwargs2, fn2))
+
+    if pool:
+        pool.map(_plotfunc, A)

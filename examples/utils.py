@@ -185,17 +185,60 @@ class DebugSourceMeasTask(measAlg.SourceMeasurementTask):
         self.plotregion = None
 
 
+# To use multiprocessing, we need the plot elements to be picklable.  Swig objects are not
+# picklable, so in preprocessing we pull out the items we need for plotting, putting them in
+# a _mockSource object.
 
-def plotDeblendFamily(mi, parent, kids, srcs, sigma1, plotb=False, ellipses=True):
+class _mockSource(object):
+    def __init__(self, src, mi, psfkey, xkey, ykey, ellipses=True):
+        self.sid = src.getId()
+        self.im = footprintToImage(src.getFootprint(), mi).getArray()
+        self.ext = getExtent(src.getFootprint().getBBox())
+        self.ispsf = src.get(psfkey)
+        #self.cxy = (src.get(xkey), src.get(ykey))
+        self.cx = src.get(xkey)
+        self.cy = src.get(ykey)
+        pks = src.getFootprint().getPeaks()
+        self.pix = [pk.getIx() for pk in pks]
+        self.piy = [pk.getIy() for pk in pks]
+        self.pfx = [pk.getFx() for pk in pks]
+        self.pfy = [pk.getFy() for pk in pks]
+        if ellipses:
+            self.ell = (src.getX(), src.getY(), src.getIxx(), src.getIyy(), src.getIxy())
+    # for getEllipses()
+    def getX(self):
+        return self.ell[0]
+    def getY(self):
+        return self.ell[1]
+    def getIxx(self):
+        return self.ell[2]
+    def getIyy(self):
+        return self.ell[3]
+    def getIxy(self):
+        return self.ell[4]
+        
+def plotDeblendFamily(*args, **kwargs):
+    X = plotDeblendFamilyPre(*args, **kwargs)
+    plotDeblendFamilyReal(*X, **kwargs)
+
+# Preprocessing: returns _mockSources for the parent and kids
+def plotDeblendFamilyPre(mi, parent, kids, srcs, sigma1, ellipses=True, **kwargs):
     schema = srcs.getSchema()
     psfkey = schema.find("deblend.deblended-as-psf").key
     xkey = schema.find('centroid.naive.x').key
     ykey = schema.find('centroid.naive.y').key
+    p = _mockSource(parent, mi, psfkey, xkey, ykey, ellipses=ellipses)
+    ch = [_mockSource(ch, mi, psfkey, xkey, ykey, ellipses=ellipses) for ch in kids]
+    return (p, ch, sigma1)
 
-    pid = parent.getId()
-    pim = footprintToImage(parent.getFootprint(), mi).getArray()
-    chims = [footprintToImage(ch.getFootprint()).getArray() for ch in kids]
-    N = 1 + len(chims)
+# Real thing: make plots given the _mockSources
+def plotDeblendFamilyReal(parent, kids, sigma1, plotb=False, idmask=None, ellipses=True):
+    if idmask is None:
+        idmask = ~0L
+    pim = parent.im
+    pext = parent.ext
+
+    N = 1 + len(kids)
     S = math.ceil(math.sqrt(N))
     C = S
     R = math.ceil(float(N) / C)
@@ -214,42 +257,34 @@ def plotDeblendFamily(mi, parent, kids, srcs, sigma1, plotb=False, ellipses=True
     plt.clf()
     plt.subplots_adjust(left=0.05, right=0.95, bottom=0.05, top=0.9,
                         wspace=0.05, hspace=0.1)
-
     plt.subplot(R, C, 1)
-    pext = getExtent(parent.getFootprint().getBBox())
     myimshow(pim, extent=pext, **imargs)
     plt.gray()
     plt.xticks([])
     plt.yticks([])
     m = 0.25
     pax = [pext[0]-m, pext[1]+m, pext[2]-m, pext[3]+m]
-    pk = parent.getFootprint().getPeaks()[0]
-    plt.title('parent %i @ (%i,%i)' % (parent.getId(), pk.getIx(), pk.getIy()))
+    x,y = parent.pix[0], parent.piy[0]
+    plt.title('parent %i @ (%i,%i)' % (parent.sid & idmask, x, y))
     Rx,Ry = [],[]
     tts = []
     stys = []
     xys = []
-    for i,im in enumerate(chims):
-        child = kids[i]
+    for i,kid in enumerate(kids):
+        ext = kid.ext
         plt.subplot(R, C, i+2)
-        fp = child.getFootprint()
-        bb = fp.getBBox()
-        ext = getExtent(bb)
-
         if plotb:
             ima = imargs.copy()
-            ima.update(vmax=max(3.*sigma1, im.max()))
+            ima.update(vmax=max(3.*sigma1, kid.im.max()))
         else:
             ima = imargs
 
-        myimshow(im, extent=ext, **ima)
+        myimshow(kid.im, extent=ext, **ima)
         plt.gray()
         plt.xticks([])
         plt.yticks([])
-        tt = 'child %i' % child.getId()
-        ispsf = child.get(psfkey)
-        print 'child', child.getId(), 'ispsf:', ispsf
-        if ispsf:
+        tt = 'child %i' % (kid.sid & idmask)
+        if kid.ispsf:
             sty1 = dict(color='g')
             sty2 = dict(color=(0.1,0.5,0.1), lw=2, alpha=0.5)
             tt += ' (psf)'
@@ -266,23 +301,19 @@ def plotDeblendFamily(mi, parent, kids, srcs, sigma1, plotb=False, ellipses=True
         Rx.append(xx)
         Ry.append(yy)
         # peak(s)
-        px = [pk.getFx() for pk in fp.getPeaks()]
-        py = [pk.getFy() for pk in fp.getPeaks()]
-        plt.plot(px, py, 'x', **sty2)
-        xys.append((px, py, sty2))
+        plt.plot(kid.pfx, kid.pfy, 'x', **sty2)
+        xys.append((kid.pfx, kid.pfy, sty2))
         # centroid
-        x,y = child.get(xkey), child.get(ykey)
-        plt.plot([x], [y], 'x', **sty1)
-        xys.append(([x], [y], sty1))
+        plt.plot([kid.cx], [kid.cy], 'x', **sty1)
+        xys.append(([kid.cx], [kid.cy], sty1))
         # ellipse
-        if ellipses and not ispsf:
-            drawEllipses(child, ec=sty1['color'], fc='none', alpha=0.7)
-
+        if ellipses and not kid.ispsf:
+            drawEllipses(kid, ec=sty1['color'], fc='none', alpha=0.7)
         if plotb:
             plt.axis(ext)
         else:
             plt.axis(pax)
-            
+
     # Go back to the parent plot and add child bboxes
     plt.subplot(R, C, 1)
     for rx,ry,sty in zip(Rx, Ry, stys):
@@ -291,16 +322,14 @@ def plotDeblendFamily(mi, parent, kids, srcs, sigma1, plotb=False, ellipses=True
     for x,y,sty in xys:
         plt.plot(x, y, 'x', **sty)
     if ellipses:
-        for child,sty in zip(kids,stys):
-            ispsf = child.get(psfkey)
-            if ispsf:
+        for kid,sty in zip(kids,stys):
+            if kid.ispsf:
                 continue
-            drawEllipses(child, ec=sty['color'], fc='none', alpha=0.7)
-    plt.plot([parent.get(xkey)],[parent.get(ykey)],'x',color='b')
+            drawEllipses(kid, ec=sty['color'], fc='none', alpha=0.7)
+    plt.plot([parent.cx], [parent.cy], 'x', color='b')
     if ellipses:
         drawEllipses(parent, ec='b', fc='none', alpha=0.7)
     plt.axis(pax)
-
 
 
 def footprintToImage(fp, mi=None):
@@ -406,6 +435,8 @@ def readCatalog(sourcefn, heavypat, ndeblends=0, dataref=None,
 
 def datarefToMapper(dr):
     return dr.butlerSubset.butler.mapper
+def datarefToButler(dr):
+    return dr.butlerSubset.butler
 
 class WrapperMapper(object):
     def __init__(self, real):
