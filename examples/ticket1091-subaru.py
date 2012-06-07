@@ -22,7 +22,6 @@ def main():
     parser.add_option('--outroot', '-o', dest='outroot', help='Output root directory for Subaru data')
     parser.add_option('--visit', dest='visit', type=int, default=108792, help='Suprimecam visit id')
     parser.add_option('--ccd', dest='ccd', type=int, default=5, help='Suprimecam CCD number')
-    parser.add_option('--threads', dest='threads', type=int, help='Multiprocessing for plots?')
     addToParser(parser)
     opt,args = parser.parse_args()
 

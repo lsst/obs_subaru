@@ -6,6 +6,38 @@ import lsst.meas.algorithms as measAlg
 
 from utils import *
 
+def addToParser(parser):
+    if parser is None:
+        from optparse import OptionParser
+        parser = OptionParser()
+    parser.add_option('--force', '-f', '--force-deblend', dest='force',
+                      action='store_true', default=False, help='Force re-running the deblender?')
+    parser.add_option('--force-det', '--force-detect', '--force-detection', '-d',
+                      dest='forcedet', action='store_true', default=False,
+                      help='Force re-running the detection stage?')
+    parser.add_option('--force-calib', dest='forcecalib', action='store_true', default=False,
+                      help='Force re-running the Calibration stage?')
+    parser.add_option('--force-isr', dest='forceisr', action='store_true', default=False,
+                      help='Force re-running the ISR stage?')
+    parser.add_option('-s', '--sources', dest='sourcefn', default=None,
+                      help='Output filename for source table (FITS)')
+    parser.add_option('-H', '--heavy', dest='heavypat', default=None, 
+                      help='Output filename pattern for heavy footprints (with %i pattern); FITS.  "yes" for heavy-VVVV-CC-IDID.fits')
+    parser.add_option('--nkeep', '-n', dest='nkeep', default=0, type=int,
+                      help='Cut to the first N deblend families')
+    parser.add_option('--drill', '-D', dest='drill', action='append', type=int, default=[],
+                      help='Drill down on individual source IDs')
+    parser.add_option('--no-deblend-plots', dest='deblendplots', action='store_false', default=True,
+                      help='Do not make deblend plots')
+    parser.add_option('--no-measure-plots', dest='measplots', action='store_false', default=True,
+                      help='Do not make measurement plots')
+    parser.add_option('--no-after-plots', dest='noafterplots', action='store_true',
+                      help='Do not make post-deblend+measure plots')
+    parser.add_option('--no-plots', dest='noplots', action='store_true', help='No plots at all; --no-deblend-plots, --no-measure-plots, --no-after-plots')
+    parser.add_option('--threads', dest='threads', type=int, help='Multiprocessing for plots?')
+    parser.add_option('--overview', dest='overview', help='Produce an overview plot?')
+    parser.add_option('-v', dest='verbose', action='store_true')
+
 class DebugDeblendTask(measAlg.SourceDeblendTask):
     def __init__(self, *args, **kwargs):
         self.prefix = kwargs.pop('prefix', '')
@@ -266,6 +298,33 @@ def t1091main(dr, opt, conf, proc, patargs={}, rundeblendargs={}, pool=None):
                 fn = opt.heavypat % args
                 mim.writeFits(fn)
                 print 'Wrote', fn
+
+    if opt.overview is not None:
+        exposure = dr.get('calexp')
+        print 'Exposure', exposure
+        mi = exposure.getMaskedImage()
+        sigma1 = get_sigma1(mi)
+        W,H = mi.getWidth(), mi.getHeight()
+        im = mi.getImage().getArray()
+        dpi=100
+        plt.figure(figsize=(1+W/dpi, 1+H/dpi), dpi=dpi)
+        plt.clf()
+        plt.imshow(im, interpolation='nearest', origin='lower', vmin=-2.*sigma1, vmax=10.*sigma1)
+        ax = plt.axis()
+        plt.gray()
+        for src in cat:
+            #fp = src.getFootprint()
+            #bb = fp.getBBox()
+            ext = getExtent(src.getFootprint().getBBox())
+            xx = [ext[0],ext[1],ext[1],ext[0],ext[0]]
+            yy = [ext[2],ext[2],ext[3],ext[3],ext[2]]
+            if len(src.getFootprint().getPeaks()) == 1:
+                c = 'r'
+            else:
+                c = 'y'
+            plt.plot(xx, yy, '-', color=c)
+        plt.axis(ax)
+        plt.savefig(opt.overview)
         
     if opt.nkeep:
         cat = cutCatalog(cat, opt.nkeep)

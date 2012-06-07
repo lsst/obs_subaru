@@ -12,35 +12,6 @@ import lsst.afw.detection as afwDet
 import lsst.afw.table as afwTable
 import lsst.meas.algorithms as measAlg
 
-def addToParser(parser):
-    if parser is None:
-        from optparse import OptionParser
-        parser = OptionParser()
-    parser.add_option('--force', '-f', dest='force', action='store_true', default=False,
-                      help='Force re-running the deblender?')
-    parser.add_option('--force-det', '-d', dest='forcedet', action='store_true', default=False,
-                      help='Force re-running the detection stage?')
-    parser.add_option('--force-calib', dest='forcecalib', action='store_true', default=False,
-                      help='Force re-running the Calibration stage?')
-    parser.add_option('--force-isr', dest='forceisr', action='store_true', default=False,
-                      help='Force re-running the ISR stage?')
-    parser.add_option('-s', '--sources', dest='sourcefn', default=None,
-                      help='Output filename for source table (FITS)')
-    parser.add_option('-H', '--heavy', dest='heavypat', default=None, 
-                      help='Output filename pattern for heavy footprints (with %i pattern); FITS.  "yes" for heavy-VVVV-CC-IDID.fits')
-    parser.add_option('--nkeep', '-n', dest='nkeep', default=0, type=int,
-                      help='Cut to the first N deblend families')
-    parser.add_option('--drill', '-D', dest='drill', action='append', type=int, default=[],
-                      help='Drill down on individual source IDs')
-    parser.add_option('--no-deblend-plots', dest='deblendplots', action='store_false', default=True,
-                      help='Do not make deblend plots')
-    parser.add_option('--no-measure-plots', dest='measplots', action='store_false', default=True,
-                      help='Do not make measurement plots')
-    parser.add_option('--no-after-plots', dest='noafterplots', action='store_true',
-                      help='Do not make post-deblend+measure plots')
-    parser.add_option('--no-plots', dest='noplots', action='store_true', help='No plots at all; --no-deblend-plots, --no-measure-plots, --no-after-plots')
-    parser.add_option('-v', dest='verbose', action='store_true')
-
 class DebugSourceMeasTask(measAlg.SourceMeasurementTask):
     '''Plot the image that is passed to the measurement algorithms'''
     def __init__(self, *args, **kwargs):
