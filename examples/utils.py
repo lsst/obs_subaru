@@ -161,11 +161,12 @@ class DebugSourceMeasTask(measAlg.SourceMeasurementTask):
 # a _mockSource object.
 
 class _mockSource(object):
-    def __init__(self, src, mi, psfkey, xkey, ykey, ellipses=True):
+    def __init__(self, src, mi, psfkey, fluxkey, xkey, ykey, ellipses=True):
         self.sid = src.getId()
         self.im = footprintToImage(src.getFootprint(), mi).getArray()
         self.ext = getExtent(src.getFootprint().getBBox())
         self.ispsf = src.get(psfkey)
+        self.psfflux = src.get(fluxkey)
         #self.cxy = (src.get(xkey), src.get(ykey))
         self.cx = src.get(xkey)
         self.cy = src.get(ykey)
@@ -196,10 +197,11 @@ def plotDeblendFamily(*args, **kwargs):
 def plotDeblendFamilyPre(mi, parent, kids, srcs, sigma1, ellipses=True, **kwargs):
     schema = srcs.getSchema()
     psfkey = schema.find("deblend.deblended-as-psf").key
+    fluxkey = schema.find('deblend.psf-flux').key
     xkey = schema.find('centroid.naive.x').key
     ykey = schema.find('centroid.naive.y').key
-    p = _mockSource(parent, mi, psfkey, xkey, ykey, ellipses=ellipses)
-    ch = [_mockSource(ch, mi, psfkey, xkey, ykey, ellipses=ellipses) for ch in kids]
+    p = _mockSource(parent, mi, psfkey, fluxkey, xkey, ykey, ellipses=ellipses)
+    ch = [_mockSource(ch, mi, psfkey, fluxkey, xkey, ykey, ellipses=ellipses) for ch in kids]
     return (p, ch, sigma1)
 
 # Real thing: make plots given the _mockSources
@@ -258,7 +260,7 @@ def plotDeblendFamilyReal(parent, kids, sigma1, plotb=False, idmask=None, ellips
         if kid.ispsf:
             sty1 = dict(color='g')
             sty2 = dict(color=(0.1,0.5,0.1), lw=2, alpha=0.5)
-            tt += ' (psf)'
+            tt += ' (psf: flux %.1f)' % kid.psfflux
         else:
             sty1 = dict(color='r')
             sty2 = dict(color=(0.8,0.1,0.1), lw=2, alpha=0.5)
@@ -304,10 +306,10 @@ def plotDeblendFamilyReal(parent, kids, sigma1, plotb=False, idmask=None, ellips
 
 
 def footprintToImage(fp, mi=None):
-    if mi is not None:
-        fp = afwDet.makeHeavyFootprint(fp, mi)
-    else:
+    if fp.isHeavy():
         fp = afwDet.cast_HeavyFootprintF(fp)
+    else:
+        fp = afwDet.makeHeavyFootprint(fp, mi)
     bb = fp.getBBox()
     im = afwImage.ImageF(bb.getWidth(), bb.getHeight())
     im.setXY0(bb.getMinX(), bb.getMinY())

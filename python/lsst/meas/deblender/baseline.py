@@ -486,6 +486,7 @@ def _fit_psfs(fp, peaks, fpres, log, psf, psffwhm, img, varimg,
         pkres.X = Xpsf
         pkres.otherpsfs = len(otherpeaks)
         pkres.w = w
+        pkres.psfflux = Xpsf[I_psf]
         pkres.deblend_as_psf = bool(ispsf)
 
         if ispsf:

@@ -36,6 +36,9 @@ def addToParser(parser):
     parser.add_option('--no-plots', dest='noplots', action='store_true', help='No plots at all; --no-deblend-plots, --no-measure-plots, --no-after-plots')
     parser.add_option('--threads', dest='threads', type=int, help='Multiprocessing for plots?')
     parser.add_option('--overview', dest='overview', help='Produce an overview plot?')
+
+    #parser.add_option('--drop-psfs', dest='drop_psf', help='Drop deblends 
+
     parser.add_option('-v', dest='verbose', action='store_true')
 
 class DebugDeblendTask(measAlg.SourceDeblendTask):
