@@ -1,4 +1,5 @@
 import pylab as plt
+import numpy as np
 
 import lsst.pex.logging as pexLog
 import lsst.afw.table as afwTable
@@ -37,7 +38,12 @@ def addToParser(parser):
     parser.add_option('--threads', dest='threads', type=int, help='Multiprocessing for plots?')
     parser.add_option('--overview', dest='overview', help='Produce an overview plot?')
 
-    #parser.add_option('--drop-psfs', dest='drop_psf', help='Drop deblends 
+    parser.add_option('--drop-psf', dest='drop_faint_psf', type=float,
+                      help='Drop deblended children that are fit as PSFs with flux less than the given value')
+    parser.add_option('--drop-single', dest='drop_single', action='store_true',
+                      help='Drop deblend families that have only a single child?')
+    parser.add_option('--drop-well-fit', dest='drop_well_fit', action='store_true',
+                      help='Drop deblend families of PSFs that fit the data well?')
 
     parser.add_option('-v', dest='verbose', action='store_true')
 
@@ -340,14 +346,106 @@ def t1091main(dr, opt, conf, proc, patargs={}, rundeblendargs={}, pool=None):
     idmask = (1 << idbits)-1
     
     exposure = dr.get('calexp')
-    print 'Exposure', exposure
+    psf = dr.get('psf')
     mi = exposure.getMaskedImage()
     sigma1 = get_sigma1(mi)
     fams = getFamilies(cat)
 
+    fams = [(parent, kids, []) for parent,kids in fams]
+
+    if opt.drop_well_fit:
+        #
+        threshold = 2.
+        
+        schema = cat.getSchema()
+        psfkey = schema.find("deblend.deblended-as-psf").key
+        fluxkey = schema.find('deblend.psf-flux').key
+        centerkey = schema.find('deblend.psf-center').key
+
+        keep = []
+        for i,(parent,kids,dkids) in enumerate(fams):
+            if not all([kid.get(psfkey) for kid in kids]):
+                keep.append((parent,kids,dkids))
+                continue
+
+            data = footprintToImage(parent.getFootprint(), mi)
+            bb = parent.getFootprint().getBBox()
+            model = afwImage.ImageF(bb.getWidth(), bb.getHeight())
+            model.setXY0(bb.getMinX(), bb.getMinY())
+            x0,y0 = bb.getMinX(), bb.getMinY()
+
+            for kid in kids:
+                flux = kid.get(fluxkey)
+                if flux < 0:
+                    continue
+                xy = kid.get(centerkey)
+                psfimg = psf.computeImage(xy)
+                psfimg *= flux
+                
+                pbb = psfimg.getBBox(afwImage.PARENT)
+                pbb.clip(bb)
+                psfimg = psfimg.Factory(psfimg, pbb, afwImage.PARENT)
+                #px0,py0 = psfimg.getX0(), psfimg.getY0()
+
+                model.getArray()[pbb.getMinY()-y0:pbb.getMaxY()+1-y0,
+                                 pbb.getMinX()-x0:pbb.getMaxX()+1-x0] += psfimg.getArray()
+
+            unfit = np.sum((data.getArray()/sigma1)**2) / parent.getFootprint().getNpix()
+            fit = np.sum(((data.getArray() - model.getArray())/sigma1)**2) / parent.getFootprint().getNpix()
+                
+            if fit > threshold:
+                keep.append((parent, kids, dkids))
+                continue
+
+            print 'Dropped deblend: Chisq per pixel:', unfit, '->', fit
+
+            if False:
+                pa = dict(interpolation='nearest', origin='lower')
+                pa1 = pa.copy()
+                pa1.update(vmin=-3.*sigma1, vmax=10.*sigma1)
+                pa2 = pa.copy()
+                pa2.update(vmin=-5., vmax=5.)
+                plt.clf()
+                plt.subplot(2,2,1)
+                plt.imshow(data.getArray(), **pa1)
+                plt.gray()
+                plt.colorbar()
+                plt.title('chisq per pix: %.2f -> %.2f' % (unfit, fit))
+                plt.subplot(2,2,2)
+                plt.imshow(model.getArray(), **pa1)
+                plt.colorbar()
+                plt.subplot(2,2,3)
+                plt.imshow((data.getArray() - model.getArray()) / sigma1, **pa2)
+                plt.title('chi')
+                plt.colorbar()
+                fn = 'psfmodel-%04i.png' % i
+                plt.savefig(fn)
+                print 'saved', fn
+
+        fams = keep
+
+    if opt.drop_faint_psf:
+        faint = opt.drop_faint_psf
+        schema = cat.getSchema()
+        psfkey = schema.find("deblend.deblended-as-psf").key
+        fluxkey = schema.find('deblend.psf-flux').key
+
+        for parent,kids,dropkids in fams:
+            rmkids = []
+            for kid in kids:
+                if kid.get(psfkey) and kid.get(fluxkey) < faint:
+                    print 'Dropping PSF child with flux', kid.get(fluxkey)
+                    dropkids.append(kid)
+                    rmkids.append(kid)
+            for kid in rmkids:
+                kids.remove(kid)
+
+    if opt.drop_single:
+        fams = [(parent, kids, dkids) for (parent, kids, dkids) in fams if len(kids) > 1]
+
     A = []
-    for j,(parent,children) in enumerate(fams):
-        args = (mi, parent, children, cat, sigma1)
+    for j,(parent,children,dkids) in enumerate(fams):
+        args = (mi, parent, children, dkids, cat, sigma1)
         fn1 = 'deblend-%04i-a.png' % j
         kwargs1 = dict(ellipses=True, idmask=idmask)
         fn2 = 'deblend-%04i-b.png' % j

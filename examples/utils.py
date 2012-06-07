@@ -194,18 +194,19 @@ def plotDeblendFamily(*args, **kwargs):
     plotDeblendFamilyReal(*X, **kwargs)
 
 # Preprocessing: returns _mockSources for the parent and kids
-def plotDeblendFamilyPre(mi, parent, kids, srcs, sigma1, ellipses=True, **kwargs):
+def plotDeblendFamilyPre(mi, parent, kids, dkids, srcs, sigma1, ellipses=True, **kwargs):
     schema = srcs.getSchema()
     psfkey = schema.find("deblend.deblended-as-psf").key
     fluxkey = schema.find('deblend.psf-flux').key
     xkey = schema.find('centroid.naive.x').key
     ykey = schema.find('centroid.naive.y').key
     p = _mockSource(parent, mi, psfkey, fluxkey, xkey, ykey, ellipses=ellipses)
-    ch = [_mockSource(ch, mi, psfkey, fluxkey, xkey, ykey, ellipses=ellipses) for ch in kids]
-    return (p, ch, sigma1)
+    ch = [_mockSource(kid, mi, psfkey, fluxkey, xkey, ykey, ellipses=ellipses) for kid in kids]
+    dch = [_mockSource(kid, mi, psfkey, fluxkey, xkey, ykey, ellipses=ellipses) for kid in dkids]
+    return (p, ch, dch, sigma1)
 
 # Real thing: make plots given the _mockSources
-def plotDeblendFamilyReal(parent, kids, sigma1, plotb=False, idmask=None, ellipses=True):
+def plotDeblendFamilyReal(parent, kids, dkids, sigma1, plotb=False, idmask=None, ellipses=True):
     if idmask is None:
         idmask = ~0L
     pim = parent.im
@@ -302,6 +303,17 @@ def plotDeblendFamilyReal(parent, kids, sigma1, plotb=False, idmask=None, ellips
     plt.plot([parent.cx], [parent.cy], 'x', color='b')
     if ellipses:
         drawEllipses(parent, ec='b', fc='none', alpha=0.7)
+
+    # Plot dropped kids
+    for kid in dkids:
+        ext = kid.ext
+        # bounding box
+        xx = [ext[0],ext[1],ext[1],ext[0],ext[0]]
+        yy = [ext[2],ext[2],ext[3],ext[3],ext[2]]
+        plt.plot(xx, yy, 'y-')
+        # peak(s)
+        plt.plot(kid.pfx, kid.pfy, 'yx')
+    
     plt.axis(pax)
 
 
