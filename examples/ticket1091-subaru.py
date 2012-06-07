@@ -15,6 +15,10 @@ def tweak_config(conf):
     cr.niteration = 3
     cr.nCrPixelMax = 1000000
 
+
+# python examples/ticket1091-subaru.py --root ~/lsst/SUP --outroot $(pwd)/sout --ccd 6 --threads 8 \
+# --drop-psf 300 --drop-single --drop-well-fit --no-deblend-plots --no-measure-plots --prefix=sup06-
+
 def main():
     from optparse import OptionParser
     parser = OptionParser()

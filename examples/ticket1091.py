@@ -45,6 +45,8 @@ def addToParser(parser):
     parser.add_option('--drop-well-fit', dest='drop_well_fit', action='store_true',
                       help='Drop deblend families of PSFs that fit the data well?')
 
+    parser.add_option('--prefix', dest='prefix', default='', help='Prefix for plot filenames')
+
     parser.add_option('-v', dest='verbose', action='store_true')
 
 class DebugDeblendTask(measAlg.SourceDeblendTask):
@@ -112,7 +114,10 @@ class DebugDeblendTask(measAlg.SourceDeblendTask):
 
 def runDeblend(dataRef, sourcefn, conf, procclass, forceisr=False, forcecalib=False, forcedet=False,
                verbose=False, drill=[], debugDeblend=True, debugMeas=True,
-               calibInput='postISRCCD', tweak_config=None):
+               calibInput='postISRCCD', tweak_config=None, prefix=None):
+    if prefix is None:
+        prefix = ''
+
     dr = dataRef
     mapper = datarefToMapper(dr)
 
@@ -229,7 +234,7 @@ def runDeblend(dataRef, sourcefn, conf, procclass, forceisr=False, forcecalib=Fa
             log = pexLog.Log(proc.log, 'deblend')
             log.setThreshold(pexLog.Log.DEBUG)
         proc.deblend = DebugDeblendTask(proc.schema, config=conf.deblend, log=log,
-                                        prefix = 'deblend-', drill=drill)
+                                        prefix = prefix + 'deblend-', drill=drill)
         conf.doDeblend = True
         if not debugMeas:
             # Put in the normal measurement subtask; we have to do
@@ -247,7 +252,7 @@ def runDeblend(dataRef, sourcefn, conf, procclass, forceisr=False, forcecalib=Fa
             log.setThreshold(pexLog.Log.DEBUG)
         proc.measurement = DebugSourceMeasTask(proc.schema, algMetadata=proc.algMetadata,
                                                config=conf.measurement, log=log,
-                                               plotmasks = False, prefix = 'measure-')
+                                               plotmasks = False, prefix = prefix + 'measure-')
         conf.doMeasurement = True
 
     if srcs:
@@ -289,7 +294,8 @@ def t1091main(dr, opt, conf, proc, patargs={}, rundeblendargs={}, pool=None):
         cat = runDeblend(dr, opt.sourcefn, conf, proc,
                          opt.forceisr, opt.forcecalib, opt.forcedet,
                          opt.verbose, opt.drill, opt.deblendplots, opt.measplots,
-                         **rundeblendargs)
+                         prefix=opt.prefix, **rundeblendargs)
+                         
 
         if opt.sourcefn:
             print 'Writing FITS to', opt.sourcefn
@@ -322,8 +328,6 @@ def t1091main(dr, opt, conf, proc, patargs={}, rundeblendargs={}, pool=None):
         ax = plt.axis()
         plt.gray()
         for src in cat:
-            #fp = src.getFootprint()
-            #bb = fp.getBBox()
             ext = getExtent(src.getFootprint().getBBox())
             xx = [ext[0],ext[1],ext[1],ext[0],ext[0]]
             yy = [ext[2],ext[2],ext[3],ext[3],ext[2]]
@@ -385,7 +389,6 @@ def t1091main(dr, opt, conf, proc, patargs={}, rundeblendargs={}, pool=None):
                 pbb = psfimg.getBBox(afwImage.PARENT)
                 pbb.clip(bb)
                 psfimg = psfimg.Factory(psfimg, pbb, afwImage.PARENT)
-                #px0,py0 = psfimg.getX0(), psfimg.getY0()
 
                 model.getArray()[pbb.getMinY()-y0:pbb.getMaxY()+1-y0,
                                  pbb.getMinX()-x0:pbb.getMaxX()+1-x0] += psfimg.getArray()
@@ -418,7 +421,7 @@ def t1091main(dr, opt, conf, proc, patargs={}, rundeblendargs={}, pool=None):
                 plt.imshow((data.getArray() - model.getArray()) / sigma1, **pa2)
                 plt.title('chi')
                 plt.colorbar()
-                fn = 'psfmodel-%04i.png' % i
+                fn = opt.prefix + 'psfmodel-%04i.png' % i
                 plt.savefig(fn)
                 print 'saved', fn
 
@@ -446,9 +449,9 @@ def t1091main(dr, opt, conf, proc, patargs={}, rundeblendargs={}, pool=None):
     A = []
     for j,(parent,children,dkids) in enumerate(fams):
         args = (mi, parent, children, dkids, cat, sigma1)
-        fn1 = 'deblend-%04i-a.png' % j
+        fn1 = opt.prefix + 'deblend-%04i-a.png' % j
         kwargs1 = dict(ellipses=True, idmask=idmask)
-        fn2 = 'deblend-%04i-b.png' % j
+        fn2 = opt.prefix + 'deblend-%04i-b.png' % j
         kwargs2 = dict(ellipses=True, plotb=True, idmask=idmask)
 
         if pool is None:
