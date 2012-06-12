@@ -126,6 +126,28 @@ exposures: {
         level:        "Skytile"
         tables:        "raw_skytile"
     }
+
+    mosaicCalib: {
+        template:    "%(outRoot)s/%(pointing)05d/%(filter)s/output/CALIB%(visit)07d%(ccd)1d-%(tract)d.fits"
+        python:      "lsst.afw.image.ExposureU"
+        persistable: "ExposureU"
+        storage:     "FitsStorage"
+        columns:     pointing
+        columns:     filter
+        columns:     visit
+        columns:     ccd
+        tables:      raw
+        level:       Ccd
+    }
+
+    coaddTempExp: {
+        template:    "%(outRoot)s/coaddTemp/%(filter)s/%(tract)d/TEMP%(visit)07d%(ccd)1d-%(patch)s.fits"
+        python:      "lsst.afw.image.ExposureF"
+        persistable: "ExposureF"
+        storage:     "FitsStorage"
+        tables:      raw
+    }
+
 }
 
 calibrations: {
@@ -322,5 +344,33 @@ datasets: {
         tables:        "raw_skytile"
     }
 
+    deepCoadd: {
+        template:    "deepCoadd/%(filter)s/%(tract)d/%(patch)s.fits"
+        python:      "lsst.afw.image.ExposureF"
+        persistable: "ExposureF"
+        storage:     "FitsStorage"
+        tables:      raw
+    }
+    deepCoadd_depth: {
+        template:    "deepCoadd/%(filter)s/%(tract)d/%(patch)s.depth.fits"
+        python:      "lsst.afw.image.ImageF"
+        persistable: "ImageF"
+        storage:     "FitsStorage"
+        tables:      raw
+    }
+    deepCoadd_psf: {
+        template:    "deepCoadd/%(filter)s/%(tract)d/%(patch)s.boost"
+        python:      "lsst.afw.detection.Psf"
+        persistable: "Psf"
+        storage:     "BoostStorage"
+        tables:      raw
+    }
+    deepCoadd_skyMap: {
+        template:    "deepCoadd/skyMap.pickle"
+        python:      "lsst.skymap.BaseSkyMap"
+        persistable: "ignored"
+        storage:     "PickleStorage"
+        tables:      raw
+    }
 
 }
