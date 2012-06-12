@@ -121,6 +121,7 @@ def runDeblend(dataRef, sourcefn, conf, procclass, forceisr=False, forcecalib=Fa
     dr = dataRef
     mapper = datarefToMapper(dr)
 
+    conf.detection.returnOriginalFootprints = False
     conf.calibrate.doComputeApCorr = False
     conf.calibrate.doAstrometry = False
     conf.calibrate.doPhotoCal = False

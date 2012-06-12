@@ -73,7 +73,12 @@ def main():
 
     proc = procCcd.ProcessCcdTask
 
-    t1091main(dr, opt, conf, proc, patargs=patargs,
+    pool = None
+    if opt.threads:
+        import multiprocessing
+        pool = multiprocessing.Pool(opt.threads)
+
+    t1091main(dr, opt, conf, proc, patargs=patargs, pool=pool,
               rundeblendargs=dict(calibInput='postISRCCD', tweak_config=tweak_config))
               
 
