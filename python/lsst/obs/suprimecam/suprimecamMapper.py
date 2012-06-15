@@ -27,12 +27,9 @@ class SuprimecamMapper(CameraMapper):
                 raise RuntimeError("Either $SUPRIME_DATA_DIR or root= must be specified")
 
         if not kwargs.get('calibRoot', None):
-            try:
-                kwargs['calibRoot'] = os.path.join(os.environ.get('SUPRIME_DATA_DIR'), 'SUPA', 'CALIB')
-                if self.mit:
-                    kwargs['calibRoot'] += "_MIT"                
-            except:
-                raise RuntimeError("Either $SUPRIME_DATA_DIR or root= must be specified")
+            kwargs['calibRoot'] = os.path.join(kwargs['root'], 'CALIB')
+            if self.mit:
+                kwargs['calibRoot'] += "_MIT"
             
         if outputRoot is None:
             if policy.exists('outRoot'):
