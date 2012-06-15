@@ -18,7 +18,7 @@ skytiles: {
 
 exposures: {
     raw: {
-        template:    "SIMS/%(field)s/%(dateObs).10s/%(pointing)05d/%(filter)s/HSCA%(visit)05d%(ccd)03d.fits"
+        template:    "%(field)s/%(dateObs).10s/%(pointing)05d/%(filter)s/HSCA%(visit)05d%(ccd)03d.fits"
         python:     "lsst.afw.image.DecoratedImageU"
         persistable:         "DecoratedImageU"
         storage:     "FitsStorage"

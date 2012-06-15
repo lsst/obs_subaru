@@ -96,7 +96,7 @@ def main():
         raise SystemExit()
 
     # We only import SuprimeCam data.
-    rootDir = os.path.join(rootDir, 'HSC/SIMS')
+    rootDir = os.path.join(rootDir, 'HSC')
     
     for infile in args:
         info = getFrameInfo(infile)
