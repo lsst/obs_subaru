@@ -28,7 +28,7 @@ if len(args) > 0 or len(sys.argv) == 1:
     parser.print_help()
     sys.exit(1)
 
-if opts.camera.lower() not in ("suprime-cam", "suprimecam", "sc", "hsc"):
+if opts.camera.lower() not in ("suprime-cam", "suprimecam", "sc", "hsc", "hscsim"):
     raise RuntimeError("Camera not recognised: %s" % camera)
 
 registry = os.path.join(opts.root, "calibRegistry.sqlite3")
@@ -54,7 +54,7 @@ for calib in ('bias', 'dark', 'flat', 'fringe'):
         print fits
         if opts.camera.lower() in ("suprime-cam", "suprimecam", "sc"):
             m = re.search(r'\w+/(\d{4})-(\d{2})-(\d{2})/(.-.-.{1,3})/(\d+)/\w+-(\d{7})(\d).fits', fits)
-        elif opts.camera.lower() in ("hsc"):
+        elif opts.camera.lower() in ("hsc", "hscsim"):
             m = re.search(r'\w+/(\d{4})-(\d{2})-(\d{2})/(.-.-.{1,3})/(\d+)/\w+-(\d{5})(\d{3}).fits', fits)
         if not m:
             print >>sys.stderr, "Warning: Unrecognized file:", fits

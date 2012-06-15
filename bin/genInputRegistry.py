@@ -25,7 +25,7 @@ if len(args) > 0 or len(sys.argv) == 1:
     parser.print_help()
     sys.exit(1)
 
-if opts.camera.lower() in ("hsc"):
+if opts.camera.lower() in ("hsc", "hscsim"):
     mapperPolicy = "HscSimMapper.paf"
 elif opts.camera.lower() in ("sc", "suprimecam", "suprime-cam"):
     mapperPolicy = "SuprimecamMapper.paf"
