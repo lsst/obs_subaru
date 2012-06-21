@@ -161,12 +161,14 @@ class DebugSourceMeasTask(measAlg.SourceMeasurementTask):
 # a _mockSource object.
 
 class _mockSource(object):
-    def __init__(self, src, mi, psfkey, fluxkey, xkey, ykey, ellipses=True):
+    def __init__(self, src, mi, psfkey, fluxkey, xkey, ykey, flagKeys, ellipses=True):
+        # flagKeys: list of (key, string) tuples
         self.sid = src.getId()
         self.im = footprintToImage(src.getFootprint(), mi).getArray()
         self.ext = getExtent(src.getFootprint().getBBox())
         self.ispsf = src.get(psfkey)
         self.psfflux = src.get(fluxkey)
+        self.flags = [nm for key,nm in flagKeys if src.get(key)]
         #self.cxy = (src.get(xkey), src.get(ykey))
         self.cx = src.get(xkey)
         self.cy = src.get(ykey)
@@ -200,9 +202,16 @@ def plotDeblendFamilyPre(mi, parent, kids, dkids, srcs, sigma1, ellipses=True, *
     fluxkey = schema.find('deblend.psf-flux').key
     xkey = schema.find('centroid.naive.x').key
     ykey = schema.find('centroid.naive.y').key
-    p = _mockSource(parent, mi, psfkey, fluxkey, xkey, ykey, ellipses=ellipses)
-    ch = [_mockSource(kid, mi, psfkey, fluxkey, xkey, ykey, ellipses=ellipses) for kid in kids]
-    dch = [_mockSource(kid, mi, psfkey, fluxkey, xkey, ykey, ellipses=ellipses) for kid in dkids]
+    flagKeys = [(schema.find(keynm).key, nm)
+                for nm,keynm in [('EDGE', 'flags.pixel.edge'),
+                                 ('INTERP', 'flags.pixel.interpolated.any'),
+                                 ('INT-C', 'flags.pixel.interpolated.center'),
+                                 ('SAT', 'flags.pixel.saturated.any'),
+                                 ('SAT-C', 'flags.pixel.saturated.center'),
+                                 ]]
+    p = _mockSource(parent, mi, psfkey, fluxkey, xkey, ykey, flagKeys, ellipses=ellipses)
+    ch = [_mockSource(kid,  mi, psfkey, fluxkey, xkey, ykey, flagKeys, ellipses=ellipses) for kid in kids]
+    dch = [_mockSource(kid, mi, psfkey, fluxkey, xkey, ykey, flagKeys, ellipses=ellipses) for kid in dkids]
     return (p, ch, dch, sigma1)
 
 # Real thing: make plots given the _mockSources
@@ -239,7 +248,10 @@ def plotDeblendFamilyReal(parent, kids, dkids, sigma1, plotb=False, idmask=None,
     m = 0.25
     pax = [pext[0]-m, pext[1]+m, pext[2]-m, pext[3]+m]
     x,y = parent.pix[0], parent.piy[0]
-    plt.title('parent %i @ (%i,%i)' % (parent.sid & idmask, x, y))
+    tt = 'parent %i @ (%i,%i)' % (parent.sid & idmask, x, y)
+    if len(parent.flags):
+        tt += ', ' + ', '.join(parent.flags)
+    plt.title(tt)
     Rx,Ry = [],[]
     tts = []
     stys = []
@@ -265,6 +277,10 @@ def plotDeblendFamilyReal(parent, kids, dkids, sigma1, plotb=False, idmask=None,
         else:
             sty1 = dict(color='r')
             sty2 = dict(color=(0.8,0.1,0.1), lw=2, alpha=0.5)
+
+        if len(kid.flags):
+            tt += ', ' + ', '.join(kid.flags)
+
         tts.append(tt)
         stys.append(sty1)
         plt.title(tt)

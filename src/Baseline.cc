@@ -1,10 +1,8 @@
-
 #include <list>
 
 #include "lsst/meas/deblender/Baseline.h"
 #include "lsst/pex/logging.h"
 #include "lsst/afw/geom/Box.h"
-
 #include "lsst/meas/algorithms/detail/SdssShape.h"
 
 #include <boost/math/special_functions/round.hpp>
@@ -240,11 +238,20 @@ apportionFlux(MaskedImageT const& img,
 			typename ImageT::x_iterator sumptr = sumimg->row_begin(y - sy0) + (tx0 - sx0);
 			typename MaskedImageT::x_iterator outptr = port->row_begin(y - ty0);
 			for (; tptr != tend; ++tptr, ++inptr, ++outptr, ++sumptr) {
-				if (*sumptr == 0)
+				if (*sumptr == 0) {
+					// Don't need this -- MaskedImage constructor sets to zero by default.
+					//outptr.mask()     = 0;
+					//outptr.variance() = 0;
+					//outptr.image()    = 0;
 					continue;
+				}
+				double frac = std::max((ImagePixelT)0., (*tptr).image()) / (*sumptr);
+				//if (frac == 0) {
+				// treat mask planes differently?
+				// }
 				outptr.mask()     = (*inptr).mask();
 				outptr.variance() = (*inptr).variance();
-				outptr.image()    = (*inptr).image() * std::max((ImagePixelT)0., (*tptr).image()) / (*sumptr);
+				outptr.image()    = (*inptr).image() * frac;
 			}
 		}
 	}
