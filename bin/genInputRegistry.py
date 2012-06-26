@@ -25,7 +25,7 @@ if len(args) > 0 or len(sys.argv) == 1:
     parser.print_help()
     sys.exit(1)
 
-if opts.camera.lower() in ("hsc"):
+if opts.camera.lower() in ("hsc", "hscsim"):
     mapperPolicy = "HscSimMapper.paf"
 elif opts.camera.lower() in ("sc", "suprimecam", "suprime-cam"):
     mapperPolicy = "SuprimecamMapper.paf"
@@ -39,13 +39,10 @@ else:
     skyPolicy = None
 
 root = opts.root
-if root == '-':
-    files = [l.strip() for l in sys.stdin.readlines()]
-else:
-    files = glob.glob(os.path.join(root, "*", "*-*-*", "*", "*", "*.fits"))
+files = glob.glob(os.path.join(root, "*", "*-*-*", "*", "*", "*.fits"))
 sys.stderr.write('processing %d files...\n' % (len(files)))
 
-registryName = "registry.sqlite3"
+registryName = os.path.join(root, "registry.sqlite3")
 if opts.create and os.path.exists(registryName):
     os.unlink(registryName)
 
