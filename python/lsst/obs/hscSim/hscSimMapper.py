@@ -12,7 +12,7 @@ from .hscSimLib import HscDistortion
 class HscSimMapper(CameraMapper):
     """Provides abstract-physical mapping for HSC Simulation data"""
     
-    def __init__(self, rerun=None, outRoot=None, **kwargs):
+    def __init__(self, **kwargs):
         policyFile = pexPolicy.DefaultPolicyFile("obs_subaru", "HscSimMapper.paf", "policy")
         policy = pexPolicy.Policy(policyFile)
 
@@ -25,17 +25,10 @@ class HscSimMapper(CameraMapper):
         if not kwargs.get('calibRoot', None):
             kwargs['calibRoot'] = os.path.join(kwargs['root'], 'CALIB')
 
-        if outRoot is None:
-            if policy.exists('outRoot'):
-                outRoot = policy.get('outRoot')
-            else:
-                outRoot = kwargs['root']
-
-        self.rerun = rerun if rerun is not None else pwd.getpwuid(os.geteuid())[0]
-        self.outRoot = outRoot
-
-        super(HscSimMapper, self).__init__(policy, policyFile.getRepositoryPath(),
-                                           provided=['rerun', 'outRoot'], **kwargs)
+        if not kwargs.get('outputRoot', None):
+            kwargs['outputRoot'] = os.path.join(kwargs['root'], 'rerun', os.getlogin())
+        
+        super(HscSimMapper, self).__init__(policy, policyFile.getRepositoryPath(), **kwargs)
         
         # Distortion isn't pluggable, so we'll put in our own
         elevation = 45 * afwGeom.degrees
@@ -69,14 +62,3 @@ class HscSimMapper(CameraMapper):
     def _extractDetectorName(self, dataId):
         return int("%(ccd)d" % dataId)
 
-    def _transformId(self, dataId):
-        actualId = dataId.copy()
-        if actualId.has_key("rerun"):
-            del actualId["rerun"]
-        return actualId
-
-    def _mapActualToPath(self, template, dataId):
-        actualId = self._transformId(dataId)
-        actualId['rerun'] = self.rerun
-        actualId['outRoot'] = self.outRoot
-        return template % actualId

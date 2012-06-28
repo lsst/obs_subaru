@@ -11,7 +11,7 @@ from lsst.daf.butlerUtils import CameraMapper
 import lsst.pex.policy as pexPolicy
 
 class SuprimecamMapper(CameraMapper):
-    def __init__(self, mit=False, outputRoot=None, **kwargs):
+    def __init__(self, mit=False, **kwargs):
         policyFile = pexPolicy.DefaultPolicyFile("obs_subaru", "SuprimecamMapper.paf", "policy")
         policy = pexPolicy.Policy(policyFile)
 
@@ -30,18 +30,11 @@ class SuprimecamMapper(CameraMapper):
             kwargs['calibRoot'] = os.path.join(kwargs['root'], 'CALIB')
             if self.mit:
                 kwargs['calibRoot'] += "_MIT"
-            
-        if outputRoot is None:
-            if policy.exists('outRoot'):
-                outputRoot = policy.get('outRoot')
-            else:
-                outputRoot = kwargs['root']
 
-        self.outRoot = outputRoot
-
-        super(SuprimecamMapper, self).__init__(policy, policyFile.getRepositoryPath(),
-                                               provided=['outRoot'],
-                                               outputRoot=outputRoot, **kwargs)
+        if not kwargs.get('outputRoot', None):
+            kwargs['outputRoot'] = os.path.join(kwargs['root'], 'rerun', os.getlogin())
+        
+        super(SuprimecamMapper, self).__init__(policy, policyFile.getRepositoryPath(), **kwargs)
 
         # Johnson filters
         afwImageUtils.defineFilter('B',  lambdaEff=400,  alias=['W-J-B'])
@@ -93,8 +86,3 @@ class SuprimecamMapper(CameraMapper):
     def _transformId(self, dataId):
         actualId = dataId.copy()
         return actualId
-
-    def _mapActualToPath(self, template, dataId):
-        actualId = self._transformId(dataId)
-        actualId['outRoot'] = self.outRoot
-        return template % actualId
