@@ -27,7 +27,13 @@ class HscSimMapper(CameraMapper):
 
         if not kwargs.get('outputRoot', None):
             kwargs['outputRoot'] = os.path.join(kwargs['root'], 'rerun', os.getlogin())
-        
+            if not os.path.isdir(kwargs['outputRoot']):
+                try:
+                    os.makedirs(kwargs['outputRoot'])
+                except:
+                    # Possibly caused by a race condition
+                    pass
+
         super(HscSimMapper, self).__init__(policy, policyFile.getRepositoryPath(), **kwargs)
         
         # Distortion isn't pluggable, so we'll put in our own
