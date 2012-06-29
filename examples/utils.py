@@ -161,10 +161,17 @@ class DebugSourceMeasTask(measAlg.SourceMeasurementTask):
 # a _mockSource object.
 
 class _mockSource(object):
-    def __init__(self, src, mi, psfkey, fluxkey, xkey, ykey, flagKeys, ellipses=True):
+    def __init__(self, src, mi, psfkey, fluxkey, xkey, ykey, flagKeys, ellipses=True,
+                 maskbit=None):
         # flagKeys: list of (key, string) tuples
         self.sid = src.getId()
-        self.im = footprintToImage(src.getFootprint(), mi).getArray()
+        aa = {}
+        if maskbit is not None:
+            aa.update(mask=True)
+        self.im = footprintToImage(src.getFootprint(), mi, **aa).getArray()
+        if maskbit is not None:
+            self.im = ((self.im & maskbit) > 0)
+
         self.ext = getExtent(src.getFootprint().getBBox())
         self.ispsf = src.get(psfkey)
         self.psfflux = src.get(fluxkey)
@@ -196,7 +203,7 @@ def plotDeblendFamily(*args, **kwargs):
     plotDeblendFamilyReal(*X, **kwargs)
 
 # Preprocessing: returns _mockSources for the parent and kids
-def plotDeblendFamilyPre(mi, parent, kids, dkids, srcs, sigma1, ellipses=True, **kwargs):
+def plotDeblendFamilyPre(mi, parent, kids, dkids, srcs, sigma1, ellipses=True, maskbit=None, **kwargs):
     schema = srcs.getSchema()
     psfkey = schema.find("deblend.deblended-as-psf").key
     fluxkey = schema.find('deblend.psf-flux').key
@@ -209,13 +216,14 @@ def plotDeblendFamilyPre(mi, parent, kids, dkids, srcs, sigma1, ellipses=True, *
                                  ('SAT', 'flags.pixel.saturated.any'),
                                  ('SAT-C', 'flags.pixel.saturated.center'),
                                  ]]
-    p = _mockSource(parent, mi, psfkey, fluxkey, xkey, ykey, flagKeys, ellipses=ellipses)
-    ch = [_mockSource(kid,  mi, psfkey, fluxkey, xkey, ykey, flagKeys, ellipses=ellipses) for kid in kids]
-    dch = [_mockSource(kid, mi, psfkey, fluxkey, xkey, ykey, flagKeys, ellipses=ellipses) for kid in dkids]
+    p = _mockSource(parent, mi, psfkey, fluxkey, xkey, ykey, flagKeys, ellipses=ellipses, maskbit=maskbit)
+    ch = [_mockSource(kid,  mi, psfkey, fluxkey, xkey, ykey, flagKeys, ellipses=ellipses, maskbit=maskbit) for kid in kids]
+    dch = [_mockSource(kid, mi, psfkey, fluxkey, xkey, ykey, flagKeys, ellipses=ellipses, maskbit=maskbit) for kid in dkids]
     return (p, ch, dch, sigma1)
 
 # Real thing: make plots given the _mockSources
-def plotDeblendFamilyReal(parent, kids, dkids, sigma1, plotb=False, idmask=None, ellipses=True):
+def plotDeblendFamilyReal(parent, kids, dkids, sigma1, plotb=False, idmask=None, ellipses=True,
+                          arcsinh=True, maskbit=None):
     if idmask is None:
         idmask = ~0L
     pim = parent.im
@@ -228,14 +236,22 @@ def plotDeblendFamilyReal(parent, kids, dkids, sigma1, plotb=False, idmask=None,
     def nlmap(X):
         return np.arcsinh(X / (3.*sigma1))
     def myimshow(im, **kwargs):
-        kwargs = kwargs.copy()
-        mn = kwargs.get('vmin', -5*sigma1)
-        kwargs['vmin'] = nlmap(mn)
-        mx = kwargs.get('vmax', 100*sigma1)
-        kwargs['vmax'] = nlmap(mx)
-        plt.imshow(nlmap(im), **kwargs)
+        arcsinh = kwargs.pop('arcsinh', True)
+        if arcsinh:
+            kwargs = kwargs.copy()
+            mn = kwargs.get('vmin', -5*sigma1)
+            kwargs['vmin'] = nlmap(mn)
+            mx = kwargs.get('vmax', 100*sigma1)
+            kwargs['vmax'] = nlmap(mx)
+            plt.imshow(nlmap(im), **kwargs)
+        else:
+            plt.imshow(im, **kwargs)
+
     imargs = dict(interpolation='nearest', origin='lower',
-                  vmax=pim.max())
+                  vmax=pim.max(), arcsinh=arcsinh)
+    if maskbit:
+        imargs.update(vmin=0)
+
     plt.figure(figsize=(8,8))
     plt.clf()
     plt.subplots_adjust(left=0.05, right=0.95, bottom=0.05, top=0.9,
@@ -333,15 +349,20 @@ def plotDeblendFamilyReal(parent, kids, dkids, sigma1, plotb=False, idmask=None,
     plt.axis(pax)
 
 
-def footprintToImage(fp, mi=None):
+def footprintToImage(fp, mi=None, mask=False):
     if fp.isHeavy():
         fp = afwDet.cast_HeavyFootprintF(fp)
     else:
         fp = afwDet.makeHeavyFootprint(fp, mi)
     bb = fp.getBBox()
-    im = afwImage.ImageF(bb.getWidth(), bb.getHeight())
+    if mask:
+        im = afwImage.MaskedImageF(bb.getWidth(), bb.getHeight())
+    else:
+        im = afwImage.ImageF(bb.getWidth(), bb.getHeight())
     im.setXY0(bb.getMinX(), bb.getMinY())
     fp.insert(im)
+    if mask:
+        im = im.getMask()
     return im
 
 def getFamilies(cat):

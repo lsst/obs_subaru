@@ -45,6 +45,9 @@ def addToParser(parser):
     parser.add_option('--drop-well-fit', dest='drop_well_fit', action='store_true',
                       help='Drop deblend families of PSFs that fit the data well?')
 
+    parser.add_option('--plot-masks', dest='plot_masks', action='store_true', default=False,
+                      help='Produce plots showing the mask bits set in deblend families?')
+
     parser.add_option('--prefix', dest='prefix', default='', help='Prefix for plot filenames')
 
     parser.add_option('-v', dest='verbose', action='store_true')
@@ -450,22 +453,28 @@ def t1091main(dr, opt, conf, proc, patargs={}, rundeblendargs={}, pool=None):
     A = []
     for j,(parent,children,dkids) in enumerate(fams):
         args = (mi, parent, children, dkids, cat, sigma1)
-        fn1 = opt.prefix + 'deblend-%04i-a.png' % j
-        kwargs1 = dict(ellipses=True, idmask=idmask)
-        fn2 = opt.prefix + 'deblend-%04i-b.png' % j
-        kwargs2 = dict(ellipses=True, plotb=True, idmask=idmask)
+
+        fnkwargs = [
+            (opt.prefix + 'deblend-%04i-a.png' % j,
+             dict(ellipses=True, idmask=idmask)),
+            (opt.prefix + 'deblend-%04i-b.png' % j,
+             dict(ellipses=True, plotb=True, idmask=idmask)),
+            ]
+        if opt.plot_masks:
+            fnkwargs += [(opt.prefix + 'deblend-%04i-mask-%s.png' % (j, nm.lower()),
+                          dict(ellipses=False, idmask=idmask, maskbit=mi.getMask().getPlaneBitMask(nm),
+                               arcsinh=False))
+                         for nm in ['BAD', 'SAT', 'INTRP', 'CR', 'EDGE']]
 
         if pool is None:
-            plotDeblendFamily(*args, **kwargs1)
-            plt.savefig(fn1)
-            print 'saved', fn1
-            plotDeblendFamily(*args, **kwargs2)
-            plt.savefig(fn2)
-            print 'saved', fn2
+            for fn,kwargs in fnkwargs:
+                plotDeblendFamily(*args, **kwargs)
+                plt.savefig(fn)
+                print 'saved', fn
 
         else:
-            A.append((plotDeblendFamilyPre(*args, **kwargs1), kwargs1, fn1))
-            A.append((plotDeblendFamilyPre(*args, **kwargs2), kwargs2, fn2))
+            for fn,kwargs in fnkwargs:
+                A.append((plotDeblendFamilyPre(*args, **kwargs), kwargs, fn))
 
     if pool:
         pool.map(_plotfunc, A)

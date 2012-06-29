@@ -239,10 +239,6 @@ apportionFlux(MaskedImageT const& img,
 			typename MaskedImageT::x_iterator outptr = port->row_begin(y - ty0);
 			for (; tptr != tend; ++tptr, ++inptr, ++outptr, ++sumptr) {
 				if (*sumptr == 0) {
-					// Don't need this -- MaskedImage constructor sets to zero by default.
-					//outptr.mask()     = 0;
-					//outptr.variance() = 0;
-					//outptr.image()    = 0;
 					continue;
 				}
 				double frac = std::max((ImagePixelT)0., (*tptr).image()) / (*sumptr);
