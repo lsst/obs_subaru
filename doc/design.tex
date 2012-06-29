@@ -1,0 +1,253 @@
+\documentclass[10pt,letter]{article}
+\usepackage{graphicx}
+\graphicspath{{design-figs/}}
+\usepackage{fullpage}
+\usepackage{multirow}
+\usepackage{array}
+
+% Add used figures to git:
+
+% for x in $(grep 'use .*pdf' design.log | sed 's/<use //g' | tr '>' ' '); do git add $x; done
+
+\author{Dustin Lang}
+\title{Development of a Deblender}
+
+\newcommand{\figref}[1]{Figure~\ref{#1}}
+\newlength{\colw}
+\setlength{\colw}{0.12\textheight}
+
+\newcolumntype{C}{>{\centering\arraybackslash}m{\colw}@{}}
+\newcommand{\mcol}[2]{\multicolumn{#1}{>{\centering\arraybackslash}m{#1\colw}@{}}{#2}}
+
+\begin{document}
+\maketitle
+
+\section{Introduction}
+
+This document describes the iterative design of a deblender through
+experiments.  It is presented as a sequence of refinements guided by
+looking at the results on real data.
+
+
+%  hg clone hsc-gw2.mtk.nao.ac.jp://ana/hgrepo/supaDb
+%  python bin/supa_ingest.py ham.sql3 data/SUP_20{09,10}.txt
+%  (echo "# id filter ra decl expTime type mode object"; sqlite3 ../supaDb/ham.sql3 "select id,filter,ra,decl,expTime,type,mode,object from suprimecam where type='OBJECT' and exptime>119 and filter like 'W%' and mode like 'IMAG%';") > ham.txt
+%  python select.py
+%
+% obj SDSS1115 : 79 exposures
+% Filter W-S-G+ with 4 exposures, total exptime 1200.0 ( [ 300.] )
+% Filter W-S-I+ with 8 exposures, total exptime 1920.0 ( [ 240.] )
+% Filter W-S-R+ with 7 exposures, total exptime 2100.0 ( [ 300.] )
+% Filter W-S-Z+ with 60 exposures, total exptime 7200.0 ( [ 120.] )
+% 
+% Arbitrarily choose visit 108792 -- G-band
+
+
+\section{Starting ansatz: The SDSS deblender}
+
+The initial ansatz,\footnote{%
+  \emph{ansatz:} an educated guess that is verified later by its results (Wikipedia).}
+ due to Robert Lupton \cite{rhldeblend} and
+implemented in the SDSS \emph{Photo} software, is that astronomical
+sources have two-fold rotational symmetry and a peak in the center.
+This is a fiendishly clever observation that will take us a long way.
+We will begin by describing the SDSS deblending algorithm built around
+this ansatz, sweeping several details under the rug until later.
+
+The SDSS deblender takes as input a ``footprint'' and a set of
+``peaks''.  A footprint is a connected set of pixels that are
+significantly above a detection threshold, grown by a margin of about
+the size of the PSF.  ``Peaks'' are just what you expect:
+(PSF-convolved) pixels significantly higher than their neighbors.
+
+For each peak, the SDSS deblender builds a ``template'' image by
+applying the symmetry ansatz.  Starting from the peak pixel, at
+position $(p_x,p_y)$, the template at positions $(p_x + dx, p_y +
+dy)$, $(p_x - dx, p_y - dy)$ contains the \emph{minimum} of those two
+pixel values.  The difference between the minimum and the value at the
+higher pixel is presumed to be due to other blended sources.
+
+Having built a template for each peak, the SDSS deblender computes the
+least-squares \emph{weight} for each template to best reproduce the
+observed image.
+
+Finally, the counts in each image pixel are split between the
+templates covering that pixel in proportion to the values of the
+templates.
+
+This process is illustrated in \figref{fig:sdss1}.
+
+\begin{figure}[p]
+\newcommand{\exfig}[1]{\includegraphics[width=0.12\textheight]{design-sdss-#1}}
+\begin{center}
+\begin{tabular}{m{1.5in}CCC}
+  Original image& & \exfig{image} \\
+  Parent footprint& & \exfig{parent} \\
+  Symmetric templates& \exfig{t0} & \exfig{t1} & \exfig{t2} \\
+  Weighted templates& \exfig{tw0} & \exfig{tw1} & \exfig{tw2} \\
+  Sum of weighted templates& & \exfig{tsum} \\
+  Fraction of flux apportioned to each child (black=0\%, white=100\%)& \exfig{f0} & \exfig{f1} & \exfig{f2} \\
+  Deblended children & \exfig{h0} & \exfig{h1} & \exfig{h2} \\
+\end{tabular}
+\end{center}
+\caption{A sketch of the SDSS deblender, with many tricks omitted.
+  Symmetric templates are built for each peak and the templates are
+  weighted to best reproduce the original image, in a least-squares
+  sense.  The flux is split in proportion to the weighted
+  templates.\label{fig:sdss1}}
+\end{figure}
+
+
+
+\clearpage
+
+\section{Tweak: Monotonic templates}
+
+
+See \figref{fig:mono1} for an example of the ``three-in-a-row''
+effect, where three sources in a line cause the middle template to
+pick up flux from its siblings.
+
+
+We can attempt to remedy this problem by adding a term to the ansatz:
+we expect a galaxy profile to have a central peak, twofold rotational
+symmetry, and a \emph{monotonically decreasing} profile.  We produce
+the template as before, then apply the \emph{monotonic} constraint by
+starting from the center pixel and ``casting the shadow'' of each
+pixel and ensuring that all pixels in the shadow have value at most
+that of the shadowing pixel.
+
+
+While the monotonic constraint largely solves the ``three-in-a-row''
+problem, it introduces strong ``ray'' artifacts into the template.
+These are due to negative-going noisy pixels, which cast long shadows
+on the template.  One might worry that these artifacts would introduce
+biases in the galaxy shape measurements.
+
+
+
+
+\begin{figure}[p]
+\setlength{\colw}{0.12\textheight}
+\newcommand{\exfig}[1]{\includegraphics[width=\colw]{design-mono1-#1}}
+\begin{center}
+\begin{tabular}{m{1in}CCC}
+  Parent footprint & & \exfig{parent} \\
+  Weighted templates & \exfig{tw0} & \exfig{tw1} & \exfig{tw2} \\
+  Flux fractions     & \exfig{f0} & \exfig{f1} & \exfig{f2} \\
+  Deblended children & \exfig{h0} & \exfig{h1} & \exfig{h2} \\
+\end{tabular}
+%
+\vspace{3em}
+%
+\setlength{\colw}{0.12\textheight}
+\renewcommand{\exfig}[1]{\includegraphics[height=\colw,angle=90]{design-mono3-#1}}
+\begin{tabular}{m{1in}CCCC}
+  Parent footprint & \mcol{4}{\exfig{parent}} \\
+  Weighted templates & \exfig{tw0} & \exfig{tw1} & \exfig{tw2} & \exfig{tw3} \\
+  Flux fractions     & \exfig{f0} & \exfig{f1} & \exfig{f2}    & \exfig{f3} \\
+  Deblended children & \exfig{h0} & \exfig{h1} & \exfig{h2}    & \exfig{h3} \\
+\end{tabular}
+\end{center}
+\caption{Two examples of the ``three-in-a-row'' failure mode: when
+  three sources are aligned, the middle template can have a large
+  value near its siblings' peaks since they are arranged symmetrically
+  around the middle peak.  The result is that the middle peak
+  ``steals'' flux from its siblings.\label{fig:mono1}}
+\end{figure}
+
+
+
+
+\begin{figure}[p]
+\begin{center}
+\newcommand{\exfig}[1]{\includegraphics[width=0.12\textheight]{design-mono2-#1}}
+\newcommand{\befig}[1]{\includegraphics[width=0.12\textheight]{design-mono1-#1}}
+\begin{tabular}{m{1in}CCC}
+  Parent footprint & & \exfig{parent} & \\
+  Weighted templates (before) & \befig{tw0} & \befig{tw1} & \befig{tw2} \\
+  Weighted templates & \exfig{tw0} & \exfig{tw1} & \exfig{tw2} \\
+  Flux fractions     & \exfig{f0} & \exfig{f1} & \exfig{f2}    \\
+  Deblended children (before) & \befig{h0} & \befig{h1} & \befig{h2} \\
+  Deblended children & \exfig{h0} & \exfig{h1} & \exfig{h2}   \\
+\end{tabular}
+\end{center}
+\caption{Deblending results using monotonic templates for the example shown in
+  \figref{fig:mono1} (top).\label{fig:mono2}}
+\end{figure}
+
+\begin{figure}[p]
+\begin{center}
+\newcommand{\exfig}[1]{\includegraphics[height=0.12\textheight,angle=90]{design-mono4-#1}}
+\newcommand{\befig}[1]{\includegraphics[height=0.12\textheight,angle=90]{design-mono3-#1}}
+\begin{tabular}{m{1in}CCCC}
+  Parent footprint & \mcol{4}{\exfig{parent}} \\
+  Weighted templates (before) & \befig{tw0} & \befig{tw1} & \befig{tw2} & \befig{tw3} \\
+  Weighted templates & \exfig{tw0} & \exfig{tw1} & \exfig{tw2} & \exfig{tw3} \\
+  Flux fractions     & \exfig{f0} & \exfig{f1} & \exfig{f2}    & \exfig{f3} \\
+  Deblended children (before) & \befig{h0} & \befig{h1} & \befig{h2}    & \befig{h3} \\
+  Deblended children & \exfig{h0} & \exfig{h1} & \exfig{h2}    & \exfig{h3} \\
+\end{tabular}
+\end{center}
+\caption{Deblending results using monotonic templates for the example shown in
+  \figref{fig:mono1} (bottom).\label{fig:mono3}}
+\end{figure}
+
+
+\clearpage
+
+\section{Tweak: Median filtered templates}
+
+
+One strategy for countering the ``ray'' artifacts is to reduce the
+number and strength of negative-going noisy pixels.  One option is to
+apply a median-filter to the template before applying the monotonic
+constraint.
+
+
+
+
+
+\begin{figure}[p]
+\begin{center}
+\newcommand{\exfig}[1]{\includegraphics[width=0.12\textheight]{design-med1-#1}}
+\newcommand{\befig}[1]{\includegraphics[width=0.12\textheight]{design-mono2-#1}}
+\begin{tabular}{m{1in}CCC}
+  Parent footprint & & \exfig{parent} & \\
+  Weighted templates (before) & \befig{tw0} & \befig{tw1} & \befig{tw2} \\
+  Weighted templates & \exfig{tw0} & \exfig{tw1} & \exfig{tw2} \\
+  Flux fractions     & \exfig{f0} & \exfig{f1} & \exfig{f2}    \\
+  Deblended children (before) & \befig{h0} & \befig{h1} & \befig{h2} \\
+  Deblended children & \exfig{h0} & \exfig{h1} & \exfig{h2}   \\
+\end{tabular}
+\end{center}
+\caption{Deblending results using median-filtered monotonic templates for the example shown in
+  \figref{fig:mono1} (top).\label{fig:mono2}}
+\end{figure}
+
+\begin{figure}[p]
+\begin{center}
+\newcommand{\exfig}[1]{\includegraphics[height=0.12\textheight,angle=90]{design-med2-#1}}
+\newcommand{\befig}[1]{\includegraphics[height=0.12\textheight,angle=90]{design-mono4-#1}}
+\begin{tabular}{m{1in}CCCC}
+  Parent footprint & \mcol{4}{\exfig{parent}} \\
+  Weighted templates (before) & \befig{tw0} & \befig{tw1} & \befig{tw2} & \befig{tw3} \\
+  Weighted templates & \exfig{tw0} & \exfig{tw1} & \exfig{tw2} & \exfig{tw3} \\
+  Flux fractions     & \exfig{f0} & \exfig{f1} & \exfig{f2}    & \exfig{f3} \\
+  Deblended children (before) & \befig{h0} & \befig{h1} & \befig{h2}    & \befig{h3} \\
+  Deblended children & \exfig{h0} & \exfig{h1} & \exfig{h2}    & \exfig{h3} \\
+\end{tabular}
+\end{center}
+\caption{Deblending results using median-filtered monotonic templates for the example shown in
+  \figref{fig:mono1} (bottom).\label{fig:mono3}}
+\end{figure}
+
+
+
+
+
+
+
+
+\end{document}
+
