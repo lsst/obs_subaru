@@ -108,16 +108,17 @@ class DebugDeblendTask(measAlg.SourceDeblendTask):
     def postSingleDeblendHook(self, exposure, srcs, i, npre, kids, fp, psf, psf_fwhm, sigma1, res):
         mi = exposure.getMaskedImage()
         parent = srcs[i]
-        plotDeblendFamily(mi, parent, kids, srcs, sigma1, ellipses=False)
+        plotDeblendFamily(mi, parent, kids, [], srcs, sigma1, ellipses=False)
         self.savefig('%04i-posta' % self.plotnum)
-        plotDeblendFamily(mi, parent, kids, srcs, sigma1, plotb=True, ellipses=False)
+        plotDeblendFamily(mi, parent, kids, [], srcs, sigma1, plotb=True, ellipses=False)
         self.savefig('%04i-postb' % self.plotnum)
         self.plotnum += 1
 
 
 def runDeblend(dataRef, sourcefn, conf, procclass, forceisr=False, forcecalib=False, forcedet=False,
                verbose=False, drill=[], debugDeblend=True, debugMeas=True,
-               calibInput='postISRCCD', tweak_config=None, prefix=None):
+               calibInput='postISRCCD', tweak_config=None, prefix=None,
+               printMap=False, hasIsr=True):
     if prefix is None:
         prefix = ''
 
@@ -137,9 +138,10 @@ def runDeblend(dataRef, sourcefn, conf, procclass, forceisr=False, forcecalib=Fa
     doIsr    = False
     doCalib  = False
     doDetect = False
-    print 'Looking for calexp', mapper.map('calexp', dr.dataId)
-    print 'Looking for psf', mapper.map('psf', dr.dataId)
-    print 'Looking for src', mapper.map('src', dr.dataId)
+    if printMap:
+        print 'Looking for calexp', mapper.map('calexp', dr.dataId)
+        print 'Looking for psf', mapper.map('psf', dr.dataId)
+        print 'Looking for src', mapper.map('src', dr.dataId)
     try:
         psf = dr.get('psf')
         print 'PSF:', psf
@@ -180,7 +182,8 @@ def runDeblend(dataRef, sourcefn, conf, procclass, forceisr=False, forcecalib=Fa
         doDetect = True
         srcs = None
 
-    conf.doIsr            = doIsr
+    if hasIsr:
+        conf.doIsr            = doIsr
     conf.doCalibrate      = doCalib
     conf.doWriteCalibrate = doCalib
     conf.doDetection      = doDetect
@@ -219,7 +222,7 @@ def runDeblend(dataRef, sourcefn, conf, procclass, forceisr=False, forcecalib=Fa
     conf.doMeasurement = True
     conf.doWriteSources = True
     conf.doWriteHeavyFootprintsInSources = True
-    conf.measurement.doRemoveOtherSources = True
+    conf.measurement.doReplaceWithNoise = True
 
     if debugDeblend:
         conf.doDeblend = False
@@ -272,7 +275,8 @@ def runDeblend(dataRef, sourcefn, conf, procclass, forceisr=False, forcecalib=Fa
     srcs = res.sources
 
     print 'Processing finished; srcs should have been written to:'
-    print '  ', mapper.map('src', dr.dataId)
+    if printMap:
+        print '  ', mapper.map('src', dr.dataId)
 
     return srcs
 
@@ -285,6 +289,7 @@ def _plotfunc((args, kwargs, fn)):
     print 'saved', fn
 
 def t1091main(dr, opt, conf, proc, patargs={}, rundeblendargs={}, pool=None):
+              
     if opt.noplots:
         opt.deblendplots = False
         opt.measplots = False

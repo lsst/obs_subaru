@@ -300,6 +300,12 @@ def _fit_psfs(fp, peaks, fpres, log, psf, psffwhm, img, varimg,
                     p = psfimg.get0(x,y)
                 else:
                     p = 0
+
+                v = varimg.get0(x,y)
+                if v == 0:
+                    # This pixel must not have been set... why?
+                    continue
+
                 # Get the decenter (dx,dy) terms at this pixel
                 # FIXME: we do symmetric finite difference; should
                 # probably use the sinc-shifted PSF instead!
@@ -335,7 +341,7 @@ def _fit_psfs(fp, peaks, fpres, log, psf, psffwhm, img, varimg,
                         A[ipix, I_opsf + j] = opsf.get0(x, y)
                 b[ipix] = img.get0(x, y)
                 # weight = ramp weight * ( 1 / image variance )
-                w[ipix] = np.sqrt(rw / varimg.get0(x,y))
+                w[ipix] = np.sqrt(rw / v)
                 sumr += rw
                 ipix += 1
 
