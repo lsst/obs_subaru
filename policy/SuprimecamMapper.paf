@@ -21,7 +21,7 @@ exposures: {
         tables:        "raw_visit"
     }
     postISRCCD: {
-        template:    "%(outRoot)s/postISRCCD/v%(visit)d-f%(filter)s/c%(ccd)02d.fits"
+        template:    "postISRCCD/v%(visit)d-f%(filter)s/c%(ccd)02d.fits"
         python:        "lsst.afw.image.ExposureF"
         persistable:        "ExposureF"
         storage:    "FitsStorage"
@@ -30,7 +30,7 @@ exposures: {
         tables:        "raw_visit"
     }
     visitim: {
-        template:      "%(outRoot)s/visitim/v%(visit)d-f%(filter)s/c%(ccd)02d.fits"
+        template:      "visitim/v%(visit)d-f%(filter)s/c%(ccd)02d.fits"
         python:        "lsst.afw.image.ExposureF"
         persistable:        "ExposureF"
         storage:    "FitsStorage"
@@ -39,7 +39,7 @@ exposures: {
         tables:        "raw_visit"
     }
     calexp: {
-        template:      "%(outRoot)s/%(pointing)05d/%(filter)s/corr/CORR%(visit)07d%(ccd)d.fits"
+        template:      "%(pointing)05d/%(filter)s/corr/CORR%(visit)07d%(ccd)d.fits"
         python:        "lsst.afw.image.ExposureF"
         persistable:        "ExposureF"
         storage:    "FitsStorage"
@@ -49,7 +49,7 @@ exposures: {
     }
 
     wcs: {
-        template: "%(outRoot)s/%(pointing)05d/%(filter)s/corr/wcs%(visit)07d%(ccd)d.fits"
+        template: "%(pointing)05d/%(filter)s/corr/wcs%(visit)07d%(ccd)d.fits"
         python:        "lsst.afw.image.ExposureI"
         persistable:        "ExposureI"
         storage:    "FitsStorage"
@@ -60,7 +60,7 @@ exposures: {
     }
 
     fcr: {
-        template: "%(outRoot)s/%(pointing)05d/%(filter)s/corr/fcr%(visit)07d%(ccd)d.fits"
+        template: "%(pointing)05d/%(filter)s/corr/fcr%(visit)07d%(ccd)d.fits"
         python:        "lsst.afw.image.ExposureI"
         persistable:        "ExposureI"
         storage:    "FitsStorage"
@@ -70,7 +70,7 @@ exposures: {
         tables:        "raw_skyTile"
     }
     detj: {
-        template:      "%(outRoot)s/%(pointing)05d/%(filter)s/corr/DETJ%(visit)07d%(ccd)d.fits"
+        template:      "%(pointing)05d/%(filter)s/corr/DETJ%(visit)07d%(ccd)d.fits"
         python:        "lsst.afw.image.ExposureF"
         persistable:        "ExposureF"
         storage:    "FitsStorage"
@@ -79,7 +79,7 @@ exposures: {
         tables:        "raw_visit"
     }
     dcor: {
-        template:      "%(outRoot)s/%(pointing)05d/%(filter)s/corr/DCOR%(visit)07d%(ccd)d.fits"
+        template:      "%(pointing)05d/%(filter)s/corr/DCOR%(visit)07d%(ccd)d.fits"
         python:        "lsst.afw.image.ExposureF"
         persistable:        "ExposureF"
         storage:    "FitsStorage"
@@ -89,7 +89,7 @@ exposures: {
     }
 
     warp: {
-        template:      "%(outRoot)s/warp/v%(visit)d-f%(filter)s/s%(patch)d.fits"
+        template:      "warp/v%(visit)d-f%(filter)s/s%(patch)d.fits"
         python:        "lsst.afw.image.ExposureF"
         persistable:        "ExposureF"
         storage:    "FitsStorage"
@@ -101,7 +101,7 @@ exposures: {
     }
 
     stack: {
-        template:      "%(outRoot)s/stack/%(stack)05d/STK%(patch)08d%(filter)s.fits"
+        template:      "stack/%(stack)05d/STK%(patch)08d%(filter)s.fits"
         python:        "lsst.afw.image.ExposureF"
         persistable:        "ExposureF"
         storage:    "FitsStorage"
@@ -110,7 +110,7 @@ exposures: {
     }
 
     diff: {
-        template:      "%(outRoot)s/diff/%(diff)05d/DIFF%(patch)08d.fits"
+        template:      "diff/%(diff)05d/DIFF%(patch)08d.fits"
         python:        "lsst.afw.image.ExposureF"
         persistable:        "ExposureF"
         storage:    "FitsStorage"
@@ -119,7 +119,7 @@ exposures: {
     }
 
     chisquared: {
-        template:      "%(outRoot)s/stack/%(stack)05d/CHI%(patch)08d.fits"
+        template:      "stack/%(stack)05d/CHI%(patch)08d.fits"
         python:        "lsst.afw.image.ExposureF"
         persistable:        "ExposureF"
         storage:    "FitsStorage"
@@ -213,7 +213,7 @@ calibrations: {
 
 datasets: {
     psf: {
-        template:      "%(outRoot)s/%(pointing)05d/%(filter)s/output/PSF%(visit)07d%(ccd)1d.boost"
+        template:      "%(pointing)05d/%(filter)s/output/PSF%(visit)07d%(ccd)1d.boost"
         python:        "lsst.afw.detection.Psf"
         persistable:        "Psf"
         storage:    "BoostStorage"
@@ -221,7 +221,7 @@ datasets: {
         tables:        "raw_visit"
     }
     apCorr: {
-        template:      "%(outRoot)s/%(pointing)05d/%(filter)s/output/APC%(visit)07d%(ccd)1d.pickle"
+        template:      "%(pointing)05d/%(filter)s/output/APC%(visit)07d%(ccd)1d.pickle"
         python:        "lsst.meas.algorithms.ApertureCorrection"
         persistable:        "ApertureCorrection"
         storage:    "PickleStorage"
@@ -229,7 +229,7 @@ datasets: {
         tables:        raw_visit
     }
     src: {
-        template:      "%(outRoot)s/%(pointing)05d/%(filter)s/output/SRC%(visit)07d%(ccd)1d.fits"
+        template:      "%(pointing)05d/%(filter)s/output/SRC%(visit)07d%(ccd)1d.fits"
         python:        "lsst.afw.table.SourceCatalog"
         persistable:        "SourceCatalog"
         storage:    "FitsCatalogStorage"
@@ -237,7 +237,7 @@ datasets: {
         tables:        "raw_visit"
     }
     icMatch: {
-        template:      "%(outRoot)s/%(pointing)05d/%(filter)s/output/MATCH%(visit)07d%(ccd)1d.fits"
+        template:      "%(pointing)05d/%(filter)s/output/MATCH%(visit)07d%(ccd)1d.fits"
         python:        "lsst.afw.table.BaseCatalog"
         persistable:        "BaseCatalog"
         storage:    "FitsCatalogStorage"
@@ -245,7 +245,7 @@ datasets: {
         tables:        "raw_visit"
     }
     icSrc: {
-        template:      "%(outRoot)s/%(pointing)05d/%(filter)s/output/ICSRC%(visit)07d%(ccd)1d.fits"
+        template:      "%(pointing)05d/%(filter)s/output/ICSRC%(visit)07d%(ccd)1d.fits"
         python:        "lsst.afw.table.SourceCatalog"
         persistable:   "SourceCatalog"
         storage:       "FitsCatalogStorage"
@@ -253,20 +253,20 @@ datasets: {
         tables:        "raw_visit"
     }
     log: {
-        template:      "%(outRoot)s/%(pointing)05d/%(filter)s/logs/run.log"
+        template:      "%(pointing)05d/%(filter)s/logs/run.log"
         python:        "str"
         persistable:   "None"
         storage:       "TextStorage"
     }
     logDir: {
-        template:      "%(outRoot)s/%(pointing)05d/%(filter)s/logs"
+        template:      "%(pointing)05d/%(filter)s/logs"
         python:        "str"
         persistable:   "None"
         storage:       "None"
     }
 
     stacksources: {
-        template:      "%(outRoot)s/stack/%(stack)05d/SRC%(patch)08d%(filter)s.fits"
+        template:      "stack/%(stack)05d/SRC%(patch)08d%(filter)s.fits"
         python:        "lsst.afw.table.SourceCatalog"
         persistable:   "SourceCatalog"
         storage:       "FitsCatalogStorage"
@@ -274,7 +274,7 @@ datasets: {
     }
 
     stackpsf: {
-        template:      "%(outRoot)s/stack/%(stack)05d/PSF%(patch)08d%(filter)s.boost"
+        template:      "stack/%(stack)05d/PSF%(patch)08d%(filter)s.boost"
         python:        "lsst.afw.detection.Psf"
         persistable:   "Psf"
         storage:       "BoostStorage"
@@ -283,7 +283,7 @@ datasets: {
 
     stackrgb: {
         # Will be read/written directly by the user; here for _filename only
-        template:      "%(outRoot)s/stack/%(stack)05d/SRC%(patch)08d.tiff"
+        template:      "stack/%(stack)05d/SRC%(patch)08d.tiff"
         python:        "lsst.afw.extensions.rgb.RgbImageF"
         persistable:   "RgbImageF"
         storage:       "SelfStorage"
@@ -291,7 +291,7 @@ datasets: {
     }
 
     diffsources: {
-        template:      "%(outRoot)s/diff/%(diff)05d/SRC%(patch)08d%(filter)s.fits"
+        template:      "diff/%(diff)05d/SRC%(patch)08d%(filter)s.fits"
         python:        "lsst.afw.table.SourceCatalog"
         persistable:   "SourceCatalog"
         storage:       "FitsCatalogStorage"
@@ -299,7 +299,7 @@ datasets: {
     }
 
     diffpsf: {
-        template:      "%(outRoot)s/diff/%(diff)05d/PSF%(patch)08d%(filter)s.boost"
+        template:      "diff/%(diff)05d/PSF%(patch)08d%(filter)s.boost"
         python:        "lsst.afw.detection.Psf"
         persistable:   "Psf"
         storage:       "BoostStorage"
@@ -307,7 +307,7 @@ datasets: {
     }
 
     warppsf: {
-        template:      "%(outRoot)s/rerun/%(rerun)s/%(pointing)05d/%(filter)s/warp/WARPPSF%(visit)07d%(ccd)d.boost"
+        template:      "%(pointing)05d/%(filter)s/warp/WARPPSF%(visit)07d%(ccd)d.boost"
         python:        "lsst.afw.detection.Psf"
         persistable:   "Psf"
         storage:       "BoostStorage"
@@ -329,6 +329,23 @@ datasets: {
         persistable:  "ignored"
         storage:      "ignored"
         tables:       "raw"
+    }
+
+    processCcd_config: {
+        template:      "%(pointing)05d/%(filter)s/processCcd_config/%(visit)07d%(ccd)1d.py"
+        python:        "lsst.pipe.tasks.processCcd.ProcessCcdConfig"
+        persistable:      "Config"
+        storage:    "ConfigStorage"
+        tables:        raw
+        tables:        raw_visit
+    }
+    processCcd_metadata: {
+        template:      "%(pointing)05d/%(filter)s/processCcd_metadata/%(visit)07d%(ccd)1d.boost"
+        python:        "lsst.daf.base.PropertySet"
+        persistable:        "PropertySet"
+        storage:    "BoostStorage"
+        tables:        raw
+        tables:        raw_visit
     }
 
 }

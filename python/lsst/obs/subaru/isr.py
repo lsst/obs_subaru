@@ -6,6 +6,7 @@ from lsst.ip.isr import IsrTask
 from lsst.ip.isr import isr as lsstIsr
 import lsst.afw.cameraGeom as afwCG
 import lsst.afw.image as afwImage
+import lsst.afw.geom as afwGeom
 
 class SubaruIsrConfig(IsrTask.ConfigClass):
     doSaturation = Field(doc="Mask saturated pixels?", dtype=bool, default=True)
