@@ -302,13 +302,181 @@ def _fit_psf(fp, fmask, pk, pkres, fbb, peaks, log, psf, psffwhm, img, varimg,
     I_opsf = 4
     I_dx = NT1 + 0
     I_dy = NT1 + 1
+
+    # Matrix, rhs and weight
+
+    #############################################
+
+
+    ########################################
+
+    ix0,iy0 = img.getX0(), img.getY0()
+    fx0,fy0 = fbb.getMinX(), fbb.getMinY()
+    XX,YY = np.meshgrid(np.arange(xlo, xhi+1), np.arange(ylo, yhi+1))
+
+    fslice = (slice(ylo-fy0, yhi-fy0+1), slice(xlo-fx0, xhi-fx0+1))
+    islice = (slice(ylo-iy0, yhi-iy0+1), slice(xlo-ix0, xhi-ix0+1))
+
+    fmask_sub = fmask.getArray()[fslice]
+    var_sub = varimg.getArray()[islice]
+    img_sub = img.getArray()[islice]
+
+    infp = (fmask_sub > 0)
+    print 'infp', infp.shape
+    RR = (XX - cx)**2 + (YY - cy)**2
+    inr1 = (RR <= R1**2)
+    print 'inr1', inr1.shape
+    invar = (var_sub > 0)
+    print 'invar', invar.shape
+
+    valid = (infp * inr1 * invar)
+    ipixes = np.vstack((XX[valid] - xlo, YY[valid] - ylo)).T
+    NP = valid.sum()
+
+    print 'ipixes', ipixes.shape
+    #print 'ipixes2', ipixes2.shape
+    #assert(np.all(ipixes == ipixes2))
+
+    inpsfx = ((XX >= pbb.getMinX()) * (XX <= pbb.getMaxX()))
+    inpsfy = ((YY >= pbb.getMinY()) * (YY <= pbb.getMaxY()))
+    inpsf = (inpsfx * inpsfy)
+    print 'inpsf', inpsf.shape
+
+    indx = (inpsfy * ((XX > pbb.getMinX()) * (XX < pbb.getMaxX())))
+    indy = (inpsfx * ((YY > pbb.getMinY()) * (YY < pbb.getMaxY())))
+    print 'indx', indx.shape
+    print 'indy', indy.shape
+
+    def _overlap(xlo, xhi, xmin, xmax):
+        xloclamp = max(xlo, xmin)
+        Xlo = xloclamp - xlo
+        xhiclamp = min(xhi, xmax)
+        Xhi = Xlo + (xhiclamp - xloclamp)
+        return (xloclamp, xhiclamp+1, Xlo, Xhi+1)
+
+    # Clip the PSF image to match its bbox
+    psfarr = psfimg.getArray()[pbb.getMinY()-py0: 1+pbb.getMaxY()-py0,
+                               pbb.getMinX()-px0: 1+pbb.getMaxX()-px0]
+    px0 = pbb.getMinX()
+    py0 = pbb.getMinY()
+    print 'psfarr', psfarr.shape
+
+    sx1,sx2,sx3,sx4 = _overlap(xlo, xhi, pbb.getMinX(), pbb.getMaxX())
+    sy1,sy2,sy3,sy4 = _overlap(ylo, yhi, pbb.getMinY(), pbb.getMaxY())
+
+    print 'sx1, sx2', sx1, sx2, sx3, sx4
+    print 'sy1, sy2', sy1, sy2, sy3, sy4
+    print 'xlo,xhi', xlo, xhi
+    print 'ylo,yhi', ylo, yhi
+    print 'px0,py0', px0, py0
+    print 'psf shape', psfarr.shape
+    dpx0,dpy0 = px0 - xlo, py0 - ylo
+
+    psfsub = psfarr[sy3 - dpy0 : sy4 - dpy0, sx3 - dpx0: sx4 - dpx0]
+    print 'psfsub', psfsub.shape
+
+    vsub = valid[sy1-ylo: sy2-ylo, sx1-xlo: sx2-xlo]
+    print 'vsub', vsub.shape
+
+    A = np.zeros((NP, NT2))
+    #b = np.zeros(NP)
+    #w = np.zeros(NP)
+
+    A[inpsf[valid], I_psf] = psfsub[vsub]
+
+    # im1 = np.zeros((1+yhi-ylo, 1+xhi-xlo))
+    # im1[ipixes[:,1], ipixes[:,0]] = A[:, I_psf]
+    # im2 = np.zeros_like(im1)
+    # im2[ipixes[:,1], ipixes[:,0]] = A2[:, I_psf]
+    # plt.clf()
+    # plt.subplot(2,3,1)
+    # plt.imshow(vsub, interpolation='nearest', origin='lower')
+    # plt.subplot(2,3,2)
+    # plt.imshow(psfarr, interpolation='nearest', origin='lower')
+    # plt.subplot(2,3,3)
+    # plt.imshow(im1, interpolation='nearest', origin='lower')
+    # plt.subplot(2,3,4)
+    # plt.imshow(im2, interpolation='nearest', origin='lower')
+    # plt.subplot(2,3,5)
+    # plt.imshow(valid, interpolation='nearest', origin='lower')
+    # plt.subplot(2,3,6)
+    # plt.imshow(inpsf, interpolation='nearest', origin='lower')
+    # plt.savefig('psf.png')
+
+    #assert(np.all(A2[:, I_psf] == A[:, I_psf]))
+
+    A[:,1] = 1.
+    A[:,2] = XX[valid] - cx
+    A[:,3] = YY[valid] - cy
+
+    #assert(np.all(A2[:,1:4] == A[:,1:4]))
+
+    # dx
+    oldsx = (sx1,sx2,sx3,sx4)
+    print 'dx'
+    sx1,sx2,sx3,sx4 = _overlap(xlo, xhi, pbb.getMinX()+1, pbb.getMaxX()-1)
+    psfsub = (psfarr[sy3 - dpy0 : sy4 - dpy0, sx3 - dpx0 + 1: sx4 - dpx0 + 1] -
+              psfarr[sy3 - dpy0 : sy4 - dpy0, sx3 - dpx0 - 1: sx4 - dpx0 - 1]) / 2.
+    print 'psfsub', psfsub.shape
+    vsub = valid[sy1-ylo: sy2-ylo, sx1-xlo: sx2-xlo]
+    print 'vsub', vsub.shape
+    A[indx[valid], I_dx] = psfsub[vsub]
+
+    # dy
+    print 'dx'
+    (sx1,sx2,sx3,sx4) = oldsx
+    sy1,sy2,sy3,sy4 = _overlap(ylo, yhi, pbb.getMinY()+1, pbb.getMaxY()-1)
+    psfsub = (psfarr[sy3 - dpy0 + 1: sy4 - dpy0 + 1, sx3 - dpx0: sx4 - dpx0] -
+              psfarr[sy3 - dpy0 - 1: sy4 - dpy0 - 1, sx3 - dpx0: sx4 - dpx0]) / 2.
+    print 'psfsub', psfsub.shape
+    vsub = valid[sy1-ylo: sy2-ylo, sx1-xlo: sx2-xlo]
+    print 'vsub', vsub.shape
+    A[indy[valid], I_dy] = psfsub[vsub]
+
+    #assert(np.all(A2[:,I_dx] == A[:,I_dx]))
+    #assert(np.all(A2[:,I_dy] == A[:,I_dy]))
+
+    # other PSFs...
+    for j,opsf in enumerate(otherpeaks):
+        obb = opsf.getBBox(afwImage.PARENT)
+        ino = ((XX >= obb.getMinX()) * (XX <= obb.getMaxX()) *
+               (YY >= obb.getMinY()) * (YY <= obb.getMaxY()))
+        dpx0,dpy0 = obb.getMinX() - xlo, obb.getMinY() - ylo
+
+        sx1,sx2,sx3,sx4 = _overlap(xlo, xhi, obb.getMinX(), obb.getMaxX())
+        sy1,sy2,sy3,sy4 = _overlap(ylo, yhi, obb.getMinY(), obb.getMaxY())
+
+        opsfarr = opsf.getArray()
+        psfsub = opsfarr[sy3 - dpy0 : sy4 - dpy0, sx3 - dpx0: sx4 - dpx0]
+        vsub = valid[sy1-ylo: sy2-ylo, sx1-xlo: sx2-xlo]
+        A[ino[valid], I_opsf + j] = psfsub[vsub]
+
+        #assert(np.all(A2[:, I_opsf + j] == A[:, I_opsf + j]))
+    
+    #assert(np.all(A == A2))
+
+
+    b = img_sub[valid]
+    #assert(np.all(b2 == b))
+
+    rw = np.ones_like(RR)
+    ii = (RR > R0**2)
+    rr = np.sqrt(RR[ii])
+    rw[ii] = ((rr - R0) / (R1-R0))
+    rw = rw[valid]
+    v = varimg.getArray()[ylo-iy0:yhi-iy0+1, xlo-ix0:xhi-ix0+1][valid]
+    w = np.sqrt(rw / v)
+    sumr = np.sum(rw)
+    #assert(np.all(w2 == w))
+
+    ########################################
+
+    (A2,b2,w2,sumr2,ipixes2) = (A,b,w,sumr,ipixes)
+
     # Matrix, rhs and weight
     A = np.zeros((NP, NT2))
     b = np.zeros(NP)
     w = np.zeros(NP)
-
-
-
     
     # pixel indices
     ipixes = np.zeros((NP,2), dtype=int)
@@ -387,183 +555,15 @@ def _fit_psf(fp, fmask, pk, pkres, fbb, peaks, log, psf, psffwhm, img, varimg,
     ipixes = ipixes[:NP,:]
     Aw  = A * w[:,np.newaxis]
     bw  = b * w
-
-
-    ########################################
-
-    ix0,iy0 = img.getX0(), img.getY0()
-    fx0,fy0 = fbb.getMinX(), fbb.getMinY()
-    XX,YY = np.meshgrid(np.arange(xlo, xhi+1), np.arange(ylo, yhi+1))
-    print fmask.getArray().shape
-    print xlo,xhi, ylo,yhi
-    print ix0, iy0
-    infp = (fmask.getArray() > 0)[ylo-fy0:yhi-fy0+1, xlo-fx0:xhi-fx0+1]
-    print 'infp', infp.shape
-    RR = (XX - cx)**2 + (YY - cy)**2
-    inr1 = (RR <= R1**2)
-    print 'inr1', inr1.shape
-    invar = (varimg.getArray()[ylo-iy0:yhi-iy0+1, xlo-ix0:xhi-ix0+1] > 0)
-    print 'invar', invar.shape
-
-    valid = (infp * inr1 * invar)
-    ipixes2 = np.vstack((XX[valid] - xlo, YY[valid] - ylo)).T
-
-    print 'ipixes', ipixes.shape
-    print 'ipixes2', ipixes2.shape
-    assert(np.all(ipixes == ipixes2))
-
-    #vv = varimg.getArray()
-    #print 'vv', vv
-
-    inpsfx = ((XX >= pbb.getMinX()) * (XX <= pbb.getMaxX()))
-    inpsfy = ((YY >= pbb.getMinY()) * (YY <= pbb.getMaxY()))
-    inpsf = (inpsfx * inpsfy)
-    print 'inpsf', inpsf.shape
-
-    #psfsubimg = psfimg.getArray()[pbb.getMinY() - py0 : pbb.getMaxY()+1 - py0,
-    #                              pbb.getMinX() - px0 : pbb.getMaxX()+1 - px0]
-    #print 'psfsubimg', psfsubimg.shape
-
-    indx = (inpsfy * ((XX > pbb.getMinX()) * (XX < pbb.getMaxX())))
-    indy = (inpsfx * ((YY > pbb.getMinY()) * (YY < pbb.getMaxY())))
-    print 'indx', indx.shape
-    print 'indy', indy.shape
-
-    #inr0 = (RR <= R0**2)
-    #print 'inr0', inr0.shape
-
-    A2 = np.zeros((NP, NT2))
-    b2 = np.zeros(NP)
-    w2 = np.zeros(NP)
-
-    def _overlap(xlo, xhi, xmin, xmax):
-        xloclamp = max(xlo, xmin)
-        Xlo = xloclamp - xlo
-        xhiclamp = min(xhi, xmax)
-        Xhi = Xlo + (xhiclamp - xloclamp)
-        return (xloclamp, xhiclamp+1, Xlo, Xhi+1)
-
-    #psub = psfimg.getArray()[ylo-py0: 1+yhi-py0, xlo-px0: 1+xhi-px0]
-    #print 'psub', psub.shape
-
-    # Clip the PSF image to match its bbox
-    #psfimg = 
-    psfarr = psfimg.getArray()[pbb.getMinY()-py0: 1+pbb.getMaxY()-py0,
-                               pbb.getMinX()-px0: 1+pbb.getMaxX()-px0]
-    px0 = pbb.getMinX()
-    py0 = pbb.getMinY()
-    print 'psfarr', psfarr.shape
-
-    sx1,sx2,sx3,sx4 = _overlap(xlo, xhi, pbb.getMinX(), pbb.getMaxX())
-    sy1,sy2,sy3,sy4 = _overlap(ylo, yhi, pbb.getMinY(), pbb.getMaxY())
-
-    print 'sx1, sx2', sx1, sx2, sx3, sx4
-    print 'sy1, sy2', sy1, sy2, sy3, sy4
-    print 'xlo,xhi', xlo, xhi
-    print 'ylo,yhi', ylo, yhi
-    print 'px0,py0', px0, py0
-    print 'psf shape', psfarr.shape
-    dpx0,dpy0 = px0 - xlo, py0 - ylo
-
-    psfsub = psfarr[sy3 - dpy0 : sy4 - dpy0, sx3 - dpx0: sx4 - dpx0]
-    print 'psfsub', psfsub.shape
-
-    vsub = valid[sy1-ylo: sy2-ylo, sx1-xlo: sx2-xlo]
-    print 'vsub', vsub.shape
-    #A2[valid[inpsf], I_psf] = psfsub[vsub]
-    A2[inpsf[valid], I_psf] = psfsub[vsub]
-
-    #A2[np.flatnonzero(valid * inpsf), I_psf] = psfsub[vsub]
-
-    im1 = np.zeros((1+yhi-ylo, 1+xhi-xlo))
-    im1[ipixes[:,1], ipixes[:,0]] = A[:, I_psf]
-    im2 = np.zeros_like(im1)
-    im2[ipixes[:,1], ipixes[:,0]] = A2[:, I_psf]
-
-    # plt.clf()
-    # plt.subplot(2,3,1)
-    # plt.imshow(vsub, interpolation='nearest', origin='lower')
-    # plt.subplot(2,3,2)
-    # plt.imshow(psfarr, interpolation='nearest', origin='lower')
-    # plt.subplot(2,3,3)
-    # plt.imshow(im1, interpolation='nearest', origin='lower')
-    # plt.subplot(2,3,4)
-    # plt.imshow(im2, interpolation='nearest', origin='lower')
-    # plt.subplot(2,3,5)
-    # plt.imshow(valid, interpolation='nearest', origin='lower')
-    # plt.subplot(2,3,6)
-    # plt.imshow(inpsf, interpolation='nearest', origin='lower')
-    # plt.savefig('psf.png')
-
-    assert(np.all(A2[:, I_psf] == A[:, I_psf]))
-
-    A2[:,1] = 1.
-    A2[:,2] = XX[valid] - cx
-    A2[:,3] = YY[valid] - cy
-
-    assert(np.all(A2[:,1:4] == A[:,1:4]))
-
-    # dx
-    oldsx = (sx1,sx2,sx3,sx4)
-    print 'dx'
-    sx1,sx2,sx3,sx4 = _overlap(xlo, xhi, pbb.getMinX()+1, pbb.getMaxX()-1)
-    psfsub = (psfarr[sy3 - dpy0 : sy4 - dpy0, sx3 - dpx0 + 1: sx4 - dpx0 + 1] -
-              psfarr[sy3 - dpy0 : sy4 - dpy0, sx3 - dpx0 - 1: sx4 - dpx0 - 1]) / 2.
-    print 'psfsub', psfsub.shape
-    vsub = valid[sy1-ylo: sy2-ylo, sx1-xlo: sx2-xlo]
-    print 'vsub', vsub.shape
-    A2[indx[valid], I_dx] = psfsub[vsub]
-
-    # dy
-    print 'dx'
-    (sx1,sx2,sx3,sx4) = oldsx
-    sy1,sy2,sy3,sy4 = _overlap(ylo, yhi, pbb.getMinY()+1, pbb.getMaxY()-1)
-    psfsub = (psfarr[sy3 - dpy0 + 1: sy4 - dpy0 + 1, sx3 - dpx0: sx4 - dpx0] -
-              psfarr[sy3 - dpy0 - 1: sy4 - dpy0 - 1, sx3 - dpx0: sx4 - dpx0]) / 2.
-    print 'psfsub', psfsub.shape
-    vsub = valid[sy1-ylo: sy2-ylo, sx1-xlo: sx2-xlo]
-    print 'vsub', vsub.shape
-    A2[indy[valid], I_dy] = psfsub[vsub]
-
-    assert(np.all(A2[:,I_dx] == A[:,I_dx]))
-    assert(np.all(A2[:,I_dy] == A[:,I_dy]))
-
-    # other PSFs...
-    for j,opsf in enumerate(otherpeaks):
-        obb = opsf.getBBox(afwImage.PARENT)
-        ino = ((XX >= obb.getMinX()) * (XX <= obb.getMaxX()) *
-               (YY >= obb.getMinY()) * (YY <= obb.getMaxY()))
-        dpx0,dpy0 = obb.getMinX() - xlo, obb.getMinY() - ylo
-
-        sx1,sx2,sx3,sx4 = _overlap(xlo, xhi, obb.getMinX(), obb.getMaxX())
-        sy1,sy2,sy3,sy4 = _overlap(ylo, yhi, obb.getMinY(), obb.getMaxY())
-
-        opsfarr = opsf.getArray()
-        psfsub = opsfarr[sy3 - dpy0 : sy4 - dpy0, sx3 - dpx0: sx4 - dpx0]
-        vsub = valid[sy1-ylo: sy2-ylo, sx1-xlo: sx2-xlo]
-        A2[ino[valid], I_opsf + j] = psfsub[vsub]
-
-        assert(np.all(A2[:, I_opsf + j] == A[:, I_opsf + j]))
-    
-
-    assert(np.all(A == A2))
-
-
-    b2[:] = img.getArray()[ylo - iy0: 1+yhi - iy0, xlo - ix0: 1+xhi - ix0][valid]
-    assert(np.all(b2 == b))
-
-    rw = np.ones_like(RR)
-    ii = (RR > R0**2)
-    rr = np.sqrt(RR[ii])
-    rw[ii] = ((rr - R0) / (R1-R0))
-    rw = rw[valid]
-    v = varimg.getArray()[ylo-iy0:yhi-iy0+1, xlo-ix0:xhi-ix0+1][valid]
-    w2[:] = np.sqrt(rw / v)
-    sumr = np.sum(rw)
-    assert(np.all(w2 == w))
            
 
     ########################################
+
+    assert(np.all(A2 == A))
+    assert(np.all(w2 == w))
+    assert(np.all(b2 == b))
+    assert(np.all(sumr2 == sumr))
+    assert(np.all(ipixes2 == ipixes))
 
 
 
