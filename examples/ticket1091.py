@@ -324,20 +324,28 @@ def t1091main(dr, opt, conf, proc, patargs={}, rundeblendargs={}, pool=None):
                 print 'Wrote', fn
 
     if opt.overview is not None:
+        print 'Producing overview plot...'
         exposure = dr.get('calexp')
         print 'Exposure', exposure
         mi = exposure.getMaskedImage()
         sigma1 = get_sigma1(mi)
         W,H = mi.getWidth(), mi.getHeight()
         im = mi.getImage().getArray()
+        imext = getExtent(mi.getBBox(afwImage.PARENT))
+        print 'Image extent:', imext
         dpi=100
         plt.figure(figsize=(1+W/dpi, 1+H/dpi), dpi=dpi)
         plt.clf()
-        plt.imshow(im, interpolation='nearest', origin='lower', vmin=-2.*sigma1, vmax=10.*sigma1)
+        plt.imshow(im, interpolation='nearest', origin='lower',
+                   extent=imext, vmin=-2.*sigma1, vmax=10.*sigma1)
+        plt.gray()
+        plt.savefig(opt.overview + '-a.png')
         ax = plt.axis()
         plt.gray()
-        for src in cat:
+        for i,src in enumerate(cat):
             ext = getExtent(src.getFootprint().getBBox())
+            if i < 10:
+                print 'source extent', ext
             xx = [ext[0],ext[1],ext[1],ext[0],ext[0]]
             yy = [ext[2],ext[2],ext[3],ext[3],ext[2]]
             if len(src.getFootprint().getPeaks()) == 1:
@@ -346,7 +354,7 @@ def t1091main(dr, opt, conf, proc, patargs={}, rundeblendargs={}, pool=None):
                 c = 'y'
             plt.plot(xx, yy, '-', color=c)
         plt.axis(ax)
-        plt.savefig(opt.overview)
+        plt.savefig(opt.overview + '-b.png')
         
     if opt.nkeep:
         cat = cutCatalog(cat, opt.nkeep)
