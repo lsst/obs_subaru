@@ -316,41 +316,39 @@ def _fit_psf(fp, fmask, pk, pkres, fbb, peaks, log, psf, psffwhm, img, varimg,
     # Clip the PSF image to match its bbox
     psfarr = psfimg.getArray()[pbb.getMinY()-py0: 1+pbb.getMaxY()-py0,
                                pbb.getMinX()-px0: 1+pbb.getMaxX()-px0]
-    #px0 = pbb.getMinX()
-    #py0 = pbb.getMinY()
     px0,px1 = pbb.getMinX(), pbb.getMaxX()
     py0,py1 = pbb.getMinY(), pbb.getMaxY()
 
     # Compute the "valid" pixels within our region-of-interest
-    #infp = (fmask_sub > 0)
     valid = (fmask_sub > 0)
-    XX,YY = np.meshgrid(np.arange(xlo, xhi+1), np.arange(ylo, yhi+1))
-    RR = (XX - cx)**2 + (YY - cy)**2
-    #inr1 = (RR <= R1**2)
-    #invar = (var_sub > 0)
-    #valid = (infp * inr1 * invar)
+    xx,yy = np.arange(xlo, xhi+1), np.arange(ylo, yhi+1)
+    #RR = (XX - cx)**2 + (YY - cy)**2
+    RR = ((xx - cx)**2)[np.newaxis,:] + ((yy - cy)**2)[:,np.newaxis]
     valid *= (RR <= R1**2)
     valid *= (var_sub > 0)
-
-    ipixes = np.vstack((XX[valid] - xlo, YY[valid] - ylo)).T
     NP = valid.sum()
 
-    inpsfx = ((XX >= pbb.getMinX()) * (XX <= pbb.getMaxX()))
-    inpsfy = ((YY >= pbb.getMinY()) * (YY <= pbb.getMaxY()))
-    inpsf = (inpsfx * inpsfy)
+    #XX,YY = np.meshgrid(xx, yy)
+    #ipixes = np.vstack((XX[valid] - xlo, YY[valid] - ylo)).T
 
-    xx,yy = np.arange(xlo, xhi+1), np.arange(ylo, yhi+1)
-    inpsf2 = np.outer((yy >= py0) * (yy <= py1), (xx >= px0) * (xx <= px1))
-    assert(np.all(inpsf == inpsf2))
-    
-    indx = (inpsfy * ((XX > pbb.getMinX()) * (XX < pbb.getMaxX())))
-    indy = (inpsfx * ((YY > pbb.getMinY()) * (YY < pbb.getMaxY())))
+    ipixes = np.empty((NP, 2))
+    dx = np.arange(0, xhi-xlo+1)
+    i0 = 0
+    for y,vr in enumerate(valid):
+        n = vr.sum()
+        ipixes[i0:i0+n, 0] = dx[vr]
+        ipixes[i0:i0+n, 1] = y
+        i0 += n
+    #assert(np.all(ipixes == ipixes2))
+
+    inpsfx = (xx >= px0) * (xx <= px1)
+    inpsfy = (yy >= py0) * (yy <= py1)
+    inpsf = np.outer(inpsfy, inpsfx)
+    indx = np.outer(inpsfy, (xx > px0) * (xx < px1))
+    indy = np.outer((yy > py0) * (yy < py1), inpsfx)
 
     del inpsfx
     del inpsfy
-    #del infp
-    #del invar
-    #del inr1
 
     def _overlap(xlo, xhi, xmin, xmax):
         if xlo > xmax or xhi < xmin or xlo > xhi or xmin > xmax:
@@ -366,8 +364,8 @@ def _fit_psf(fp, fmask, pk, pkres, fbb, peaks, log, psf, psffwhm, img, varimg,
     
     A = np.zeros((NP, NT2))
     A[:,1] = 1.
-    A[:,2] = XX[valid] - cx
-    A[:,3] = YY[valid] - cy
+    A[:,2] = ipixes[:,0] + (xlo-cx)
+    A[:,3] = ipixes[:,1] + (ylo-cy)
 
     px0,px1 = pbb.getMinX(), pbb.getMaxX()
     py0,py1 = pbb.getMinY(), pbb.getMaxY()
@@ -397,8 +395,8 @@ def _fit_psf(fp, fmask, pk, pkres, fbb, peaks, log, psf, psffwhm, img, varimg,
     # other PSFs...
     for j,opsf in enumerate(otherpeaks):
         obb = opsf.getBBox(afwImage.PARENT)
-        ino = ((XX >= obb.getMinX()) * (XX <= obb.getMaxX()) *
-               (YY >= obb.getMinY()) * (YY <= obb.getMaxY()))
+        ino = np.outer((yy >= obb.getMinY()) * (yy <= obb.getMaxY()),
+                       (xx >= obb.getMinX()) * (xx <= obb.getMaxX()))
         dpx0,dpy0 = obb.getMinX() - xlo, obb.getMinY() - ylo
         sx1,sx2,sx3,sx4 = _overlap(xlo, xhi, obb.getMinX(), obb.getMaxX())
         sy1,sy2,sy3,sy4 = _overlap(ylo, yhi, obb.getMinY(), obb.getMaxY())
@@ -422,104 +420,6 @@ def _fit_psf(fp, fmask, pk, pkres, fbb, peaks, log, psf, psffwhm, img, varimg,
     Aw  = A * w[:,np.newaxis]
     bw  = b * w
 
-
-    # ########################################
-    # 
-    # (A2,b2,w2,sumr2,ipixes2) = (A,b,w,sumr,ipixes)
-    # 
-    # # Matrix, rhs and weight
-    # A = np.zeros((NP, NT2))
-    # b = np.zeros(NP)
-    # w = np.zeros(NP)
-    # 
-    # # pixel indices
-    # ipixes = np.zeros((NP,2), dtype=int)
-    # ipix = 0
-    # sumr = 0.
-    # # for each postage stamp pixel...
-    # for y in range(ylo, yhi+1):
-    #     for x in range(xlo, xhi+1):
-    #         xy = afwGeom.Point2I(x,y)
-    #         # within the parent footprint?
-    #         if not fp.contains(xy):
-    #             #stamp.set0(x, y, 0.)
-    #             continue
-    #         # is it within the radius we're going to fit (ie,
-    #         # circle inscribed in the postage stamp square)?
-    #         R = np.hypot(x - cx, y - cy)
-    #         if R > R1:
-    #             #stamp.set0(x, y, 0.)
-    #             continue
-    # 
-    #         v = varimg.get0(x,y)
-    #         if v == 0:
-    #             # This pixel must not have been set... why?
-    #             continue
-    # 
-    #         # Get the PSF contribution at this pixel
-    #         if pbb.contains(xy):
-    #             p = psfimg.get0(x,y)
-    #         else:
-    #             p = 0
-    # 
-    #         # Get the decenter (dx,dy) terms at this pixel
-    #         # FIXME: we do symmetric finite difference; should
-    #         # probably use the sinc-shifted PSF instead!
-    #         if (pbb.contains(afwGeom.Point2I(x-1,y)) and
-    #             pbb.contains(afwGeom.Point2I(x+1,y))):
-    #             dx = (psfimg.get0(x+1,y) - psfimg.get0(x-1,y)) / 2.
-    #         else:
-    #             dx = 0.
-    #         if (pbb.contains(afwGeom.Point2I(x,y-1)) and
-    #             pbb.contains(afwGeom.Point2I(x,y+1))):
-    #             dy = (psfimg.get0(x,y+1) - psfimg.get0(x,y-1)) / 2.
-    #         else:
-    #             dy = 0.
-    #         # Ramp down weights for pixels between R0 and R1.
-    #         rw = 1.
-    #         if R > R0:
-    #             rw = 1. - (R - R0) / (R1 - R0)
-    #         # PSF flux
-    #         A[ipix,I_psf] = p
-    #         # constant sky
-    #         A[ipix,1] = 1.
-    #         # linear sky
-    #         A[ipix,2] = x-cx
-    #         A[ipix,3] = y-cy
-    #         # decentered PSF
-    #         A[ipix,I_dx] = dx
-    #         A[ipix,I_dy] = dy
-    #         # other nearby peak PSFs
-    #         ipixes[ipix,:] = (x-xlo,y-ylo)
-    #         for j,opsf in enumerate(otherpeaks):
-    #             obbox = opsf.getBBox(afwImage.PARENT)
-    #             if obbox.contains(afwGeom.Point2I(x,y)):
-    #                 A[ipix, I_opsf + j] = opsf.get0(x, y)
-    #         b[ipix] = img.get0(x, y)
-    #         # weight = ramp weight * ( 1 / image variance )
-    #         w[ipix] = np.sqrt(rw / v)
-    #         sumr += rw
-    #         ipix += 1
-    # 
-    # # NP: actual number of pixels within range
-    # NP = ipix
-    # A = A[:NP,:]
-    # b = b[:NP]
-    # w = w[:NP]
-    # ipixes = ipixes[:NP,:]
-    # Aw  = A * w[:,np.newaxis]
-    # bw  = b * w
-    # 
-    # ########################################
-    # 
-    # assert(np.all(A2 == A))
-    # assert(np.all(w2 == w))
-    # assert(np.all(b2 == b))
-    # assert(np.all(sumr2 == sumr))
-    # assert(np.all(ipixes2 == ipixes))
-    # 
-    # ########################################
-    # 
     # plt.clf()
     # N = NT2 + 2
     # R,C = 2, (N+1) / 2
@@ -538,8 +438,6 @@ def _fit_psf(fp, fmask, pk, pkres, fbb, peaks, log, psf, psffwhm, img, varimg,
     # im1[ipixes[:,1], ipixes[:,0]] = w
     # plt.imshow(im1, interpolation='nearest', origin='lower')
     # plt.savefig('A.png')
-
-
 
 
     # We do fits with and without the decenter terms.
@@ -596,7 +494,6 @@ def _fit_psf(fp, fmask, pk, pkres, fbb, peaks, log, psf, psffwhm, img, varimg,
         # clip
         pbb2 = psfimg2.getBBox(afwImage.PARENT)
         pbb2.clip(fbb)
-        #psfimg2 = psfimg2.Factory(psfimg2, pbb2, afwImage.PARENT)
         # clip image to bbox
         px0,py0 = psfimg2.getX0(), psfimg2.getY0()
         psfarr = psfimg2.getArray()[pbb2.getMinY()-py0: 1+pbb2.getMaxY()-py0,
@@ -606,28 +503,18 @@ def _fit_psf(fp, fmask, pk, pkres, fbb, peaks, log, psf, psffwhm, img, varimg,
 
         # yuck!  Update the PSF terms in the least-squares fit matrix.
         Ab = A[:,:NT1]
-        oldpsfrow = A[:, I_psf]
+        #oldpsfrow = A[:, I_psf]
 
         sx1,sx2,sx3,sx4 = _overlap(xlo, xhi, px0, px1)
         sy1,sy2,sy3,sy4 = _overlap(ylo, yhi, py0, py1)
         dpx0,dpy0 = px0 - xlo, py0 - ylo
         psfsub = psfarr[sy3 - dpy0 : sy4 - dpy0, sx3 - dpx0: sx4 - dpx0]
         vsub = valid[sy1-ylo: sy2-ylo, sx1-xlo: sx2-xlo]
-        inpsfx = ((XX >= pbb.getMinX()) * (XX <= pbb.getMaxX()))
-        inpsfy = ((YY >= pbb.getMinY()) * (YY <= pbb.getMaxY()))
         xx,yy = np.arange(xlo, xhi+1), np.arange(ylo, yhi+1)
         inpsf = np.outer((yy >= py0) * (yy <= py1), (xx >= px0) * (xx <= px1))
         Ab[inpsf[valid], I_psf] = psfsub[vsub]
-        shiftedpsfrow = Ab[:, I_psf]
+        #shiftedpsfrow = Ab[:, I_psf]
 
-        # Ab = A[:,:NT1].copy()
-        # for ipix,(x,y) in enumerate(ipixes):
-        #     xi,yi = int(x)+xlo, int(y)+ylo
-        #     if pbb2.contains(afwGeom.Point2I(xi,yi)):
-        #         p = psfimg2.get0(xi,yi)
-        #     else:
-        #         p = 0
-        #     Ab[ipix,I_psf] = p
         Aw  = Ab * w[:,np.newaxis]
         # re-solve...
         Xb,rb,rankb,sb = np.linalg.lstsq(Aw, bw)
@@ -645,12 +532,12 @@ def _fit_psf(fp, fmask, pk, pkres, fbb, peaks, log, psf, psffwhm, img, varimg,
         q2 = qb
         X2 = Xb
         log.logdebug('shifted PSF: new chisq/dof = %g; good? %s' % (qb, ispsf2))
-        A[:,I_psf] = oldpsfrow
+        #A[:,I_psf] = oldpsfrow
 
     # Which one do we keep?
     if (((ispsf1 and ispsf2) and (q2 < q1)) or
         (ispsf2 and not ispsf1)):
-        A[:,I_psf] = shiftedpsfrow
+        #A[:,I_psf] = shiftedpsfrow
         Xpsf = X2
         chisq = chisq2
         dof = dof2
@@ -663,37 +550,12 @@ def _fit_psf(fp, fmask, pk, pkres, fbb, peaks, log, psf, psffwhm, img, varimg,
         chisq = chisq1
         dof = dof1
         log.logdebug('Keeping unshifted PSF model')
-    A = A[:,:NT1]
+    #A = A[:,:NT1]
     ispsf = (ispsf1 or ispsf2)
-        
-    # Save the PSF models in images for posterity.
-    # SW,SH = 1+xhi-xlo, 1+yhi-ylo
-    # psfmod = afwImage.ImageF(SW,SH)
-    # psfmod.setXY0(xlo,ylo)
-    # psfderivmodm = afwImage.MaskedImageF(SW,SH)
-    # psfderivmod = psfderivmodm.getImage()
-    # psfderivmod.setXY0(xlo,ylo)
-    # model = afwImage.ImageF(SW,SH)
-    # model.setXY0(xlo,ylo)
-    # for i in range(len(Xpsf)):
-    #     V = A[:,i]*Xpsf[i]
-    #     for (x,y),v in zip(ipixes, A[:,i]*Xpsf[i]):
-    #         ix,iy = int(x),int(y)
-    #         model.set(ix, iy, model.get(ix,iy) + float(v))
-    #         if i in [I_psf, I_dx, I_dy]:
-    #             psfderivmod.set(ix, iy, psfderivmod.get(ix,iy) + float(v))
-    # for ii in range(NP):
-    #     x,y = ipixes[ii,:]
-    #     psfmod.set(int(x),int(y), float(A[ii, I_psf] * Xpsf[I_psf]))
 
     # Save things we learned about this peak for posterity...
     pkres.R0 = R0
     pkres.R1 = R1
-    #pkres.stamp = stamp
-    #pkres.psf0img = psfimg
-    #pkres.psfimg = psfmod
-    #pkres.psfderivimg = psfderivmod
-    #pkres.model = model
     pkres.stampxy0 = xlo,ylo
     pkres.stampxy1 = xhi,yhi
     pkres.center = cx,cy
@@ -710,6 +572,12 @@ def _fit_psf(fp, fmask, pk, pkres, fbb, peaks, log, psf, psffwhm, img, varimg,
         # image.
         log.logdebug('Deblending as PSF; setting template to PSF model')
 
+        # Hmm.... here we create a model footprint and MaskedImage BUT
+        # the footprint covers the little region we fit, which is
+        # different than the PSF size.  We could make this code much
+        # simpler and maybe more sensible by just creating a circular
+        # Footprint centered on the PSF.
+
         modelfp = afwDet.Footprint()
         for (x,y) in ipixes:
             modelfp.addSpan(int(y+ylo), int(x+xlo), int(x+xlo))
@@ -718,48 +586,14 @@ def _fit_psf(fp, fmask, pk, pkres, fbb, peaks, log, psf, psffwhm, img, varimg,
         SW,SH = 1+xhi-xlo, 1+yhi-ylo
         psfmod = afwImage.MaskedImageF(SW,SH)
         psfmod.setXY0(xlo,ylo)
-
         psfimg = psf.computeImage(cx, cy)
         pbb = psfimg.getBBox(afwImage.PARENT)
         px0,py0 = pbb.getMinX(), pbb.getMinY()
         px1,py1 = pbb.getMaxX(), pbb.getMaxY()
         sx1,sx2,sx3,sx4 = _overlap(xlo, xhi, px0, px1)
         sy1,sy2,sy3,sy4 = _overlap(ylo, yhi, py0, py1)
-
         psfmod.getImage().getArray()[sy1 - ylo: sy2 - ylo, sx1 - xlo: sx2 - xlo] = (
             psfimg.getArray()[sy3 + ylo-py0: sy4 + ylo-py0, sx3 + xlo-px0: sx4 + xlo-px0])
-
-        # SW,SH = 1+px1-px0, 1+py1-py0
-        # psfmod.setXY0(px0, px1)
-        # modarr = psfmod.getImage().getArray()
-        # #submod = modarr[ipixes[:,1]+ylo-py0, ipixes[:,0]+xlo-px0]
-        # #submod.ravel() = A[:,I_psf]
-        # #modarr[ipixes[:,1]+ylo-py0, ipixes[:,0]+xlo-px0] = A[:,I_psf]
-        # submod = modarr[ipixes[:,1]+ylo-py0, ipixes[:,0]+xlo-px0].ravel()
-        # submod[:] = A[:,I_psf]
-
-        # psfimg = psf.computeImage(cx, cy)
-        # pbb = psfimg.getBBox(afwImage.PARENT)
-        # print 'psfimg:', psfimg
-        # psfimgf = psfimg.convertFloat()
-        # print 'psfimgf', psfimgf
-        # #psfimgf = afwImage.ImageF(psfimg)
-        # psfmod = afwImage.MaskedImageF(psfimgf)
-        # psfmod.setXY0(pbb.getMinX(), pbb.getMinY())
-        # print 'psfmod', psfmod
-
-        #pbb = psfimg.getBBox(afwImage.PARENT)
-        #psfmod = afwImage.MaskedImageF(pbb)
-        #psfmod.setXY0(pbb.getMinX(), pbb.getMinY())
-
-        # This segfaults...
-        #im = psfmod.getImage()
-        #fim = psfimg.convertFloat()
-        #im += fim
-        #psfmod.getImage().getArray()[:,:] = psfimg.getArray()
-        
-        #pkres.timg = psfderivmod
-        #pkres.tmimg = psfderivmodm
 
         pkres.tmimg = psfmod
         pkres.tfoot = modelfp
