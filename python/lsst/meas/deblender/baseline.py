@@ -231,13 +231,16 @@ def _fit_psfs(fp, peaks, fpres, log, psf, psffwhm, img, varimg,
     fmask.setXY0(fbb.getMinX(), fbb.getMinY())
     afwDet.setMaskFromFootprint(fmask, fp, 1)
 
-    for pki,(pk,pkres) in enumerate(zip(peaks, fpres.peaks)):
+    # pk.getF() actually shows up in the profile...
+    peakF = [pk.getF() for pk in peaks]
+
+    for pki,(pk,pkres,pkF) in enumerate(zip(peaks, fpres.peaks, peakF)):
         log.logdebug('Peak %i' % pki)
-        _fit_psf(fp, fmask, pk, pkres, fbb, peaks, log, cpsf, psffwhm, img, varimg,
+        _fit_psf(fp, fmask, pk, pkF, pkres, fbb, peaks, peakF, log, cpsf, psffwhm, img, varimg,
                  psf_chisq_cut1, psf_chisq_cut2, psf_chisq_cut2b)
 
 
-def _fit_psf(fp, fmask, pk, pkres, fbb, peaks, log, psf, psffwhm, img, varimg,
+def _fit_psf(fp, fmask, pk, pkF, pkres, fbb, peaks, peaksF, log, psf, psffwhm, img, varimg,
              psf_chisq_cut1, psf_chisq_cut2, psf_chisq_cut2b):
     # Fit a PSF + smooth background model (linear) to a 
     # small region around the peak
@@ -247,7 +250,7 @@ def _fit_psf(fp, fmask, pk, pkres, fbb, peaks, log, psf, psffwhm, img, varimg,
     # ramp down to zero weight at this radius...
     R1 = int(math.ceil(psffwhm * 1.5))
     S = 2 * R1
-    cx,cy = pk.getFx(), pk.getFy()
+    cx,cy = pkF.getX(), pkF.getY()
     psfimg = psf.computeImage(cx, cy)
     # R2: distance to neighbouring peak in order to put it
     # into the model
@@ -271,18 +274,14 @@ def _fit_psf(fp, fmask, pk, pkres, fbb, peaks, log, psf, psffwhm, img, varimg,
         pkres.out_of_bounds = True
         return
 
-    # Cut out the postage stamp we are going to fit.
-    #stamp = img.Factory(img, stampbb, afwImage.PARENT, True)
-    #assert(stamp.getBBox(afwImage.PARENT) == stampbb)
-
     # find other peaks within range...
     otherpeaks = []
-    for pk2 in peaks:
+    for pk2,pkF2 in zip(peaks, peaksF):
         if pk2 == pk:
             continue
-        if pk.getF().distanceSquared(pk2.getF()) > R2**2:
+        if pkF.distanceSquared(pkF2) > R2**2:
             continue
-        opsfimg = psf.computeImage(pk2.getFx(), pk2.getFy())
+        opsfimg = psf.computeImage(pkF2.getX(), pkF2.getY())
         otherpeaks.append(opsfimg)
     log.logdebug('%i other peaks within range' % len(otherpeaks))
 
@@ -328,17 +327,17 @@ def _fit_psf(fp, fmask, pk, pkres, fbb, peaks, log, psf, psffwhm, img, varimg,
     valid *= (var_sub > 0)
     NP = valid.sum()
 
-    #XX,YY = np.meshgrid(xx, yy)
-    #ipixes = np.vstack((XX[valid] - xlo, YY[valid] - ylo)).T
+    XX,YY = np.meshgrid(xx, yy)
+    ipixes = np.vstack((XX[valid] - xlo, YY[valid] - ylo)).T
 
-    ipixes = np.empty((NP, 2))
-    dx = np.arange(0, xhi-xlo+1)
-    i0 = 0
-    for y,vr in enumerate(valid):
-        n = vr.sum()
-        ipixes[i0:i0+n, 0] = dx[vr]
-        ipixes[i0:i0+n, 1] = y
-        i0 += n
+    # ipixes = np.empty((NP, 2))
+    # dx = np.arange(0, xhi-xlo+1)
+    # i0 = 0
+    # for y,vr in enumerate(valid):
+    #     n = vr.sum()
+    #     ipixes[i0:i0+n, 0] = dx[vr]
+    #     ipixes[i0:i0+n, 1] = y
+    #     i0 += n
     #assert(np.all(ipixes == ipixes2))
 
     inpsfx = (xx >= px0) * (xx <= px1)
