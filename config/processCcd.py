@@ -8,7 +8,8 @@ root.calibrate.repair.cosmicray.nCrPixelMax = 1000000
 root.calibrate.background.binSize = 1024
 
 # PSF determination
-root.calibrate.measurePsf.starSelector.name = "secondMoment"
+import lsst.meas.astrom.catalogStarSelector
+root.calibrate.measurePsf.starSelector.name = "catalog"
 root.calibrate.measurePsf.psfDeterminer.name = "pca"
 root.calibrate.measurePsf.starSelector["secondMoment"].clumpNSigma = 2.0
 root.calibrate.measurePsf.psfDeterminer["pca"].nEigenComponents = 4
@@ -31,3 +32,13 @@ try:
                                                    }
 except ImportError:
     print "hscAstrom is not setup; using LSST's meas_astrom instead"
+
+# Model Mags
+try:
+    import lsst.meas.extensions.multiShapelet
+    root.measurement.algorithms.names += ("multishapelet.psf", "multishapelet.exp", "multishapelet.dev",
+                                          "multishapelet.combo")
+    root.measurement.slots.modelFlux = "multishapelet.combo.flux"
+except ImportError:
+    print "meas_extensions_multiShapelet is not setup; disabling model mags"
+
