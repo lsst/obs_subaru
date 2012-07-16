@@ -30,21 +30,13 @@ class SuprimecamMapper(CameraMapper):
             try:
                 kwargs['calibRoot'] = os.path.join(os.environ.get('SUPRIME_DATA_DIR'), 'SUPA', 'CALIB')
                 if self.mit:
-                    kwargs['calibRoot'] += "_MIT"                
+                    kwargs['calibRoot'] += "_MIT"
             except:
                 raise RuntimeError("Either $SUPRIME_DATA_DIR or root= must be specified")
-            
-        if outputRoot is None:
-            if policy.exists('outRoot'):
-                outputRoot = policy.get('outRoot')
-            else:
-                outputRoot = kwargs['root']
 
         self.outRoot = outputRoot
 
-        super(SuprimecamMapper, self).__init__(policy, policyFile.getRepositoryPath(),
-                                               provided=['outRoot'],
-                                               outputRoot=outputRoot, **kwargs)
+        super(SuprimecamMapper, self).__init__(policy, policyFile.getRepositoryPath(), **kwargs)
 
         afwImageUtils.defineFilter('B',  lambdaEff=400,  alias=['W-J-B'])
         afwImageUtils.defineFilter('V',  lambdaEff=550,  alias=['W-J-V'])
