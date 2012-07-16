@@ -11,7 +11,7 @@ from lsst.daf.butlerUtils import CameraMapper
 import lsst.pex.policy as pexPolicy
 
 class SuprimecamMapper(CameraMapper):
-    def __init__(self, mit=False, outputRoot=None, **kwargs):
+    def __init__(self, mit=False, **kwargs):
         policyFile = pexPolicy.DefaultPolicyFile("obs_subaru", "SuprimecamMapper.paf", "policy")
         policy = pexPolicy.Policy(policyFile)
 
@@ -33,8 +33,6 @@ class SuprimecamMapper(CameraMapper):
                     kwargs['calibRoot'] += "_MIT"
             except:
                 raise RuntimeError("Either $SUPRIME_DATA_DIR or root= must be specified")
-
-        self.outRoot = outputRoot
 
         super(SuprimecamMapper, self).__init__(policy, policyFile.getRepositoryPath(), **kwargs)
 
@@ -72,15 +70,6 @@ class SuprimecamMapper(CameraMapper):
         mitNames = ["w67c1", "w6c1", "si005s", "si001s",  "si002s", "si006s", "w93c2", "w9c2", "w4c5", "w7c3"]
         ccdTmp = int("%(ccd)d" % dataId)
         return mitNames[ccdTmp] if self.mit else miyazakiNames[ccdTmp]
-
-    def _transformId(self, dataId):
-        actualId = dataId.copy()
-        return actualId
-
-    def _mapActualToPath(self, template, dataId):
-        actualId = self._transformId(dataId)
-        actualId['outRoot'] = self.outRoot
-        return template % actualId
 
 ###############################################################################
 
