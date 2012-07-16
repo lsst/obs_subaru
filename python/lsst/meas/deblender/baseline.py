@@ -183,6 +183,7 @@ def deblend(footprint, maskedImage, psf, psffwhm,
                 imrow = ima[sy-iy0, sx0-ix0 : 1+sx1-ix0]
                 r0 = (sy-y0)*W
                 A[r0 + sx0-x0: r0+1+sx1-x0, i] = imrow
+
         X1,r1,rank1,s1 = np.linalg.lstsq(A, b)
         print 'Template weights:', X1
         del A
@@ -274,6 +275,12 @@ def _fit_psf(fp, fmask, pk, pkF, pkres, fbb, peaks, peaksF, log, psf, psffwhm, i
         pkres.out_of_bounds = True
         return
 
+    # drop tiny footprints too
+    if xhi < (xlo + 2) or yhi < (ylo + 2):
+        log.logdebug('Skipping this peak: tiny footprint / close to edge')
+        pkres.out_of_bounds = True
+        return
+
     # find other peaks within range...
     otherpeaks = []
     for pk2,pkF2 in zip(peaks, peaksF):
@@ -326,6 +333,11 @@ def _fit_psf(fp, fmask, pk, pkF, pkres, fbb, peaks, peaksF, log, psf, psffwhm, i
     valid *= (RR <= R1**2)
     valid *= (var_sub > 0)
     NP = valid.sum()
+
+    if NP == 0:
+        log.warn('Skipping peak at (%.1f,%.1f): NP = 0' % (cx,cy))
+        pkres.out_of_bounds = True
+        return
 
     XX,YY = np.meshgrid(xx, yy)
     ipixes = np.vstack((XX[valid] - xlo, YY[valid] - ylo)).T
@@ -437,7 +449,6 @@ def _fit_psf(fp, fmask, pk, pkF, pkres, fbb, peaks, peaksF, log, psf, psffwhm, i
     # im1[ipixes[:,1], ipixes[:,0]] = w
     # plt.imshow(im1, interpolation='nearest', origin='lower')
     # plt.savefig('A.png')
-
 
     # We do fits with and without the decenter terms.
     # Since the dx,dy terms are at the end of the matrix,

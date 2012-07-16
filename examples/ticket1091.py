@@ -332,20 +332,50 @@ def t1091main(dr, opt, conf, proc, patargs={}, rundeblendargs={}, pool=None):
         W,H = mi.getWidth(), mi.getHeight()
         im = mi.getImage().getArray()
         imext = getExtent(mi.getBBox(afwImage.PARENT))
-        print 'Image extent:', imext
+
         dpi=100
         plt.figure(figsize=(1+W/dpi, 1+H/dpi), dpi=dpi)
+
+        plt.clf()
+        FFT = np.fft.rfft2(im)
+        print 'FFT', FFT
+        A = np.sqrt(FFT.real**2 + FFT.imag**2)
+        print 'A', A
+        print 'A', A.shape
+        hA,wA = A.shape
+        A = A[:wA,:]
+        plt.imshow(np.log(A), interpolation='nearest', origin='lower')
+        plt.savefig('fft.png')
+        sys.exit(0)
+
         plt.clf()
         plt.imshow(im, interpolation='nearest', origin='lower',
                    extent=imext, vmin=-2.*sigma1, vmax=10.*sigma1)
         plt.gray()
-        plt.savefig(opt.overview + '-a.png')
+        plt.savefig(opt.overview % 'a')
         ax = plt.axis()
+
+        cxx,cyy,pxx,pyy = [],[],[],[]
+        for i,src in enumerate(cat):
+            if src.getParent():
+                cxx.append(src.getX())
+                cyy.append(src.getY())
+            else:
+                pxx.append(src.getX())
+                pyy.append(src.getY())
+        if len(cxx):
+            plt.plot(cxx, cyy, 'b+')
+        if len(pxx):
+            plt.plot(pxx, pyy, 'r+')
+        plt.axis(ax)
+        plt.savefig(opt.overview % 'b')
+
+
+        plt.imshow(im, interpolation='nearest', origin='lower',
+                   extent=imext, vmin=-2.*sigma1, vmax=10.*sigma1)
         plt.gray()
         for i,src in enumerate(cat):
             ext = getExtent(src.getFootprint().getBBox())
-            if i < 10:
-                print 'source extent', ext
             xx = [ext[0],ext[1],ext[1],ext[0],ext[0]]
             yy = [ext[2],ext[2],ext[3],ext[3],ext[2]]
             if len(src.getFootprint().getPeaks()) == 1:
@@ -354,7 +384,7 @@ def t1091main(dr, opt, conf, proc, patargs={}, rundeblendargs={}, pool=None):
                 c = 'y'
             plt.plot(xx, yy, '-', color=c)
         plt.axis(ax)
-        plt.savefig(opt.overview + '-b.png')
+        plt.savefig(opt.overview % 'c')
         
     if opt.nkeep:
         cat = cutCatalog(cat, opt.nkeep)
