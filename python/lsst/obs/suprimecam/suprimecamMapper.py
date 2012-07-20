@@ -96,7 +96,7 @@ class SuprimecamMapper(CameraMapper):
 
     def _setTimes(self, mapping, item, dataId):
         """Set the exposure time and exposure midpoint in the calib object in
-        an Exposure.  Use the EXPTIME and MJD-OBS keywords (and strip out
+        an Exposure.  Use the EXPTIME and MJD keywords (and strip out
         EXPTIME).
         @param mapping (lsst.daf.butlerUtils.Mapping)
         @param[in,out] item (lsst.afw.image.Exposure)
