@@ -3,6 +3,7 @@
 import os, os.path
 import pwd
 
+import lsst.daf.base as dafBase
 import lsst.afw.geom as afwGeom
 import lsst.afw.image as afwImage
 import lsst.afw.image.utils as afwImageUtils
@@ -92,3 +93,26 @@ class SuprimecamMapper(CameraMapper):
     def _transformId(self, dataId):
         actualId = dataId.copy()
         return actualId
+
+    def _setTimes(self, mapping, item, dataId):
+        """Set the exposure time and exposure midpoint in the calib object in
+        an Exposure.  Use the EXPTIME and MJD-OBS keywords (and strip out
+        EXPTIME).
+        @param mapping (lsst.daf.butlerUtils.Mapping)
+        @param[in,out] item (lsst.afw.image.Exposure)
+        @param dataId (dict) Dataset identifier"""
+
+        md = item.getMetadata()
+        calib = item.getCalib()
+        if md.exists("EXPTIME"):
+            expTime = md.get("EXPTIME")
+            calib.setExptime(expTime)
+            md.remove("EXPTIME")
+        else:
+            expTime = calib.getExptime()
+        if md.exists("MJD"):
+            obsStart = dafBase.DateTime(md.get("MJD"),
+                    dafBase.DateTime.MJD, dafBase.DateTime.UTC)
+            obsMidpoint = obsStart.nsecs() + long(expTime * 1000000000L / 2)
+            calib.setMidTime(dafBase.DateTime(obsMidpoint))
+
