@@ -30,6 +30,8 @@ parser.add_option("-r", "--root", action="store", dest="rootDir",
                   default=None, help="root directory for output files.")
 parser.add_option("-c", "--copy", action="store_true", dest="doCopy",
                   default=False, help="copy instead of move the files.")
+parser.add_option("-l", "--link", action="store_true", dest="doLink",
+                  default=False, help="link instead of move the files.")
 
 def getFrameInfo(filename):
     """ Read what we care about in the SuprimeCam headers. """
@@ -76,6 +78,10 @@ def getFinalFile(rootDir, filename, info):
 def main():
     (opts, args) = parser.parse_args()
 
+    if opts.doCopy and opts.doLink:
+        sys.stderr.write("May only set one of --copy and --link")
+        raise SystemExit()
+
     rootDir = opts.rootDir if opts.rootDir else os.environ.get('SUPRIME_DATA_DIR', None)
     if not rootDir:
         sys.stderr.write("Neither --root or $SUPRIME_DATA_DIR are set!\n")
@@ -97,6 +103,9 @@ def main():
                 if opts.doCopy:
                     shutil.copyfile(infile, outpath)
                     print "copied %s to %s" % (infile, outpath)
+                elif opts.doLink:
+                    os.symlink(infile, outpath)
+                    print "linked %s to %s" % (infile, outpath)
                 else:
                     os.rename(infile, outpath)
                     print "moved %s to %s" % (infile, outpath)

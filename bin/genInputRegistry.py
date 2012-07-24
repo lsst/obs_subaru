@@ -25,10 +25,12 @@ if len(args) > 0 or len(sys.argv) == 1:
     parser.print_help()
     sys.exit(1)
 
-if opts.camera.lower() in ("hsc"):
+if opts.camera.lower() in ("hsc", "hscsim"):
     mapperPolicy = "HscSimMapper.paf"
-elif opts.camera.lower() in ("sc", "suprimecam", "suprime-cam"):
+    reFilename = r'HSCA(\d{5})(\d{3}).fits'
+elif opts.camera.lower() in ("sc", "suprimecam", "suprime-cam", "sc-mit", "suprimecam-mit"):
     mapperPolicy = "SuprimecamMapper.paf"
+    reFilename = r'SUPA(\d{7})(\d).fits'
 else:
     raise KeyError("Unrecognised camera name: %s" % opts.camera)
 
@@ -39,13 +41,10 @@ else:
     skyPolicy = None
 
 root = opts.root
-if root == '-':
-    files = [l.strip() for l in sys.stdin.readlines()]
-else:
-    files = glob.glob(os.path.join(root, "*", "*-*-*", "*", "*", "*.fits"))
+files = glob.glob(os.path.join(root, "*", "*-*-*", "*", "*", "*.fits"))
 sys.stderr.write('processing %d files...\n' % (len(files)))
 
-registryName = "registry.sqlite3"
+registryName = os.path.join(root, "registry.sqlite3")
 if opts.create and os.path.exists(registryName):
     os.unlink(registryName)
 
@@ -68,11 +67,16 @@ if makeTables:
     conn.execute(cmd)
     conn.commit()
 
+# Set up regex for parsing directory structure
+reField = r'([\w .+-]+)'
+reDate = r'(\d{4}-\d{2}-\d{2})'
+rePointing = r'(\d+)'
+reFilter = r'([\w\-\+]+)'
+regex = re.compile('/'.join([reField, reDate, rePointing, reFilter, reFilename]))
+
 qsp = skypix.createQuadSpherePixelization(skyPolicy)
 for fits in files:
-    m = re.search(r'([\w +-]+)/(\d{4}-\d{2}-\d{2})/(\d+)/([\w\-\+]+)/SUPA(\d{7})(\d).fits', fits)
-    if not m:
-        m = re.search(r'([\w +-]+)/(\d{4}-\d{2}-\d{2})/(\d+)/([\w\-\+]+)/HSCA(\d{5})(\d{3}).fits', fits)
+    m = re.search(regex, fits)
     if not m:
         print >>sys.stderr, "Warning: skipping unrecognized filename:", fits
         continue

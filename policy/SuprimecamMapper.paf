@@ -128,7 +128,7 @@ exposures: {
     }
 
     mosaicCalib: {
-        template:    "%(outRoot)s/%(pointing)05d/%(filter)s/output/CALIB%(visit)07d%(ccd)1d-%(tract)d.fits"
+        template:    "%(pointing)05d/%(filter)s/output/CALIB%(visit)07d%(ccd)1d-%(tract)d.fits"
         python:      "lsst.afw.image.ExposureU"
         persistable: "ExposureU"
         storage:     "FitsStorage"
@@ -141,7 +141,7 @@ exposures: {
     }
 
     coaddTempExp: {
-        template:    "%(outRoot)s/coaddTemp/%(filter)s/%(tract)d/TEMP%(visit)07d%(ccd)1d-%(patch)s.fits"
+        template:    "coaddTemp/%(filter)s/%(tract)d/TEMP%(visit)07d%(ccd)1d-%(patch)s.fits"
         python:      "lsst.afw.image.ExposureF"
         persistable: "ExposureF"
         storage:     "FitsStorage"
@@ -369,6 +369,14 @@ datasets: {
         tables:        raw
         tables:        raw_visit
     }
+    forcedsources: {
+        template:      "%(pointing)05d/%(filter)s/output/FORCED%(visit)07d%(ccd)1d.fits"
+        python:        "lsst.afw.table.SourceCatalog"
+        persistable:   "SourceCatalog"
+        storage:       "FitsCatalogStorage"
+        tables:        "raw_skytile"
+    }
+
     deepCoadd: {
         template:    "deepCoadd/%(filter)s/%(tract)d/%(patch)s.fits"
         python:      "lsst.afw.image.ExposureF"
