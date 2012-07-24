@@ -63,6 +63,25 @@ class SuprimecamMapper(CameraMapper):
         afwImageUtils.defineFilter('NB704',  lambdaEff=704,  alias=['N-B-L704'])
         afwImageUtils.defineFilter('NB711',  lambdaEff=711,  alias=['N-B-L711'])
        
+        # Intermediate-band filters
+        afwImageUtils.defineFilter("IA427", lambdaEff=427, alias=['I-A-L427'])
+        afwImageUtils.defineFilter("IA445", lambdaEff=445, alias=['I-A-L445'])
+        afwImageUtils.defineFilter("IA464", lambdaEff=464, alias=['I-A-L464'])
+        afwImageUtils.defineFilter("IA484", lambdaEff=484, alias=['I-A-L484'])
+        afwImageUtils.defineFilter("IA505", lambdaEff=505, alias=['I-A-L505'])
+        afwImageUtils.defineFilter("IA527", lambdaEff=527, alias=['I-A-L527'])
+        afwImageUtils.defineFilter("IA550", lambdaEff=550, alias=['I-A-L550'])
+        afwImageUtils.defineFilter("IA574", lambdaEff=574, alias=['I-A-L574'])
+        afwImageUtils.defineFilter("IA598", lambdaEff=598, alias=['I-A-L598'])
+        afwImageUtils.defineFilter("IA624", lambdaEff=624, alias=['I-A-L624'])
+        afwImageUtils.defineFilter("IA651", lambdaEff=651, alias=['I-A-L651'])
+        afwImageUtils.defineFilter("IA679", lambdaEff=679, alias=['I-A-L679'])
+        afwImageUtils.defineFilter("IA709", lambdaEff=709, alias=['I-A-L709'])
+        afwImageUtils.defineFilter("IA738", lambdaEff=738, alias=['I-A-L738'])
+        afwImageUtils.defineFilter("IA767", lambdaEff=767, alias=['I-A-L767'])
+        afwImageUtils.defineFilter("IA797", lambdaEff=797, alias=['I-A-L797'])
+        afwImageUtils.defineFilter("IA827", lambdaEff=827, alias=['I-A-L827'])
+        afwImageUtils.defineFilter("IA856", lambdaEff=856, alias=['I-A-L856'])
 
         self.filters = {
             "W-J-B"   : "B",
@@ -77,6 +96,24 @@ class SuprimecamMapper(CameraMapper):
             "W-S-ZR"  : "y",
             "N-B-L704": "NB704",
             "N-B-L711": "NB711",
+            "I-A-L427": "L427",
+            "I-A-L445": "L445",
+            "I-A-L464": "L464",
+            "I-A-L484": "L484",
+            "I-A-L505": "L505",
+            "I-A-L527": "L527",
+            "I-A-L550": "L550",
+            "I-A-L574": "L574",
+            "I-A-L598": "L598",
+            "I-A-L624": "L624",
+            "I-A-L651": "L651",
+            "I-A-L679": "L679",
+            "I-A-L709": "L709",
+            "I-A-L738": "L738",
+            "I-A-L767": "L767",
+            "I-A-L797": "L797",
+            "I-A-L827": "L827",
+            "I-A-L856": "L856",
             }
 
     def _extractAmpId(self, dataId):
