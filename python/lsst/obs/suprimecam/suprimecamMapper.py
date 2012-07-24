@@ -11,7 +11,7 @@ from lsst.daf.butlerUtils import CameraMapper
 import lsst.pex.policy as pexPolicy
 
 class SuprimecamMapper(CameraMapper):
-    def __init__(self, mit=False, outputRoot=None, **kwargs):
+    def __init__(self, mit=False, **kwargs):
         policyFile = pexPolicy.DefaultPolicyFile("obs_subaru", "SuprimecamMapper.paf", "policy")
         policy = pexPolicy.Policy(policyFile)
 
@@ -30,21 +30,11 @@ class SuprimecamMapper(CameraMapper):
             try:
                 kwargs['calibRoot'] = os.path.join(os.environ.get('SUPRIME_DATA_DIR'), 'SUPA', 'CALIB')
                 if self.mit:
-                    kwargs['calibRoot'] += "_MIT"                
+                    kwargs['calibRoot'] += "_MIT"
             except:
                 raise RuntimeError("Either $SUPRIME_DATA_DIR or root= must be specified")
-            
-        if outputRoot is None:
-            if policy.exists('outRoot'):
-                outputRoot = policy.get('outRoot')
-            else:
-                outputRoot = kwargs['root']
 
-        self.outRoot = outputRoot
-
-        super(SuprimecamMapper, self).__init__(policy, policyFile.getRepositoryPath(),
-                                               provided=['outRoot'],
-                                               outputRoot=outputRoot, **kwargs)
+        super(SuprimecamMapper, self).__init__(policy, policyFile.getRepositoryPath(), **kwargs)
 
         afwImageUtils.defineFilter('B',  lambdaEff=400,  alias=['W-J-B'])
         afwImageUtils.defineFilter('V',  lambdaEff=550,  alias=['W-J-V'])
@@ -81,11 +71,22 @@ class SuprimecamMapper(CameraMapper):
         ccdTmp = int("%(ccd)d" % dataId)
         return mitNames[ccdTmp] if self.mit else miyazakiNames[ccdTmp]
 
-    def _transformId(self, dataId):
-        actualId = dataId.copy()
-        return actualId
+###############################################################################
 
-    def _mapActualToPath(self, template, dataId):
-        actualId = self._transformId(dataId)
-        actualId['outRoot'] = self.outRoot
-        return template % actualId
+    def _computeCcdExposureId(self, dataId):
+        """Compute the 64-bit (long) identifier for a CCD exposure.
+
+        @param dataId (dict) Data identifier with visit, ccd
+        """
+
+        pathId = self._transformId(dataId)
+        visit = pathId['visit']
+        ccd = pathId['ccd']
+        return visit*10 + ccd
+
+    def bypass_ccdExposureId(self, datasetType, pythonType, location, dataId):
+        return self._computeCcdExposureId(dataId)
+    def bypass_ccdExposureId_bits(self, datasetType, pythonType, location, dataId):
+        return 32 # not really, but this leaves plenty of space for sources
+
+###############################################################################
