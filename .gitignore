@@ -3,9 +3,16 @@
 *.o
 *.pyc
 *.so
+*.os
+tests/.tests
 ups/*.cfgc
 config.log
+doc/html
+doc/*.tag
+doc/doxygen.conf
 python/lsst/meas/deblender/version.py
+python/lsst/meas/deblender/deblenderLib.py
+python/lsst/meas/deblender/deblenderLib_wrap.cc
 test-*.png
 templ-*.png
 measure-*.png
@@ -16,4 +23,3 @@ deblend-*.png
 heavy-*.fits
 design*.png
 design*.pdf
-
