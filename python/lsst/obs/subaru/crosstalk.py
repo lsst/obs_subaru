@@ -40,10 +40,8 @@ import lsst.afw.geom as afwGeom
 import lsst.afw.image as afwImage
 import lsst.afw.math  as afwMath
 import lsst.afw.display.ds9 as ds9
-
+import lsst.pipe.base as pipeBase
 import lsst.pex.config as pexConfig
-
-import lsst.pipe.tasks.crosstalk as baseCrosstalk
 
 class CrosstalkCoeffsConfig(pexConfig.Config):
     """Specify crosstalk coefficients for a CCD"""
@@ -68,7 +66,7 @@ class CrosstalkCoeffsConfig(pexConfig.Config):
         """Return a 2-D numpy array of crosstalk coefficients of the proper shape"""
         return np.array(self.values).reshape(self.shape)
 
-class CrosstalkConfig(baseCrosstalk.CrosstalkConfig):
+class CrosstalkConfig(pexConfig.Config):
     """Config for the crosstalk removal code
     """
     nCrPixelMax = pexConfig.Field(
@@ -91,7 +89,7 @@ class CrosstalkConfig(baseCrosstalk.CrosstalkConfig):
         default = 45000,
     )
 
-class CrosstalkTask(baseCrosstalk.CrosstalkTask):
+class CrosstalkTask(pipeBase.Task):
     """Subaru-specific crosstalk correction task.
 
     This should be enabled by retargeting calibrate.repair.crosstalk in a
