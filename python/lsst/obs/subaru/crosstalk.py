@@ -43,14 +43,7 @@ import lsst.afw.display.ds9 as ds9
 
 import lsst.pex.config as pexConfig
 
-class FixCrossTalkConfig(pexConfig.Config):
-    """Config for the crosstalk removal code
-    """
-    nCrPixelMax = pexConfig.Field(
-        dtype = int,
-        doc = "maximum number of contaminated pixels",
-        default = 10000,
-    )
+import lsst.pipe.tasks.crosstalk as baseCrosstalk
 
 class CrosstalkCoeffsConfig(pexConfig.Config):
     """Specify crosstalk coefficients for a CCD"""
@@ -74,6 +67,41 @@ class CrosstalkCoeffsConfig(pexConfig.Config):
     def getCoeffs(self):
         """Return a 2-D numpy array of crosstalk coefficients of the proper shape"""
         return np.array(self.values).reshape(self.shape)
+
+class CrosstalkConfig(baseCrosstalk.CrosstalkConfig):
+    """Config for the crosstalk removal code
+    """
+    nCrPixelMax = pexConfig.Field(
+        dtype = int,
+        doc = "maximum number of contaminated pixels",
+        default = 10000,
+    )
+    coeffs = pexConfig.ConfigField(
+        dtype = CrosstalkCoeffsConfig,
+        doc = "Crosstalk coefficients",
+    )
+    maskPlane = pexConfig.Field(
+        dtype = str,
+        doc = "Name of Mask plane for crosstalk corrected pixels",
+        default = "CROSSTALK",
+    )
+    minPixelToMask = pexConfig.Field(
+        dtype = float,
+        doc = "Minimum pixel value (in electrons) to cause maskPlane bit to be set",
+        default = 45000,
+    )
+
+class CrosstalkTask(baseCrosstalk.CrosstalkTask):
+    """Subaru-specific crosstalk correction task.
+
+    This should be enabled by retargeting calibrate.repair.crosstalk in a
+    camera-specific override file.
+    """
+    ConfigClass = CrosstalkConfig
+
+    def run(self, exposure):
+        coeffs = self.config.coeffs.getCoeffs()
+        subtractXTalk(exposure.getMaskedImage(), coeffs, self.config.minPixelToMask, self.config.maskPlane)
 
 nAmp = 4
 
