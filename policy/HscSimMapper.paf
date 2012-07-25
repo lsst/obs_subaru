@@ -100,6 +100,26 @@ exposures: {
         level:        "Skytile"
         tables:        "raw_skyTile"
     }
+
+    ossImage: {
+        template:    "%(pointing)05d/%(filter)s/thumbs/oss%(visit)07d%(ccd)d.fits"
+        python:      "lsst.afw.image.ExposureF"
+        persistable: "ExposureF"
+        storage:     "FitsStorage"
+        level:       "Ccd"
+        tables:      "raw"
+        tables:      "raw_visit"
+    }
+    flattenedImage: {
+        template:    "%(pointing)05d/%(filter)s/thumbs/flattened%(visit)07d%(ccd)d.fits"
+        python:      "lsst.afw.image.ExposureF"
+        persistable: "ExposureF"
+        storage:     "FitsStorage"
+        level:       "Ccd"
+        tables:      "raw"
+        tables:      "raw_visit"
+    }
+
 }
 
 calibrations: {
@@ -258,4 +278,84 @@ datasets: {
         tables:        raw
         tables:        raw_skyTile
     }
+
+    ossThumb: {
+        template:    "%(pointing)05d/%(filter)s/thumbs/oss%(visit)07d%(ccd)d.png"
+        python:      __builtin__.str
+        persistable: None
+        storage:     TextStorage
+        tables:      raw
+    }
+    flattenedThumb: {
+        template:    "%(pointing)05d/%(filter)s/thumbs/flattened%(visit)07d%(ccd)d.png"
+        python:      __builtin__.str
+        persistable: None
+        storage:     TextStorage
+        tables:      raw
+    }
+
+    plotMagHist: {
+        template:    "%(pointing)05d/%(filter)s/qa/magHist%(visit)07d%(ccd)d.png"
+        python:      __builtin__.str
+        persistable: None
+        storage:     TextStorage
+        tables:      raw
+    }
+    plotSeeingRough: {
+        template:    "%(pointing)05d/%(filter)s/qa/seeingRough%(visit)07d%(ccd)d.png"
+        python:      __builtin__.str
+        persistable: None
+        storage:     TextStorage
+        tables:      raw
+    }
+    plotSeeingRobust: {
+        template:    "%(pointing)05d/%(filter)s/qa/seeingRobust%(visit)07d%(ccd)d.png"
+        python:      __builtin__.str
+        persistable: None
+        storage:     TextStorage
+        tables:      raw
+    }
+    plotSeeingMap: {
+        template:    "%(pointing)05d/%(filter)s/qa/seeingMap%(visit)07d%(ccd)d.png"
+        python:      __builtin__.str
+        persistable: None
+        storage:     TextStorage
+        tables:      raw
+    }
+    plotEllipseMap: {
+        template:    "%(pointing)05d/%(filter)s/qa/ellipseMap%(visit)07d%(ccd)d.png"
+        python:      __builtin__.str
+        persistable: None
+        storage:     TextStorage
+        tables:      raw
+    }
+    plotEllipticityMap: {
+        template:    "%(pointing)05d/%(filter)s/qa/ellipticityMap%(visit)07d%(ccd)d.png"
+        python:      __builtin__.str
+        persistable: None
+        storage:     TextStorage
+        tables:      raw
+    }
+    plotFwhmGrid: {
+        template:    "%(pointing)05d/%(filter)s/qa/fwhmGrid%(visit)07d%(ccd)d.png"
+        python:      __builtin__.str
+        persistable: None
+        storage:     TextStorage
+        tables:      raw
+    }
+    plotEllipseGrid: {
+        template:    "%(pointing)05d/%(filter)s/qa/ellipseGrid%(visit)07d%(ccd)d.png"
+        python:      __builtin__.str
+        persistable: None
+        storage:     TextStorage
+        tables:      raw
+    }
+    plotEllipticityGrid: {
+        template:    "%(pointing)05d/%(filter)s/qa/ellipticityGrid%(visit)07d%(ccd)d.png"
+        python:      __builtin__.str
+        persistable: None
+        storage:     TextStorage
+        tables:      raw
+    }
+
 }
