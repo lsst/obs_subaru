@@ -1,17 +1,88 @@
 #!/usr/bin/env python
 
+import os
+import numpy
+
 from lsst.pex.config import Field
 from lsst.pipe.base import Struct
 from lsst.ip.isr import IsrTask
 from lsst.ip.isr import isr as lsstIsr
+import lsst.pex.config as pexConfig
 import lsst.afw.cameraGeom as afwCG
 import lsst.afw.image as afwImage
 import lsst.afw.geom as afwGeom
+import lsst.afw.math as afwMath
+from . import crosstalk
+
+try:
+    import hsc.fitsthumb as fitsthumb
+except ImportError:
+    fitsthumb = None
+
+class QaFlatnessConfig(pexConfig.Config):
+    meshX = pexConfig.Field(
+        dtype = int,
+        doc = 'Mesh size in X (pix) to calculate count statistics',
+        default = 256,
+        )
+    meshY = pexConfig.Field(
+        dtype = int,
+        doc = 'Mesh size in Y (pix) to calculate count statistics',
+        default = 256,
+        )
+    doClip = pexConfig.Field(
+        dtype = bool,
+        doc = 'Do we clip outliers in calculate count statistics?',
+        default = True,
+        )
+    clipSigma = pexConfig.Field(
+        dtype = float,
+        doc = 'How many sigma is used to clip outliers in calculate count statistics?',
+        default = 3.0,
+        )
+    nIter = pexConfig.Field(
+        dtype = int,
+        doc = 'How many times do we iterate clipping outliers in calculate count statistics?',
+        default = 3,
+        )
+
+class QaConfig(pexConfig.Config):
+    flatness = pexConfig.ConfigField(dtype=QaFlatnessConfig, doc="Qa.flatness")
+    doWriteOss = pexConfig.Field(doc="Write OverScan-Subtracted image?", dtype=bool, default=False)
+    doThumbnailOss = pexConfig.Field(doc="Write OverScan-Subtracted thumbnail?", dtype=bool, default=True)
+    doWriteFlattened = pexConfig.Field(doc="Write flattened image?", dtype=bool, default=False)
+    doThumbnailFlattened = pexConfig.Field(doc="Write flattened thumbnail?", dtype=bool, default=True)
 
 class SubaruIsrConfig(IsrTask.ConfigClass):
-    doSaturation = Field(doc="Mask saturated pixels?", dtype=bool, default=True)
-    doOverscan = Field(doc="Do overscan subtraction?", dtype=bool, default=True)
-    doVariance = Field(doc="Calculate variance?", dtype=bool, default=True)
+    qa = pexConfig.ConfigField(doc="QA-related config options", dtype=QaConfig)
+    doSaturation = pexConfig.Field(doc="Mask saturated pixels?", dtype=bool, default=True)
+    doOverscan = pexConfig.Field(doc="Do overscan subtraction?", dtype=bool, default=True)
+    doVariance = pexConfig.Field(doc="Calculate variance?", dtype=bool, default=True)
+    doGuider = pexConfig.Field(
+        dtype = bool,
+        doc = "Trim guider shadow",
+        default = True,
+    )
+    doCrosstalk = pexConfig.Field(
+        dtype = bool,
+        doc = "Correct for crosstalk",
+        default = True,
+    )
+    doLinearize = pexConfig.Field(
+        dtype = bool,
+        doc = "Correct for nonlinearity of the detector's response (ignored if coefficients are 0.0)",
+        default = True,
+    )
+    linearizationThreshold = pexConfig.Field(
+        dtype = float,
+        doc = "Minimum pixel value (in electrons) to apply linearity corrections",
+        default = 0.0,
+    )
+    linearizationCoefficient = pexConfig.Field(
+        dtype = float,
+        doc = "Linearity correction coefficient",
+        default = 0.0,
+    )
 
 class SubaruIsrTask(IsrTask):
 
@@ -24,6 +95,7 @@ class SubaruIsrTask(IsrTask):
         ccd = afwCG.cast_Ccd(ccdExposure.getDetector())
 
         for amp in ccd:
+            self.measureOverscan(ccdExposure, amp)
             if self.config.doSaturation:
                 self.saturationDetection(ccdExposure, amp)
             if self.config.doOverscan:
@@ -37,12 +109,31 @@ class SubaruIsrTask(IsrTask):
         ccdExposure = self.assembleCcd.assembleCcd(ccdExposure)
         ccd = afwCG.cast_Ccd(ccdExposure.getDetector())
 
+        if self.config.qa.doWriteOss:
+            sensorRef.put("ossImage", ccdExposure)
+        if self.config.qa.doThumbnailOss:
+            self.writeThumbnail(sensorRef, "ossThumb", ccdExposure)
+
         if self.config.doBias:
             self.biasCorrection(ccdExposure, sensorRef)
         if self.config.doDark:
             self.darkCorrection(ccdExposure, sensorRef)
         if self.config.doFlat:
             self.flatCorrection(ccdExposure, sensorRef)
+
+        if self.config.qa.doWriteFlattened:
+            sensorRef.put("flattenedImage", ccdExposure)
+        if self.config.qa.doThumbnailFlattened:
+            self.writeThumbnail(sensorRef, "flattenedThumb", ccdExposure)
+
+        self.measureBackground(ccdExposure)
+
+        if self.config.doCrosstalk:
+            self.crosstalk(ccdExposure)
+        if self.config.doLinearize:
+            self.linearize(ccdExposure)
+        if self.config.doGuider:
+            self.guider(ccdExposure)
 
         if self.config.doWrite:
             sensorRef.put(ccdExposure, "postISRCCD")
@@ -51,13 +142,172 @@ class SubaruIsrTask(IsrTask):
 
         return Struct(exposure=ccdExposure)
 
-class SuprimeCamIsrTask(SubaruIsrTask):
+    def writeThumbnail(self, dataRef, dataset, exposure, format='png', width=500, height=0):
+        """Write out exposure to a snapshot file named outfile in the given image format and size.
+        """
+        if fitsthumb is None:
+            self.log.log(self.log.WARN,
+                         "Cannot write thumbnail image; hsc.fitsthumb could not be imported.")
+            return
+        filename = dataRef.get(dataset + "_filename")[0]
+        directory = os.path.dirname(filename)
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+        image = exposure.getMaskedImage().getImage()
+        fitsthumb.createFitsThumb(image, filename, format, width, height, True)
 
-    def run(self, *args, **kwargs):
-        result = super(SuprimeCamIsrTask, self).run(*args, **kwargs)
-        self.guider(result.exposure)
-        return result
+    def measureOverscan(self, ccdExposure, amp):
+        clipSigma = 3.0
+        nIter = 3
+        levelStat = afwMath.MEDIAN
+        sigmaStat = afwMath.STDEVCLIP
+        
+        sctrl = afwMath.StatisticsControl(clipSigma, nIter)
+        expImage = ccdExposure.getMaskedImage().getImage()
+        overscan = expImage.Factory(expImage, amp.getDiskBiasSec())
+        stats = afwMath.makeStatistics(overscan, levelStat | sigmaStat, sctrl)
+        ampNum = amp.getId().getSerial()
+        self.metadata.set("OSLEVEL%d" % ampNum, stats.getValue(levelStat))
+        self.metadata.set("OSSIGMA%d" % ampNum, stats.getValue(sigmaStat))
+
+
+    def measureBackground(self, exposure):
+        statsControl = afwMath.StatisticsControl(self.config.qa.flatness.clipSigma,
+                                                 self.config.qa.flatness.nIter)
+        maskedImage = exposure.getMaskedImage()
+        stats = afwMath.makeStatistics(maskedImage, afwMath.MEDIAN | afwMath.STDEVCLIP, statsControl)
+        skyLevel = stats.getValue(afwMath.MEDIAN)
+        skySigma = stats.getValue(afwMath.STDEVCLIP)
+        self.log.info("Flattened sky level: %f +/- %f" % (skyLevel, skySigma))
+        self.metadata.set('SKYLEVEL', skyLevel)
+        self.metadata.set('SKYSIGMA', skySigma)
+
+        # calcluating flatlevel over the subgrids 
+        stat = afwMath.MEANCLIP if self.config.qa.flatness.doClip else afwMath.MEAN
+        meshXHalf = int(self.config.qa.flatness.meshX/2.)
+        meshYHalf = int(self.config.qa.flatness.meshY/2.)
+        nX = int((exposure.getWidth() + meshXHalf) / self.config.qa.flatness.meshX)
+        nY = int((exposure.getHeight() + meshYHalf) / self.config.qa.flatness.meshY)
+        skyLevels = numpy.zeros((nX,nY))
+
+        for j in range(nY):
+            yc = meshYHalf + j * self.config.qa.flatness.meshY
+            for i in range(nX):
+                xc = meshXHalf + i * self.config.qa.flatness.meshX
+
+                xLLC = xc - meshXHalf
+                yLLC = yc - meshYHalf
+                xURC = xc + meshXHalf - 1
+                yURC = yc + meshYHalf - 1
+
+                bbox = afwGeom.Box2I(afwGeom.Point2I(xLLC, yLLC), afwGeom.Point2I(xURC, yURC))
+                miMesh = maskedImage.Factory(exposure.getMaskedImage(), bbox, afwImage.LOCAL)
+
+                skyLevels[i,j] = afwMath.makeStatistics(miMesh, stat, statsControl).getValue()
+
+        skyMedian = numpy.median(skyLevels)
+        flatness =  (skyLevels - skyMedian) / skyMedian
+        flatness_rms = numpy.std(flatness)
+        flatness_min = flatness.min()
+        flatness_max = flatness.max() 
+        flatness_pp = flatness_max - flatness_min
+
+        self.log.info("Measuring sky levels in %dx%d grids: %f" % (nX, nY, skyMedian))
+        self.log.info("Sky flatness in %dx%d grids - pp: %f rms: %f" % (nX, nY, flatness_pp, flatness_rms))
+
+        self.metadata.set('FLATNESS_PP', flatness_pp)
+        self.metadata.set('FLATNESS_RMS', flatness_rms)
+        self.metadata.set('FLATNESS_NGRIDS', '%dx%d' % (nX, nY))
+        self.metadata.set('FLATNESS_MESHX', self.config.qa.flatness.meshX)
+        self.metadata.set('FLATNESS_MESHY', self.config.qa.flatness.meshY)
+
+
+    def crosstalk(self, exposure):
+        raise NotImplementedError("Crosstalk correction is enabled but no generic implementation is present")
+
+    def guider(self, exposure):
+        raise NotImplementedError(
+            "Guider shadow trimming is enabled but no generic implementation is present"
+            )
+
+    def linearize(self, exposure):
+        """Correct for non-linearity
+
+        @param exposure Exposure to process
+        """
+        assert exposure, "No exposure provided"
+
+        image = exposure.getMaskedImage().getImage()
+
+        ccd = afwCG.cast_Ccd(exposure.getDetector())
+
+        for amp in ccd:
+            if False:
+                linear_threshold = amp.getElectronicParams().getLinearizationThreshold()
+                linear_c = amp.getElectronicParams().getLinearizationCoefficient()
+            else:
+                linearizationCoefficient = self.config.linearizationCoefficient
+                linearizationThreshold = self.config.linearizationThreshold
+
+            if linearizationCoefficient == 0.0:     # nothing to do
+                continue
+
+            self.log.log(self.log.INFO,
+                         "Applying linearity corrections to Ccd %s Amp %s" % (ccd.getId(), amp.getId()))
+
+            if linearizationThreshold > 0:
+                log10_thresh = math.log10(linearizationThreshold)
+
+            ampImage = image.Factory(image, amp.getDataSec(), afwImage.LOCAL)
+
+            width, height = ampImage.getDimensions()
+
+            if linearizationThreshold <= 0:
+                tmp = ampImage.Factory(ampImage, True)
+                tmp.scaledMultiplies(linearizationCoefficient, ampImage)
+                ampImage += tmp
+            else:
+                for y in range(height):
+                    for x in range(width):
+                        val = ampImage.get(x, y)
+                        if val > linearizationThreshold:
+                            val += val*linearizationCoefficient*(math.log10(val) - log10_thresh)
+                            ampImage.set(x, y, val)
+
+
+class HamamatsuIsrTaskConfig(SubaruIsrTask.ConfigClass):
+    crosstalkCoeffs = pexConfig.ConfigField(
+        dtype = crosstalk.CrosstalkCoeffsConfig,
+        doc = "Crosstalk coefficients",
+    )
+    crosstalkMaskPlane = pexConfig.Field(
+        dtype = str,
+        doc = "Name of Mask plane for crosstalk corrected pixels",
+        default = "CROSSTALK",
+    )
+    minPixelToMask = pexConfig.Field(
+        dtype = float,
+        doc = "Minimum pixel value (in electrons) to cause crosstalkMaskPlane bit to be set",
+        default = 45000,
+        )
+
+class SuprimeCamIsrTaskConfig(HamamatsuIsrTaskConfig):
+    pass
+
+class SuprimeCamIsrTask(SubaruIsrTask):
     
+    ConfigClass = SuprimeCamIsrTaskConfig
+
+    def crosstalk(self, exposure):
+        coeffs = self.config.crosstalkCoeffs.getCoeffs()
+
+        if numpy.any(coeffs):
+            self.log.log(self.log.INFO, "Applying crosstalk corrections to CCD %s" %
+                         (exposure.getDetector().getId()))
+
+            crosstalk.subtractXTalk(exposure.getMaskedImage(), coeffs,
+                                    self.config.minPixelToMask, self.config.crosstalkMaskPlane)
+
     def guider(self, exposure):
         """Mask defects and trim guider shadow
 
