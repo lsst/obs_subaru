@@ -14,7 +14,6 @@ class SubaruAstrometryConfig(ptAstrometry.AstrometryConfig):
         doc = "Configuration for the Tabur astrometry solver"
         )
 
-
 # Use hsc.meas.astrom, failing over to lsst.meas.astrom
 class SubaruAstrometryTask(ptAstrometry.AstrometryTask):
     ConfigClass = SubaruAstrometryConfig
@@ -69,5 +68,13 @@ class SubaruAstrometryTask(ptAstrometry.AstrometryTask):
             source.setCoord(sky) 
 
         self.display('astrometry', exposure=exposure, sources=sources, matches=matches)
+
+        self.metadata.set('NOBJ_BRIGHT', len(sources))
+        self.metadata.set('NOBJ_MATCHED', len(matches))
+        self.metadata.set('WCS_NOBJ', len(matches))
+
+        metadata = exposure.getMetadata()
+        for key in self.metadata.names():
+            metadata.set(key, self.metadata.get(key))
 
         return matches, matchMeta
