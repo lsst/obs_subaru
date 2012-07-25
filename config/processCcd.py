@@ -3,10 +3,11 @@ Subaru-specific overrides for ProcessCcdTask (applied before SuprimeCam- and HSC
 """
 
 # Cosmic rays and background estimation
-root.calibrate.repair.doCosmicRay = True
 root.calibrate.repair.cosmicray.nCrPixelMax = 1000000
-root.calibrate.repair.cosmicray.keepCRs = False
+root.calibrate.repair.cosmicray.cond3_fac2 = 0.4
 root.calibrate.background.binSize = 1024
+root.calibrate.detection.background.binSize = 1024
+root.detection.background.binSize = 1024
 
 # PSF determination
 import lsst.meas.astrom.catalogStarSelector
