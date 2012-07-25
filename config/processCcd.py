@@ -5,10 +5,8 @@ Subaru-specific overrides for ProcessCcdTask (applied before SuprimeCam- and HSC
 # Cosmic rays and background estimation
 root.calibrate.repair.doCosmicRay = True
 root.calibrate.repair.cosmicray.nCrPixelMax = 1000000
+root.calibrate.repair.cosmicray.keepCRs = False
 root.calibrate.background.binSize = 1024
-
-# Detection
-root.calibrate.detection.includeThresholdMultiplier = 10.0
 
 # PSF determination
 import lsst.meas.astrom.catalogStarSelector
@@ -18,6 +16,7 @@ root.calibrate.measurePsf.starSelector["secondMoment"].clumpNSigma = 2.0
 root.calibrate.measurePsf.psfDeterminer["pca"].nEigenComponents = 4
 root.calibrate.measurePsf.psfDeterminer["pca"].spatialOrder = 2
 root.calibrate.measurePsf.psfDeterminer["pca"].kernelSizeMin = 25
+root.calibrate.measurePsf.psfDeterminer["pca"].kernelScaling = 10.0
 
 # Astrometry
 try:
@@ -33,7 +32,8 @@ try:
 except ImportError:
     print "hscAstrom is not setup; using LSST's meas_astrom instead"
 
-# Model Mags
+# Measurement
+root.measurement.algorithms["flux.gaussian"].shiftmax = 10.0
 try:
     import lsst.meas.extensions.multiShapelet
     root.measurement.algorithms.names += ("multishapelet.psf", "multishapelet.exp", "multishapelet.dev",

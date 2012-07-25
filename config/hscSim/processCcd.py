@@ -5,5 +5,3 @@ HSC-specific overrides for ProcessCcdTask
 root.isr.doBias = False
 root.isr.doDark = False
 root.isr.doWrite = False
-
-root.calibrate.measurePsf.psfDeterminer["pca"].kernelSize = 7
