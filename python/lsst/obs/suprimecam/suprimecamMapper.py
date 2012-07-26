@@ -128,7 +128,7 @@ class SuprimecamMapperBase(CameraMapper):
             obsMidpoint = obsStart.nsecs() + long(expTime * 1000000000L / 2)
             calib.setMidTime(dafBase.DateTime(obsMidpoint))
 
-class SuprimecamMapper(SuprimeCamMapperBase):
+class SuprimecamMapper(SuprimecamMapperBase):
     """
     Mapper for SuprimeCam with the newer Hamamatsu chips.
     """
@@ -155,7 +155,7 @@ class SuprimecamMapper(SuprimeCamMapperBase):
         ccdTmp = int("%(ccd)d" % dataId)
         return miyazakiNames[ccdTmp]
 
-class SuprimeCamMapperMit(SuprimeCamMapperBase):
+class SuprimecamMapperMit(SuprimecamMapperBase):
     """
     Mapper for SuprimeCam with the older, MIT chips.
     """
@@ -175,7 +175,7 @@ class SuprimeCamMapperMit(SuprimeCamMapperBase):
                 raise RuntimeError("Either $SUPRIME_DATA_DIR or root= must be specified")
         policy.set("camera", "../suprimecam/Full_Suprimecam_MIT_geom.paf")
         policy.set("defects", "../suprimecam/mit_defects")
-        super(SuprimecamMapper, self).__init__(policy, policyFile.getRepositoryPath(), **kwargs)
+        super(SuprimecamMapperMit, self).__init__(policy, policyFile.getRepositoryPath(), **kwargs)
         self.defineFilters()
 
     def _extractDetectorName(self, dataId):
