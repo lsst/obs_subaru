@@ -11,32 +11,9 @@ import lsst.afw.image.utils as afwImageUtils
 from lsst.daf.butlerUtils import CameraMapper
 import lsst.pex.policy as pexPolicy
 
-class SuprimecamMapper(CameraMapper):
-    def __init__(self, mit=False, **kwargs):
-        policyFile = pexPolicy.DefaultPolicyFile("obs_subaru", "SuprimecamMapper.paf", "policy")
-        policy = pexPolicy.Policy(policyFile)
+class SuprimecamMapperBase(CameraMapper):
 
-        self.mit = mit
-        if self.mit:
-            policy.set("camera", "../suprimecam/Full_Suprimecam_MIT_geom.paf")
-            policy.set("defects", "../suprimecam/mit_defects")
-
-        if not kwargs.get('root', None):
-            try:
-                kwargs['root'] = os.path.join(os.environ.get('SUPRIME_DATA_DIR'), 'SUPA')
-            except:
-                raise RuntimeError("Either $SUPRIME_DATA_DIR or root= must be specified")
-
-        if not kwargs.get('calibRoot', None):
-            try:
-                kwargs['calibRoot'] = os.path.join(os.environ.get('SUPRIME_DATA_DIR'), 'SUPA', 'CALIB')
-                if self.mit:
-                    kwargs['calibRoot'] += "_MIT"
-            except:
-                raise RuntimeError("Either $SUPRIME_DATA_DIR or root= must be specified")
-
-        super(SuprimecamMapper, self).__init__(policy, policyFile.getRepositoryPath(), **kwargs)
-
+    def defineFilters(self):
         # Johnson filters
         afwImageUtils.defineFilter('B',  lambdaEff=400,  alias=['W-J-B'])
         afwImageUtils.defineFilter('V',  lambdaEff=550,  alias=['W-J-V'])
@@ -113,22 +90,11 @@ class SuprimecamMapper(CameraMapper):
     def _extractAmpId(self, dataId):
         return (self._extractDetectorName(dataId), 0, 0)
 
-    def _extractDetectorName(self, dataId):
-        #return "Suprime %(ccd)d" % dataId
-        miyazakiNames = ["Nausicaa", "Kiki", "Fio", "Sophie", "Sheeta",
-                         "Satsuki", "Chihiro", "Clarisse", "Ponyo", "San"]
-        mitNames = ["w67c1", "w6c1", "si005s", "si001s",  "si002s", "si006s", "w93c2", "w9c2", "w4c5", "w7c3"]
-        ccdTmp = int("%(ccd)d" % dataId)
-        return mitNames[ccdTmp] if self.mit else miyazakiNames[ccdTmp]
-
-###############################################################################
-
     def _computeCcdExposureId(self, dataId):
         """Compute the 64-bit (long) identifier for a CCD exposure.
 
         @param dataId (dict) Data identifier with visit, ccd
         """
-
         pathId = self._transformId(dataId)
         visit = pathId['visit']
         ccd = pathId['ccd']
@@ -136,10 +102,9 @@ class SuprimecamMapper(CameraMapper):
 
     def bypass_ccdExposureId(self, datasetType, pythonType, location, dataId):
         return self._computeCcdExposureId(dataId)
+
     def bypass_ccdExposureId_bits(self, datasetType, pythonType, location, dataId):
         return 32 # not really, but this leaves plenty of space for sources
-
-###############################################################################
 
     def _setTimes(self, mapping, item, dataId):
         """Set the exposure time and exposure midpoint in the calib object in
@@ -162,3 +127,58 @@ class SuprimecamMapper(CameraMapper):
                     dafBase.DateTime.MJD, dafBase.DateTime.UTC)
             obsMidpoint = obsStart.nsecs() + long(expTime * 1000000000L / 2)
             calib.setMidTime(dafBase.DateTime(obsMidpoint))
+
+class SuprimecamMapper(SuprimeCamMapperBase):
+    """
+    Mapper for SuprimeCam with the newer Hamamatsu chips.
+    """
+
+    def __init__(self, **kwargs):
+        policyFile = pexPolicy.DefaultPolicyFile("obs_subaru", "SuprimecamMapper.paf", "policy")
+        policy = pexPolicy.Policy(policyFile)
+        if not kwargs.get('root', None):
+            try:
+                kwargs['root'] = os.path.join(os.environ.get('SUPRIME_DATA_DIR'), 'SUPA')
+            except:
+                raise RuntimeError("Either $SUPRIME_DATA_DIR or root= must be specified")
+        if not kwargs.get('calibRoot', None):
+            try:
+                kwargs['calibRoot'] = os.path.join(os.environ.get('SUPRIME_DATA_DIR'), 'SUPA', 'CALIB')
+            except:
+                raise RuntimeError("Either $SUPRIME_DATA_DIR or root= must be specified")
+        super(SuprimecamMapper, self).__init__(policy, policyFile.getRepositoryPath(), **kwargs)
+        self.defineFilters()
+
+    def _extractDetectorName(self, dataId):
+        miyazakiNames = ["Nausicaa", "Kiki", "Fio", "Sophie", "Sheeta",
+                         "Satsuki", "Chihiro", "Clarisse", "Ponyo", "San"]
+        ccdTmp = int("%(ccd)d" % dataId)
+        return miyazakiNames[ccdTmp]
+
+class SuprimeCamMapperMit(SuprimeCamMapperBase):
+    """
+    Mapper for SuprimeCam with the older, MIT chips.
+    """
+
+    def __init__(self, **kwargs):
+        policyFile = pexPolicy.DefaultPolicyFile("obs_subaru", "SuprimecamMapper.paf", "policy")
+        policy = pexPolicy.Policy(policyFile)
+        if not kwargs.get('root', None):
+            try:
+                kwargs['root'] = os.path.join(os.environ.get('SUPRIME_DATA_DIR'), 'SUPA')
+            except:
+                raise RuntimeError("Either $SUPRIME_DATA_DIR or root= must be specified")
+        if not kwargs.get('calibRoot', None):
+            try:
+                kwargs['calibRoot'] = os.path.join(os.environ.get('SUPRIME_DATA_DIR'), 'SUPA', 'CALIB_MIT')
+            except:
+                raise RuntimeError("Either $SUPRIME_DATA_DIR or root= must be specified")
+        policy.set("camera", "../suprimecam/Full_Suprimecam_MIT_geom.paf")
+        policy.set("defects", "../suprimecam/mit_defects")
+        super(SuprimecamMapper, self).__init__(policy, policyFile.getRepositoryPath(), **kwargs)
+        self.defineFilters()
+
+    def _extractDetectorName(self, dataId):
+        mitNames = ["w67c1", "w6c1", "si005s", "si001s",  "si002s", "si006s", "w93c2", "w9c2", "w4c5", "w7c3"]
+        ccdTmp = int("%(ccd)d" % dataId)
+        return mitNames[ccdTmp]
