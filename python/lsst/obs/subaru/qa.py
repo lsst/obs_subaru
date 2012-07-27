@@ -3,10 +3,11 @@ from lsst.pipe.base import Task
 from . import measSeeingQa
 
 class QaConfig(Config):
-    seeing = ConfigurableField(target=measSeeingQa.MeasureSeeingConfig, doc="Measure seeing")
+    seeing = ConfigurableField(target=measSeeingQa.MeasureSeeingTask, doc="Measure seeing")
 
 class QaTask(Task):
     ConfigClass = QaConfig
+
     def __init__(self, *args, **kwargs):
         super(QaTask, self).__init__(*args, **kwargs)
         self.makeSubtask("seeing")
@@ -24,8 +25,11 @@ class QaTask(Task):
 
         # = info for data management
         # = rerun; assuming directory tree has the fixed form where 'rerun/' is just followed by '$rerun_name/'
-        rerunName = self.getRerunName(dataRef)
-        metadata.set('RERUN', rerunName)
+        try:
+            rerunName = self.getRerunName(dataRef)
+            metadata.set('RERUN', rerunName)
+        except:
+            self.log.warn("Could not determine return from output directory")
 
     def getRerunName(self, sensorRef):
         # rerun: assuming directory tree has the fixed form where 'rerun/' is just followed by '$rerun_name/'

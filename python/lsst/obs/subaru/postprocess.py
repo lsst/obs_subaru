@@ -1,19 +1,23 @@
-from lsst.pipe.base import PostprocessTask
+import os
+
+from lsst.pipe.base.cmdLineTask import PostprocessTask
 from lsst.pex.config import ConfigurableField, Config, Field
+import lsst.afw.table as afwTable
 
 from .qa import QaTask
 
 class SubaruPostprocessConfig(PostprocessTask.ConfigClass):
-    doQa = Field(dtype = bool, doc = "Whether to run postprocessing QA")
+    doQa = Field(dtype = bool, default=False, doc = "Whether to run postprocessing QA")
     qa = ConfigurableField(target = QaTask, doc = "Postprocessing QA analysis")
-    doWriteUnpackedMatches = pexConfig.Field(
+    doWriteUnpackedMatches = Field(
         dtype=bool, default=True,
         doc="Write the denormalized match table as well as the normalized match table"
     )
     
 
 class SubaruPostprocessTask(PostprocessTask):
-    
+    ConfigClass = SubaruPostprocessConfig
+
     def __init__(self, **kwargs):
         super(SubaruPostprocessTask, self).__init__(**kwargs)
         self.makeSubtask("qa")
@@ -28,13 +32,13 @@ class SubaruPostprocessTask(PostprocessTask):
         if self.config.doQa:
             self.qa.run(dataRef, results.exposure, results.sources)
         if self.config.doWriteUnpackedMatches:
-            self.writeUnpackedMatches(dataRef, results.calibrate.matches, results.calibrate.matchMeta)
+            self.writeUnpackedMatches(dataRef, results.calib.matches, results.calib.matchMeta)
 
     def writeUnpackedMatches(self, dataRef, matches, matchMeta):
 
         # Now write unpacked matches
-        refSchema = matchlist[0].first.getSchema()
-        srcSchema = matchlist[0].second.getSchema()
+        refSchema = matches[0].first.getSchema()
+        srcSchema = matches[0].second.getSchema()
 
         mergedSchema = afwTable.Schema()
         def merge(schema, key, merged, name):
