@@ -19,3 +19,9 @@ root.isr.crosstalkCoeffs.values = [
 
 # nonlinearity for SuprimeCam
 root.isr.linearizationCoefficient = 2.5e-7
+
+# color terms
+from lsst.meas.photocal.colorterms import Colorterm
+from lsst.obs.suprimecam.colorterms import colortermsData
+Colorterm.setColorterms(colortermsData)
+Colorterm.setActiveDevice("Hamamatsu")

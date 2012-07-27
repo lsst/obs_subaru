@@ -127,7 +127,7 @@ class SubaruIsrTask(IsrTask):
         ccd = afwCG.cast_Ccd(ccdExposure.getDetector())
 
         if self.config.qa.doWriteOss:
-            sensorRef.put("ossImage", ccdExposure)
+            sensorRef.put(ccdExposure, "ossImage")
         if self.config.qa.doThumbnailOss:
             self.writeThumbnail(sensorRef, "ossThumb", ccdExposure)
 
@@ -139,7 +139,7 @@ class SubaruIsrTask(IsrTask):
             self.flatCorrection(ccdExposure, sensorRef)
 
         if self.config.qa.doWriteFlattened:
-            sensorRef.put("flattenedImage", ccdExposure)
+            sensorRef.put(ccdExposure, "flattenedImage")
         if self.config.qa.doThumbnailFlattened:
             self.writeThumbnail(sensorRef, "flattenedThumb", ccdExposure)
 

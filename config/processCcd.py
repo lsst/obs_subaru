@@ -42,9 +42,6 @@ try:
 except ImportError:
     print "meas_extensions_multiShapelet is not setup; disabling model mags"
 
-
-from lsst.meas.photocal.colorterms import Colorterm
-from lsst.obs.suprimecam.colorterms import colortermsData
-Colorterm.setColorterms(colortermsData)
-
-Colorterm.setActiveDevice("Hamamatsu")
+# Postprocessing (inc. QA)
+from lsst.obs.subaru.postprocess import SubaruPostprocessTask
+root.postprocess.retarget(SubaruPostprocessTask)
