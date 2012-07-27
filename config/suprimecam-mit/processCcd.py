@@ -11,3 +11,9 @@ root.isr.doCrosstalk = False
 root.isr.doLinearize = False
 root.isr.doGuider = False
 root.isr.doWrite = False
+
+# color terms
+from lsst.meas.photocal.colorterms import Colorterm
+from lsst.obs.suprimecam.colorterms import colortermsData
+Colorterm.setColorterms(colortermsData)
+Colorterm.setActiveDevice("MIT")
