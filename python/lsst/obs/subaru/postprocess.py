@@ -68,4 +68,4 @@ class SubaruPostprocessTask(PostprocessTask):
         matchMeta.add('REFCAT', catalogName)
         mergedCatalog.getTable().setMetadata(matchMeta)
 
-        dataRef.put(mergedCatalog, "matchedList")
+        dataRef.put(mergedCatalog, "matchList")
