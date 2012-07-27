@@ -83,6 +83,7 @@ class SubaruIsrConfig(IsrTask.ConfigClass):
         doc = "Linearity correction coefficient",
         default = 0.0,
     )
+    removePcCards = Field(dtype=bool, doc='Remove any PC cards in the header', default=True)
 
 class SubaruIsrTask(IsrTask):
 
@@ -91,6 +92,22 @@ class SubaruIsrTask(IsrTask):
     def run(self, sensorRef):
         self.log.log(self.log.INFO, "Performing ISR on sensor %s" % (sensorRef.dataId))
         ccdExposure = sensorRef.get('raw')
+
+        if self.config.removePcCards: # Remove any PC00N00M cards in the header
+            raw_md = sensorRef.get("raw_md")
+            nPc = 0
+            for i in (1, 2,):
+                for j in (1, 2,):
+                    k = "PC%03d%03d" % (i, j)
+                    for md in (raw_md, ccdExposure.getMetadata()):
+                        if md.exists(k):
+                            md.remove(k)
+                            nPc += 1
+
+            if nPc:
+                self.log.log(self.log.INFO, "Recreating Wcs after stripping PC00n00m" % (sensorRef.dataId))
+                ccdExposure.setWcs(afwImage.makeWcs(raw_md))
+
         ccdExposure = self.convertIntToFloat(ccdExposure)
         ccd = afwCG.cast_Ccd(ccdExposure.getDetector())
 
