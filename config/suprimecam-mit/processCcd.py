@@ -4,7 +4,10 @@ SuprimeCam (MIT)-specific overrides for ProcessCcdTask
 """
 from lsst.obs.subaru.isr import SubaruIsrTask
 
-root.isr.retarget(SubaruIsrTask)  # custom task that adds guider correction
+root.isr.retarget(SubaruIsrTask)
 root.isr.doBias = False
 root.isr.doDark = False
+root.isr.doCrosstalk = False
+root.isr.doLinearize = False
+root.isr.doGuider = False
 root.isr.doWrite = False
