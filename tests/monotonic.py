@@ -1,6 +1,9 @@
-import matplotlib
-matplotlib.use('Agg')
-import pylab as plt
+try:
+    import matplotlib
+    matplotlib.use('Agg')
+    import pylab as plt
+except ImportError:
+    plt = None
 import numpy as np
 
 import lsst.afw.detection as afwDet
@@ -25,27 +28,27 @@ def main000():
     im[y0,x0] = 10.
     im[y0, x0 + 2] = 1.
 
-    plt.clf()
-    plt.imshow(im, origin='lower', interpolation='nearest')
-    plt.savefig('im2.png')
-    butils.makeMonotonic(mim, foot, peak, 1.)
-    plt.clf()
-    plt.imshow(mim.getImage().getArray(), origin='lower', interpolation='nearest')
-    plt.savefig('mono2.png')
+    if plt:
+        plt.clf()
+        plt.imshow(im, origin='lower', interpolation='nearest')
+        plt.savefig('im2.png')
+        butils.makeMonotonic(mim, foot, peak, 1.)
+        plt.clf()
+        plt.imshow(mim.getImage().getArray(), origin='lower', interpolation='nearest')
+        plt.savefig('mono2.png')
 
-    """
-    im[:,:] = 5.
-    im[y0,x0] = 10.
-    im[y0+1, x0+1] = 1.
+        if False:
+            im[:,:] = 5.
+            im[y0,x0] = 10.
+            im[y0+1, x0+1] = 1.
 
-    plt.clf()
-    plt.imshow(im, origin='lower', interpolation='nearest')
-    plt.savefig('im6.png')
-    butils.makeMonotonic(mim, foot, peak, 1.)
-    plt.clf()
-    plt.imshow(mim.getImage().getArray(), origin='lower', interpolation='nearest')
-    plt.savefig('mono6.png')
-    """
+            plt.clf()
+            plt.imshow(im, origin='lower', interpolation='nearest')
+            plt.savefig('im6.png')
+            butils.makeMonotonic(mim, foot, peak, 1.)
+            plt.clf()
+            plt.imshow(mim.getImage().getArray(), origin='lower', interpolation='nearest')
+            plt.savefig('mono6.png')
 
 def randoms(S=10, N=1, GA=10, GS=10):
     butils = measDeblend.BaselineUtilsF
@@ -66,16 +69,17 @@ def randoms(S=10, N=1, GA=10, GS=10):
 
         im[:,:] = np.random.normal(10, 1, size=im.shape) + GA * np.exp(-0.5 * R2 / GS**2)
 
-        plt.clf()
-        ima = dict(vmin=im.min(), vmax=im.max(), origin='lower', interpolation='nearest')
-        plt.imshow(im, **ima)
-        plt.gray()
-        plt.savefig('Rim%i.png' % i)
-        butils.makeMonotonic(mim, foot, peak, 1.)
-        plt.clf()
-        plt.imshow(mim.getImage().getArray(), **ima)
-        plt.gray()
-        plt.savefig('Rim%im.png' % i)
+        if plt:
+            plt.clf()
+            ima = dict(vmin=im.min(), vmax=im.max(), origin='lower', interpolation='nearest')
+            plt.imshow(im, **ima)
+            plt.gray()
+            plt.savefig('Rim%i.png' % i)
+            butils.makeMonotonic(mim, foot, peak, 1.)
+            plt.clf()
+            plt.imshow(mim.getImage().getArray(), **ima)
+            plt.gray()
+            plt.savefig('Rim%im.png' % i)
    
 
 def cardinal():
@@ -110,13 +114,14 @@ def cardinal():
         mn,mx = im.min(), im.max()
         plota = dict(origin='lower', interpolation='nearest', vmin=mn, vmax=mx)
 
-        plt.clf()
-        plt.imshow(im, **plota)
-        plt.savefig('im%i.png' % i)
-        butils.makeMonotonic(mim, foot, peak, 1.)
-        plt.clf()
-        plt.imshow(mim.getImage().getArray(), **plota)
-        plt.savefig('im%im.png' % i)
+        if plt:
+            plt.clf()
+            plt.imshow(im, **plota)
+            plt.savefig('im%i.png' % i)
+            butils.makeMonotonic(mim, foot, peak, 1.)
+            plt.clf()
+            plt.imshow(mim.getImage().getArray(), **plota)
+            plt.savefig('im%im.png' % i)
 
 if __name__ == '__main__':
     cardinal()

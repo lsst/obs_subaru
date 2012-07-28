@@ -1,6 +1,9 @@
-import matplotlib
-matplotlib.use('Agg')
-import pylab as plt
+try:
+    import matplotlib
+    matplotlib.use('Agg')
+    import pylab as plt
+except ImportError:
+    plt = None
 
 import lsst.afw.detection as afwDet
 import lsst.afw.image as afwImg
@@ -46,27 +49,28 @@ def main():
     mask1.setXY0(fbb.getMinX(), fbb.getMinY())
     afwDet.setMaskFromFootprint(mask1, foot, 1)
 
-    plt.clf()
-    plt.imshow(mask1.getArray(), origin='lower', interpolation='nearest',
-               extent=(fbb.getMinX(), fbb.getMaxX(), fbb.getMinY(), fbb.getMaxY()))
-    plt.gray()
-    plt.savefig('foot2.png')
+    if plt:
+        plt.clf()
+        plt.imshow(mask1.getArray(), origin='lower', interpolation='nearest',
+                   extent=(fbb.getMinX(), fbb.getMaxX(), fbb.getMinY(), fbb.getMaxY()))
+        plt.gray()
+        plt.savefig('foot2.png')
 
-    sfoot = butils.symmetrizeFootprint(foot, 355, 227)
+        sfoot = butils.symmetrizeFootprint(foot, 355, 227)
 
-    mask2 = afwImg.MaskU(fbb.getWidth(), fbb.getHeight())
-    mask2.setXY0(fbb.getMinX(), fbb.getMinY())
-    afwDet.setMaskFromFootprint(mask2, sfoot, 1)
-    
-    plt.clf()
-    plt.imshow(mask2.getArray(), origin='lower', interpolation='nearest',
-               extent=(fbb.getMinX(), fbb.getMaxX(), fbb.getMinY(), fbb.getMaxY()))
-    plt.gray()
-    plt.savefig('sfoot3.png')
+        mask2 = afwImg.MaskU(fbb.getWidth(), fbb.getHeight())
+        mask2.setXY0(fbb.getMinX(), fbb.getMinY())
+        afwDet.setMaskFromFootprint(mask2, sfoot, 1)
 
-    #plt.plot([364], [111], 'r.')
-    #plt.plot([367], [117], 'r.')
-    #plt.savefig('sfoot4.png')
+        plt.clf()
+        plt.imshow(mask2.getArray(), origin='lower', interpolation='nearest',
+                   extent=(fbb.getMinX(), fbb.getMaxX(), fbb.getMinY(), fbb.getMaxY()))
+        plt.gray()
+        plt.savefig('sfoot3.png')
+
+        #plt.plot([364], [111], 'r.')
+        #plt.plot([367], [117], 'r.')
+        #plt.savefig('sfoot4.png')
 
 
 
