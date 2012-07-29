@@ -27,6 +27,7 @@ def deblend(footprint, maskedImage, psf, psffwhm,
             lstsq_weight_templates=False,
             log=None, verbose=False,
             sigma1=None,
+            maxNumberOfPeaks=0,
             ):
     '''
     Deblend a single ``footprint`` in a ``maskedImage``.
@@ -44,6 +45,8 @@ def deblend(footprint, maskedImage, psf, psffwhm,
     apply the computed dx,dy to the source position and re-fit without
     decentering.  The model is accepted if its chi-squared-per-DOF is
     less than this value.
+
+    maxNumberOfPeaks: if positive, only deblend the brightest maxNumberOfPeaks peaks in the parent
     '''
     # Import C++ routines
     import lsst.meas.deblender as deb
@@ -64,6 +67,8 @@ def deblend(footprint, maskedImage, psf, psffwhm,
     fp = footprint
     fp.normalize()
     peaks = fp.getPeaks()
+    if maxNumberOfPeaks > 0:
+        peaks = peaks[0:maxNumberOfPeaks]
 
     if sigma1 is None:
         # FIXME -- just within the bbox?
