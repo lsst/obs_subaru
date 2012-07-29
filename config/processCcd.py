@@ -41,7 +41,3 @@ try:
     root.measurement.slots.modelFlux = "multishapelet.combo.flux"
 except ImportError:
     print "meas_extensions_multiShapelet is not setup; disabling model mags"
-
-# Postprocessing (inc. QA)
-from lsst.obs.subaru.postprocess import SubaruPostprocessTask
-root.postprocess.retarget(SubaruPostprocessTask)
