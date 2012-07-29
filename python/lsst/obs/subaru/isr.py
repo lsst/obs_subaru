@@ -184,8 +184,9 @@ class SubaruIsrTask(IsrTask):
         overscan = expImage.Factory(expImage, amp.getDiskBiasSec())
         stats = afwMath.makeStatistics(overscan, levelStat | sigmaStat, sctrl)
         ampNum = amp.getId().getSerial()
-        self.metadata.set("OSLEVEL%d" % ampNum, stats.getValue(levelStat))
-        self.metadata.set("OSSIGMA%d" % ampNum, stats.getValue(sigmaStat))
+        metadata = ccdExposure.getMetadata()
+        metadata.set("OSLEVEL%d" % ampNum, stats.getValue(levelStat))
+        metadata.set("OSSIGMA%d" % ampNum, stats.getValue(sigmaStat))
 
 
     def measureBackground(self, exposure):
@@ -196,8 +197,9 @@ class SubaruIsrTask(IsrTask):
         skyLevel = stats.getValue(afwMath.MEDIAN)
         skySigma = stats.getValue(afwMath.STDEVCLIP)
         self.log.info("Flattened sky level: %f +/- %f" % (skyLevel, skySigma))
-        self.metadata.set('SKYLEVEL', skyLevel)
-        self.metadata.set('SKYSIGMA', skySigma)
+        metadata = exposure.getMetadata()
+        metadata.set('SKYLEVEL', skyLevel)
+        metadata.set('SKYSIGMA', skySigma)
 
         # calcluating flatlevel over the subgrids 
         stat = afwMath.MEANCLIP if self.config.qa.flatness.doClip else afwMath.MEAN
@@ -232,11 +234,11 @@ class SubaruIsrTask(IsrTask):
         self.log.info("Measuring sky levels in %dx%d grids: %f" % (nX, nY, skyMedian))
         self.log.info("Sky flatness in %dx%d grids - pp: %f rms: %f" % (nX, nY, flatness_pp, flatness_rms))
 
-        self.metadata.set('FLATNESS_PP', flatness_pp)
-        self.metadata.set('FLATNESS_RMS', flatness_rms)
-        self.metadata.set('FLATNESS_NGRIDS', '%dx%d' % (nX, nY))
-        self.metadata.set('FLATNESS_MESHX', self.config.qa.flatness.meshX)
-        self.metadata.set('FLATNESS_MESHY', self.config.qa.flatness.meshY)
+        metadata.set('FLATNESS_PP', flatness_pp)
+        metadata.set('FLATNESS_RMS', flatness_rms)
+        metadata.set('FLATNESS_NGRIDS', '%dx%d' % (nX, nY))
+        metadata.set('FLATNESS_MESHX', self.config.qa.flatness.meshX)
+        metadata.set('FLATNESS_MESHY', self.config.qa.flatness.meshY)
 
 
     def crosstalk(self, exposure):
