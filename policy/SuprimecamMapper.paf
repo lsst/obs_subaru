@@ -285,7 +285,7 @@ datasets: {
         tables:        "raw"
         tables:        "raw_visit"
     }
-    matchList: {
+    icMatchList: {
         template:      "%(pointing)05d/%(filter)s/output/ML%(visit)07d%(ccd)1d.fits"
         python:        "lsst.afw.table.BaseCatalog"
         persistable:   "BaseCatalog"
