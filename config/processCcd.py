@@ -32,6 +32,11 @@ try:
 except ImportError:
     print "hscAstrom is not setup; using LSST's meas_astrom instead"
 
+# Enable deblender
+root.doDeblend = True
+root.deblend.maxNumberOfPeaks = 20
+root.doWriteHeavyFootprintsInSources = True
+
 # Measurement
 root.measurement.algorithms["flux.gaussian"].shiftmax = 10.0
 try:
