@@ -14,7 +14,7 @@ class PerFootprint(object):
     pass
 class PerPeak(object):
     def __init__(self):
-        self.out_of_bounds = False
+        self.out_of_bounds = False      # Used to mean "Bad Peak" rather than just out of bounds
         self.deblend_as_psf = False
 
 def deblend(footprint, maskedImage, psf, psffwhm,
@@ -358,11 +358,24 @@ def _fit_psfs(fp, peaks, fpres, log, psf, psffwhm, img, varimg,
         ipixes = ipixes[:NP,:]
         Aw  = A * w[:,np.newaxis]
         bw  = b * w
-        # We do fits with and without the decenter terms.
+        # We do fits without and with the decenter terms.
         # Since the dx,dy terms are at the end of the matrix,
         # we can do that just by trimming off those elements.
-        X1,r1,rank1,s1 = np.linalg.lstsq(Aw[:,:NT1], bw)
-        X2,r2,rank2,s2 = np.linalg.lstsq(Aw, bw)
+        #
+        # The SVD can fail if there are NaNs in the matrices; this should really be handled upstream
+        try:
+            X1,r1,rank1,s1 = np.linalg.lstsq(Aw[:,:NT1], bw)
+        except np.linalg.LinAlgError, e:
+            log.log(log.WARN, "Failed to fit PSF to child [no decenter]: %s" % e)
+            pkres.out_of_bounds = True
+            continue
+        try:
+            X2,r2,rank2,s2 = np.linalg.lstsq(Aw, bw)
+        except np.linalg.LinAlgError, e:
+            log.log(log.WARN, "Failed to fit PSF to child [with decenter]: %s" % e)
+            pkres.out_of_bounds = True
+            continue
+
         #print 'X1', X1
         #print 'X2', X2
         #print 'ranks', rank1, rank2
