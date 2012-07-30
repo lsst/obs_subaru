@@ -40,14 +40,16 @@ class SubaruAstrometryTask(ptAstrometry.AstrometryTask):
             size = (exposure.getWidth(), exposure.getHeight())
 
         try:
-            astrometer = hscAstrom.TaburAstrometry(self.config.solver, log=self.log)
-            astrom = astrometer.determineWcs(sources, exposure)
+            if not self.astrometer or not isinstance(self.astrometer, hscAstrom.TaburAstrometry):
+                self.astrometer = hscAstrom.TaburAstrometry(self.config.solver, log=self.log)
+            astrom = self.astrometer.determineWcs(sources, exposure)
             if astrom is None:
                 raise RuntimeError("hsc.meas.astrom failed to determine the WCS")
         except Exception, e:
             self.log.log(self.log.WARN, "hsc.meas.astrom failed (%s); trying lsst.meas.astrom" % e)
-            astrometer = measAstrom.Astrometry(self.config.solver, log=self.log)
-            astrom = astrometer.determineWcs(sources, exposure)
+            # N.b. this will replace the previous astrometer with a meas_astrom one
+            self.astrometer = measAstrom.Astrometry(self.config.solver, log=self.log)
+            astrom = self.astrometer.determineWcs(sources, exposure)
         
         if astrom is None:
             raise RuntimeError("Unable to solve astrometry for %s", exposure.getDetector().getId())
