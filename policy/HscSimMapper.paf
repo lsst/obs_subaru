@@ -270,6 +270,41 @@ datasets: {
         storage:       "SelfStorage"
         tables:        "None"
     }
+
+    ccdExposureId: {
+        template:     "ignored"
+        # Provide something to import, although we actually return a long
+        python:       "lsst.daf.base.PropertySet"
+        persistable:  "ignored"
+        storage:      "ignored"
+        tables:       "raw"
+    }
+    ccdExposureId_bits: {
+        template:     "ignored"
+        # Provide something to import, although we actually return an int
+        python:       "lsst.daf.base.PropertySet"
+        persistable:  "ignored"
+        storage:      "ignored"
+        tables:       "raw"
+    }
+
+    stackExposureId: {
+        template:     "ignored"
+        # Provide something to import, although we actually return a long
+        python:       "lsst.daf.base.PropertySet"
+        persistable:  "ignored"
+        storage:      "ignored"
+        tables:       "raw"
+    }
+    stackExposureId_bits: {
+        template:     "ignored"
+        # Provide something to import, although we actually return an int
+        python:       "lsst.daf.base.PropertySet"
+        persistable:  "ignored"
+        storage:      "ignored"
+        tables:       "raw"
+    }
+
     processCcd_config: {
         template:      "%(pointing)05d/%(filter)s/output/CFG%(visit)05d%(ccd)03d.py"
         python:        "lsst.pex.config.Config"
