@@ -108,6 +108,14 @@ exposures: {
         level:        "Skytile"
         tables:        "raw_skytile"
     }
+    stack_calexp: {
+        template:      "stack/%(stack)05d/STKCORR%(patch)08d%(filter)s.fits"
+        python:        "lsst.afw.image.ExposureF"
+        persistable:        "ExposureF"
+        storage:    "FitsStorage"
+        level:        "Skytile"
+        tables:        "raw_skytile"
+    }
 
     diff: {
         template:      "diff/%(diff)05d/DIFF%(patch)08d.fits"
@@ -317,6 +325,81 @@ datasets: {
         tables:        "raw"
         tables:        "raw_visit"
     }
+
+    stack_initPsf: {
+        template:    "stack/%(stack)05d/INITPSF%(patch)08d%(filter)s.boost"
+	python:      "lsst.afw.detection.Psf"
+        persistable: "Psf"
+        storage:     "BoostStorage"
+        tables:      raw
+    }
+
+    stack_psf: {       
+        template:      "stack/%(stack)05d/PSF%(patch)08d%(filter)s.boost"
+        python:        "lsst.afw.detection.Psf"
+        persistable:        "Psf"
+        storage:    "BoostStorage"
+        tables:        "raw"
+        tables:        "raw_visit"
+    }
+    stack_apCorr: {
+        template:      "stack/%(stack)05d/APC%(patch)08d%(filter)s.fits"
+        python:        "lsst.meas.algorithms.ApertureCorrection"
+        persistable:        "ApertureCorrection"
+        storage:    "PickleStorage"
+        tables:        raw
+        tables:        raw_visit
+    }
+    stack_src: {
+        template:      "stack/%(stack)05d/SRC%(patch)08d%(filter)s.fits"
+        python:        "lsst.afw.table.SourceCatalog"
+        persistable:        "SourceCatalog"
+        storage:    "FitsCatalogStorage"
+        tables:        "raw"
+        tables:        "raw_visit"
+    }
+    stack_icMatch: {
+        template:      "stack/%(stack)05d/MATCH%(patch)08d%(filter)s.fits"
+        python:        "lsst.afw.table.BaseCatalog"
+        persistable:        "BaseCatalog"
+        storage:    "FitsCatalogStorage"
+        tables:        "raw"
+        tables:        "raw_visit"
+    }
+    stack_icMatchList: {
+        template:      "stack/%(stack)05d/ML%(patch)08d%(filter)s.fits"
+        python:        "lsst.afw.table.BaseCatalog"
+        persistable:   "BaseCatalog"
+        storage:       "FitsCatalogStorage"
+        tables:        "raw"
+        tables:        "raw_visit"
+    }
+    stack_srcMatch: {
+        template:      "stack/%(stack)05d/SRCMATCH%(patch)08d%(filter)s.fits"
+        python:        "lsst.afw.table.BaseCatalog"
+        persistable:   "BaseCatalog"
+        storage:       "FitsCatalogStorage"
+        tables:        "raw"
+        tables:        "raw_visit"
+    }
+    stack_srcMatchList: {
+        template:      "stack/%(stack)05d/SRCML%(patch)08d%(filter)s.fits"
+        python:        "lsst.afw.table.BaseCatalog"
+        persistable:   "BaseCatalog"
+        storage:       "FitsCatalogStorage"
+        tables:        "raw"
+        tables:        "raw_visit"
+    }
+    stack_icSrc: {
+        template:      "stack/%(stack)05d/ICSRC%(patch)08d%(filter)s.fits"
+        python:        "lsst.afw.table.SourceCatalog"
+        persistable:   "SourceCatalog"
+        storage:       "FitsCatalogStorage"
+        tables:        "raw"
+        tables:        "raw_visit"
+    }
+
+
     log: {
         template:      "%(pointing)05d/%(filter)s/logs/run.log"
         python:        "str"
@@ -330,21 +413,6 @@ datasets: {
         storage:       "None"
     }
 
-    stacksources: {
-        template:      "stack/%(stack)05d/SRC%(patch)08d%(filter)s.fits"
-        python:        "lsst.afw.table.SourceCatalog"
-        persistable:   "SourceCatalog"
-        storage:       "FitsCatalogStorage"
-        tables:        "raw_skytile"
-    }
-
-    stackpsf: {
-        template:      "stack/%(stack)05d/PSF%(patch)08d%(filter)s.boost"
-        python:        "lsst.afw.detection.Psf"
-        persistable:   "Psf"
-        storage:       "BoostStorage"
-        tables:        "raw_skytile"
-    }
 
     stackrgb: {
         # Will be read/written directly by the user; here for _filename only
@@ -378,7 +446,7 @@ datasets: {
         storage:       "BoostStorage"
         tables:        "raw_skytile"
     }
-
+ 
     ccdExposureId: {
         template:     "ignored"
         # Provide something to import, although we actually return a long
@@ -388,6 +456,23 @@ datasets: {
         tables:       "raw"
     }
     ccdExposureId_bits: {
+        template:     "ignored"
+        # Provide something to import, although we actually return an int
+        python:       "lsst.daf.base.PropertySet"
+        persistable:  "ignored"
+        storage:      "ignored"
+        tables:       "raw"
+    }
+
+    stackExposureId: {
+        template:     "ignored"
+        # Provide something to import, although we actually return a long
+        python:       "lsst.daf.base.PropertySet"
+        persistable:  "ignored"
+        storage:      "ignored"
+        tables:       "raw"
+    }
+    stackExposureId_bits: {
         template:     "ignored"
         # Provide something to import, although we actually return an int
         python:       "lsst.daf.base.PropertySet"
@@ -412,6 +497,24 @@ datasets: {
         tables:        raw
         tables:        raw_visit
     }
+
+    processStack_config: {
+        template:      "stack/%(stack)05d/processStack_config/%(patch)08d%(filter)s.py"
+        python:        "hsc.pipe.tasks.processStack.ProcessStackConfig"
+        persistable:      "Config"
+        storage:    "ConfigStorage"
+        tables:        raw
+        tables:        raw_visit
+    }
+    processStack_metadata: {
+        template:      "stack/%(stack)05d/processStack_metadata/%(patch)08d%(filter)s.boost"
+        python:        "lsst.daf.base.PropertySet"
+        persistable:        "PropertySet"
+        storage:    "BoostStorage"
+        tables:        raw
+        tables:        raw_visit
+    }
+
     forcedsources: {
         template:      "%(pointing)05d/%(filter)s/output/FORCED%(visit)07d%(ccd)1d.fits"
         python:        "lsst.afw.table.SourceCatalog"

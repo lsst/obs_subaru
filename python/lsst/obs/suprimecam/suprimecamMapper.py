@@ -86,6 +86,9 @@ class SuprimecamMapperBase(CameraMapper):
             "I-A-L827": "L827",
             "I-A-L856": "L856",
             }
+        # next line makes a dict that maps filter names to sequential integers (arbitrarily sorted),
+        # for use in generating unique IDs for sources.
+        self.filterIdMap = dict(zip(self.filters, range(len(self.filters))))
 
     def _extractAmpId(self, dataId):
         return (self._extractDetectorName(dataId), 0, 0)
@@ -104,6 +107,19 @@ class SuprimecamMapperBase(CameraMapper):
         return self._computeCcdExposureId(dataId)
 
     def bypass_ccdExposureId_bits(self, datasetType, pythonType, location, dataId):
+        return 32 # not really, but this leaves plenty of space for sources
+
+    def _computeStackExposureId(self, dataId):
+        """Compute the 64-bit (long) identifier for a Stack exposure.
+
+        @param dataId (dict) Data identifier with stack, patch, filter
+        """
+        return long(dataId["patch"]) * len(self.filters) + self.filterIdMap[dataId["filter"]]
+
+    def bypass_stackExposureId(self, datasetType, pythonType, location, dataId):
+        return self._computeStackExposureId(dataId)
+
+    def bypass_stackExposureId_bits(self, datasetType, pythonType, location, dataId):
         return 32 # not really, but this leaves plenty of space for sources
 
     def _setTimes(self, mapping, item, dataId):
