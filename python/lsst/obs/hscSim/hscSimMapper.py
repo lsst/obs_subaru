@@ -15,24 +15,13 @@ class HscSimMapper(CameraMapper):
     def __init__(self, **kwargs):
         policyFile = pexPolicy.DefaultPolicyFile("obs_subaru", "HscSimMapper.paf", "policy")
         policy = pexPolicy.Policy(policyFile)
-
         if not kwargs.get('root', None):
             try:
                 kwargs['root'] = os.path.join(os.environ.get('SUPRIME_DATA_DIR'), 'HSC')
             except:
                 raise RuntimeError("Either $SUPRIME_DATA_DIR or root= must be specified")
-
         if not kwargs.get('calibRoot', None):
             kwargs['calibRoot'] = os.path.join(kwargs['root'], 'CALIB')
-
-        if not kwargs.get('outputRoot', None):
-            kwargs['outputRoot'] = os.path.join(kwargs['root'], 'rerun', os.getlogin())
-            if not os.path.isdir(kwargs['outputRoot']):
-                try:
-                    os.makedirs(kwargs['outputRoot'])
-                except:
-                    # Possibly caused by a race condition
-                    pass
 
         super(HscSimMapper, self).__init__(policy, policyFile.getRepositoryPath(), **kwargs)
         
@@ -68,3 +57,19 @@ class HscSimMapper(CameraMapper):
     def _extractDetectorName(self, dataId):
         return int("%(ccd)d" % dataId)
 
+    def _computeCcdExposureId(self, dataId):
+        """Compute the 64-bit (long) identifier for a CCD exposure.
+
+        @param dataId (dict) Data identifier with visit, ccd
+        """
+        pathId = self._transformId(dataId)
+        visit = pathId['visit']
+        ccd = pathId['ccd']
+        return visit*200 + ccd
+
+    def bypass_ccdExposureId(self, datasetType, pythonType, location, dataId):
+        return self._computeCcdExposureId(dataId)
+
+    def bypass_ccdExposureId_bits(self, datasetType, pythonType, location, dataId):
+        """How many bits are required for the maximum exposure ID"""
+        return 32 # just a guess, but this leaves plenty of space for sources
