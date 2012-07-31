@@ -215,8 +215,24 @@ datasets: {
         tables:        "raw"
         tables:        "raw_visit"
     }
-    matchList: {
+    icMatchList: {
         template:      "%(pointing)05d/%(filter)s/output/ML%(visit)05d%(ccd)03d.fits"
+        python:        "lsst.afw.table.BaseCatalog"
+        persistable:   "BaseCatalog"
+        storage:       "FitsCatalogStorage"
+        tables:        "raw"
+        tables:        "raw_visit"
+    }
+    srcMatch: {
+        template:      "%(pointing)05d/%(filter)s/output/SRCMATCH%(visit)05d%(ccd)03d.fits"
+        python:        "lsst.afw.table.BaseCatalog"
+        persistable:   "BaseCatalog"
+        storage:       "FitsCatalogStorage"
+        tables:        "raw"
+        tables:        "raw_visit"
+    }
+    srcMatchList: {
+        template:      "%(pointing)05d/%(filter)s/output/SRCML%(visit)05d%(ccd)03d.fits"
         python:        "lsst.afw.table.BaseCatalog"
         persistable:   "BaseCatalog"
         storage:       "FitsCatalogStorage"
