@@ -49,9 +49,9 @@ class QaFlatnessConfig(pexConfig.Config):
 class QaConfig(pexConfig.Config):
     flatness = pexConfig.ConfigField(dtype=QaFlatnessConfig, doc="Qa.flatness")
     doWriteOss = pexConfig.Field(doc="Write OverScan-Subtracted image?", dtype=bool, default=False)
-    doThumbnailOss = pexConfig.Field(doc="Write OverScan-Subtracted thumbnail?", dtype=bool, default=False)
+    doThumbnailOss = pexConfig.Field(doc="Write OverScan-Subtracted thumbnail?", dtype=bool, default=True)
     doWriteFlattened = pexConfig.Field(doc="Write flattened image?", dtype=bool, default=False)
-    doThumbnailFlattened = pexConfig.Field(doc="Write flattened thumbnail?", dtype=bool, default=False)
+    doThumbnailFlattened = pexConfig.Field(doc="Write flattened thumbnail?", dtype=bool, default=True)
 
 class SubaruIsrConfig(IsrTask.ConfigClass):
     qa = pexConfig.ConfigField(doc="QA-related config options", dtype=QaConfig)
