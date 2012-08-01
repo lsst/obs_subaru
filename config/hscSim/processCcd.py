@@ -10,3 +10,6 @@ root.isr.doDark = False
 root.isr.doWrite = False
 root.isr.doCrosstalk = False
 root.isr.doGuider = False
+
+root.calibrate.measurePsf.starSelector.name = "secondMoment" # "objectSize" has problems with corner CCDs
+
