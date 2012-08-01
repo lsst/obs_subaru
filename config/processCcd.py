@@ -32,17 +32,6 @@ try:
 except ImportError:
     print "hscAstrom is not setup; using LSST's meas_astrom instead"
 
-# Enable deblender
-root.measurement.doReplaceWithNoise = True
-root.doDeblend = True
-root.deblend.maxNumberOfPeaks = 20
-root.doWriteHeavyFootprintsInSources = True
 
 # Measurement
 root.measurement.algorithms["flux.gaussian"].shiftmax = 10.0
-try:
-    import lsst.meas.extensions.multiShapelet
-    root.measurement.algorithms.names |= lsst.meas.extensions.multiShapelet.algorithms
-    root.measurement.slots.modelFlux = "multishapelet.combo.flux"
-except ImportError:
-    print "meas_extensions_multiShapelet is not setup; disabling model mags"
