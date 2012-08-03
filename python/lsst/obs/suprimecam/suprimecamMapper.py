@@ -158,10 +158,7 @@ class SuprimecamMapper(SuprimecamMapperBase):
             except:
                 raise RuntimeError("Either $SUPRIME_DATA_DIR or root= must be specified")
         if not kwargs.get('calibRoot', None):
-            try:
-                kwargs['calibRoot'] = os.path.join(os.environ.get('SUPRIME_DATA_DIR'), 'SUPA', 'CALIB')
-            except:
-                raise RuntimeError("Either $SUPRIME_DATA_DIR or root= must be specified")
+            kwargs['calibRoot'] = os.path.join(kwargs['root'], 'CALIB')
         super(SuprimecamMapper, self).__init__(policy, policyFile.getRepositoryPath(), **kwargs)
         self.defineFilters()
 
