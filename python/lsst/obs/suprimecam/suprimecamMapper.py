@@ -114,7 +114,11 @@ class SuprimecamMapperBase(CameraMapper):
 
         @param dataId (dict) Data identifier with stack, patch, filter
         """
-        return long(dataId["patch"]) * len(self.filters) + self.filterIdMap[dataId["filter"]]
+        nFilters = len(self.filters)
+        nPatches = 1000000
+        return (long(dataId["stack"]) * nFilters * nPatches +
+                long(dataId["patch"]) * nFilters +
+                self.filterIdMap[dataId["filter"]])
 
     def bypass_stackExposureId(self, datasetType, pythonType, location, dataId):
         return self._computeStackExposureId(dataId)
