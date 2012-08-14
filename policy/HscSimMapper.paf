@@ -54,6 +54,16 @@ exposures: {
         tables:        "raw_visit"
     }
 
+    revexp: {
+        template:      "%(pointing)05d/%(filter)s/corr/CORW%(visit)05d%(ccd)03d.fits"
+        python:        "lsst.afw.image.ExposureF"
+        persistable:        "ExposureF"
+        storage:    "FitsStorage"
+        level:        "Ccd"
+        tables:        "raw"
+        tables:        "raw_visit"
+    }
+
     wcs: {
         template: "%(pointing)05d/%(filter)s/corr/wcs%(visit)05d%(ccd)03d.fits"
         python:        "lsst.afw.image.ExposureI"
@@ -663,15 +673,6 @@ datasets: {
         persistable: "ImageF"
         storage:     "FitsStorage"
         tables:      raw
-    }
-    revexp: {
-        template:      "%(pointing)05d/%(filter)s/corr/CORW%(visit)05d%(ccd)03d.fits"
-        python:        "lsst.afw.image.ExposureF"
-        persistable:        "ExposureF"
-        storage:    "FitsStorage"
-        level:        "Ccd"
-        tables:        "raw"
-        tables:        "raw_visit"
     }
 
 }
