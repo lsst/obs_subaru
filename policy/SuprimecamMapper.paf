@@ -566,6 +566,13 @@ datasets: {
         storage:     TextStorage
         tables:      raw
     }
+    calexpThumb: {
+        template:    "%(pointing)05d/%(filter)s/thumbs/corr%(visit)07d%(ccd)d.png"
+        python:      __builtin__.str
+        persistable: None
+        storage:     TextStorage
+        tables:      raw
+    }
 
     plotMagHist: {
         template:    "%(pointing)05d/%(filter)s/qa/magHist%(visit)07d%(ccd)d.png"
@@ -630,6 +637,34 @@ datasets: {
         storage:     TextStorage
         tables:      raw
     }
-
-
+    fitsFwhmGrid: {
+        template:    "%(pointing)05d/%(filter)s/qa/fwhmGrid%(visit)07d%(ccd)d.fits"
+        python:      "lsst.afw.image.ImageF"
+        persistable: "ImageF"
+        storage:     "FitsStorage"
+        tables:      raw
+    }
+    fitsEllipticityGrid: {
+        template:    "%(pointing)05d/%(filter)s/qa/ellipticityGrid%(visit)07d%(ccd)d.fits"
+        python:      "lsst.afw.image.ImageF"
+        persistable: "ImageF"
+        storage:     "FitsStorage"
+        tables:      raw
+    }
+    fitsEllPaGrid: {
+        template:    "%(pointing)05d/%(filter)s/qa/ellPaGrid%(visit)07d%(ccd)d.fits"
+        python:      "lsst.afw.image.ImageF"
+        persistable: "ImageF"
+        storage:     "FitsStorage"
+        tables:      raw
+    }
+    revexp: {
+        template:      "%(pointing)05d/%(filter)s/corr/CORW%(visit)07d%(ccd)d.fits"
+        python:        "lsst.afw.image.ExposureF"
+        persistable:        "ExposureF"
+        storage:    "FitsStorage"
+        level:        "Ccd"
+        tables:        "raw"
+        tables:        "raw_visit"
+    }
 }
