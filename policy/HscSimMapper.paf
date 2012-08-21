@@ -684,5 +684,19 @@ datasets: {
         storage:     "FitsStorage"
         tables:      raw
     }
+    tableSeeingMap: {
+        template:    "%(pointing)05d/%(filter)s/qa/seeingMap%(visit)05d%(ccd)03d.txt"
+        python:      __builtin__.str
+        persistable: None
+        storage:     TextStorage
+        tables:      raw
+    }
+    tableSeeingGrid: {
+        template:    "%(pointing)05d/%(filter)s/qa/seeingGrid%(visit)05d%(ccd)03d.txt"
+        python:      __builtin__.str
+        persistable: None
+        storage:     TextStorage
+        tables:      raw
+    }
 
 }
