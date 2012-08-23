@@ -124,7 +124,8 @@ class SuprimecamMapperBase(CameraMapper):
         return self._computeStackExposureId(dataId)
 
     def bypass_stackExposureId_bits(self, datasetType, pythonType, location, dataId):
-        return 32 # not really, but this leaves plenty of space for sources
+        # log_2 [nFilters(=30) * nPatches(=10^6) * nStack(=10^5)]
+        return 42
 
     def _setTimes(self, mapping, item, dataId):
         """Set the exposure time and exposure midpoint in the calib object in
