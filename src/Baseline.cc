@@ -113,8 +113,6 @@ makeMonotonic(
 	ImagePtrT img = mimg.getImage();
 	MaskPtrT mask = mimg.getMask();
 
-	MaskPixelT mono1sig = mask->getPlaneBitMask("MONOTONIC_1SIG");
-
 	int DW = std::max(cx - mimg.getX0(), mimg.getX0() + mimg.getWidth() - cx);
 	int DH = std::max(cy - mimg.getY0(), mimg.getY0() + mimg.getHeight() - cy);
 
@@ -132,7 +130,7 @@ makeMonotonic(
 			int i;
 
 			int x = L, y = -L;
-			int dx, dy;
+			int dx = 0, dy = 0; // make compiler happy; initialised the first time through the loop
 			int leg;
 			for (i=0; i<(8*L); i++, x += dx, y += dy) {
 				if (i % (2*L) == 0) {
