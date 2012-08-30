@@ -57,7 +57,7 @@ medianFilter(MaskedImageT const& img,
 	int W = img.getWidth();
 	int H = img.getHeight();
 	ImagePixelT vals[S*S];
-	for (int y=halfsize; y<=H-halfsize; ++y) {
+	for (int y=halfsize; y<H-halfsize; ++y) {
         xy_loc inpix = img.xy_at(halfsize, y), end = img.xy_at(W-halfsize, y);
         for (typename MaskedImageT::x_iterator optr = out.row_begin(y) + halfsize;
              inpix != end; ++inpix.x(), ++optr) {
