@@ -10,6 +10,7 @@ root.isr.doDark = False
 root.isr.doCrosstalk = False
 root.isr.doLinearize = False
 root.isr.doWrite = False
+root.isr.doDefect = True
 
 # color terms
 from lsst.meas.photocal.colorterms import Colorterm

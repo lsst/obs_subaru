@@ -13,6 +13,8 @@ import lsst.afw.image as afwImage
 import lsst.afw.geom as afwGeom
 import lsst.afw.math as afwMath
 from . import crosstalk
+import lsst.afw.cameraGeom as cameraGeom
+import lsst.meas.algorithms as measAlg
 
 try:
     import hsc.fitsthumb as fitsthumb
@@ -58,6 +60,7 @@ class SubaruIsrConfig(IsrTask.ConfigClass):
     doSaturation = pexConfig.Field(doc="Mask saturated pixels?", dtype=bool, default=True)
     doOverscan = pexConfig.Field(doc="Do overscan subtraction?", dtype=bool, default=True)
     doVariance = pexConfig.Field(doc="Calculate variance?", dtype=bool, default=True)
+    doDefect = pexConfig.Field(doc="Mask defect pixels?", dtype=bool, default=False)
     doGuider = pexConfig.Field(
         dtype = bool,
         doc = "Trim guider shadow",
@@ -130,6 +133,9 @@ class SubaruIsrTask(IsrTask):
             sensorRef.put(ccdExposure, "ossImage")
         if self.config.qa.doThumbnailOss:
             self.writeThumbnail(sensorRef, "ossThumb", ccdExposure)
+
+        if self.config.doDefect:
+            self.maskDefect(ccdExposure)
 
         if self.config.doBias:
             self.biasCorrection(ccdExposure, sensorRef)
@@ -293,6 +299,24 @@ class SubaruIsrTask(IsrTask):
                             val += val*linearizationCoefficient*(math.log10(val) - log10_thresh)
                             ampImage.set(x, y, val)
 
+    def maskDefect(self, ccdExposure):
+        """Mask defects using mask plane "BAD"
+
+        @param[in,out]  ccdExposure     exposure to process
+        
+        @warning: call this after CCD assembly, since defects may cross amplifier boundaries
+        """
+        maskedImage = ccdExposure.getMaskedImage()
+        ccd = cameraGeom.cast_Ccd(ccdExposure.getDetector())
+        defectBaseList = ccd.getDefects()
+        defectList = measAlg.DefectListT()
+        # mask bad pixels in the camera class
+        # create master list of defects and add those from the camera class
+        for d in defectBaseList:
+            bbox = d.getBBox()
+            nd = measAlg.Defect(bbox)
+            defectList.append(nd)
+        lsstIsr.maskPixelsFromDefectList(maskedImage, defectList, maskName='BAD')
 
 class HamamatsuIsrTaskConfig(SubaruIsrTask.ConfigClass):
     crosstalkCoeffs = pexConfig.ConfigField(
