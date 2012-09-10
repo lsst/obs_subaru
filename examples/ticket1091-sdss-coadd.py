@@ -70,7 +70,7 @@ def main():
     if opt.nsigma:
         conf.detection.thresholdValue = opt.nsigma
         print 'Set detection threhold to', opt.nsigma, 'sigma'
-    conf.load(os.path.join(os.environ.get('OBS_SDSS_DIR'), 'config', 'processCcd.py'))
+    conf.load(os.path.join(os.environ.get('OBS_SDSS_DIR'), 'config', 'processCoadd.py'))
     proc = procCcd.ProcessCoaddTask
 
     t1091main(dr, opt, conf, proc, patargs=patargs,

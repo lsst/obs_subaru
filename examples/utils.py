@@ -172,6 +172,8 @@ class _mockSource(object):
         if maskbit is not None:
             self.im = ((self.im & maskbit) > 0)
 
+        self.x0 = mi.getX0()
+        self.y0 = mi.getY0()
         self.ext = getExtent(src.getFootprint().getBBox())
         self.ispsf = src.get(psfkey)
         self.psfflux = src.get(fluxkey)
@@ -188,9 +190,9 @@ class _mockSource(object):
             self.ell = (src.getX(), src.getY(), src.getIxx(), src.getIyy(), src.getIxy())
     # for getEllipses()
     def getX(self):
-        return self.ell[0]
+        return self.ell[0] + 0.5
     def getY(self):
-        return self.ell[1]
+        return self.ell[1] + 0.5
     def getIxx(self):
         return self.ell[2]
     def getIyy(self):
@@ -264,7 +266,8 @@ def plotDeblendFamilyReal(parent, kids, dkids, sigma1, plotb=False, idmask=None,
     m = 0.25
     pax = [pext[0]-m, pext[1]+m, pext[2]-m, pext[3]+m]
     x,y = parent.pix[0], parent.piy[0]
-    tt = 'parent %i @ (%i,%i)' % (parent.sid & idmask, x, y)
+    tt = 'parent %i @ (%i,%i)' % (parent.sid & idmask,
+                                  x - parent.x0, y - parent.y0)
     if len(parent.flags):
         tt += ', ' + ', '.join(parent.flags)
     plt.title(tt)
