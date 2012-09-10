@@ -351,20 +351,9 @@ def t1091main(dr, opt, conf, proc, patargs={}, rundeblendargs={}, pool=None):
         im = mi.getImage().getArray()
         imext = getExtent(mi.getBBox(afwImage.PARENT))
 
-        dpi=100
-        plt.figure(figsize=(1+W/dpi, 1+H/dpi), dpi=dpi)
-        
-        #plt.clf()
-        #FFT = np.fft.rfft2(im)
-        #print 'FFT', FFT
-        #A = np.sqrt(FFT.real**2 + FFT.imag**2)
-        #print 'A', A
-        #print 'A', A.shape
-        #hA,wA = A.shape
-        #A = A[:wA,:]
-        #plt.imshow(np.log(A), interpolation='nearest', origin='lower')
-        #plt.savefig('fft.png')
-        #sys.exit(0)
+        # This seems a little extreme...
+        #dpi=100
+        #plt.figure(figsize=(1+W/dpi, 1+H/dpi), dpi=dpi)
 
         plt.clf()
         plt.imshow(im, interpolation='nearest', origin='lower',
