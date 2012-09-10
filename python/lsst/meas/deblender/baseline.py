@@ -225,6 +225,25 @@ class CachingPsf(object):
 
 def _fit_psfs(fp, peaks, fpres, log, psf, psffwhm, img, varimg,
               psf_chisq_cut1, psf_chisq_cut2, psf_chisq_cut2b):
+    '''
+    Fit a PSF + smooth background models to a small region around each
+    peak (plus other peaks that are nearby) in the given list of
+    peaks.
+
+    fp: Footprint containing the Peaks to model
+    peaks: a list of all the Peak objects within this Footprint
+    fpres: a PerFootprint result object where results will be placed
+
+    log: pex Log object
+    psf: afw PSF object
+    psffwhm: FWHM of the PSF, in pixels
+    img: umm, the Image in which this Footprint finds itself
+    varimg: Variance plane
+    psf_chisq_cut*: floats: cuts in chisq-per-pixel at which to accept the PSF model
+
+    Results go into the fpres.peaks objects.
+    
+    '''
     fbb = fp.getBBox()
     cpsf = CachingPsf(psf)
 
@@ -232,19 +251,40 @@ def _fit_psfs(fp, peaks, fpres, log, psf, psffwhm, img, varimg,
     fmask.setXY0(fbb.getMinX(), fbb.getMinY())
     afwDet.setMaskFromFootprint(fmask, fp, 1)
 
-    # pk.getF() actually shows up in the profile...
+    # pk.getF() -- retrieving the floating-point location of the peak
+    # -- actually shows up in the profile if we do it in the loop, so
+    # grab them all here.
     peakF = [pk.getF() for pk in peaks]
 
     for pki,(pk,pkres,pkF) in enumerate(zip(peaks, fpres.peaks, peakF)):
         log.logdebug('Peak %i' % pki)
-        _fit_psf(fp, fmask, pk, pkF, pkres, fbb, peaks, peakF, log, cpsf, psffwhm, img, varimg,
+        _fit_psf(fp, fmask, pk, pkF, pkres, fbb, peaks, peakF, log, cpsf,
+                 psffwhm, img, varimg,
                  psf_chisq_cut1, psf_chisq_cut2, psf_chisq_cut2b)
 
 
-def _fit_psf(fp, fmask, pk, pkF, pkres, fbb, peaks, peaksF, log, psf, psffwhm, img, varimg,
+def _fit_psf(fp, fmask, pk, pkF, pkres, fbb, peaks, peaksF, log, psf,
+             psffwhm, img, varimg,
              psf_chisq_cut1, psf_chisq_cut2, psf_chisq_cut2b):
-    # Fit a PSF + smooth background model (linear) to a 
-    # small region around the peak
+    '''
+    Fit a PSF + smooth background model (linear) to a small region around the peak.
+
+    fp: Footprint
+    fmask: the Mask plane for pixels in the Footprint
+    pk: the Peak within the Footprint that we are going to fit a PSF model for
+    pkF: the floating-point coordinates of this peak
+    pkres: a PerPeak object that will hold the results for this peak
+    fbb: the bounding-box of this Footprint (a Box2I)
+    peaks: a list of all the Peak objects within this Footprint
+    peaksF: a python list of the floating-point (x,y) peak locations
+    log: pex Log object
+    psf: afw PSF object
+    psffwhm: FWHM of the PSF, in pixels
+    img: umm, the Image in which this Footprint finds itself
+    varimg: Variance plane
+    psf_chisq_cut*: floats: cuts in chisq-per-pixel at which to accept the PSF model
+    
+    '''
     # The small region is a disk out to R0, plus a ramp with decreasing weight
     # down to R1.
     R0 = int(math.ceil(psffwhm * 1.))

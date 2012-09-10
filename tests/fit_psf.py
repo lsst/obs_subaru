@@ -45,11 +45,11 @@ class FitPsfTestCase(unittest.TestCase):
         print 'img x0,y0', img.getX0(), img.getY0()
         print 'BBox', img.getBBox(afwImage.PARENT)
 
-        pk = afwDet.Peak(20., 30.)
+        pk1 = afwDet.Peak(20., 30.)
         pk2 = afwDet.Peak(23., 33.)
         pk3 = afwDet.Peak(92., 50.)
         peaks = []
-        peaks.append(pk)
+        peaks.append(pk1)
         peaks.append(pk2)
         peaks.append(pk3)
 
@@ -57,15 +57,26 @@ class FitPsfTestCase(unittest.TestCase):
         iext = [ibb.getMinX(), ibb.getMaxX(), ibb.getMinY(), ibb.getMaxY()]
         ix0,iy0 = iext[0], iext[2]
 
-        f1 = 10000.
-        psfim = psf1.computeImage(afwGeom.Point2D(pk.getFx(), pk.getFy()))
-        print 'psfim x0,y0', psfim.getX0(), psfim.getY0()
-        pbb = psfim.getBBox(afwImage.PARENT)
-        print 'pbb', pbb.getMinX(), pbb.getMaxX(), pbb.getMinY(), pbb.getMaxY()
-        psfa = psfim.getArray()
-        psfa /= psfa.sum()
-        img.getArray()[pbb.getMinY() - iy0: pbb.getMaxY()+1 - iy0,
-                       pbb.getMinX() - ix0: pbb.getMaxX()+1 - ix0] += f1 * psfa
+        pbbs = []
+        pxys = []
+        
+        fluxes = [10000., 5000., 5000.]
+        for pk,f in zip(peaks, fluxes):
+            psfim = psf1.computeImage(afwGeom.Point2D(pk.getFx(), pk.getFy()))
+            print 'psfim x0,y0', psfim.getX0(), psfim.getY0()
+            pbb = psfim.getBBox(afwImage.PARENT)
+            print 'pbb', pbb.getMinX(), pbb.getMaxX(), pbb.getMinY(), pbb.getMaxY()
+            pbb.clip(ibb)
+            print 'clipped pbb', pbb.getMinX(), pbb.getMaxX(), pbb.getMinY(), pbb.getMaxY()
+            psfim = psfim.Factory(psfim, pbb, afwImage.PARENT)
+
+            psfa = psfim.getArray()
+            psfa /= psfa.sum()
+            img.getArray()[pbb.getMinY() - iy0: pbb.getMaxY()+1 - iy0,
+                           pbb.getMinX() - ix0: pbb.getMaxX()+1 - ix0] += f * psfa
+
+            pbbs.append((pbb.getMinX(), pbb.getMaxX(), pbb.getMinY(), pbb.getMaxY()))
+            pxys.append((pk.getFx(), pk.getFy()))
 
 
         plt.clf()
@@ -73,9 +84,10 @@ class FitPsfTestCase(unittest.TestCase):
         ax = plt.axis()
         x0,x1,y0,y1 = fbb.getMinX(), fbb.getMaxX(), fbb.getMinY(), fbb.getMaxY()
         plt.plot([x0,x0,x1,x1,x0], [y0,y1,y1,y0,y0], 'k-')
-        x0,x1,y0,y1 = pbb.getMinX(), pbb.getMaxX(), pbb.getMinY(), pbb.getMaxY()
-        plt.plot([x0,x0,x1,x1,x0], [y0,y1,y1,y0,y0], 'r-')
-        plt.plot(pk.getFx(), pk.getFy(), 'ro')
+        for x0,x1,y0,y1 in pbbs:
+            plt.plot([x0,x0,x1,x1,x0], [y0,y1,y1,y0,y0], 'r-')
+        for x,y in pxys:
+            plt.plot(x, y, 'ro')
         plt.axis(ax)
         plt.savefig('img.png')
 
@@ -92,16 +104,21 @@ class FitPsfTestCase(unittest.TestCase):
         log = pexLogging.Log(pexLogging.Log.getDefaultLog(), 'tests.fit_psf', loglvl)
 
         cpsf = CachingPsf(psf1)
-        _fit_psf(fp, fmask, pk, pkres, fbb, peaks, log, cpsf, psffwhm, img, varimg,
+
+        peaksF = [pk.getF() for pk in peaks]
+        pkF = pk1.getF()
+
+        _fit_psf(fp, fmask, pk1, pkF, pkres, fbb, peaks, peaksF, log, cpsf, psffwhm,
+                 img, varimg,
                  psf_chisq_cut1, psf_chisq_cut2, psf_chisq_cut2b)
         for k in dir(pkres):
             if k.startswith('__'):
                 continue
             print '  ', k, getattr(pkres, k)
-
 
         cpsf = CachingPsf(psf2)
-        _fit_psf(fp, fmask, pk, pkres, fbb, peaks, log, cpsf, psffwhm, img, varimg,
+        _fit_psf(fp, fmask, pk1, pkF, pkres, fbb, peaks, peaksF, log, cpsf, psffwhm,
+                 img, varimg,
                  psf_chisq_cut1, psf_chisq_cut2, psf_chisq_cut2b)
         for k in dir(pkres):
             if k.startswith('__'):
@@ -109,7 +126,9 @@ class FitPsfTestCase(unittest.TestCase):
             print '  ', k, getattr(pkres, k)
 
 
-        _fit_psf(fp, fmask, pk3, pkres, fbb, peaks, log, cpsf, psffwhm, img, varimg,
+        pkF = pk3.getF()
+        _fit_psf(fp, fmask, pk3, pkF, pkres, fbb, peaks, peaksF, log, cpsf, psffwhm,
+                 img, varimg,
                  psf_chisq_cut1, psf_chisq_cut2, psf_chisq_cut2b)
         for k in dir(pkres):
             if k.startswith('__'):
