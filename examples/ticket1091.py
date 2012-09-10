@@ -543,25 +543,3 @@ def t1091main(dr, opt, conf, proc, patargs={}, rundeblendargs={}, pool=None):
 
     if pool:
         pool.map(_plotfunc, A)
-
-    ########
-    A = []
-    for j,(parent,children,dkids) in enumerate(fams):
-        args = (mi, parent, children, dkids, cat, sigma1)
-        kwargs = dict(ellipses=True, idmask=idmask)
-        A.append((plotDeblendFamilyPre(*args, **kwargs), kwargs,
-                  opt.prefix + 'deblend-%04i-%%s.png' % j))
-
-        kwargs = dict(ellipses=True, idmask=idmask, arcsinh=False,
-                      vmin=-1, vmax=5)
-        A.append((plotDeblendFamilyPre(*args, **kwargs), kwargs,
-                  opt.prefix + 'deblend-%04i-%%s-linear.png' % j))
-
-    from ahmplots import ahmplots
-    if pool:
-        pool.map(ahmplots, A)
-    else:
-        map(ahmplots, A)
-
-
-
