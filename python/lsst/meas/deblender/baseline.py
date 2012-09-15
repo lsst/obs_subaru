@@ -1,7 +1,3 @@
-import pylab as plt
-
-
-
 import math
 import numpy as np
 
@@ -470,25 +466,6 @@ def _fit_psf(fp, fmask, pk, pkF, pkres, fbb, peaks, peaksF, log, psf,
 
     Aw  = A * w[:,np.newaxis]
     bw  = b * w
-
-    # plt.clf()
-    # N = NT2 + 2
-    # R,C = 2, (N+1) / 2
-    # for i in range(NT2):
-    #     im1 = np.zeros((1+yhi-ylo, 1+xhi-xlo))
-    #     im1[ipixes[:,1], ipixes[:,0]] = A[:, i]
-    #     plt.subplot(R, C, i+1)
-    #     plt.imshow(im1, interpolation='nearest', origin='lower')
-    # 
-    # plt.subplot(R, C, NT2+1)
-    # im1 = np.zeros((1+yhi-ylo, 1+xhi-xlo))
-    # im1[ipixes[:,1], ipixes[:,0]] = b
-    # plt.imshow(im1, interpolation='nearest', origin='lower')
-    # plt.subplot(R, C, NT2+2)
-    # im1 = np.zeros((1+yhi-ylo, 1+xhi-xlo))
-    # im1[ipixes[:,1], ipixes[:,0]] = w
-    # plt.imshow(im1, interpolation='nearest', origin='lower')
-    # plt.savefig('A.png')
 
     # We do fits with and without the decenter terms.
     # Since the dx,dy terms are at the end of the matrix,

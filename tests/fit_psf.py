@@ -1,8 +1,12 @@
 #!/usr/bin/env python
 
-import matplotlib
-matplotlib.use('Agg')
-import pylab as plt
+try:
+    import matplotlib
+    matplotlib.use('Agg')
+    import pylab as plt
+    doPlot = True
+except:
+    doPlot = False
 
 
 import unittest
@@ -79,17 +83,18 @@ class FitPsfTestCase(unittest.TestCase):
             pxys.append((pk.getFx(), pk.getFy()))
 
 
-        plt.clf()
-        plt.imshow(img.getArray(), extent=iext, interpolation='nearest', origin='lower')
-        ax = plt.axis()
-        x0,x1,y0,y1 = fbb.getMinX(), fbb.getMaxX(), fbb.getMinY(), fbb.getMaxY()
-        plt.plot([x0,x0,x1,x1,x0], [y0,y1,y1,y0,y0], 'k-')
-        for x0,x1,y0,y1 in pbbs:
-            plt.plot([x0,x0,x1,x1,x0], [y0,y1,y1,y0,y0], 'r-')
-        for x,y in pxys:
-            plt.plot(x, y, 'ro')
-        plt.axis(ax)
-        plt.savefig('img.png')
+        if doPlot:
+            plt.clf()
+            plt.imshow(img.getArray(), extent=iext, interpolation='nearest', origin='lower')
+            ax = plt.axis()
+            x0,x1,y0,y1 = fbb.getMinX(), fbb.getMaxX(), fbb.getMinY(), fbb.getMaxY()
+            plt.plot([x0,x0,x1,x1,x0], [y0,y1,y1,y0,y0], 'k-')
+            for x0,x1,y0,y1 in pbbs:
+                plt.plot([x0,x0,x1,x1,x0], [y0,y1,y1,y0,y0], 'r-')
+            for x,y in pxys:
+                plt.plot(x, y, 'ro')
+            plt.axis(ax)
+            plt.savefig('img.png')
 
         varimg = afwImage.ImageF(fbb)
         varimg.set(sig1**2)
