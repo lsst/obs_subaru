@@ -53,9 +53,9 @@ for calib in ('bias', 'dark', 'flat', 'fringe'):
                                        calib.upper() + "-*.fits*")):
         print fits
         if opts.camera.lower() in ("suprime-cam", "suprimecam", "sc"):
-            m = re.search(r'\w+/(\d{4})-(\d{2})-(\d{2})/(.-.-.{1,3})/(\d+)/\w+-(\d{7})(\d).fits', fits)
+            m = re.search(r'\w+/(\d{4})-(\d{2})-(\d{2})/([A-Z]-[A-Z]-[A-Z0-9+]{1,4})/(\d+)/\w+-(\d{7})(\d).fits', fits)
         elif opts.camera.lower() in ("hsc", "hscsim"):
-            m = re.search(r'\w+/(\d{4})-(\d{2})-(\d{2})/(.-.-.{1,3})/(\d+)/\w+-(\d{5})(\d{3}).fits', fits)
+            m = re.search(r'\w+/(\d{4})-(\d{2})-(\d{2})/([A-Z]-[A-Z]-[A-Z0-9+]{1,4})/(\d+)/\w+-(\d{5})(\d{3}).fits', fits)
         if not m:
             print >>sys.stderr, "Warning: Unrecognized file:", fits
             continue
