@@ -175,7 +175,12 @@ class SubaruIsrTask(IsrTask):
         filename = dataRef.get(dataset + "_filename")[0]
         directory = os.path.dirname(filename)
         if not os.path.exists(directory):
-            os.makedirs(directory)
+            try:
+                os.makedirs(directory)
+            except OSError, e:
+                # Don't fail if directory exists due to race
+                if e.errno != 17:
+                    raise e
         image = exposure.getMaskedImage().getImage()
         fitsthumb.createFitsThumb(image, filename, format, width, height, True)
 
