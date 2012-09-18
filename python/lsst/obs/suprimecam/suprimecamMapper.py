@@ -33,7 +33,8 @@ class SuprimecamMapperBase(CameraMapper):
         # Narrow-band filters
         afwImageUtils.defineFilter('NB704',  lambdaEff=704,  alias=['N-B-L704'])
         afwImageUtils.defineFilter('NB711',  lambdaEff=711,  alias=['N-B-L711'])
-       
+        afwImageUtils.defineFilter("NB921",  lambdaEff=921,  alias=['N-B-L921'])
+
         # Intermediate-band filters
         afwImageUtils.defineFilter("L427", lambdaEff=427, alias=['I-A-L427'])
         afwImageUtils.defineFilter("L445", lambdaEff=445, alias=['I-A-L445'])
@@ -67,6 +68,7 @@ class SuprimecamMapperBase(CameraMapper):
             "W-S-ZR"  : "y",
             "N-B-L704": "NB704",
             "N-B-L711": "NB711",
+            "N-B-L921": "NB921",
             "I-A-L427": "L427",
             "I-A-L445": "L445",
             "I-A-L464": "L464",
