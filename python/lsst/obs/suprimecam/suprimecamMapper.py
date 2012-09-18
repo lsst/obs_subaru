@@ -15,6 +15,7 @@ class SuprimecamMapperBase(CameraMapper):
 
     def defineFilters(self):
         # Johnson filters
+        afwImageUtils.defineFilter('U',  lambdaEff=300,  alias=['W-J-U'])
         afwImageUtils.defineFilter('B',  lambdaEff=400,  alias=['W-J-B'])
         afwImageUtils.defineFilter('V',  lambdaEff=550,  alias=['W-J-V'])
         afwImageUtils.defineFilter('VR', lambdaEff=600,  alias=['W-J-VR'])
@@ -31,9 +32,28 @@ class SuprimecamMapperBase(CameraMapper):
         afwImageUtils.defineFilter('y',  lambdaEff=1000, alias=['W-S-ZR'])
 
         # Narrow-band filters
+        afwImageUtils.defineFilter("NA503", lambdaEff=503, alias=['N-A-L503'])
+        afwImageUtils.defineFilter("NA651", lambdaEff=651, alias=['N-A-L651'])
+        afwImageUtils.defineFilter("NA656", lambdaEff=656, alias=['N-A-L656'])
+        afwImageUtils.defineFilter("NA659", lambdaEff=659, alias=['N-A-L659'])
+        afwImageUtils.defineFilter("NA671", lambdaEff=671, alias=['N-A-L671'])
+
+        afwImageUtils.defineFilter('NB1006', lambdaEff=1006, alias=['N-B-1006'])
+        afwImageUtils.defineFilter('NB1010', lambdaEff=1010, alias=['N-B-1010'])
+        afwImageUtils.defineFilter('NB100',  lambdaEff=100,  alias=['N-B-L100'])
+        afwImageUtils.defineFilter('NB359',  lambdaEff=359,  alias=['N-B-L359'])
+        afwImageUtils.defineFilter('NB387',  lambdaEff=387,  alias=['N-B-L387'])
+        afwImageUtils.defineFilter('NB413',  lambdaEff=413,  alias=['N-B-L413'])
+        afwImageUtils.defineFilter('NB497',  lambdaEff=497,  alias=['N-B-L497'])
+        afwImageUtils.defineFilter('NB515',  lambdaEff=515,  alias=['N-B-L515'])
+        afwImageUtils.defineFilter('NB570',  lambdaEff=570,  alias=['N-B-L570'])
         afwImageUtils.defineFilter('NB704',  lambdaEff=704,  alias=['N-B-L704'])
         afwImageUtils.defineFilter('NB711',  lambdaEff=711,  alias=['N-B-L711'])
-        afwImageUtils.defineFilter("NB921",  lambdaEff=921,  alias=['N-B-L921'])
+        afwImageUtils.defineFilter('NB816',  lambdaEff=816,  alias=['N-B-L816'])
+        afwImageUtils.defineFilter('NB818',  lambdaEff=818,  alias=['N-B-L818'])
+        afwImageUtils.defineFilter('NB912',  lambdaEff=912,  alias=['N-B-L912'])
+        afwImageUtils.defineFilter('NB921',  lambdaEff=921,  alias=['N-B-L921'])
+        afwImageUtils.defineFilter('NB973',  lambdaEff=973,  alias=['N-B-L973'])
 
         # Intermediate-band filters
         afwImageUtils.defineFilter("L427", lambdaEff=427, alias=['I-A-L427'])
@@ -54,8 +74,20 @@ class SuprimecamMapperBase(CameraMapper):
         afwImageUtils.defineFilter("L797", lambdaEff=797, alias=['I-A-L797'])
         afwImageUtils.defineFilter("L827", lambdaEff=827, alias=['I-A-L827'])
         afwImageUtils.defineFilter("L856", lambdaEff=856, alias=['I-A-L856'])
+        afwImageUtils.defineFilter("L856", lambdaEff=856, alias=['I-A-L856'])
+
+        # Unknown/custom filters
+        afwImageUtils.defineFilter("B030", lambdaEff=0, alias=['G-A-B030'])
+        afwImageUtils.defineFilter("R030", lambdaEff=0, alias=['G-A-R030'])
+        afwImageUtils.defineFilter("P550", lambdaEff=0, alias=['P-A-L550'])
+        afwImageUtils.defineFilter("SN01", lambdaEff=0, alias=['S-A-SN01'])
+        afwImageUtils.defineFilter("SN02", lambdaEff=0, alias=['S-A-SN02'])
+        afwImageUtils.defineFilter("Y",    lambdaEff=0, alias=['W-A-Y'])
+        afwImageUtils.defineFilter("ZB",   lambdaEff=0, alias=['W-S-ZB'])
+
 
         self.filters = {
+            "W-J-U"   : "U",
             "W-J-B"   : "B",
             "W-J-V"   : "V",
             "W-J-VR"  : "VR",
@@ -66,9 +98,27 @@ class SuprimecamMapperBase(CameraMapper):
             "W-S-I+"  : "i",
             "W-S-Z+"  : "z",
             "W-S-ZR"  : "y",
-            "N-B-L704": "NB704",
-            "N-B-L711": "NB711",
-            "N-B-L921": "NB921",
+            'N-A-L503': "NA503",
+            'N-A-L651': "NA651",
+            'N-A-L656': "NA656",
+            'N-A-L659': "NA659",
+            'N-A-L671': "NA671",
+            'N-B-1006': 'NB1006',
+            'N-B-1010': 'NB1010',
+            'N-B-L100': 'NB100',
+            'N-B-L359': 'NB359',
+            'N-B-L387': 'NB387',
+            'N-B-L413': 'NB413',
+            'N-B-L497': 'NB497',
+            'N-B-L515': 'NB515',
+            'N-B-L570': 'NB570',
+            'N-B-L704': 'NB704',
+            'N-B-L711': 'NB711',
+            'N-B-L816': 'NB816',
+            'N-B-L818': 'NB818',
+            'N-B-L912': 'NB912',
+            'N-B-L921': 'NB921',
+            'N-B-L973': 'NB973',
             "I-A-L427": "L427",
             "I-A-L445": "L445",
             "I-A-L464": "L464",
@@ -87,7 +137,16 @@ class SuprimecamMapperBase(CameraMapper):
             "I-A-L797": "L797",
             "I-A-L827": "L827",
             "I-A-L856": "L856",
+            'G-A-B030': "B030",
+            'G-A-R030': "R030",
+            'P-A-L550': "P550",
+            'S-A-SN01': "SN01",
+            'S-A-SN02': "SN02",
+            'W-A-Y'   : "Y",
+            'W-S-ZB'  : "ZB",
             }
+
+
         # next line makes a dict that maps filter names to sequential integers (arbitrarily sorted),
         # for use in generating unique IDs for sources.
         self.filterIdMap = dict(zip(self.filters, range(len(self.filters))))
