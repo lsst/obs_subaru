@@ -692,6 +692,20 @@ datasets: {
         storage:     "FitsStorage"
         tables:      raw
     }
+    fitsPsfSrcGrid: {
+        template:    "%(pointing)05d/%(filter)s/qa/psfSrcGrid%(visit)07d%(ccd)d.fits"
+        python:      "lsst.afw.image.ImageF"
+        persistable: "ImageF"
+        storage:     "FitsStorage"
+        tables:      raw
+    }
+    fitsPsfModelGrid: {
+        template:    "%(pointing)05d/%(filter)s/qa/psfModelGrid%(visit)07d%(ccd)d.fits"
+        python:      "lsst.afw.image.ImageF"
+        persistable: "ImageF"
+        storage:     "FitsStorage"
+        tables:      raw
+    }
     tableSeeingMap: {
         template:    "%(pointing)05d/%(filter)s/qa/seeingMap%(visit)07d%(ccd)d.txt"
         python:      __builtin__.str
