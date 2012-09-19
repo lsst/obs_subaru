@@ -657,6 +657,20 @@ datasets: {
         storage:     TextStorage
         tables:      raw
     }
+    plotPsfSrcGrid: {
+        template:    "%(pointing)05d/%(filter)s/qa/psfSrcGrid%(visit)07d%(ccd)d.png"
+        python:      __builtin__.str
+        persistable: None
+        storage:     TextStorage
+        tables:      raw
+    }
+    plotPsfModelGrid: {
+        template:    "%(pointing)05d/%(filter)s/qa/psfModelGrid%(visit)07d%(ccd)d.png"
+        python:      __builtin__.str
+        persistable: None
+        storage:     TextStorage
+        tables:      raw
+    }
     fitsFwhmGrid: {
         template:    "%(pointing)05d/%(filter)s/qa/fwhmGrid%(visit)07d%(ccd)d.fits"
         python:      "lsst.afw.image.ImageF"
