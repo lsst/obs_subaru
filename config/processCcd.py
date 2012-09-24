@@ -37,8 +37,14 @@ except ImportError:
     print "hscAstrom is not setup; using LSST's meas_astrom instead"
 
 
+# Detection
+root.detection.isotropicGrow = True
+root.detection.nGrow = 2
+root.detection.returnOriginalFootprints = False
+
 # Measurement
 root.measurement.algorithms["flux.gaussian"].shiftmax = 10.0
+
 
 # Enable deblender for processCcd
 root.measurement.doReplaceWithNoise = True
