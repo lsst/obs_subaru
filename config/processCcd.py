@@ -2,6 +2,10 @@
 Subaru-specific overrides for ProcessCcdTask (applied before SuprimeCam- and HSC-specific overrides).
 """
 
+# This was a horrible choice of defaults: only the scaling of the flats
+# should determine the relative normalisations of the CCDs!
+root.isr.assembleCcd.doRenorm = False
+
 # Cosmic rays and background estimation
 root.calibrate.repair.cosmicray.nCrPixelMax = 1000000
 root.calibrate.repair.cosmicray.cond3_fac2 = 0.4
@@ -33,8 +37,14 @@ except ImportError:
     print "hscAstrom is not setup; using LSST's meas_astrom instead"
 
 
+# Detection
+root.detection.isotropicGrow = True
+root.detection.nGrow = 2
+root.detection.returnOriginalFootprints = False
+
 # Measurement
 root.measurement.algorithms["flux.gaussian"].shiftmax = 10.0
+
 
 # Enable deblender for processCcd
 root.measurement.doReplaceWithNoise = True

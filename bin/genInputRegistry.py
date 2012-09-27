@@ -10,29 +10,26 @@ import lsst.pex.policy as pexPolicy
 import lsst.afw.image  as afwImage
 import lsst.skypix     as skypix
 
-import optparse
+import argparse
 
-# Needs optparse w/ --create, etc. CPL
-parser = optparse.OptionParser()
-parser.add_option("--create", dest="create", default=False, action="store_true", 
-                  help="Create new registry (clobber old)?")
-parser.add_option("--root", dest="root", default=".", help="Root directory")
-parser.add_option("--camera", dest="camera", default="hsc", help="Camera name: HSC|SC")
-opts, args = parser.parse_args()
+parser = argparse.ArgumentParser()
+parser.add_argument("--create", action="store_true", help="Create new registry (clobber old)?")
+parser.add_argument("--root", default=".", help="Root directory")
+parser.add_argument("--camera", default="HSC", choices=["HSC", "SC"], help="Camera name")
+parser.add_argument("--visits", type=int, nargs="*", help="Visits to process")
+parser.add_argument("--fields", nargs="*", help="Fields to process")
+args = parser.parse_args()
 
-if len(args) > 0 or len(sys.argv) == 1:
-    print "Unrecognised arguments:", sys.argv[1:]
-    parser.print_help()
-    sys.exit(1)
-
-if opts.camera.lower() in ("hsc", "hscsim"):
+if args.camera.lower() in ("hsc", "hscsim"):
     mapperPolicy = "HscSimMapper.paf"
     reFilename = r'HSCA(\d{5})(\d{3}).fits'
-elif opts.camera.lower() in ("sc", "suprimecam", "suprime-cam", "sc-mit", "suprimecam-mit"):
+    globFilename = "HSCA%05d???.fits"
+elif args.camera.lower() in ("sc", "suprimecam", "suprime-cam", "sc-mit", "suprimecam-mit"):
     mapperPolicy = "SuprimecamMapper.paf"
     reFilename = r'SUPA(\d{7})(\d).fits'
+    globFilename = "SUPA%07d?.fits"
 else:
-    raise KeyError("Unrecognised camera name: %s" % opts.camera)
+    raise KeyError("Unrecognised camera name: %s" % args.camera)
 
 mapperPolicy = pexPolicy.Policy(os.path.join(os.getenv("OBS_SUBARU_DIR"), "policy", mapperPolicy))
 if mapperPolicy.exists("skytiles"):
@@ -40,12 +37,24 @@ if mapperPolicy.exists("skytiles"):
 else:
     skyPolicy = None
 
-root = opts.root
-files = glob.glob(os.path.join(root, "*", "*-*-*", "*", "*", "*.fits"))
-sys.stderr.write('processing %d files...\n' % (len(files)))
 
-registryName = os.path.join(root, "registry.sqlite3")
-if opts.create and os.path.exists(registryName):
+# Gather list of files
+def globber(field="*", filename="*.fits"):
+    return glob.glob(os.path.join(args.root, field, "*-*-*", "*", "*", filename))
+if not args.visits and not args.fields:
+    files = globber()
+else:
+    files = []
+    if args.visits:
+        for v in args.visits:
+            files += globber(filename=globFilename % v)
+    if args.fields:
+        for f in args.fields:
+            files += globber(field=f)
+print 'Processing %d files...' % len(files)
+
+registryName = os.path.join(args.root, "registry.sqlite3")
+if args.create and os.path.exists(registryName):
     os.unlink(registryName)
 
 makeTables = not os.path.exists(registryName)
@@ -75,16 +84,25 @@ reFilter = r'([\w\-\+]+)'
 regex = re.compile('/'.join([reField, reDate, rePointing, reFilter, reFilename]))
 
 qsp = skypix.createQuadSpherePixelization(skyPolicy)
+cursor = conn.cursor()
 for fits in files:
     m = re.search(regex, fits)
     if not m:
-        print >>sys.stderr, "Warning: skipping unrecognized filename:", fits
+        print "Warning: skipping unrecognized filename:", fits
         continue
 
     field, dateObs, pointing, filterId, visit, ccd = m.groups()
-    sys.stderr.write("Processing %s\n" % (fits))
+    visit = int(visit)
+    ccd = int(ccd)
+    #print "Processing %s" % fits
 
     try:
+        if not args.create:
+            cursor.execute("SELECT COUNT(*) FROM raw WHERE visit=? and ccd=?", (visit, ccd))
+            if cursor.fetchone()[0] > 0:
+                print "File %s is already in the registry --- skipping" % fits
+                continue
+
         md = afwImage.readMetadata(fits)
         expTime = md.get("EXPTIME")
 
@@ -109,22 +127,20 @@ for fits in files:
                                      padRad=0.000075) # about 15 arcsec
         pix = qsp.intersect(poly)
 
-        conn.execute("INSERT INTO raw VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?)",
-                     (field, visit, filterId, ccd, dateObs, taiObs, expTime, pointing))
-
-        for row in conn.execute("SELECT last_insert_rowid()"):
-            id = row[0]
-            break
+        cursor.execute("INSERT INTO raw VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?)",
+                       (field, visit, filterId, ccd, dateObs, taiObs, expTime, pointing))
+        ident = cursor.lastrowid
 
         for skyTileId in pix:
-            conn.execute("INSERT INTO raw_skyTile VALUES(?, ?)",
-                         (id, skyTileId))
+            cursor.execute("INSERT INTO raw_skyTile VALUES(?, ?)", (ident, skyTileId))
+
+        print "Added %s" % fits
     except Exception, e:
-        print "skipping botched %s: %s" % (fits, e)
+        print "Skipping botched %s: %s" % (fits, e)
         continue
 
 # Hmm. Needs better constraints. CPL
-sys.stderr.write("Adding raw_visits\n")
+print "Adding raw_visits"
 conn.execute("""insert or ignore into raw_visit
         select distinct visit, field, filter, dateObs, taiObs, expTime, pointing from raw""")
 conn.commit()

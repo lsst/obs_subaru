@@ -13,6 +13,7 @@ class SubaruAstrometryConfig(ptAstrometry.AstrometryConfig):
         dtype=hscAstrom.TaburAstrometryConfig,
         doc = "Configuration for the Tabur astrometry solver"
         )
+    failover = pexConfig.Field(dtype=bool, doc="Fail over from hscAstrom to meas_astrom?", default=False)
 
 # Use hsc.meas.astrom, failing over to lsst.meas.astrom
 class SubaruAstrometryTask(ptAstrometry.AstrometryTask):
@@ -39,6 +40,7 @@ class SubaruAstrometryTask(ptAstrometry.AstrometryTask):
         if size is None:
             size = (exposure.getWidth(), exposure.getHeight())
 
+        astrom = None
         try:
             if not self.astrometer or not isinstance(self.astrometer, hscAstrom.TaburAstrometry):
                 self.astrometer = hscAstrom.TaburAstrometry(self.config.solver, log=self.log)
@@ -46,11 +48,13 @@ class SubaruAstrometryTask(ptAstrometry.AstrometryTask):
             if astrom is None:
                 raise RuntimeError("hsc.meas.astrom failed to determine the WCS")
         except Exception, e:
-            self.log.log(self.log.WARN, "hsc.meas.astrom failed (%s); trying lsst.meas.astrom" % e)
-            # N.b. this will replace the previous astrometer with a meas_astrom one
-            self.astrometer = measAstrom.Astrometry(self.config.solver, log=self.log)
-            astrom = self.astrometer.determineWcs(sources, exposure)
-        
+            self.log.log(self.log.WARN, "hsc.meas.astrom failed (%s)" % e)
+            if self.config.failover:
+                self.log.info("Failing over to lsst.meas.astrom....")
+                # N.b. this will replace the previous astrometer with a meas_astrom one
+                self.astrometer = measAstrom.Astrometry(self.config.solver, log=self.log)
+                astrom = self.astrometer.determineWcs(sources, exposure)
+
         if astrom is None:
             raise RuntimeError("Unable to solve astrometry for %s", exposure.getDetector().getId())
 
