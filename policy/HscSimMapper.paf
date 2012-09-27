@@ -319,7 +319,7 @@ datasets: {
         tables:        "raw"
         tables:        "raw_visit"
     }
-    icMatchList: {
+    icMatchFull: {
         template:      "%(pointing)05d/%(filter)s/output/ML-%(visit)07d-%(ccd)03d.fits"
         python:        "lsst.afw.table.BaseCatalog"
         persistable:   "BaseCatalog"
@@ -335,7 +335,7 @@ datasets: {
         tables:        "raw"
         tables:        "raw_visit"
     }
-    srcMatchList: {
+    srcMatchFull: {
         template:      "%(pointing)05d/%(filter)s/output/SRCML-%(visit)07d-%(ccd)03d.fits"
         python:        "lsst.afw.table.BaseCatalog"
         persistable:   "BaseCatalog"
@@ -392,7 +392,7 @@ datasets: {
         tables:        "raw"
         tables:        "raw_visit"
     }
-    stack_icMatchList: {
+    stack_icMatchFull: {
         template:      "stack/%(stack)05d/ML%(patch)08d%(filter)s.fits"
         python:        "lsst.afw.table.BaseCatalog"
         persistable:   "BaseCatalog"
@@ -408,7 +408,7 @@ datasets: {
         tables:        "raw"
         tables:        "raw_visit"
     }
-    stack_srcMatchList: {
+    stack_srcMatchFull: {
         template:      "stack/%(stack)05d/SRCML%(patch)08d%(filter)s.fits"
         python:        "lsst.afw.table.BaseCatalog"
         persistable:   "BaseCatalog"
