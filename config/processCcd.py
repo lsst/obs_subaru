@@ -44,7 +44,7 @@ root.detection.returnOriginalFootprints = False
 
 # Measurement
 root.measurement.algorithms["flux.gaussian"].shiftmax = 10.0
-
+root.doSourceMatches = True
 
 # Enable deblender for processCcd
 root.measurement.doReplaceWithNoise = True
