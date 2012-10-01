@@ -319,7 +319,7 @@ datasets: {
         tables:        "raw"
         tables:        "raw_visit"
     }
-    icMatchList: {
+    icMatchFull: {
         template:      "%(pointing)05d/%(filter)s/output/ML%(visit)05d%(ccd)03d.fits"
         python:        "lsst.afw.table.BaseCatalog"
         persistable:   "BaseCatalog"
@@ -335,7 +335,7 @@ datasets: {
         tables:        "raw"
         tables:        "raw_visit"
     }
-    srcMatchList: {
+    srcMatchFull: {
         template:      "%(pointing)05d/%(filter)s/output/SRCML%(visit)05d%(ccd)03d.fits"
         python:        "lsst.afw.table.BaseCatalog"
         persistable:   "BaseCatalog"
