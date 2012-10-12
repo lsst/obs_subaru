@@ -23,6 +23,7 @@ import sys
 import pyfits
 import shutil
 import optparse
+import datetime
 
 parser = optparse.OptionParser(usage="%prog [options] filenames")
 parser.add_option("-x", "--execute", action="store_true", dest="execute",
@@ -40,6 +41,33 @@ parser.add_option("-f", "--frameID", action="store", dest="frameID",
 parser.add_option("-d", "--date", action="store", dest="expDate",
                   default=False, help="set the exposure time.")
 
+def datetime2mjd(date_time):
+
+    YY = date_time.year
+    MO = date_time.month
+    DD = date_time.day
+    HH = date_time.hour
+    MI = date_time.minute
+    SS = date_time.second
+
+    if MO == 1 or MO == 2:
+        mm = MO + 12
+        yy = YY - 1
+    else:
+        mm = MO
+        yy = YY
+
+    dd = DD + (HH/24.0 + MI/24.0/60.0 + SS/24.0/3600.0)
+
+    A = int(365.25*yy);
+    B = int(yy/400.0);
+    C = int(yy/100.0);
+    D = int(30.59*(mm-2));
+
+    mjd = A + B -C + D  + dd - 678912;
+
+    return mjd
+
 def getFrameInfo(filename):
     """ Read what we care about in the SuprimeCam headers. """
 
@@ -52,19 +80,65 @@ def getFrameInfo(filename):
         sys.stderr.write("%s: INSTRUME card is not defined\n" % (filename))
 
     if opts.frameID:
-        d['frameID'] = "HSC%05d%03d" % (int(opts.frameID), h['DET-ID'])
+        d['frameID'] = "HSCA%05d%03d" % (int(opts.frameID), h['DET-ID']) # FH. this may not match real frameId assign, so to be written if necessary
     else:
         d['frameID'] = h['FRAMEID']
-    if not re.search('^HSCA\d{8}', d['frameID']):
+    if not re.search('^HSC[A-Z]\d{8}', d['frameID']):
         raise SystemExit("frameID=%s for %s is invalid" % (d['frameID'], filename))
-    
+
     d['progID'] = h['OBJECT'].upper()
     d['filterName'] = h['FILTER01'].upper()
-    d['date'] = opts.expDate if opts.expDate else h['DATE-OBS']
+    d['date'] = opts.expDate if opts.expDate else h.get('DATE-OBS')
 
-    # For HSC data, the visit is encoded in the exposure ID.
-    fieldID = d['frameID'][4:8]
-    d['visitID'] = int(fieldID)
+    # visit_Id (i.e., pointing in registry) is derived from MJD
+    mjd =  h.get('MJD')
+    dateobs =  d['date']
+    if not dateobs:
+        sys.stderr.write("%s: DATE-OBS is not defined.\n" % (filename))
+        sys.exit(-1)
+
+    day0 = 55927  # 2012-01-01  51544 -> 2000-01-01
+    if mjd and int(mjd) > day0:  # this handling should be consistent with hscDb.regist_raw_Hsc
+        d['visitID'] = int(mjd) - day0
+    elif dateobs: # if MJD is unavailable in simulation data, convert from date-obs
+        sys.stderr.write("%s: MJD card is not defined. DATE-OBS is converted to MJD.\n" % (filename))
+        m = re.search(r'(\d{4})-(\d{2})-(\d{2})', dateobs)
+        year, month, day = m.groups()
+        obsday = datetime.datetime(int(year), int(month), int(day), 0, 0, 0)
+        mjd = datetime2mjd(obsday)
+        d['visitID'] = int(mjd) - day0
+    else: # if neither mjd and dateobs available (for old HscSim data)
+        sys.stderr.write("%s: MJD card is not defined. FRAMEID is used to derive visitID.\n" % (filename))
+        fieldID = d['frameID'][4:8]
+        d['visitID'] = int(fieldID)
+
+    # extracting visit, ccd from frameId
+
+    m = re.search(r'HSCA(\d{6})(\d{2})', d['frameID'])
+    cycle_num = 0 ## 1st cycle of frame number
+    if not m:
+         m = re.search(r'HSCB(\d{6})(\d{2})', d['frameID'])
+         cycle_num = 1 ## 2nd cycle of frame number
+         if not m:
+             m = re.search(r'HSCC(\d{6})(\d{2})', d['frameID'])
+             cycle_num = 2 ## 3rd cycle of frame number
+             if not m:
+                 sys.stderr.write("Error: Unrecognized Frame ID in FITS Header...:", filename)
+                 sys.exit(-1)
+
+    start6, last2 = m.groups() # HSCA[start6][last2]
+    ccd_int = int(h.get('DET-ID'))
+    if ccd_int >= 100:
+        int_visit_base = int(start6) - 1
+    else:
+        int_visit_base = int(start6)
+
+    frame_num = int(start6)*100 + int(last2) + 100000000*cycle_num   ### Integer corresponding to FRAME-ID + 'A','B','C' etc..  ###
+    visit = "%07d" % (int_visit_base + cycle_num*1000000)
+
+    d['visit'] = int(visit)
+    d['ccd'] = ccd_int
+    d['id'] = frame_num
 
     return d
 
@@ -78,7 +152,8 @@ def getFinalFile(rootDir, filename, info):
     if info['progID'] not in ('BIAS', 'DARK'):
         path = os.path.join(path, info['filterName'])
 
-    return path, info['frameID'] + '.fits'
+    root_new = "HSC-%07d-%03d" % (int(info['visit']), int(info['ccd']))
+    return path, root_new + '.fits'
 
 
 def main():
