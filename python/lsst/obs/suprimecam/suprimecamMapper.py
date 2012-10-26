@@ -210,6 +210,10 @@ class SuprimecamMapperBase(CameraMapper):
             obsMidpoint = obsStart.nsecs() + long(expTime * 1000000000L / 2)
             calib.setMidTime(dafBase.DateTime(obsMidpoint))
 
+    @classmethod
+    def getEupsProductName(cls):
+        return "obs_subaru"
+
 class SuprimecamMapper(SuprimecamMapperBase):
     """
     Mapper for SuprimeCam with the newer Hamamatsu chips.
@@ -233,6 +237,10 @@ class SuprimecamMapper(SuprimecamMapperBase):
                          "Satsuki", "Chihiro", "Clarisse", "Ponyo", "San"]
         ccdTmp = int("%(ccd)d" % dataId)
         return miyazakiNames[ccdTmp]
+
+    @classmethod
+    def getCameraName(cls):
+        return "suprimecam"
 
 class SuprimecamMapperMit(SuprimecamMapperBase):
     """
@@ -261,3 +269,7 @@ class SuprimecamMapperMit(SuprimecamMapperBase):
         mitNames = ["w67c1", "w6c1", "si005s", "si001s",  "si002s", "si006s", "w93c2", "w9c2", "w4c5", "w7c3"]
         ccdTmp = int("%(ccd)d" % dataId)
         return mitNames[ccdTmp]
+
+    @classmethod
+    def getCameraName(cls):
+        return "suprimecam-mit"

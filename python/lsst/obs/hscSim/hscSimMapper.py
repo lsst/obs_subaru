@@ -73,3 +73,11 @@ class HscSimMapper(CameraMapper):
     def bypass_ccdExposureId_bits(self, datasetType, pythonType, location, dataId):
         """How many bits are required for the maximum exposure ID"""
         return 32 # just a guess, but this leaves plenty of space for sources
+
+    @classmethod
+    def getCameraName(cls):
+        return "hscSim"
+
+    @classmethod
+    def getEupsProductName(cls):
+        return "obs_subaru"
