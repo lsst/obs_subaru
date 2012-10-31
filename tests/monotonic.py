@@ -4,6 +4,7 @@ try:
     import pylab as plt
 except ImportError:
     plt = None
+
 import numpy as np
 
 import lsst.afw.detection as afwDet
@@ -36,19 +37,6 @@ def main000():
         plt.clf()
         plt.imshow(mim.getImage().getArray(), origin='lower', interpolation='nearest')
         plt.savefig('mono2.png')
-
-        if False:
-            im[:,:] = 5.
-            im[y0,x0] = 10.
-            im[y0+1, x0+1] = 1.
-
-            plt.clf()
-            plt.imshow(im, origin='lower', interpolation='nearest')
-            plt.savefig('im6.png')
-            butils.makeMonotonic(mim, foot, peak, 1.)
-            plt.clf()
-            plt.imshow(mim.getImage().getArray(), origin='lower', interpolation='nearest')
-            plt.savefig('mono6.png')
 
 def randoms(S=10, N=1, GA=10, GS=10):
     butils = measDeblend.BaselineUtilsF

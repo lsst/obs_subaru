@@ -28,6 +28,7 @@ def addToParser(parser):
                       help='Cut to the first N deblend families')
     parser.add_option('--drill', '-D', dest='drill', action='append', type=int, default=[],
                       help='Drill down on individual source IDs')
+    parser.add_option('--roi', dest='roi', type=float, nargs=4, help='Select an x0,x1,y0,y1 subset of the image')
     parser.add_option('--no-deblend-plots', dest='deblendplots', action='store_false', default=True,
                       help='Do not make deblend plots')
     parser.add_option('--no-measure-plots', dest='measplots', action='store_false', default=True,
@@ -127,7 +128,8 @@ def runDeblend(dataRef, sourcefn, conf, procclass, forceisr=False, forcecalib=Fa
 
     conf.detection.returnOriginalFootprints = False
     conf.calibrate.doComputeApCorr = False
-    conf.calibrate.doAstrometry = False
+    if hasattr(conf.calibrate, 'doAstrometry'):
+        conf.calibrate.doAstrometry = False
     conf.calibrate.doPhotoCal = False
     conf.calibrate.measurement.doApplyApCorr = False
     conf.measurement.doApplyApCorr = False
@@ -323,20 +325,67 @@ def t1091main(dr, opt, conf, proc, patargs={}, rundeblendargs={}, pool=None):
                 mim.writeFits(fn)
                 print 'Wrote', fn
 
+    if opt.roi is not None:
+        print 'Selecting objects in region-of-interest', opt.roi
+        xx = [src.getX() for src in cat]
+        yy = [src.getY() for src in cat]
+        print 'Source positions range:', min(xx), max(xx), min(yy), max(yy)
+        (x0,x1,y0,y1) = opt.roi
+        keep = [src for src,x,y in zip(cat,xx,yy)
+                if (x >= x0) and (x <= x1) and (y >= y0) and (y <= y1)]
+        print 'Keeping', len(keep), 'of', len(cat), 'sources'
+
+        keepcat = afwTable.SourceCatalog(cat.getTable())
+        for k in keep:
+            keepcat.append(k)
+        keepcat.sort()
+        cat = keepcat
+
     if opt.overview is not None:
+        print 'Producing overview plot...'
         exposure = dr.get('calexp')
         print 'Exposure', exposure
         mi = exposure.getMaskedImage()
         sigma1 = get_sigma1(mi)
         W,H = mi.getWidth(), mi.getHeight()
         im = mi.getImage().getArray()
-        dpi=100
-        plt.figure(figsize=(1+W/dpi, 1+H/dpi), dpi=dpi)
+        imext = getExtent(mi.getBBox(afwImage.PARENT))
+
+        # This seems a little extreme...
+        #dpi=100
+        #plt.figure(figsize=(1+W/dpi, 1+H/dpi), dpi=dpi)
+
         plt.clf()
-        plt.imshow(im, interpolation='nearest', origin='lower', vmin=-2.*sigma1, vmax=10.*sigma1)
-        ax = plt.axis()
+        plt.imshow(im, interpolation='nearest', origin='lower',
+                   extent=imext, vmin=-2.*sigma1, vmax=10.*sigma1)
         plt.gray()
-        for src in cat:
+
+        if opt.roi is not None:
+            plt.axis(opt.roi)
+
+        plt.savefig(opt.overview % 'a')
+        ax = plt.axis()
+
+        cxx,cyy,pxx,pyy = [],[],[],[]
+        for i,src in enumerate(cat):
+            if src.getParent():
+                cxx.append(src.getX())
+                cyy.append(src.getY())
+            else:
+                pxx.append(src.getX())
+                pyy.append(src.getY())
+        if len(cxx):
+            plt.plot(cxx, cyy, 'b+')
+        if len(pxx):
+            plt.plot(pxx, pyy, 'r+')
+        plt.axis(ax)
+        plt.savefig(opt.overview % 'b')
+
+
+        plt.imshow(im, interpolation='nearest', origin='lower',
+                   extent=imext, vmin=-2.*sigma1, vmax=10.*sigma1)
+        plt.gray()
+        for i,src in enumerate(cat):
             ext = getExtent(src.getFootprint().getBBox())
             xx = [ext[0],ext[1],ext[1],ext[0],ext[0]]
             yy = [ext[2],ext[2],ext[3],ext[3],ext[2]]
@@ -346,7 +395,7 @@ def t1091main(dr, opt, conf, proc, patargs={}, rundeblendargs={}, pool=None):
                 c = 'y'
             plt.plot(xx, yy, '-', color=c)
         plt.axis(ax)
-        plt.savefig(opt.overview)
+        plt.savefig(opt.overview % 'c')
         
     if opt.nkeep:
         cat = cutCatalog(cat, opt.nkeep)
