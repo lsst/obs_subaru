@@ -8,7 +8,19 @@ needCalibRegistry: true
 
 camera:     "../suprimecam/Full_Suprimecam_geom.paf"
 defects:    "../suprimecam/defects"
-defaultLevel: "Ccd"
+
+levels: {
+    skyTile: "visit" "ccd"
+    tract: "visit" "ccd"
+    visit: "visit"
+    sensor: "visit" "ccd"
+}
+defaultLevel: "sensor"
+defaultSubLevels: {
+    skyTile: "sensor"
+    visit: "sensor"
+    sensor: "sensor"
+}
 
 exposures: {
     raw: {
