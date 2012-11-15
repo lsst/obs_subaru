@@ -10,16 +10,18 @@ camera:     "../suprimecam/Full_Suprimecam_geom.paf"
 defects:    "../suprimecam/defects"
 
 levels: {
+    # Keys that are NOT relevant for a particular level
     skyTile: "visit" "ccd"
-    tract: "visit" "ccd"
-    visit: "visit"
-    sensor: "visit" "ccd"
+    tract: "patch"
+    visit: "ccd"
+    sensor: "none"
 }
 defaultLevel: "sensor"
 defaultSubLevels: {
+    # Default sublevel for dataRef.subItems()
     skyTile: "sensor"
     visit: "sensor"
-    sensor: "sensor"
+    sensor: "none"
 }
 
 exposures: {
