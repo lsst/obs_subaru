@@ -16,3 +16,22 @@ You can also make plots of SuprimeCam results:
 python examples/suprimePlot.py --data ~dstn/lsst/ACT-data -v 126969 -c 5 --data-range -100 300 --roi 0 500 0 500
 
 
+
+You can grab a subset of the data via:
+
+mkdir DATA; cd DATA
+rsync -Rarvz sesamet3:/scratch/lustre/hsc/Subaru/SUPA/./SDSS1115/2009-03-31/00253/W-S-G+/SUPA01087925.fits .
+rsync -Rarvz sesamet3:/scratch/lustre/hsc/Subaru/SUPA/./registry.sqlite3 .
+rsync -Rarvz sesamet3:/scratch/lustre/hsc/Subaru/SUPA/./CALIB/calibRegistry.sqlite3 .
+rsync -Rarvz sesamet3:/scratch/lustre/hsc/Subaru/SUPA/./CALIB/FLAT/2009-03-31/W-S-G+/000/FLAT-00000005.fits .
+rsync -Rarvz sesamet3:/scratch/lustre/hsc/Subaru/SUPA/./mapper.py
+
+echo "lsst.obs.suprimecam.suprimecamMapper.SuprimecamMapper" > _mapper
+
+export SUPRIME_DATA_DIR=$(PWD)
+
+python $PIPE_TASKS_DIR/bin/processCcd.py /Users/dstn/lsst/DATA --id visit=108792 ccd=5 \
+	   -c calibrate.measurePsf.starSelector.name=secondMoment \
+	   -c doDeblend=True \
+	   --output $(PWD)/out
+

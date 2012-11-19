@@ -109,7 +109,8 @@ def main():
     sigma1 = get_sigma1(mi)
 
     fams = getFamilies(cat)
-
+    print len(fams), 'deblend families'
+    
     if False:
         for j,(parent,children) in enumerate(fams):
             print 'parent', parent
@@ -194,8 +195,13 @@ def main():
                           lstsq_weight_templates=True)
         else:
             raise 'Unknown section: "%s"' % opt.sec
-        res = deblend(fp, mi, psf, psf_fwhm, **kwargs)
 
+        print 'Running deblender...'
+        res = deblend(fp, mi, psf, psf_fwhm, **kwargs)
+        print 'got result with', [x for x in dir(res) if not x.startswith('__')]
+        for pk in res.peaks:
+            print 'got peak with', [x for x in dir(pk) if not x.startswith('__')]
+            print '  deblend as psf?', pk.deblend_as_psf
         tsum = np.zeros((bb.getHeight(), bb.getWidth()))
         k = 0
         for pkres,pk in zip(res.peaks, pks):

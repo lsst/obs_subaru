@@ -16,6 +16,9 @@ def addToParser(parser):
     parser.add_option('--force-det', '--force-detect', '--force-detection', '-d',
                       dest='forcedet', action='store_true', default=False,
                       help='Force re-running the detection stage?')
+    parser.add_option('--force-astrom',
+                      dest='forceastrom', action='store_true', default=False,
+                      help='Force re-running the astrometry stage?')
     parser.add_option('--force-calib', dest='forcecalib', action='store_true', default=False,
                       help='Force re-running the Calibration stage?')
     parser.add_option('--force-isr', dest='forceisr', action='store_true', default=False,
@@ -116,7 +119,8 @@ class DebugDeblendTask(measAlg.SourceDeblendTask):
         self.plotnum += 1
 
 
-def runDeblend(dataRef, sourcefn, conf, procclass, forceisr=False, forcecalib=False, forcedet=False,
+def runDeblend(dataRef, sourcefn, conf, procclass, forceisr=False, forcecalib=False,
+               forcedet=False, forceastrom=False,
                verbose=False, drill=[], debugDeblend=True, debugMeas=True,
                calibInput='postISRCCD', tweak_config=None, prefix=None,
                printMap=False, hasIsr=True):
@@ -129,7 +133,7 @@ def runDeblend(dataRef, sourcefn, conf, procclass, forceisr=False, forcecalib=Fa
     conf.detection.returnOriginalFootprints = False
     conf.calibrate.doComputeApCorr = False
     if hasattr(conf.calibrate, 'doAstrometry'):
-        conf.calibrate.doAstrometry = False
+        conf.calibrate.doAstrometry = forceastrom
     conf.calibrate.doPhotoCal = False
     conf.calibrate.measurement.doApplyApCorr = False
     conf.measurement.doApplyApCorr = False
@@ -176,7 +180,7 @@ def runDeblend(dataRef, sourcefn, conf, procclass, forceisr=False, forcecalib=Fa
     if forceisr:
         print 'Forcing ISR'
         doIsr = True
-    if forcecalib:
+    if forcecalib or forceastrom:
         print 'Forcing calibration'
         doCalib = True
     if forcedet:
@@ -194,30 +198,8 @@ def runDeblend(dataRef, sourcefn, conf, procclass, forceisr=False, forcecalib=Fa
         tweak_config(conf)
 
     if not doDetect:
-        # Massage the sources into a pre-deblended state.
-        print 'Got', len(srcs), 'sources'
-        # Remove children from the Catalog (don't re-deblend)
-        n0 = len(srcs)
-        i=0
-        while i < len(srcs):
-            if srcs[i].getParent():
-                del srcs[i]
-            else:
-                i += 1
-        n1 = len(srcs)
-        if n1 != n0:
-            print "Dropped %i of %i 'child' sources (%i remaining)" % ((n0-n1), n0, n1)
-        # Make sure the IdFactory exists and doesn't duplicate IDs
-        # (until JimB finishes #2083)
-        f = srcs.getTable().getIdFactory()
-        if f is None:
-            f = afwTable.IdFactory.makeSimple()
-            srcs.getTable().setIdFactory(f)
-        maxid = max([src.getId() for src in srcs])
-        f.notify(maxid)
-        print 'Max ID in catalog:', maxid
-
-        # still set conf.doDetection = True here so the schema gets populated properly...
+        # still set conf.doDetection = True here so the schema gets
+        # populated properly.
         conf.doDetection = True
 
     conf.doDeblend = True
@@ -268,7 +250,7 @@ def runDeblend(dataRef, sourcefn, conf, procclass, forceisr=False, forcecalib=Fa
         assert(proc.schema == srcs.getSchema())
 
     conf.doDetection = doDetect
-    res = proc.run(dr, sources=srcs)
+    res = proc.run(dr)
 
     if srcs:
         assert(proc.schema == srcs.getSchema())
@@ -304,6 +286,7 @@ def t1091main(dr, opt, conf, proc, patargs={}, rundeblendargs={}, pool=None):
     if cat is None:
         cat = runDeblend(dr, opt.sourcefn, conf, proc,
                          opt.forceisr, opt.forcecalib, opt.forcedet,
+                         opt.forceastrom,
                          opt.verbose, opt.drill, opt.deblendplots, opt.measplots,
                          prefix=opt.prefix, **rundeblendargs)
                          

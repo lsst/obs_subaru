@@ -480,9 +480,9 @@ class WrapperMapper(object):
             setattr(self, x, relay_bypass(self.real, x))
             #print 'Wrapping', x
             
-    def map(self, *args):
-        print 'Mapping', args
-        R = self.real.map(*args)
+    def map(self, *args, **kwargs):
+        print 'Mapping', args, kwargs
+        R = self.real.map(*args, **kwargs)
         print '->', R
         return R
     # relay
