@@ -325,8 +325,8 @@ class SubaruIsrTask(IsrTask):
 
 class HamamatsuIsrTaskConfig(SubaruIsrTask.ConfigClass):
     crosstalkCoeffs = pexConfig.ConfigField(
-        dtype = crosstalk.CrosstalkCoeffsConfig,
-        doc = "Crosstalk coefficients",
+        dtype = crosstalk.CrosstalkYagiCoeffsConfig,
+        doc = "Crosstalk coefficients by Yagi+ 2012",
     )
     crosstalkMaskPlane = pexConfig.Field(
         dtype = str,
@@ -347,14 +347,23 @@ class SuprimeCamIsrTask(SubaruIsrTask):
     ConfigClass = SuprimeCamIsrTaskConfig
 
     def crosstalk(self, exposure):
-        coeffs = self.config.crosstalkCoeffs.getCoeffs()
-
-        if numpy.any(coeffs):
-            self.log.log(self.log.INFO, "Applying crosstalk corrections to CCD %s" %
+        coeffs1List = self.config.crosstalkCoeffs.getCoeffs1() # primary crosstalk
+        coeffs2List = self.config.crosstalkCoeffs.getCoeffs2() # secondary crosstalk
+        gainsPreampSig = self.config.crosstalkCoeffs.getGainsPreampSigboard()
+        if numpy.any(coeffs1List):
+            self.log.log(self.log.INFO, "Applying crosstalk corrections to CCD %s based on Yagi+2012" %
                          (exposure.getDetector().getId()))
+        else:
+            self.log.log(self.log.INFO, "No crosstalk info available. Skipping crosstalk corrections to CCD %s" %
+                         (exposure.getDetector().getId()))
+            return
 
-            crosstalk.subtractXTalk(exposure.getMaskedImage(), coeffs,
-                                    self.config.minPixelToMask, self.config.crosstalkMaskPlane)
+        ccdId = int(exposure.getDetector().getId().getSerial())
+        gainsPreampSigCcd = gainsPreampSig[ccdId]
+        crosstalk.subtractCrosstalkYagi(exposure.getMaskedImage(), coeffs1List, coeffs2List,
+                                        gainsPreampSigCcd,
+                                        self.config.minPixelToMask, self.config.crosstalkMaskPlane)
+
 
     def guider(self, exposure):
         """Mask defects and trim guider shadow
