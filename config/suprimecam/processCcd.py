@@ -11,7 +11,7 @@ root.isr.doWrite = False
 
 # crosstalk coefficients for SuprimeCam, as crudely measured by RHL
 
-if False:
+if False: # for RHL
     root.isr.crosstalkCoeffs.values = [
         0.00e+00, -8.93e-05, -1.11e-04, -1.18e-04,
         -8.09e-05,  0.00e+00, -7.15e-06, -1.12e-04,
