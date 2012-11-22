@@ -71,8 +71,8 @@ void subtractCrosstalk(
 
             for( int ch1 = 0; ch1 < nAmp; ++ch1 ) { // channel of pixel being affected
 
-//                std::vector<double> coeffs1 = coeffs1List.at(ch1); // array of [[A-D]->A, [A-D]->B, [A-D]->C, [A-D]->D]
-//                std::vector<double> coeffs2 = coeffs2List.at(ch1);
+                std::vector<double> coeffs1 = coeffs1List.at(ch1); // array of [[A-D]->A, [A-D]->B, [A-D]->C, [A-D]->D]
+                std::vector<double> coeffs2 = coeffs2List.at(ch1);
                 //std::vector<double> coeffs1(4, 1.0);
                 //std::vector<double> coeffs2(4, 0.5);
 
@@ -84,9 +84,9 @@ void subtractCrosstalk(
                     double v1 = img0(ctx1, j); //>at(ctx1, j);
                     double v2 = img0(ctx2, j); //>at(ctx1, j);// ptr->at(ctx2, j);
 
-                    //std::cout << "ceffs1[" << ch2 << "]:" << coeffs1.at(ch2) << " v1:" << v1;
-                    //crosstalkOffsets.at(ch1) += (coeffs1.at(ch2) * v1 + coeffs2.at(ch2) * v2) * gainsPreampSig.at(ch2) / gainsPreampSig.at(ch1);
-                    crosstalkOffsets.at(ch1) += (1.0 * v1 + 2.0 * v2) * 1.5/ 3.0;
+                    std::cout << "ceffs1[" << ch2 << "]:" << coeffs1.at(ch2) << " v1:" << v1;
+                    crosstalkOffsets.at(ch1) += (coeffs1.at(ch2) * v1 + coeffs2.at(ch2) * v2) * gainsPreampSig.at(ch2) / gainsPreampSig.at(ch1);
+                    //crosstalkOffsets.at(ch1) += (1.0 * v1 + 2.0 * v2) * 1.5/ 3.0;
                 }
 
                 // correction of crosstalk
