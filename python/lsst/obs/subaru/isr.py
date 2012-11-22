@@ -135,6 +135,9 @@ class SubaruIsrTask(IsrTask):
         if self.config.qa.doThumbnailOss:
             self.writeThumbnail(sensorRef, "ossThumb", ccdExposure)
 
+        #if self.config.doCrosstalk: # crosstalk is handled for raw counts
+        #    self.crosstalk(ccdExposure)
+
         if self.config.doDefect:
             self.maskDefect(ccdExposure)
 

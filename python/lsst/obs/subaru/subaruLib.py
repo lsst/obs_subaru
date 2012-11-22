@@ -597,6 +597,682 @@ SHARED_PTR_DISOWN = _subaruLib.SHARED_PTR_DISOWN
 LSST_BASE_BASE_H = _subaruLib.LSST_BASE_BASE_H
 import lsst.pex.exceptions
 
+class VecDouble(_object):
+    """Proxy of C++ std::vector<(double)> class"""
+    __swig_setmethods__ = {}
+    __setattr__ = lambda self, name, value: _swig_setattr_nondynamic(self, VecDouble, name, value)
+    __swig_getmethods__ = {}
+    __getattr__ = lambda self, name: _swig_getattr(self, VecDouble, name)
+    __repr__ = _swig_repr
+    def iterator(self):
+        """iterator(self) -> SwigPyIterator"""
+        return _subaruLib.VecDouble_iterator(self)
+
+    def __iter__(self): return self.iterator()
+    def __nonzero__(self):
+        """__nonzero__(self) -> bool"""
+        return _subaruLib.VecDouble___nonzero__(self)
+
+    def __bool__(self):
+        """__bool__(self) -> bool"""
+        return _subaruLib.VecDouble___bool__(self)
+
+    def __len__(self):
+        """__len__(self) -> size_type"""
+        return _subaruLib.VecDouble___len__(self)
+
+    def pop(self):
+        """pop(self) -> value_type"""
+        return _subaruLib.VecDouble_pop(self)
+
+    def __getslice__(self, *args):
+        """__getslice__(self, difference_type i, difference_type j) -> VecDouble"""
+        return _subaruLib.VecDouble___getslice__(self, *args)
+
+    def __setslice__(self, *args):
+        """
+        __setslice__(self, difference_type i, difference_type j, VecDouble v = std::vector< double,std::allocator< double > >())
+        __setslice__(self, difference_type i, difference_type j)
+        """
+        return _subaruLib.VecDouble___setslice__(self, *args)
+
+    def __delslice__(self, *args):
+        """__delslice__(self, difference_type i, difference_type j)"""
+        return _subaruLib.VecDouble___delslice__(self, *args)
+
+    def __delitem__(self, *args):
+        """
+        __delitem__(self, difference_type i)
+        __delitem__(self, PySliceObject slice)
+        """
+        return _subaruLib.VecDouble___delitem__(self, *args)
+
+    def __getitem__(self, *args):
+        """
+        __getitem__(self, PySliceObject slice) -> VecDouble
+        __getitem__(self, difference_type i) -> value_type
+        """
+        return _subaruLib.VecDouble___getitem__(self, *args)
+
+    def __setitem__(self, *args):
+        """
+        __setitem__(self, PySliceObject slice, VecDouble v)
+        __setitem__(self, PySliceObject slice)
+        __setitem__(self, difference_type i, value_type x)
+        """
+        return _subaruLib.VecDouble___setitem__(self, *args)
+
+    def append(self, *args):
+        """append(self, value_type x)"""
+        return _subaruLib.VecDouble_append(self, *args)
+
+    def empty(self):
+        """empty(self) -> bool"""
+        return _subaruLib.VecDouble_empty(self)
+
+    def size(self):
+        """size(self) -> size_type"""
+        return _subaruLib.VecDouble_size(self)
+
+    def clear(self):
+        """clear(self)"""
+        return _subaruLib.VecDouble_clear(self)
+
+    def swap(self, *args):
+        """swap(self, VecDouble v)"""
+        return _subaruLib.VecDouble_swap(self, *args)
+
+    def get_allocator(self):
+        """get_allocator(self) -> allocator_type"""
+        return _subaruLib.VecDouble_get_allocator(self)
+
+    def begin(self):
+        """begin(self) -> iterator"""
+        return _subaruLib.VecDouble_begin(self)
+
+    def end(self):
+        """end(self) -> iterator"""
+        return _subaruLib.VecDouble_end(self)
+
+    def rbegin(self):
+        """rbegin(self) -> reverse_iterator"""
+        return _subaruLib.VecDouble_rbegin(self)
+
+    def rend(self):
+        """rend(self) -> reverse_iterator"""
+        return _subaruLib.VecDouble_rend(self)
+
+    def pop_back(self):
+        """pop_back(self)"""
+        return _subaruLib.VecDouble_pop_back(self)
+
+    def erase(self, *args):
+        """
+        erase(self, iterator pos) -> iterator
+        erase(self, iterator first, iterator last) -> iterator
+        """
+        return _subaruLib.VecDouble_erase(self, *args)
+
+    def __init__(self, *args): 
+        """
+        __init__(self) -> VecDouble
+        __init__(self, VecDouble arg0) -> VecDouble
+        __init__(self, size_type size) -> VecDouble
+        __init__(self, size_type size, value_type value) -> VecDouble
+        """
+        this = _subaruLib.new_VecDouble(*args)
+        try: self.this.append(this)
+        except: self.this = this
+    def push_back(self, *args):
+        """push_back(self, value_type x)"""
+        return _subaruLib.VecDouble_push_back(self, *args)
+
+    def front(self):
+        """front(self) -> value_type"""
+        return _subaruLib.VecDouble_front(self)
+
+    def back(self):
+        """back(self) -> value_type"""
+        return _subaruLib.VecDouble_back(self)
+
+    def assign(self, *args):
+        """assign(self, size_type n, value_type x)"""
+        return _subaruLib.VecDouble_assign(self, *args)
+
+    def resize(self, *args):
+        """
+        resize(self, size_type new_size)
+        resize(self, size_type new_size, value_type x)
+        """
+        return _subaruLib.VecDouble_resize(self, *args)
+
+    def insert(self, *args):
+        """
+        insert(self, iterator pos, value_type x) -> iterator
+        insert(self, iterator pos, size_type n, value_type x)
+        """
+        return _subaruLib.VecDouble_insert(self, *args)
+
+    def reserve(self, *args):
+        """reserve(self, size_type n)"""
+        return _subaruLib.VecDouble_reserve(self, *args)
+
+    def capacity(self):
+        """capacity(self) -> size_type"""
+        return _subaruLib.VecDouble_capacity(self)
+
+    __swig_destroy__ = _subaruLib.delete_VecDouble
+    __del__ = lambda self : None;
+VecDouble_swigregister = _subaruLib.VecDouble_swigregister
+VecDouble_swigregister(VecDouble)
+
+class VecVecDouble(_object):
+    """Proxy of C++ std::vector<(std::vector<(double)>)> class"""
+    __swig_setmethods__ = {}
+    __setattr__ = lambda self, name, value: _swig_setattr_nondynamic(self, VecVecDouble, name, value)
+    __swig_getmethods__ = {}
+    __getattr__ = lambda self, name: _swig_getattr(self, VecVecDouble, name)
+    __repr__ = _swig_repr
+    def iterator(self):
+        """iterator(self) -> SwigPyIterator"""
+        return _subaruLib.VecVecDouble_iterator(self)
+
+    def __iter__(self): return self.iterator()
+    def __nonzero__(self):
+        """__nonzero__(self) -> bool"""
+        return _subaruLib.VecVecDouble___nonzero__(self)
+
+    def __bool__(self):
+        """__bool__(self) -> bool"""
+        return _subaruLib.VecVecDouble___bool__(self)
+
+    def __len__(self):
+        """__len__(self) -> size_type"""
+        return _subaruLib.VecVecDouble___len__(self)
+
+    def pop(self):
+        """pop(self) -> value_type"""
+        return _subaruLib.VecVecDouble_pop(self)
+
+    def __getslice__(self, *args):
+        """__getslice__(self, difference_type i, difference_type j) -> VecVecDouble"""
+        return _subaruLib.VecVecDouble___getslice__(self, *args)
+
+    def __setslice__(self, *args):
+        """
+        __setslice__(self, difference_type i, difference_type j, VecVecDouble v = std::vector< std::vector< double,std::allocator< double > >,std::allocator< std::vector< double,std::allocator< double > > > >())
+        __setslice__(self, difference_type i, difference_type j)
+        """
+        return _subaruLib.VecVecDouble___setslice__(self, *args)
+
+    def __delslice__(self, *args):
+        """__delslice__(self, difference_type i, difference_type j)"""
+        return _subaruLib.VecVecDouble___delslice__(self, *args)
+
+    def __delitem__(self, *args):
+        """
+        __delitem__(self, difference_type i)
+        __delitem__(self, PySliceObject slice)
+        """
+        return _subaruLib.VecVecDouble___delitem__(self, *args)
+
+    def __getitem__(self, *args):
+        """
+        __getitem__(self, PySliceObject slice) -> VecVecDouble
+        __getitem__(self, difference_type i) -> value_type
+        """
+        return _subaruLib.VecVecDouble___getitem__(self, *args)
+
+    def __setitem__(self, *args):
+        """
+        __setitem__(self, PySliceObject slice, VecVecDouble v)
+        __setitem__(self, PySliceObject slice)
+        __setitem__(self, difference_type i, value_type x)
+        """
+        return _subaruLib.VecVecDouble___setitem__(self, *args)
+
+    def append(self, *args):
+        """append(self, value_type x)"""
+        return _subaruLib.VecVecDouble_append(self, *args)
+
+    def empty(self):
+        """empty(self) -> bool"""
+        return _subaruLib.VecVecDouble_empty(self)
+
+    def size(self):
+        """size(self) -> size_type"""
+        return _subaruLib.VecVecDouble_size(self)
+
+    def clear(self):
+        """clear(self)"""
+        return _subaruLib.VecVecDouble_clear(self)
+
+    def swap(self, *args):
+        """swap(self, VecVecDouble v)"""
+        return _subaruLib.VecVecDouble_swap(self, *args)
+
+    def get_allocator(self):
+        """get_allocator(self) -> allocator_type"""
+        return _subaruLib.VecVecDouble_get_allocator(self)
+
+    def begin(self):
+        """begin(self) -> iterator"""
+        return _subaruLib.VecVecDouble_begin(self)
+
+    def end(self):
+        """end(self) -> iterator"""
+        return _subaruLib.VecVecDouble_end(self)
+
+    def rbegin(self):
+        """rbegin(self) -> reverse_iterator"""
+        return _subaruLib.VecVecDouble_rbegin(self)
+
+    def rend(self):
+        """rend(self) -> reverse_iterator"""
+        return _subaruLib.VecVecDouble_rend(self)
+
+    def pop_back(self):
+        """pop_back(self)"""
+        return _subaruLib.VecVecDouble_pop_back(self)
+
+    def erase(self, *args):
+        """
+        erase(self, iterator pos) -> iterator
+        erase(self, iterator first, iterator last) -> iterator
+        """
+        return _subaruLib.VecVecDouble_erase(self, *args)
+
+    def __init__(self, *args): 
+        """
+        __init__(self) -> VecVecDouble
+        __init__(self, VecVecDouble arg0) -> VecVecDouble
+        __init__(self, size_type size) -> VecVecDouble
+        __init__(self, size_type size, value_type value) -> VecVecDouble
+        """
+        this = _subaruLib.new_VecVecDouble(*args)
+        try: self.this.append(this)
+        except: self.this = this
+    def push_back(self, *args):
+        """push_back(self, value_type x)"""
+        return _subaruLib.VecVecDouble_push_back(self, *args)
+
+    def front(self):
+        """front(self) -> value_type"""
+        return _subaruLib.VecVecDouble_front(self)
+
+    def back(self):
+        """back(self) -> value_type"""
+        return _subaruLib.VecVecDouble_back(self)
+
+    def assign(self, *args):
+        """assign(self, size_type n, value_type x)"""
+        return _subaruLib.VecVecDouble_assign(self, *args)
+
+    def resize(self, *args):
+        """
+        resize(self, size_type new_size)
+        resize(self, size_type new_size, value_type x)
+        """
+        return _subaruLib.VecVecDouble_resize(self, *args)
+
+    def insert(self, *args):
+        """
+        insert(self, iterator pos, value_type x) -> iterator
+        insert(self, iterator pos, size_type n, value_type x)
+        """
+        return _subaruLib.VecVecDouble_insert(self, *args)
+
+    def reserve(self, *args):
+        """reserve(self, size_type n)"""
+        return _subaruLib.VecVecDouble_reserve(self, *args)
+
+    def capacity(self):
+        """capacity(self) -> size_type"""
+        return _subaruLib.VecVecDouble_capacity(self)
+
+    __swig_destroy__ = _subaruLib.delete_VecVecDouble
+    __del__ = lambda self : None;
+VecVecDouble_swigregister = _subaruLib.VecVecDouble_swigregister
+VecVecDouble_swigregister(VecVecDouble)
+
+class VecInt(_object):
+    """Proxy of C++ std::vector<(int)> class"""
+    __swig_setmethods__ = {}
+    __setattr__ = lambda self, name, value: _swig_setattr_nondynamic(self, VecInt, name, value)
+    __swig_getmethods__ = {}
+    __getattr__ = lambda self, name: _swig_getattr(self, VecInt, name)
+    __repr__ = _swig_repr
+    def iterator(self):
+        """iterator(self) -> SwigPyIterator"""
+        return _subaruLib.VecInt_iterator(self)
+
+    def __iter__(self): return self.iterator()
+    def __nonzero__(self):
+        """__nonzero__(self) -> bool"""
+        return _subaruLib.VecInt___nonzero__(self)
+
+    def __bool__(self):
+        """__bool__(self) -> bool"""
+        return _subaruLib.VecInt___bool__(self)
+
+    def __len__(self):
+        """__len__(self) -> size_type"""
+        return _subaruLib.VecInt___len__(self)
+
+    def pop(self):
+        """pop(self) -> value_type"""
+        return _subaruLib.VecInt_pop(self)
+
+    def __getslice__(self, *args):
+        """__getslice__(self, difference_type i, difference_type j) -> VecInt"""
+        return _subaruLib.VecInt___getslice__(self, *args)
+
+    def __setslice__(self, *args):
+        """
+        __setslice__(self, difference_type i, difference_type j, VecInt v = std::vector< int,std::allocator< int > >())
+        __setslice__(self, difference_type i, difference_type j)
+        """
+        return _subaruLib.VecInt___setslice__(self, *args)
+
+    def __delslice__(self, *args):
+        """__delslice__(self, difference_type i, difference_type j)"""
+        return _subaruLib.VecInt___delslice__(self, *args)
+
+    def __delitem__(self, *args):
+        """
+        __delitem__(self, difference_type i)
+        __delitem__(self, PySliceObject slice)
+        """
+        return _subaruLib.VecInt___delitem__(self, *args)
+
+    def __getitem__(self, *args):
+        """
+        __getitem__(self, PySliceObject slice) -> VecInt
+        __getitem__(self, difference_type i) -> value_type
+        """
+        return _subaruLib.VecInt___getitem__(self, *args)
+
+    def __setitem__(self, *args):
+        """
+        __setitem__(self, PySliceObject slice, VecInt v)
+        __setitem__(self, PySliceObject slice)
+        __setitem__(self, difference_type i, value_type x)
+        """
+        return _subaruLib.VecInt___setitem__(self, *args)
+
+    def append(self, *args):
+        """append(self, value_type x)"""
+        return _subaruLib.VecInt_append(self, *args)
+
+    def empty(self):
+        """empty(self) -> bool"""
+        return _subaruLib.VecInt_empty(self)
+
+    def size(self):
+        """size(self) -> size_type"""
+        return _subaruLib.VecInt_size(self)
+
+    def clear(self):
+        """clear(self)"""
+        return _subaruLib.VecInt_clear(self)
+
+    def swap(self, *args):
+        """swap(self, VecInt v)"""
+        return _subaruLib.VecInt_swap(self, *args)
+
+    def get_allocator(self):
+        """get_allocator(self) -> allocator_type"""
+        return _subaruLib.VecInt_get_allocator(self)
+
+    def begin(self):
+        """begin(self) -> iterator"""
+        return _subaruLib.VecInt_begin(self)
+
+    def end(self):
+        """end(self) -> iterator"""
+        return _subaruLib.VecInt_end(self)
+
+    def rbegin(self):
+        """rbegin(self) -> reverse_iterator"""
+        return _subaruLib.VecInt_rbegin(self)
+
+    def rend(self):
+        """rend(self) -> reverse_iterator"""
+        return _subaruLib.VecInt_rend(self)
+
+    def pop_back(self):
+        """pop_back(self)"""
+        return _subaruLib.VecInt_pop_back(self)
+
+    def erase(self, *args):
+        """
+        erase(self, iterator pos) -> iterator
+        erase(self, iterator first, iterator last) -> iterator
+        """
+        return _subaruLib.VecInt_erase(self, *args)
+
+    def __init__(self, *args): 
+        """
+        __init__(self) -> VecInt
+        __init__(self, VecInt arg0) -> VecInt
+        __init__(self, size_type size) -> VecInt
+        __init__(self, size_type size, value_type value) -> VecInt
+        """
+        this = _subaruLib.new_VecInt(*args)
+        try: self.this.append(this)
+        except: self.this = this
+    def push_back(self, *args):
+        """push_back(self, value_type x)"""
+        return _subaruLib.VecInt_push_back(self, *args)
+
+    def front(self):
+        """front(self) -> value_type"""
+        return _subaruLib.VecInt_front(self)
+
+    def back(self):
+        """back(self) -> value_type"""
+        return _subaruLib.VecInt_back(self)
+
+    def assign(self, *args):
+        """assign(self, size_type n, value_type x)"""
+        return _subaruLib.VecInt_assign(self, *args)
+
+    def resize(self, *args):
+        """
+        resize(self, size_type new_size)
+        resize(self, size_type new_size, value_type x)
+        """
+        return _subaruLib.VecInt_resize(self, *args)
+
+    def insert(self, *args):
+        """
+        insert(self, iterator pos, value_type x) -> iterator
+        insert(self, iterator pos, size_type n, value_type x)
+        """
+        return _subaruLib.VecInt_insert(self, *args)
+
+    def reserve(self, *args):
+        """reserve(self, size_type n)"""
+        return _subaruLib.VecInt_reserve(self, *args)
+
+    def capacity(self):
+        """capacity(self) -> size_type"""
+        return _subaruLib.VecInt_capacity(self)
+
+    __swig_destroy__ = _subaruLib.delete_VecInt
+    __del__ = lambda self : None;
+VecInt_swigregister = _subaruLib.VecInt_swigregister
+VecInt_swigregister(VecInt)
+
+class VecVecInt(_object):
+    """Proxy of C++ std::vector<(std::vector<(int)>)> class"""
+    __swig_setmethods__ = {}
+    __setattr__ = lambda self, name, value: _swig_setattr_nondynamic(self, VecVecInt, name, value)
+    __swig_getmethods__ = {}
+    __getattr__ = lambda self, name: _swig_getattr(self, VecVecInt, name)
+    __repr__ = _swig_repr
+    def iterator(self):
+        """iterator(self) -> SwigPyIterator"""
+        return _subaruLib.VecVecInt_iterator(self)
+
+    def __iter__(self): return self.iterator()
+    def __nonzero__(self):
+        """__nonzero__(self) -> bool"""
+        return _subaruLib.VecVecInt___nonzero__(self)
+
+    def __bool__(self):
+        """__bool__(self) -> bool"""
+        return _subaruLib.VecVecInt___bool__(self)
+
+    def __len__(self):
+        """__len__(self) -> size_type"""
+        return _subaruLib.VecVecInt___len__(self)
+
+    def pop(self):
+        """pop(self) -> value_type"""
+        return _subaruLib.VecVecInt_pop(self)
+
+    def __getslice__(self, *args):
+        """__getslice__(self, difference_type i, difference_type j) -> VecVecInt"""
+        return _subaruLib.VecVecInt___getslice__(self, *args)
+
+    def __setslice__(self, *args):
+        """
+        __setslice__(self, difference_type i, difference_type j, VecVecInt v = std::vector< std::vector< int,std::allocator< int > >,std::allocator< std::vector< int,std::allocator< int > > > >())
+        __setslice__(self, difference_type i, difference_type j)
+        """
+        return _subaruLib.VecVecInt___setslice__(self, *args)
+
+    def __delslice__(self, *args):
+        """__delslice__(self, difference_type i, difference_type j)"""
+        return _subaruLib.VecVecInt___delslice__(self, *args)
+
+    def __delitem__(self, *args):
+        """
+        __delitem__(self, difference_type i)
+        __delitem__(self, PySliceObject slice)
+        """
+        return _subaruLib.VecVecInt___delitem__(self, *args)
+
+    def __getitem__(self, *args):
+        """
+        __getitem__(self, PySliceObject slice) -> VecVecInt
+        __getitem__(self, difference_type i) -> value_type
+        """
+        return _subaruLib.VecVecInt___getitem__(self, *args)
+
+    def __setitem__(self, *args):
+        """
+        __setitem__(self, PySliceObject slice, VecVecInt v)
+        __setitem__(self, PySliceObject slice)
+        __setitem__(self, difference_type i, value_type x)
+        """
+        return _subaruLib.VecVecInt___setitem__(self, *args)
+
+    def append(self, *args):
+        """append(self, value_type x)"""
+        return _subaruLib.VecVecInt_append(self, *args)
+
+    def empty(self):
+        """empty(self) -> bool"""
+        return _subaruLib.VecVecInt_empty(self)
+
+    def size(self):
+        """size(self) -> size_type"""
+        return _subaruLib.VecVecInt_size(self)
+
+    def clear(self):
+        """clear(self)"""
+        return _subaruLib.VecVecInt_clear(self)
+
+    def swap(self, *args):
+        """swap(self, VecVecInt v)"""
+        return _subaruLib.VecVecInt_swap(self, *args)
+
+    def get_allocator(self):
+        """get_allocator(self) -> allocator_type"""
+        return _subaruLib.VecVecInt_get_allocator(self)
+
+    def begin(self):
+        """begin(self) -> iterator"""
+        return _subaruLib.VecVecInt_begin(self)
+
+    def end(self):
+        """end(self) -> iterator"""
+        return _subaruLib.VecVecInt_end(self)
+
+    def rbegin(self):
+        """rbegin(self) -> reverse_iterator"""
+        return _subaruLib.VecVecInt_rbegin(self)
+
+    def rend(self):
+        """rend(self) -> reverse_iterator"""
+        return _subaruLib.VecVecInt_rend(self)
+
+    def pop_back(self):
+        """pop_back(self)"""
+        return _subaruLib.VecVecInt_pop_back(self)
+
+    def erase(self, *args):
+        """
+        erase(self, iterator pos) -> iterator
+        erase(self, iterator first, iterator last) -> iterator
+        """
+        return _subaruLib.VecVecInt_erase(self, *args)
+
+    def __init__(self, *args): 
+        """
+        __init__(self) -> VecVecInt
+        __init__(self, VecVecInt arg0) -> VecVecInt
+        __init__(self, size_type size) -> VecVecInt
+        __init__(self, size_type size, value_type value) -> VecVecInt
+        """
+        this = _subaruLib.new_VecVecInt(*args)
+        try: self.this.append(this)
+        except: self.this = this
+    def push_back(self, *args):
+        """push_back(self, value_type x)"""
+        return _subaruLib.VecVecInt_push_back(self, *args)
+
+    def front(self):
+        """front(self) -> value_type"""
+        return _subaruLib.VecVecInt_front(self)
+
+    def back(self):
+        """back(self) -> value_type"""
+        return _subaruLib.VecVecInt_back(self)
+
+    def assign(self, *args):
+        """assign(self, size_type n, value_type x)"""
+        return _subaruLib.VecVecInt_assign(self, *args)
+
+    def resize(self, *args):
+        """
+        resize(self, size_type new_size)
+        resize(self, size_type new_size, value_type x)
+        """
+        return _subaruLib.VecVecInt_resize(self, *args)
+
+    def insert(self, *args):
+        """
+        insert(self, iterator pos, value_type x) -> iterator
+        insert(self, iterator pos, size_type n, value_type x)
+        """
+        return _subaruLib.VecVecInt_insert(self, *args)
+
+    def reserve(self, *args):
+        """reserve(self, size_type n)"""
+        return _subaruLib.VecVecInt_reserve(self, *args)
+
+    def capacity(self):
+        """capacity(self) -> size_type"""
+        return _subaruLib.VecVecInt_capacity(self)
+
+    __swig_destroy__ = _subaruLib.delete_VecVecInt
+    __del__ = lambda self : None;
+VecVecInt_swigregister = _subaruLib.VecVecInt_swigregister
+VecVecInt_swigregister(VecVecInt)
+
 import lsst.pex.logging.loggingLib
 import lsst.pex.exceptions.exceptionsLib
 import lsst.daf.base.baseLib
@@ -607,27 +1283,20 @@ import lsst.pex.policy.policyLib
 import lsst.daf.persistence.persistenceLib
 import lsst.afw.coord.coordLib
 
+def getCrosstalkX1(*args):
+  """getCrosstalkX1(int x, int nxAmp) -> VecInt"""
+  return _subaruLib.getCrosstalkX1(*args)
+
+def getCrosstalkX2(*args):
+  """getCrosstalkX2(int x, int nxAmp) -> VecInt"""
+  return _subaruLib.getCrosstalkX2(*args)
+
 def subtractCrosstalk(*args):
   """
-    subtractCrosstalk(MaskedImageF mi, int nAmp, std::vector<(std::vector<(double,std::allocator<(double)>)>,std::allocator<(std::vector<(double,std::allocator<(double)>)>)>)> coeffs1List, 
-        std::vector<(std::vector<(double,std::allocator<(double)>)>,std::allocator<(std::vector<(double,std::allocator<(double)>)>)>)> coeffs2List, 
-        VectorDouble gainsPreampSig)
+    subtractCrosstalk(MaskedImageF mi, int nAmp, VecVecDouble coeffs1List, 
+        VecVecDouble coeffs2List, VecDouble gainsPreampSig)
     """
   return _subaruLib.subtractCrosstalk(*args)
 # This file is compatible with both classic and new-style classes.
 
-
-def getCrosstalkX1(*args):
-  """
-    getCrosstalkX1(int x, int nxAmp = 512) -> VectorInt
-    getCrosstalkX1(int x) -> VectorInt
-    """
-  return _subaruLib.getCrosstalkX1(*args)
-
-def getCrosstalkX2(*args):
-  """
-    getCrosstalkX2(int x, int nxAmp = 512) -> VectorInt
-    getCrosstalkX2(int x) -> VectorInt
-    """
-  return _subaruLib.getCrosstalkX2(*args)
 

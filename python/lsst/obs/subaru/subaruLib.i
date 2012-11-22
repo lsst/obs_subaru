@@ -1,3 +1,4 @@
+
 // -*- lsst-c++ -*-
 
 %define subaruLib_DOCSTRING
@@ -23,6 +24,15 @@ Interface class for subaru crosstalk correction
 %}
 
 %include "lsst/p_lsstSwig.i"
+
+%include "std_vector.i"
+namespace std {
+  %template(VecDouble) vector<double>;
+  %template(VecVecDouble) vector< vector<double> >;
+  %template(VecInt) vector<int>;
+  %template(VecVecInt) vector< vector<int> >;
+}
+
 %import "lsst/pex/logging/loggingLib.i"
 %import "lsst/daf/base/baseLib.i"
 %import "lsst/afw/geom/geomLib.i"
