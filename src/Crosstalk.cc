@@ -1,9 +1,10 @@
+#include "lsst/obs/subaru/Crosstalk.h"
 #include "lsst/afw/image/MaskedImage.h"
-#include "lsst/afw/geom/Point.h"
+//#include "lsst/afw/geom/Point.h"
 
 // C++ implementation of crosstalk correction with procedure by Yagi+2012
 
-namespace geom = lsst::afw::geom;
+//namespace geom = lsst::afw::geom;
 namespace image = lsst::afw::image;
 
 int nAmp = 4;
@@ -38,29 +39,29 @@ std::vector<int> getCrosstalkX2(int x, int nxAmp = 512) {
     return ctx2List;
 }
 
-void subtractCrossTalk(
+void subtractCrosstalk(
     image::MaskedImage<float> & mi, 
                        int nAmp,
                        std::vector< std::vector<double> > const & coeffs1List,
                        std::vector< std::vector<double> > const & coeffs2List,
-                       std::vector< std::vector<double> > const & gainsPreampSig 
+                       std::vector<double> const & gainsPreampSig
     )
 {
 
 
-    
     int nx = mi.getWidth();
     int ny = mi.getHeight();
     int nxAmp = nx / nAmp;
 
     image::Image<float> img0 = image::Image<float>(*(mi.getImage()), true); // create a copy of image before correction
+    image::Image<float>::Ptr img = mi.getImage();
 
     for(int j = 0; j < ny; ++j) {
 
-        image::Image<float>::x_iterator ptrImg0 = img0.row_begin(j);
-        //image::MaskedImage<float>::x_iterator ptrMi0 = mi.x_begin(j);
-        image::MaskedImage<float>::x_iterator ptrMi = mi.x_at(j, 2); // for i<2 crosstalkOffsets = 0 since secondary crosstalk cannot be estimated
-        for( int i = 2; i < nxAmp; ++i, ++ptrMi) {
+        /* image::Image<float>::x_iterator ptrImg0 = img0.row_begin(j); */
+        /* //image::MaskedImage<float>::x_iterator ptrMi0 = mi.x_begin(j); */
+        /* image::MaskedImage<float>::x_iterator ptrMi = mi.x_at(j, 2); // for i<2 crosstalkOffsets = 0 since secondary crosstalk cannot be estimated */
+        for( int i = 2; i < nxAmp; ++i) {
 
             //, end = mi.x_at(nxAmp-1, j); ptrRow != end; ++ptrRow) {
             std::vector<int> ctx1List = getCrosstalkX1(i, nxAmp=nxAmp);
@@ -70,29 +71,33 @@ void subtractCrossTalk(
 
             for( int ch1 = 0; ch1 < nAmp; ++ch1 ) { // channel of pixel being affected
 
-                std::vector<double> coeffs1 = coeffs1List[ch1]; // array of [[A-D]->A, [A-D]->B, [A-D]->C, [A-D]->D]
-                std::vector<double> coeffs2 = coeffs2List[ch1];
+//                std::vector<double> coeffs1 = coeffs1List.at(ch1); // array of [[A-D]->A, [A-D]->B, [A-D]->C, [A-D]->D]
+//                std::vector<double> coeffs2 = coeffs2List.at(ch1);
+                //std::vector<double> coeffs1(4, 1.0);
+                //std::vector<double> coeffs2(4, 0.5);
 
                 // estimation of crosstalk amounts
                 for( int ch2 = 0; ch2 < nAmp; ++ch2 ) { // channel of pixel affecting the pixel in ch1
 
-                    int ctx1 = ctx1List[ch2];
-                    int ctx2 = ctx2List[ch2];
-                    double v1 = *(ptrImg0 + ctx1); //>at(ctx1, j);
-                    double v2 = *(ptrImg0 + ctx2); //>at(ctx1, j);// ptr->at(ctx2, j);
-                    
-                    std::cout << "ceffs1[" << ch2 << "]:" << coeffs1[ch2] << " v1:" << v1;
-                    //crosstalkOffsets[ch1] += (coeffs1[ch2] * v1 + coeffs2[ch2] * v2) * gainsPreampSig[ch2] / gainsPreampSig[ch1];
+                    int ctx1 = ctx1List.at(ch2);
+                    int ctx2 = ctx2List.at(ch2);
+                    double v1 = img0(ctx1, j); //>at(ctx1, j);
+                    double v2 = img0(ctx2, j); //>at(ctx1, j);// ptr->at(ctx2, j);
+
+                    //std::cout << "ceffs1[" << ch2 << "]:" << coeffs1.at(ch2) << " v1:" << v1;
+                    //crosstalkOffsets.at(ch1) += (coeffs1.at(ch2) * v1 + coeffs2.at(ch2) * v2) * gainsPreampSig.at(ch2) / gainsPreampSig.at(ch1);
+                    crosstalkOffsets.at(ch1) += (1.0 * v1 + 2.0 * v2) * 1.5/ 3.0;
                 }
 
                 // correction of crosstalk
-                //int x = ctx1List[ch1];
-                //int y = j;
+                int x = ctx1List.at(ch1);
+                int y = j;
 
                 // print >> sys.stderr, "correction: ch=%d x=%8.2f y=%8.2f" % (ch1, x, y)
                 // ptrRow.at(x, y) = ptrRow->at(x, y) - crosstalkOffsets[ch1];
                 //int ctx1 = ctx1List[ch1];
-                ptrMi.image() -= crosstalkOffsets[ch1];
+                //ptrMi.image() -= crosstalkOffsets[ch1];
+                (*img)(x, y) -= static_cast<float>(crosstalkOffsets.at(ch1));
 
             }
         }

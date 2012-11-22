@@ -129,22 +129,22 @@ class CrosstalkYagiCoeffsConfig(pexConfig.Config):
 
     def getCoeffs1(self):
         """Return a 2-D numpy array of crosstalk coefficients of the proper shape"""
-        return np.array(self.crossTalkCoeffs1).reshape(self.shapeCoeffsArray)
+        return np.array(self.crossTalkCoeffs1).reshape(self.shapeCoeffsArray).tolist()
 
     def getCoeffs2(self):
         """Return a 2-D numpy array of crosstalk coefficients of the proper shape"""
-        return np.array(self.crossTalkCoeffs2).reshape(self.shapeCoeffsArray)
+        return np.array(self.crossTalkCoeffs2).reshape(self.shapeCoeffsArray).tolist()
 
     def getGainsPreampSigboard(self):
         """Return a 2-D numpy array of effective gain for preamp+SIG of the proper shape"""
-        return np.array(self.relativeGainsPreampAndSigboard).reshape(self.shapeGainsArray)
+        return np.array(self.relativeGainsPreampAndSigboard).reshape(self.shapeGainsArray).tolist()
 
     def getGainsTotal(self, dateobs='2008-08-01'):
         """Return a 2-D numpy array of effective total gain of the proper shape"""
         if dateobs < '2010-10': #  may need rewritten to a more reliable way
-            return np.array(self.relativeGainsTotalBeforeOct2010).reshape(self.shapeGainsArray)
+            return np.array(self.relativeGainsTotalBeforeOct2010).reshape(self.shapeGainsArray).tolist()
         else:
-            return np.array(self.relativeGainsTotalAfterOct2010).reshape(self.shapeGainsArray)
+            return np.array(self.relativeGainsTotalAfterOct2010).reshape(self.shapeGainsArray).tolist()
 
 nAmp = 4
 
@@ -199,36 +199,39 @@ def subtractCrosstalkYagi(mi, coeffs1List, coeffs2List, gainsPreampSig, pminPixe
         fs.setMask(mi.getMask(), crosstalkStr) # the crosstalkStr bit will now be set whenever we subtract crosstalk
         crosstalk = mi.getMask().getPlaneBitMask(crosstalkStr)
 
-    nAmp = 4
-    nx, ny = mi.getDimensions()
-    nxAmp = nx/nAmp
-    for j in range(ny):
-        for i in range(2, nxAmp): # for x<2, crosstalkOffsets = 0, since 2ndary crosstalk cannot be estimated
-            ctx1List = getCrosstalkX1(i, xmax=nxAmp)
-            ctx2List = getCrosstalkX2(i, xmax=nxAmp)
+    if True:
+        nAmp = 4
+        nx, ny = mi.getDimensions()
+        nxAmp = nx/nAmp
+        for j in range(ny):
+            for i in range(2, nxAmp): # for x<2, crosstalkOffsets = 0, since 2ndary crosstalk cannot be estimated
+                ctx1List = getCrosstalkX1(i, xmax=nxAmp)
+                ctx2List = getCrosstalkX2(i, xmax=nxAmp)
 
-            crosstalkOffsets = [0.0, 0.0, 0.0, 0.0]
+                crosstalkOffsets = [0.0, 0.0, 0.0, 0.0]
 
-            for ch1 in range(nAmp):  # channel of pixel being affected
+                for ch1 in range(nAmp):  # channel of pixel being affected
 
-                coeffs1 = coeffs1List[ch1] # list of [[A-D]->A, [A-D]->B, [A-D]->C, [A-D]->D]
-                coeffs2 = coeffs2List[ch1]
+                    coeffs1 = coeffs1List[ch1] # list of [[A-D]->A, [A-D]->B, [A-D]->C, [A-D]->D]
+                    coeffs2 = coeffs2List[ch1]
 
-                # estimation of crosstalk amounts
-                for ch2 in range(nAmp): # channel of pixel affecting the pixel in ch1
+                    # estimation of crosstalk amounts
+                    for ch2 in range(nAmp): # channel of pixel affecting the pixel in ch1
 
-                    ctx1 = ctx1List[ch2]
-                    ctx2 = ctx2List[ch2]
-                    v1 = mi.getImage().get(ctx1, j)
-                    v2 = mi.getImage().get(ctx2, j)
-                    crosstalkOffsets[ch1] += (coeffs1[ch2] * v1 + coeffs2[ch2] * v2) * gainsPreampSig[ch2] / gainsPreampSig[ch1]
+                        ctx1 = ctx1List[ch2]
+                        ctx2 = ctx2List[ch2]
+                        v1 = mi.getImage().get(ctx1, j)
+                        v2 = mi.getImage().get(ctx2, j)
+                        crosstalkOffsets[ch1] += (coeffs1[ch2] * v1 + coeffs2[ch2] * v2) * gainsPreampSig[ch2] / gainsPreampSig[ch1]
 
-                # correction of crosstalk
-                x = ctx1List[ch1]; y = j
-                if False:
-                    print >> sys.stderr, "correction: ch=%d x=%8.2f y=%8.2f" % (ch1, x, y)
-                mi.getImage().set(x, y, (mi.getImage().get(x, y) - crosstalkOffsets[ch1]) )
-
+                    # correction of crosstalk
+                    x = ctx1List[ch1]; y = j
+                    if False:
+                        print >> sys.stderr, "correction: ch=%d x=%8.2f y=%8.2f" % (ch1, x, y)
+                    mi.getImage().set(x, y, (mi.getImage().get(x, y) - crosstalkOffsets[ch1]) )
+    else:
+        nAmp = 4
+        crosstalk.subtructCrosstalk(mi, nAmp, coeffs1List, coeffs2List, gainsPreampSig)
 
     if False:
         for i in range(nAmp):

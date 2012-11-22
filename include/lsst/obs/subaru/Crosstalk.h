@@ -13,13 +13,13 @@
 
 namespace lsst {
     namespace obs {
-        namespace suprimecam {
+        namespace subaru {
             std::vector<int> getCrosstalkX1(int x, int nxAmp = 512);
             std::vector<int> getCrosstalkX2(int x, int nxAmp = 512);
-            void subtractCrossTalk(lsst::afw::image::MaskedImage<float> & mi, int nAmp,
+            void subtractCrosstalk(lsst::afw::image::MaskedImage<float> & mi, int nAmp,
                                                               std::vector< std::vector<double> > const & coeffs1List,
                                                               std::vector< std::vector<double> > const & coeffs2List,
-                                                              std::vector< std::vector<double> > const & gainsPreampSig );
+                                                              std::vector<double> const & gainsPreampSig );
 
         }
     }

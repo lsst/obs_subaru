@@ -1,0 +1,16 @@
+# -*- python -*-
+from lsst.sconsUtils import scripts, env, targets
+
+targets["python"].extend(
+    env.SwigLoadableModule(
+    "_subaruLib", ["subaruLib.i"],
+    LIBS=env.getLibs("main python")
+    )
+)
+#scripts.BasicSConscript.python(['subaruLib'])
+#
+#objs = env.SourcesForSharedLibrary(["src/Crosstalk.cc"])
+##objs = env.SourcesForSharedLibrary(Glob("#src/.cc"))
+#targets["lib"].extend(env.SharedLibrary(env["packageName"], objs, LIBS=env.getLibs("self")))
+
+
