@@ -13,17 +13,20 @@
  */
 
 namespace lsst {
-    namespace obs {
-        namespace subaru {
-            std::vector<int> getCrosstalkX1(int x, int nxAmp);
-            std::vector<int> getCrosstalkX2(int x, int nxAmp);
-            void subtractCrosstalk(lsst::afw::image::MaskedImage<float> & mi, int nAmp,
-                                                              std::vector< std::vector<double> > const & coeffs1List,
-                                                              std::vector< std::vector<double> > const & coeffs2List,
-                                                              std::vector<double> const & gainsPreampSig );
+namespace obs {
+namespace subaru {
 
-        }
-    }
-}
+typedef std::vector<double> CoeffVector;
+
+/// Subtract the crosstalk from an image
+void subtractCrosstalk(
+    lsst::afw::image::MaskedImage<float> & mi, ///< Image to correct
+    std::size_t nAmp,                          ///< Number of amplifiers
+    std::vector<CoeffVector> const & coeffs1List, ///< Coefficients for primary crosstalk
+    std::vector<CoeffVector> const & coeffs2List, ///< Coefficients for secondary crosstalk
+    CoeffVector const & gainsPreampSig            ///< Relative gains (pre-amp and SIG board)
+    );
+
+}}} // namespace lsst::obs::subaru
 
 #endif
