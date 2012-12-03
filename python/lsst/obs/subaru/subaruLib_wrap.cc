@@ -19146,111 +19146,17 @@ SWIGINTERN PyObject *VecVecInt_swigregister(PyObject *SWIGUNUSEDPARM(self), PyOb
   return SWIG_Py_Void();
 }
 
-SWIGINTERN PyObject *_wrap_getCrosstalkX1(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
-  PyObject *resultobj = 0;
-  int arg1 ;
-  int arg2 ;
-  int val1 ;
-  int ecode1 = 0 ;
-  int val2 ;
-  int ecode2 = 0 ;
-  PyObject * obj0 = 0 ;
-  PyObject * obj1 = 0 ;
-  std::vector< int,std::allocator< int > > result;
-  
-  if (!PyArg_ParseTuple(args,(char *)"OO:getCrosstalkX1",&obj0,&obj1)) SWIG_fail;
-  ecode1 = SWIG_AsVal_int(obj0, &val1);
-  if (!SWIG_IsOK(ecode1)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "getCrosstalkX1" "', argument " "1"" of type '" "int""'");
-  } 
-  arg1 = static_cast< int >(val1);
-  ecode2 = SWIG_AsVal_int(obj1, &val2);
-  if (!SWIG_IsOK(ecode2)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "getCrosstalkX1" "', argument " "2"" of type '" "int""'");
-  } 
-  arg2 = static_cast< int >(val2);
-  {
-    try {
-      result = lsst::obs::subaru::getCrosstalkX1(arg1,arg2);
-    } catch (lsst::pex::exceptions::Exception &e) {
-      raiseLsstException(e);
-      SWIG_fail;
-    } catch (std::exception & e) {
-      PyErr_SetString(PyExc_Exception, e.what());
-      SWIG_fail;
-    }
-  }
-  {
-    int len = (result).size();
-    resultobj = PyList_New(len);
-    for (int i = 0; i < len; i++) {
-      PyList_SetItem(resultobj,i,PyInt_FromLong((result)[i]));
-    }
-  }
-  return resultobj;
-fail:
-  return NULL;
-}
-
-
-SWIGINTERN PyObject *_wrap_getCrosstalkX2(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
-  PyObject *resultobj = 0;
-  int arg1 ;
-  int arg2 ;
-  int val1 ;
-  int ecode1 = 0 ;
-  int val2 ;
-  int ecode2 = 0 ;
-  PyObject * obj0 = 0 ;
-  PyObject * obj1 = 0 ;
-  std::vector< int,std::allocator< int > > result;
-  
-  if (!PyArg_ParseTuple(args,(char *)"OO:getCrosstalkX2",&obj0,&obj1)) SWIG_fail;
-  ecode1 = SWIG_AsVal_int(obj0, &val1);
-  if (!SWIG_IsOK(ecode1)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "getCrosstalkX2" "', argument " "1"" of type '" "int""'");
-  } 
-  arg1 = static_cast< int >(val1);
-  ecode2 = SWIG_AsVal_int(obj1, &val2);
-  if (!SWIG_IsOK(ecode2)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "getCrosstalkX2" "', argument " "2"" of type '" "int""'");
-  } 
-  arg2 = static_cast< int >(val2);
-  {
-    try {
-      result = lsst::obs::subaru::getCrosstalkX2(arg1,arg2);
-    } catch (lsst::pex::exceptions::Exception &e) {
-      raiseLsstException(e);
-      SWIG_fail;
-    } catch (std::exception & e) {
-      PyErr_SetString(PyExc_Exception, e.what());
-      SWIG_fail;
-    }
-  }
-  {
-    int len = (result).size();
-    resultobj = PyList_New(len);
-    for (int i = 0; i < len; i++) {
-      PyList_SetItem(resultobj,i,PyInt_FromLong((result)[i]));
-    }
-  }
-  return resultobj;
-fail:
-  return NULL;
-}
-
-
 SWIGINTERN PyObject *_wrap_subtractCrosstalk(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   lsst::afw::image::MaskedImage< float,lsst::afw::image::MaskPixel,lsst::afw::image::VariancePixel > *arg1 = 0 ;
-  int arg2 ;
-  std::vector< std::vector< double,std::allocator< double > >,std::allocator< std::vector< double,std::allocator< double > > > > *arg3 = 0 ;
-  std::vector< std::vector< double,std::allocator< double > >,std::allocator< std::vector< double,std::allocator< double > > > > *arg4 = 0 ;
-  std::vector< double,std::allocator< double > > *arg5 = 0 ;
+  std::size_t arg2 ;
+  std::vector< lsst::obs::subaru::CoeffVector,std::allocator< lsst::obs::subaru::CoeffVector > > *arg3 = 0 ;
+  std::vector< lsst::obs::subaru::CoeffVector,std::allocator< lsst::obs::subaru::CoeffVector > > *arg4 = 0 ;
+  lsst::obs::subaru::CoeffVector *arg5 = 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   boost::shared_ptr< lsst::afw::image::MaskedImage< float,lsst::afw::image::MaskPixel,lsst::afw::image::VariancePixel > > tempshared1 ;
-  int val2 ;
+  size_t val2 ;
   int ecode2 = 0 ;
   int res3 = SWIG_OLDOBJ ;
   int res4 = SWIG_OLDOBJ ;
@@ -19279,19 +19185,19 @@ SWIGINTERN PyObject *_wrap_subtractCrosstalk(PyObject *SWIGUNUSEDPARM(self), PyO
       arg1 = const_cast< lsst::afw::image::MaskedImage< float,lsst::afw::image::MaskPixel,lsst::afw::image::VariancePixel > * >(reinterpret_cast< boost::shared_ptr<  lsst::afw::image::MaskedImage<float,lsst::afw::image::MaskPixel,lsst::afw::image::VariancePixel> > * >(argp1)->get());
     }
   }
-  ecode2 = SWIG_AsVal_int(obj1, &val2);
+  ecode2 = SWIG_AsVal_size_t(obj1, &val2);
   if (!SWIG_IsOK(ecode2)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "subtractCrosstalk" "', argument " "2"" of type '" "int""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "subtractCrosstalk" "', argument " "2"" of type '" "std::size_t""'");
   } 
-  arg2 = static_cast< int >(val2);
+  arg2 = static_cast< std::size_t >(val2);
   {
     std::vector<std::vector< double,std::allocator< double > >,std::allocator< std::vector< double,std::allocator< double > > > > *ptr = (std::vector<std::vector< double,std::allocator< double > >,std::allocator< std::vector< double,std::allocator< double > > > > *)0;
     res3 = swig::asptr(obj2, &ptr);
     if (!SWIG_IsOK(res3)) {
-      SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "subtractCrosstalk" "', argument " "3"" of type '" "std::vector< std::vector< double,std::allocator< double > >,std::allocator< std::vector< double,std::allocator< double > > > > const &""'"); 
+      SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "subtractCrosstalk" "', argument " "3"" of type '" "std::vector< lsst::obs::subaru::CoeffVector,std::allocator< lsst::obs::subaru::CoeffVector > > const &""'"); 
     }
     if (!ptr) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "subtractCrosstalk" "', argument " "3"" of type '" "std::vector< std::vector< double,std::allocator< double > >,std::allocator< std::vector< double,std::allocator< double > > > > const &""'"); 
+      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "subtractCrosstalk" "', argument " "3"" of type '" "std::vector< lsst::obs::subaru::CoeffVector,std::allocator< lsst::obs::subaru::CoeffVector > > const &""'"); 
     }
     arg3 = ptr;
   }
@@ -19299,10 +19205,10 @@ SWIGINTERN PyObject *_wrap_subtractCrosstalk(PyObject *SWIGUNUSEDPARM(self), PyO
     std::vector<std::vector< double,std::allocator< double > >,std::allocator< std::vector< double,std::allocator< double > > > > *ptr = (std::vector<std::vector< double,std::allocator< double > >,std::allocator< std::vector< double,std::allocator< double > > > > *)0;
     res4 = swig::asptr(obj3, &ptr);
     if (!SWIG_IsOK(res4)) {
-      SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "subtractCrosstalk" "', argument " "4"" of type '" "std::vector< std::vector< double,std::allocator< double > >,std::allocator< std::vector< double,std::allocator< double > > > > const &""'"); 
+      SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "subtractCrosstalk" "', argument " "4"" of type '" "std::vector< lsst::obs::subaru::CoeffVector,std::allocator< lsst::obs::subaru::CoeffVector > > const &""'"); 
     }
     if (!ptr) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "subtractCrosstalk" "', argument " "4"" of type '" "std::vector< std::vector< double,std::allocator< double > >,std::allocator< std::vector< double,std::allocator< double > > > > const &""'"); 
+      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "subtractCrosstalk" "', argument " "4"" of type '" "std::vector< lsst::obs::subaru::CoeffVector,std::allocator< lsst::obs::subaru::CoeffVector > > const &""'"); 
     }
     arg4 = ptr;
   }
@@ -19310,10 +19216,10 @@ SWIGINTERN PyObject *_wrap_subtractCrosstalk(PyObject *SWIGUNUSEDPARM(self), PyO
     std::vector<double,std::allocator< double > > *ptr = (std::vector<double,std::allocator< double > > *)0;
     res5 = swig::asptr(obj4, &ptr);
     if (!SWIG_IsOK(res5)) {
-      SWIG_exception_fail(SWIG_ArgError(res5), "in method '" "subtractCrosstalk" "', argument " "5"" of type '" "std::vector< double,std::allocator< double > > const &""'"); 
+      SWIG_exception_fail(SWIG_ArgError(res5), "in method '" "subtractCrosstalk" "', argument " "5"" of type '" "lsst::obs::subaru::CoeffVector const &""'"); 
     }
     if (!ptr) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "subtractCrosstalk" "', argument " "5"" of type '" "std::vector< double,std::allocator< double > > const &""'"); 
+      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "subtractCrosstalk" "', argument " "5"" of type '" "lsst::obs::subaru::CoeffVector const &""'"); 
     }
     arg5 = ptr;
   }
@@ -19765,11 +19671,10 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"VecVecInt_capacity", _wrap_VecVecInt_capacity, METH_VARARGS, (char *)"VecVecInt_capacity(VecVecInt self) -> size_type"},
 	 { (char *)"delete_VecVecInt", _wrap_delete_VecVecInt, METH_VARARGS, (char *)"delete_VecVecInt(VecVecInt self)"},
 	 { (char *)"VecVecInt_swigregister", VecVecInt_swigregister, METH_VARARGS, NULL},
-	 { (char *)"getCrosstalkX1", _wrap_getCrosstalkX1, METH_VARARGS, (char *)"getCrosstalkX1(int x, int nxAmp) -> VecInt"},
-	 { (char *)"getCrosstalkX2", _wrap_getCrosstalkX2, METH_VARARGS, (char *)"getCrosstalkX2(int x, int nxAmp) -> VecInt"},
 	 { (char *)"subtractCrosstalk", _wrap_subtractCrosstalk, METH_VARARGS, (char *)"\n"
-		"subtractCrosstalk(MaskedImageF mi, int nAmp, VecVecDouble coeffs1List, \n"
-		"    VecVecDouble coeffs2List, VecDouble gainsPreampSig)\n"
+		"subtractCrosstalk(MaskedImageF mi, std::size_t nAmp, std::vector<(lsst::obs::subaru::CoeffVector,std::allocator<(lsst::obs::subaru::CoeffVector)>)> coeffs1List, \n"
+		"    std::vector<(lsst::obs::subaru::CoeffVector,std::allocator<(lsst::obs::subaru::CoeffVector)>)> coeffs2List, \n"
+		"    CoeffVector gainsPreampSig)\n"
 		""},
 	 { NULL, NULL, 0, NULL }
 };
@@ -20663,7 +20568,7 @@ static swig_type_info _swigt__p_std__ios_base = {"_p_std__ios_base", "std::ios_b
 static swig_type_info _swigt__p_std__locale = {"_p_std__locale", "std::locale *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_std__mapT_std__string_int_std__lessT_std__string_t_std__allocatorT_std__pairT_std__string_const_int_t_t_t = {"_p_std__mapT_std__string_int_std__lessT_std__string_t_std__allocatorT_std__pairT_std__string_const_int_t_t_t", "std::map< std::string,int,std::less< std::string >,std::allocator< std::pair< std::string const,int > > > *|lsst::afw::image::detail::MaskPlaneDict *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_std__vectorT__Tp__Alloc_t = {"_p_std__vectorT__Tp__Alloc_t", "std::vector< _Tp,_Alloc > *", 0, 0, (void*)0, 0};
-static swig_type_info _swigt__p_std__vectorT_double_std__allocatorT_double_t_t = {"_p_std__vectorT_double_std__allocatorT_double_t_t", "std::vector< double,std::allocator< double > > *|std::vector< double > *", 0, 0, (void*)0, 0};
+static swig_type_info _swigt__p_std__vectorT_double_std__allocatorT_double_t_t = {"_p_std__vectorT_double_std__allocatorT_double_t_t", "std::vector< double,std::allocator< double > > *|lsst::obs::subaru::CoeffVector *|std::vector< double > *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_std__vectorT_int_std__allocatorT_int_t_t = {"_p_std__vectorT_int_std__allocatorT_int_t_t", "std::vector< int,std::allocator< int > > *|std::vector< int > *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_std__vectorT_lsst__pex__exceptions__Tracepoint_std__allocatorT_lsst__pex__exceptions__Tracepoint_t_t = {"_p_std__vectorT_lsst__pex__exceptions__Tracepoint_std__allocatorT_lsst__pex__exceptions__Tracepoint_t_t", "std::vector< lsst::pex::exceptions::Tracepoint,std::allocator< lsst::pex::exceptions::Tracepoint > > *|lsst::pex::exceptions::Traceback *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_std__vectorT_std__vectorT_double_std__allocatorT_double_t_t_std__allocatorT_std__vectorT_double_std__allocatorT_double_t_t_t_t = {"_p_std__vectorT_std__vectorT_double_std__allocatorT_double_t_t_std__allocatorT_std__vectorT_double_std__allocatorT_double_t_t_t_t", "std::vector< std::vector< double > > *|std::vector< std::vector< double,std::allocator< double > >,std::allocator< std::vector< double,std::allocator< double > > > > *|std::vector< std::vector< double,std::allocator< double > > > *", 0, 0, (void*)0, 0};

@@ -1283,18 +1283,11 @@ import lsst.pex.policy.policyLib
 import lsst.daf.persistence.persistenceLib
 import lsst.afw.coord.coordLib
 
-def getCrosstalkX1(*args):
-  """getCrosstalkX1(int x, int nxAmp) -> VecInt"""
-  return _subaruLib.getCrosstalkX1(*args)
-
-def getCrosstalkX2(*args):
-  """getCrosstalkX2(int x, int nxAmp) -> VecInt"""
-  return _subaruLib.getCrosstalkX2(*args)
-
 def subtractCrosstalk(*args):
   """
-    subtractCrosstalk(MaskedImageF mi, int nAmp, VecVecDouble coeffs1List, 
-        VecVecDouble coeffs2List, VecDouble gainsPreampSig)
+    subtractCrosstalk(MaskedImageF mi, std::size_t nAmp, std::vector<(lsst::obs::subaru::CoeffVector,std::allocator<(lsst::obs::subaru::CoeffVector)>)> coeffs1List, 
+        std::vector<(lsst::obs::subaru::CoeffVector,std::allocator<(lsst::obs::subaru::CoeffVector)>)> coeffs2List, 
+        CoeffVector gainsPreampSig)
     """
   return _subaruLib.subtractCrosstalk(*args)
 # This file is compatible with both classic and new-style classes.
