@@ -200,57 +200,22 @@ def subtractCrosstalkYagi(mi, coeffs1List, coeffs2List, gainsPreampSig, minPixel
         fs.setMask(mi.getMask(), crosstalkStr) # the crosstalkStr bit will now be set whenever we subtract crosstalk
         crosstalk = mi.getMask().getPlaneBitMask(crosstalkStr)
 
-    if False:
-        nAmp = 4
-        print >> sys.stderr, ".. with Python engine"
-        nx, ny = mi.getDimensions()
-        nxAmp = nx/nAmp
-        image0 = afwImage.ImageF(mi.getDimensions(), 0.0)
-        image0 <<= mi.getImage()
-        for j in range(ny):
-            for i in range(2, nxAmp): # for x<2, crosstalkOffsets = 0, since 2ndary crosstalk cannot be estimated
-                ctx1List = getCrosstalkX1(i, xmax=nxAmp)
-                ctx2List = getCrosstalkX2(i, xmax=nxAmp)
+    nAmp = 4
+    subaruLib.subtractCrosstalk(mi, nAmp, coeffs1List, coeffs2List, gainsPreampSig)
 
-                crosstalkOffsets = [0.0, 0.0, 0.0, 0.0]
+    #
+    # Clear the crosstalkStr bit in the original bright pixels, where tempStr is set
+    #
+    msk = mi.getMask()
+    temp = msk.getPlaneBitMask(tempStr)
+    xtalk_temp = crosstalk | temp
+    np_msk = msk.getArray()
+    np_msk[np.where(np.bitwise_and(np_msk, xtalk_temp) == xtalk_temp)] &= ~crosstalk
 
-                for ch1 in range(nAmp):  # channel of pixel being affected
-
-                    coeffs1 = coeffs1List[ch1] # list of [[A-D]->A, [A-D]->B, [A-D]->C, [A-D]->D]
-                    coeffs2 = coeffs2List[ch1]
-
-                    # estimation of crosstalk amounts
-                    for ch2 in range(nAmp): # channel of pixel affecting the pixel in ch1
-
-                        ctx1 = ctx1List[ch2]
-                        ctx2 = ctx2List[ch2]
-                        v1 = image0.get(ctx1, j)
-                        v2 = image0.get(ctx2, j)
-                        crosstalkOffsets[ch1] += (coeffs1[ch2] * v1 + coeffs2[ch2] * v2) * gainsPreampSig[ch2] / gainsPreampSig[ch1]
-
-                    # correction of crosstalk
-                    x = ctx1List[ch1]; y = j
-                    if False:
-                        print >> sys.stderr, "correction: ch=%d x=%8.2f y=%8.2f" % (ch1, x, y)
-                    mi.getImage().set(x, y, (mi.getImage().get(x, y) - crosstalkOffsets[ch1]) )
-    else:
-        nAmp = 4
-        print >> sys.stderr, ".. with C++ engine"
-        subaruLib.subtractCrosstalk(mi, nAmp, coeffs1List, coeffs2List, gainsPreampSig)
-
-        #
-        # Clear the crosstalkStr bit in the original bright pixels, where tempStr is set
-        #
-        msk = mi.getMask()
-        temp = msk.getPlaneBitMask(tempStr)
-        xtalk_temp = crosstalk | temp
-        np_msk = msk.getArray()
-        np_msk[np.where(np.bitwise_and(np_msk, xtalk_temp) == xtalk_temp)] &= ~crosstalk
-
-        try:
-            msk.removeAndClearMaskPlane(tempStr, True) # added in afw #1853
-        except AttributeError:
-            ds9.setMaskPlaneVisibility(tempStr, False)
+    try:
+        msk.removeAndClearMaskPlane(tempStr, True) # added in afw #1853
+    except AttributeError:
+        ds9.setMaskPlaneVisibility(tempStr, False)
 
 
 def main(visit=131634, ccd=None, threshold=45000, nSample=1, showCoeffs=True, fixXTalk=True,
