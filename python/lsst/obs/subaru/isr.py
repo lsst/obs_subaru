@@ -134,7 +134,7 @@ class SubaruIsrTask(IsrTask):
         if self.config.qa.doThumbnailOss:
             self.writeThumbnail(sensorRef, "ossThumb", ccdExposure)
 
-        if self.config.doCrosstalk: # crosstalk is handled for raw counts just after oss
+        if self.config.doCrosstalk:
             self.crosstalk(ccdExposure)
 
         if self.config.doDefect:
@@ -154,8 +154,6 @@ class SubaruIsrTask(IsrTask):
 
         self.measureBackground(ccdExposure)
 
-        #if self.config.doCrosstalk: # crosstalk is handled for raw counts just after oss
-        #    self.crosstalk(ccdExposure)
         if self.config.doLinearize:
             self.linearize(ccdExposure)
         if self.config.doGuider:
@@ -353,13 +351,13 @@ class SuprimeCamIsrTask(SubaruIsrTask):
         coeffs1List = self.config.crosstalkCoeffs.getCoeffs1() # primary crosstalk
         coeffs2List = self.config.crosstalkCoeffs.getCoeffs2() # secondary crosstalk
         gainsPreampSig = self.config.crosstalkCoeffs.getGainsPreampSigboard()
-        if numpy.any(coeffs1List):
-            self.log.log(self.log.INFO, "Applying crosstalk corrections to CCD %s based on Yagi+2012" %
-                         (exposure.getDetector().getId()))
-        else:
-            self.log.log(self.log.INFO, "No crosstalk info available. Skipping crosstalk corrections to CCD %s" %
-                         (exposure.getDetector().getId()))
+        if not numpy.any(coeffs1List):
+            self.log.info("No crosstalk info available. Skipping crosstalk corrections to CCD %s" %
+                          (exposure.getDetector().getId()))
             return
+
+        self.log.info("Applying crosstalk corrections to CCD %s based on Yagi+2012" %
+                      (exposure.getDetector().getId()))
 
         ccdId = int(exposure.getDetector().getId().getSerial())
         gainsPreampSigCcd = gainsPreampSig[ccdId]
