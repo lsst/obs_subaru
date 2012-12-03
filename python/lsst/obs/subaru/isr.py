@@ -12,8 +12,7 @@ import lsst.afw.cameraGeom as afwCG
 import lsst.afw.image as afwImage
 import lsst.afw.geom as afwGeom
 import lsst.afw.math as afwMath
-from . import crosstalkMitaka as crosstalk # for testing procedure by Yagi
-#from . import crosstalk
+from . import crosstalkYagi as crosstalk
 import lsst.afw.cameraGeom as cameraGeom
 import lsst.meas.algorithms as measAlg
 
