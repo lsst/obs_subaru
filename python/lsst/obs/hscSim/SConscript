@@ -1,11 +1,6 @@
 # -*- python -*-
-from lsst.sconsUtils import scripts, env, targets
-## scripts.BasicSConscript.python(['hscSimLib'])
+from lsst.sconsUtils import env, targets
 
-targets["python"].extend(
-    env.SwigLoadableModule(
-        "_hscSimLib", ["hscSimLib.i"],
-        ###SWIGFLAGS=(env["SWIGFLAGS"] + ["-DIMPORT_FUNCTION_I"]),
-        LIBS=env.getLibs("main python")
-    )
-)
+# Not using lsst.sconsUtils.scripts.BasicSConscript because we have multiple swigs to do (?)
+targets["python"].extend(env.SwigLoadableModule("_hscSimLib", ["hscSimLib.i"],
+                                                LIBS=env.getLibs("main python")))
