@@ -177,12 +177,38 @@ def getCrosstalkX2(x, xmax=512):
 
     return ctx2List
 
+def getAmplifier(image, amp, ampReference=None, offset=2):
+    """Extract an image of the amplifier from the CCD, along with an offset version
+
+    The amplifier image will be flipped (if required) to match the
+    orientation of a nominated reference amplifier.
+
+    An additional image, with the nominated offset applied, is also produced.
+
+    @param image           Image of CCD
+    @param amp             Index of amplifier
+    @param ampReference    Index of reference amplifier
+    @param offset          Offset to apply
+    @return amplifier image, offset amplifier image
+    """
+    height = image.getHeight()
+    ampBox = afwGeom.Box2I(afwGeom.Point2I(amp*512, 0), afwGeom.Extent2I(512, height))
+    ampImage = image.Factory(image, ampBox, afwImage.LOCAL)
+    if ampReference is not None and amp % 2 != ampReference % 2:
+        ampImage = afwMath.flipImage(ampImage, True, False)
+    offBox = afwGeom.Box2I(afwGeom.Point2I(offset if amp == ampReference else 0, 0),
+                           afwGeom.Extent2I(510, height))
+    offsetImage = ampImage.Factory(ampImage, offBox, afwImage.LOCAL)
+    return ampImage, offsetImage
+
 
 def subtractCrosstalkYagi(mi, coeffs1List, coeffs2List, gainsPreampSig, minPixelToMask=45000, crosstalkStr="CROSSTALK"):
     """Subtract the crosstalk from MaskedImage mi given a set of coefficients
        based on procedure presented in Yagi et al. 2012, PASP in publication; arXiv:1210.8212
        The pixels affected by signal over minPixelToMask have the crosstalkStr bit set
     """
+
+
     ####sctrl = afwMath.StatisticsControl()
     ####sctrl.setAndMask(mi.getMask().getPlaneBitMask("DETECTED"))
     ####bkgd = afwMath.makeStatistics(mi, afwMath.MEDIAN, sctrl).getValue()
@@ -200,8 +226,25 @@ def subtractCrosstalkYagi(mi, coeffs1List, coeffs2List, gainsPreampSig, minPixel
         fs.setMask(mi.getMask(), crosstalkStr) # the crosstalkStr bit will now be set whenever we subtract crosstalk
         crosstalk = mi.getMask().getPlaneBitMask(crosstalkStr)
 
-    nAmp = 4
-    subaruLib.subtractCrosstalk(mi, nAmp, coeffs1List, coeffs2List, gainsPreampSig)
+    if True:
+        # This python implementation is fairly fast
+        image = mi.getImage()
+        xtalk = afwImage.ImageF(image.getDimensions())
+        xtalk.set(0)
+        for i in range(4):
+            xAmp, xOff = getAmplifier(xtalk, i, i)
+            for j in range(4):
+                if i == j:
+                    continue
+                gainRatio = gainsPreampSig[j] / gainsPreampSig[i]
+                jAmp, jOff = getAmplifier(image, j, i)
+                xAmp.scaledPlus(gainRatio*coeffs1List[i][j], jAmp)
+                xOff.scaledPlus(gainRatio*coeffs2List[i][j], jOff)
+
+        image -= xtalk
+    else:
+        nAmp = 4
+        subaruLib.subtractCrosstalk(mi, nAmp, coeffs1List, coeffs2List, gainsPreampSig)
 
     #
     # Clear the crosstalkStr bit in the original bright pixels, where tempStr is set
