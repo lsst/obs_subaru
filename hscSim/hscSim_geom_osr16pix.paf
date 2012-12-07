@@ -960,6 +960,7 @@ Raft: {
 
 Ccd: {
     pixelSize: 1.0                      # pixel size (we're using pixels, not mm)
+    offsetUnit: 'pixels'                # units 'offset' values are in (pixels or mm)
     ptype: "default"
     nCol: 4                             # number of columns of amps; 2 == Left and Right
     nRow: 1                             # number of rows of amps

@@ -49,6 +49,7 @@ Amp: {
 
 Ccd: { 
     pixelSize: 1.0 # All positions in pixels, rather than mm
+    offsetUnit: "pixels"
     ptype: "bias-left"
     nCol: 1
     nRow: 1 
@@ -64,6 +65,7 @@ Ccd: {
 }
 Ccd: { 
     pixelSize: 1.0 # All positions in pixels, rather than mm
+    offsetUnit: "pixels"
     ptype: "bias-right"
     nCol: 1
     nRow: 1 

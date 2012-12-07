@@ -27,6 +27,7 @@ Amp: {
 Ccd: { 
     ptype: "top"
     pixelSize: 1.0 # All positions in pixels, rather than mm
+    offsetUnit: "pixels"
     nCol: 4
     nRow: 1 
     Amp: { 
@@ -69,6 +70,7 @@ Ccd: {
 Ccd: { 
     ptype: "bottom"
     pixelSize: 1.0 # All positions in pixels, rather than mm
+    offsetUnit: "pixels"
     nCol: 4
     nRow: 1 
     Amp: { 
