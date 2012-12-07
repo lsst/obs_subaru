@@ -14,6 +14,8 @@ import lsst.pex.policy as pexPolicy
 class SuprimecamMapperBase(CameraMapper):
 
     def defineFilters(self):
+        afwImageUtils.defineFilter('NONE', lambdaEff=0)
+
         # Johnson filters
         afwImageUtils.defineFilter('U',  lambdaEff=300,  alias=['W-J-U'])
         afwImageUtils.defineFilter('B',  lambdaEff=400,  alias=['W-J-B'])

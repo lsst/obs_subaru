@@ -14,3 +14,5 @@ ups/*.cfgc
 python/lsst/obs/subaru/version.py
 python/lsst/obs/hscSim/hscSimLib.py
 python/lsst/obs/hscSim/hscSimLib_wrap.cc
+python/lsst/obs/subaru/subaruLib.py
+python/lsst/obs/subaru/subaruLib_wrap.cc

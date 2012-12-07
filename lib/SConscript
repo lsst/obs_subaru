@@ -1,3 +1,7 @@
 # -*- python -*-
-from lsst.sconsUtils import scripts
-scripts.BasicSConscript.lib()
+from lsst.sconsUtils import scripts, targets, env
+##scripts.BasicSConscript.lib()
+
+objs = env.SourcesForSharedLibrary(Glob("#src/*.cc"))
+targets["lib"].extend(env.SharedLibrary(env["packageName"], objs, LIBS=env.getLibs("self")))
+
