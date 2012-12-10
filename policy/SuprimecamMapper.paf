@@ -220,9 +220,13 @@ calibrations: {
         level:        "Ccd"
         tables:     "bias"
         columns: "ccd"
+        columns: "taiObs"
         reference:   "raw_visit"
         refCols:     "visit"
         refCols:     "filter"
+        validRange:  true
+        validStartName: validStart
+        validEndName: validEnd
     }
     dark: {
         template:    "DARK/%(calibDate)s/%(filter)s/%(calibVersion)s/DARK-%(ccd)1d.fits"
@@ -232,9 +236,14 @@ calibrations: {
         level:        "Ccd"
         tables:     "dark"
         columns: "ccd"
+        columns: "taiObs"
         reference:   "raw_visit"
         refCols:     "visit"
         refCols:     "filter"
+        validRange:  true
+        validStartName: validStart
+        validEndName: validEnd
+
     }
     flat: {
         template:    "FLAT/%(calibDate)s/%(filter)s/%(calibVersion)s/FLAT-%(ccd)1d.fits"
