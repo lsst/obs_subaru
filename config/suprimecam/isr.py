@@ -3,7 +3,7 @@
 from lsst.obs.subaru.isr import SuprimeCamIsrTask
 
 root.isr.retarget(SuprimeCamIsrTask)  # custom task that adds guider correction
-root.isr.doBias = False
+root.isr.doBias = True
 root.isr.doDark = False
 root.isr.doWrite = False
 
