@@ -158,6 +158,12 @@ class SuprimecamMapperBase(CameraMapper):
         # for use in generating unique IDs for sources.
         self.filterIdMap = dict(zip(self.filters, range(len(self.filters))))
 
+    @staticmethod
+    def getEupsProductName():
+        return "obs_subaru"
+
+###############################################################################
+
     def _extractAmpId(self, dataId):
         return (self._extractDetectorName(dataId), 0, 0)
 
