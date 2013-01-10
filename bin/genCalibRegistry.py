@@ -56,6 +56,11 @@ for calib in ('bias', 'dark', 'flat', 'fringe'):
         elif opts.camera.lower() in ("hsc", "hscsim"):
             m = re.search(r'\w+/(\d{4})-(\d{2})-(\d{2})/([\w+-]+)/([\w-]+)/\w+-(\d{3}).fits', fits)
         if not m:
+            if (opts.camera.lower() in ("suprime-cam", "suprimecam", "sc") and
+                re.search(r'.*/\w+-0000000(\d).fits', fits)):
+                print >>sys.stderr, ("Warning: file naming rules have changed. " +
+                                     "Try renaming %s to %s" %
+                                     (fits, re.sub(r"(.*/\w+)-0000000(\d).fits", r"\1-\2.fits", fits)))
             print >>sys.stderr, "Warning: Unrecognized file:", fits
             continue
 
