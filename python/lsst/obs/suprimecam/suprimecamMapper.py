@@ -71,6 +71,14 @@ class SuprimecamMapper(CameraMapper):
         ccdTmp = int("%(ccd)d" % dataId)
         return mitNames[ccdTmp] if self.mit else miyazakiNames[ccdTmp]
 
+    @staticmethod
+    def getCameraName():
+        return "suprimecam"
+
+    @staticmethod
+    def getEupsProductName():
+        return "obs_subaru"
+
 ###############################################################################
 
     def _computeCcdExposureId(self, dataId):
