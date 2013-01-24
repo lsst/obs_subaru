@@ -1776,7 +1776,7 @@ Electronic: {
         Ccd: { 
             name: "dummy026"
             ptype: "default"
-            serial: 2666666 
+            serial: 26 
             Amp: {
                 index: 0 0
                 gain: 3.0
