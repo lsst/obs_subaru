@@ -84,7 +84,18 @@ class SubaruAstrometryTask(ptAstrometry.AstrometryTask):
 
         metadata = exposure.getMetadata()
         for key in self.metadata.names():
-            metadata.set(key, self.metadata.get(key))
+            val = self.metadata.get(key)
+            if isinstance(val, tuple):
+                self.log.log(self.log.DEBUG, "Value of %s is a tuple: %s" % (key, val))
+                val = val[-1]
+
+            try:
+                if isinstance(val, int) and val > 0x8fffff:
+                    metadata.setLong(key, val)
+                else:
+                    metadata.set(key, val)
+            except Exception, e:
+                self.log.log(self.log.WARN, "Value of %s == %s is invalid; %s" % (key, val, e))
 
         metadata.set('NOBJ_BRIGHT', len(sources))
         metadata.set('NOBJ_MATCHED', len(matches))
