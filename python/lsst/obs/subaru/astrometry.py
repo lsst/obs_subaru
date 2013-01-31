@@ -3,6 +3,7 @@
 # NOTE: THIS MODULE SHOULD NOT BE IMPORTED BY __init__.py, AS IT IMPORTS THE OPTIONAL hscAstrom PACKAGE.
 
 import lsst.pex.config as pexConfig
+import lsst.daf.base as dafBase
 import lsst.pipe.base as pipeBase
 import lsst.meas.astrom as measAstrom
 import lsst.pipe.tasks.astrometry as ptAstrometry
@@ -14,6 +15,8 @@ class SubaruAstrometryConfig(ptAstrometry.AstrometryConfig):
         doc = "Configuration for the Tabur astrometry solver"
         )
     failover = pexConfig.Field(dtype=bool, doc="Fail over from hscAstrom to meas_astrom?", default=False)
+
+    allowFailedAstrometry = pexConfig.Field(dtype=bool, doc="Proceed even if astrometry fails?", default=False)
 
 # Use hsc.meas.astrom, failing over to lsst.meas.astrom
 class SubaruAstrometryTask(ptAstrometry.AstrometryTask):
@@ -55,17 +58,21 @@ class SubaruAstrometryTask(ptAstrometry.AstrometryTask):
                 self.astrometer = measAstrom.Astrometry(self.config.solver, log=self.log)
                 astrom = self.astrometer.determineWcs(sources, exposure)
 
-        if astrom is None:
-            raise RuntimeError("Unable to solve astrometry for %s", exposure.getDetector().getId())
+        if astrom is None and self.config.allowFailedAstrometry:
+            matches = []
+            matchMeta = dafBase.PropertySet()
+        else:
+            if astrom is None:
+                raise RuntimeError("Unable to solve astrometry for %s", exposure.getDetector().getId())
 
-        wcs = astrom.getWcs()
-        matches = astrom.getMatches()
-        matchMeta = astrom.getMatchMetadata()
-        if matches is None or len(matches) == 0:
-            raise RuntimeError("No astrometric matches for %s", exposure.getDetector().getId())
-        self.log.log(self.log.INFO, "%d astrometric matches for %s" % \
-                     (len(matches), exposure.getDetector().getId()))
-        exposure.setWcs(wcs)
+            wcs = astrom.getWcs()
+            matches = astrom.getMatches()
+            matchMeta = astrom.getMatchMetadata()
+            if matches is None or len(matches) == 0:
+                raise RuntimeError("No astrometric matches for %s", exposure.getDetector().getId())
+            self.log.log(self.log.INFO, "%d astrometric matches for %s" % \
+                         (len(matches), exposure.getDetector().getId()))
+            exposure.setWcs(wcs)
 
         # Apply WCS to sources
         for source in sources:
@@ -77,7 +84,18 @@ class SubaruAstrometryTask(ptAstrometry.AstrometryTask):
 
         metadata = exposure.getMetadata()
         for key in self.metadata.names():
-            metadata.set(key, self.metadata.get(key))
+            val = self.metadata.get(key)
+            if isinstance(val, tuple):
+                self.log.log(self.log.DEBUG, "Value of %s is a tuple: %s" % (key, val))
+                val = val[-1]
+
+            try:
+                if isinstance(val, int) and val > 0x8fffff:
+                    metadata.setLong(key, val)
+                else:
+                    metadata.set(key, val)
+            except Exception, e:
+                self.log.log(self.log.WARN, "Value of %s == %s is invalid; %s" % (key, val, e))
 
         metadata.set('NOBJ_BRIGHT', len(sources))
         metadata.set('NOBJ_MATCHED', len(matches))
