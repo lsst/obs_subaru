@@ -20,7 +20,11 @@ parser.add_argument("--visits", type=int, nargs="*", help="Visits to process")
 parser.add_argument("--fields", nargs="*", help="Fields to process")
 args = parser.parse_args()
 
-if args.camera.lower() in ("hsc", "hscsim"):
+if args.camera.lower() in ("hsc",):
+    mapperPolicy = "HscSimMapper.paf"
+    reFilename = r'HSC-(\d{7})-(\d{3}).fits'
+    globFilename = "HSC-%07d-???.fits"
+elif args.camera.lower() in ("hscsim",):
     mapperPolicy = "HscSimMapper.paf"
     reFilename = r'HSCA(\d{5})(\d{3}).fits'
     globFilename = "HSCA%05d???.fits"
