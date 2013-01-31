@@ -125,11 +125,14 @@ for fits in files:
                 if dateObsCard.find('T') == -1:
                     dateObsCard += "T00:00:00Z"
                 taiObs = dafBase.DateTime(dateObsCard).toString()[:-1]
-        
-        wcs = afwImage.makeWcs(md)
-        poly = skypix.imageToPolygon(wcs, md.get("NAXIS1"), md.get("NAXIS2"),
-                                     padRad=0.000075) # about 15 arcsec
-        pix = qsp.intersect(poly)
+
+        if md.get("CTYPE1").strip() == "CPX" and md.get("CTYPE2").strip() == "CPY": # HSC pixel WCS
+            pix = []
+        else:
+            wcs = afwImage.makeWcs(md)
+            poly = skypix.imageToPolygon(wcs, md.get("NAXIS1"), md.get("NAXIS2"),
+                                         padRad=0.000075) # about 15 arcsec
+            pix = qsp.intersect(poly)
 
         cursor.execute("INSERT INTO raw VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?)",
                        (field, visit, filterId, ccd, dateObs, taiObs, expTime, pointing))
