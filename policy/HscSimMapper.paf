@@ -7,8 +7,8 @@
 needCalibRegistry: true
 #calibRegistryPath: "/path/to/calibration/registry/"
 
-camera:        "../hscSim/hscSim_geom.paf"
-#defects:    "../hscSim/hscSim_defects.paf"
+camera:        "../hsc/hsc_geom.paf"
+defects:    "../hsc/hsc_defects.paf"
 defaultLevel: "Ccd"
 
 skytiles: {
