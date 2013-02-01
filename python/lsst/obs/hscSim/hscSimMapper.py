@@ -58,7 +58,12 @@ class HscSimMapper(CameraMapper):
         return self.camera
 
     def std_raw(self, item, dataId):
-        """We flip the pixels left - right to give them on-sky orientation"""
+        """We flip the pixels left - right to give them on-sky orientation
+
+N.b. This only works because the data and bias secs are symmetrical about the centre line
+of the detector.  We flip chips 100--103 about their short axis, and I'm worried that this
+may not be true;  but they aren't very useful chips anyway...
+        """
         
         exp = super(HscSimMapper, self).std_raw(item, dataId)
 
