@@ -5,6 +5,8 @@ import pwd
 
 from lsst.daf.butlerUtils import CameraMapper
 import lsst.afw.image.utils as afwImageUtils
+import lsst.afw.image as afwImage
+import lsst.afw.math as afwMath
 import lsst.afw.geom as afwGeom
 import lsst.pex.policy as pexPolicy
 from .hscSimLib import HscDistortion
@@ -55,6 +57,17 @@ class HscSimMapper(CameraMapper):
         """Standardize a camera dataset by converting it to a camera object."""
         return self.camera
 
+    def std_raw(self, item, dataId):
+        """We flip the pixels left - right to give them on-sky orientation"""
+        
+        exp = super(HscSimMapper, self).std_raw(item, dataId)
+
+        flipLR, flipTB = (False, True) if dataId['ccd'] in (100, 101, 102, 103) else (True, False)
+        exp.setMaskedImage(afwMath.flipImage(exp.getMaskedImage(), flipLR, flipTB))
+        exp.getWcs().flipImage(flipLR, flipTB, exp.getDimensions())
+        
+        return exp
+    
     def _extractAmpId(self, dataId):
         return (self._extractDetectorName(dataId), 0, 0)
 
