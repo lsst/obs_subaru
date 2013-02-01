@@ -51,6 +51,10 @@ class HscSimMapper(CameraMapper):
             "W-S-ZR"  : "y",
             }
 
+    def std_camera(self, item, dataId):
+        """Standardize a camera dataset by converting it to a camera object."""
+        return self.camera
+
     def _extractAmpId(self, dataId):
         return (self._extractDetectorName(dataId), 0, 0)
 
