@@ -9,11 +9,25 @@ needCalibRegistry: true
 
 camera:        "../hsc/hsc_geom.paf"
 defects:    "../hsc/hsc_defects.paf"
-defaultLevel: "Ccd"
 
 skytiles: {
     resolutionPix: 700    # Resolution for skytiles: 700 --> 500 arcsec sides
     paddingArcsec: 10.0   # Overlap between skytiles
+}
+
+levels: {
+    # Keys that are NOT relevant for a particular level
+    skyTile: "visit" "ccd"
+    tract: "patch"
+    visit: "ccd"
+    sensor: "none"
+}
+defaultLevel: "sensor"
+defaultSubLevels: {
+    # Default sublevel for dataRef.subItems()
+    skyTile: "sensor"
+    visit: "sensor"
+    sensor: "none"
 }
 
 exposures: {
