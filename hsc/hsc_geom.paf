@@ -40,7 +40,8 @@ Raft: {
     nRow: 8                            # number of rows of CCDs
     Ccd: {
        serial: 0               # CCDs serial number
-       name: "1_53"               # CCDs name
+       # sdo_id: 1_53
+       name: "hsc000"               # CCDs name
        ptype: "default"
        index: 14 2
        offset: 14858.70 -6944.16        # offset of CCD center from raft center, (x, y)
@@ -49,7 +50,8 @@ Raft: {
     }
     Ccd: {
        serial: 1               # CCDs serial number
-       name: "1_54"               # CCDs name
+       # sdo_id: 1_54
+       name: "hsc001"               # CCDs name
        ptype: "default"
        index: 14 3
        offset: 14858.70 -2475.83        # offset of CCD center from raft center, (x, y)
@@ -58,7 +60,8 @@ Raft: {
     }
     Ccd: {
        serial: 2               # CCDs serial number
-       name: "1_55"               # CCDs name
+       # sdo_id: 1_55
+       name: "hsc002"               # CCDs name
        ptype: "default"
        index: 14 4
        offset: 14858.70 1992.51  # offset of CCD center from raft center, (x, y)
@@ -67,7 +70,8 @@ Raft: {
     }
     Ccd: {
        serial: 3               # CCDs serial number
-       name: "1_56"               # CCDs name
+       # sdo_id: 1_56
+       name: "hsc003"               # CCDs name
        ptype: "default"
        index: 14 5
        offset: 14858.70 6460.84  # offset of CCD center from raft center, (x, y)
@@ -76,7 +80,8 @@ Raft: {
     }
     Ccd: {
        serial: 4               # CCDs serial number
-       name: "1_42"               # CCDs name
+       # sdo_id: 1_42
+       name: "hsc004"               # CCDs name
        ptype: "default"
        index: 13 1
        offset: 12736.00 -11412.50  # offset of CCD center from raft center, (x, y)
@@ -85,7 +90,8 @@ Raft: {
     }
     Ccd: {
        serial: 5               # CCDs serial number
-       name: "1_43"               # CCDs name
+       # sdo_id: 1_43
+       name: "hsc005"               # CCDs name
        ptype: "default"
        index: 13 2
        offset: 12736.00 -6944.16  # offset of CCD center from raft center, (x, y)
@@ -94,7 +100,8 @@ Raft: {
     }
     Ccd: {
        serial: 6               # CCDs serial number
-       name: "1_44"               # CCDs name
+       # sdo_id: 1_44
+       name: "hsc006"               # CCDs name
        ptype: "default"
        index: 13 3
        offset: 12736.00 -2475.83  # offset of CCD center from raft center, (x, y)
@@ -103,7 +110,8 @@ Raft: {
     }
     Ccd: {
        serial: 7               # CCDs serial number
-       name: "1_45"               # CCDs name
+       # sdo_id: 1_45
+       name: "hsc007"               # CCDs name
        ptype: "default"
        index: 13 4
        offset: 12736.00 1992.51  # offset of CCD center from raft center, (x, y)
@@ -112,7 +120,8 @@ Raft: {
     }
     Ccd: {
        serial: 8               # CCDs serial number
-       name: "1_46"               # CCDs name
+       # sdo_id: 1_46
+       name: "hsc008"               # CCDs name
        ptype: "default"
        index: 13 5
        offset: 12736.00 6460.84  # offset of CCD center from raft center, (x, y)
@@ -121,7 +130,8 @@ Raft: {
     }
     Ccd: {
        serial: 9               # CCDs serial number
-       name: "1_47"               # CCDs name
+       # sdo_id: 1_47
+       name: "hsc009"               # CCDs name
        ptype: "default"
        index: 13 6
        offset: 12736.00 10929.17  # offset of CCD center from raft center, (x, y)
@@ -130,7 +140,8 @@ Raft: {
     }
     Ccd: {
        serial: 10               # CCDs serial number
-       name: "1_36"               # CCDs name
+       # sdo_id: 1_36
+       name: "hsc010"               # CCDs name
        ptype: "default"
        index: 12 1
        offset: 10613.34 -11412.50  # offset of CCD center from raft center, (x, y)
@@ -139,7 +150,8 @@ Raft: {
     }
     Ccd: {
        serial: 11               # CCDs serial number
-       name: "1_37"               # CCDs name
+       # sdo_id: 1_37
+       name: "hsc011"               # CCDs name
        ptype: "default"
        index: 12 2
        offset: 10613.34 -6944.16  # offset of CCD center from raft center, (x, y)
@@ -148,7 +160,8 @@ Raft: {
     }
     Ccd: {
        serial: 12               # CCDs serial number
-       name: "1_38"               # CCDs name
+       # sdo_id: 1_38
+       name: "hsc012"               # CCDs name
        ptype: "default"
        index: 12 3
        offset: 10613.34 -2475.83  # offset of CCD center from raft center, (x, y)
@@ -157,7 +170,8 @@ Raft: {
     }
     Ccd: {
        serial: 13               # CCDs serial number
-       name: "1_39"               # CCDs name
+       # sdo_id: 1_39
+       name: "hsc013"               # CCDs name
        ptype: "default"
        index: 12 4
        offset: 10613.34 1992.51  # offset of CCD center from raft center, (x, y)
@@ -166,7 +180,8 @@ Raft: {
     }
     Ccd: {
        serial: 14               # CCDs serial number
-       name: "1_40"               # CCDs name
+       # sdo_id: 1_40
+       name: "hsc014"               # CCDs name
        ptype: "default"
        index: 12 5
        offset: 10613.34 6460.84  # offset of CCD center from raft center, (x, y)
@@ -175,7 +190,8 @@ Raft: {
     }
     Ccd: {
        serial: 15               # CCDs serial number
-       name: "1_41"               # CCDs name
+       # sdo_id: 1_41
+       name: "hsc015"               # CCDs name
        ptype: "default"
        index: 12 6
        offset: 10613.34 10929.17  # offset of CCD center from raft center, (x, y)
@@ -184,7 +200,8 @@ Raft: {
     }
     Ccd: {
        serial: 16               # CCDs serial number
-       name: "0_30"               # CCDs name
+       # sdo_id: 0_30
+       name: "hsc016"               # CCDs name
        ptype: "default"
        index: 11 1
        offset: 8490.67 -11195.80  # offset of CCD center from raft center, (x, y)
@@ -193,7 +210,8 @@ Raft: {
     }
     Ccd: {
        serial: 17               # CCDs serial number
-       name: "0_29"               # CCDs name
+       # sdo_id: 0_29
+       name: "hsc017"               # CCDs name
        ptype: "default"
        index: 11 2
        offset: 8490.67 -6727.49  # offset of CCD center from raft center, (x, y)
@@ -202,7 +220,8 @@ Raft: {
     }
     Ccd: {
        serial: 18               # CCDs serial number
-       name: "0_28"               # CCDs name
+       # sdo_id: 0_28
+       name: "hsc018"               # CCDs name
        ptype: "default"
        index: 11 3
        offset: 8490.67 -2259.16  # offset of CCD center from raft center, (x, y)
@@ -211,7 +230,8 @@ Raft: {
     }
     Ccd: {
        serial: 19               # CCDs serial number
-       name: "1_32"               # CCDs name
+       # sdo_id: 1_32
+       name: "hsc019"               # CCDs name
        ptype: "default"
        index: 11 4
        offset: 8490.67 1992.51  # offset of CCD center from raft center, (x, y)
@@ -220,7 +240,8 @@ Raft: {
     }
     Ccd: {
        serial: 20               # CCDs serial number
-       name: "1_33"               # CCDs name
+       # sdo_id: 1_33
+       name: "hsc020"               # CCDs name
        ptype: "default"
        index: 11 5
        offset: 8490.67 6460.84  # offset of CCD center from raft center, (x, y)
@@ -229,7 +250,8 @@ Raft: {
     }
     Ccd: {
        serial: 21               # CCDs serial number
-       name: "1_34"               # CCDs name
+       # sdo_id: 1_34
+       name: "hsc021"               # CCDs name
        ptype: "default"
        index: 11 6
        offset: 8490.67 10929.17  # offset of CCD center from raft center, (x, y)
@@ -238,7 +260,8 @@ Raft: {
     }
     Ccd: {
        serial: 22               # CCDs serial number
-       name: "0_27"               # CCDs name
+       # sdo_id: 0_27
+       name: "hsc022"               # CCDs name
        ptype: "default"
        index: 10 0
        offset: 6368.01 -15664.20  # offset of CCD center from raft center, (x, y)
@@ -247,7 +270,8 @@ Raft: {
     }
     Ccd: {
        serial: 23               # CCDs serial number
-       name: "0_26"               # CCDs name
+       # sdo_id: 0_26
+       name: "hsc023"               # CCDs name
        ptype: "default"
        index: 10 1
        offset: 6368.01 -11195.80  # offset of CCD center from raft center, (x, y)
@@ -256,7 +280,8 @@ Raft: {
     }
     Ccd: {
        serial: 24               # CCDs serial number
-       name: "0_25"               # CCDs name
+       # sdo_id: 0_25
+       name: "hsc024"               # CCDs name
        ptype: "default"
        index: 10 2
        offset: 6368.01 -6727.49  # offset of CCD center from raft center, (x, y)
@@ -265,7 +290,8 @@ Raft: {
     }
     Ccd: {
        serial: 25               # CCDs serial number
-       name: "0_24"               # CCDs name
+       # sdo_id: 0_24
+       name: "hsc025"               # CCDs name
        ptype: "default"
        index: 10 3
        offset: 6368.01 -2259.16  # offset of CCD center from raft center, (x, y)
@@ -274,7 +300,8 @@ Raft: {
     }
     Ccd: {
        serial: 26               # CCDs serial number
-       name: "1_00"               # CCDs name
+       # sdo_id: 1_00
+       name: "hsc026"               # CCDs name
        ptype: "default"
        index: 10 4
        offset: 6368.01 1992.51  # offset of CCD center from raft center, (x, y)
@@ -283,7 +310,8 @@ Raft: {
     }
     Ccd: {
        serial: 27               # CCDs serial number
-       name: "1_01"               # CCDs name
+       # sdo_id: 1_01
+       name: "hsc027"               # CCDs name
        ptype: "default"
        index: 10 5
        offset: 6368.01 6460.84  # offset of CCD center from raft center, (x, y)
@@ -292,7 +320,8 @@ Raft: {
     }
     Ccd: {
        serial: 28               # CCDs serial number
-       name: "1_02"               # CCDs name
+       # sdo_id: 1_02
+       name: "hsc028"               # CCDs name
        ptype: "default"
        index: 10 6
        offset: 6368.01 10929.17  # offset of CCD center from raft center, (x, y)
@@ -301,7 +330,8 @@ Raft: {
     }
     Ccd: {
        serial: 29               # CCDs serial number
-       name: "1_03"               # CCDs name
+       # sdo_id: 1_03
+       name: "hsc029"               # CCDs name
        ptype: "default"
        index: 10 7
        offset: 6368.01 15397.50  # offset of CCD center from raft center, (x, y)
@@ -310,7 +340,8 @@ Raft: {
     }
     Ccd: {
        serial: 30               # CCDs serial number
-       name: "0_23"               # CCDs name
+       # sdo_id: 0_23
+       name: "hsc030"               # CCDs name
        ptype: "default"
        index: 9 0
        offset: 4245.34 -15664.20  # offset of CCD center from raft center, (x, y)
@@ -319,7 +350,8 @@ Raft: {
     }
     Ccd: {
        serial: 31               # CCDs serial number
-       name: "0_22"               # CCDs name
+       # sdo_id: 0_22
+       name: "hsc031"               # CCDs name
        ptype: "default"
        index: 9 1
        offset: 4245.34 -11195.80  # offset of CCD center from raft center, (x, y)
@@ -328,7 +360,8 @@ Raft: {
     }
     Ccd: {
        serial: 32               # CCDs serial number
-       name: "0_21"               # CCDs name
+       # sdo_id: 0_21
+       name: "hsc032"               # CCDs name
        ptype: "default"
        index: 9 2
        offset: 4245.34 -6727.49  # offset of CCD center from raft center, (x, y)
@@ -337,7 +370,8 @@ Raft: {
     }
     Ccd: {
        serial: 33               # CCDs serial number
-       name: "0_20"               # CCDs name
+       # sdo_id: 0_20
+       name: "hsc033"               # CCDs name
        ptype: "default"
        index: 9 3
        offset: 4245.34 -2259.16  # offset of CCD center from raft center, (x, y)
@@ -346,7 +380,8 @@ Raft: {
     }
     Ccd: {
        serial: 34               # CCDs serial number
-       name: "1_04"               # CCDs name
+       # sdo_id: 1_04
+       name: "hsc034"               # CCDs name
        ptype: "default"
        index: 9 4
        offset: 4245.34 1992.51  # offset of CCD center from raft center, (x, y)
@@ -355,7 +390,8 @@ Raft: {
     }
     Ccd: {
        serial: 35               # CCDs serial number
-       name: "1_05"               # CCDs name
+       # sdo_id: 1_05
+       name: "hsc035"               # CCDs name
        ptype: "default"
        index: 9 5
        offset: 4245.34 6460.84  # offset of CCD center from raft center, (x, y)
@@ -364,7 +400,8 @@ Raft: {
     }
     Ccd: {
        serial: 36               # CCDs serial number
-       name: "1_06"               # CCDs name
+       # sdo_id: 1_06
+       name: "hsc036"               # CCDs name
        ptype: "default"
        index: 9 6
        offset: 4245.34 10929.17  # offset of CCD center from raft center, (x, y)
@@ -373,7 +410,8 @@ Raft: {
     }
     Ccd: {
        serial: 37               # CCDs serial number
-       name: "1_07"               # CCDs name
+       # sdo_id: 1_07
+       name: "hsc037"               # CCDs name
        ptype: "default"
        index: 9 7
        offset: 4245.34 15397.50  # offset of CCD center from raft center, (x, y)
@@ -382,7 +420,8 @@ Raft: {
     }
     Ccd: {
        serial: 38               # CCDs serial number
-       name: "0_19"               # CCDs name
+       # sdo_id: 0_19
+       name: "hsc038"               # CCDs name
        ptype: "default"
        index: 8 0
        offset: 2122.67 -15664.20  # offset of CCD center from raft center, (x, y)
@@ -391,7 +430,8 @@ Raft: {
     }
     Ccd: {
        serial: 39               # CCDs serial number
-       name: "0_18"               # CCDs name
+       # sdo_id: 0_18
+       name: "hsc039"               # CCDs name
        ptype: "default"
        index: 8 1
        offset: 2122.67 -11195.80  # offset of CCD center from raft center, (x, y)
@@ -400,7 +440,8 @@ Raft: {
     }
     Ccd: {
        serial: 40               # CCDs serial number
-       name: "0_17"               # CCDs name
+       # sdo_id: 0_17
+       name: "hsc040"               # CCDs name
        ptype: "default"
        index: 8 2
        offset: 2122.67 -6727.49  # offset of CCD center from raft center, (x, y)
@@ -409,7 +450,8 @@ Raft: {
     }
     Ccd: {
        serial: 41               # CCDs serial number
-       name: "0_16"               # CCDs name
+       # sdo_id: 0_16
+       name: "hsc041"               # CCDs name
        ptype: "default"
        index: 8 3
        offset: 2122.67 -2259.16  # offset of CCD center from raft center, (x, y)
@@ -418,7 +460,8 @@ Raft: {
     }
     Ccd: {
        serial: 42               # CCDs serial number
-       name: "1_08"               # CCDs name
+       # sdo_id: 1_08
+       name: "hsc042"               # CCDs name
        ptype: "default"
        index: 8 4
        offset: 2122.67 1992.51  # offset of CCD center from raft center, (x, y)
@@ -427,7 +470,8 @@ Raft: {
     }
     Ccd: {
        serial: 43               # CCDs serial number
-       name: "1_09"               # CCDs name
+       # sdo_id: 1_09
+       name: "hsc043"               # CCDs name
        ptype: "default"
        index: 8 5
        offset: 2122.67 6460.84  # offset of CCD center from raft center, (x, y)
@@ -436,7 +480,8 @@ Raft: {
     }
     Ccd: {
        serial: 44               # CCDs serial number
-       name: "1_10"               # CCDs name
+       # sdo_id: 1_10
+       name: "hsc044"               # CCDs name
        ptype: "default"
        index: 8 6
        offset: 2122.67 10929.17  # offset of CCD center from raft center, (x, y)
@@ -445,7 +490,8 @@ Raft: {
     }
     Ccd: {
        serial: 45               # CCDs serial number
-       name: "1_11"               # CCDs name
+       # sdo_id: 1_11
+       name: "hsc045"               # CCDs name
        ptype: "default"
        index: 8 7
        offset: 2122.67 15397.50  # offset of CCD center from raft center, (x, y)
@@ -454,7 +500,8 @@ Raft: {
     }
     Ccd: {
        serial: 46               # CCDs serial number
-       name: "0_15"               # CCDs name
+       # sdo_id: 0_15
+       name: "hsc046"               # CCDs name
        ptype: "default"
        index: 7 0
        offset: 0.01 -15664.20  # offset of CCD center from raft center, (x, y)
@@ -463,7 +510,8 @@ Raft: {
     }
     Ccd: {
        serial: 47               # CCDs serial number
-       name: "0_14"               # CCDs name
+       # sdo_id: 0_14
+       name: "hsc047"               # CCDs name
        ptype: "default"
        index: 7 1
        offset: 0.01 -11195.80  # offset of CCD center from raft center, (x, y)
@@ -472,7 +520,8 @@ Raft: {
     }
     Ccd: {
        serial: 48               # CCDs serial number
-       name: "0_13"               # CCDs name
+       # sdo_id: 0_13
+       name: "hsc048"               # CCDs name
        ptype: "default"
        index: 7 2
        offset: 0.01 -6727.49  # offset of CCD center from raft center, (x, y)
@@ -481,7 +530,8 @@ Raft: {
     }
     Ccd: {
        serial: 49               # CCDs serial number
-       name: "0_12"               # CCDs name
+       # sdo_id: 0_12
+       name: "hsc049"               # CCDs name
        ptype: "default"
        index: 7 3
        offset: 0.01 -2259.16  # offset of CCD center from raft center, (x, y)
@@ -490,7 +540,8 @@ Raft: {
     }
     Ccd: {
        serial: 50               # CCDs serial number
-       name: "1_12"               # CCDs name
+       # sdo_id: 1_12
+       name: "hsc050"               # CCDs name
        ptype: "default"
        index: 7 4
        offset: 0.01 1992.51  # offset of CCD center from raft center, (x, y)
@@ -499,7 +550,8 @@ Raft: {
     }
     Ccd: {
        serial: 51               # CCDs serial number
-       name: "1_13"               # CCDs name
+       # sdo_id: 1_13
+       name: "hsc051"               # CCDs name
        ptype: "default"
        index: 7 5
        offset: 0.01 6460.84  # offset of CCD center from raft center, (x, y)
@@ -508,7 +560,8 @@ Raft: {
     }
     Ccd: {
        serial: 52               # CCDs serial number
-       name: "1_14"               # CCDs name
+       # sdo_id: 1_14
+       name: "hsc052"               # CCDs name
        ptype: "default"
        index: 7 6
        offset: 0.01 10929.17  # offset of CCD center from raft center, (x, y)
@@ -517,7 +570,8 @@ Raft: {
     }
     Ccd: {
        serial: 53               # CCDs serial number
-       name: "1_15"               # CCDs name
+       # sdo_id: 1_15
+       name: "hsc053"               # CCDs name
        ptype: "default"
        index: 7 7
        offset: 0.01 15397.50  # offset of CCD center from raft center, (x, y)
@@ -526,7 +580,8 @@ Raft: {
     }
     Ccd: {
        serial: 54               # CCDs serial number
-       name: "0_11"               # CCDs name
+       # sdo_id: 0_11
+       name: "hsc054"               # CCDs name
        ptype: "default"
        index: 6 0
        offset: -2122.66 -15664.20  # offset of CCD center from raft center, (x, y)
@@ -535,7 +590,8 @@ Raft: {
     }
     Ccd: {
        serial: 55               # CCDs serial number
-       name: "0_10"               # CCDs name
+       # sdo_id: 0_10
+       name: "hsc055"               # CCDs name
        ptype: "default"
        index: 6 1
        offset: -2122.66 -11195.80  # offset of CCD center from raft center, (x, y)
@@ -544,7 +600,8 @@ Raft: {
     }
     Ccd: {
        serial: 56               # CCDs serial number
-       name: "0_09"               # CCDs name
+       # sdo_id: 0_09
+       name: "hsc056"               # CCDs name
        ptype: "default"
        index: 6 2
        offset: -2122.66 -6727.49  # offset of CCD center from raft center, (x, y)
@@ -553,7 +610,8 @@ Raft: {
     }
     Ccd: {
        serial: 57               # CCDs serial number
-       name: "0_08"               # CCDs name
+       # sdo_id: 0_08
+       name: "hsc057"               # CCDs name
        ptype: "default"
        index: 6 3
        offset: -2122.66 -2259.16  # offset of CCD center from raft center, (x, y)
@@ -562,7 +620,8 @@ Raft: {
     }
     Ccd: {
        serial: 58               # CCDs serial number
-       name: "1_16"               # CCDs name
+       # sdo_id: 1_16
+       name: "hsc058"               # CCDs name
        ptype: "default"
        index: 6 4
        offset: -2122.66 1992.51  # offset of CCD center from raft center, (x, y)
@@ -571,7 +630,8 @@ Raft: {
     }
     Ccd: {
        serial: 59               # CCDs serial number
-       name: "1_17"               # CCDs name
+       # sdo_id: 1_17
+       name: "hsc059"               # CCDs name
        ptype: "default"
        index: 6 5
        offset: -2122.66 6460.84  # offset of CCD center from raft center, (x, y)
@@ -580,7 +640,8 @@ Raft: {
     }
     Ccd: {
        serial: 60               # CCDs serial number
-       name: "1_18"               # CCDs name
+       # sdo_id: 1_18
+       name: "hsc060"               # CCDs name
        ptype: "default"
        index: 6 6
        offset: -2122.66 10929.17  # offset of CCD center from raft center, (x, y)
@@ -589,7 +650,8 @@ Raft: {
     }
     Ccd: {
        serial: 61               # CCDs serial number
-       name: "1_19"               # CCDs name
+       # sdo_id: 1_19
+       name: "hsc061"               # CCDs name
        ptype: "default"
        index: 6 7
        offset: -2122.66 15397.50  # offset of CCD center from raft center, (x, y)
@@ -598,7 +660,8 @@ Raft: {
     }
     Ccd: {
        serial: 62               # CCDs serial number
-       name: "0_07"               # CCDs name
+       # sdo_id: 0_07
+       name: "hsc062"               # CCDs name
        ptype: "default"
        index: 5 0
        offset: -4245.33 -15664.20  # offset of CCD center from raft center, (x, y)
@@ -607,7 +670,8 @@ Raft: {
     }
     Ccd: {
        serial: 63               # CCDs serial number
-       name: "0_06"               # CCDs name
+       # sdo_id: 0_06
+       name: "hsc063"               # CCDs name
        ptype: "default"
        index: 5 1
        offset: -4245.33 -11195.80  # offset of CCD center from raft center, (x, y)
@@ -616,7 +680,8 @@ Raft: {
     }
     Ccd: {
        serial: 64               # CCDs serial number
-       name: "0_05"               # CCDs name
+       # sdo_id: 0_05
+       name: "hsc064"               # CCDs name
        ptype: "default"
        index: 5 2
        offset: -4245.33 -6727.49  # offset of CCD center from raft center, (x, y)
@@ -625,7 +690,8 @@ Raft: {
     }
     Ccd: {
        serial: 65               # CCDs serial number
-       name: "0_04"               # CCDs name
+       # sdo_id: 0_04
+       name: "hsc065"               # CCDs name
        ptype: "default"
        index: 5 3
        offset: -4245.33 -2259.16  # offset of CCD center from raft center, (x, y)
@@ -634,7 +700,8 @@ Raft: {
     }
     Ccd: {
        serial: 66               # CCDs serial number
-       name: "1_20"               # CCDs name
+       # sdo_id: 1_20
+       name: "hsc066"               # CCDs name
        ptype: "default"
        index: 5 4
        offset: -4245.33 1992.51  # offset of CCD center from raft center, (x, y)
@@ -643,7 +710,8 @@ Raft: {
     }
     Ccd: {
        serial: 67               # CCDs serial number
-       name: "1_21"               # CCDs name
+       # sdo_id: 1_21
+       name: "hsc067"               # CCDs name
        ptype: "default"
        index: 5 5
        offset: -4245.33 6460.84  # offset of CCD center from raft center, (x, y)
@@ -652,7 +720,8 @@ Raft: {
     }
     Ccd: {
        serial: 68               # CCDs serial number
-       name: "1_22"               # CCDs name
+       # sdo_id: 1_22
+       name: "hsc068"               # CCDs name
        ptype: "default"
        index: 5 6
        offset: -4245.33 10929.17  # offset of CCD center from raft center, (x, y)
@@ -661,7 +730,8 @@ Raft: {
     }
     Ccd: {
        serial: 69               # CCDs serial number
-       name: "1_23"               # CCDs name
+       # sdo_id: 1_23
+       name: "hsc069"               # CCDs name
        ptype: "default"
        index: 5 7
        offset: -4245.33 15397.50  # offset of CCD center from raft center, (x, y)
@@ -670,7 +740,8 @@ Raft: {
     }
     Ccd: {
        serial: 70               # CCDs serial number
-       name: "0_03"               # CCDs name
+       # sdo_id: 0_03
+       name: "hsc070"               # CCDs name
        ptype: "default"
        index: 4 0
        offset: -6367.99 -15664.20  # offset of CCD center from raft center, (x, y)
@@ -679,7 +750,8 @@ Raft: {
     }
     Ccd: {
        serial: 71               # CCDs serial number
-       name: "0_02"               # CCDs name
+       # sdo_id: 0_02
+       name: "hsc071"               # CCDs name
        ptype: "default"
        index: 4 1
        offset: -6367.99 -11195.80  # offset of CCD center from raft center, (x, y)
@@ -688,7 +760,8 @@ Raft: {
     }
     Ccd: {
        serial: 72               # CCDs serial number
-       name: "0_01"               # CCDs name
+       # sdo_id: 0_01
+       name: "hsc072"               # CCDs name
        ptype: "default"
        index: 4 2
        offset: -6367.99 -6727.49  # offset of CCD center from raft center, (x, y)
@@ -697,7 +770,8 @@ Raft: {
     }
     Ccd: {
        serial: 73               # CCDs serial number
-       name: "0_00"               # CCDs name
+       # sdo_id: 0_00
+       name: "hsc073"               # CCDs name
        ptype: "default"
        index: 4 3
        offset: -6367.99 -2259.16  # offset of CCD center from raft center, (x, y)
@@ -706,7 +780,8 @@ Raft: {
     }
     Ccd: {
        serial: 74               # CCDs serial number
-       name: "1_24"               # CCDs name
+       # sdo_id: 1_24
+       name: "hsc074"               # CCDs name
        ptype: "default"
        index: 4 4
        offset: -6367.99 1992.51  # offset of CCD center from raft center, (x, y)
@@ -715,7 +790,8 @@ Raft: {
     }
     Ccd: {
        serial: 75               # CCDs serial number
-       name: "1_25"               # CCDs name
+       # sdo_id: 1_25
+       name: "hsc075"               # CCDs name
        ptype: "default"
        index: 4 5
        offset: -6367.99 6460.84  # offset of CCD center from raft center, (x, y)
@@ -724,7 +800,8 @@ Raft: {
     }
     Ccd: {
        serial: 76               # CCDs serial number
-       name: "1_26"               # CCDs name
+       # sdo_id: 1_26
+       name: "hsc076"               # CCDs name
        ptype: "default"
        index: 4 6
        offset: -6367.99 10929.17  # offset of CCD center from raft center, (x, y)
@@ -733,7 +810,8 @@ Raft: {
     }
     Ccd: {
        serial: 77               # CCDs serial number
-       name: "1_27"               # CCDs name
+       # sdo_id: 1_27
+       name: "hsc077"               # CCDs name
        ptype: "default"
        index: 4 7
        offset: -6367.99 15397.50  # offset of CCD center from raft center, (x, y)
@@ -742,7 +820,8 @@ Raft: {
     }
     Ccd: {
        serial: 78               # CCDs serial number
-       name: "0_34"               # CCDs name
+       # sdo_id: 0_34
+       name: "hsc078"               # CCDs name
        ptype: "default"
        index: 3 1
        offset: -8490.66 -11195.80  # offset of CCD center from raft center, (x, y)
@@ -751,7 +830,8 @@ Raft: {
     }
     Ccd: {
        serial: 79               # CCDs serial number
-       name: "0_33"               # CCDs name
+       # sdo_id: 0_33
+       name: "hsc079"               # CCDs name
        ptype: "default"
        index: 3 2
        offset: -8490.66 -6727.49  # offset of CCD center from raft center, (x, y)
@@ -760,7 +840,8 @@ Raft: {
     }
     Ccd: {
        serial: 80               # CCDs serial number
-       name: "0_32"               # CCDs name
+       # sdo_id: 0_32
+       name: "hsc080"               # CCDs name
        ptype: "default"
        index: 3 3
        offset: -8490.66 -2259.16  # offset of CCD center from raft center, (x, y)
@@ -769,7 +850,8 @@ Raft: {
     }
     Ccd: {
        serial: 81               # CCDs serial number
-       name: "1_28"               # CCDs name
+       # sdo_id: 1_28
+       name: "hsc081"               # CCDs name
        ptype: "default"
        index: 3 4
        offset: -8490.66 1992.51  # offset of CCD center from raft center, (x, y)
@@ -778,7 +860,8 @@ Raft: {
     }
     Ccd: {
        serial: 82               # CCDs serial number
-       name: "1_29"               # CCDs name
+       # sdo_id: 1_29
+       name: "hsc082"               # CCDs name
        ptype: "default"
        index: 3 5
        offset: -8490.66 6460.84  # offset of CCD center from raft center, (x, y)
@@ -787,7 +870,8 @@ Raft: {
     }
     Ccd: {
        serial: 83               # CCDs serial number
-       name: "1_30"               # CCDs name
+       # sdo_id: 1_30
+       name: "hsc083"               # CCDs name
        ptype: "default"
        index: 3 6
        offset: -8490.66 10929.17  # offset of CCD center from raft center, (x, y)
@@ -796,7 +880,8 @@ Raft: {
     }
     Ccd: {
        serial: 84               # CCDs serial number
-       name: "0_41"               # CCDs name
+       # sdo_id: 0_41
+       name: "hsc084"               # CCDs name
        ptype: "default"
        index: 2 1
        offset: -10613.30 -11195.80  # offset of CCD center from raft center, (x, y)
@@ -805,7 +890,8 @@ Raft: {
     }
     Ccd: {
        serial: 85               # CCDs serial number
-       name: "0_40"               # CCDs name
+       # sdo_id: 0_40
+       name: "hsc085"               # CCDs name
        ptype: "default"
        index: 2 2
        offset: -10613.30 -6727.49  # offset of CCD center from raft center, (x, y)
@@ -814,7 +900,8 @@ Raft: {
     }
     Ccd: {
        serial: 86               # CCDs serial number
-       name: "0_39"               # CCDs name
+       # sdo_id: 0_39
+       name: "hsc086"               # CCDs name
        ptype: "default"
        index: 2 3
        offset: -10613.30 -2259.16  # offset of CCD center from raft center, (x, y)
@@ -823,7 +910,8 @@ Raft: {
     }
     Ccd: {
        serial: 87               # CCDs serial number
-       name: "0_38"               # CCDs name
+       # sdo_id: 0_38
+       name: "hsc087"               # CCDs name
        ptype: "default"
        index: 2 4
        offset: -10613.30 2209.17        # offset of CCD center from raft center, (x, y) 
@@ -832,7 +920,8 @@ Raft: {
     }
     Ccd: {
        serial: 88               # CCDs serial number
-       name: "0_37"               # CCDs name
+       # sdo_id: 0_37
+       name: "hsc088"               # CCDs name
        ptype: "default"
        index: 2 5
        offset: -10613.30 6677.51  # offset of CCD center from raft center, (x, y)
@@ -841,7 +930,8 @@ Raft: {
     }
     Ccd: {
        serial: 89               # CCDs serial number
-       name: "0_36"               # CCDs name
+       # sdo_id: 0_36
+       name: "hsc089"               # CCDs name
        ptype: "default"
        index: 2 6
        offset: -10613.30 11145.84  # offset of CCD center from raft center, (x, y)
@@ -850,7 +940,8 @@ Raft: {
     }
     Ccd: {
        serial: 90               # CCDs serial number
-       name: "0_47"               # CCDs name
+       # sdo_id: 0_47
+       name: "hsc090"               # CCDs name
        ptype: "default"
        index: 1 1
        offset: -12736.00 -11195.80  # offset of CCD center from raft center, (x, y)
@@ -859,7 +950,8 @@ Raft: {
     }
     Ccd: {
        serial: 91               # CCDs serial number
-       name: "0_46"               # CCDs name
+       # sdo_id: 0_46
+       name: "hsc091"               # CCDs name
        ptype: "default"
        index: 1 2
        offset: -12736.00 -6727.49  # offset of CCD center from raft center, (x, y)
@@ -868,7 +960,8 @@ Raft: {
     }
     Ccd: {
        serial: 92               # CCDs serial number
-       name: "0_45"               # CCDs name
+       # sdo_id: 0_45
+       name: "hsc092"               # CCDs name
        ptype: "default"
        index: 1 3
        offset: -12736.00 -2259.16  # offset of CCD center from raft center, (x, y)
@@ -877,7 +970,8 @@ Raft: {
     }
     Ccd: {
        serial: 93               # CCDs serial number
-       name: "0_44"               # CCDs name
+       # sdo_id: 0_44
+       name: "hsc093"               # CCDs name
        ptype: "default"
        index: 1 4
        offset: -12736.00 2209.17  # offset of CCD center from raft center, (x, y)
@@ -886,7 +980,8 @@ Raft: {
     }
     Ccd: {
        serial: 94               # CCDs serial number
-       name: "0_43"               # CCDs name
+       # sdo_id: 0_43
+       name: "hsc094"               # CCDs name
        ptype: "default"
        index: 1 5
        offset: -12736.00 6677.51  # offset of CCD center from raft center, (x, y)
@@ -895,7 +990,8 @@ Raft: {
     }
     Ccd: {
        serial: 95               # CCDs serial number
-       name: "0_42"               # CCDs name
+       # sdo_id: 0_42
+       name: "hsc095"               # CCDs name
        ptype: "default"
        index: 1 6
        offset: -12736.00 11145.84  # offset of CCD center from raft center, (x, y)
@@ -904,7 +1000,8 @@ Raft: {
     }
     Ccd: {
        serial: 96               # CCDs serial number
-       name: "0_56"               # CCDs name
+       # sdo_id: 0_56
+       name: "hsc096"               # CCDs name
        ptype: "default"
        index: 0 2
        offset: -14858.70 -6727.49  # offset of CCD center from raft center, (x, y)
@@ -913,7 +1010,8 @@ Raft: {
     }
     Ccd: {
        serial: 97               # CCDs serial number
-       name: "0_55"               # CCDs name
+       # sdo_id: 0_55
+       name: "hsc097"               # CCDs name
        ptype: "default"
        index: 0 3
        offset: -14858.70 -2259.16  # offset of CCD center from raft center, (x, y)
@@ -922,7 +1020,8 @@ Raft: {
     }
     Ccd: {
        serial: 98               # CCDs serial number
-       name: "0_54"               # CCDs name
+       # sdo_id: 0_54
+       name: "hsc098"               # CCDs name
        ptype: "default"
        index: 0 4
        offset: -14858.70 2209.17  # offset of CCD center from raft center, (x, y)
@@ -931,7 +1030,8 @@ Raft: {
     }
     Ccd: {
        serial: 99               # CCDs serial number
-       name: "0_53"               # CCDs name
+       # sdo_id: 0_53
+       name: "hsc099"               # CCDs name
        ptype: "default"
        index: 0 5
        offset: -14858.70 6677.51  # offset of CCD center from raft center, (x, y)
@@ -940,7 +1040,8 @@ Raft: {
     }
     Ccd: {
        serial: 100               # CCDs serial number
-       name: "0_31"               # CCDs name
+       # sdo_id: 0_31
+       name: "hsc100"               # CCDs name
        ptype: "default"
        index: 12 0
        offset: 9554.17 -14551.70  # offset of CCD center from raft center, (x, y)
@@ -949,7 +1050,8 @@ Raft: {
     }
     Ccd: {
        serial: 101               # CCDs serial number
-       name: "1_35"               # CCDs name
+       # sdo_id: 1_35
+       name: "hsc101"               # CCDs name
        ptype: "default"
        index: 12 7
        offset: 9554.17 14333.00  # offset of CCD center from raft center, (x, y)
@@ -958,7 +1060,8 @@ Raft: {
     }
     Ccd: {
        serial: 102               # CCDs serial number
-       name: "0_35"               # CCDs name
+       # sdo_id: 0_35
+       name: "hsc102"               # CCDs name
        ptype: "default"
        index: 2 0
        offset: -9556.20 -14551.70  # offset of CCD center from raft center, (x, y)
@@ -967,7 +1070,8 @@ Raft: {
     }
     Ccd: {
        serial: 103               # CCDs serial number
-       name: "1_31"               # CCDs name
+       # sdo_id: 1_31
+       name: "hsc103"               # CCDs name
        ptype: "default"
        index: 2 7
        offset: -9556.20 14333.00  # offset of CCD center from raft center, (x, y)
@@ -1058,9 +1162,10 @@ Electronic: {
         name: "R:0,0"                   # Raft's name
         #name: "XXX"                     # An empty string makes the Policy parser unhappy
         Ccd: {
-            name: "1_53"
             ptype: "default"
             serial: 0
+            # sdo_id: 1_53
+            name: "hsc000"
             Amp: {
                 index: 0 0
                 gain: 3.36
@@ -1087,9 +1192,10 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "1_54"
+            name: "hsc001"
             ptype: "default"
             serial: 1
+            # sdo_id: 1_54
             Amp: {
                 index: 0 0
                 gain: 3.21
@@ -1116,9 +1222,10 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "1_55"
+            name: "hsc002"
             ptype: "default"
             serial: 2
+            # sdo_id: 1_55
             Amp: {
                 index: 0 0
                 gain: 3.67
@@ -1145,7 +1252,8 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "1_56"
+            name: "hsc003"
+            # sdo_id: 1_56
             ptype: "default"
             serial: 3
             Amp: {
@@ -1174,9 +1282,10 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "1_42"
+            name: "hsc004"
             ptype: "default"
             serial: 4
+            # sdo_id: 1_42
             Amp: {
                 index: 0 0
                 gain: 3.87
@@ -1203,9 +1312,10 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "1_43"
+            name: "hsc005"
             ptype: "default"
             serial: 5
+            # sdo_id: 1_43
             Amp: {
                 index: 0 0
                 gain: 3.37
@@ -1232,9 +1342,10 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "1_44"
+            name: "hsc006"
             ptype: "default"
             serial: 6
+            # sdo_id: 1_44
             Amp: {
                 index: 0 0
                 gain: 3.28
@@ -1261,9 +1372,10 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "1_45"
+            name: "hsc007"
             ptype: "default"
             serial: 7
+            # sdo_id: 1_45
             Amp: {
                 index: 0 0
                 gain: 3.34
@@ -1290,9 +1402,10 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "1_46"
+            name: "hsc008"
             ptype: "default"
             serial: 8
+            # sdo_id: 1_46
             Amp: {
                 index: 0 0
                 gain: 3.38
@@ -1319,9 +1432,10 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "1_47"
+            name: "hsc009"
             ptype: "default"
             serial: 9
+            # sdo_id: 1_47
             Amp: {
                 index: 0 0
                 gain: 3.31
@@ -1348,9 +1462,10 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "1_36"
+            name: "hsc010"
             ptype: "default"
             serial: 10
+            # sdo_id: 1_36
             Amp: {
                 index: 0 0
                 gain: 3.88
@@ -1377,9 +1492,10 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "1_37"
+            name: "hsc011"
             ptype: "default"
             serial: 11
+            # sdo_id: 1_37
             Amp: {
                 index: 0 0
                 gain: 3.41
@@ -1406,9 +1522,10 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "1_38"
+            name: "hsc012"
             ptype: "default"
             serial: 12
+            # sdo_id: 1_38
             Amp: {
                 index: 0 0
                 gain: 3.13
@@ -1435,9 +1552,10 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "1_39"
+            name: "hsc013"
             ptype: "default"
             serial: 13
+            # sdo_id: 1_39
             Amp: {
                 index: 0 0
                 gain: 3.37
@@ -1464,9 +1582,10 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "1_40"
+            name: "hsc014"
             ptype: "default"
             serial: 14
+            # sdo_id: 1_40
             Amp: {
                 index: 0 0
                 gain: 3.30
@@ -1493,9 +1612,10 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "1_41"
+            name: "hsc015"
             ptype: "default"
             serial: 15
+            # sdo_id: 1_41
             Amp: {
                 index: 0 0
                 gain: 3.39
@@ -1522,9 +1642,10 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "0_30"
+            name: "hsc016"
             ptype: "default"
             serial: 16
+            # sdo_id: 0_30
             Amp: {
                 index: 0 0
                 gain: 3.32
@@ -1551,9 +1672,10 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "0_29"
+            name: "hsc017"
             ptype: "default"
             serial: 17
+            # sdo_id: 0_29
             Amp: {
                 index: 0 0
                 gain: 3.21
@@ -1580,9 +1702,10 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "0_28"
+            name: "hsc018"
             ptype: "default"
             serial: 18
+            # sdo_id: 0_28
             Amp: {
                 index: 0 0
                 gain: 4.48
@@ -1609,9 +1732,10 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "1_32"
+            name: "hsc019"
             ptype: "default"
             serial: 19
+            # sdo_id: 1_32
             Amp: {
                 index: 0 0
                 gain: 3.69
@@ -1638,9 +1762,10 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "1_33"
+            name: "hsc020"
             ptype: "default"
             serial: 20
+            # sdo_id: 1_33
             Amp: {
                 index: 0 0
                 gain: 3.87
@@ -1667,9 +1792,10 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "1_34"
+            name: "hsc021"
             ptype: "default"
             serial: 21
+            # sdo_id: 1_34
             Amp: {
                 index: 0 0
                 gain: 3.36
@@ -1696,9 +1822,10 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "0_27"
+            name: "hsc022"
             ptype: "default"
             serial: 22
+            # sdo_id: 0_27
             Amp: {
                 index: 0 0
                 gain: 3.89
@@ -1725,9 +1852,10 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "0_26"
+            name: "hsc023"
             ptype: "default"
             serial: 23
+            # sdo_id: 0_26
             Amp: {
                 index: 0 0
                 gain: 3.35
@@ -1754,9 +1882,10 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "0_25"
+            name: "hsc024"
             ptype: "default"
             serial: 24
+            # sdo_id: 0_25
             Amp: {
                 index: 0 0
                 gain: 3.13
@@ -1783,9 +1912,10 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "0_24"
+            name: "hsc025"
             ptype: "default"
             serial: 25
+            # sdo_id: 0_24
             Amp: {
                 index: 0 0
                 gain: 3.25
@@ -1812,9 +1942,10 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "1_00"
+            name: "hsc026"
             ptype: "default"
             serial: 26
+            # sdo_id: 1_00
             Amp: {
                 index: 0 0
                 gain: 3.70
@@ -1841,9 +1972,10 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "1_01"
+            name: "hsc027"
             ptype: "default"
             serial: 27
+            # sdo_id: 1_01
             Amp: {
                 index: 0 0
                 gain: 3.26
@@ -1870,9 +2002,10 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "1_02"
+            name: "hsc028"
             ptype: "default"
             serial: 28
+            # sdo_id:1_02
             Amp: {
                 index: 0 0
                 gain: 3.63
@@ -1899,9 +2032,10 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "1_03"
+            name: "hsc029"
             ptype: "default"
             serial: 29
+            # sdo_id: 1_03
             Amp: {
                 index: 0 0
                 gain: 3.53
@@ -1928,9 +2062,10 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "0_23"
+            name: "hsc030"
             ptype: "default"
             serial: 30
+            # sdo_id: 0_23
             Amp: {
                 index: 0 0
                 gain: 3.36
@@ -1957,9 +2092,10 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "0_22"
+            name: "hsc031"
             ptype: "default"
             serial: 31
+            # sdo_id: 0_22
             Amp: {
                 index: 0 0
                 gain: 3.30
@@ -1986,9 +2122,10 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "0_21"
+            name: "hsc032"
             ptype: "default"
             serial: 32
+            # sdo_id: 0_21
             Amp: {
                 index: 0 0
                 gain: 3.62
@@ -2015,9 +2152,10 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "0_20"
+            name: "hsc033"
             ptype: "default"
             serial: 33
+            # sdo_id: 0_20
             Amp: {
                 index: 0 0
                 gain: 3.37
@@ -2044,9 +2182,10 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "1_04"
+            name: "hsc034"
             ptype: "default"
             serial: 34
+            # sdo_id: 1_04
             Amp: {
                 index: 0 0
                 gain: 3.48
@@ -2073,9 +2212,10 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "1_05"
+            name: "hsc035"
             ptype: "default"
             serial: 35
+            # sdo_id: 1_05
             Amp: {
                 index: 0 0
                 gain: 3.35
@@ -2102,9 +2242,10 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "1_06"
+            name: "hsc036"
             ptype: "default"
             serial: 36
+            # sdo_id: 1_06
             Amp: {
                 index: 0 0
                 gain: 3.33
@@ -2131,9 +2272,10 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "1_07"
+            name: "hsc037"
             ptype: "default"
             serial: 37
+            # sdo_id: 1_07
             Amp: {
                 index: 0 0
                 gain: 3.18
@@ -2160,9 +2302,10 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "0_19"
+            name: "hsc038"
             ptype: "default"
             serial: 38
+            # sdo_id: 0_19
             Amp: {
                 index: 0 0
                 gain: 3.41
@@ -2189,9 +2332,10 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "0_18"
+            name: "hsc039"
             ptype: "default"
             serial: 39
+            # sdo_id: 0_18
             Amp: {
                 index: 0 0
                 gain: 3.18
@@ -2218,9 +2362,10 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "0_17"
+            name: "hsc040"
             ptype: "default"
             serial: 40
+            # sdo_id: 0_17
             Amp: {
                 index: 0 0
                 gain: 3.20
@@ -2247,9 +2392,10 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "0_16"
+            name: "hsc041"
             ptype: "default"
             serial: 41
+            # sdo_id: 0_16
             Amp: {
                 index: 0 0
                 gain: 3.42
@@ -2276,9 +2422,10 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "1_08"
+            name: "hsc042"
             ptype: "default"
             serial: 42
+            # sdo_id: 1_08
             Amp: {
                 index: 0 0
                 gain: 3.29
@@ -2305,9 +2452,10 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "1_09"
+            name: "hsc043"
             ptype: "default"
             serial: 43
+            # sdo_id: 1_09
             Amp: {
                 index: 0 0
                 gain: 3.30
@@ -2334,9 +2482,10 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "1_10"
+            name: "hsc044"
             ptype: "default"
             serial: 44
+            # sdo_id: 1_10
             Amp: {
                 index: 0 0
                 gain: 3.35
@@ -2363,9 +2512,10 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "1_11"
+            name: "hsc045"
             ptype: "default"
             serial: 45
+            # sdo_id: 1_11
             Amp: {
                 index: 0 0
                 gain: 3.20
@@ -2392,9 +2542,10 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "0_15"
+            name: "hsc046"
             ptype: "default"
             serial: 46
+            # sdo_id: 0_15
             Amp: {
                 index: 0 0
                 gain: 3.87
@@ -2421,9 +2572,10 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "0_14"
+            name: "hsc047"
             ptype: "default"
             serial: 47
+            # sdo_id: 0_14
             Amp: {
                 index: 0 0
                 gain: 3.34
@@ -2450,9 +2602,10 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "0_13"
+            name: "hsc048"
             ptype: "default"
             serial: 48
+            # sdo_id: 0_13
             Amp: {
                 index: 0 0
                 gain: 3.20
@@ -2479,9 +2632,10 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "0_12"
+            name: "hsc049"
             ptype: "default"
             serial: 49
+            # sdo_id: 0_12
             Amp: {
                 index: 0 0
                 gain: 3.17
@@ -2508,9 +2662,10 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "1_12"
+            name: "hsc050"
             ptype: "default"
             serial: 50
+            # sdo_id: 1_12
             Amp: {
                 index: 0 0
                 gain: 3.53
@@ -2537,9 +2692,10 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "1_13"
+            name: "hsc051"
             ptype: "default"
             serial: 51
+            # sdo_id: 1_13
             Amp: {
                 index: 0 0
                 gain: 3.38
@@ -2566,9 +2722,10 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "1_14"
+            name: "hsc052"
             ptype: "default"
             serial: 52
+            # sdo_id: 1_14
             Amp: {
                 index: 0 0
                 gain: 3.97
@@ -2595,9 +2752,10 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "1_15"
+            name: "hsc053"
             ptype: "default"
             serial: 53
+            # sdo_id: 1_15
             Amp: {
                 index: 0 0
                 gain: 3.43
@@ -2624,9 +2782,10 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "0_11"
+            name: "hsc054"
             ptype: "default"
             serial: 54
+            # sdo_id: 0_11
             Amp: {
                 index: 0 0
                 gain: 3.64
@@ -2653,9 +2812,10 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "0_10"
+            name: "hsc055"
             ptype: "default"
             serial: 55
+            # sdo_id: 0_10
             Amp: {
                 index: 0 0
                 gain: 3.21
@@ -2682,9 +2842,10 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "0_09"
+            name: "hsc056"
             ptype: "default"
             serial: 56
+            # sdo_id: 0_09
             Amp: {
                 index: 0 0
                 gain: 3.19
@@ -2711,9 +2872,10 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "0_08"
+            name: "hsc057"
             ptype: "default"
             serial: 57
+            # sdo_id: 0_08
             Amp: {
                 index: 0 0
                 gain: 3.26
@@ -2740,9 +2902,10 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "1_16"
+            name: "hsc058"
             ptype: "default"
             serial: 58
+            # sdo_id: 1_16
             Amp: {
                 index: 0 0
                 gain: 3.34
@@ -2769,9 +2932,10 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "1_17"
+            name: "hsc059"
             ptype: "default"
             serial: 59
+            # sdo_id: 1_17
             Amp: {
                 index: 0 0
                 gain: 3.38
@@ -2798,9 +2962,10 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "1_18"
+            name: "hsc060"
             ptype: "default"
             serial: 60
+            # sdo_id: 1_18
             Amp: {
                 index: 0 0
                 gain: 3.26
@@ -2827,9 +2992,10 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "1_19"
+            name: "hsc061"
             ptype: "default"
             serial: 61
+            # sdo_id: 1_19
             Amp: {
                 index: 0 0
                 gain: 3.17
@@ -2856,9 +3022,10 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "0_07"
+            name: "hsc062"
             ptype: "default"
             serial: 62
+            # sdo_id: 0_07
             Amp: {
                 index: 0 0
                 gain: 3.39
@@ -2885,9 +3052,10 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "0_06"
+            name: "hsc063"
             ptype: "default"
             serial: 63
+            # sdo_id: 0_06
             Amp: {
                 index: 0 0
                 gain: 3.79
@@ -2914,9 +3082,10 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "0_05"
+            name: "hsc064"
             ptype: "default"
             serial: 64
+            # sdo_id: 0_05
             Amp: {
                 index: 0 0
                 gain: 3.36
@@ -2943,9 +3112,10 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "0_04"
+            name: "hsc065"
             ptype: "default"
             serial: 65
+            # sdo_id: 0_04
             Amp: {
                 index: 0 0
                 gain: 3.97
@@ -2972,9 +3142,10 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "1_20"
+            name: "hsc066"
             ptype: "default"
             serial: 66
+            # sdo_id: 1_20
             Amp: {
                 index: 0 0
                 gain: 3.37
@@ -3001,9 +3172,10 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "1_21"
+            name: "hsc067"
             ptype: "default"
             serial: 67
+            # sdo_id: 1_21
             Amp: {
                 index: 0 0
                 gain: 3.20
@@ -3030,9 +3202,10 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "1_22"
+            name: "hsc068"
             ptype: "default"
             serial: 68
+            # sdo_id: 1_22
             Amp: {
                 index: 0 0
                 gain: 3.27
@@ -3059,9 +3232,10 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "1_23"
+            name: "hsc069"
             ptype: "default"
             serial: 69
+            # sdo_id: 1_23
             Amp: {
                 index: 0 0
                 gain: 3.75
@@ -3088,9 +3262,10 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "0_03"
+            name: "hsc070"
             ptype: "default"
             serial: 70
+            # sdo_id: 0_03
             Amp: {
                 index: 0 0
                 gain: 3.31
@@ -3117,9 +3292,10 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "0_02"
+            name: "hsc071"
             ptype: "default"
             serial: 71
+            # sdo_id: 0_02
             Amp: {
                 index: 0 0
                 gain: 3.12
@@ -3146,9 +3322,10 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "0_01"
+            name: "hsc072"
             ptype: "default"
             serial: 72
+            # sdo_id: 0_01
             Amp: {
                 index: 0 0
                 gain: 3.25
@@ -3175,9 +3352,10 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "0_00"
+            name: "hsc073"
             ptype: "default"
             serial: 73
+            # sdo_id: 0_00
             Amp: {
                 index: 0 0
                 gain: 3.62
@@ -3204,9 +3382,10 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "1_24"
+            name: "hsc074"
             ptype: "default"
             serial: 74
+            # sdo_id: 1_24
             Amp: {
                 index: 0 0
                 gain: 3.20
@@ -3233,9 +3412,10 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "1_25"
+            name: "hsc075"
             ptype: "default"
             serial: 75
+            # sdo_id: 1_25
             Amp: {
                 index: 0 0
                 gain: 3.20
@@ -3262,9 +3442,10 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "1_26"
+            name: "hsc076"
             ptype: "default"
             serial: 76
+            # sdo_id: 1_26
             Amp: {
                 index: 0 0
                 gain: 3.18
@@ -3291,9 +3472,10 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "1_27"
+            name: "hsc077"
             ptype: "default"
             serial: 77
+            # sdo_id: 1_27
             Amp: {
                 index: 0 0
                 gain: 3.15
@@ -3320,9 +3502,10 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "0_34"
+            name: "hsc078"
             ptype: "default"
             serial: 78
+            # sdo_id: 0_34
             Amp: {
                 index: 0 0
                 gain: 3.78
@@ -3349,9 +3532,10 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "0_33"
+            name: "hsc079"
             ptype: "default"
             serial: 79
+            # sdo_id: 0_33
             Amp: {
                 index: 0 0
                 gain: 3.89
@@ -3378,9 +3562,10 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "0_32"
+            name: "hsc080"
             ptype: "default"
             serial: 80
+            # sdo_id: 0_32
             Amp: {
                 index: 0 0
                 gain: 3.37
@@ -3407,9 +3592,10 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "1_28"
+            name: "hsc081"
             ptype: "default"
             serial: 81
+            # sdo_id: 1_28
             Amp: {
                 index: 0 0
                 gain: 3.12
@@ -3436,9 +3622,10 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "1_29"
+            name: "hsc082"
             ptype: "default"
             serial: 82
+            # sdo_id: 1_29
             Amp: {
                 index: 0 0
                 gain: 3.30
@@ -3465,9 +3652,10 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "1_30"
+            name: "hsc083"
             ptype: "default"
             serial: 83
+            # sdo_id: 1_30
             Amp: {
                 index: 0 0
                 gain: 3.17
@@ -3494,9 +3682,10 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "0_41"
+            name: "hsc084"
             ptype: "default"
             serial: 84
+            # sdo_id: 0_41
             Amp: {
                 index: 0 0
                 gain: 3.29
@@ -3523,9 +3712,10 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "0_40"
+            name: "hsc085"
             ptype: "default"
             serial: 85
+            # sdo_id: 0_40
             Amp: {
                 index: 0 0
                 gain: 3.70
@@ -3552,9 +3742,10 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "0_39"
+            name: "hsc086"
             ptype: "default"
             serial: 86
+            # sdo_id: 0_39
             Amp: {
                 index: 0 0
                 gain: 3.13
@@ -3581,9 +3772,10 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "0_38"
+            name: "hsc087"
             ptype: "default"
             serial: 87
+            # sdo_id: 0_38
             Amp: {
                 index: 0 0
                 gain: 3.42
@@ -3610,9 +3802,10 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "0_37"
+            name: "hsc088"
             ptype: "default"
             serial: 88
+            # sdo_id: 0_37
             Amp: {
                 index: 0 0
                 gain: 3.14
@@ -3639,9 +3832,10 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "0_36"
+            name: "hsc089"
             ptype: "default"
             serial: 89
+            # sdo_id: 0_36
             Amp: {
                 index: 0 0
                 gain: 3.39
@@ -3668,9 +3862,10 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "0_47"
+            name: "hsc090"
             ptype: "default"
             serial: 90
+            # sdo_id: 0_47
             Amp: {
                 index: 0 0
                 gain: 3.50
@@ -3697,9 +3892,10 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "0_46"
+            name: "hsc091"
             ptype: "default"
             serial: 91
+            # sdo_id: 0_46
             Amp: {
                 index: 0 0
                 gain: 3.12
@@ -3726,9 +3922,10 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "0_45"
+            name: "hsc092"
             ptype: "default"
             serial: 92
+            # sdo_id: 0_45
             Amp: {
                 index: 0 0
                 gain: 3.35
@@ -3755,9 +3952,10 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "0_44"
+            name: "hsc093"
             ptype: "default"
             serial: 93
+            # sdo_id: 0_44
             Amp: {
                 index: 0 0
                 gain: 3.33
@@ -3784,9 +3982,10 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "0_43"
+            name: "hsc094"
             ptype: "default"
             serial: 94
+            # sdo_id: 0_43
             Amp: {
                 index: 0 0
                 gain: 3.09
@@ -3813,9 +4012,10 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "0_42"
+            name: "hsc095"
             ptype: "default"
             serial: 95
+            # sdo_id: 0_42
             Amp: {
                 index: 0 0
                 gain: 3.82
@@ -3842,9 +4042,10 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "0_56"
+            name: "hsc096"
             ptype: "default"
             serial: 96
+            # sdo_id: 0_56
             Amp: {
                 index: 0 0
                 gain: 3.36
@@ -3871,9 +4072,10 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "0_55"
+            name: "hsc097"
             ptype: "default"
             serial: 97
+            # sdo_id: 0_55
             Amp: {
                 index: 0 0
                 gain: 3.17
@@ -3900,9 +4102,10 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "0_54"
+            name: "hsc098"
             ptype: "default"
             serial: 98
+            # sdo_id: 0_54
             Amp: {
                 index: 0 0
                 gain: 3.10
@@ -3929,9 +4132,10 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "0_53"
+            name: "hsc099"
             ptype: "default"
             serial: 99
+            # sdo_id: 0_53
             Amp: {
                 index: 0 0
                 gain: 3.40
@@ -3958,9 +4162,10 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "0_31"
+            name: "hsc100"
             ptype: "default"
             serial: 100
+            # sdo_id: 0_31
             Amp: {
                 index: 0 0
                 gain: 3.42
@@ -3987,9 +4192,10 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "1_35"
+            name: "hsc101"
             ptype: "default"
             serial: 101
+            # sdo_id: 1_35
             Amp: {
                 index: 0 0
                 gain: 3.31
@@ -4016,9 +4222,10 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "0_35"
+            name: "hsc102"
             ptype: "default"
             serial: 102
+            # sdo_id: 0_35
             Amp: {
                 index: 0 0
                 gain: 3.70
@@ -4045,9 +4252,10 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "1_31"
+            name: "hsc103"
             ptype: "default"
             serial: 103
+            # sdo_id: 1_31
             Amp: {
                 index: 0 0
                 gain: 3.42
