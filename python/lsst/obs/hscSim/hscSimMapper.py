@@ -5,6 +5,7 @@ import pwd
 
 from lsst.daf.butlerUtils import CameraMapper
 import lsst.afw.image.utils as afwImageUtils
+import lsst.afw.cameraGeom as cameraGeom
 import lsst.afw.image as afwImage
 import lsst.afw.math as afwMath
 import lsst.afw.geom as afwGeom
@@ -31,7 +32,19 @@ class HscSimMapper(CameraMapper):
         elevation = 45 * afwGeom.degrees
         distortion = HscDistortion(elevation)
         self.camera.setDistortion(distortion)
+
+        for raft in self.camera:
+            raft = cameraGeom.cast_Raft(raft)
+            for ccd in raft:
+                ccd = cameraGeom.cast_Ccd(ccd)
         
+                if ccd.getId().getSerial() in range(100, 104):
+                    w, h = ccd.getAllPixels(True).getDimensions()
+                    xc, yc = ccd.getCenterPixel()
+                    xc += h/2 if xc < 0 else -h/2
+                    yc += h/2 if yc < 0 else -h/2
+                    ccd.setCenterPixel(afwGeom.PointD(xc, yc))
+
         # SDSS g': http://www.naoj.org/Observing/Instruments/SCam/txt/g.txt
         # SDSS r': http://www.naoj.org/Observing/Instruments/SCam/txt/r.txt
         # SDSS i': http://www.naoj.org/Observing/Instruments/SCam/txt/i.txt
