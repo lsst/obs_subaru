@@ -17,6 +17,19 @@
 #include "hsc/meas/match/LeastSquares.h"
 
 //extern double ***Coef;
+namespace {
+    void
+    checkElevation(float const elevation)
+    {
+        float const elevationMin = 30;
+        float const elevationMax = 85;
+        if (elevation < elevationMin || elevation > elevationMax) {
+            throw LSST_EXCEPT(lsst::pex::exceptions::InvalidParameterException,
+                              str(boost::format("Elevation=%g is invalid (must be between %g and %g)")
+                                  % elevation % elevationMin % elevationMax));
+        }
+    }
+}
 
 #if 1
 // interface function for getting "Distorted pos (pix)" from input:"Undistorted pos (pix)"
@@ -30,10 +43,7 @@ void convUndist2DistPos(float x_undist, float y_undist, float *x_dist, float *y_
     fprintf(stderr, "Coef[1][0][0]: %lf\n", Coef[1][0][0]);
 #endif
 
-    if( elevation<30 || elevation>85 ) {
-        fprintf(stderr, "Can't fit EL=%f\n", elevation);
-        fprintf(stderr, "We must choose EL from a value between 30 and 85 \n");
-    }
+    checkElevation(elevation);
 
     double x_dist_tmp, y_dist_tmp;
     F_CS_SKY2CCD_XY(el_interpol_order, (double) elevation, Coef, x_undist, y_undist, &x_dist_tmp, &y_dist_tmp);
@@ -62,10 +72,7 @@ void convDist2UndistPos(float x_dist, float y_dist, float *x_undist, float *y_un
     fprintf(stderr, "Coef[0][0][0]: %lf\n", Coef[0][0][0]);
     fprintf(stderr, "Coef[1][0][0]: %lf\n", Coef[1][0][0]);
 #endif
-    if( elevation<30 || elevation>85 ) {
-        fprintf(stderr, "Can't fit EL=%f\n", elevation);
-        fprintf(stderr, "We must choose EL from a value between 30 and 85 \n");
-    }
+    checkElevation(elevation);
 
     double x_undist_tmp, y_undist_tmp;
     F_CS_CCD2SKY_XY(el_interpol_order, elevation, Coef, x_dist, y_dist, &x_undist_tmp, &y_undist_tmp);
@@ -98,10 +105,7 @@ void convUndist2DistPosIterative(float x_undist, float y_undist, float *x_dist, 
     fprintf(stderr, "Coef[1][0][0]: %lg\n", Coef[1][0][0]);
 #endif
 
-    if( elevation<30 || elevation>85 ) {
-        fprintf(stderr, "Can't fit EL=%f\n", elevation);
-        fprintf(stderr, "We must choose EL from a value between 30 and 85 \n");
-    }
+    checkElevation(elevation);
 
     double x_sky_tmp = x_undist;
     double y_sky_tmp = y_undist;
