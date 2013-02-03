@@ -62,8 +62,6 @@ def main(dataDir, visit, title="", outputTxtFileName=None,
                 aArr.append(a)
                 bArr.append(b)
 
-    if len(xArr) == 0:
-        return plt
 
     xArr = np.array(xArr)
     yArr = np.array(yArr)
@@ -73,6 +71,9 @@ def main(dataDir, visit, title="", outputTxtFileName=None,
     aArr = np.array(aArr)
     bArr = np.array(bArr)
 
+    if len(xArr) == 0:
+        gridPoints = 0
+        
     if gridPoints > 0:
         N = gridPoints*1j
         extent = [min(xArr), max(xArr), min(yArr), max(yArr)]
