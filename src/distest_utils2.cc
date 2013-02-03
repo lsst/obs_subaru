@@ -105,7 +105,7 @@ void convUndist2DistPosIterative(float x_undist, float y_undist, float *x_dist, 
     double y_sky_tmp = y_undist;
 
     double x_dist_tmp, y_dist_tmp;
-    int ret = F_CS_SKY2CCD_XY(el_interpol_order, elevation, Coef, x_sky_tmp, y_sky_tmp, &x_dist_tmp, &y_dist_tmp);
+    F_CS_SKY2CCD_XY(el_interpol_order, elevation, Coef, x_sky_tmp, y_sky_tmp, &x_dist_tmp, &y_dist_tmp);
 
 //    fprintf(stderr, "debug: distpos_iter: EL: %f SKY(%f,%f) -> CCD(%f,%f)\n", 
 //            elevation, x_sky_tmp, y_sky_tmp, x_dist_tmp, y_dist_tmp);
@@ -113,7 +113,7 @@ void convUndist2DistPosIterative(float x_undist, float y_undist, float *x_dist, 
     for(int N=0;;N++){
 
 
-        ret = F_CS_CCD2SKY_XY(el_interpol_order, elevation, Coef, x_dist_tmp, y_dist_tmp, &x_sky_tmp, &y_sky_tmp);
+        F_CS_CCD2SKY_XY(el_interpol_order, elevation, Coef, x_dist_tmp, y_dist_tmp, &x_sky_tmp, &y_sky_tmp);
 
 
         double diff_x = x_undist - x_sky_tmp;
@@ -224,7 +224,7 @@ double F_CS(int CS,int ELOrder, double EL,double ***Coef, double X, double Y)
 }
 #endif
 
-int F_CS_CCD2SKY_XY(int ELOrder, double EL,double ***Coef, double X, double Y, double *X_out, double *Y_out)
+void F_CS_CCD2SKY_XY(int ELOrder, double EL,double ***Coef, double X, double Y, double *X_out, double *Y_out)
 {
     int i, ix, iy,  ELi;
     double ZCoef[13]={0},Z,**ELZ,XEL,*PX,*PY;
@@ -301,11 +301,11 @@ int F_CS_CCD2SKY_XY(int ELOrder, double EL,double ***Coef, double X, double Y, d
     free(PX);
     free(PY);
 
-    return 0;
+    return;
 }
 
 
-int F_CS_SKY2CCD_XY(int ELOrder, double EL,double ***Coef, double X, double Y, double *X_out, double *Y_out)
+void F_CS_SKY2CCD_XY(int ELOrder, double EL,double ***Coef, double X, double Y, double *X_out, double *Y_out)
 {
     int i, ix, iy, ELi;
     double ZCoef[13]={0},Z,**ELZ,XEL,*PX,*PY;
@@ -382,7 +382,7 @@ int F_CS_SKY2CCD_XY(int ELOrder, double EL,double ***Coef, double X, double Y, d
     free(PX);
     free(PY);
 
-    return 0;
+    return;
 }
 
 
