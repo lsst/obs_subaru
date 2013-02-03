@@ -24,8 +24,8 @@ void   F_SETCOEF(double ***Coef);
 //double F_SKYtoCCD_X(int, double, double ****, double, double);
 //double F_SKYtoCCD_Y(int, double, double ****, double, double);
 //double F_CS(int CS,int ELOrder, double EL,double ****Coef, double X, double Y);
-int F_CS_CCD2SKY_XY(int ELOrder, double EL, double ***Coef, double X, double Y, double *X_out, double *Y_out);
-int F_CS_SKY2CCD_XY(int ELOrder, double EL, double ***Coef, double X, double Y, double *X_out, double *Y_out);
+void F_CS_CCD2SKY_XY(int ELOrder, double EL, double ***Coef, double X, double Y, double *X_out, double *Y_out);
+void F_CS_SKY2CCD_XY(int ELOrder, double EL, double ***Coef, double X, double Y, double *X_out, double *Y_out);
 ///void   F_LS1(int ,int ,double **,double *);
 
 #endif
