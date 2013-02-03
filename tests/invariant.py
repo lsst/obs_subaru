@@ -76,11 +76,20 @@ class InvarianceTestCase(unittest.TestCase):
 #                self.assertLess(diff, TOLERANCE, "Not invariant at elev %f: %f,%f --> %f,%f --> %f,%f (%f)" % \
 #                                (elev, x0, y0, xDist, yDist, x1, y1, diff))
 
-    def testUndistortHangs(self):
+    def testAltitudeRange(self):
+        for elev in (30 - 1e-4, 85 + 1e-4):
+            utilsTests.assertRaisesLsstCpp(self, lsst.pex.exceptions.InvalidParameterException,
+                                           distest.getDistortedPositionIterative, 0, 0, elev)
 
+
+    def testDistortHangs(self):
+        """Test hanging forever on some positions"""
         elev = 45
         import numpy as np
-        for x, y in [(7887.9, -15559), (np.nan, np.nan)]:
+        for x, y in [
+            #(7887.9, -15559),           # I thought this failed, but it's passing now
+            (np.nan, np.nan),
+            ]:
             utilsTests.assertRaisesLsstCpp(self, lsst.pex.exceptions.OutOfRangeException,
                                            distest.getDistortedPositionIterative, x, y, elev)
                 
