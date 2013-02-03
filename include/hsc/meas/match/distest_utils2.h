@@ -5,7 +5,7 @@
 #include<fstream>
 #include<cmath>
 
-#define XYOrder 9
+const int XYOrder = 9;
 
 /* distortion coefficients by Okura-kun, to be accessible in any functions */
 //extern double ****Coef;
