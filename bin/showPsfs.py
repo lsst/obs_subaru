@@ -12,7 +12,10 @@ import lsst.obs.hscSim as hscSim
 
 def main(dataDir, visit, title="", outputTxtFileName=None,
          showFwhm=False, minFwhm=None, maxFwhm=None,
-         showEllipticity=False, gridPoints=30, verbose=False):
+         correctDistortion=False,
+         showEllipticity=False, ellipticityDirection=False,
+         gridPoints=30, verbose=False):
+
     butler = dafPersist.ButlerFactory(mapper=hscSim.HscSimMapper(root=dataDir)).create()
     camera = butler.get("camera")
 
@@ -51,7 +54,6 @@ def main(dataDir, visit, title="", outputTxtFileName=None,
 
                 x, y, fwhm, ell, pa, a, b  = fields[1:]
                 x, y = ccd.getPositionFromPixel(afwGeom.PointD(x, y)).getMm()
-                ellip = afwGeom.Axes(a, b)
                 xArr.append(x)
                 yArr.append(y)
                 ellArr.append(ell)
@@ -59,6 +61,9 @@ def main(dataDir, visit, title="", outputTxtFileName=None,
                 paArr.append(pa)
                 aArr.append(a)
                 bArr.append(b)
+
+    if len(xArr) == 0:
+        return plt
 
     xArr = np.array(xArr)
     yArr = np.array(yArr)
@@ -89,6 +94,11 @@ def main(dataDir, visit, title="", outputTxtFileName=None,
     elif showEllipticity:
         title.append("Ellipticity")
         scale = 4
+
+        
+        if ellipticityDirection:        # we don't care about the magnitude
+            ellArr = 0.1
+
         u =  -ellArr*np.cos(np.radians(paArr))
         v =  -ellArr*np.sin(np.radians(paArr))
         if gridPoints > 0:
@@ -104,7 +114,8 @@ def main(dataDir, visit, title="", outputTxtFileName=None,
                        headaxislength=0,
                        )
         keyLen = 0.10
-        plt.quiverkey(Q, 0.20, 0.95, keyLen, "e=%g" % keyLen, labelpos='W')
+        if not ellipticityDirection:    # we care about the magnitude
+            plt.quiverkey(Q, 0.20, 0.95, keyLen, "e=%g" % keyLen, labelpos='W')
         
     #plt.plot(xArr, yArr, "r.")
     #plt.plot(xs, ys, "b.")
@@ -133,6 +144,10 @@ switches to that dataDir (the one on the command line is used previously)
     parser.add_argument('--maxFwhm', type=float, help="Maximum FWHM to plot", default=None)
     parser.add_argument('--showEllipticity', action="store_true", help="Show the stars' ellipticity",
                         default=False)
+    parser.add_argument('--ellipticityDirection', action="store_true",
+                        help="Show the ellipticity direction, not value", default=False)
+    parser.add_argument('--correctDistortion', action="store_true",
+                        help="Correct for the known optical distortion", default=False)
     parser.add_argument('--verbose', action="store_true", help="Be chatty", default=False)
     parser.add_argument('--outputPlotFile', help="File to save output to", default=None)
     parser.add_argument('--outputTxtFile', help="File to save output to", default=None)
@@ -165,28 +180,32 @@ switches to that dataDir (the one on the command line is used previously)
                 t = t.replace("\t", " ")
                 desires.append([dd, v, t])
     else:
-        desires = ([args.dataDir, args.visit, t],)
+        desires = ([args.dataDir, args.visit, ""],)
 
     for dataDir, visit, title in desires:
         if args.verbose:
             print "%-10s %s" % (visit, title)
-            
+
+        if args.correctDistortion:
+            if title:
+                title += " "
+            title += "(corrected)"
+
         plt = main(dataDir, visit, title, args.outputTxtFile,
                    gridPoints=args.gridPoints,
-                   showFwhm=args.showFwhm, minFwhm=args.minFwhm, maxFwhm=args.maxFwhm, 
-                   showEllipticity=args.showEllipticity,
+                   showFwhm=args.showFwhm, minFwhm=args.minFwhm, maxFwhm=args.maxFwhm,
+                   correctDistortion=args.correctDistortion,
+                   showEllipticity=args.showEllipticity, ellipticityDirection=args.ellipticityDirection,
                    verbose=args.verbose)
-        
-        if False:
-            if args.outputPlotFile:
-                plt.savefig(args.outputPlotFile)
-            else:
-                plt.show()
-                
+                        
         if pp:
             pp.savefig()
             plt.clf()
 
     if pp:
         pp.close()
-    
+    else:
+        if args.outputPlotFile:
+            plt.savefig(args.outputPlotFile)
+        else:
+            plt.show()
