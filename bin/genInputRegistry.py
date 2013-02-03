@@ -18,6 +18,7 @@ parser.add_argument("--root", default=".", help="Root directory")
 parser.add_argument("--camera", default="HSC", choices=["HSC", "SC"], help="Camera name")
 parser.add_argument("--visits", type=int, nargs="*", help="Visits to process")
 parser.add_argument("--fields", nargs="*", help="Fields to process")
+parser.add_argument("--verbose", action="store_true", help="Be chattier")
 args = parser.parse_args()
 
 if args.camera.lower() in ("hsc",):
@@ -89,7 +90,8 @@ regex = re.compile('/'.join([reField, reDate, rePointing, reFilter, reFilename])
 
 qsp = skypix.createQuadSpherePixelization(skyPolicy)
 cursor = conn.cursor()
-for fits in files:
+nfile = len(files)
+for fileNo, fits in enumerate(files):
     m = re.search(regex, fits)
     if not m:
         print "Warning: skipping unrecognized filename:", fits
@@ -104,7 +106,8 @@ for fits in files:
         if not args.create:
             cursor.execute("SELECT COUNT(*) FROM raw WHERE visit=? and ccd=?", (visit, ccd))
             if cursor.fetchone()[0] > 0:
-                print "File %s is already in the registry --- skipping" % fits
+                if args.verbose:
+                    print "File %s is already in the registry --- skipping" % fits
                 continue
 
         md = afwImage.readMetadata(fits)
@@ -141,7 +144,8 @@ for fits in files:
         for skyTileId in pix:
             cursor.execute("INSERT INTO raw_skyTile VALUES(?, ?)", (ident, skyTileId))
 
-        print "Added %s" % fits
+        print "\rAdded %s [%d %5.1f%%]" % (fits, fileNo + 1, 100*(fileNo + 1)/float(nfile)),
+        sys.stdout.flush()
     except Exception, e:
         print "Skipping botched %s: %s" % (fits, e)
         continue
