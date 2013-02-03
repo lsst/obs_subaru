@@ -11,8 +11,10 @@
 #include<fstream>
 #include<cmath>
 
-#include "distest_utils2.h"
-#include "LeastSquares.h"
+#include "boost/format.hpp"
+#include "lsst/pex/exceptions.h"
+#include "hsc/meas/match/distest_utils2.h"
+#include "hsc/meas/match/LeastSquares.h"
 
 //extern double ***Coef;
 
@@ -110,9 +112,8 @@ void convUndist2DistPosIterative(float x_undist, float y_undist, float *x_dist, 
 //    fprintf(stderr, "debug: distpos_iter: EL: %f SKY(%f,%f) -> CCD(%f,%f)\n", 
 //            elevation, x_sky_tmp, y_sky_tmp, x_dist_tmp, y_dist_tmp);
 
-    for(int N=0;;N++){
-
-
+    int nIterMax = 10;                  // max number of iterations.  Should be configurable
+    for(int N=0; N != nIterMax; ++N) {
         F_CS_CCD2SKY_XY(el_interpol_order, elevation, Coef, x_dist_tmp, y_dist_tmp, &x_sky_tmp, &y_sky_tmp);
 
 
@@ -126,25 +127,29 @@ void convUndist2DistPosIterative(float x_undist, float y_undist, float *x_dist, 
         fprintf(stderr, "debug: distpos_iter: %f  %f\n", diff_x, diff_y);
 #endif
 
-        if( fabs(diff_x) < TOLERANCE && fabs(diff_y) < TOLERANCE )
-            break;
+        if( fabs(diff_x) < TOLERANCE && fabs(diff_y) < TOLERANCE ) {
+            *x_dist = x_dist_tmp;
+            *y_dist = y_dist_tmp;
+
+#if 0
+            fprintf(stderr, "EL : %f ", elevation);
+            fprintf(stderr, " , SKY ( %f", x_undist);
+            fprintf(stderr, " , %f", y_undist);
+            fprintf(stderr, " ) -> CCD ( %f", *x_dist);
+            fprintf(stderr, " , %f\n", *y_dist);
+#endif
+            return;
+        }
 
         x_dist_tmp += diff_x;
         y_dist_tmp += diff_y; 
 
     }
 
-    *x_dist = x_dist_tmp;
-    *y_dist = y_dist_tmp;
-
-#if 0
-    fprintf(stderr, "EL : %f ", elevation);
-    fprintf(stderr, " , SKY ( %f", x_undist);
-    fprintf(stderr, " , %f", y_undist);
-    fprintf(stderr, " ) -> CCD ( %f", *x_dist);
-    fprintf(stderr, " , %f\n", *y_dist);
-#endif
-    return;
+    throw LSST_EXCEPT(lsst::pex::exceptions::OutOfRangeException,
+                      str(boost::format("Too many iterations undistorting (%.3f, %.3f); "
+                                        "giving up after %d at (%.3f, %.3f)")
+                          % x_undist % y_undist % nIterMax % x_dist_tmp % y_dist_tmp));
 }
 
 
