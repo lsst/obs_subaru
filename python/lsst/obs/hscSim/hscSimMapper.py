@@ -70,27 +70,44 @@ class HscSimMapper(CameraMapper):
         """Standardize a camera dataset by converting it to a camera object."""
         return self.camera
 
-    def _flipChipsLR(self, exp, dataId):
+    @staticmethod
+    def _flipChipsLR(exp, wcs, dataId, dims=None):
+        """Flip the chip left/right or top/bottom. Process either/and the pixels and wcs
+Most chips are flipped L/R, but the rotated ones (100..103) are flipped T/B
+        """
         flipLR, flipTB = (False, True) if dataId['ccd'] in (100, 101, 102, 103) else (True, False)
-        exp.setMaskedImage(afwMath.flipImage(exp.getMaskedImage(), flipLR, flipTB))
-        wcs = exp.getWcs()
+        if exp:
+            exp.setMaskedImage(afwMath.flipImage(exp.getMaskedImage(), flipLR, flipTB))
         if wcs:
-            wcs.flipImage(flipLR, flipTB, exp.getDimensions())
+            wcs.flipImage(flipLR, flipTB, exp.getDimensions() if dims is None else dims)
         
         return exp
 
-    def std_flat(self, item, dataId):
+    def std_flat(self, exp, dataId):
         if False:                       # no std_flat in baseclass
-            exp = super(HscSimMapper, self).std_flat(item, dataId)
-        else:
-            exp = item
+            exp = super(HscSimMapper, self).std_flat(exp, dataId)
 
-        return self._flipChipsLR(exp, dataId)
+        return self._flipChipsLR(exp, exp.getWcs(), dataId)
 
+    def std_raw_md(self, md, dataId):
+        if False:            # no std_raw_md in baseclass
+            md = super(HscSimMapper, self).std_raw_md(md, dataId) # not present in baseclass
+        #
+        # We need to flip the WCS defined by the metadata in case anyone ever constructs a Wcs from it
+        #
+        wcs = afwImage.makeWcs(md)
+        self._flipChipsLR(None, wcs, dataId, dims=afwGeom.ExtentI(md.get("NAXIS1"), md.get("NAXIS2")))
+        wcsMd = wcs.getFitsMetadata()
+
+        for k in wcsMd.names():
+            md.set(k, wcsMd.get(k))
+
+        return md
+    
     def std_raw(self, item, dataId):
         exp = super(HscSimMapper, self).std_raw(item, dataId)
 
-        return self._flipChipsLR(exp, dataId)
+        return self._flipChipsLR(exp, exp.getWcs(), dataId)
     
     def _extractAmpId(self, dataId):
         return (self._extractDetectorName(dataId), 0, 0)
