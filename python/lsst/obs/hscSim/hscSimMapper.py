@@ -90,7 +90,7 @@ class HscSimMapper(CameraMapper):
     def std_raw(self, item, dataId):
         exp = super(HscSimMapper, self).std_raw(item, dataId)
 
-        return exp
+        return self._flipChipsLR(exp, dataId)
     
     def _extractAmpId(self, dataId):
         return (self._extractDetectorName(dataId), 0, 0)
