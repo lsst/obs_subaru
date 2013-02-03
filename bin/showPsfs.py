@@ -200,7 +200,10 @@ switches to that dataDir (the one on the command line is used previously)
                    verbose=args.verbose)
                         
         if pp:
-            pp.savefig()
+            try:
+                pp.savefig()
+            except ValueError:          # thrown if we failed to actually plot anything
+                pass
             plt.clf()
 
     if pp:
