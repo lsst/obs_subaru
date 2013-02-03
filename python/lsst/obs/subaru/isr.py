@@ -147,6 +147,22 @@ class SubaruIsrTask(IsrTask):
         if self.config.doFlat:
             self.flatCorrection(ccdExposure, sensorRef)
 
+        #
+        # CCD 0, amp 1 is dead
+        #
+        if ccd.getId().getSerial() == 0:
+            amp1 = list(ccd)[1] # 2nd amplifier
+
+            im = ccdExposure.getMaskedImage().getImage()
+            sim = im.Factory(im, amp1.getAllPixels())
+            sim.set(afwMath.makeStatistics(im, afwMath.MEDIAN).getValue())
+            del sim; del im
+            
+            msk = ccdExposure.getMaskedImage().getMask()
+            smsk = msk.Factory(msk, amp1.getAllPixels())
+            smsk |= msk.getPlaneBitMask("BAD")
+            del smsk; del msk
+
         if self.config.qa.doWriteFlattened:
             sensorRef.put(ccdExposure, "flattenedImage")
         if self.config.qa.doThumbnailFlattened:
