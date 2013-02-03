@@ -64,7 +64,7 @@ class InvarianceTestCase(unittest.TestCase):
                        (11712.0, -9032.66), (-13760.0, 4589.01), (13834.7, -9032.66), (-15882.7, 4589.01), 
                        (9589.34, -13501.0), (-11637.3, 9057.34), (11712.0, -13501.0), (-13760.0, 9057.34), 
                        (-7467.7, 13309.0), (11642.67, 13309.0), (11642.67, -15575.7), (-7467.7, -15575.7)]:
-            for elev in [30, 45, 60, 90]:
+            for elev in [30, 45, 60, 85]:
                 xDist, yDist = distest.getDistortedPosition(x0, y0, elev)
                 xDist_iter, yDist_iter = distest.getDistortedPositionIterative(x0, y0, elev)
                 x1, y1 = distest.getUndistortedPosition(xDist, yDist, elev)
