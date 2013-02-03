@@ -1,7 +1,7 @@
 #ifndef DISTEST_H
 #define DISTEST_H
 
-#define NSAMPLE_EL 12 // original 12
+const int NSAMPLE_EL = 12;              // original 12
 
 //extern "C" {
 

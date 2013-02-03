@@ -83,7 +83,7 @@ void convDist2UndistPos(float x_dist, float y_dist, float *x_undist, float *y_un
 #endif
 
 
-#define TOLERANCE 0.005
+const double TOLERANCE = 0.005;
 // interface function for getting "Distorted pos (pix)" from input:"Undistorted pos (pix)"
 // obtain the inversed function by an iterative substitution, rather than using the fitted result
 void convUndist2DistPosIterative(float x_undist, float y_undist, float *x_dist, float *y_dist, float elevation, double ***Coef)
