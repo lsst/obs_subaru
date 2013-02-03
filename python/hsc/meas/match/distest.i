@@ -1,5 +1,9 @@
 %module  distest
 %include "typemaps.i"
+%include "lsst/p_lsstSwig.i"
+
+%lsst_exceptions();
+
 %{
 // This part is passed through into modified C++ code
 // usually header files (and necessary declarations)

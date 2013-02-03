@@ -24,6 +24,7 @@
 
 
 import unittest
+import lsst.pex.exceptions
 import lsst.utils.tests as utilsTests
 
 import math
@@ -74,6 +75,15 @@ class InvarianceTestCase(unittest.TestCase):
                                 (elev, x0, y0, xDist_iter, yDist_iter, x1_iter, y1_iter, diff_iter))
 #                self.assertLess(diff, TOLERANCE, "Not invariant at elev %f: %f,%f --> %f,%f --> %f,%f (%f)" % \
 #                                (elev, x0, y0, xDist, yDist, x1, y1, diff))
+
+    def testUndistortHangs(self):
+
+        elev = 45
+        import numpy as np
+        for x, y in [(7887.9, -15559), (np.nan, np.nan)]:
+            utilsTests.assertRaisesLsstCpp(self, lsst.pex.exceptions.OutOfRangeException,
+                                           distest.getDistortedPositionIterative, x, y, elev)
+                
 
 def suite():
     utilsTests.init()
