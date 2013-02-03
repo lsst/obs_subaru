@@ -70,6 +70,23 @@ class HscSimMapper(CameraMapper):
         """Standardize a camera dataset by converting it to a camera object."""
         return self.camera
 
+    def _flipChipsLR(self, exp, dataId):
+        flipLR, flipTB = (False, True) if dataId['ccd'] in (100, 101, 102, 103) else (True, False)
+        exp.setMaskedImage(afwMath.flipImage(exp.getMaskedImage(), flipLR, flipTB))
+        wcs = exp.getWcs()
+        if wcs:
+            wcs.flipImage(flipLR, flipTB, exp.getDimensions())
+        
+        return exp
+
+    def std_flat(self, item, dataId):
+        if False:                       # no std_flat in baseclass
+            exp = super(HscSimMapper, self).std_flat(item, dataId)
+        else:
+            exp = item
+
+        return self._flipChipsLR(exp, dataId)
+
     def std_raw(self, item, dataId):
         exp = super(HscSimMapper, self).std_raw(item, dataId)
 
