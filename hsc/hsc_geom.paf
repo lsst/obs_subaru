@@ -345,7 +345,7 @@ Raft: {
        ptype: "default"
        index: 9 0
        offset: 4245.34 -15664.20  # offset of CCD center from raft center, (x, y)
-       nQuarter: 2             # number of quarter turns applied to CCD when put into raft
+       nQuarter: 0             # number of quarter turns applied to CCD when put into raft
        orientation: 0.0 0.0 0.0 # pitch, roll, yaw; degrees
     }
     Ccd: {
