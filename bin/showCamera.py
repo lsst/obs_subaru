@@ -28,7 +28,7 @@ import matplotlib.pyplot as plt
 import lsst.afw.cameraGeom as cameraGeom
 import lsst.afw.geom as afwGeom
 
-def main(camera, sample=20, names=False, plot=True, outputFile=None):
+def main(camera, sample=20, names=False, showDistortion=True, plot=True, outputFile=None):
     if plot:
         fig = plt.figure(1)
         fig.clf()
@@ -62,14 +62,18 @@ def main(camera, sample=20, names=False, plot=True, outputFile=None):
                 xDistort = []; yDistort = []
                 for x, y in zip(xList, yList):
                     position = ccd.getPositionFromPixel(afwGeom.Point2D(x,y)) # focal plane position
+
+                    xOriginal.append(position.getMm().getX())
+                    yOriginal.append(position.getMm().getY())
+
+                    if not showDistortion:
+                        continue
                     # Calculate offset (in CCD pixels) due to distortion
                     distortion = dist.distort(afwGeom.Point2D(x, y), ccd) - afwGeom.Extent2D(x, y)
 
                     # Calculate the distorted position
                     distorted = position + cameraGeom.FpPoint(distortion)*ccd.getPixelSize()
 
-                    xOriginal.append(position.getMm().getX())
-                    yOriginal.append(position.getMm().getY())
                     xDistort.append(distorted.getMm().getX())
                     yDistort.append(distorted.getMm().getY())
 
@@ -90,8 +94,9 @@ def main(camera, sample=20, names=False, plot=True, outputFile=None):
         if camera.getId().getName() == "HSC":
             from matplotlib.patches import Circle
             cen = (0, -300)
-            ax.add_patch(Circle(cen, radius=19000, color='red', alpha=0.2))
             ax.add_patch(Circle(cen, radius=18100, color='black', alpha=0.2))
+            if showDistortion:
+                ax.add_patch(Circle(cen, radius=19000, color='red', alpha=0.2))
 
             for x, y, t in ([-1, 0, "N"], [0, 1, "W"], [1, 0, "S"], [0, -1, "E"]):
                 ax.text(19500*x, 19500*y, t, ha="center", va="center")
@@ -111,6 +116,8 @@ if __name__ == '__main__':
 
     parser.add_argument('--suprimeCam', action="store_true", help="Show SuprimeCam", default=False)
     parser.add_argument('--outputFile', type=str, help="File to write plot to", default=None)
+    parser.add_argument('--noDistortion', action="store_true", help="Include distortion")
+    parser.add_argument('--names', action="store_true", help="Use CCD's names, not serials")
 
     args = parser.parse_args()
     
@@ -121,6 +128,7 @@ if __name__ == '__main__':
 
     camera = mapper().camera
 
-    main(camera, sample=2, outputFile=args.outputFile)
+    main(camera, names=args.names, sample=2, outputFile=args.outputFile,
+         showDistortion=not args.noDistortion)
     if not args.outputFile:
         print "Hit any key to exit",; raw_input()
