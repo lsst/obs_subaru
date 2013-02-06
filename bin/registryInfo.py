@@ -1,17 +1,13 @@
 #!/usr/bin/env python
-import argparse, os, re, sys
+import argparse
+import os
+import sys
 import sqlite
-
-import numpy as np
-
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Plot contours of PSF quality')
 
     parser.add_argument('registryFile', type=str, help="The registry in question")
-    parser.add_argument('--visit', type=str, help='Name of desired visit')
-    parser.add_argument('--showFwhm', action="store_true", help="Show the FWHM", default=False)
-    parser.add_argument('--minFwhm', type=float, help="Minimum FWHM to plot", default=None)
     
     args = parser.parse_args()
 
