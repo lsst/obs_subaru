@@ -62,7 +62,6 @@ def main(dataDir, visit, title="", outputTxtFileName=None,
                 aArr.append(a)
                 bArr.append(b)
 
-
     xArr = np.array(xArr)
     yArr = np.array(yArr)
     ellArr = np.array(ellArr)
@@ -73,8 +72,8 @@ def main(dataDir, visit, title="", outputTxtFileName=None,
 
     if len(xArr) == 0:
         gridPoints = 0
-        
-    if gridPoints > 0:
+        xs, ys = [], []
+    else:
         N = gridPoints*1j
         extent = [min(xArr), max(xArr), min(yArr), max(yArr)]
         xs,ys = np.mgrid[extent[0]:extent[1]:N, extent[2]:extent[3]:N]
@@ -88,10 +87,11 @@ def main(dataDir, visit, title="", outputTxtFileName=None,
 
     if showFwhm:
         title.append("FWHM (arcsec)")
-        fwhmResampled = griddata(xArr, yArr, fwhmArr, xs, ys)
-        
-        plt.imshow(fwhmResampled.T, extent=extent, vmin=minFwhm, vmax=maxFwhm)
-        plt.colorbar()
+        if len(xs) > 0:
+            fwhmResampled = griddata(xArr, yArr, fwhmArr, xs, ys)
+            
+            plt.imshow(fwhmResampled.T, extent=extent, vmin=minFwhm, vmax=maxFwhm)
+            plt.colorbar()
     elif showEllipticity:
         title.append("Ellipticity")
         scale = 4
