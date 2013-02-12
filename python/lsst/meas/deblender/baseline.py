@@ -151,7 +151,10 @@ def deblend(footprint, maskedImage, psf, psffwhm,
 
                 # save for debugging purposes
                 pkres.median = t1.getImage().Factory(t1.getImage(), True)
-
+            else:
+                log.logdebug('Not median-filtering template %i: size %i x %i' %
+                             (pkres.pki, t1.getWidth(), t1.getHeight()))
+                
         if monotonic_template:
             log.logdebug('Making template %i monotonic' % pkres.pki)
             butils.makeMonotonic(t1, fp, pk, sigma1)
@@ -161,11 +164,18 @@ def deblend(footprint, maskedImage, psf, psffwhm,
         pkres.tfoot = tfoot
 
     tmimgs = []
+    dpsf = []
+    pkxy = []
     ibi = [] # in-bounds indices
     for pkres in res.peaks:
         if pkres.out_of_bounds:
             continue
         tmimgs.append(pkres.tmimg)
+        # for stray flux...
+        dpsf.append(pkres.deblend_as_psf)
+        pk = pkres.peak
+        pxky.append((pk.getIx(), pk.getIy()))
+
         ibi.append(pkres.pki)
 
     if lstsq_weight_templates:
@@ -195,9 +205,19 @@ def deblend(footprint, maskedImage, psf, psffwhm,
             im *= w
             res.peaks[i].tweight = w
 
+
+    #
+    # Remove templates that are too similar (via dot-product test)
+    #
+    
+    # Find and assign stray flux (or do this after apportionFlux?)
+            
     # Now apportion flux according to the templates
     log.logdebug('Apportioning flux among %i templates' % len(tmimgs))
-    ports = butils.apportionFlux(maskedImage, fp, tmimgs)
+    sumimg = ImageF(bb.getDimensions())
+    ports = butils.apportionFlux(maskedImage, fp, tmimgs, sumimg,
+                                 true, dpsf, pkxy)
+
     ii = 0
     for (pk, pkres) in zip(peaks, res.peaks):
         if pkres.out_of_bounds:

@@ -196,7 +196,11 @@ deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::
 apportionFlux(MaskedImageT const& img,
 			  det::Footprint const& foot,
 			  std::vector<MaskedImagePtrT> timgs,
-			  ImagePtrT sumimg) {
+			  ImagePtrT sumimg,
+			  bool assignStrayFlux,
+			  std::vector<bool> ispsf,
+			  std::vector<std::pair<int,int> > pkxy) {
+	typedef typename det::Footprint::SpanList SpanList;
 	std::vector<MaskedImagePtrT> portions;
 	int ix0 = img.getX0();
 	int iy0 = img.getY0();
@@ -249,6 +253,98 @@ apportionFlux(MaskedImageT const& img,
 			}
 		}
 	}
+
+	if (assignStrayFlux) {
+		//ImagePtrT stray = ImagePtrT(new ImageT(fbb.getDimensions()));
+
+		if ((ispsf.size() > 0) && (ispsf.size() != timgs.size())) {
+			// Bail out!
+			assert(0);
+		}
+		if (pkxy.size() != timgs.size()) {
+			// Bail out!
+			assert(0);
+		}
+
+		// Go through the (parent) Footprint looking for pixels that are
+		// not claimed by any templates, and positive.
+		const SpanList spans = foot.getSpans();
+		for (SpanList::const_iterator s = spans.begin(); s < spans.end(); s++) {
+			int y = s->getY();
+			int x0 = s->getX0();
+			typename ImageT::x_iterator sumptr =
+				sumimg->row_begin(y - sy0) + (x0 - sx0);
+			typename MaskedImageT::x_iterator inptr =
+				img.row_begin(y - iy0) + (x0 - ix0);
+
+			for (int x = x0; x <= s->getX1(); ++x, ++sumptr, ++inptr) {
+				if ((*sumptr > 0) || (*inptr <= 0)) {
+					continue;
+				}
+				printf("Pixel at (%i,%i) has stray flux: %g\n", x, y, (float)*inptr);
+				// Split the stray flux by 1/r^2 ...
+				double isum = 0.0;
+				for (int i=0; i<timgs.size(); ++i) {
+					int dx, dy;
+					// Skip deblended-as-PSF templates (?)
+					if (ispsf.size() && ispsf[i]) {
+						continue;
+					}
+					dx = pkxy[i].first  - x;
+					dy = pxky[i].second - y;
+					isum += 1. / (1. + dx*dx + dy*dy);
+				}
+				printf("isum = %g\n", isum);
+
+				// Drop very small contributions...
+				const double strayclip = 0.001;
+
+				double isum2 = 0.0;
+				for (int i=0; i<timgs.size(); ++i) {
+					int dx, dy;
+					// Skip deblended-as-PSF templates (?)
+					if (ispsf.size() && ispsf[i]) {
+						continue;
+					}
+					dx = pkxy[i].first  - x;
+					dy = pxky[i].second - y;
+					double c;
+					c = 1. / (1. + dx*dx + dy*dy);
+					if (c < (isum * strayclip)) {
+						continue;
+					}
+					isum2 += c;
+				}
+				printf("isum2 = %g\n", isum2);
+
+				for (int i=0; i<timgs.size(); ++i) {
+					int dx, dy;
+					if (ispsf.size() && ispsf[i]) {
+						continue;
+					}
+					dx = pkxy[i].first  - x;
+					dy = pxky[i].second - y;
+					double c;
+					c = 1. / (1. + dx*dx + dy*dy);
+					if (c < (isum * strayclip)) {
+						continue;
+					}
+
+					// the stray portion to give to template i
+					double p = (*inptr) * c / isum2;
+					geom::Box2I pbb = portions[i]->getBBox(image::PARENT);
+					if (pbb.contains(geom::Box2I(x, y))) {
+						// add it in
+						portions[i]->getImage()->set0(x, y, p);
+					} else {
+						// FIXME
+						printf("assigning stray flux %g to %i: outside template bounds.\n", p, i);
+					}
+				}
+			}
+		}
+	}
+
 	return portions;
 }
 

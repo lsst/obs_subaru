@@ -66,8 +66,10 @@ namespace lsst {
                  apportionFlux(MaskedImageT const& img,
                               lsst::afw::detection::Footprint const& foot,
                               std::vector<typename lsst::afw::image::MaskedImage<ImagePixelT, MaskPixelT, VariancePixelT>::Ptr>,
-                              ImagePtrT sumimg = ImagePtrT());
-
+                               ImagePtrT sumimg = ImagePtrT(),
+                               bool assignStrayFlux = true,
+                               std::vector<bool> ispsf = std::vector<bool>(),
+                               std::vector<std::pair<int,int> > pkxy = std::vector<std::pair<int,int> >());
             };
         }
     }

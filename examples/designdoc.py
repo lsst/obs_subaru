@@ -179,7 +179,7 @@ def main():
             psf_fwhm = 2.35 * psfw
 
         # SDSS intro
-        kwargs = dict(sigma1=sigma1)
+        kwargs = dict(sigma1=sigma1, verbose=opt.verbose)
 
         if opt.sec == 'sdss':
             kwargs.update(fit_psfs=False,
@@ -227,7 +227,12 @@ def main():
             cim = footprintToImage(cfp).getArray()
 
             if opt.sec == 'median':
-                for im,nm in [(pkres.symm, 'symm'), (pkres.median, 'med')]:
+                try:
+                    med = pkres.median
+                except:
+                    med = pkres.symm
+
+                for im,nm in [(pkres.symm, 'symm'), (med, 'med')]:
                     #print 'im:', im
                     plt.clf()
                     myimshow(im.getArray(), extent=cext, **imargs)
