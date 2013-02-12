@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import glob
+import math
 import os
 import re
 import sqlite
@@ -12,13 +13,43 @@ import lsst.skypix     as skypix
 
 import argparse
 
+def fixSubaruHeader(md):
+    """Fix a Subaru header with a weird mixture of CD and PC terms"""
+
+    haveCD = False                      # have we seen a CD card?
+    PC = []
+    for i in (1, 2,):
+        for j in (1, 2,):
+            k = "CD%d_%d" % (i, j)
+            if md.exists(k):
+                haveCD = True
+
+            for k in ("PC%03d%03d" % (i, j), "PC%d_%d" % (i, j),):
+                if md.exists(k):
+                    PC.append(k)
+
+    if not haveCD:
+        cdelt = {}
+        for i in (1, 2,):
+            k = "CDELT%d" % i
+            cdelt[i] = md.get(k) if k in md.names() else 1.0
+                
+            for j in (1, 2,):
+                md.set("CD%d_%d" % (i, j), cdelt[i]*md.get("PC%d_%d" % (i, j)))
+
+    for k in PC:
+        md.remove(k)
+
+    return md
+
 parser = argparse.ArgumentParser()
 parser.add_argument("--create", action="store_true", help="Create new registry (clobber old)?")
 parser.add_argument("--root", default=".", help="Root directory")
 parser.add_argument("--camera", default="HSC", choices=["HSC", "SC"], help="Camera name")
 parser.add_argument("--visits", type=int, nargs="*", help="Visits to process")
 parser.add_argument("--fields", nargs="*", help="Fields to process")
-parser.add_argument("--verbose", action="store_true", help="Be chattier")
+parser.add_argument("-n", "--dryrun", action="store_true", help="Don't actually do anything", default=False)
+parser.add_argument("-v", "--verbose", action="store_true", help="Be chattier")
 args = parser.parse_args()
 
 if args.camera.lower() in ("hsc",):
@@ -63,23 +94,37 @@ if args.create and os.path.exists(registryName):
     os.unlink(registryName)
 
 makeTables = not os.path.exists(registryName)
-conn = sqlite.connect(registryName)
+if args.dryrun:
+    conn = None
+else:
+    conn = sqlite.connect(registryName)
+    
 if makeTables:
     cmd = "create table raw (id integer primary key autoincrement"
     cmd += ", field text, visit int, filter text, ccd int"
     cmd += ", dateObs text, taiObs text, expTime double, pointing int"
     cmd += ", unique(visit, ccd))"
-    conn.execute(cmd)
+    if conn:
+        conn.execute(cmd)
+    else:
+        print >> sys.stderr, cmd
 
     cmd = "create table raw_skyTile (id integer, skyTile integer"
     cmd += ", unique(id, skyTile), foreign key(id) references raw(id))"
-    conn.execute(cmd)
+    if conn:
+        conn.execute(cmd)
+    else:
+        print >> sys.stderr, cmd
 
     cmd = "create table raw_visit (visit int, field text, filter text,"
     cmd += "dateObs text, taiObs text, expTime double, pointing int"
     cmd += ", unique(visit))"
-    conn.execute(cmd)
-    conn.commit()
+    if conn:
+        conn.execute(cmd)
+        conn.commit()
+    else:
+        print >> sys.stderr, cmd
+        print >> sys.stderr, "commit"
 
 # Set up regex for parsing directory structure
 reField = r'([\w .+-]+)'
@@ -89,7 +134,11 @@ reFilter = r'([\w\-\+]+)'
 regex = re.compile('/'.join([reField, reDate, rePointing, reFilter, reFilename]))
 
 qsp = skypix.createQuadSpherePixelization(skyPolicy)
-cursor = conn.cursor()
+if conn:
+    cursor = conn.cursor()
+else:
+    cursor = None
+    
 nfile = len(files)
 for fileNo, fits in enumerate(files):
     m = re.search(regex, fits)
@@ -102,57 +151,85 @@ for fileNo, fits in enumerate(files):
     ccd = int(ccd)
     #print "Processing %s" % fits
 
-    try:
-        if not args.create:
-            cursor.execute("SELECT COUNT(*) FROM raw WHERE visit=? and ccd=?", (visit, ccd))
+    if not args.create:
+        cmd = "SELECT COUNT(*) FROM raw WHERE visit=? and ccd=?"
+
+        if cursor:
+            cursor.execute(cmd, (visit, ccd))
             if cursor.fetchone()[0] > 0:
                 if args.verbose:
                     print "File %s is already in the registry --- skipping" % fits
                 continue
-
-        md = afwImage.readMetadata(fits)
-        expTime = md.get("EXPTIME")
-
-        # Mmmph. Need to make sure that MJD/DATE-OBS agree with the file $dateObs
-        # For now use the filename, damnit. CPL
-        if True:
-            # .toString? Really? CPL
-            taiObs = dafBase.DateTime(dateObs + "T00:00:00Z").toString()[:-1]
         else:
-            try:
-                mjdObs = md.get("MJD")
-                taiObs = dafBase.DateTime(mjdObs, dafBase.DateTime.MJD,
-                                          dafBase.DateTime.UTC).toString()[:-1]
-            except:
-                dateObsCard = md.get("DATE-OBS")
-                if dateObsCard.find('T') == -1:
-                    dateObsCard += "T00:00:00Z"
-                taiObs = dafBase.DateTime(dateObsCard).toString()[:-1]
+            if args.verbose:
+                print >> sys.stderr, cmd
 
-        if md.get("CTYPE1").strip() == "CPX" and md.get("CTYPE2").strip() == "CPY": # HSC pixel WCS
-            pix = []
-        else:
-            wcs = afwImage.makeWcs(md)
+    md = afwImage.readMetadata(fits)
+    expTime = md.get("EXPTIME")
+
+    # Mmmph. Need to make sure that MJD/DATE-OBS agree with the file $dateObs
+    # For now use the filename, damnit. CPL
+    if True:
+        # .toString? Really? CPL
+        taiObs = dafBase.DateTime(dateObs + "T00:00:00Z").toString()[:-1]
+    else:
+        try:
+            mjdObs = md.get("MJD")
+            taiObs = dafBase.DateTime(mjdObs, dafBase.DateTime.MJD,
+                                      dafBase.DateTime.UTC).toString()[:-1]
+        except:
+            dateObsCard = md.get("DATE-OBS")
+            if dateObsCard.find('T') == -1:
+                dateObsCard += "T00:00:00Z"
+            taiObs = dafBase.DateTime(dateObsCard).toString()[:-1]
+
+    if md.get("CTYPE1").strip() == "CPX" and md.get("CTYPE2").strip() == "CPY": # HSC pixel WCS
+        pix = []
+    else:
+        wcs = afwImage.makeWcs(fixSubaruHeader(md))
+
+        try:
             poly = skypix.imageToPolygon(wcs, md.get("NAXIS1"), md.get("NAXIS2"),
-                                         padRad=0.000075) # about 15 arcsec
+                                         padRad=math.radians(15.0/3600))
+        except ZeroDivisionError, e:
+            print >> sys.stderr, "\nFailure finding polygon for %s: %s" % (fits, e)
+            poly = None
+
+        if poly:
             pix = qsp.intersect(poly)
+        else:
+            pix = []
 
-        cursor.execute("INSERT INTO raw VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?)",
-                       (field, visit, filterId, ccd, dateObs, taiObs, expTime, pointing))
+    cmd = "INSERT INTO raw VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?)"
+    if cursor:
+        cursor.execute(cmd, (field, visit, filterId, ccd, dateObs, taiObs, expTime, pointing))
         ident = cursor.lastrowid
+    else:
+        if args.verbose:
+            print >> sys.stderr, cmd
 
+    cmd = "INSERT INTO raw_skyTile VALUES(?, ?)"
+    if cursor:
         for skyTileId in pix:
-            cursor.execute("INSERT INTO raw_skyTile VALUES(?, ?)", (ident, skyTileId))
+            cursor.execute(cmd, (ident, skyTileId))
+    else:
+        if args.verbose:
+            print >> sys.stderr, "for skyTileId in pix: %s" % (cmd)
 
-        print "\rAdded %s [%d %5.1f%%]" % (fits, fileNo + 1, 100*(fileNo + 1)/float(nfile)),
-        sys.stdout.flush()
-    except Exception, e:
-        print "Skipping botched %s: %s" % (fits, e)
-        continue
+    print "\rAdded %s [%d %5.1f%%]%20s" % (fits, fileNo + 1, 100*(fileNo + 1)/float(nfile), ""),
+    sys.stdout.flush()
 
+print ""
 # Hmm. Needs better constraints. CPL
 print "Adding raw_visits"
-conn.execute("""insert or ignore into raw_visit
-        select distinct visit, field, filter, dateObs, taiObs, expTime, pointing from raw""")
-conn.commit()
-conn.close()
+
+cmd = """
+insert or ignore into raw_visit
+select distinct visit, field, filter, dateObs, taiObs, expTime, pointing from raw"""
+if conn:
+    conn.execute(cmd)
+    conn.commit()
+    conn.close()
+else:
+    print >> sys.stderr, cmd
+    
