@@ -270,15 +270,18 @@ apportionFlux(MaskedImageT const& img,
 		// not claimed by any templates, and positive.
 		const SpanList spans = foot.getSpans();
 		for (SpanList::const_iterator s = spans.begin(); s < spans.end(); s++) {
-			int y = s->getY();
-			int x0 = s->getX0();
+			int y = (*s)->getY();
+			int x0 = (*s)->getX0();
 			typename ImageT::x_iterator sumptr =
 				sumimg->row_begin(y - sy0) + (x0 - sx0);
-			typename MaskedImageT::x_iterator inptr =
-				img.row_begin(y - iy0) + (x0 - ix0);
+			//typename MaskedImageT::x_iterator inptr =
+			//img.row_begin(y - iy0) + (x0 - ix0);
+			typename ImageT::x_iterator inptr =
+				img.getImage()->row_begin(y - iy0) + (x0 - ix0);
 
-			for (int x = x0; x <= s->getX1(); ++x, ++sumptr, ++inptr) {
-				if ((*sumptr > 0) || (*inptr <= 0)) {
+			for (int x = x0; x <= (*s)->getX1(); ++x, ++sumptr, ++inptr) {
+				if ((*sumptr > 0) || (*inptr) <= 0) {
+//(*inptr).image() <= 0)) {
 					continue;
 				}
 				printf("Pixel at (%i,%i) has stray flux: %g\n", x, y, (float)*inptr);
@@ -291,7 +294,7 @@ apportionFlux(MaskedImageT const& img,
 						continue;
 					}
 					dx = pkxy[i].first  - x;
-					dy = pxky[i].second - y;
+					dy = pkxy[i].second - y;
 					isum += 1. / (1. + dx*dx + dy*dy);
 				}
 				printf("isum = %g\n", isum);
@@ -307,7 +310,7 @@ apportionFlux(MaskedImageT const& img,
 						continue;
 					}
 					dx = pkxy[i].first  - x;
-					dy = pxky[i].second - y;
+					dy = pkxy[i].second - y;
 					double c;
 					c = 1. / (1. + dx*dx + dy*dy);
 					if (c < (isum * strayclip)) {
@@ -323,7 +326,7 @@ apportionFlux(MaskedImageT const& img,
 						continue;
 					}
 					dx = pkxy[i].first  - x;
-					dy = pxky[i].second - y;
+					dy = pkxy[i].second - y;
 					double c;
 					c = 1. / (1. + dx*dx + dy*dy);
 					if (c < (isum * strayclip)) {
@@ -333,7 +336,7 @@ apportionFlux(MaskedImageT const& img,
 					// the stray portion to give to template i
 					double p = (*inptr) * c / isum2;
 					geom::Box2I pbb = portions[i]->getBBox(image::PARENT);
-					if (pbb.contains(geom::Box2I(x, y))) {
+					if (pbb.contains(geom::Point2I(x, y))) {
 						// add it in
 						portions[i]->getImage()->set0(x, y, p);
 					} else {
