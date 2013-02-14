@@ -148,9 +148,11 @@ class SubaruIsrTask(IsrTask):
             self.flatCorrection(ccdExposure, sensorRef)
 
         #
-        # CCD 0, amp 1 is dead
+        # CCD 0, amp 1 is dead in HSC
         #
-        if ccd.getId().getSerial() == 0:
+        # This is a hack.
+        #
+        if ccd.getParent().getParent().getId().getName() == "HSC" and ccd.getId().getSerial() == 0:
             amp1 = list(ccd)[1] # 2nd amplifier
 
             im = ccdExposure.getMaskedImage().getImage()
