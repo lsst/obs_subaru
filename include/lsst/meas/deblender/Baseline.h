@@ -70,7 +70,9 @@ namespace lsst {
                                ImagePtrT sumimg,
                                bool assignStrayFlux,
                                std::vector<bool> ispsf,
-                               std::vector<std::pair<int, int> > pkxy);
+                               //std::vector<std::pair<int, int> > pkxy);
+                               std::vector<int> pkx,
+                               std::vector<int> pky);
 
                                /*
                                 ImagePtrT sumimg = ImagePtrT(),

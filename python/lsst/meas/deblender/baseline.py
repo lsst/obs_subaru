@@ -166,6 +166,8 @@ def deblend(footprint, maskedImage, psf, psffwhm,
     tmimgs = []
     dpsf = []
     pkxy = []
+    pkx = []
+    pky = []
     ibi = [] # in-bounds indices
     for pkres in res.peaks:
         if pkres.out_of_bounds:
@@ -174,7 +176,9 @@ def deblend(footprint, maskedImage, psf, psffwhm,
         # for stray flux...
         dpsf.append(pkres.deblend_as_psf)
         pk = pkres.peak
-        pxky.append((pk.getIx(), pk.getIy()))
+        pkxy.append((pk.getIx(), pk.getIy()))
+        pkx.append(pk.getIx())
+        pky.append(pk.getIy())
 
         ibi.append(pkres.pki)
 
@@ -214,9 +218,9 @@ def deblend(footprint, maskedImage, psf, psffwhm,
             
     # Now apportion flux according to the templates
     log.logdebug('Apportioning flux among %i templates' % len(tmimgs))
-    sumimg = ImageF(bb.getDimensions())
+    sumimg = afwImage.ImageF(bb.getDimensions())
     ports = butils.apportionFlux(maskedImage, fp, tmimgs, sumimg,
-                                 true, dpsf, pkxy)
+                                 True, dpsf, pkx, pky)
 
     ii = 0
     for (pk, pkres) in zip(peaks, res.peaks):

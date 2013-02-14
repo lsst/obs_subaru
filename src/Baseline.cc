@@ -199,7 +199,10 @@ apportionFlux(MaskedImageT const& img,
 			  ImagePtrT sumimg,
 			  bool assignStrayFlux,
 			  std::vector<bool> ispsf,
-			  std::vector<std::pair<int,int> > pkxy) {
+			  //std::vector<std::pair<int,int> > pkxy) {
+			  std::vector<int> pkx,
+			  std::vector<int> pky) {
+
 	typedef typename det::Footprint::SpanList SpanList;
 	std::vector<MaskedImagePtrT> portions;
 	int ix0 = img.getX0();
@@ -261,7 +264,12 @@ apportionFlux(MaskedImageT const& img,
 			// Bail out!
 			assert(0);
 		}
-		if (pkxy.size() != timgs.size()) {
+		//if (pkxy.size() != timgs.size()) {
+		if (pkx.size() != timgs.size()) {
+			// Bail out!
+			assert(0);
+		}
+		if (pky.size() != timgs.size()) {
 			// Bail out!
 			assert(0);
 		}
@@ -293,8 +301,10 @@ apportionFlux(MaskedImageT const& img,
 					if (ispsf.size() && ispsf[i]) {
 						continue;
 					}
-					dx = pkxy[i].first  - x;
-					dy = pkxy[i].second - y;
+					//dx = pkxy[i].first  - x;
+					//dy = pkxy[i].second - y;
+					dx = pkx[i] - x;
+					dy = pky[i] - y;
 					isum += 1. / (1. + dx*dx + dy*dy);
 				}
 				printf("isum = %g\n", isum);
@@ -309,8 +319,10 @@ apportionFlux(MaskedImageT const& img,
 					if (ispsf.size() && ispsf[i]) {
 						continue;
 					}
-					dx = pkxy[i].first  - x;
-					dy = pkxy[i].second - y;
+					//dx = pkxy[i].first  - x;
+					//dy = pkxy[i].second - y;
+					dx = pkx[i] - x;
+					dy = pky[i] - y;
 					double c;
 					c = 1. / (1. + dx*dx + dy*dy);
 					if (c < (isum * strayclip)) {
@@ -325,8 +337,10 @@ apportionFlux(MaskedImageT const& img,
 					if (ispsf.size() && ispsf[i]) {
 						continue;
 					}
-					dx = pkxy[i].first  - x;
-					dy = pkxy[i].second - y;
+					//dx = pkxy[i].first  - x;
+					//dy = pkxy[i].second - y;
+					dx = pkx[i] - x;
+					dy = pky[i] - y;
 					double c;
 					c = 1. / (1. + dx*dx + dy*dy);
 					if (c < (isum * strayclip)) {
