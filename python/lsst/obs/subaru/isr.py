@@ -137,9 +137,6 @@ class SubaruIsrTask(IsrTask):
         if self.config.doCrosstalk:
             self.crosstalk(ccdExposure)
 
-        if self.config.doDefect:
-            self.maskDefect(ccdExposure)
-
         if self.config.doBias:
             self.biasCorrection(ccdExposure, sensorRef)
         if self.config.doDark:
@@ -147,6 +144,11 @@ class SubaruIsrTask(IsrTask):
         if self.config.doFlat:
             self.flatCorrection(ccdExposure, sensorRef)
 
+        if self.config.doSaturation:
+            self.saturationInterpolation(ccdExposure)
+
+        if self.config.doDefect:
+            self.maskDefect(ccdExposure)
         #
         # CCD 0, amp 1 is dead in HSC
         #
