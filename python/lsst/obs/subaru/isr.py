@@ -9,6 +9,7 @@ from lsst.ip.isr import IsrTask
 from lsst.ip.isr import isr as lsstIsr
 import lsst.pex.config as pexConfig
 import lsst.afw.cameraGeom as afwCG
+import lsst.afw.detection as afwDetection
 import lsst.afw.image as afwImage
 import lsst.afw.geom as afwGeom
 import lsst.afw.math as afwMath
@@ -58,6 +59,8 @@ class QaConfig(pexConfig.Config):
 class SubaruIsrConfig(IsrTask.ConfigClass):
     qa = pexConfig.ConfigField(doc="QA-related config options", dtype=QaConfig)
     doSaturation = pexConfig.Field(doc="Mask saturated pixels?", dtype=bool, default=True)
+    doWidenSaturationTrails = pexConfig.Field(doc="Widen bleed trails based on their width?",
+                                              dtype=bool, default=True)
     doOverscan = pexConfig.Field(doc="Do overscan subtraction?", dtype=bool, default=True)
     doVariance = pexConfig.Field(doc="Calculate variance?", dtype=bool, default=True)
     doDefect = pexConfig.Field(doc="Mask defect pixels?", dtype=bool, default=False)
@@ -143,10 +146,10 @@ class SubaruIsrTask(IsrTask):
             self.darkCorrection(ccdExposure, sensorRef)
         if self.config.doFlat:
             self.flatCorrection(ccdExposure, sensorRef)
-
+        if self.config.doWidenSaturationTrails:
+            self.widenSaturationTrails(ccdExposure.getMaskedImage().getMask())
         if self.config.doSaturation:
             self.saturationInterpolation(ccdExposure)
-
         if self.config.doDefect:
             self.maskDefect(ccdExposure)
         #
@@ -185,6 +188,45 @@ class SubaruIsrTask(IsrTask):
         self.display("postISRCCD", ccdExposure)
 
         return Struct(exposure=ccdExposure)
+
+    def widenSaturationTrails(self, mask):
+        """Grow the saturation trails by an amount dependent on the width of the trail"""
+
+        extraGrowDict = {}
+        for i in range(1, 6):
+            extraGrowDict[i] = 0
+        for i in range(6, 8):
+            extraGrowDict[i] = 1
+        for i in range(8, 10):
+            extraGrowDict[i] = 3
+        extraGrowMax = 4
+
+        if extraGrowMax <= 0:
+            return
+
+        saturatedBit = mask.getPlaneBitMask('SAT')
+
+        xmin, ymin = mask.getBBox(afwImage.PARENT).getMin()
+        width = mask.getWidth()
+
+        thresh = afwDetection.Threshold(saturatedBit, afwDetection.Threshold.BITMASK)
+        fpList = afwDetection.FootprintSet(mask, thresh).getFootprints()
+
+        for fp in fpList:
+            for s in fp.getSpans():
+                x0, x1 = s.getX0(), s.getX1()
+
+                extraGrow = extraGrowDict.get(x1 - x0 + 1, extraGrowMax)
+                if extraGrow > 0:
+                    y = s.getY() - ymin
+                    x0 -= xmin + extraGrow
+                    x1 -= xmin - extraGrow
+
+                    if x0 < 0: x0 = 0
+                    if x1 >= width - 1: x1 = width - 1
+
+                    for x in range(x0, x1 + 1):
+                        mask.set(x, y, saturatedBit)
 
     def writeThumbnail(self, dataRef, dataset, exposure, format='png', width=500, height=0):
         """Write out exposure to a snapshot file named outfile in the given image format and size.
