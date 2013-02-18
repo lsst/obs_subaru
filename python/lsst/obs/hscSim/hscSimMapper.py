@@ -97,7 +97,8 @@ Most chips are flipped L/R, but the rotated ones (100..103) are flipped T/B
         #
         wcs = afwImage.makeWcs(md)
         self._flipChipsLR(None, wcs, dataId, dims=afwGeom.ExtentI(md.get("NAXIS1"), md.get("NAXIS2")))
-        wcsMd = wcs.getFitsMetadata()
+        wcsR = afwImage.Wcs(wcs.getSkyOrigin().getPosition(), wcs.getPixelOrigin(), wcs.getCDMatrix()*0.992)
+        wcsMd = wcsR.getFitsMetadata()
 
         for k in wcsMd.names():
             md.set(k, wcsMd.get(k))
