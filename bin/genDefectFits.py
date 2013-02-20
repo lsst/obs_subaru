@@ -61,7 +61,18 @@ def genDefectFits(cameraPolicy, source, targetDir):
         table.writeto(name)
 
 if __name__ == "__main__":
-    if len(sys.argv) != 4:
-        print "USAGE: %s CAMERA_POLICY.paf DEFECTS.dat TARGET_DIR" % sys.argv[0]
-        sys.exit(1)
-    genDefectFits(sys.argv[1], sys.argv[2], sys.argv[3])
+    import argparse
+    
+    parser = argparse.ArgumentParser()
+    parser.add_argument("cameraPolicyFile", type=str, help="Camera .paf file")
+    parser.add_argument("defectsFile", type=str, help="Text file containing list of defects")
+    parser.add_argument("targetDir", type=str, nargs="?", help="Directory for generated fits files")
+    parser.add_argument("-v", "--verbose", action="store_true", help="Be chattier")
+    args = parser.parse_args()
+
+    if not args.targetDir:
+        args.targetDir = os.path.split(args.defectsFile)[0]
+
+    genDefectFits(args.cameraPolicyFile, args.defectsFile, args.targetDir)
+    
+
