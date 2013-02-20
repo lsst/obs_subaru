@@ -90,6 +90,11 @@ class SubaruIsrConfig(IsrTask.ConfigClass):
         default = 0.0,
     )
     removePcCards = Field(dtype=bool, doc='Remove any PC cards in the header', default=True)
+    fwhmForBadColumnInterpolation = pexConfig.Field(
+        dtype = float,
+        doc = "FWHM of PSF used when interpolating over bad columns (arcsec)",
+        default = 1.0,
+    )
 
 class SubaruIsrTask(IsrTask):
 
@@ -151,7 +156,7 @@ class SubaruIsrTask(IsrTask):
         if self.config.doSaturation:
             self.saturationInterpolation(ccdExposure)
         if self.config.doDefect:
-            self.maskDefect(ccdExposure)
+            self.maskDefect(ccdExposure, self.config.fwhmForBadColumnInterpolation)
         #
         # CCD 0, amp 1 is dead in HSC
         #
@@ -367,11 +372,12 @@ class SubaruIsrTask(IsrTask):
                             val += val*linearizationCoefficient*(math.log10(val) - log10_thresh)
                             ampImage.set(x, y, val)
 
-    def maskDefect(self, ccdExposure):
+    def maskDefect(self, ccdExposure, fwhm=1.0):
         """Mask defects using mask plane "BAD"
 
         @param[in,out]  ccdExposure     exposure to process
-        
+        @param          fwhm            fwhm to use when interpolating (arcsec)
+
         @warning: call this after CCD assembly, since defects may cross amplifier boundaries
         """
         maskedImage = ccdExposure.getMaskedImage()
@@ -385,7 +391,11 @@ class SubaruIsrTask(IsrTask):
             nd = measAlg.Defect(bbox)
             defectList.append(nd)
         lsstIsr.maskPixelsFromDefectList(maskedImage, defectList, maskName='BAD')
-
+        wcs = ccdExposure.getWcs()
+        if wcs:
+            fwhm /= wcs.pixelScale().asArcseconds()
+        lsstIsr.interpolateDefectList(maskedImage, defectList, fwhm)
+        
 class HamamatsuIsrTaskConfig(SubaruIsrTask.ConfigClass):
     crosstalkCoeffs = pexConfig.ConfigField(
         dtype = crosstalk.CrosstalkYagiCoeffsConfig,
