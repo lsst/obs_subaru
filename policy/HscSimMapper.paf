@@ -8,7 +8,7 @@ needCalibRegistry: true
 #calibRegistryPath: "/path/to/calibration/registry/"
 
 camera:        "../hsc/hsc_geom.paf"
-defects:    "../hsc/hsc_defects.paf"
+defects:    "../hsc/defects"
 
 skytiles: {
     resolutionPix: 700    # Resolution for skytiles: 700 --> 500 arcsec sides
