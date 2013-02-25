@@ -57,14 +57,6 @@ exposures: {
         tables:        "raw"
         tables:        "raw_visit"
     }
-    calexpBackground: {
-        template:      "%(pointing)05d/%(filter)s/corr/BKGD%(visit)07d%(ccd)1d.fits"
-        python:        "lsst.afw.image.ImageF"
-        persistable:        "ImageF"
-        storage:    "FitsStorage"
-        tables:        raw
-        tables:        raw_skyTile
-    }
 
     revexp: {
         template:      "%(pointing)05d/%(filter)s/corr/CORW%(visit)07d%(ccd)d.fits"
@@ -160,22 +152,32 @@ exposures: {
         python:      "lsst.afw.image.ExposureF"
         persistable: "ExposureF"
         storage:     "FitsStorage"
-        tables:      raw
+        level:       "Skytile"
+        tables:      raw_skytile
     }
     deepCoadd_depth: {
         template:    "deepCoadd/%(filter)s/%(tract)d/%(patch)s.depth.fits"
         python:      "lsst.afw.image.ImageF"
         persistable: "ImageF"
         storage:     "FitsStorage"
-        tables:      raw
+        level:       "Skytile"
+        tables:      raw_skytile
     }
     deepCoadd_calexpBackground: {
-        template:      "deepCoadd-results/%(filter)s/%(tract)d/%(patch)s/bkgd-%(filter)s-%(tract)d-%(patch)s.fits"
-        python:        "lsst.afw.image.ImageF"
-        persistable:        "ImageF"
-        storage:    "FitsStorage"
-        tables:        raw
-        tables:        raw_skyTile
+        template:    "deepCoadd-results/%(filter)s/%(tract)d/%(patch)s/bkgd-%(filter)s-%(tract)d-%(patch)s.fits"
+        python:      "lsst.afw.image.ImageF"
+        persistable: "ImageF"
+        storage:     "FitsStorage"
+        level:       "Skytile"
+        tables:      raw_skytile
+    }
+    deepCoadd_tempExp: {
+        template:    "deepCoadd-results/%(filter)s/%(tract)d/%(patch)s/warp-%(filter)s-%(tract)d-%(patch)s.fits"
+        python:      "lsst.afw.image.ExposureF"
+        persistable: "ExposureF"
+        storage:     "FitsStorage"
+        level:       "Skytile"
+        tables:      raw_skytile
     }
 
     diff: {
@@ -313,6 +315,14 @@ calibrations: {
 
 
 datasets: {
+    calexpBackground: {
+        template:      "%(pointing)05d/%(filter)s/corr/BKGD%(visit)07d%(ccd)1d.fits"
+        python:        "lsst.afw.image.ImageF"
+        persistable:   "ImageF"
+        storage:       "FitsStorage"
+        tables:        raw
+        tables:        raw_skyTile
+    }
     psf: {
         template:      "%(pointing)05d/%(filter)s/output/PSF%(visit)07d%(ccd)1d.boost"
         python:        "lsst.afw.detection.Psf"
