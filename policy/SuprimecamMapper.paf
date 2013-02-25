@@ -61,6 +61,14 @@ exposures: {
         tables:        "raw"
         tables:        "raw_visit"
     }
+    calexpBackground: {
+        template:      "%(pointing)05d/%(filter)s/corr/BKGD%(visit)07d%(ccd)d.fits"
+        python:        "lsst.afw.image.ImageF"
+        persistable:        "ImageF"
+        storage:    "FitsStorage"
+        tables:        raw
+        tables:        raw_skyTile
+    }
 
     revexp: {
         template:      "%(pointing)05d/%(filter)s/corr/CORW%(visit)07d%(ccd)d.fits"
@@ -149,6 +157,29 @@ exposures: {
         storage:    "FitsStorage"
         level:        "Skytile"
         tables:        "raw_skytile"
+    }
+
+    deepCoadd: {
+        template:    "deepCoadd/%(filter)s/%(tract)d/%(patch)s.fits"
+        python:      "lsst.afw.image.ExposureF"
+        persistable: "ExposureF"
+        storage:     "FitsStorage"
+        tables:      raw
+    }
+    deepCoadd_depth: {
+        template:    "deepCoadd/%(filter)s/%(tract)d/%(patch)s.depth.fits"
+        python:      "lsst.afw.image.ImageF"
+        persistable: "ImageF"
+        storage:     "FitsStorage"
+        tables:      raw
+    }
+    deepCoadd_calexpBackground: {
+        template:      "deepCoadd-results/%(filter)s/%(tract)d/%(patch)s/bkgd-%(filter)s-%(tract)d-%(patch)s.fits"
+        python:        "lsst.afw.image.ImageF"
+        persistable:        "ImageF"
+        storage:    "FitsStorage"
+        tables:        raw
+        tables:        raw_skyTile
     }
 
     diff: {
@@ -424,7 +455,6 @@ datasets: {
         tables:        "raw_visit"
     }
 
-
     log: {
         template:      "%(pointing)05d/%(filter)s/logs/run.log"
         python:        "str"
@@ -438,7 +468,6 @@ datasets: {
         storage:       "None"
     }
 
-
     stackrgb: {
         # Will be read/written directly by the user; here for _filename only
         template:      "stack/%(stack)05d/SRC%(patch)08d.tiff"
@@ -446,30 +475,6 @@ datasets: {
         persistable:   "RgbImageF"
         storage:       "SelfStorage"
         tables:        "None"
-    }
-
-    diffsources: {
-        template:      "diff/%(diff)05d/SRC%(patch)08d%(filter)s.fits"
-        python:        "lsst.afw.table.SourceCatalog"
-        persistable:   "SourceCatalog"
-        storage:       "FitsCatalogStorage"
-        tables:        "raw_skytile"
-    }
-
-    diffpsf: {
-        template:      "diff/%(diff)05d/PSF%(patch)08d%(filter)s.boost"
-        python:        "lsst.afw.detection.Psf"
-        persistable:   "Psf"
-        storage:       "BoostStorage"
-        tables:        "raw_skytile"
-    }
-
-    warppsf: {
-        template:      "%(pointing)05d/%(filter)s/warp/WARPPSF%(visit)07d%(ccd)d.boost"
-        python:        "lsst.afw.detection.Psf"
-        persistable:   "Psf"
-        storage:       "BoostStorage"
-        tables:        "raw_skytile"
     }
  
     ccdExposureId: {
@@ -481,6 +486,22 @@ datasets: {
         tables:       "raw"
     }
     ccdExposureId_bits: {
+        template:     "ignored"
+        # Provide something to import, although we actually return an int
+        python:       "lsst.daf.base.PropertySet"
+        persistable:  "ignored"
+        storage:      "ignored"
+        tables:       "raw"
+    }
+    deepCoaddId: {
+        template:     "ignored"
+        # Provide something to import, although we actually return a Long
+        python:       "lsst.daf.base.PropertySet"
+        persistable:  "ignored"
+        storage:      "ignored"
+        tables:       "raw"
+    }
+    deepCoaddId_bits: {
         template:     "ignored"
         # Provide something to import, although we actually return an int
         python:       "lsst.daf.base.PropertySet"
@@ -540,29 +561,7 @@ datasets: {
         tables:        raw_visit
     }
 
-    forcedsources: {
-        template:      "%(pointing)05d/%(filter)s/output/FORCED%(visit)07d%(ccd)1d.fits"
-        python:        "lsst.afw.table.SourceCatalog"
-        persistable:   "SourceCatalog"
-        storage:       "FitsCatalogStorage"
-        tables:        "raw_skytile"
-    }
-
-    deepCoadd: {
-        template:    "deepCoadd/%(filter)s/%(tract)d/%(patch)s.fits"
-        python:      "lsst.afw.image.ExposureF"
-        persistable: "ExposureF"
-        storage:     "FitsStorage"
-        tables:      raw
-    }
-    deepCoadd_depth: {
-        template:    "deepCoadd/%(filter)s/%(tract)d/%(patch)s.depth.fits"
-        python:      "lsst.afw.image.ImageF"
-        persistable: "ImageF"
-        storage:     "FitsStorage"
-        tables:      raw
-    }
-    deepCoadd_psf: {
+    deepCoadd_initPsf: {
         template:    "deepCoadd/%(filter)s/%(tract)d/%(patch)s.boost"
         python:      "lsst.afw.detection.Psf"
         persistable: "Psf"
@@ -575,6 +574,92 @@ datasets: {
         persistable: "ignored"
         storage:     "PickleStorage"
         tables:      raw
+    }
+    deep_makeSkyMap_config: {
+        template:      "deepCoadd/config.py"
+        python:        "lsst.pipe.tasks.makeSkyMap.MakeSkyMapTask.ConfigClass"
+        persistable:   "Config"
+        storage:       "ConfigStorage"
+        tables:        raw
+    }
+    deep_makeSkyMap_metadata: {
+        template:      "deepCoadd/metadata.py"
+        python:        "lsst.daf.base.PropertySet"
+        persistable:   "PropertySet"
+        storage:       "BoostStorage"
+        tables:        raw
+    }
+    deep_assembleCoadd_config: {
+        template:      "deep_assembleCoadd_config/%(filter)s/%(tract)d/%(patch)s.py"
+        python:        "lsst.pipe.tasks.baseCoadd.BaseCoaddConfig"
+        persistable:      "Config"
+        storage:    "ConfigStorage"
+        tables:        raw
+        tables:        raw_skyTile
+    }
+    deep_assembleCoadd_metadata: {
+        template:      "deep_assembleCoadd_metadata/%(filter)s/%(tract)d/%(patch)s.boost"
+        python:        "lsst.daf.base.PropertySet"
+        persistable:        "PropertySet"
+        storage:    "BoostStorage"
+        tables:        raw
+        tables:        raw_skyTile
+    }
+    deep_coadd_config: {
+        template:      "deep_coadd_config/%(filter)s/%(tract)d/%(patch)s.py"
+        python:        "lsst.pipe.tasks.baseCoadd.BaseCoaddConfig"
+        persistable:      "Config"
+        storage:    "ConfigStorage"
+        tables:        raw
+        tables:        raw_skyTile
+    }
+    deep_coadd_metadata: {
+        template:      "deep_coadd_metadata/%(filter)s/%(tract)d/%(patch)s.boost"
+        python:        "lsst.daf.base.PropertySet"
+        persistable:        "PropertySet"
+        storage:    "BoostStorage"
+        tables:        raw
+        tables:        raw_skyTile
+    }
+    deepCoadd_icSrc: {
+        template:      "deepCoadd-results/%(filter)s/%(tract)d/%(patch)s/icSrc-%(filter)s-%(tract)d-%(patch)s.fits"
+        python:        "lsst.afw.table.SourceCatalog"
+        persistable:        "ignored"
+        storage:    "FitsCatalogStorage"
+        tables:        raw
+        tables:        raw_skyTile
+    }
+    deepCoadd_icMatch: {
+        template:      "deepCoadd-results/%(filter)s/%(tract)d/%(patch)s/icMatch-%(filter)s-%(tract)d-%(patch)s.fits"
+        python:        "lsst.afw.table.SourceCatalog"
+        persistable:        "ignored"
+        storage:    "FitsCatalogStorage"
+        tables:        raw
+        tables:        raw_skyTile
+    }
+    deepCoadd_psf: {
+        template:      "deepCoadd-results/%(filter)s/%(tract)d/%(patch)s/psf-%(filter)s-%(tract)d-%(patch)s.boost"
+        python:        "lsst.afw.detection.Psf"
+        persistable:        "Psf"
+        storage:    "BoostStorage"
+        tables:        raw
+        tables:        raw_skyTile
+    }
+    deepCoadd_apCorr: {
+        template:      "deepCoadd-results/%(filter)s/%(tract)d/%(patch)s/apCorr-%(filter)s-%(tract)d-%(patch)s.pickle"
+        python:        "lsst.meas.algorithms.ApertureCorrection"
+        persistable:        "ApertureCorrection"
+        storage:    "PickleStorage"
+        tables:        raw
+        tables:        raw_skyTile
+    }
+    deepCoadd_src: {
+        template:      "deepCoadd-results/%(filter)s/%(tract)d/%(patch)s/src-%(filter)s-%(tract)d-%(patch)s.boost"
+        python:        "lsst.afw.table.SourceCatalog"
+        persistable:        "ignored"
+        storage:    "FitsCatalogStorage"
+        tables:        raw
+        tables:        raw_skyTile
     }
 
     ossThumb: {
