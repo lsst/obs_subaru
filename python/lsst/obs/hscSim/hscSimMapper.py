@@ -132,3 +132,11 @@ Most chips are flipped L/R, but the rotated ones (100..103) are flipped T/B
     def bypass_ccdExposureId_bits(self, datasetType, pythonType, location, dataId):
         """How many bits are required for the maximum exposure ID"""
         return 32 # just a guess, but this leaves plenty of space for sources
+
+    @classmethod
+    def getEupsProductName(cls):
+        return "obs_subaru"
+
+    @classmethod
+    def getCameraName(cls):
+        return "hscSim"
