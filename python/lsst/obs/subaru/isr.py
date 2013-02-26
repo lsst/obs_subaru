@@ -14,7 +14,6 @@ import lsst.afw.image as afwImage
 import lsst.afw.geom as afwGeom
 import lsst.afw.math as afwMath
 from . import crosstalkYagi as crosstalk
-import lsst.afw.cameraGeom as cameraGeom
 import lsst.meas.algorithms as measAlg
 
 try:
@@ -381,7 +380,7 @@ class SubaruIsrTask(IsrTask):
         @warning: call this after CCD assembly, since defects may cross amplifier boundaries
         """
         maskedImage = ccdExposure.getMaskedImage()
-        ccd = cameraGeom.cast_Ccd(ccdExposure.getDetector())
+        ccd = afwCG.cast_Ccd(ccdExposure.getDetector())
         defectBaseList = ccd.getDefects()
         defectList = measAlg.DefectListT()
         # mask bad pixels in the camera class
