@@ -88,13 +88,35 @@ class SubaruIsrConfig(IsrTask.ConfigClass):
         doc = "Linearity correction coefficient",
         default = 0.0,
     )
+    doApplyGains = pexConfig.Field(
+        dtype = bool,
+        doc = """Correct the amplifiers for their gains
+
+N.b. this is intended to be used *instead* of doFlat; it's useful if you're measuring system throughput
+""",
+        default = False,
+    )
+    normalizeGains = pexConfig.Field(
+        dtype = bool,
+        doc = """Normalize all the amplifiers in each CCD to have the same gain
+
+This does not measure the gains, it simply forces the median of each amplifier to be equal
+after applying the nominal gain
+""",
+        default = False,
+    )
     removePcCards = Field(dtype=bool, doc='Remove any PC cards in the header', default=True)
     fwhmForBadColumnInterpolation = pexConfig.Field(
         dtype = float,
         doc = "FWHM of PSF used when interpolating over bad columns (arcsec)",
         default = 1.0,
     )
+    def validate(self):
+        pexConfig.Config.validate(self)
 
+        if self.doFlat and self.doApplyGains:
+            raise ValueError("You may not specify both self.doFlat and self.doApplyGains")
+        
 class SubaruIsrTask(IsrTask):
 
     ConfigClass = SubaruIsrConfig
@@ -150,6 +172,8 @@ class SubaruIsrTask(IsrTask):
             self.darkCorrection(ccdExposure, sensorRef)
         if self.config.doFlat:
             self.flatCorrection(ccdExposure, sensorRef)
+        if self.config.doApplyGains:
+            self.applyGains(ccdExposure, self.config.normalizeGains)
         if self.config.doWidenSaturationTrails:
             self.widenSaturationTrails(ccdExposure.getMaskedImage().getMask())
         if self.config.doSaturation:
@@ -192,6 +216,24 @@ class SubaruIsrTask(IsrTask):
         self.display("postISRCCD", ccdExposure)
 
         return Struct(exposure=ccdExposure)
+
+    def applyGains(self, ccdExposure, normalizeGains):
+        ccd = afwCG.cast_Ccd(ccdExposure.getDetector())
+        ccdImage = ccdExposure.getMaskedImage()
+
+        medians = []
+        for a in ccd:
+            sim = ccdImage.Factory(ccdImage, a.getDataSec())
+            sim *= a.getElectronicParams().getGain()
+
+            if normalizeGains:
+                medians.append(numpy.median(sim.getImage().getArray()))
+
+        if normalizeGains:
+            median = numpy.median(numpy.array(medians))
+            for i, a in enumerate(ccd):
+                sim = ccdImage.Factory(ccdImage, a.getDataSec())
+                sim *= median/medians[i]
 
     def widenSaturationTrails(self, mask):
         """Grow the saturation trails by an amount dependent on the width of the trail"""
