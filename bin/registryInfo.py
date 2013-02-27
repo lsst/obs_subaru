@@ -4,6 +4,45 @@ import os
 import sys
 import sqlite
 
+
+def formatVisits(visits):
+    """Format a set of visits into the format used for an --id argument"""
+    visits = sorted(visits)
+
+    visitSummary = []
+    i = 0
+    while i < len(visits):
+        v0 = -1
+
+        while i < len(visits):
+            v = visits[i]; i += 1
+            if v0 < 0:
+                v0 = v
+                dv = -1                 # visit stride
+                continue
+            
+            if dv < 0:
+                dv = v - v0
+            
+            if visits[i - 2] + dv != v:
+                i -= 1                  # process this visit again later
+                v = visits[i - 1]       # previous value of v
+                break
+
+        if v0 == v:
+            vstr = "%d" % v
+        else:
+            if v == v0 + dv:
+                vstr = "%d^%d" % (v0, v)
+            else:
+                vstr = "%d..%d" % (v0, v)
+                if dv > 1:
+                    vstr += ":%d" % dv
+
+        visitSummary.append(vstr)
+
+    return "^".join(visitSummary)
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="""
 Dump the contents of a registry
@@ -32,9 +71,9 @@ If no registry is provided, try $SUPRIME_DATA_DIR
     conn = sqlite.connect(registryFile)
     cursor = conn.cursor()
     if args.summary:
-        print "%-7s %-20s %7s" % ("filter", "field", "expTime")
+        print "%-7s %-20s %7s %s" % ("filter", "field", "expTime", "visit")
     else:
-        print "%-7s %-20s %6s %7s %3s" % ("filter", "field", "visit", "expTime", "nCCD")
+        print "%-7s %-20s %7s %6s %3s" % ("filter", "field", "expTime", "visit", "nCCD")
 
     where = []; vals = []
     if args.field:
@@ -54,8 +93,7 @@ GROUP BY visit
 ORDER BY filter
 """ % (where)
 
-    n = {}
-    expTimes = {}
+    n = {}; expTimes = {}; visits = {}
     for line in cursor.execute(query, vals):
         field, visit, filter, expTime, nCCD = line
 
@@ -64,15 +102,18 @@ ORDER BY filter
             if not n.get(k):
                 n[k] = 0
                 expTimes[k] = 0
+                visits[k] = []
 
             n[k] += 1
             expTimes[k] += expTime
+            visits[k].append(visit)
         else:
-            print "%-7s %-20s %6d %7.1f %3d" % (filter, field, visit, expTime, nCCD)
+            print "%-7s %-20s %7.1f %6d %3d" % (filter, field, expTime, visit, nCCD)
 
     conn.close()
 
     if args.summary:
         for k in sorted(n.keys()):
             filter, field = k
-            print "%-7s %-20s %7.1f" % (filter, field, expTimes[k])
+
+            print "%-7s %-20s %7.1f %s" % (filter, field, expTimes[k], formatVisits(visits[k]))
