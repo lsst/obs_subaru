@@ -182,6 +182,14 @@ exposures: {
         tables:        raw
         tables:        raw_skyTile
     }
+    deepCoadd_tempExp: {
+        template:    "deepCoadd/%(filter)s/%(tract)d/%(patch)s/warp-%(filter)s-%(tract)d-%(patch)s-%(visit)d.fits"
+        python:      "lsst.afw.image.ExposureF"
+        persistable: "ExposureF"
+        storage:     "FitsStorage"
+        level:       "Skytile"
+        tables:      raw_skytile
+    }
 
     diff: {
         template:      "diff/%(diff)05d/DIFF%(patch)08d.fits"
