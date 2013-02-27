@@ -225,6 +225,7 @@ exposures: {
         python:      "lsst.afw.image.ExposureF"
         persistable: "ExposureF"
         storage:     "FitsStorage"
+        level:       "Skytile"
         tables:      raw
     }
 

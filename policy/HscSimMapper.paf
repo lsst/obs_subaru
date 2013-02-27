@@ -62,14 +62,6 @@ exposures: {
         tables:        "raw"
         tables:        "raw_visit"
     }
-    calexpBackground: {
-        template:      "%(pointing)05d/%(filter)s/corr/BKGD-%(visit)07d-%(ccd)03d.fits"
-        python:        "lsst.afw.image.ImageF"
-        persistable:        "ImageF"
-        storage:    "FitsStorage"
-        tables:        raw
-        tables:        raw_skyTile
-    }
 
     revexp: {
         template:      "%(pointing)05d/%(filter)s/corr/CORW-%(visit)07d-%(ccd)03d.fits"
@@ -165,22 +157,8 @@ exposures: {
         python:      "lsst.afw.image.ExposureF"
         persistable: "ExposureF"
         storage:     "FitsStorage"
+        level:       "Skytile"
         tables:      raw
-    }
-    deepCoadd_depth: {
-        template:    "deepCoadd/%(filter)s/%(tract)d/%(patch)s.depth.fits"
-        python:      "lsst.afw.image.ImageF"
-        persistable: "ImageF"
-        storage:     "FitsStorage"
-        tables:      raw
-    }
-    deepCoadd_calexpBackground: {
-        template:      "deepCoadd-results/%(filter)s/%(tract)d/%(patch)s/bkgd-%(filter)s-%(tract)d-%(patch)s.fits"
-        python:        "lsst.afw.image.ImageF"
-        persistable:        "ImageF"
-        storage:    "FitsStorage"
-        tables:        raw
-        tables:        raw_skyTile
     }
     deepCoadd_tempExp: {
         template:    "deepCoadd/%(filter)s/%(tract)d/%(patch)s/warp-%(filter)s-%(tract)d-%(patch)s-%(visit)d.fits"
@@ -380,6 +358,14 @@ datasets: {
         storage:       "FitsCatalogStorage"
         tables:        "raw"
         tables:        "raw_visit"
+    }
+    calexpBackground: {
+        template:      "%(pointing)05d/%(filter)s/corr/BKGD-%(visit)07d-%(ccd)03d.fits"
+        python:        "lsst.afw.image.ImageF"
+        persistable:        "ImageF"
+        storage:    "FitsStorage"
+        tables:        raw
+        tables:        raw_skyTile
     }
 
     stack_initPsf: {
@@ -585,6 +571,21 @@ datasets: {
         tables:        raw_visit
     }
 
+    deepCoadd_depth: {
+        template:    "deepCoadd/%(filter)s/%(tract)d/%(patch)s.depth.fits"
+        python:      "lsst.afw.image.ImageF"
+        persistable: "ImageF"
+        storage:     "FitsStorage"
+        tables:      raw
+    }
+    deepCoadd_calexpBackground: {
+        template:      "deepCoadd/%(filter)s/%(tract)d/%(patch)s/bkgd-%(filter)s-%(tract)d-%(patch)s.fits"
+        python:        "lsst.afw.image.ImageF"
+        persistable:        "ImageF"
+        storage:    "FitsStorage"
+        tables:        raw
+        tables:        raw_skyTile
+    }
     deepCoadd_initPsf: {
         template:    "deepCoadd/%(filter)s/%(tract)d/%(patch)s.boost"
         python:      "lsst.afw.detection.Psf"
