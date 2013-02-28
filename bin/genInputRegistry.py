@@ -56,14 +56,17 @@ if args.camera.lower() in ("hsc",):
     mapperPolicy = "HscSimMapper.paf"
     reFilename = r'HSC-(\d{7})-(\d{3}).fits'
     globFilename = "HSC-%07d-???.fits"
+    mapperName = "lsst.obs.hscSim.HscSimMapper"
 elif args.camera.lower() in ("hscsim",):
     mapperPolicy = "HscSimMapper.paf"
     reFilename = r'HSCA(\d{5})(\d{3}).fits'
     globFilename = "HSCA%05d???.fits"
+    mapperName = "lsst.obs.hscSim.HscSimMapper"
 elif args.camera.lower() in ("sc", "suprimecam", "suprime-cam", "sc-mit", "suprimecam-mit"):
     mapperPolicy = "SuprimecamMapper.paf"
     reFilename = r'SUPA(\d{7})(\d).fits'
     globFilename = "SUPA%07d?.fits"
+    mapperName = "lsst.obs.suprimecam.SuprimecamMapper"
 else:
     raise KeyError("Unrecognised camera name: %s" % args.camera)
 
@@ -233,3 +236,9 @@ if conn:
 else:
     print >> sys.stderr, cmd
     
+
+mapperFile = os.path.join(args.root, "_mapper")
+if not os.path.exists(mapperFile):
+    f = open(mapperFile, "w")
+    f.write(mapperName + "\n")
+    del f

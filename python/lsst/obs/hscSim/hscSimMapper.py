@@ -83,12 +83,6 @@ Most chips are flipped L/R, but the rotated ones (100..103) are flipped T/B
         
         return exp
 
-    def std_flat(self, exp, dataId):
-        if False:                       # no std_flat in baseclass
-            exp = super(HscSimMapper, self).std_flat(exp, dataId)
-
-        return self._flipChipsLR(exp, exp.getWcs(), dataId)
-
     def std_raw_md(self, md, dataId):
         if False:            # no std_raw_md in baseclass
             md = super(HscSimMapper, self).std_raw_md(md, dataId) # not present in baseclass
@@ -132,3 +126,11 @@ Most chips are flipped L/R, but the rotated ones (100..103) are flipped T/B
     def bypass_ccdExposureId_bits(self, datasetType, pythonType, location, dataId):
         """How many bits are required for the maximum exposure ID"""
         return 32 # just a guess, but this leaves plenty of space for sources
+
+    @classmethod
+    def getEupsProductName(cls):
+        return "obs_subaru"
+
+    @classmethod
+    def getCameraName(cls):
+        return "hscSim"

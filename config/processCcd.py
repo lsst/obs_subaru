@@ -16,11 +16,6 @@ root.detection.background.binSize = 1024
 # PSF determination
 root.calibrate.measurePsf.starSelector.name = "objectSize"
 root.calibrate.measurePsf.psfDeterminer.name = "pca"
-root.calibrate.measurePsf.starSelector["secondMoment"].clumpNSigma = 2.0
-root.calibrate.measurePsf.psfDeterminer["pca"].nEigenComponents = 4
-root.calibrate.measurePsf.psfDeterminer["pca"].spatialOrder = 2
-root.calibrate.measurePsf.psfDeterminer["pca"].kernelSizeMin = 25
-root.calibrate.measurePsf.psfDeterminer["pca"].kernelScaling = 10.0
 
 # Astrometry
 try:
@@ -39,12 +34,10 @@ except ImportError:
 
 # Detection
 root.detection.isotropicGrow = True
-root.detection.nGrow = 2
 root.detection.returnOriginalFootprints = False
 
 # Measurement
-root.measurement.algorithms["flux.gaussian"].shiftmax = 10.0
-root.doSourceMatches = True
+root.doWriteSourceMatches = True
 
 # Enable deblender for processCcd
 root.measurement.doReplaceWithNoise = True
