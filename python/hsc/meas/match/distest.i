@@ -1,6 +1,8 @@
 %module  distest
 %include "typemaps.i"
 %include "lsst/p_lsstSwig.i"
+%include "std_string.i"
+%include "std_vector.i"
 
 %lsst_exceptions();
 
@@ -14,6 +16,7 @@
 #include "hsc/meas/match/distest.h"
 #include "hsc/meas/match/distest_utils2.h"
 #include "hsc/meas/match/LeastSquares.h"
+#include "hsc/meas/match/distest2.h"
 %}
 %{
 // This part should include definitions of newly defined
@@ -21,6 +24,7 @@
 // Typically, used to define a larger function combining
 // smaller functions in the original C++ code.
 %}
+%include "hsc/meas/match/distest2.h"
 
 namespace hsc {
 namespace meas { 
@@ -31,3 +35,6 @@ namespace match {
 } 
 }
 }
+
+%template(Vdouble)  std::vector<double>;
+%template(VVdouble) std::vector< std::vector<double> >;
