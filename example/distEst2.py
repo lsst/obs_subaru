@@ -9,18 +9,10 @@ def main():
 	XY=distest.MAKE_Vdouble();
 	XY_GLOBL=distest.MAKE_VVdouble();
 	XY_RADEC=distest.MAKE_VVdouble();
-#	CRPIX.append(100.0)
-#	CRPIX.append( 10.0)
-#	CRVAL.append(  0.0)
-#	CRVAL.append(  0.0)
-#	XY.append(0.0)
-#	XY.append(0.0)
 	CRPIX[0]=100.0
 	CRPIX[1]= 10.0
 	CRVAL[0]=  0.0
 	CRVAL[1]=  0.0
-	print CRPIX
-	print CRVAL	
 	for x in range(-20,21):
 		for y in range(-20,21):
 			if(math.hypot(1000*x,1000*y)<17501):
@@ -37,18 +29,10 @@ def main():
 	DIST_RADEC_SIM=distest.CALC_RADEC_SIM(CRVAL,CRPIX,XY_GLOBL)
 	DIST_GLOBL_SIM=distest.CALC_GLOBL_SIM(CRVAL,CRPIX,XY_RADEC)
 
-
-	print XY_GLOBL[  0], DIST_RADEC[  0], DIST_RADEC_SIM[  0]
-	print XY_GLOBL[200], DIST_RADEC[200], DIST_RADEC_SIM[200]
-	print XY_GLOBL[400], DIST_RADEC[400], DIST_RADEC_SIM[400]
-	print XY_GLOBL[600], DIST_RADEC[600], DIST_RADEC_SIM[600]
-	print XY_GLOBL[800], DIST_RADEC[800], DIST_RADEC_SIM[800]
-	print XY_GLOBL[972], DIST_RADEC[972], DIST_RADEC_SIM[972]
-	print XY_RADEC[  0], DIST_GLOBL[  0], DIST_GLOBL_SIM[  0]
-	print XY_RADEC[200], DIST_GLOBL[200], DIST_GLOBL_SIM[200]
-	print XY_RADEC[400], DIST_GLOBL[400], DIST_GLOBL_SIM[400]
-	print XY_RADEC[600], DIST_GLOBL[600], DIST_GLOBL_SIM[600]
-	print XY_RADEC[700], DIST_GLOBL[700], DIST_GLOBL_SIM[700]
+	for i in range(len(XY_GLOBL)):
+		print XY_GLOBL[i][0],XY_GLOBL[i][1],DIST_RADEC[i][0],DIST_RADEC[i][1],DIST_RADEC_SIM[i][0],DIST_RADEC_SIM[i][1]
+#	for i in range(len(XY_RADEC)):
+#		print XY_RADEC[i][0],XY_RADEC[i][1],DIST_GLOBL[i][0],DIST_GLOBL[i][1],DIST_GLOBL_SIM[i][0],DIST_GLOBL_SIM[i][1]
 
 if __name__ == '__main__':
 	main()
