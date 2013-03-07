@@ -9,8 +9,8 @@ def main():
 	XY=distest.MAKE_Vdouble();
 	XY_GLOBL=distest.MAKE_VVdouble();
 	XY_RADEC=distest.MAKE_VVdouble();
-	CRPIX[0]=100.0
-	CRPIX[1]= 10.0
+	CRPIX[0]=  0.0
+	CRPIX[1]=  0.0
 	CRVAL[0]=  0.0
 	CRVAL[1]=  0.0
 	for x in range(-20,21):
@@ -25,14 +25,14 @@ def main():
 				XY_RADEC.append(XY)
 	
 	DIST_RADEC=distest.CALC_RADEC(CRVAL,CRPIX,XY_GLOBL)
-	DIST_GLOBL=distest.CALC_GLOBL(CRVAL,CRPIX,XY_RADEC)
+	DIST_GLOBL=distest.CALC_GLOBL(CRVAL,CRPIX,XY_GLOBL)
 	DIST_RADEC_SIM=distest.CALC_RADEC_SIM(CRVAL,CRPIX,XY_GLOBL)
-	DIST_GLOBL_SIM=distest.CALC_GLOBL_SIM(CRVAL,CRPIX,XY_RADEC)
+	DIST_GLOBL_SIM=distest.CALC_GLOBL_SIM(CRVAL,CRPIX,XY_GLOBL)
 
 	for i in range(len(XY_GLOBL)):
 		print XY_GLOBL[i][0],XY_GLOBL[i][1],DIST_RADEC[i][0],DIST_RADEC[i][1],DIST_RADEC_SIM[i][0],DIST_RADEC_SIM[i][1]
-#	for i in range(len(XY_RADEC)):
-#		print XY_RADEC[i][0],XY_RADEC[i][1],DIST_GLOBL[i][0],DIST_GLOBL[i][1],DIST_GLOBL_SIM[i][0],DIST_GLOBL_SIM[i][1]
+#	for i in range(len(XY_GLOBL)):
+#		print XY_GLOBL[i][0],XY_GLOBL[i][1],DIST_GLOBL[i][0],DIST_GLOBL[i][1],DIST_GLOBL_SIM[i][0],DIST_GLOBL_SIM[i][1]
 
 if __name__ == '__main__':
 	main()
