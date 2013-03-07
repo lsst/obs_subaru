@@ -19,6 +19,7 @@ void convUndist2DistPosIterative(float x_undist, float y_undist,
 void convDist2UndistPos(float x_dist, float y_dist, 
                         float *x_undist, float *y_undist, float elevation, double ***Coef);
 void   F_SETCOEF(double ***Coef);
+void   F_SETCOEF_HSCSIM(double ***Coef);
 //double F_CCDtoSKY_X(int, double, double ****, double, double);
 //double F_CCDtoSKY_Y(int, double, double ****, double, double);
 //double F_SKYtoCCD_X(int, double, double ****, double, double);
