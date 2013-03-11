@@ -9,11 +9,11 @@ from lsst.ip.isr import IsrTask
 from lsst.ip.isr import isr as lsstIsr
 import lsst.pex.config as pexConfig
 import lsst.afw.cameraGeom as afwCG
-import lsst.afw.detection as afwDetection
 import lsst.afw.image as afwImage
 import lsst.afw.geom as afwGeom
 import lsst.afw.math as afwMath
-from . import crosstalkYagi as crosstalk
+from . import crosstalk
+import lsst.afw.cameraGeom as cameraGeom
 import lsst.meas.algorithms as measAlg
 
 try:
@@ -58,8 +58,6 @@ class QaConfig(pexConfig.Config):
 class SubaruIsrConfig(IsrTask.ConfigClass):
     qa = pexConfig.ConfigField(doc="QA-related config options", dtype=QaConfig)
     doSaturation = pexConfig.Field(doc="Mask saturated pixels?", dtype=bool, default=True)
-    doWidenSaturationTrails = pexConfig.Field(doc="Widen bleed trails based on their width?",
-                                              dtype=bool, default=True)
     doOverscan = pexConfig.Field(doc="Do overscan subtraction?", dtype=bool, default=True)
     doVariance = pexConfig.Field(doc="Calculate variance?", dtype=bool, default=True)
     doDefect = pexConfig.Field(doc="Mask defect pixels?", dtype=bool, default=False)
@@ -88,35 +86,8 @@ class SubaruIsrConfig(IsrTask.ConfigClass):
         doc = "Linearity correction coefficient",
         default = 0.0,
     )
-    doApplyGains = pexConfig.Field(
-        dtype = bool,
-        doc = """Correct the amplifiers for their gains
-
-N.b. this is intended to be used *instead* of doFlat; it's useful if you're measuring system throughput
-""",
-        default = False,
-    )
-    normalizeGains = pexConfig.Field(
-        dtype = bool,
-        doc = """Normalize all the amplifiers in each CCD to have the same gain
-
-This does not measure the gains, it simply forces the median of each amplifier to be equal
-after applying the nominal gain
-""",
-        default = False,
-    )
     removePcCards = Field(dtype=bool, doc='Remove any PC cards in the header', default=True)
-    fwhmForBadColumnInterpolation = pexConfig.Field(
-        dtype = float,
-        doc = "FWHM of PSF used when interpolating over bad columns (arcsec)",
-        default = 1.0,
-    )
-    def validate(self):
-        pexConfig.Config.validate(self)
 
-        if self.doFlat and self.doApplyGains:
-            raise ValueError("You may not specify both self.doFlat and self.doApplyGains")
-        
 class SubaruIsrTask(IsrTask):
 
     ConfigClass = SubaruIsrConfig
@@ -163,8 +134,8 @@ class SubaruIsrTask(IsrTask):
         if self.config.qa.doThumbnailOss:
             self.writeThumbnail(sensorRef, "ossThumb", ccdExposure)
 
-        if self.config.doCrosstalk:
-            self.crosstalk(ccdExposure)
+        if self.config.doDefect:
+            self.maskDefect(ccdExposure)
 
         if self.config.doBias:
             self.biasCorrection(ccdExposure, sensorRef)
@@ -172,31 +143,6 @@ class SubaruIsrTask(IsrTask):
             self.darkCorrection(ccdExposure, sensorRef)
         if self.config.doFlat:
             self.flatCorrection(ccdExposure, sensorRef)
-        if self.config.doApplyGains:
-            self.applyGains(ccdExposure, self.config.normalizeGains)
-        if self.config.doWidenSaturationTrails:
-            self.widenSaturationTrails(ccdExposure.getMaskedImage().getMask())
-        if self.config.doSaturation:
-            self.saturationInterpolation(ccdExposure)
-        if self.config.doDefect:
-            self.maskDefect(ccdExposure, self.config.fwhmForBadColumnInterpolation)
-        #
-        # CCD 0, amp 1 is dead in HSC
-        #
-        # This is a hack.
-        #
-        if ccd.getParent().getParent().getId().getName() == "HSC" and ccd.getId().getSerial() == 0:
-            amp1 = list(ccd)[1] # 2nd amplifier
-
-            im = ccdExposure.getMaskedImage().getImage()
-            sim = im.Factory(im, amp1.getAllPixels())
-            sim.set(afwMath.makeStatistics(im, afwMath.MEDIAN).getValue())
-            del sim; del im
-            
-            msk = ccdExposure.getMaskedImage().getMask()
-            smsk = msk.Factory(msk, amp1.getAllPixels())
-            smsk |= msk.getPlaneBitMask("BAD")
-            del smsk; del msk
 
         if self.config.qa.doWriteFlattened:
             sensorRef.put(ccdExposure, "flattenedImage")
@@ -205,6 +151,8 @@ class SubaruIsrTask(IsrTask):
 
         self.measureBackground(ccdExposure)
 
+        if self.config.doCrosstalk:
+            self.crosstalk(ccdExposure)
         if self.config.doLinearize:
             self.linearize(ccdExposure)
         if self.config.doGuider:
@@ -216,63 +164,6 @@ class SubaruIsrTask(IsrTask):
         self.display("postISRCCD", ccdExposure)
 
         return Struct(exposure=ccdExposure)
-
-    def applyGains(self, ccdExposure, normalizeGains):
-        ccd = afwCG.cast_Ccd(ccdExposure.getDetector())
-        ccdImage = ccdExposure.getMaskedImage()
-
-        medians = []
-        for a in ccd:
-            sim = ccdImage.Factory(ccdImage, a.getDataSec())
-            sim *= a.getElectronicParams().getGain()
-
-            if normalizeGains:
-                medians.append(numpy.median(sim.getImage().getArray()))
-
-        if normalizeGains:
-            median = numpy.median(numpy.array(medians))
-            for i, a in enumerate(ccd):
-                sim = ccdImage.Factory(ccdImage, a.getDataSec())
-                sim *= median/medians[i]
-
-    def widenSaturationTrails(self, mask):
-        """Grow the saturation trails by an amount dependent on the width of the trail"""
-
-        extraGrowDict = {}
-        for i in range(1, 6):
-            extraGrowDict[i] = 0
-        for i in range(6, 8):
-            extraGrowDict[i] = 1
-        for i in range(8, 10):
-            extraGrowDict[i] = 3
-        extraGrowMax = 4
-
-        if extraGrowMax <= 0:
-            return
-
-        saturatedBit = mask.getPlaneBitMask('SAT')
-
-        xmin, ymin = mask.getBBox(afwImage.PARENT).getMin()
-        width = mask.getWidth()
-
-        thresh = afwDetection.Threshold(saturatedBit, afwDetection.Threshold.BITMASK)
-        fpList = afwDetection.FootprintSet(mask, thresh).getFootprints()
-
-        for fp in fpList:
-            for s in fp.getSpans():
-                x0, x1 = s.getX0(), s.getX1()
-
-                extraGrow = extraGrowDict.get(x1 - x0 + 1, extraGrowMax)
-                if extraGrow > 0:
-                    y = s.getY() - ymin
-                    x0 -= xmin + extraGrow
-                    x1 -= xmin - extraGrow
-
-                    if x0 < 0: x0 = 0
-                    if x1 >= width - 1: x1 = width - 1
-
-                    for x in range(x0, x1 + 1):
-                        mask.set(x, y, saturatedBit)
 
     def writeThumbnail(self, dataRef, dataset, exposure, format='png', width=500, height=0):
         """Write out exposure to a snapshot file named outfile in the given image format and size.
@@ -413,16 +304,15 @@ class SubaruIsrTask(IsrTask):
                             val += val*linearizationCoefficient*(math.log10(val) - log10_thresh)
                             ampImage.set(x, y, val)
 
-    def maskDefect(self, ccdExposure, fwhm=1.0):
+    def maskDefect(self, ccdExposure):
         """Mask defects using mask plane "BAD"
 
         @param[in,out]  ccdExposure     exposure to process
-        @param          fwhm            fwhm to use when interpolating (arcsec)
-
+        
         @warning: call this after CCD assembly, since defects may cross amplifier boundaries
         """
         maskedImage = ccdExposure.getMaskedImage()
-        ccd = afwCG.cast_Ccd(ccdExposure.getDetector())
+        ccd = cameraGeom.cast_Ccd(ccdExposure.getDetector())
         defectBaseList = ccd.getDefects()
         defectList = measAlg.DefectListT()
         # mask bad pixels in the camera class
@@ -432,15 +322,11 @@ class SubaruIsrTask(IsrTask):
             nd = measAlg.Defect(bbox)
             defectList.append(nd)
         lsstIsr.maskPixelsFromDefectList(maskedImage, defectList, maskName='BAD')
-        wcs = ccdExposure.getWcs()
-        if wcs:
-            fwhm /= wcs.pixelScale().asArcseconds()
-        lsstIsr.interpolateDefectList(maskedImage, defectList, fwhm)
-        
+
 class HamamatsuIsrTaskConfig(SubaruIsrTask.ConfigClass):
     crosstalkCoeffs = pexConfig.ConfigField(
-        dtype = crosstalk.CrosstalkYagiCoeffsConfig,
-        doc = "Crosstalk coefficients by Yagi+ 2012",
+        dtype = crosstalk.CrosstalkCoeffsConfig,
+        doc = "Crosstalk coefficients",
     )
     crosstalkMaskPlane = pexConfig.Field(
         dtype = str,
@@ -461,24 +347,14 @@ class SuprimeCamIsrTask(SubaruIsrTask):
     ConfigClass = SuprimeCamIsrTaskConfig
 
     def crosstalk(self, exposure):
-        coeffs1List = self.config.crosstalkCoeffs.getCoeffs1() # primary crosstalk
-        coeffs2List = self.config.crosstalkCoeffs.getCoeffs2() # secondary crosstalk
-        gainsPreampSig = self.config.crosstalkCoeffs.getGainsPreampSigboard()
-        if not numpy.any(coeffs1List):
-            self.log.info("No crosstalk info available. Skipping crosstalk corrections to CCD %s" %
-                          (exposure.getDetector().getId()))
-            return
+        coeffs = self.config.crosstalkCoeffs.getCoeffs()
 
-        self.log.info("Applying crosstalk corrections to CCD %s based on Yagi+2012" %
-                      (exposure.getDetector().getId()))
+        if numpy.any(coeffs):
+            self.log.log(self.log.INFO, "Applying crosstalk corrections to CCD %s" %
+                         (exposure.getDetector().getId()))
 
-        ccdId = int(exposure.getDetector().getId().getSerial())
-        gainsPreampSigCcd = gainsPreampSig[ccdId]
-
-        crosstalk.subtractCrosstalkYagi(exposure.getMaskedImage(), coeffs1List, coeffs2List,
-                                        gainsPreampSigCcd,
-                                        self.config.minPixelToMask, self.config.crosstalkMaskPlane)
-
+            crosstalk.subtractXTalk(exposure.getMaskedImage(), coeffs,
+                                    self.config.minPixelToMask, self.config.crosstalkMaskPlane)
 
     def guider(self, exposure):
         """Mask defects and trim guider shadow

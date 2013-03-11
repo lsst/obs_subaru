@@ -37,34 +37,40 @@ if os.path.exists(registry):
     os.unlink(registry)
 conn = sqlite.connect(registry)
 
-Row = collections.namedtuple("Row", ["calibDate", "mystery", "num", "ccd"])
+Row = collections.namedtuple("Row", ["calibDate", "calibVersion", "ccd"])
 
 for calib in ('bias', 'dark', 'flat', 'fringe'):
     cmd = "create table " + calib.lower() + " (id integer primary key autoincrement"
     cmd += ", validStart text, validEnd text"
-    cmd += ", calibDate text, filter text, mystery text, num int, ccd int"
+    cmd += ", calibDate text, filter text, calibVersion text, ccd int"
     cmd += ")"
     conn.execute(cmd)
     conn.commit()
 
     rowsPerFilter = dict()
 
-    for fits in glob.glob(os.path.join(opts.root, calib.upper(), "20*-*-*", "?-?-*", "*",
+    for fits in glob.glob(os.path.join(opts.root, calib.upper(), "20*-*-*", "*", "*",
                                        calib.upper() + "-*.fits*")):
-        print fits
         if opts.camera.lower() in ("suprime-cam", "suprimecam", "sc"):
-            m = re.search(r'\w+/(\d{4})-(\d{2})-(\d{2})/([A-Z]-[A-Z]-[\w\+-]+)/(\d+)/\w+-(\d{7})(\d).fits', fits)
+            m = re.search(r'\w+/(\d{4})-(\d{2})-(\d{2})/([\w+-]+)/([\w-]+)/\w+-(\d).fits', fits)
         elif opts.camera.lower() in ("hsc", "hscsim"):
-            m = re.search(r'\w+/(\d{4})-(\d{2})-(\d{2})/([A-Z]-[A-Z]-[\w\+-]+)/(\d+)/\w+-(\d{5})(\d{3}).fits', fits)
+            m = re.search(r'\w+/(\d{4})-(\d{2})-(\d{2})/([\w+-]+)/([\w-]+)/\w+-(\d{3}).fits', fits)
         if not m:
+            if (opts.camera.lower() in ("suprime-cam", "suprimecam", "sc") and
+                re.search(r'.*/\w+-0000000(\d).fits', fits)):
+                print >>sys.stderr, ("Warning: file naming rules have changed. " +
+                                     "Try renaming %s to %s" %
+                                     (fits, re.sub(r"(.*/\w+)-0000000(\d).fits", r"\1-\2.fits", fits)))
             print >>sys.stderr, "Warning: Unrecognized file:", fits
             continue
-        year, month, day, filterName, mystery, num, ccd = m.groups()
+
+        print "Registering:", fits
+        year, month, day, filterName, version, ccd = m.groups()
 
         date = datetime.date(int(year), int(month), int(day))
         if filterName not in rowsPerFilter:
             rowsPerFilter[filterName] = list()
-        rowsPerFilter[filterName].append(Row(date, mystery, num, ccd))
+        rowsPerFilter[filterName].append(Row(date, version, ccd))
 
 
     # Fix up the validStart,validEnd so there are no overlaps
@@ -92,9 +98,9 @@ for calib in ('bias', 'dark', 'flat', 'fringe'):
 
             # print "%f --> %f %f" % (calibDate, validStart, validEnd)
 
-            conn.execute("INSERT INTO " + calib.lower() + " VALUES (NULL, ?, ?, ?, ?, ?, ?, ?)",
-                         (validStart, validEnd, calibDate, filterName, row.mystery, row.num, row.ccd))
-        
+            conn.execute("INSERT INTO " + calib.lower() + " VALUES (NULL, ?, ?, ?, ?, ?, ?)",
+                         (validStart, validEnd, calibDate, filterName, row.calibVersion, row.ccd))
+
 
 conn.commit()
 conn.close()

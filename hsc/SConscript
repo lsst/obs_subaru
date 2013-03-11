@@ -1,0 +1,16 @@
+# -*- python -*-
+
+import glob
+import os
+
+nGenerated = 0
+for defectsDat in glob.glob("defects/*/defects.dat"):
+    defectsDir = os.path.split(defectsDat)[0]
+    if not glob.glob("%s/defects*.fits" % defectsDir):
+        if not nGenerated:
+            print "*** Please run the following commands:"
+        nGenerated += 1
+        print "genDefectFits.py hsc/hsc_geom.paf hsc/%s" % (defectsDat)
+if nGenerated:
+    print "genDefectRegistry.py --root hsc/defects"
+    print

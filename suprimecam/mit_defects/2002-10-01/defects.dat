@@ -1,3 +1,10 @@
+#
+# Defects file
+#
+# Convert to a fits table using getDefectFits.py
+#
+#
+#CCD x0  y0 width height
 0    0    0    1 4096
 0    1    1    1    1
 0    1 3817    2    3
