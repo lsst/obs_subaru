@@ -24,6 +24,13 @@ Camera: {
         index: 0 0 
         offset: 0.0 0.0 
     } 
+    Distortion: {
+        active: "RadialPolyDistortion"
+        RadialPolyDistortion: {
+         coeffs: 0.0 1.0 7.16417e-08 3.03146e-10 5.69338e-14 -6.61572e-18
+         coefficientsDistort: true
+        }
+    }
 } 
 Amp: { 
     ptype: "bias-left"
@@ -42,6 +49,7 @@ Amp: {
 
 Ccd: { 
     pixelSize: 1.0 # All positions in pixels, rather than mm
+    offsetUnit: "pixels"
     ptype: "bias-left"
     nCol: 1
     nRow: 1 
@@ -57,6 +65,7 @@ Ccd: {
 }
 Ccd: { 
     pixelSize: 1.0 # All positions in pixels, rather than mm
+    offsetUnit: "pixels"
     ptype: "bias-right"
     nCol: 1
     nRow: 1 
@@ -80,52 +89,52 @@ Raft: {
         name: "w93c2"                   # CCD's name
         ptype: "bias-right"
         index: 0 0                      # Location of CCD in Raft thought of as a grid of CCDs
-        offset: -4242.1 -2123.13        # offset of CCD center from raft center, (x, y)
+        offset: -4270.346 -2039.04      # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0        # pitch, roll, yaw; degrees
     }
     Ccd: {
         serial: 0                       # CCD's serial number
-        name: "w67c1"                 # CCD's name
+        name: "w67c1"                   # CCD's name
         ptype: "bias-left"
         index: 0 1                      # Location of CCD in Raft thought of as a grid of CCDs
-        offset: -4245.1 2127.3          # offset of CCD center from raft center, (x, y)
+        offset: -4277.625 2082.697      # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0        # pitch, roll, yaw; degrees
     }
     Ccd: {
         serial: 7                       # CCD's serial number
-        name: "w9c2"                     # CCD's name
+        name: "w9c2"                    # CCD's name
         ptype: "bias-right"
         index: 1 0                      # Location of CCD in Raft thought of as a grid of CCDs
-        offset: -2120.4 -2122.0         # offset of CCD center from raft center, (x, y)
+        offset: -2144.992 -2037.249     # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0        # pitch, roll, yaw; degrees
     }
     Ccd: {
         serial: 1                       # CCD's serial number
-        name: "w6c1"                # CCD's name
+        name: "w6c1"                    # CCD's name
         ptype: "bias-left"
         index: 1 1                      # Location of CCD in Raft thought of as a grid of CCDs
-        offset: -2121.2 2129.6          # offset of CCD center from raft center, (x, y)
+        offset: -2148.700 2083.143      # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0        # pitch, roll, yaw; degrees
     }
     Ccd: {
         serial: 2                       # CCD's serial number
-        name: "si005s"                 # CCD's name
+        name: "si005s"                  # CCD's name
         ptype: "bias-left"
         index: 2 0                      # Location of CCD in Raft thought of as a grid of CCDs
-        offset: 0.0 -2126.7             # offset of CCD center from raft center, (x, y)
+        offset: -19.317 -2033.143       # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0        # pitch, roll, yaw; degrees
     }
    Ccd: {
         serial: 5                       # CCD's serial number
-        name: "si006s"                     # CCD's name
+        name: "si006s"                  # CCD's name
         ptype: "bias-right"
         index: 2 1                      # Location of CCD in Raft thought of as a grid of CCDs
-        offset: 2.1 2130.3              # offset of CCD center from raft center, (x, y)
+        offset: -23.944 2082.563        # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0        # pitch, roll, yaw; degrees
     }
@@ -134,34 +143,34 @@ Raft: {
         name: "si001s"                  # CCD's name
         ptype: "bias-left"
         index: 3 0                      # Location of CCD in Raft thought of as a grid of CCDs
-        offset: 2129.9 -2120.9          # offset of CCD center from raft center, (x, y)
+        offset: 2107.709 -2035.004      # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0        # pitch, roll, yaw; degrees
     }
     Ccd: {
         serial: 4                       # CCD's serial number
-        name: "si002s"                    # CCD's name
+        name: "si002s"                  # CCD's name
         ptype: "bias-left"
         index: 3 1                      # Location of CCD in Raft thought of as a grid of CCDs
-        offset: 2123.8 2129.7           # offset of CCD center from raft center, (x, y)
+        offset: 2097.764 2088.312       # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0        # pitch, roll, yaw; degrees
     }
     Ccd: {
         serial: 8                       # CCD's serial number
-        name: "w4c5"                  # CCD's name
+        name: "w4c5"                    # CCD's name
         ptype: "bias-right"
         index: 4 0                      # Location of CCD in Raft thought of as a grid of CCDs
-        offset: 4247.4 -2122.7         # offset of CCD center from raft center, (x, y)
+        offset: 4230.311 -2030.260      # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0        # pitch, roll, yaw; degrees
     }
     Ccd: {
         serial: 9                       # CCD's serial number
-        name: "w7c3"                # CCD's name
+        name: "w7c3"                    # CCD's name
         ptype: "bias-left"
         index: 4 1                      # Location of CCD in Raft thought of as a grid of CCDs
-        offset: 4245.5 2130.0           # offset of CCD center from raft center, (x, y)
+        offset: 4225.214 2088.338       # offset of CCD center from raft center, (x, y)
         nQuarter: 0                     # number of quarter turns applied to CCD when put into raft
         orientation: 0.0 0.0 0.0        # pitch, roll, yaw; degrees
     }

@@ -27,6 +27,7 @@ Amp: {
 Ccd: { 
     ptype: "top"
     pixelSize: 1.0 # All positions in pixels, rather than mm
+    offsetUnit: "pixels"
     nCol: 4
     nRow: 1 
     Amp: { 
@@ -69,6 +70,7 @@ Ccd: {
 Ccd: { 
     ptype: "bottom"
     pixelSize: 1.0 # All positions in pixels, rather than mm
+    offsetUnit: "pixels"
     nCol: 4
     nRow: 1 
     Amp: { 
@@ -248,7 +250,7 @@ Electronic: {
                 index: 0 0
                 gain: 3.730
                 readNoise: 10.0
-                saturationLevel: 45000.0
+                saturationLevel: 43000.0
             }
             Amp: {
                 index: 1 0
@@ -399,7 +401,7 @@ Electronic: {
                 index: 1 0
                 gain: 3.260
                 readNoise: 10.0
-                saturationLevel: 53000.0
+                saturationLevel: 45000.0
             }
             Amp: {
                 index: 2 0
@@ -422,7 +424,7 @@ Electronic: {
                 index: 0 0
                 gain: 3.300
                 readNoise: 10.0
-                saturationLevel: 60000.0
+                saturationLevel: 58000.0
             }
             Amp: {
                 index: 1 0
@@ -480,7 +482,7 @@ Electronic: {
                 index: 0 0
                 gain: 3.320
                 readNoise: 10.0
-                saturationLevel: 60000.0
+                saturationLevel: 58000.0
             }
             Amp: {
                 index: 1 0

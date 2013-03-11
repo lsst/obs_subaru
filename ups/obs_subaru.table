@@ -5,8 +5,9 @@ setupRequired(pysqlite >= 2.6.0)
 setupRequired(pipe_tasks)
 setupRequired(meas_astrom)
 
+setupOptional(psycopg2)
 setupOptional(meas_extensions_multiShapelet)
-
+setupOptional(fitsthumb)
 setupOptional(distEst)
 
 setupOptional(suprime_data)
