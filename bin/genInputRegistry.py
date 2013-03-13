@@ -205,7 +205,11 @@ for fileNo, fits in enumerate(files):
 
     cmd = "INSERT INTO raw VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?)"
     if cursor:
-        cursor.execute(cmd, (field, visit, filterId, ccd, dateObs, taiObs, expTime, pointing))
+        try:
+            data = (field, visit, filterId, ccd, dateObs, taiObs, expTime, pointing)
+            cursor.execute(cmd, data)
+        except Exception, e:
+            raise RuntimeError("Database insertion error (%s): %s" % (e, data))
         ident = cursor.lastrowid
     else:
         if args.verbose:
