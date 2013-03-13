@@ -12,3 +12,9 @@ root.calibrate.astrometry.solver.sipOrder = 3
 root.calibrate.astrometry.solver.catalogMatchDist = 2.0
 root.calibrate.astrometry.solver.numBrightStars =  55
 root.calibrate.astrometry.solver.rotationAllowedInRad = 0.01
+
+# color terms
+from lsst.meas.photocal.colorterms import Colorterm
+from lsst.obs.hscSim.colorterms import colortermsData
+Colorterm.setColorterms(colortermsData)
+Colorterm.setActiveDevice("Hamamatsu")
