@@ -616,18 +616,34 @@ datasets: {
         tables:      raw
     }
     deep_makeSkyMap_config: {
-        template:      "deepCoadd/config.py"
+        template:      "deep_makeSkyMap/config.py"
         python:        "lsst.pipe.tasks.makeSkyMap.MakeSkyMapTask.ConfigClass"
         persistable:   "Config"
         storage:       "ConfigStorage"
         tables:        raw
     }
     deep_makeSkyMap_metadata: {
-        template:      "deepCoadd/metadata.py"
+        template:      "deep_makeSkyMap/metadata.py"
         python:        "lsst.daf.base.PropertySet"
         persistable:   "PropertySet"
         storage:       "BoostStorage"
         tables:        raw
+    }
+    deep_makeCoaddTempExp_config: {
+        template:      "deep_makeCoaddTempExp_config/%(filter)s/%(tract)d/%(patch)s_config.py"
+        python:        "lsst.pipe.tasks.baseCoadd.BaseCoaddConfig"
+        persistable:      "Config"
+        storage:    "ConfigStorage"
+        tables:        raw
+        tables:        raw_skyTile
+    }
+    deep_makeCoaddTempExp_metadata: {
+        template:      "deep_makeCoaddTempExp_metadata/%(filter)s/%(tract)d/%(patch)s_metadata.boost"
+        python:        "lsst.daf.base.PropertySet"
+        persistable:        "PropertySet"
+        storage:    "BoostStorage"
+        tables:        raw
+        tables:        raw_skyTile
     }
     deep_assembleCoadd_config: {
         template:      "deep_assembleCoadd_config/%(filter)s/%(tract)d/%(patch)s.py"
