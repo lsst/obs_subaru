@@ -60,7 +60,7 @@ def queryRegistry(field=None, visit=None, filterName=None, summary=False):
         where = "WHERE " + " AND ".join(where) if where else ""
 
     query = """
-SELECT field, visit, filter, expTime, count(ccd)
+SELECT field, visit, filter, expTime, dateObs, pointing, count(ccd)
 FROM raw
 %s
 GROUP BY visit
@@ -75,10 +75,11 @@ ORDER BY filter
     if args.summary:
         print "%-7s %-20s %7s %s" % ("filter", "field", "expTime", "visit")
     else:
-        print "%-7s %-20s %7s %6s %3s" % ("filter", "field", "expTime", "visit", "nCCD")
+        print "%-7s %-20s %10s %7s %6s %6s %3s" % ("filter", "field", "dataObs", "expTime",
+                                                   "pointing", "visit", "nCCD")
 
     for line in cursor.execute(query, vals):
-        field, visit, filter, expTime, nCCD = line
+        field, visit, filter, expTime, dateObs, pointing, nCCD = line
 
         if summary:
             k = (filter, field)
@@ -91,7 +92,8 @@ ORDER BY filter
             expTimes[k] += expTime
             visits[k].append(visit)
         else:
-            print "%-7s %-20s %7.1f %6d %3d" % (filter, field, expTime, visit, nCCD)
+            print "%-7s %-20s %10s %7.1f %6d %6d %3d" % (filter, field, dateObs, expTime,
+                                                         pointing, visit, nCCD)
 
     conn.close()
 
