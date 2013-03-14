@@ -363,6 +363,14 @@ datasets: {
         tables:        "raw"
         tables:        "raw_visit"
     }
+    src_schema: {
+        template:      "schema/src.fits"
+        python:        "lsst.afw.table.SourceCatalog"
+        persistable:   "SourceCatalog"
+        storage:       "FitsCatalogStorage"
+        tables:        "raw"
+        tables:        "raw_visit"
+    }
     icMatch: {
         template:      "%(pointing)05d/%(filter)s/output/MATCH-%(visit)07d-%(ccd)03d.fits"
         python:        "lsst.afw.table.BaseCatalog"
@@ -403,6 +411,15 @@ datasets: {
         tables:        "raw"
         tables:        "raw_visit"
     }
+    icSrc_schema: {
+        template:      "schema/icSrc.fits"
+        python:        "lsst.afw.table.SourceCatalog"
+        persistable:   "SourceCatalog"
+        storage:       "FitsCatalogStorage"
+        tables:        "raw"
+        tables:        "raw_visit"
+    }
+
 
     stack_initPsf: {
         template:    "stack/%(stack)05d/INITPSF%(patch)08d%(filter)s.boost"
@@ -433,6 +450,14 @@ datasets: {
         python:        "lsst.afw.table.SourceCatalog"
         persistable:        "SourceCatalog"
         storage:    "FitsCatalogStorage"
+        tables:        "raw"
+        tables:        "raw_visit"
+    }
+    stack_src_schema: {
+        template:      "schema/stack_src.fits"
+        python:        "lsst.afw.table.SourceCatalog"
+        persistable:   "SourceCatalog"
+        storage:       "FitsCatalogStorage"
         tables:        "raw"
         tables:        "raw_visit"
     }
@@ -476,6 +501,14 @@ datasets: {
         tables:        "raw"
         tables:        "raw_visit"
     }
+    stack_icSrc_schema: {
+        template:      "schema/stack_icSrc.fits"
+        python:        "lsst.afw.table.SourceCatalog"
+        persistable:   "SourceCatalog"
+        storage:       "FitsCatalogStorage"
+        tables:        "raw"
+        tables:        "raw_visit"
+    }
 
     log: {
         template:      "%(pointing)05d/%(filter)s/logs/run.log"
@@ -501,6 +534,13 @@ datasets: {
 
     diffsources: {
         template:      "diff/%(diff)05d/SRC%(patch)08d%(filter)s.fits"
+        python:        "lsst.afw.table.SourceCatalog"
+        persistable:   "SourceCatalog"
+        storage:       "FitsCatalogStorage"
+        tables:        "raw_skytile"
+    }
+    diffsources_schema: {
+        template:      "schema/diffsources.fits"
         python:        "lsst.afw.table.SourceCatalog"
         persistable:   "SourceCatalog"
         storage:       "FitsCatalogStorage"
