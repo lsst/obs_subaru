@@ -578,7 +578,7 @@ datasets: {
     }
 
     processCcd_config: {
-        template:      "processCcd_config.py"
+        template:      "config/processCcd.py"
         python:        "lsst.pipe.tasks.processCcd.ProcessCcdConfig"
         persistable:      "Config"
         storage:    "ConfigStorage"
@@ -595,7 +595,7 @@ datasets: {
     }
 
     processStack_config: {
-        template:      "processStack_config.py"
+        template:      "config/processStack.py"
         python:        "hsc.pipe.tasks.processStack.ProcessStackConfig"
         persistable:      "Config"
         storage:    "ConfigStorage"
@@ -626,7 +626,7 @@ datasets: {
         tables:      raw
     }
     deep_makeSkyMap_config: {
-        template:      "deep_makeSkyMap_config.py"
+        template:      "config/deep_makeSkyMap.py"
         python:        "lsst.pipe.tasks.makeSkyMap.MakeSkyMapTask.ConfigClass"
         persistable:   "Config"
         storage:       "ConfigStorage"
@@ -640,7 +640,7 @@ datasets: {
         tables:        raw
     }
     deep_makeCoaddTempExp_config: {
-        template:      "deep_makeCoaddTempExp_config.py"
+        template:      "config/deep_makeCoaddTempExp.py"
         python:        "lsst.pipe.tasks.baseCoadd.BaseCoaddConfig"
         persistable:      "Config"
         storage:    "ConfigStorage"
@@ -656,7 +656,7 @@ datasets: {
         tables:        raw_skyTile
     }
     deep_assembleCoadd_config: {
-        template:      "deep_assembleCoadd_config.py"
+        template:      "config/deep_assembleCoadd.py"
         python:        "lsst.pipe.tasks.baseCoadd.BaseCoaddConfig"
         persistable:      "Config"
         storage:    "ConfigStorage"
@@ -672,7 +672,7 @@ datasets: {
         tables:        raw_skyTile
     }
     deep_coadd_config: {
-        template:      "deep_coadd_config.py"
+        template:      "config/deep_coadd.py"
         python:        "lsst.pipe.tasks.baseCoadd.BaseCoaddConfig"
         persistable:      "Config"
         storage:    "ConfigStorage"
