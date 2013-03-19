@@ -251,6 +251,9 @@ class SuprimecamMapper(SuprimecamMapperBase):
         ccdTmp = int("%(ccd)d" % dataId)
         return miyazakiNames[ccdTmp]
 
+    def _getDataId(self, frameId, ccdId):
+        return {"visit": frameId, "ccd": ccdId}
+
     @classmethod
     def getCameraName(cls):
         return "suprimecam"
