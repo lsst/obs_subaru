@@ -673,7 +673,7 @@ datasets: {
         tables:        raw
     }
     deep_makeSkyMap_metadata: {
-        template:      "deep_makeSkyMap_metadata.boost"
+        template:      "metadata/deep_makeSkyMap.boost"
         python:        "lsst.daf.base.PropertySet"
         persistable:   "PropertySet"
         storage:       "BoostStorage"
