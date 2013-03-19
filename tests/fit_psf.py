@@ -18,6 +18,7 @@ import lsst.afw.detection as afwDet
 import lsst.afw.geom as afwGeom
 import lsst.afw.image as afwImage
 import lsst.pex.logging as pexLogging
+import lsst.meas.algorithms as measAlg
 from lsst.meas.deblender.baseline import _fit_psf, CachingPsf, PerPeak
 
 class FitPsfTestCase(unittest.TestCase):
@@ -29,9 +30,9 @@ class FitPsfTestCase(unittest.TestCase):
         #
         psfsig = 1.5
         psffwhm = psfsig * 2.35
-        psf1 = afwDet.createPsf('DoubleGaussian', 11, 11, psfsig)
+        psf1 = measAlg.DoubleGaussianPsf(11, 11, psfsig)
 
-        psf2 = afwDet.createPsf('DoubleGaussian', 100, 100, psfsig)
+        psf2 = measAlg.DoubleGaussianPsf(100, 100, psfsig)
 
 
         fbb = fp.getBBox()
