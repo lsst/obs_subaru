@@ -71,6 +71,13 @@ class SuprimecamMapper(CameraMapper):
         ccdTmp = int("%(ccd)d" % dataId)
         return mitNames[ccdTmp] if self.mit else miyazakiNames[ccdTmp]
 
+    #  the dataid is a visit number and a ccdId = ccd.getId().getSerial()
+    def _getDataId(self, visit, ccdId, filter=None):
+        dataId = {"visit": visit, "ccd": ccdId}
+        if not filter == None:
+            dataId["filter"] = filter;
+        return dataId
+
     @staticmethod
     def getCameraName():
         return "suprimecam"

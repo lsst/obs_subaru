@@ -69,6 +69,13 @@ class HscSimMapper(CameraMapper):
     def _extractDetectorName(self, dataId):
         return int("%(ccd)d" % dataId)
 
+    #  the dataid is a visit number and a ccdId = ccd.getId().getSerial()
+    def _getDataId(self, visit, ccdId, filter=None):
+        dataId = {"visit": visit, "ccd": ccdId}
+        if not filter == None:
+            dataId["filter"] = filter;
+        return dataId
+
     def _transformId(self, dataId):
         actualId = dataId.copy()
         if actualId.has_key("rerun"):
