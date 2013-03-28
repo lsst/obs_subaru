@@ -248,6 +248,13 @@ class SuprimecamMapper(SuprimecamMapperBase):
         ccdTmp = int("%(ccd)d" % dataId)
         return miyazakiNames[ccdTmp]
 
+    #  the dataid is a visit number and a ccdId = ccd.getId().getSerial()
+    def _getDataId(self, visit, ccdId, filter=None):
+        dataId = {"visit": visit, "ccd": ccdId}
+        if not filter == None:
+            dataId["filter"] = filter;
+        return dataId
+
     @classmethod
     def getCameraName(cls):
         return "suprimecam"
