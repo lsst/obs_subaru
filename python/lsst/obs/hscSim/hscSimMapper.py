@@ -115,6 +115,13 @@ Most chips are flipped L/R, but the rotated ones (100..103) are flipped T/B
     def _extractDetectorName(self, dataId):
         return int("%(ccd)d" % dataId)
 
+    #  the dataid is a visit number and a ccdId = ccd.getId().getSerial()
+    def _getDataId(self, visit, ccdId, filter=None):
+        dataId = {"visit": visit, "ccd": ccdId}
+        if not filter == None:
+            dataId["filter"] = filter;
+        return dataId
+
     def _computeCcdExposureId(self, dataId):
         """Compute the 64-bit (long) identifier for a CCD exposure.
 
