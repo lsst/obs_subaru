@@ -663,7 +663,7 @@ datasets: {
     }
     deep_makeSkyMap_config: {
         template:      "config/deep_makeSkyMap.py"
-        python:        "lsst.pipe.tasks.makeSkyMap.MakeSkyMapTask.ConfigClass"
+        python:        "lsst.pipe.tasks.makeSkyMap.MakeSkyMapConfig"
         persistable:   "Config"
         storage:       "ConfigStorage"
         tables:        raw
@@ -677,7 +677,7 @@ datasets: {
     }
     deep_makeCoaddTempExp_config: {
         template:      "config/deep_makeCoaddTempExp.py"
-        python:        "lsst.pipe.tasks.baseCoadd.BaseCoaddConfig"
+        python:        "lsst.pipe.tasks.makeCoaddTempExp.MakeCoaddTempExpConfig"
         persistable:      "Config"
         storage:    "ConfigStorage"
         tables:        raw
@@ -693,7 +693,7 @@ datasets: {
     }
     deep_assembleCoadd_config: {
         template:      "config/deep_assembleCoadd.py"
-        python:        "lsst.pipe.tasks.baseCoadd.BaseCoaddConfig"
+        python:        "lsst.pipe.tasks.assembleCoadd.AssembleCoaddConfig"
         persistable:      "Config"
         storage:    "ConfigStorage"
         tables:        raw
@@ -709,7 +709,7 @@ datasets: {
     }
     deep_coadd_config: {
         template:      "config/deep_coadd.py"
-        python:        "lsst.pipe.tasks.baseCoadd.BaseCoaddConfig"
+        python:        "lsst.pipe.tasks.coadd.CoaddConfig"
         persistable:      "Config"
         storage:    "ConfigStorage"
         tables:        raw
