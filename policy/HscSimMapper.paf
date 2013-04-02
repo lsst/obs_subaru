@@ -630,6 +630,23 @@ datasets: {
         tables:        raw_visit
     }
 
+    processExposure_config: {
+        template:      "config/processExposure.py"
+        python:        "hsc.pipe.tasks.processExposure.ProcessExposureConfig"
+        persistable:      "Config"
+        storage:    "ConfigStorage"
+        tables:        raw
+        tables:        raw_visit
+    }
+    processExposure_metadata: {
+        template:      "%(pointing)05d/%(filter)s/processExposure_metadata/%(visit)07d.boost"
+        python:        "lsst.daf.base.PropertySet"
+        persistable:        "PropertySet"
+        storage:    "BoostStorage"
+        tables:        raw
+        tables:        raw_visit
+    }
+
     processStack_config: {
         template:      "config/processStack.py"
         python:        "hsc.pipe.tasks.processStack.ProcessStackConfig"
