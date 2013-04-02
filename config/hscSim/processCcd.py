@@ -10,7 +10,6 @@ root.calibrate.measurePsf.starSelector.name = "secondMoment" # "objectSize" has 
 
 root.calibrate.astrometry.solver.sipOrder = 3
 root.calibrate.astrometry.solver.catalogMatchDist = 2.0
-root.calibrate.astrometry.solver.numBrightStars =  55
 root.calibrate.astrometry.solver.rotationAllowedInRad = 0.01
 
 # color terms
