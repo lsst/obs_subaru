@@ -87,6 +87,16 @@ exposures: {
         tables:        "raw_visit"
     }
 
+    calexpBackground: {
+        template:      "%(pointing)05d/%(filter)s/corr/BACKGROUND%(visit)07d%(ccd)d.fits"
+        python:        "lsst.afw.image.ExposureF"
+        persistable:        "ExposureF"
+        storage:    "FitsStorage"
+        level:        "Ccd"
+        tables:        "raw"
+        tables:        "raw_visit"
+    }
+
     wcs: {
         template: "%(pointing)05d/%(filter)s/corr/wcs%(visit)07d%(ccd)1d.fits"
         python:        "lsst.afw.image.ExposureI"
@@ -181,7 +191,7 @@ exposures: {
         tables:      raw_skytile
     }
     deepCoadd_tempExp: {
-        template:    "deepCoadd-results/%(filter)s/%(tract)d/%(patch)s/warp-%(filter)s-%(tract)d-%(patch)s-%(visit)d.fits"
+        template:    "deepCoadd/%(filter)s/%(tract)d/%(patch)s/warp-%(filter)s-%(tract)d-%(patch)s-%(visit)d.fits"
         python:      "lsst.afw.image.ExposureF"
         persistable: "ExposureF"
         storage:     "FitsStorage"
@@ -357,6 +367,14 @@ datasets: {
         tables:        "raw"
         tables:        "raw_visit"
     }
+    src_schema: {
+        template:      "schema/src.fits"
+        python:        "lsst.afw.table.SourceCatalog"
+        persistable:   "SourceCatalog"
+        storage:       "FitsCatalogStorage"
+        tables:        "raw"
+        tables:        "raw_visit"
+    }
     icMatch: {
         template:      "%(pointing)05d/%(filter)s/output/MATCH%(visit)07d%(ccd)1d.fits"
         python:        "lsst.afw.table.BaseCatalog"
@@ -397,6 +415,15 @@ datasets: {
         tables:        "raw"
         tables:        "raw_visit"
     }
+    icSrc_schema: {
+        template:      "schema/icSrc.fits"
+        python:        "lsst.afw.table.SourceCatalog"
+        persistable:   "SourceCatalog"
+        storage:       "FitsCatalogStorage"
+        tables:        "raw"
+        tables:        "raw_visit"
+    }
+
 
     stack_initPsf: {
         template:    "stack/%(stack)05d/INITPSF%(patch)08d%(filter)s.boost"
@@ -427,6 +454,14 @@ datasets: {
         python:        "lsst.afw.table.SourceCatalog"
         persistable:        "SourceCatalog"
         storage:    "FitsCatalogStorage"
+        tables:        "raw"
+        tables:        "raw_visit"
+    }
+    stack_src_schema: {
+        template:      "schema/stack_src.fits"
+        python:        "lsst.afw.table.SourceCatalog"
+        persistable:   "SourceCatalog"
+        storage:       "FitsCatalogStorage"
         tables:        "raw"
         tables:        "raw_visit"
     }
@@ -470,6 +505,14 @@ datasets: {
         tables:        "raw"
         tables:        "raw_visit"
     }
+    stack_icSrc_schema: {
+        template:      "schema/stack_icSrc.fits"
+        python:        "lsst.afw.table.SourceCatalog"
+        persistable:   "SourceCatalog"
+        storage:       "FitsCatalogStorage"
+        tables:        "raw"
+        tables:        "raw_visit"
+    }
 
     log: {
         template:      "%(pointing)05d/%(filter)s/logs/run.log"
@@ -495,6 +538,13 @@ datasets: {
 
     diffsources: {
         template:      "diff/%(diff)05d/SRC%(patch)08d%(filter)s.fits"
+        python:        "lsst.afw.table.SourceCatalog"
+        persistable:   "SourceCatalog"
+        storage:       "FitsCatalogStorage"
+        tables:        "raw_skytile"
+    }
+    diffsources_schema: {
+        template:      "schema/diffsources.fits"
         python:        "lsst.afw.table.SourceCatalog"
         persistable:   "SourceCatalog"
         storage:       "FitsCatalogStorage"
@@ -568,7 +618,7 @@ datasets: {
     }
 
     processCcd_config: {
-        template:      "%(pointing)05d/%(filter)s/processCcd_config/%(visit)07d%(ccd)1d.py"
+        template:      "config/processCcd.py"
         python:        "lsst.pipe.tasks.processCcd.ProcessCcdConfig"
         persistable:      "Config"
         storage:    "ConfigStorage"
@@ -584,8 +634,25 @@ datasets: {
         tables:        raw_visit
     }
 
+    processExposure_config: {
+        template:      "config/processExposure.py"
+        python:        "hsc.pipe.tasks.processExposure.ProcessExposureConfig"
+        persistable:      "Config"
+        storage:    "ConfigStorage"
+        tables:        raw
+        tables:        raw_visit
+    }
+    processExposure_metadata: {
+        template:      "%(pointing)05d/%(filter)s/processExposure_metadata/%(visit)07d.boost"
+        python:        "lsst.daf.base.PropertySet"
+        persistable:        "PropertySet"
+        storage:    "BoostStorage"
+        tables:        raw
+        tables:        raw_visit
+    }
+
     processStack_config: {
-        template:      "stack/%(stack)05d/processStack_config/%(patch)08d%(filter)s.py"
+        template:      "config/processStack.py"
         python:        "hsc.pipe.tasks.processStack.ProcessStackConfig"
         persistable:      "Config"
         storage:    "ConfigStorage"
@@ -616,22 +683,22 @@ datasets: {
         tables:      raw
     }
     deep_makeSkyMap_config: {
-        template:      "deep_makeSkyMap/config.py"
-        python:        "lsst.pipe.tasks.makeSkyMap.MakeSkyMapTask.ConfigClass"
+        template:      "config/deep_makeSkyMap.py"
+        python:        "lsst.pipe.tasks.makeSkyMap.MakeSkyMapConfig"
         persistable:   "Config"
         storage:       "ConfigStorage"
         tables:        raw
     }
     deep_makeSkyMap_metadata: {
-        template:      "deep_makeSkyMap/metadata.py"
+        template:      "metadata/deep_makeSkyMap.boost"
         python:        "lsst.daf.base.PropertySet"
         persistable:   "PropertySet"
         storage:       "BoostStorage"
         tables:        raw
     }
     deep_makeCoaddTempExp_config: {
-        template:      "deep_makeCoaddTempExp_config/%(filter)s/%(tract)d/%(patch)s_config.py"
-        python:        "lsst.pipe.tasks.baseCoadd.BaseCoaddConfig"
+        template:      "config/deep_makeCoaddTempExp.py"
+        python:        "lsst.pipe.tasks.makeCoaddTempExp.MakeCoaddTempExpConfig"
         persistable:      "Config"
         storage:    "ConfigStorage"
         tables:        raw
@@ -646,8 +713,8 @@ datasets: {
         tables:        raw_skyTile
     }
     deep_assembleCoadd_config: {
-        template:      "deep_assembleCoadd_config/%(filter)s/%(tract)d/%(patch)s.py"
-        python:        "lsst.pipe.tasks.baseCoadd.BaseCoaddConfig"
+        template:      "config/deep_assembleCoadd.py"
+        python:        "lsst.pipe.tasks.assembleCoadd.AssembleCoaddConfig"
         persistable:      "Config"
         storage:    "ConfigStorage"
         tables:        raw
@@ -662,8 +729,8 @@ datasets: {
         tables:        raw_skyTile
     }
     deep_coadd_config: {
-        template:      "deep_coadd_config/%(filter)s/%(tract)d/%(patch)s.py"
-        python:        "lsst.pipe.tasks.baseCoadd.BaseCoaddConfig"
+        template:      "config/deep_coadd.py"
+        python:        "lsst.pipe.tasks.coadd.CoaddConfig"
         persistable:      "Config"
         storage:    "ConfigStorage"
         tables:        raw
