@@ -333,9 +333,9 @@ calibrations: {
 datasets: {
     calexpBackground: {
         template:      "%(pointing)05d/%(filter)s/corr/BKGD-%(visit)07d-%(ccd)03d.fits"
-        python:        "lsst.afw.image.ImageF"
-        persistable:   "ImageF"
-        storage:       "FitsStorage"
+        python:        "lsst.afw.math.BackgroundList"
+        persistable:   "PurePythonClass"
+        storage:       "FitsCatalogStorage"
         tables:        raw
         tables:        raw_skyTile
     }
