@@ -248,6 +248,15 @@ class SuprimecamMapper(SuprimecamMapperBase):
         ccdTmp = int("%(ccd)d" % dataId)
         return miyazakiNames[ccdTmp]
 
+    def getDataId(self, visit, ccdId):
+        """get dataId dict from visit and ccd identifier
+
+        @param visit 32 or 64-bit depending on camera
+        @param ccdId same as ccd.getId().getSerial()
+        """
+        dataId = {"visit": visit, "ccd": ccdId}
+        return dataId
+
     @classmethod
     def getCameraName(cls):
         return "suprimecam"
@@ -279,6 +288,15 @@ class SuprimecamMapperMit(SuprimecamMapperBase):
         mitNames = ["w67c1", "w6c1", "si005s", "si001s",  "si002s", "si006s", "w93c2", "w9c2", "w4c5", "w7c3"]
         ccdTmp = int("%(ccd)d" % dataId)
         return mitNames[ccdTmp]
+
+    def getDataId(self, visit, ccdId):
+        """get dataId dict from visit and ccd identifier
+
+        @param visit 32 or 64-bit depending on camera
+        @param ccdId same as ccd.getId().getSerial()
+        """
+        dataId = {"visit": visit, "ccd": ccdId}
+        return dataId
 
     @classmethod
     def getCameraName(cls):
