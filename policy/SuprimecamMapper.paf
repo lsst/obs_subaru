@@ -87,16 +87,6 @@ exposures: {
         tables:        "raw_visit"
     }
 
-    calexpBackground: {
-        template:      "%(pointing)05d/%(filter)s/corr/BACKGROUND%(visit)07d%(ccd)d.fits"
-        python:        "lsst.afw.image.ExposureF"
-        persistable:        "ExposureF"
-        storage:    "FitsStorage"
-        level:        "Ccd"
-        tables:        "raw"
-        tables:        "raw_visit"
-    }
-
     wcs: {
         template: "%(pointing)05d/%(filter)s/corr/wcs%(visit)07d%(ccd)1d.fits"
         python:        "lsst.afw.image.ExposureI"
@@ -176,14 +166,6 @@ exposures: {
     }
     deepCoadd_depth: {
         template:    "deepCoadd/%(filter)s/%(tract)d/%(patch)s.depth.fits"
-        python:      "lsst.afw.image.ImageF"
-        persistable: "ImageF"
-        storage:     "FitsStorage"
-        level:       "Skytile"
-        tables:      raw_skytile
-    }
-    deepCoadd_calexpBackground: {
-        template:    "deepCoadd-results/%(filter)s/%(tract)d/%(patch)s/bkgd-%(filter)s-%(tract)d-%(patch)s.fits"
         python:      "lsst.afw.image.ImageF"
         persistable: "ImageF"
         storage:     "FitsStorage"
@@ -337,9 +319,17 @@ calibrations: {
 datasets: {
     calexpBackground: {
         template:      "%(pointing)05d/%(filter)s/corr/BKGD%(visit)07d%(ccd)1d.fits"
-        python:        "lsst.afw.image.ImageF"
-        persistable:   "ImageF"
-        storage:       "FitsStorage"
+        python:        "lsst.afw.math.BackgroundList"
+        persistable:   "PurePythonClass"
+        storage:       "FitsCatalogStorage"
+        tables:        raw
+        tables:        raw_skyTile
+    }
+    deepCoad_calexpBackground: {
+        template:    "deepCoadd-results/%(filter)s/%(tract)d/%(patch)s/bkgd-%(filter)s-%(tract)d-%(patch)s.fits"
+        python:        "lsst.afw.math.BackgroundList"
+        persistable:   "PurePythonClass"
+        storage:       "FitsCatalogStorage"
         tables:        raw
         tables:        raw_skyTile
     }
