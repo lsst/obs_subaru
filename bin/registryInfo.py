@@ -2,7 +2,10 @@
 import argparse
 import os
 import sys
-import sqlite
+try:
+    import sqlite3 as sqlite
+except ImportError:
+    import sqlite
 
 
 def formatVisits(visits):

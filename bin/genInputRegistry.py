@@ -4,7 +4,10 @@ import glob
 import math
 import os
 import re
-import sqlite
+try:
+    import sqlite3 as sqlite
+except ImportError:
+    import sqlite
 import sys
 import lsst.daf.base   as dafBase
 import lsst.pex.policy as pexPolicy

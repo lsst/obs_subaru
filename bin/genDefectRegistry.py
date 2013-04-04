@@ -3,7 +3,10 @@
 import glob
 import os
 import re
-import sqlite
+try:
+    import sqlite3 as sqlite
+except ImportError:
+    import sqlite
 import sys
 import argparse
 
