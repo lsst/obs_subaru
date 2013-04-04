@@ -289,11 +289,13 @@ class SuprimecamMapperMit(SuprimecamMapperBase):
         ccdTmp = int("%(ccd)d" % dataId)
         return mitNames[ccdTmp]
 
-    #  the dataid is a visit number and a ccdId = ccd.getId().getSerial()
-    def _getDataId(self, visit, ccdId, filter=None):
+    def getDataId(self, visit, ccdId):
+        """get dataId dict from visit and ccd identifier
+
+        @param visit 32 or 64-bit depending on camera
+        @param ccdId same as ccd.getId().getSerial()
+        """
         dataId = {"visit": visit, "ccd": ccdId}
-        if not filter == None:
-            dataId["filter"] = filter;
         return dataId
 
     @classmethod
