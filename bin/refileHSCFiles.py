@@ -87,7 +87,10 @@ def getFrameInfo(filename):
         raise SystemExit("frameID=%s for %s is invalid" % (d['frameID'], filename))
 
     d['progID'] = h['OBJECT'].upper()
-    d['filterName'] = h['FILTER01'].upper()
+    try:
+        d['filterName'] = h['FILTER01'].upper()
+    except:
+        d['filterName'] = 'W-S-I+'
     d['date'] = opts.expDate if opts.expDate else h.get('DATE-OBS')
 
     # visit_Id (i.e., pointing in registry) is derived from MJD
