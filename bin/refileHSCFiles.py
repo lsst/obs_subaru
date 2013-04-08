@@ -135,6 +135,18 @@ def getFrameInfo(filename):
     if int_visit_base % 2:
         int_visit_base -= 1
 
+    if d['visitID'] > 390 and d['visitID'] < 400:
+        # Focus CCDs were numbered incorrectly in the readout software; map to the correct ones.
+        ccdMap = {112: 106,
+                  107: 105,
+                  113: 107,
+                  115: 109,
+                  108: 110,
+                  114: 108,
+                  }
+        if ccd_int in ccdMap:
+            ccd_int = ccdMap[ccd_int]
+
     frame_num = int(start6)*100 + int(last2) + 100000000*cycle_num   ### Integer corresponding to FRAME-ID + 'A','B','C' etc..  ###
     visit = "%07d" % (int_visit_base + cycle_num*1000000)
 
