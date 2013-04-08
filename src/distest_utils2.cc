@@ -235,8 +235,6 @@ double F_CS(int CS,int ELOrder, double EL,double ***Coef, double X, double Y)
 
 void F_CS_CCD2SKY_XY(int ELOrder, double EL,double ***Coef, double X, double Y, double *X_out, double *Y_out)
 {
-if(isfinite(X)&&isfinite(Y)){
-if(hypot(X,Y)<20000){
     int i, ix, iy,  ELi;
     double ZCoef[13]={0},Z,**ELZ,XEL,*PX,*PY;
     double *a = NULL;
@@ -311,24 +309,13 @@ if(hypot(X,Y)<20000){
     free(ELZ);
     free(PX);
     free(PY);
-}else{
-cout<< "POSITION > 20000 pixel"<<endl;
-    *X_out = X;
-    *Y_out = Y;	
-}
-}else{
-cout << "POSITION = nan or inf"<<endl;
-    *X_out = 0;
-    *Y_out = 0;	
-}
+
     return;
 }
 
 
 void F_CS_SKY2CCD_XY(int ELOrder, double EL,double ***Coef, double X, double Y, double *X_out, double *Y_out)
 {
-if(isfinite(X)&&isfinite(Y)){
-if(hypot(X,Y)<20000){
     int i, ix, iy, ELi;
     double ZCoef[13]={0},Z,**ELZ,XEL,*PX,*PY;
     double *a = NULL;
@@ -404,16 +391,6 @@ if(hypot(X,Y)<20000){
     free(PX);
     free(PY);
 
-}else{
-cout<< "POSITION > 20000 pixel"<<endl;
-    *X_out = X;
-    *Y_out = Y;	
-}
-}else{
-cout << "POSITION = nan or inf"<<endl;
-    *X_out = 0;
-    *Y_out = 0;	
-}
     return;
 }
 
