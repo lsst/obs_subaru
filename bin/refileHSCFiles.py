@@ -131,10 +131,9 @@ def getFrameInfo(filename):
 
     start6, last2 = m.groups() # HSCA[start6][last2]
     ccd_int = int(h.get('DET-ID'))
-    if ccd_int >= 100:
-        int_visit_base = int(start6) - 1
-    else:
-        int_visit_base = int(start6)
+    int_visit_base = int(start6)
+    if int_visit_base % 2:
+        int_visit_base -= 1
 
     frame_num = int(start6)*100 + int(last2) + 100000000*cycle_num   ### Integer corresponding to FRAME-ID + 'A','B','C' etc..  ###
     visit = "%07d" % (int_visit_base + cycle_num*1000000)
