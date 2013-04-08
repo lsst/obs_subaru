@@ -689,6 +689,20 @@ datasets: {
         storage:       "BoostStorage"
         tables:        raw
     }
+    deep_makeDiscreteSkyMap_config: {
+        template:      "config/deep_makeDiscreteSkyMap.py"
+        python:        "lsst.pipe.tasks.makeDiscreteSkyMap.MakeDiscreteSkyMapConfig"
+        persistable:   "Config"
+        storage:       "ConfigStorage"
+        tables:        raw
+    }
+    deep_makeDiscreteSkyMap_metadata: {
+        template:      "metadata/deep_makeDiscreteSkyMap.boost"
+        python:        "lsst.daf.base.PropertySet"
+        persistable:   "PropertySet"
+        storage:       "BoostStorage"
+        tables:        raw
+    }
     deep_makeCoaddTempExp_config: {
         template:      "config/deep_makeCoaddTempExp.py"
         python:        "lsst.pipe.tasks.makeCoaddTempExp.MakeCoaddTempExpConfig"
