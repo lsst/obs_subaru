@@ -1,17 +1,25 @@
 import math
 import numpy as np
 
-from lsst.pex.config import Field
+from lsst.pex.config import Field, ListField
 from hsc.pipe.tasks.detrends import FlatCombineConfig, FlatCombineTask
 import lsst.afw.image as afwImage
 import lsst.afw.geom as afwGeom
+import lsst.afw.cameraGeom as afwcg
 
 class HscFlatCombineConfig(FlatCombineConfig):
     xCenter = Field(dtype=float, default=0,   doc="Center of vignetting pattern, in x (focal plane coords)")
     yCenter = Field(dtype=float, default=300, doc="Center of vignetting pattern, in y (focal plane coords)")
     radius = Field(dtype=float, default=18300, doc="Radius of vignetting pattern, in focal plane coords",
                    check=lambda x: x >= 0)
+    badAmpCcdList = ListField(dtype=int, default=[], doc="List of CCD serial numbers for bad amplifiers")
+    badAmpList = ListField(dtype=int, default=[], doc="List of amp serial numbers in CCD")
     maskPlane = Field(dtype=str, default="BAD", doc="Mask plane to set")
+
+    def validate(self):
+        super(HscFlatCombineConfig, self).validate()
+        if len(self.badAmpCcdList) != len(self.badAmpList):
+            raise RuntimeError("Length of badAmpCcdList and badAmpList don't match")
 
 class HscFlatCombineTask(FlatCombineTask):
     """Mask the vignetted area"""
@@ -34,6 +42,7 @@ class HscFlatCombineTask(FlatCombineTask):
         del image
 
         self.maskVignetting(mi.getMask(), detector)
+        self.maskBadAmps(mi.getMask(), detector)
 
         return afwImage.makeExposure(mi)
 
@@ -74,3 +83,33 @@ class HscFlatCombineTask(FlatCombineTask):
         maskArray = mask.getArray()
         xx, yy = np.meshgrid(np.arange(w), np.arange(h))
         maskArray[yy[isBad], xx[isBad]] |= bitMask
+
+    def maskBadAmps(self, mask, detector):
+        """Mask bad amplifiers
+
+        @param mask: Mask image to modify
+        @param detector: Detector for amp locations
+        """
+        mask.addMaskPlane(self.config.maskPlane)
+        bitMask = mask.getPlaneBitMask(self.config.maskPlane)
+        detector = afwcg.cast_Ccd(detector)
+        if detector is None:
+            raise RuntimeError("Detector isn't a Ccd")
+        ccdSerial = detector.getId().getSerial()
+        if ccdSerial not in self.config.badAmpCcdList:
+            return
+        for ccdNum, ampNum in zip(self.config.badAmpCcdList, self.config.badAmpList):
+            if ccdNum != ccdSerial:
+                continue
+            # Mask this amp
+            found = False
+            for amp in detector:
+                if amp.getId().getSerial() != ampNum:
+                    continue
+                found = True
+                box = amp.getDataSec()
+                subMask = mask.Factory(mask, box)
+                subMask |= bitMask
+                break
+            if not found:
+                self.log.warn("Unable to find amp=%s in ccd=%s" % (ampNum, ccdNum))
