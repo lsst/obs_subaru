@@ -765,6 +765,15 @@ datasets: {
         tables:        raw
         tables:        raw_skyTile
     }
+    deepCoadd_icSrc_schema: {
+        template:      "schema/deepCoadd_icSrc.fits"
+        python:        "lsst.afw.table.SourceCatalog"
+        persistable:        "ignored"
+        storage:    "FitsCatalogStorage"
+        tables:        raw
+        tables:        raw_skyTile
+    }
+
     deepCoadd_icMatch: {
         template:      "deepCoadd-results/%(filter)s/%(tract)d/%(patch)s/icMatch-%(filter)s-%(tract)d-%(patch)s.fits"
         python:        "lsst.afw.table.SourceCatalog"
@@ -790,13 +799,39 @@ datasets: {
         tables:        raw_skyTile
     }
     deepCoadd_src: {
-        template:      "deepCoadd-results/%(filter)s/%(tract)d/%(patch)s/src-%(filter)s-%(tract)d-%(patch)s.boost"
+        template:      "deepCoadd-results/%(filter)s/%(tract)d/%(patch)s/src-%(filter)s-%(tract)d-%(patch)s.fits"
         python:        "lsst.afw.table.SourceCatalog"
         persistable:        "ignored"
         storage:    "FitsCatalogStorage"
         tables:        raw
         tables:        raw_skyTile
     }
+    deepCoadd_src_schema: {
+        template:      "schema/deepCoadd_src.fits"
+        python:        "lsst.afw.table.SourceCatalog"
+        persistable:        "ignored"
+        storage:    "FitsCatalogStorage"
+        tables:        raw
+        tables:        raw_skyTile
+    }
+
+    deep_processCoadd_config: {
+        template:      "config/deep_processCoadd.py"
+        python:        "lsst.pipe.tasks.processCoadd.ProcessCoaddConfig"
+        persistable:      "Config"
+        storage:    "ConfigStorage"
+        tables:        raw
+        tables:        raw_skyTile
+    }
+    deep_processCoadd_metadata: {
+        template:      "deep_processCoadd_metadata/%(filter)s/%(tract)d/%(patch)s.boost"
+        python:        "lsst.daf.base.PropertySet"
+        persistable:        "PropertySet"
+        storage:    "BoostStorage"
+        tables:        raw
+        tables:        raw_skyTile
+    }
+
 
     ossThumb: {
         template:    "%(pointing)05d/%(filter)s/thumbs/oss%(visit)07d%(ccd)d.png"
