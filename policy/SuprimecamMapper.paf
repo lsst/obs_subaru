@@ -641,6 +641,15 @@ datasets: {
         tables:        raw_visit
     }
 
+    Mosaic_config: {
+        template:      "config/mosaic.py"
+        python:        "lsst.meas.mosaic.mosaicTask.MosaicConfig"
+        persistable:      "Config"
+        storage:    "ConfigStorage"
+        tables:        raw
+        tables:        raw_visit
+    }
+
     processStack_config: {
         template:      "config/processStack.py"
         python:        "hsc.pipe.tasks.processStack.ProcessStackConfig"
