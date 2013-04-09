@@ -9,7 +9,7 @@ import lsst.afw.cameraGeom as afwcg
 
 class HscFlatCombineConfig(FlatCombineConfig):
     xCenter = Field(dtype=float, default=0,   doc="Center of vignetting pattern, in x (focal plane coords)")
-    yCenter = Field(dtype=float, default=300, doc="Center of vignetting pattern, in y (focal plane coords)")
+    yCenter = Field(dtype=float, default=0, doc="Center of vignetting pattern, in y (focal plane coords)")
     radius = Field(dtype=float, default=18300, doc="Radius of vignetting pattern, in focal plane coords",
                    check=lambda x: x >= 0)
     badAmpCcdList = ListField(dtype=int, default=[], doc="List of CCD serial numbers for bad amplifiers")
