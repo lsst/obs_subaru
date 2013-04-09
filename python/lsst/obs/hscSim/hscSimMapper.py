@@ -125,6 +125,34 @@ Most chips are flipped L/R, but the rotated ones (100..103) are flipped T/B
         dataRef = butler.dataRef("calexp", **dataId)
         return applyMosaicResults(dataRef)
 
+    def _computeCoaddExposureId(self, dataId, singleFilter):
+        """Compute the 64-bit (long) identifier for a coadd.
+
+        @param dataId (dict)       Data identifier with tract and patch.
+        @param singleFilter (bool) True means the desired ID is for a single- 
+                                   filter coadd, in which case dataId
+                                   must contain filter.
+        """
+        # FIXME: this bit allocation is for LSST's huge-tract skymaps, and needs
+        # to be updated to something more appropriate for Subaru
+        # (actually, it shouldn't be the mapper's job at all; see #2797).
+        tract = long(dataId['tract'])
+        if tract < 0 or tract >= 128:
+            raise RuntimeError('tract not in range [0,128)')
+        patchX, patchY = map(int, dataId['patch'].split(','))
+        for p in (patchX, patchY):
+            if p < 0 or p >= 2**13:
+                raise RuntimeError('patch component not in range [0, 8192)')
+        id = (tract * 2**13 + patchX) * 2**13 + patchY
+        if singleFilter:
+            return id * 8 + self.filterIdMap[dataId['filter']]
+        return id
+
+    def bypass_deepCoaddId(self, datasetType, pythonType, location, dataId):
+        return self._computeCoaddExposureId(dataId, True)
+    def bypass_deepCoaddId_bits(self, datasetType, pythonType, location, dataId):
+        return 1 + 7 + 13*2 + 3
+
     @classmethod
     def getEupsProductName(cls):
         return "obs_subaru"
