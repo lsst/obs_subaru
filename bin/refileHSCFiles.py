@@ -87,7 +87,10 @@ def getFrameInfo(filename):
         raise SystemExit("frameID=%s for %s is invalid" % (d['frameID'], filename))
 
     d['progID'] = h['OBJECT'].upper()
-    d['filterName'] = h['FILTER01'].upper()
+    try:
+        d['filterName'] = h['FILTER01'].upper()
+    except:
+        d['filterName'] = 'W-S-I+'
     d['date'] = opts.expDate if opts.expDate else h.get('DATE-OBS')
 
     # visit_Id (i.e., pointing in registry) is derived from MJD
@@ -114,24 +117,29 @@ def getFrameInfo(filename):
 
     # extracting visit, ccd from frameId
 
-    m = re.search(r'HSCA(\d{6})(\d{2})', d['frameID'])
-    cycle_num = 0 ## 1st cycle of frame number
+    m = re.search(r'HSC([A-Z])(\d{6})(\d{2})', d['frameID'])
     if not m:
-         m = re.search(r'HSCB(\d{6})(\d{2})', d['frameID'])
-         cycle_num = 1 ## 2nd cycle of frame number
-         if not m:
-             m = re.search(r'HSCC(\d{6})(\d{2})', d['frameID'])
-             cycle_num = 2 ## 3rd cycle of frame number
-             if not m:
-                 sys.stderr.write("Error: Unrecognized Frame ID in FITS Header...:", filename)
-                 sys.exit(-1)
+        sys.stderr.write("Error: Unrecognized Frame ID in FITS Header: %s" % filename)
+        sys.exit(-1)
+    cycle, start6, last2 = m.groups() # HSC[cycleLetter][start6][last2]
+    cycle_num = ord(cycle) - ord("A")
 
-    start6, last2 = m.groups() # HSCA[start6][last2]
     ccd_int = int(h.get('DET-ID'))
-    if ccd_int >= 100:
-        int_visit_base = int(start6) - 1
-    else:
-        int_visit_base = int(start6)
+    int_visit_base = int(start6)
+    if int_visit_base % 2:
+        int_visit_base -= 1
+
+    if d['visitID'] > 390 and d['visitID'] < 405:
+        # Focus CCDs were numbered incorrectly in the readout software; map to the correct ones.
+        ccdMap = {112: 106,
+                  107: 105,
+                  113: 107,
+                  115: 109,
+                  108: 110,
+                  114: 108,
+                  }
+        if ccd_int in ccdMap:
+            ccd_int = ccdMap[ccd_int]
 
     frame_num = int(start6)*100 + int(last2) + 100000000*cycle_num   ### Integer corresponding to FRAME-ID + 'A','B','C' etc..  ###
     visit = "%07d" % (int_visit_base + cycle_num*1000000)
