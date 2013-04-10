@@ -117,19 +117,13 @@ def getFrameInfo(filename):
 
     # extracting visit, ccd from frameId
 
-    m = re.search(r'HSCA(\d{6})(\d{2})', d['frameID'])
-    cycle_num = 0 ## 1st cycle of frame number
+    m = re.search(r'HSC([A-Z])(\d{6})(\d{2})', d['frameID'])
     if not m:
-         m = re.search(r'HSCB(\d{6})(\d{2})', d['frameID'])
-         cycle_num = 1 ## 2nd cycle of frame number
-         if not m:
-             m = re.search(r'HSCC(\d{6})(\d{2})', d['frameID'])
-             cycle_num = 2 ## 3rd cycle of frame number
-             if not m:
-                 sys.stderr.write("Error: Unrecognized Frame ID in FITS Header...:", filename)
-                 sys.exit(-1)
+        sys.stderr.write("Error: Unrecognized Frame ID in FITS Header: %s" % filename)
+        sys.exit(-1)
+    cycle, start6, last2 = m.groups() # HSC[cycleLetter][start6][last2]
+    cycle_num = ord(cycle) - ord("A")
 
-    start6, last2 = m.groups() # HSCA[start6][last2]
     ccd_int = int(h.get('DET-ID'))
     int_visit_base = int(start6)
     if int_visit_base % 2:
