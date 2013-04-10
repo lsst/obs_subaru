@@ -135,7 +135,7 @@ def getFrameInfo(filename):
     if int_visit_base % 2:
         int_visit_base -= 1
 
-    if d['visitID'] > 390 and d['visitID'] < 400:
+    if d['visitID'] > 390 and d['visitID'] < 405:
         # Focus CCDs were numbered incorrectly in the readout software; map to the correct ones.
         ccdMap = {112: 106,
                   107: 105,
