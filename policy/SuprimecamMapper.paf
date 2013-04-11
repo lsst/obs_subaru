@@ -875,6 +875,14 @@ datasets: {
         tables:        raw
         tables:        raw_visit
     }
+    solvetansip_config: {
+        template:      "config/solvetansip.py"
+        python:        "lsst.pex.config.Config"
+        persistable:   "Config"
+        storage:       "ConfigStorage"
+        tables:        raw
+        tables:        raw_visit
+    }
 
     ossThumb: {
         template:    "%(pointing)05d/%(filter)s/thumbs/oss%(visit)07d%(ccd)d.png"
