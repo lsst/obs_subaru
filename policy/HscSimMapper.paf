@@ -845,6 +845,31 @@ datasets: {
         tables:        raw_skyTile
     }
 
+    bias_config: {
+        template:      "config/bias.py"
+        python:        "hsc.pipe.tasks.detrends.BiasConfig"
+        persistable:      "Config"
+        storage:    "ConfigStorage"
+        tables:        raw
+        tables:        raw_visit
+    }
+    dark_config: {
+        template:      "config/dark.py"
+        python:        "hsc.pipe.tasks.detrends.DarkConfig"
+        persistable:   "Config"
+        storage:       "ConfigStorage"
+        tables:        raw
+        tables:        raw_visit
+    }
+    flat_config: {
+        template:      "config/flat.py"
+        python:        "hsc.pipe.tasks.detrends.FlatConfig"
+        persistable:   "Config"
+        storage:       "ConfigStorage"
+        tables:        raw
+        tables:        raw_visit
+    }
+
     ossThumb: {
         template:    "%(pointing)05d/%(filter)s/thumbs/oss-%(visit)07d-%(ccd)03d.png"
         python:      __builtin__.str
