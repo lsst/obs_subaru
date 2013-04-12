@@ -5,7 +5,6 @@ import pwd
 
 from lsst.daf.butlerUtils import CameraMapper
 import lsst.afw.image.utils as afwImageUtils
-import lsst.afw.cameraGeom as cameraGeom
 import lsst.afw.image as afwImage
 import lsst.afw.math as afwMath
 import lsst.afw.geom as afwGeom
@@ -37,19 +36,7 @@ class HscSimMapper(CameraMapper):
         elevation = 45 * afwGeom.degrees
         distortion = HscDistortion(elevation)
         self.camera.setDistortion(distortion)
-
-        for raft in self.camera:
-            raft = cameraGeom.cast_Raft(raft)
-            for ccd in raft:
-                ccd = cameraGeom.cast_Ccd(ccd)
         
-                if ccd.getId().getSerial() in range(100, 104):
-                    w, h = ccd.getAllPixels(True).getDimensions()
-                    xc, yc = ccd.getCenterPixel()
-                    xc += h/2 if xc < 0 else -h/2
-                    yc += h/2 if yc < 0 else -h/2
-                    ccd.setCenterPixel(afwGeom.PointD(xc, yc))
-
         # SDSS g': http://www.naoj.org/Observing/Instruments/SCam/txt/g.txt
         # SDSS r': http://www.naoj.org/Observing/Instruments/SCam/txt/r.txt
         # SDSS i': http://www.naoj.org/Observing/Instruments/SCam/txt/i.txt
@@ -146,6 +133,34 @@ Most chips are flipped L/R, but the rotated ones (100..103) are flipped T/B
             raise RuntimeError("Cannot apply mosaic outputs to calexp: meas_mosaic could not be imported")
         dataRef = butler.dataRef("calexp", **dataId)
         return applyMosaicResults(dataRef)
+
+    def _computeCoaddExposureId(self, dataId, singleFilter):
+        """Compute the 64-bit (long) identifier for a coadd.
+
+        @param dataId (dict)       Data identifier with tract and patch.
+        @param singleFilter (bool) True means the desired ID is for a single- 
+                                   filter coadd, in which case dataId
+                                   must contain filter.
+        """
+        # FIXME: this bit allocation is for LSST's huge-tract skymaps, and needs
+        # to be updated to something more appropriate for Subaru
+        # (actually, it shouldn't be the mapper's job at all; see #2797).
+        tract = long(dataId['tract'])
+        if tract < 0 or tract >= 128:
+            raise RuntimeError('tract not in range [0,128)')
+        patchX, patchY = map(int, dataId['patch'].split(','))
+        for p in (patchX, patchY):
+            if p < 0 or p >= 2**13:
+                raise RuntimeError('patch component not in range [0, 8192)')
+        id = (tract * 2**13 + patchX) * 2**13 + patchY
+        if singleFilter:
+            return id * 8 + self.filterIdMap[dataId['filter']]
+        return id
+
+    def bypass_deepCoaddId(self, datasetType, pythonType, location, dataId):
+        return self._computeCoaddExposureId(dataId, True)
+    def bypass_deepCoaddId_bits(self, datasetType, pythonType, location, dataId):
+        return 1 + 7 + 13*2 + 3
 
     @classmethod
     def getEupsProductName(cls):

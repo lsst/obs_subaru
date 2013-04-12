@@ -1078,6 +1078,79 @@ Raft: {
        nQuarter: 1             # number of quarter turns applied to CCD when put into raft
        orientation: 0.0 0.0 0.0 # pitch, roll, yaw; degrees
     }
+    # Focus chips
+    Ccd: {
+       serial: 104                      # CCDs serial number
+       name: "hsc104"                   # CCDs name
+       ptype: "default"
+       index: 0 0
+       offset: 16981.40 -6944.16        # offset of CCD center from raft center, (x, y)
+       nQuarter: 2                      # number of quarter turns applied to CCD when put into raft
+       orientation: 0.0 0.0 0.0         # pitch, roll, yaw; degrees
+    }
+    Ccd: {
+       serial: 105                      # CCDs serial number
+       name: "hsc105"                   # CCDs name
+       ptype: "default"
+       index: 0 0
+       offset: 16981.40 6460.84         # offset of CCD center from raft center, (x, y)
+       nQuarter: 2                      # number of quarter turns applied to CCD when put into raft
+       orientation: 0.0 0.0 0.0         # pitch, roll, yaw; degrees
+    }
+    Ccd: {
+       serial: 110                      # CCDs serial number
+       name: "hsc110"                   # CCDs name
+       ptype: "default"
+       index: 0 0
+       offset: -16981.40 -6727.49       # offset of CCD center from raft center, (x, y)
+       nQuarter: 0                      # number of quarter turns applied to CCD when put into raft
+       orientation: 0.0 0.0 0.0         # pitch, roll, yaw; degrees
+    }
+    Ccd: {
+       serial: 111                      # CCDs serial number
+       name: "hsc111"                   # CCDs name
+       ptype: "default"
+       index: 0 0
+       offset: -16981.40 6677.51        # offset of CCD center from raft center, (x, y)
+       nQuarter: 0                      # number of quarter turns applied to CCD when put into raft
+       orientation: 0.0 0.0 0.0         # pitch, roll, yaw; degrees
+    }
+    Ccd: {
+       serial: 106                      # CCDs serial number
+       name: "hsc106"                   # CCDs name
+       ptype: "default"
+       index: 0 0
+       offset: 14858.70 -11412.50       # offset of CCD center from raft center, (x, y)
+       nQuarter: 2                      # number of quarter turns applied to CCD when put into raft
+       orientation: 0.0 0.0 0.0         # pitch, roll, yaw; degrees
+    }
+    Ccd: {
+       serial: 107                      # CCDs serial number
+       name: "hsc107"                   # CCDs name
+       ptype: "default"
+       index: 0 0
+       offset: 14858.70 10929.17        # offset of CCD center from raft center, (x, y)
+       nQuarter: 2                      # number of quarter turns applied to CCD when put into raft
+       orientation: 0.0 0.0 0.0         # pitch, roll, yaw; degrees
+    }
+    Ccd: {
+       serial: 108                      # CCDs serial number
+       name: "hsc108"                   # CCDs name
+       ptype: "default"
+       index: 0 0
+       offset:  -14858.70 -11195.80     # offset of CCD center from raft center, (x, y)
+       nQuarter: 0                      # number of quarter turns applied to CCD when put into raft
+       orientation: 0.0 0.0 0.0         # pitch, roll, yaw; degrees
+    }
+    Ccd: {
+       serial: 109                      # CCDs serial number
+       name: "hsc109"                   # CCDs name
+       ptype: "default"
+       index: 0 0
+       offset: -14858.70 11145.84       # offset of CCD center from raft center, (x, y)
+       nQuarter: 0                      # number of quarter turns applied to CCD when put into raft
+       orientation: 0.0 0.0 0.0         # pitch, roll, yaw; degrees
+    }
 }
 
 #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -4281,6 +4354,238 @@ Electronic: {
                 saturationLevel: 48000.0
             }
         }
-
+        # Focus chips.  N.b. gains are fictitious
+        Ccd: {
+            name: "hsc104"
+            ptype: "default"
+            serial: 104
+            Amp: {
+                index: 0 0
+                gain: 3.00
+                readNoise: 10.0
+                saturationLevel: 55000.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.00
+                readNoise: 10.0
+                saturationLevel: 55000.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.00
+                readNoise: 10.0
+                saturationLevel: 55000.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.00
+                readNoise: 10.0
+                saturationLevel: 55000.0
+            }
+        }
+        Ccd: {
+            name: "hsc105"
+            ptype: "default"
+            serial: 105
+            Amp: {
+                index: 0 0
+                gain: 3.00
+                readNoise: 10.0
+                saturationLevel: 55000.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.00
+                readNoise: 10.0
+                saturationLevel: 55000.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.00
+                readNoise: 10.0
+                saturationLevel: 55000.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.00
+                readNoise: 10.0
+                saturationLevel: 55000.0
+            }
+        }
+        Ccd: {
+            name: "hsc106"
+            ptype: "default"
+            serial: 106
+            Amp: {
+                index: 0 0
+                gain: 3.00
+                readNoise: 10.0
+                saturationLevel: 55000.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.00
+                readNoise: 10.0
+                saturationLevel: 55000.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.00
+                readNoise: 10.0
+                saturationLevel: 55000.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.00
+                readNoise: 10.0
+                saturationLevel: 55000.0
+            }
+        }
+        Ccd: {
+            name: "hsc107"
+            ptype: "default"
+            serial: 107
+            Amp: {
+                index: 0 0
+                gain: 3.00
+                readNoise: 10.0
+                saturationLevel: 55000.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.00
+                readNoise: 10.0
+                saturationLevel: 55000.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.00
+                readNoise: 10.0
+                saturationLevel: 55000.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.00
+                readNoise: 10.0
+                saturationLevel: 55000.0
+            }
+        }
+        Ccd: {
+            name: "hsc108"
+            ptype: "default"
+            serial: 108
+            Amp: {
+                index: 0 0
+                gain: 3.00
+                readNoise: 10.0
+                saturationLevel: 55000.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.00
+                readNoise: 10.0
+                saturationLevel: 55000.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.00
+                readNoise: 10.0
+                saturationLevel: 55000.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.00
+                readNoise: 10.0
+                saturationLevel: 55000.0
+            }
+        }
+        Ccd: {
+            name: "hsc109"
+            ptype: "default"
+            serial: 109
+            Amp: {
+                index: 0 0
+                gain: 3.00
+                readNoise: 10.0
+                saturationLevel: 55000.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.00
+                readNoise: 10.0
+                saturationLevel: 55000.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.00
+                readNoise: 10.0
+                saturationLevel: 55000.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.00
+                readNoise: 10.0
+                saturationLevel: 55000.0
+            }
+        }
+        Ccd: {
+            name: "hsc110"
+            ptype: "default"
+            serial: 110
+            Amp: {
+                index: 0 0
+                gain: 3.00
+                readNoise: 10.0
+                saturationLevel: 55000.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.00
+                readNoise: 10.0
+                saturationLevel: 55000.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.00
+                readNoise: 10.0
+                saturationLevel: 55000.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.00
+                readNoise: 10.0
+                saturationLevel: 55000.0
+            }
+        }
+        Ccd: {
+            name: "hsc111"
+            ptype: "default"
+            serial: 111
+            Amp: {
+                index: 0 0
+                gain: 3.00
+                readNoise: 10.0
+                saturationLevel: 55000.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.00
+                readNoise: 10.0
+                saturationLevel: 55000.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.00
+                readNoise: 10.0
+                saturationLevel: 55000.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.00
+                readNoise: 10.0
+                saturationLevel: 55000.0
+            }
+        }
     }
 }

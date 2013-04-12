@@ -10,8 +10,11 @@ root.isr.assembleCcd.doRenorm = False
 root.calibrate.repair.cosmicray.nCrPixelMax = 1000000
 root.calibrate.repair.cosmicray.cond3_fac2 = 0.4
 root.calibrate.background.binSize = 1024
+root.calibrate.background.undersampleStyle = 'REDUCE_INTERP_ORDER'
 root.calibrate.detection.background.binSize = 1024
+root.calibrate.detection.background.undersampleStyle='REDUCE_INTERP_ORDER'
 root.detection.background.binSize = 1024
+root.detection.background.undersampleStyle = 'REDUCE_INTERP_ORDER'
 
 # PSF determination
 root.calibrate.measurePsf.starSelector.name = "objectSize"
@@ -43,11 +46,3 @@ root.doWriteSourceMatches = True
 root.measurement.doReplaceWithNoise = True
 root.doDeblend = True
 root.deblend.maxNumberOfPeaks = 20
-
-# Enable multifit for processCcd
-try:
-    import lsst.meas.extensions.multiShapelet
-    root.measurement.algorithms.names |= lsst.meas.extensions.multiShapelet.algorithms
-    root.measurement.slots.modelFlux = "multishapelet.combo.flux"
-except ImportError:
-    print "meas_extensions_multiShapelet is not setup; disabling model mags"

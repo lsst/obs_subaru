@@ -1,0 +1,115 @@
+import math
+import numpy as np
+
+from lsst.pex.config import Field, ListField
+from hsc.pipe.tasks.detrends import FlatCombineConfig, FlatCombineTask
+import lsst.afw.image as afwImage
+import lsst.afw.geom as afwGeom
+import lsst.afw.cameraGeom as afwcg
+
+class HscFlatCombineConfig(FlatCombineConfig):
+    xCenter = Field(dtype=float, default=0,   doc="Center of vignetting pattern, in x (focal plane coords)")
+    yCenter = Field(dtype=float, default=0, doc="Center of vignetting pattern, in y (focal plane coords)")
+    radius = Field(dtype=float, default=18300, doc="Radius of vignetting pattern, in focal plane coords",
+                   check=lambda x: x >= 0)
+    badAmpCcdList = ListField(dtype=int, default=[], doc="List of CCD serial numbers for bad amplifiers")
+    badAmpList = ListField(dtype=int, default=[], doc="List of amp serial numbers in CCD")
+    maskPlane = Field(dtype=str, default="BAD", doc="Mask plane to set")
+
+    def validate(self):
+        super(HscFlatCombineConfig, self).validate()
+        if len(self.badAmpCcdList) != len(self.badAmpList):
+            raise RuntimeError("Length of badAmpCcdList and badAmpList don't match")
+
+class HscFlatCombineTask(FlatCombineTask):
+    """Mask the vignetted area"""
+    ConfigClass = HscFlatCombineConfig
+    def run(self, sensorRefList, *args, **kwargs):
+        """Mask vignetted pixels after combining
+
+        This returns an Exposure instead of an Image, but upstream shouldn't
+        care, as it just dumps it out via the Butler.
+        """
+        combined = super(HscFlatCombineTask, self).run(sensorRefList, *args, **kwargs)
+        mi = afwImage.makeMaskedImage(combined)
+        mi.getMask().set(0)
+
+        # Retrieve the detector
+        # XXX It's unfortunate that we have to read an entire image to get the detector, but there's no
+        # public API in the butler to get the same.
+        image = sensorRefList[0].get("postISRCCD")
+        detector = image.getDetector()
+        del image
+
+        self.maskVignetting(mi.getMask(), detector)
+        self.maskBadAmps(mi.getMask(), detector)
+
+        return afwImage.makeExposure(mi)
+
+    def maskVignetting(self, mask, detector):
+        """Mask vignetted pixels in-place
+
+        @param mask: Mask image to modify
+        @param detector: Detector for transformation to focal plane coords
+        """
+        mask.addMaskPlane(self.config.maskPlane)
+        bitMask = mask.getPlaneBitMask(self.config.maskPlane)
+        w, h = mask.getWidth(), mask.getHeight()
+        numCorners = 0 # Number of corners outside radius
+        for i, j in ((0, 0), (0, h-1), (w-1, 0), (w-1, h-1)):
+            x,y = detector.getPositionFromPixel(afwGeom.PointD(i, j)).getMm()
+            if math.hypot(x - self.config.xCenter, y - self.config.yCenter) > self.config.radius:
+                numCorners += 1
+        if numCorners == 0:
+            # Nothing to be masked
+            self.log.info("Detector %s is unvignetted" % detector.getId().getSerial())
+            return
+        if numCorners == 4:
+            # Everything to be masked
+            # We ignore the question of how we're getting any data from a CCD that's totally vignetted...
+            self.log.warn("Detector %s is completely vignetted" % detector.getId().getSerial())
+            mask |= bitMask
+            return
+        # We have to go pixel by pixel
+        x = np.empty((h, w))
+        y = np.empty_like(x)
+        for j in range(mask.getHeight()):
+            for i in range(mask.getWidth()):
+                x[j, i], y[j, i] = detector.getPositionFromPixel(afwGeom.PointD(i, j)).getMm()
+        R = np.hypot(x - self.config.xCenter, y - self.config.yCenter)
+        isBad = R > self.config.radius
+        self.log.info("Detector %s has %f%% pixels vignetted" %
+                      (detector.getId().getSerial(), isBad.sum()/float(isBad.size)*100.0))
+        maskArray = mask.getArray()
+        xx, yy = np.meshgrid(np.arange(w), np.arange(h))
+        maskArray[yy[isBad], xx[isBad]] |= bitMask
+
+    def maskBadAmps(self, mask, detector):
+        """Mask bad amplifiers
+
+        @param mask: Mask image to modify
+        @param detector: Detector for amp locations
+        """
+        mask.addMaskPlane(self.config.maskPlane)
+        bitMask = mask.getPlaneBitMask(self.config.maskPlane)
+        detector = afwcg.cast_Ccd(detector)
+        if detector is None:
+            raise RuntimeError("Detector isn't a Ccd")
+        ccdSerial = detector.getId().getSerial()
+        if ccdSerial not in self.config.badAmpCcdList:
+            return
+        for ccdNum, ampNum in zip(self.config.badAmpCcdList, self.config.badAmpList):
+            if ccdNum != ccdSerial:
+                continue
+            # Mask this amp
+            found = False
+            for amp in detector:
+                if amp.getId().getSerial() != ampNum:
+                    continue
+                found = True
+                box = amp.getDataSec()
+                subMask = mask.Factory(mask, box)
+                subMask |= bitMask
+                break
+            if not found:
+                self.log.warn("Unable to find amp=%s in ccd=%s" % (ampNum, ccdNum))
