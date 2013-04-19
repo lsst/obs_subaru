@@ -1,16 +1,21 @@
 # -*- python -*-
 
+import lsst.sconsUtils
 import glob
 import os
 
-nGenerated = 0
-for defectsDat in glob.glob("defects/*/defects.dat"):
-    defectsDir = os.path.split(defectsDat)[0]
-    if not glob.glob("%s/defects*.fits" % defectsDir):
-        if not nGenerated:
-            print "*** Please run the following commands:"
-        nGenerated += 1
-        print "genDefectFits.py hsc/hsc_geom.paf hsc/%s" % (defectsDat)
-if nGenerated:
-    print "genDefectRegistry.py --root hsc/defects"
-    print
+# scons steals our environment away, so we have to reinstate it
+env = lsst.sconsUtils.env.Clone()
+environ = dict((name, os.environ[name]) for name in ("PYTHONPATH", "LD_LIBRARY_PATH",
+                                                     "DYLD_LIBRARY_PATH", "PATH"))
+env.Append(**environ)
+# scons also hacks sys.path, so we need to set PYTHONPATH very explicitly at the start of each command.
+python = "PYTHONPATH=%s " % environ["PYTHONPATH"]
+
+defectsDatList = glob.glob("defects/*/defects.dat")
+for defectsDat in defectsDatList:
+    command = "%s bin/genDefectFits.py hsc/hsc_geom.paf %s --force" % (python, os.path.join("hsc", defectsDat))
+    env.AlwaysBuild(env.Command('defectsFits', [], command))
+
+command = "%s bin/genDefectRegistry.py --root hsc/defects" % (python)
+registry = env.AlwaysBuild(env.Command("defects/defectRegistry.sqlite3", "defectsFits", command))
