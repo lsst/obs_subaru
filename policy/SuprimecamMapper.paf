@@ -875,6 +875,14 @@ datasets: {
         tables:        raw
         tables:        raw_visit
     }
+    stack_config: {
+        template:      "config/stack.py"
+        python:        "hsc.meas.mosaic.stackTask.StackConfig"
+        persistable:   "Config"
+        storage:       "ConfigStorage"
+        tables:        raw
+        tables:        raw_visit
+    }
     solvetansip_config: {
         template:      "config/solvetansip.py"
         python:        "lsst.pex.config.Config"
