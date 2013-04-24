@@ -176,6 +176,10 @@ Raft: {
     }
 }
 
+
+# Gain and readnoise from http://smoka.nao.ac.jp/help/sd_data/200401A_W-J-V
+# See also http://smoka.nao.ac.jp/help/help_supdetail.jsp for more
+# extensive measurements as a function of filter and time.
 Electronic: { 
     Raft: { 
         name: "R:0,0" 
@@ -187,8 +191,8 @@ Electronic: {
             name: "w93c2"
             Amp: {
                 index: 0 0
-                gain: 2.6
-                readNoise: 10.0
+                gain: 2.37
+                readNoise: 12.6
                 saturationLevel: 35000.0
             }
         }
@@ -198,8 +202,8 @@ Electronic: {
             name: "w67c1"             # CCD's name
             Amp: {
                 index: 0 0
-                gain: 2.6
-                readNoise: 10.0
+                gain: 3.13
+                readNoise: 16.0
                 saturationLevel: 35000.0
             }
         }
@@ -209,8 +213,8 @@ Electronic: {
             name: "w9c2"                 # CCD's name
             Amp: {
                 index: 0 0
-                gain: 2.6
-                readNoise: 10.0
+                gain: 2.52
+                readNoise: 12.9
                 saturationLevel: 35000.0
             }
 
@@ -221,8 +225,8 @@ Electronic: {
             name: "w6c1"            # CCD's name
             Amp: {
                 index: 0 0
-                gain: 2.6
-                readNoise: 10.0
+                gain: 2.49
+                readNoise: 13.5
                 saturationLevel: 35000.0
             }
         }
@@ -232,8 +236,8 @@ Electronic: {
             name: "si005s"             # CCD's name
             Amp: {
                 index: 0 0
-                gain: 2.6
-                readNoise: 10.0
+                gain: 2.56
+                readNoise: 13.3
                 saturationLevel: 35000.0
             }
         }
@@ -243,8 +247,8 @@ Electronic: {
             name: "si006s"                 # CCD's name
             Amp: {
                 index: 0 0
-                gain: 2.6
-                readNoise: 10.0
+                gain: 2.51
+                readNoise: 13.2
                 saturationLevel: 35000.0
             }
         }
@@ -254,8 +258,8 @@ Electronic: {
             name: "si001s"              # CCD's name
             Amp: {
                 index: 0 0
-                gain: 2.6
-                readNoise: 10.0
+                gain: 2.42
+                readNoise: 12.7
                 saturationLevel: 35000.0
             }
         }
@@ -265,8 +269,8 @@ Electronic: {
             name: "si002s"                # CCD's name
             Amp: {
                 index: 0 0
-                gain: 2.6
-                readNoise: 10.0
+                gain: 2.43
+                readNoise: 12.1
                 saturationLevel: 35000.0
             }
         }
@@ -276,8 +280,8 @@ Electronic: {
             name: "w4c5"              # CCD's name
             Amp: {
                 index: 0 0
-                gain: 2.6
-                readNoise: 10.0
+                gain: 2.53
+                readNoise: 12.9
                 saturationLevel: 35000.0
             }
         }
@@ -287,8 +291,8 @@ Electronic: {
             name: "w7c3"            # CCD's name
             Amp: {
                 index: 0 0
-                gain: 2.6
-                readNoise: 10.0
+                gain: 2.50
+                readNoise: 12.5
                 saturationLevel: 35000.0
             }
         }
