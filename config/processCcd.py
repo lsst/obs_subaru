@@ -41,6 +41,11 @@ root.detection.returnOriginalFootprints = False
 
 # Measurement
 root.doWriteSourceMatches = True
+try:
+    import lsst.meas.extensions.photometryKron
+    root.measurement.algorithms.names |= ["flux.kron"]
+except ImportError:
+    print "Cannot import lsst.meas.extensions.photometryKron: disabling Kron measurements"
 
 # Enable deblender for processCcd
 root.measurement.doReplaceWithNoise = True
