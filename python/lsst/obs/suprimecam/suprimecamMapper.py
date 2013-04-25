@@ -34,6 +34,8 @@ class SuprimecamMapperBase(CameraMapper):
             self.mappings[name].keyDict.update(keys)
 
     def defineFilters(self):
+        afwImageUtils.resetFilters()
+        
         afwImageUtils.defineFilter('NONE', lambdaEff=0)
 
         # Johnson filters

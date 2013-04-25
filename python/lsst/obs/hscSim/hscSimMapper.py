@@ -56,6 +56,8 @@ class HscSimMapper(CameraMapper):
         # SDSS z': http://www.naoj.org/Observing/Instruments/SCam/txt/z.txt
         # y-band: Shimasaku et al., 2005, PASJ, 57, 447
 
+        afwImageUtils.resetFilters()
+
         afwImageUtils.defineFilter(name='g', lambdaEff=477, alias=['W-S-G+'])
         afwImageUtils.defineFilter(name='r', lambdaEff=623, alias=['W-S-R+'])
         afwImageUtils.defineFilter(name='i', lambdaEff=775, alias=['W-S-I+'])
