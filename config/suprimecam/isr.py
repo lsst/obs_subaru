@@ -41,8 +41,3 @@ root.isr.crosstalkCoeffs.relativeGainsPreampAndSigboard = [
     0.972, 0.932, 0.999, 0.963,
     0.987, 0.985, 0.986, 1.012,
     ]
-
-
-# nonlinearity for SuprimeCam
-root.isr.linearizationCoefficient = 2.5e-7
-
