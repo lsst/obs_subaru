@@ -43,7 +43,7 @@ class HscSimMapper(CameraMapper):
                 'pointing': int,
                 }
         for name in ("raw", "calexp", "postISRCCD", "src"):
-            self.keyDict[name].update(keys)
+            self.mappings[name].keyDict.update(keys)
 
         # Distortion isn't pluggable, so we'll put in our own
         elevation = 45 * afwGeom.degrees

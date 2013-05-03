@@ -31,7 +31,7 @@ class SuprimecamMapperBase(CameraMapper):
                 'pointing': int,
                 }
         for name in ("raw", "calexp", "postISRCCD", "src"):
-            self.keyDict[name].update(keys)
+            self.mappings[name].keyDict.update(keys)
 
     def defineFilters(self):
         afwImageUtils.defineFilter('NONE', lambdaEff=0)
