@@ -32,6 +32,19 @@ class HscSimMapper(CameraMapper):
 
         super(HscSimMapper, self).__init__(policy, policyFile.getRepositoryPath(), **kwargs)
         
+        # Ensure each dataset type of interest knows about the full range of keys available from the registry
+        keys = {'field': str,
+                'visit': int,
+                'filter': str,
+                'ccd': int,
+                'dateObs': str,
+                'taiObs': str,
+                'expTime': float,
+                'pointing': int,
+                }
+        for name in ("raw", "calexp", "postISRCCD", "src"):
+            self.keyDict[name].update(keys)
+
         # Distortion isn't pluggable, so we'll put in our own
         elevation = 45 * afwGeom.degrees
         distortion = HscDistortion(elevation)

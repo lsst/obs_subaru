@@ -17,6 +17,21 @@ except ImportError:
     applyMosaicResults = None
 
 class SuprimecamMapperBase(CameraMapper):
+    def __init__(self, *args, **kwargs):
+        super(SuprimecamMapperBase, self).__init__(*args, **kwargs)
+
+        # Ensure each dataset type of interest knows about the full range of keys available from the registry
+        keys = {'field': str,
+                'visit': int,
+                'filter': str,
+                'ccd': int,
+                'dateObs': str,
+                'taiObs': str,
+                'expTime': float,
+                'pointing': int,
+                }
+        for name in ("raw", "calexp", "postISRCCD", "src"):
+            self.keyDict[name].update(keys)
 
     def defineFilters(self):
         afwImageUtils.defineFilter('NONE', lambdaEff=0)
