@@ -9,11 +9,11 @@ root.isr.assembleCcd.doRenorm = False
 # Cosmic rays and background estimation
 root.calibrate.repair.cosmicray.nCrPixelMax = 1000000
 root.calibrate.repair.cosmicray.cond3_fac2 = 0.4
-root.calibrate.background.binSize = 1024
+root.calibrate.background.binSize = 256
 root.calibrate.background.undersampleStyle = 'REDUCE_INTERP_ORDER'
-root.calibrate.detection.background.binSize = 1024
+root.calibrate.detection.background.binSize = 256
 root.calibrate.detection.background.undersampleStyle='REDUCE_INTERP_ORDER'
-root.detection.background.binSize = 1024
+root.detection.background.binSize = 256
 root.detection.background.undersampleStyle = 'REDUCE_INTERP_ORDER'
 
 # PSF determination
