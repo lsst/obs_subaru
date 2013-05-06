@@ -63,13 +63,13 @@ class SubaruAstrometryTask(ptAstrometry.AstrometryTask):
             matchMeta = dafBase.PropertySet()
         else:
             if astrom is None:
-                raise RuntimeError("Unable to solve astrometry for %s", exposure.getDetector().getId())
+                raise RuntimeError("Unable to solve astrometry for %s" % exposure.getDetector().getId())
 
             wcs = astrom.getWcs()
             matches = astrom.getMatches()
             matchMeta = astrom.getMatchMetadata()
             if matches is None or len(matches) == 0:
-                raise RuntimeError("No astrometric matches for %s", exposure.getDetector().getId())
+                raise RuntimeError("No astrometric matches for %s" % exposure.getDetector().getId())
             self.log.log(self.log.INFO, "%d astrometric matches for %s" % \
                          (len(matches), exposure.getDetector().getId()))
             exposure.setWcs(wcs)
