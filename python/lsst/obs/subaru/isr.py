@@ -200,6 +200,9 @@ class SubaruIsrTask(IsrTask):
             smsk |= msk.getPlaneBitMask("BAD")
             del smsk; del msk
 
+        if self.config.doFringe:
+            self.fringe.run(ccdExposure, sensorRef)
+
         if self.config.qa.doWriteFlattened:
             sensorRef.put(ccdExposure, "flattenedImage")
         if self.config.qa.doThumbnailFlattened:
