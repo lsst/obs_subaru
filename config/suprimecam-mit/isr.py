@@ -9,3 +9,6 @@ root.isr.doCrosstalk = False
 root.isr.doLinearize = False
 root.isr.doWrite = False
 root.isr.doDefect = True
+
+root.isr.doFringe = True
+root.isr.fringe.filters = ["I", "i", "z"]
