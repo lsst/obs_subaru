@@ -72,6 +72,10 @@ class HscSimMapper(CameraMapper):
             "W-S-ZR"  : "y",
             }
 
+        # next line makes a dict that maps filter names to sequential integers (arbitrarily sorted),
+        # for use in generating unique IDs for sources.
+        self.filterIdMap = dict(zip(self.filters, range(len(self.filters))))
+
     def std_camera(self, item, dataId):
         """Standardize a camera dataset by converting it to a camera object."""
         return self.camera
