@@ -65,7 +65,6 @@ class HscSimMapper(CameraMapper):
         afwImageUtils.defineFilter(name='y', lambdaEff=990, alias=['W-S-ZR'])
         
         self.filters = {
-            "W-J-B"   : "B",
             "W-S-G+"  : "g",
             "W-S-R+"  : "r",
             "W-S-I+"  : "i",
