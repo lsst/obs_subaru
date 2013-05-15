@@ -407,9 +407,7 @@ def _fit_psf(fp, fmask, pk, pkF, pkres, fbb, peaks, peaksF, log, psf,
     del inpsfy
 
     def _overlap(xlo, xhi, xmin, xmax):
-        if xlo > xmax or xhi < xmin or xlo > xhi or xmin > xmax:
-            assert(0)
-            return (0,0,0,0)
+        assert xlo <= xmax and xhi >= xmin and xlo <= xhi and xmin <= xmax, "No overlap"
         xloclamp = max(xlo, xmin)
         Xlo = xloclamp - xlo
         xhiclamp = min(xhi, xmax)
