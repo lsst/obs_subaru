@@ -296,7 +296,7 @@ def _fit_psf(fp, fmask, pk, pkF, pkres, fbb, peaks, peaksF, log, psf,
     psfimg = psf.computeImage(cx, cy)
     # R2: distance to neighbouring peak in order to put it
     # into the model
-    R2 = R1 + psfimg.getWidth()/2.
+    R2 = R1 + min(psfimg.getWidth(), psfimg.getHeight())/2.
 
     import lsstDebug
     debugPlots = lsstDebug.Info(__name__).plots
