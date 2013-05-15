@@ -334,6 +334,8 @@ def _fit_psf(fp, fmask, pk, pkF, pkres, fbb, peaks, peaksF, log, psf,
         if pkF.distanceSquared(pkF2) > R2**2:
             continue
         opsfimg = psf.computeImage(pkF2.getX(), pkF2.getY())
+        if not opsfimg.getBBox().overlaps(stampbb): # Local PSF may be a different size than central
+            continue
         otherpeaks.append(opsfimg)
         log.logdebug('%i other peaks within range' % len(otherpeaks))
 
