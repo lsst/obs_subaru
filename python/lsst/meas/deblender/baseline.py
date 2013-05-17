@@ -296,7 +296,7 @@ def _fit_psf(fp, fmask, pk, pkF, pkres, fbb, peaks, peaksF, log, psf,
     psfimg = psf.computeImage(cx, cy)
     # R2: distance to neighbouring peak in order to put it
     # into the model
-    R2 = R1 + psfimg.getWidth()/2.
+    R2 = R1 + min(psfimg.getWidth(), psfimg.getHeight())/2.
 
     import lsstDebug
     debugPlots = lsstDebug.Info(__name__).plots
@@ -334,6 +334,8 @@ def _fit_psf(fp, fmask, pk, pkF, pkres, fbb, peaks, peaksF, log, psf,
         if pkF.distanceSquared(pkF2) > R2**2:
             continue
         opsfimg = psf.computeImage(pkF2.getX(), pkF2.getY())
+        if not opsfimg.getBBox().overlaps(stampbb): # Local PSF may be a different size than central
+            continue
         otherpeaks.append(opsfimg)
         log.logdebug('%i other peaks within range' % len(otherpeaks))
 
@@ -407,9 +409,7 @@ def _fit_psf(fp, fmask, pk, pkF, pkres, fbb, peaks, peaksF, log, psf,
     del inpsfy
 
     def _overlap(xlo, xhi, xmin, xmax):
-        if xlo > xmax or xhi < xmin or xlo > xhi or xmin > xmax:
-            assert(0)
-            return (0,0,0,0)
+        assert xlo <= xmax and xhi >= xmin and xlo <= xhi and xmin <= xmax, "No overlap"
         xloclamp = max(xlo, xmin)
         Xlo = xloclamp - xlo
         xhiclamp = min(xhi, xmax)
