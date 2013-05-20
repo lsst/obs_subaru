@@ -932,6 +932,14 @@ datasets: {
         tables:        raw
         tables:        raw_visit
     }
+    deepCoadd_extract: {
+        template:      "deepCoadd-results/%(filter)s/%(tract)d/%(patch)s/extract-%(tract)d-%(patch)s.fits"
+        python:        "lsst.afw.table.SourceCatalog"
+        persistable:   "ignored"
+        storage:       "FitsCatalogStorage"
+        tables:        raw
+        tables:        raw_skyTile
+    }
 
     forced_src: {
         template:      "%(pointing)05d/%(filter)s/tract%(tract)d/FORCEDSRC%(visit)07d%(ccd)1d.fits"
