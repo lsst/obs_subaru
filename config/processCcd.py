@@ -41,7 +41,7 @@ root.detection.returnOriginalFootprints = False
 
 # Measurement
 root.doWriteSourceMatches = True
-root.measurement.algorithms.names |= ["jacobian"]
+root.measurement.algorithms.names |= ["jacobian", "focalplane"]
 try:
     import lsst.meas.extensions.photometryKron
     root.measurement.algorithms.names |= ["flux.kron"]
