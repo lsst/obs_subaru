@@ -321,8 +321,9 @@ class SubaruIsrTask(IsrTask):
 
                 skyLevels[i,j] = afwMath.makeStatistics(miMesh, stat, statsControl).getValue()
 
-        skyMedian = numpy.median(skyLevels)
-        flatness =  (skyLevels - skyMedian) / skyMedian
+        good = numpy.where(numpy.isfinite(skyLevels))
+        skyMedian = numpy.median(skyLevels[good])
+        flatness =  (skyLevels[good] - skyMedian) / skyMedian
         flatness_rms = numpy.std(flatness)
         flatness_min = flatness.min()
         flatness_max = flatness.max() 
