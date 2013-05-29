@@ -157,9 +157,10 @@ def getFinalFile(rootDir, filename, info):
                         info['progID'], 
                         info['date'],
                         '%05d' % info['visitID'])
-    if info['progID'] not in ('BIAS', 'DARK'):
-        path = os.path.join(path, info['filterName'])
+    if info['progID'] in ('BIAS', 'DARK'):
+        info['filterName'] = "NONE"
 
+    path = os.path.join(path, info['filterName'])
     root_new = "HSC-%07d-%03d" % (int(info['visit']), int(info['ccd']))
     return path, root_new + '.fits'
 
