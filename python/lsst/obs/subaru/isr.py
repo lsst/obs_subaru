@@ -277,7 +277,7 @@ class SubaruIsrTask(IsrTask):
         elif self.config.badStatistic == "MEANCLIP":
             statistic = afwMath.MEANCLIP
         else:
-            raise runtimeError("Impossible method %s of bad region correction" % self.config.badStatistic)
+            raise RuntimeError("Impossible method %s of bad region correction" % self.config.badStatistic)
 
         mi = exposure.getMaskedImage()
         mask = mi.getMask()
@@ -289,6 +289,9 @@ class SubaruIsrTask(IsrTask):
         value = afwMath.makeStatistics(mi, statistic, sctrl).getValue()
 
         afwDetection.setImageFromFootprintList(mi.getImage(), fs.getFootprints(), value)
+
+        self.log.log(self.log.INFO, "Set %d BAD pixels to %.2f" %
+                     (sum([f.getNpix() for f in fs.getFootprints()]), value))
 
     def writeThumbnail(self, dataRef, dataset, exposure, format='png', width=500, height=0):
         """Write out exposure to a snapshot file named outfile in the given image format and size.
