@@ -101,6 +101,20 @@ after applying the nominal gain
         doc = "FWHM of PSF used when interpolating over bad columns (arcsec)",
         default = 1.0,
     )
+    doSetBadRegions = pexConfig.Field(
+        dtype = bool,
+        doc = "Should we set the level of all BAD patches of the chip to the chip's average value?",
+        default = True,
+        )
+    badStatistic = pexConfig.ChoiceField(
+        dtype = str,
+        doc = "How to estimate the average value for BAD regions.",
+        default = 'MEANCLIP',
+        allowed = {
+            "MEANCLIP": "Correct using the (clipped) mean of good data",
+            "MEDIAN": "Correct using the median of the good data",
+            },
+        )
     def validate(self):
         pexConfig.Config.validate(self)
 
@@ -176,6 +190,8 @@ class SubaruIsrTask(IsrTask):
 
         if self.config.doFringe:
             self.fringe.run(ccdExposure, sensorRef)
+        if self.config.doSetBadRegions:
+            self.setBadRegions(ccdExposure)
 
         if self.config.qa.doWriteFlattened:
             sensorRef.put(ccdExposure, "flattenedImage")
@@ -250,6 +266,29 @@ class SubaruIsrTask(IsrTask):
 
                     for x in range(x0, x1 + 1):
                         mask.set(x, y, saturatedBit)
+
+    def setBadRegions(self, exposure):
+        """Set all BAD areas of the chip to the average of the rest of the exposure
+
+        @param[in,out]  exposure    exposure to process; must include both DataSec and BiasSec pixels
+        """
+        if self.config.badStatistic == "MEDIAN":
+            statistic = afwMath.MEDIAN
+        elif self.config.badStatistic == "MEANCLIP":
+            statistic = afwMath.MEANCLIP
+        else:
+            raise runtimeError("Impossible method %s of bad region correction" % self.config.badStatistic)
+
+        mi = exposure.getMaskedImage()
+        mask = mi.getMask()
+        BAD = mask.getPlaneBitMask("BAD")
+        fs = afwDetection.FootprintSet(mask, afwDetection.createThreshold(BAD, "bitmask"))
+
+        sctrl = afwMath.StatisticsControl()
+        sctrl.setAndMask(BAD)
+        value = afwMath.makeStatistics(mi, statistic, sctrl).getValue()
+
+        afwDetection.setImageFromFootprintList(mi.getImage(), fs.getFootprints(), value)
 
     def writeThumbnail(self, dataRef, dataset, exposure, format='png', width=500, height=0):
         """Write out exposure to a snapshot file named outfile in the given image format and size.
