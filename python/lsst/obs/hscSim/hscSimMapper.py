@@ -63,6 +63,7 @@ class HscSimMapper(CameraMapper):
         afwImageUtils.defineFilter(name='i', lambdaEff=775, alias=['W-S-I+'])
         afwImageUtils.defineFilter(name='z', lambdaEff=925, alias=['W-S-Z+'])
         afwImageUtils.defineFilter(name='y', lambdaEff=990, alias=['W-S-ZR'])
+        afwImageUtils.defineFilter(name='None', lambdaEff=0)
         
         self.filters = {
             "W-S-G+"  : "g",
@@ -70,6 +71,7 @@ class HscSimMapper(CameraMapper):
             "W-S-I+"  : "i",
             "W-S-Z+"  : "z",
             "W-S-ZR"  : "y",
+            "NONE"    : "None"
             }
 
         # next line makes a dict that maps filter names to sequential integers (arbitrarily sorted),
