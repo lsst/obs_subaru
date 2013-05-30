@@ -193,6 +193,8 @@ class SubaruIsrTask(IsrTask):
         if self.config.doSetBadRegions:
             self.setBadRegions(ccdExposure)
 
+        self.maskAndInterpNan(ccdExposure)
+
         if self.config.qa.doWriteFlattened:
             sensorRef.put(ccdExposure, "flattenedImage")
         if self.config.qa.doThumbnailFlattened:
