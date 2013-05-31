@@ -70,6 +70,21 @@ def main(dataDir, visit, title="", outputTxtFileName=None,
     aArr = np.array(aArr)
     bArr = np.array(bArr)
 
+    if correctDistortion:
+        import lsst.afw.geom.ellipses as afwEllipses
+
+        dist = camera.getDistortion()
+        for i in range(len(aArr)):
+            axes = afwEllipses.Axes(aArr[i], bArr[i], paArr[i])
+            if False:                                                       # testing only!
+                axes = afwEllipses.Axes(1.0, 1.0, np.arctan2(yArr[i], xArr[i]))
+            quad = afwEllipses.Quadrupole(axes)
+            quad = quad.transform(dist.computeQuadrupoleTransform(afwGeom.PointD(xArr[i], yArr[i]), False))
+            axes = afwEllipses.Axes(quad)
+            aArr[i], bArr[i], paArr[i] = axes.getA(), axes.getB(), axes.getTheta()
+
+        ellArr = 1 - bArr/aArr
+
     if len(xArr) == 0:
         gridPoints = 0
         xs, ys = [], []
