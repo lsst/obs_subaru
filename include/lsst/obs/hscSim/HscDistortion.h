@@ -45,10 +45,15 @@ public:
         afw::geom::Point2D const& p10 = p00 + afw::geom::Extent2D(eps, 0);
         afw::geom::Extent2D const& diff01 = (_transform(p01, forward) - _transform(p00, forward))/eps;
         afw::geom::Extent2D const& diff10 = (_transform(p10, forward) - _transform(p00, forward))/eps;
-
-        return afw::geom::LinearTransform((afw::geom::LinearTransform::Matrix() <<
-                                           diff10.getX(), diff10.getY(), diff01.getX(), diff01.getY()
-                                          ).finished());
+        //
+        // I *think* I have m(0, 1) and m(1, 0) right, but it's hard to check.
+        // This code appears to agree with Wcs.cc in afw (but I wrote the original version of that one too...)
+        afw::geom::LinearTransform::Matrix m;
+        m(0, 0) = diff10.getX();
+        m(0, 1) = diff01.getX();
+        m(1, 0) = diff10.getY();
+        m(1, 1) = diff01.getY();
+        return afw::geom::LinearTransform(m);
     }
 
     virtual std::string prynt() const { return std::string("HscDistortion derived class"); }
