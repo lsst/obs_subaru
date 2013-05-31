@@ -66,7 +66,7 @@ def main(dataDir, visit, title="", outputTxtFileName=None,
     yArr = np.array(yArr)
     ellArr = np.array(ellArr)
     fwhmArr = np.array(fwhmArr)*0.168   # arcseconds
-    paArr = np.array(paArr)
+    paArr = np.radians(np.array(paArr))
     aArr = np.array(aArr)
     bArr = np.array(bArr)
 
@@ -95,13 +95,12 @@ def main(dataDir, visit, title="", outputTxtFileName=None,
     elif showEllipticity:
         title.append("Ellipticity")
         scale = 4
-
         
         if ellipticityDirection:        # we don't care about the magnitude
             ellArr = 0.1
 
-        u =  -ellArr*np.cos(np.radians(paArr))
-        v =  -ellArr*np.sin(np.radians(paArr))
+        u =  -ellArr*np.cos(paArr)
+        v =  -ellArr*np.sin(paArr)
         if gridPoints > 0:
             u = griddata(xArr, yArr, u, xs, ys)
             v = griddata(xArr, yArr, v, xs, ys)
@@ -110,6 +109,7 @@ def main(dataDir, visit, title="", outputTxtFileName=None,
             x, y = xArr, yArr
 
         Q = plt.quiver(x, y, u, v, scale=scale,
+                       pivot="middle",
                        headwidth=0,
                        headlength=0,
                        headaxislength=0,
