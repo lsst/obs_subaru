@@ -132,7 +132,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Plot contours of PSF quality')
 
     parser.add_argument('dataDir', type=str, nargs="?", help='Datadir to search for PSF information')
-    parser.add_argument('--visit', type=str, help='Name of desired visit')
+    parser.add_argument('--rerun', type=str, help="Rerun to examine", default=None)
+    parser.add_argument('--visit', type=str, nargs="+", help='Name of desired visit')
     parser.add_argument('--inputFile', help="""File of desired visits and titles.
 One page will be generated per line in the file.  A line
 #dataDir: path
@@ -156,8 +157,13 @@ switches to that dataDir (the one on the command line is used previously)
     args = parser.parse_args()
 
     if not (args.dataDir or args.inputFile):
-        print >> sys.stderr, "Please specify a dataDir (maybe in an inputFile)"
-        sys.exit(1)
+        args.dataDir = os.environ.get("SUPRIME_DATA_DIR")
+        if not args.dataDir:
+            print >> sys.stderr, "Please specify a dataDir (maybe in an inputFile) or set $SUPRIME_DATA_DIR"
+            sys.exit(1)
+
+    if args.rerun:
+        args.dataDir = os.path.join(args.dataDir, "rerun", args.rerun)
 
     if args.outputPlotFile:
         from matplotlib.backends.backend_pdf import PdfPages
@@ -181,7 +187,11 @@ switches to that dataDir (the one on the command line is used previously)
                 t = t.replace("\t", " ")
                 desires.append([dd, v, t])
     else:
-        desires = ([args.dataDir, args.visit, ""],)
+        if not args.visit:
+            print >> sys.stderr, "Please choose a visit"
+            sys.exit(1)
+
+        desires = [[args.dataDir, v, args.rerun if args.rerun else ""] for v in args.visit]
 
     for dataDir, visit, title in desires:
         if args.verbose:
