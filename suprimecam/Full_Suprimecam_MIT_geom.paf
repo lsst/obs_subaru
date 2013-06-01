@@ -310,30 +310,34 @@ Linearity: {
         Amp: {
             serial: 1
             type: "PROPORTIONAL"
-            threshold: 0
-            maxCorrectable: 35400
+            threshold: 0.0
+            maxCorrectable: 80000.0
             coefficient: 0.0
+            intensityUnits: "ELECTRONS"
         }
         Amp: {
             serial: 2
             type: "PROPORTIONAL"
-            threshold: 0
-            maxCorrectable: 35400
+            threshold: 0.0
+            maxCorrectable: 80000.0
             coefficient: 0.0
+            intensityUnits: "ELECTRONS"
         }
         Amp: {
             serial: 3
             type: "PROPORTIONAL"
-            threshold: 0
-            maxCorrectable: 35400
+            threshold: 0.0
+            maxCorrectable: 80000.0
             coefficient: 0.0
+            intensityUnits: "ELECTRONS"
         }
         Amp: {
             serial: 4
             type: "PROPORTIONAL"
-            threshold: 0
-            maxCorrectable: 35400
+            threshold: 0.0
+            maxCorrectable: 80000.0
             coefficient: 0.0
+            intensityUnits: "ELECTRONS"
         }
     }
 }
