@@ -17,6 +17,9 @@ class PerPeak(object):
         self.out_of_bounds = False      # Used to mean "Bad Peak" rather than just out of bounds
         self.deblend_as_psf = False
 
+    def __str__(self):
+        return 'Per-peak deblend result: out_of_bounds: %s, deblend_as_psf: %s' % (self.out_of_bounds, self.deblend_as_psf)
+        
 def deblend(footprint, maskedImage, psf, psffwhm,
             psf_chisq_cut1 = 1.5,
             psf_chisq_cut2 = 1.5,
