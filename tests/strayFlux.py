@@ -76,7 +76,11 @@ class StrayFluxTestCase(unittest.TestCase):
         for pk in pks[:-1]:
             pklist.append(pk)
             
-        ima = dict(interpolation='nearest', origin='lower', cmap='gray')
+        ima = dict(interpolation='nearest', origin='lower', cmap='gray',
+                   vmin=0, vmax=1e6)
+
+        plt.figure(figsize=(12,6))
+
         plt.clf()
         plt.subplot(2,2,1)
         plt.imshow(img, **ima)
@@ -99,28 +103,80 @@ class StrayFluxTestCase(unittest.TestCase):
         print len(deb.peaks), 'deblended peaks'
 
         plt.clf()
+
+        R,C = 3,5
+        plt.subplot(R, C, (2*C) + 1)
+        plt.imshow(img, **ima)
+        # plt.colorbar()
+        ax = plt.axis()
+        plt.plot([x for x,y in XY], [y for x,y in XY], 'r.')
+        plt.axis(ax)
+        plt.title('Image')
+
+        sumimg = None
+        
         for i,dpk in enumerate(deb.peaks):
             # dpk.symm, dpk.median
             # dpk.timg, dpk.portion
             # dpk.heavy
             print dpk
             print dir(dpk)
-            plt.subplot(2, 3, i*3 + 1)
+
+            plt.subplot(R, C, i*C + 1)
             plt.imshow(dpk.symm.getArray(), **ima)
+            # plt.colorbar()
             plt.title('symm')
-            plt.subplot(2, 3, i*3 + 2)
+
+            plt.subplot(R, C, i*C + 2)
             plt.imshow(dpk.portion.getArray(), **ima)
+            # plt.colorbar()
             plt.title('portion')
 
             himg = afwImage.ImageF(fpbb)
             dpk.heavy.insert(himg)
             
-            plt.subplot(2, 3, i*3 + 3)
+            plt.subplot(R, C, i*C + 3)
             plt.imshow(himg.getArray(), **ima)
+            # plt.colorbar()
             plt.title('heavy')
             ax = plt.axis()
             plt.plot([x for x,y in XY], [y for x,y in XY], 'r.')
             plt.axis(ax)
+
+            simg = afwImage.ImageF(fpbb)
+            dpk.stray.insert(simg)
+            
+            plt.subplot(R, C, i*C + 4)
+            plt.imshow(simg.getArray(), **ima)
+            # plt.colorbar()
+            plt.title('stray')
+            ax = plt.axis()
+            plt.plot([x for x,y in XY], [y for x,y in XY], 'r.')
+            plt.axis(ax)
+
+            himg2 = afwImage.ImageF(fpbb)
+            dpk.heavy2.insert(himg2)
+
+            if sumimg is None:
+                sumimg = himg2.getArray().copy()
+            else:
+                sumimg += himg2.getArray()
+                
+            plt.subplot(R, C, i*C + 5)
+            plt.imshow(himg2.getArray(), **ima)
+            # plt.colorbar()
+            plt.title('heavy+stray')
+            ax = plt.axis()
+            plt.plot([x for x,y in XY], [y for x,y in XY], 'r.')
+            plt.axis(ax)
+
+        plt.subplot(R, C, (2*C) + C)
+        plt.imshow(sumimg, **ima)
+        ax = plt.axis()
+        plt.plot([x for x,y in XY], [y for x,y in XY], 'r.')
+        plt.axis(ax)
+        plt.title('Sum of deblends')
+            
         plt.savefig('stray2.png')
 
 

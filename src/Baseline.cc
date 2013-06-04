@@ -198,13 +198,22 @@ apportionFlux(MaskedImageT const& img,
 			  std::vector<MaskedImagePtrT> timgs,
 			  ImagePtrT sumimg,
 			  bool assignStrayFlux,
-			  std::vector<bool> ispsf,
-			  //std::vector<std::pair<int,int> > pkxy) {
-			  std::vector<int> pkx,
-			  std::vector<int> pky) {
+			  std::vector<bool> const& ispsf,
+			  std::vector<int>  const& pkx,
+			  std::vector<int>  const& pky,
+
+			  //std::vector<typename det::HeavyFootprint<ImagePixelT,MaskPixelT,VariancePixelT>::Ptr > strays
+			  std::vector<boost::shared_ptr<typename det::HeavyFootprint<ImagePixelT,MaskPixelT,VariancePixelT> > > & strays
+	) {
 
 	typedef typename det::Footprint::SpanList SpanList;
+	typedef typename det::HeavyFootprint<ImagePixelT, MaskPixelT, VariancePixelT> HeavyFootprint;
+	typedef typename boost::shared_ptr< HeavyFootprint > HeavyFootprintPtr;
+	//std::vector<det::HeavyFootprint<ImagePixelT,MaskPixelT,VariancePixelT>::Ptr > strays;
 	std::vector<MaskedImagePtrT> portions;
+	std::vector<det::Footprint::Ptr > strayfoot;
+	std::vector<std::vector<ImagePixelT> > straypix;
+
 	int ix0 = img.getX0();
 	int iy0 = img.getY0();
 	geom::Box2I fbb = foot.getBBox();
@@ -233,6 +242,10 @@ apportionFlux(MaskedImageT const& img,
 		MaskedImagePtrT port(new MaskedImageT(timg->getDimensions()));
 		port->setXY0(timg->getXY0());
 		portions.push_back(port);
+
+		strayfoot.push_back(det::Footprint::Ptr());
+		straypix.push_back(std::vector<ImagePixelT>());
+
 		geom::Box2I tbb = timg->getBBox(image::PARENT);
 		int tx0 = tbb.getMinX();
 		int ty0 = tbb.getMinY();
@@ -301,13 +314,11 @@ apportionFlux(MaskedImageT const& img,
 					if (ispsf.size() && ispsf[i]) {
 						continue;
 					}
-					//dx = pkxy[i].first  - x;
-					//dy = pkxy[i].second - y;
 					dx = pkx[i] - x;
 					dy = pky[i] - y;
 					isum += 1. / (1. + dx*dx + dy*dy);
 				}
-				printf("isum = %g\n", isum);
+				//printf("isum = %g\n", isum);
 
 				// Drop very small contributions...
 				const double strayclip = 0.001;
@@ -319,8 +330,6 @@ apportionFlux(MaskedImageT const& img,
 					if (ispsf.size() && ispsf[i]) {
 						continue;
 					}
-					//dx = pkxy[i].first  - x;
-					//dy = pkxy[i].second - y;
 					dx = pkx[i] - x;
 					dy = pky[i] - y;
 					double c;
@@ -330,15 +339,15 @@ apportionFlux(MaskedImageT const& img,
 					}
 					isum2 += c;
 				}
-				printf("isum2 = %g\n", isum2);
+				//printf("isum2 = %g\n", isum2);
 
+				// DEBUG
+				double sump = 0.0;
 				for (int i=0; i<timgs.size(); ++i) {
 					int dx, dy;
 					if (ispsf.size() && ispsf[i]) {
 						continue;
 					}
-					//dx = pkxy[i].first  - x;
-					//dy = pkxy[i].second - y;
 					dx = pkx[i] - x;
 					dy = pky[i] - y;
 					double c;
@@ -348,17 +357,50 @@ apportionFlux(MaskedImageT const& img,
 					}
 
 					// the stray portion to give to template i
-					double p = (*inptr) * c / isum2;
-					geom::Box2I pbb = portions[i]->getBBox(image::PARENT);
-					if (pbb.contains(geom::Point2I(x, y))) {
-						// add it in
-						portions[i]->getImage()->set0(x, y, p);
-					} else {
-						// FIXME
-						printf("assigning stray flux %g to %i: outside template bounds.\n", p, i);
+					double p = c / isum2;
+					sump += p;
+					p *= (*inptr);
+					/*
+					 geom::Box2I pbb = portions[i]->getBBox(image::PARENT);
+					 if (pbb.contains(geom::Point2I(x, y))) {
+					 // add it in
+					 portions[i]->getImage()->set0(x, y, p);
+					 } else {
+					 */
+					if (1) {
+						//printf("assigning stray flux %g to %i: outside template bounds.\n", p, i);
+						if (!strayfoot[i]) {
+							strayfoot[i] = det::Footprint::Ptr(new det::Footprint());
+						}
+						//printf("  strayfoot: %p\n", strayfoot[i].get());
+						//printf("  straypix: %i\n", straypix[i].size());
+						strayfoot[i]->addSpan(y, x, x);
+						straypix[i].push_back(p);
 					}
 				}
+				printf("allocated fraction %g of stray flux\n", sump);
 			}
+		}
+	}
+
+	for (size_t i=0; i<timgs.size(); ++i) {
+		if (!strayfoot[i]) {
+			//strays.push_back(det::HeavyFootprint<ImagePixelT,MaskPixelT,VariancePixelT>::Ptr());
+			//strays.push_back(det::Footprint<ImagePixelT,MaskPixelT,VariancePixelT>::Ptr());
+			strays.push_back(HeavyFootprintPtr());
+		} else {
+			//typename det::HeavyFootprint<ImagePixelT,MaskPixelT,VariancePixelT>::Ptr heavy(
+			//new det::HeavyFootprint<ImagePixelT,MaskPixelT,VariancePixelT>(strayfoot[i]));
+			HeavyFootprintPtr heavy(new HeavyFootprint(*strayfoot[i]));
+			ndarray::Array<ImagePixelT,1,1> himg = heavy->getImageArray();
+			typename std::vector<ImagePixelT>::const_iterator spix;
+			typename ndarray::Array<ImagePixelT,1,1>::Iterator hpix;
+			for (spix = straypix[i].begin(), hpix = himg.begin();
+				 spix != straypix[i].end();
+				 ++spix, ++hpix) {
+				*hpix = *spix;
+			}
+			strays.push_back(heavy);
 		}
 	}
 
@@ -651,6 +693,44 @@ buildSymmetricTemplate(
 
 	return std::pair<MaskedImagePtrT, FootprintPtrT>(rimg, sfoot);
 }
+
+
+template<typename ImagePixelT, typename MaskPixelT, typename VariancePixelT>
+boost::shared_ptr<typename det::HeavyFootprint<ImagePixelT,MaskPixelT,VariancePixelT> >
+deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::
+mergeHeavyFootprints(HeavyFootprintT const& h1,
+					 HeavyFootprintT const& h2) {
+
+	// Merge the Footprints (by merging the Spans)
+	det::Footprint foot(h1);
+	det::Footprint::SpanList spans = h2.getSpans();
+	for (det::Footprint::SpanList::iterator sp = spans.begin();
+		 sp != spans.end(); ++sp) {
+		foot.addSpan(**sp);
+	}
+
+	// Find the union bounding-box
+	geom::Box2I bbox(h1.getBBox());
+	bbox.include(h2.getBBox());
+	printf("bbox: %i %i %i %i\n",
+		   bbox.getMinX(), bbox.getMaxX(), bbox.getMinY(), bbox.getMaxY());
+	// Create union-bb-sized images and insert the heavies
+	image::MaskedImage<ImagePixelT,MaskPixelT,VariancePixelT> im1(bbox);
+	image::MaskedImage<ImagePixelT,MaskPixelT,VariancePixelT> im2(bbox);
+
+	geom::Box2I bb = im1.getBBox(image::PARENT);
+	printf("im1 bbox: %i %i %i %i\n",
+		   bbox.getMinX(), bbox.getMaxX(), bbox.getMinY(), bbox.getMaxY());
+
+	h1.insert(im1);
+	h2.insert(im2);
+	// Add the pixels
+	im1 += im2;
+
+	// Build new HeavyFootprint from the merged spans and summed pixels.
+	return HeavyFootprintPtr(new HeavyFootprintT(foot, im1));
+}
+
 
 // Instantiate
 template class deblend::BaselineUtils<float>;

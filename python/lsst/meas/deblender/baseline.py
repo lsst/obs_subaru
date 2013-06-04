@@ -222,11 +222,16 @@ def deblend(footprint, maskedImage, psf, psffwhm,
     # Now apportion flux according to the templates
     log.logdebug('Apportioning flux among %i templates' % len(tmimgs))
     sumimg = afwImage.ImageF(bb.getDimensions())
+    strayflux = butils.getEmptyStrayFluxList()
     ports = butils.apportionFlux(maskedImage, fp, tmimgs, sumimg,
-                                 True, dpsf, pkx, pky)
-
+                                 True, dpsf, pkx, pky, strayflux)
+    #print 'stray flux:', strayflux
+    print 'N stray flux:', len(strayflux)
+    #for s in strayflux:
+    #    print s
+    
     ii = 0
-    for (pk, pkres) in zip(peaks, res.peaks):
+    for (pk, pkres, stray) in zip(peaks, res.peaks, strayflux):
         if pkres.out_of_bounds:
             continue
         pkres.mportion = ports[ii]
@@ -235,7 +240,12 @@ def deblend(footprint, maskedImage, psf, psffwhm,
         heavy = afwDet.makeHeavyFootprint(pkres.tfoot, pkres.mportion)
         heavy.getPeaks().push_back(pk)
         pkres.heavy = heavy
-
+        pkres.stray = stray
+        print 'Stray:', stray
+        if stray:
+            pkres.heavy2 = butils.mergeHeavyFootprints(heavy, stray)
+        else:
+            pkres.heavy2 = heavy
     return res
 
 class CachingPsf(object):

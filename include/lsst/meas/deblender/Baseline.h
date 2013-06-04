@@ -32,6 +32,8 @@ namespace lsst {
                 typedef typename lsst::afw::detection::Footprint::Ptr FootprintPtrT;
                 typedef typename lsst::afw::detection::HeavyFootprint<ImagePixelT, MaskPixelT, VariancePixelT> HeavyFootprintT;
 
+                typedef typename boost::shared_ptr<lsst::afw::detection::HeavyFootprint<ImagePixelT, MaskPixelT, VariancePixelT> > HeavyFootprintPtr;
+
                 static std::vector<double>
                 fitEllipse(ImageT const& img,
                            double bkgd, double xc, double yc);
@@ -69,17 +71,26 @@ namespace lsst {
                                //
                                ImagePtrT sumimg,
                                bool assignStrayFlux,
-                               std::vector<bool> ispsf,
-                               //std::vector<std::pair<int, int> > pkxy);
-                               std::vector<int> pkx,
-                               std::vector<int> pky);
+                               std::vector<bool> const& ispsf,
+                               std::vector<int>  const& pkx,
+                               std::vector<int>  const& pky,
+                               std::vector<boost::shared_ptr<typename lsst::afw::detection::HeavyFootprint<ImagePixelT,MaskPixelT,VariancePixelT> > > & strays
+                     );
 
-                               /*
-                                ImagePtrT sumimg = ImagePtrT(),
-                                bool assignStrayFlux = true,
-                                std::vector<bool> ispsf = std::vector<bool>(),
-                                std::vector<std::pair<int, int> > pkxy = std::vector<std::pair<int, int> >());
-                                */
+                static
+                std::vector<boost::shared_ptr<typename lsst::afw::detection::HeavyFootprint<ImagePixelT,MaskPixelT,VariancePixelT> > >
+                getEmptyStrayFluxList() {
+                    return std::vector<boost::shared_ptr<typename lsst::afw::detection::HeavyFootprint<ImagePixelT,MaskPixelT,VariancePixelT> > >();
+                };
+
+
+                /*** This should move to HeavyFootprint.cc ***/
+                static
+                boost::shared_ptr<lsst::afw::detection::HeavyFootprint<ImagePixelT, MaskPixelT, VariancePixelT> >
+                mergeHeavyFootprints(
+                    lsst::afw::detection::HeavyFootprint<ImagePixelT, MaskPixelT, VariancePixelT> const& h1,
+                    lsst::afw::detection::HeavyFootprint<ImagePixelT, MaskPixelT, VariancePixelT> const& h2);
+
             };
         }
     }
