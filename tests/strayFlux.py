@@ -48,7 +48,9 @@ class StrayFluxTestCase(unittest.TestCase):
         pks = []
         blobimgs = []
         x = 75.
-        XY = [(x,40.), (x,60.), (40.,50.)]
+        # XY = [(x,40.), (x,60.), (50.,50.)]
+        XY = [(x,35.), (x,65.), (50.,50.)]
+        # XY = [(x,30.), (x,70.), (40.,50.)]
         flux = 1e6
 
         for x,y in XY:
@@ -75,7 +77,29 @@ class StrayFluxTestCase(unittest.TestCase):
         pklist = fp.getPeaks()
         for pk in pks[:-1]:
             pklist.append(pk)
-            
+
+
+        # middle = convolvedImage = afwimg.Factory(afwimg)
+        # fpSetsPos =  thresholdImage(middle, "positive")
+        thresh = afwDet.createThreshold(5., 'stdev', True)
+        fpSet = afwDet.FootprintSet(afwimg, thresh, 'DETECTED', 1)
+        print 'got', fpSet
+        fps = fpSet.getFootprints()
+        print 'found', len(fps), 'footprints'
+        pks2 = []
+        for fp in fps:
+            print 'footprint', fp
+            print 'peaks:', len(fp.getPeaks())
+            for pk in fp.getPeaks():
+                print '  ', pk.getIx(), pk.getIy()
+                pks2.append((pk.getIx(), pk.getIy()))
+
+        # The first peak in this list is the one we want to omit.
+        fp0 = fps[0]
+        fakefp = afwDet.Footprint(fp0.getSpans(), fp0.getBBox())
+        for pk in fp0.getPeaks()[1:]:
+            fakefp.getPeaks().append(pk)
+        
         ima = dict(interpolation='nearest', origin='lower', cmap='gray',
                    vmin=0, vmax=1e6)
 
@@ -86,6 +110,10 @@ class StrayFluxTestCase(unittest.TestCase):
         plt.imshow(img, **ima)
         ax = plt.axis()
         plt.plot([x for x,y in XY], [y for x,y in XY], 'r.')
+
+        #for (x,y),c in zip(pks2, 'mgb'):
+        #plt.plot(fp.
+
         plt.axis(ax)
         for i,(b,(x,y)) in enumerate(zip(blobimgs, XY)):
             plt.subplot(2,2, 2+i)
@@ -96,25 +124,47 @@ class StrayFluxTestCase(unittest.TestCase):
         plt.savefig('stray1.png')
 
         print 'Deblending...'
-        deb = deblend(fp, afwimg, fakepsf, fakepsf_fwhm,
-                      verbose=True)
+        #deb = deblend(fp, afwimg, fakepsf, fakepsf_fwhm, verbose=True)
+        deb = deblend(fakefp, afwimg, fakepsf, fakepsf_fwhm, verbose=True)
+
         print 'Result:', deb
 
         print len(deb.peaks), 'deblended peaks'
+
+        def imExt(img):
+            bbox = img.getBBox(afwImage.PARENT)
+            return [bbox.getMinX(), bbox.getMaxX(),
+                    bbox.getMinY(), bbox.getMaxY()]
+
+        def myimshow(*args, **kwargs):
+            plt.imshow(*args, **kwargs)
+            plt.xticks([]); plt.yticks([])
+            plt.axis(imExt(afwimg))
 
         plt.clf()
 
         R,C = 3,5
         plt.subplot(R, C, (2*C) + 1)
-        plt.imshow(img, **ima)
-        # plt.colorbar()
+        myimshow(img, **ima)
         ax = plt.axis()
         plt.plot([x for x,y in XY], [y for x,y in XY], 'r.')
         plt.axis(ax)
         plt.title('Image')
 
-        sumimg = None
+        hfp = afwDet.makeHeavyFootprint(fakefp, afwimg)
+        himg = afwImage.ImageF(fpbb)
+        hfp.insert(himg)
         
+        plt.subplot(R, C, (2*C) + 2)
+        myimshow(himg.getArray(), **ima)
+        ax = plt.axis()
+        plt.plot([pk.getIx() for pk in fakefp.getPeaks()],
+                 [pk.getIy() for pk in fakefp.getPeaks()], 'r.')
+        plt.axis(ax)
+        plt.title('Footprint')
+        
+        sumimg = None
+            
         for i,dpk in enumerate(deb.peaks):
             # dpk.symm, dpk.median
             # dpk.timg, dpk.portion
@@ -123,21 +173,18 @@ class StrayFluxTestCase(unittest.TestCase):
             print dir(dpk)
 
             plt.subplot(R, C, i*C + 1)
-            plt.imshow(dpk.symm.getArray(), **ima)
-            # plt.colorbar()
+            myimshow(dpk.symm.getArray(), extent=imExt(dpk.symm), **ima)
             plt.title('symm')
 
             plt.subplot(R, C, i*C + 2)
-            plt.imshow(dpk.portion.getArray(), **ima)
-            # plt.colorbar()
+            myimshow(dpk.portion.getArray(), extent=imExt(dpk.portion), **ima)
             plt.title('portion')
 
             himg = afwImage.ImageF(fpbb)
             dpk.heavy.insert(himg)
             
             plt.subplot(R, C, i*C + 3)
-            plt.imshow(himg.getArray(), **ima)
-            # plt.colorbar()
+            myimshow(himg.getArray(), **ima)
             plt.title('heavy')
             ax = plt.axis()
             plt.plot([x for x,y in XY], [y for x,y in XY], 'r.')
@@ -147,8 +194,7 @@ class StrayFluxTestCase(unittest.TestCase):
             dpk.stray.insert(simg)
             
             plt.subplot(R, C, i*C + 4)
-            plt.imshow(simg.getArray(), **ima)
-            # plt.colorbar()
+            myimshow(simg.getArray(), **ima)
             plt.title('stray')
             ax = plt.axis()
             plt.plot([x for x,y in XY], [y for x,y in XY], 'r.')
@@ -163,15 +209,14 @@ class StrayFluxTestCase(unittest.TestCase):
                 sumimg += himg2.getArray()
                 
             plt.subplot(R, C, i*C + 5)
-            plt.imshow(himg2.getArray(), **ima)
-            # plt.colorbar()
+            myimshow(himg2.getArray(), **ima)
             plt.title('heavy+stray')
             ax = plt.axis()
             plt.plot([x for x,y in XY], [y for x,y in XY], 'r.')
             plt.axis(ax)
 
         plt.subplot(R, C, (2*C) + C)
-        plt.imshow(sumimg, **ima)
+        myimshow(sumimg, **ima)
         ax = plt.axis()
         plt.plot([x for x,y in XY], [y for x,y in XY], 'r.')
         plt.axis(ax)

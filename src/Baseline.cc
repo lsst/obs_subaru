@@ -201,15 +201,13 @@ apportionFlux(MaskedImageT const& img,
 			  std::vector<bool> const& ispsf,
 			  std::vector<int>  const& pkx,
 			  std::vector<int>  const& pky,
-
-			  //std::vector<typename det::HeavyFootprint<ImagePixelT,MaskPixelT,VariancePixelT>::Ptr > strays
 			  std::vector<boost::shared_ptr<typename det::HeavyFootprint<ImagePixelT,MaskPixelT,VariancePixelT> > > & strays
 	) {
 
 	typedef typename det::Footprint::SpanList SpanList;
 	typedef typename det::HeavyFootprint<ImagePixelT, MaskPixelT, VariancePixelT> HeavyFootprint;
 	typedef typename boost::shared_ptr< HeavyFootprint > HeavyFootprintPtr;
-	//std::vector<det::HeavyFootprint<ImagePixelT,MaskPixelT,VariancePixelT>::Ptr > strays;
+
 	std::vector<MaskedImagePtrT> portions;
 	std::vector<det::Footprint::Ptr > strayfoot;
 	std::vector<std::vector<ImagePixelT> > straypix;
@@ -271,13 +269,10 @@ apportionFlux(MaskedImageT const& img,
 	}
 
 	if (assignStrayFlux) {
-		//ImagePtrT stray = ImagePtrT(new ImageT(fbb.getDimensions()));
-
 		if ((ispsf.size() > 0) && (ispsf.size() != timgs.size())) {
 			// Bail out!
 			assert(0);
 		}
-		//if (pkxy.size() != timgs.size()) {
 		if (pkx.size() != timgs.size()) {
 			// Bail out!
 			assert(0);
@@ -302,7 +297,6 @@ apportionFlux(MaskedImageT const& img,
 
 			for (int x = x0; x <= (*s)->getX1(); ++x, ++sumptr, ++inptr) {
 				if ((*sumptr > 0) || (*inptr) <= 0) {
-//(*inptr).image() <= 0)) {
 					continue;
 				}
 				printf("Pixel at (%i,%i) has stray flux: %g\n", x, y, (float)*inptr);
@@ -368,12 +362,9 @@ apportionFlux(MaskedImageT const& img,
 					 } else {
 					 */
 					if (1) {
-						//printf("assigning stray flux %g to %i: outside template bounds.\n", p, i);
 						if (!strayfoot[i]) {
 							strayfoot[i] = det::Footprint::Ptr(new det::Footprint());
 						}
-						//printf("  strayfoot: %p\n", strayfoot[i].get());
-						//printf("  straypix: %i\n", straypix[i].size());
 						strayfoot[i]->addSpan(y, x, x);
 						straypix[i].push_back(p);
 					}
@@ -385,12 +376,11 @@ apportionFlux(MaskedImageT const& img,
 
 	for (size_t i=0; i<timgs.size(); ++i) {
 		if (!strayfoot[i]) {
-			//strays.push_back(det::HeavyFootprint<ImagePixelT,MaskPixelT,VariancePixelT>::Ptr());
-			//strays.push_back(det::Footprint<ImagePixelT,MaskPixelT,VariancePixelT>::Ptr());
 			strays.push_back(HeavyFootprintPtr());
 		} else {
-			//typename det::HeavyFootprint<ImagePixelT,MaskPixelT,VariancePixelT>::Ptr heavy(
-			//new det::HeavyFootprint<ImagePixelT,MaskPixelT,VariancePixelT>(strayfoot[i]));
+			/// Hmm, this is a little bit dangerous: we're assuming that
+			/// the HeavyFootprint stores its pixels in the same order that
+			/// we iterate over them above (ie, lexicographic).
 			HeavyFootprintPtr heavy(new HeavyFootprint(*strayfoot[i]));
 			ndarray::Array<ImagePixelT,1,1> himg = heavy->getImageArray();
 			typename std::vector<ImagePixelT>::const_iterator spix;
