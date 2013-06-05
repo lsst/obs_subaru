@@ -253,8 +253,6 @@ class StrayFluxTestCase(unittest.TestCase):
         var = afwimg.getVariance().getArray()
         var[:,:] = 1.
 
-        #print 'Variance:', afwimg.getVariance().getArray()
-
         #y = 1
         y = 0
         
@@ -264,7 +262,7 @@ class StrayFluxTestCase(unittest.TestCase):
         img[0,  1] = 20.
         img[0, -2] = 20.
         
-        print 'Image:', afwimg.getImage().getArray()
+        #print 'Image:', afwimg.getImage().getArray()
 
         fakepsf_fwhm = 1.
         fakepsf = afwDet.createPsf('DoubleGaussian', 1, 1, fakepsf_fwhm)
@@ -302,24 +300,13 @@ class StrayFluxTestCase(unittest.TestCase):
 
             for i,dpk in enumerate(deb.peaks):
                 print dpk
-                print 'ext', imExt(dpk.portion)
                 bb = dpk.portion.getBBox(afwImage.PARENT)
-                # xx = np.arange(bb.getMinX(), bb.getMaxX()+2).repeat(2)[1:-1]
-                # print 'xx', xx.shape, xx
-                # yy = dpk.portion.getArray()[0,:].repeat(2)
-                # print 'yy', yy.shape, yy
-                # plt.plot(xx, yy, 'r-')
                 YY = np.zeros(XX.shape)
-                print 'YY', YY.shape
-                #print 'slice', bb.getMinX(), bb.getMaxX()+1
-                #print 'slice', YY[bb.getMinX()*2 : (bb.getMaxX()+1)*2].shape
-                #print 'rslice', dpk.portion.getArray()[0,:].repeat(2)
                 YY[bb.getMinX()*2 : (bb.getMaxX()+1)*2] = dpk.portion.getArray()[0,:].repeat(2)
                 plt.plot(XX, YY, 'r-')
-                
+
                 simg = afwImage.ImageF(fpbb)
                 dpk.stray.insert(simg)
-
                 plt.plot(XX, simg.getArray()[y,:].repeat(2), 'b-')
 
             plt.savefig('stray3.png')
