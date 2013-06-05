@@ -32,6 +32,8 @@ def deblend(footprint, maskedImage, psf, psffwhm,
             sigma1=None,
             maxNumberOfPeaks=0,
             dropTinyFootprints=True,
+            findStrayFlux=True,
+            assignStrayFlux=True
             ):
     '''
     Deblend a single ``footprint`` in a ``maskedImage``.
@@ -226,7 +228,7 @@ def deblend(footprint, maskedImage, psf, psffwhm,
     sumimg = afwImage.ImageF(bb.getDimensions())
     strayflux = butils.getEmptyStrayFluxList()
     ports = butils.apportionFlux(maskedImage, fp, tmimgs, sumimg,
-                                 True, dpsf, pkx, pky, strayflux)
+                                 findStrayFlux, dpsf, pkx, pky, strayflux)
     ii = 0
     for (pk, pkres, stray) in zip(peaks, res.peaks, strayflux):
         if pkres.out_of_bounds:
@@ -241,8 +243,14 @@ def deblend(footprint, maskedImage, psf, psffwhm,
         # print 'Stray:', stray
         if stray:
             pkres.heavy2 = butils.mergeHeavyFootprints(heavy, stray)
+            pkres.heavy2.getPeaks().push_back(pk)
         else:
             pkres.heavy2 = heavy
+
+        if assignStrayFlux:
+            pkres.heavy1 = pkres.heavy
+            pkres.heavy = pkres.heavy2
+
     return res
 
 class CachingPsf(object):

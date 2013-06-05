@@ -175,7 +175,7 @@ class StrayFluxTestCase(unittest.TestCase):
                 plt.title('portion')
     
                 himg = afwImage.ImageF(fpbb)
-                dpk.heavy.insert(himg)
+                dpk.heavy1.insert(himg)
                 
                 plt.subplot(R, C, i*C + 3)
                 myimshow(himg.getArray(), **ima)
