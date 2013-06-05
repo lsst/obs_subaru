@@ -31,6 +31,7 @@ def deblend(footprint, maskedImage, psf, psffwhm,
             log=None, verbose=False,
             sigma1=None,
             maxNumberOfPeaks=0,
+            dropTinyFootprints=True,
             ):
     '''
     Deblend a single ``footprint`` in a ``maskedImage``.
@@ -106,7 +107,8 @@ def deblend(footprint, maskedImage, psf, psffwhm,
     if fit_psfs:
         # Find peaks that are well-fit by a PSF + background model.
         _fit_psfs(fp, peaks, res, log, psf, psffwhm, img, varimg,
-                  psf_chisq_cut1, psf_chisq_cut2, psf_chisq_cut2b)
+                  psf_chisq_cut1, psf_chisq_cut2, psf_chisq_cut2b,
+                  dropTiny = dropTinyFootprints)
 
     log.logdebug('Creating templates for footprint at x0,y0,W,H = (%i,%i, %i,%i)' % (x0,y0,W,H))
     for pkres in res.peaks:
@@ -203,7 +205,7 @@ def deblend(footprint, maskedImage, psf, psffwhm,
                 A[r0 + sx0-x0: r0+1+sx1-x0, i] = imrow
 
         X1,r1,rank1,s1 = np.linalg.lstsq(A, b)
-        print 'Template weights:', X1
+        # print 'Template weights:', X1
         del A
         del b
 
@@ -225,11 +227,6 @@ def deblend(footprint, maskedImage, psf, psffwhm,
     strayflux = butils.getEmptyStrayFluxList()
     ports = butils.apportionFlux(maskedImage, fp, tmimgs, sumimg,
                                  True, dpsf, pkx, pky, strayflux)
-    #print 'stray flux:', strayflux
-    print 'N stray flux:', len(strayflux)
-    #for s in strayflux:
-    #    print s
-    
     ii = 0
     for (pk, pkres, stray) in zip(peaks, res.peaks, strayflux):
         if pkres.out_of_bounds:
@@ -241,7 +238,7 @@ def deblend(footprint, maskedImage, psf, psffwhm,
         heavy.getPeaks().push_back(pk)
         pkres.heavy = heavy
         pkres.stray = stray
-        print 'Stray:', stray
+        # print 'Stray:', stray
         if stray:
             pkres.heavy2 = butils.mergeHeavyFootprints(heavy, stray)
         else:
@@ -262,7 +259,8 @@ class CachingPsf(object):
 
 
 def _fit_psfs(fp, peaks, fpres, log, psf, psffwhm, img, varimg,
-              psf_chisq_cut1, psf_chisq_cut2, psf_chisq_cut2b):
+              psf_chisq_cut1, psf_chisq_cut2, psf_chisq_cut2b,
+              **kwargs):
     '''
     Fit a PSF + smooth background models to a small region around each
     peak (plus other peaks that are nearby) in the given list of
@@ -298,12 +296,15 @@ def _fit_psfs(fp, peaks, fpres, log, psf, psffwhm, img, varimg,
         log.logdebug('Peak %i' % pki)
         _fit_psf(fp, fmask, pk, pkF, pkres, fbb, peaks, peakF, log, cpsf,
                  psffwhm, img, varimg,
-                 psf_chisq_cut1, psf_chisq_cut2, psf_chisq_cut2b)
+                 psf_chisq_cut1, psf_chisq_cut2, psf_chisq_cut2b,
+                 **kwargs)
 
 
 def _fit_psf(fp, fmask, pk, pkF, pkres, fbb, peaks, peaksF, log, psf,
              psffwhm, img, varimg,
-             psf_chisq_cut1, psf_chisq_cut2, psf_chisq_cut2b):
+             psf_chisq_cut1, psf_chisq_cut2, psf_chisq_cut2b,
+             dropTiny = True
+             ):
     '''
     Fit a PSF + smooth background model (linear) to a small region around the peak.
 
@@ -336,9 +337,18 @@ def _fit_psf(fp, fmask, pk, pkF, pkres, fbb, peaks, peaksF, log, psf,
     R2 = R1 + psfimg.getWidth()/2.
 
     pbb = psfimg.getBBox(afwImage.PARENT)
+
+    #print 'PSFimg bb x[%i,%i], y[%i,%i]' % (
+    #    pbb.getMinX(), pbb.getMaxX(), pbb.getMinY(), pbb.getMaxY())
+    #print 'Foot bb x[%i,%i], y[%i,%i]' % (
+    #    fbb.getMinX(), fbb.getMaxX(), fbb.getMinY(), fbb.getMaxY())
+
     pbb.clip(fbb)
     px0,py0 = psfimg.getX0(), psfimg.getY0()
 
+    #print 'Clipped PSFimg bb x[%i,%i], y[%i,%i]' % (
+    #    pbb.getMinX(), pbb.getMaxX(), pbb.getMinY(), pbb.getMaxY())
+    
     # The bounding-box of the local region we are going to fit ("stamp")
     xlo = int(math.floor(cx - R1))
     ylo = int(math.floor(cy - R1))
@@ -348,13 +358,17 @@ def _fit_psf(fp, fmask, pk, pkF, pkres, fbb, peaks, peaksF, log, psf,
     stampbb.clip(fbb)
     xlo,xhi = stampbb.getMinX(), stampbb.getMaxX()
     ylo,yhi = stampbb.getMinY(), stampbb.getMaxY()
-    if xlo >= xhi or ylo >= yhi:
+    if xlo > xhi or ylo > yhi:
         log.logdebug('Skipping this peak: out of bounds')
         pkres.out_of_bounds = True
         return
 
-    # drop tiny footprints too
-    if xhi < (xlo + 2) or yhi < (ylo + 2):
+    #print 'Clipped stamp bb x[%i,%i], y[%i,%i]' % (
+    #    stampbb.getMinX(), stampbb.getMaxX(), stampbb.getMinY(), stampbb.getMaxY())
+    #print 'Stamp bb x[%i,%i], y[%i,%i]' % (xlo,xhi,ylo,yhi)
+    
+    # drop tiny footprints too?
+    if dropTiny and (xhi < (xlo + 2) or yhi < (ylo + 2)):
         log.logdebug('Skipping this peak: tiny footprint / close to edge')
         pkres.out_of_bounds = True
         return
@@ -458,6 +472,10 @@ def _fit_psf(fp, fmask, pk, pkF, pkres, fbb, peaks, peaksF, log, psf,
 
     px0,px1 = pbb.getMinX(), pbb.getMaxX()
     py0,py1 = pbb.getMinY(), pbb.getMaxY()
+
+    #print 'xlo,xhi', xlo,xhi
+    #print 'px0,px1', px0,px1
+
     sx1,sx2,sx3,sx4 = _overlap(xlo, xhi, px0, px1)
     sy1,sy2,sy3,sy4 = _overlap(ylo, yhi, py0, py1)
     dpx0,dpy0 = px0 - xlo, py0 - ylo

@@ -299,7 +299,7 @@ apportionFlux(MaskedImageT const& img,
 				if ((*sumptr > 0) || (*inptr) <= 0) {
 					continue;
 				}
-				printf("Pixel at (%i,%i) has stray flux: %g\n", x, y, (float)*inptr);
+				//printf("Pixel at (%i,%i) has stray flux: %g\n", x, y, (float)*inptr);
 				// Split the stray flux by 1/r^2 ...
 				double isum = 0.0;
 				for (int i=0; i<timgs.size(); ++i) {
@@ -337,6 +337,7 @@ apportionFlux(MaskedImageT const& img,
 
 				// DEBUG
 				double sump = 0.0;
+
 				for (int i=0; i<timgs.size(); ++i) {
 					int dx, dy;
 					if (ispsf.size() && ispsf[i]) {
@@ -369,7 +370,7 @@ apportionFlux(MaskedImageT const& img,
 						straypix[i].push_back(p);
 					}
 				}
-				printf("allocated fraction %g of stray flux\n", sump);
+				//printf("allocated fraction %g of stray flux\n", sump);
 			}
 		}
 	}
@@ -440,18 +441,24 @@ symmetrizeFootprint(
 	// lower_bound returns the first position where "target" could be inserted;
 	// ie, the first Span larger than "target".  The Span containing "target"
 	// should be peakspan-1.
+	det::Span::Ptr sp;
 	if (peakspan == spans.begin()) {
-		log.warnf("Failed to find span containing (%i,%i): before the beginning of this footprint", cx, cy);
-		return det::Footprint::Ptr();
-	}
-	peakspan--;
-	det::Span::Ptr sp = *peakspan;
-	if (!(sp->contains(cx,cy))) {
-		geom::Box2I fbb = foot.getBBox();
-		log.warnf("Failed to find span containing (%i,%i): nearest is %i, [%i,%i].  Footprint bbox is [%i,%i],[%i,%i]",
-				  cx, cy, sp->getY(), sp->getX0(), sp->getX1(),
-				  fbb.getMinX(), fbb.getMaxX(), fbb.getMinY(), fbb.getMaxY());
-		return det::Footprint::Ptr();
+		sp = *peakspan;
+		if (!sp->contains(cx, cy)) {
+			log.warnf("Failed to find span containing (%i,%i): before the beginning of this footprint", cx, cy);
+			return det::Footprint::Ptr();
+		}
+	} else {
+		peakspan--;
+		sp = *peakspan;
+
+		if (!(sp->contains(cx,cy))) {
+			geom::Box2I fbb = foot.getBBox();
+			log.warnf("Failed to find span containing (%i,%i): nearest is %i, [%i,%i].  Footprint bbox is [%i,%i],[%i,%i]",
+					  cx, cy, sp->getY(), sp->getX0(), sp->getX1(),
+					  fbb.getMinX(), fbb.getMaxX(), fbb.getMinY(), fbb.getMaxY());
+			return det::Footprint::Ptr();
+		}
 	}
 	assert(sp->contains(cx,cy));
 	log.debugf("Span containing (%i,%i): (x=[%i,%i], y=%i)",
@@ -702,15 +709,14 @@ mergeHeavyFootprints(HeavyFootprintT const& h1,
 	// Find the union bounding-box
 	geom::Box2I bbox(h1.getBBox());
 	bbox.include(h2.getBBox());
-	printf("bbox: %i %i %i %i\n",
-		   bbox.getMinX(), bbox.getMaxX(), bbox.getMinY(), bbox.getMaxY());
+	//printf("bbox: %i %i %i %i\n", bbox.getMinX(), bbox.getMaxX(), bbox.getMinY(), bbox.getMaxY());
+	
 	// Create union-bb-sized images and insert the heavies
 	image::MaskedImage<ImagePixelT,MaskPixelT,VariancePixelT> im1(bbox);
 	image::MaskedImage<ImagePixelT,MaskPixelT,VariancePixelT> im2(bbox);
 
 	geom::Box2I bb = im1.getBBox(image::PARENT);
-	printf("im1 bbox: %i %i %i %i\n",
-		   bbox.getMinX(), bbox.getMaxX(), bbox.getMinY(), bbox.getMaxY());
+	//printf("im1 bbox: %i %i %i %i\n", bbox.getMinX(), bbox.getMaxX(), bbox.getMinY(), bbox.getMaxY());
 
 	h1.insert(im1);
 	h2.insert(im2);
