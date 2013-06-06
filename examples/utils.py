@@ -486,6 +486,8 @@ class WrapperMapper(object):
         print '->', R
         return R
     # relay
+    def isAggregate(self, *args):
+        return self.real.isAggregate(*args)
     def getKeys(self, *args):
         return self.real.getKeys(*args)
     def getDatasetTypes(self):

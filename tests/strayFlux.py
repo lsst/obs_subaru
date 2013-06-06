@@ -19,6 +19,8 @@ import lsst.afw.image as afwImage
 import lsst.pex.logging as pexLogging
 from lsst.meas.deblender.baseline import *
 
+import lsst.meas.algorithms as measAlg
+
 root = pexLogging.Log.getDefaultLog()
 root.setThreshold(pexLogging.Log.DEBUG)
 
@@ -26,7 +28,17 @@ def imExt(img):
     bbox = img.getBBox(afwImage.PARENT)
     return [bbox.getMinX(), bbox.getMaxX(),
             bbox.getMinY(), bbox.getMaxY()]
+
+def doubleGaussianPsf(W, H, fwhm1, fwhm2, a2):
+    #return afwDet.createPsf('DoubleGaussian', W, H, fwhm1, fwhm2, a2)
+    #return afwDet.DoubleGaussianPsf(W, H, fwhm1, fwhm2, a2)
+    return measAlg.DoubleGaussianPsf(W, H, fwhm1, fwhm2, a2)
     
+def gaussianPsf(W, H, fwhm):
+    #return afwDet.createPsf('DoubleGaussian', W, H, fwhm)
+    #return afwDet.DoubleGaussianPsf(W, H, fwhm1)
+    return measAlg.DoubleGaussianPsf(W, H, fwhm)
+
 
 class StrayFluxTestCase(unittest.TestCase):
     def test1(self):
@@ -53,11 +65,10 @@ class StrayFluxTestCase(unittest.TestCase):
         
         blob_fwhm = 10.
         #blob_psf = afwDet.createPsf('DoubleGaussian', 99, 99, blob_fwhm)
-        blob_psf = afwDet.createPsf('DoubleGaussian', 99, 99, blob_fwhm,
-                                    3.*blob_fwhm, 0.03)
+        blob_psf = doubleGaussianPsf(99, 99, blob_fwhm, 3.*blob_fwhm, 0.03)
 
         fakepsf_fwhm = 3.
-        fakepsf = afwDet.createPsf('DoubleGaussian', 11, 11, fakepsf_fwhm)
+        fakepsf = gaussianPsf(11, 11, fakepsf_fwhm)
         
         blobimgs = []
         x = 75.
@@ -265,7 +276,7 @@ class StrayFluxTestCase(unittest.TestCase):
         #print 'Image:', afwimg.getImage().getArray()
 
         fakepsf_fwhm = 1.
-        fakepsf = afwDet.createPsf('DoubleGaussian', 1, 1, fakepsf_fwhm)
+        fakepsf = gaussianPsf(1, 1, fakepsf_fwhm)
         #fakepsf = afwDet.createPsf('DoubleGaussian', 1, 3, 1.)
         #fakepsf = afwDet.createPsf('DoubleGaussian', 3, 3, 1.)
 
