@@ -31,7 +31,10 @@ class MyTask(CmdLineTask):
         self.deblend.run(calexp, sources, psf)
         print len(sources), 'sources after deblending'
 
+        sources.setWriteHeavyFootprints(True)
         sources.writeFits('deblended.fits')
+
+        calexp.writeFits('calexp.fits')
         
 if __name__ == "__main__":
     MyTask.parseAndRun()
