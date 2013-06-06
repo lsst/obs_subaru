@@ -20,6 +20,7 @@ Python interface to lsst::meas::deblender classes
 #include "lsst/afw/cameraGeom.h"
 #include "lsst/afw/math.h"
 
+#include "lsst/afw/image/Calib.h"
 #include "lsst/afw/image/ImageSlice.h"
 #include "lsst/afw/image/TanWcs.h"
 %}
@@ -39,6 +40,7 @@ using namespace lsst::afw::detection;
 
 %lsst_exceptions();
 
+%import "lsst/afw/table/io/ioLib.i"
 %import "lsst/afw/image/imageLib.i"
 %import "lsst/afw/detection/detectionLib.i"
 

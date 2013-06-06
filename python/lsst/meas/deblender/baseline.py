@@ -342,7 +342,11 @@ def _fit_psf(fp, fmask, pk, pkF, pkres, fbb, peaks, peaksF, log, psf,
     psfimg = psf.computeImage(cx, cy)
     # R2: distance to neighbouring peak in order to put it
     # into the model
-    R2 = R1 + psfimg.getWidth()/2.
+    R2 = R1 + min(psfimg.getWidth(), psfimg.getHeight())/2.
+
+    import lsstDebug
+    debugPlots = lsstDebug.Info(__name__).plots
+    debugPsf = lsstDebug.Info(__name__).psf
 
     pbb = psfimg.getBBox(afwImage.PARENT)
 
@@ -389,8 +393,10 @@ def _fit_psf(fp, fmask, pk, pkF, pkres, fbb, peaks, peaksF, log, psf,
         if pkF.distanceSquared(pkF2) > R2**2:
             continue
         opsfimg = psf.computeImage(pkF2.getX(), pkF2.getY())
+        if not opsfimg.getBBox().overlaps(stampbb): # Local PSF may be a different size than central
+            continue
         otherpeaks.append(opsfimg)
-    log.logdebug('%i other peaks within range' % len(otherpeaks))
+        log.logdebug('%i other peaks within range' % len(otherpeaks))
 
     # Now we are going to do a least-squares fit for the flux
     # in this PSF, plus a decenter term, a linear sky, and
@@ -462,9 +468,7 @@ def _fit_psf(fp, fmask, pk, pkF, pkres, fbb, peaks, peaksF, log, psf,
     del inpsfy
 
     def _overlap(xlo, xhi, xmin, xmax):
-        if xlo > xmax or xhi < xmin or xlo > xhi or xmin > xmax:
-            assert(0)
-            return (0,0,0,0)
+        assert xlo <= xmax and xhi >= xmin and xlo <= xhi and xmin <= xmax, "No overlap"
         xloclamp = max(xlo, xmin)
         Xlo = xloclamp - xlo
         xhiclamp = min(xhi, xmax)
@@ -535,11 +539,40 @@ def _fit_psf(fp, fmask, pk, pkF, pkres, fbb, peaks, peaksF, log, psf,
     Aw  = A * w[:,np.newaxis]
     bw  = b * w
 
+    if debugPlots:
+        import pylab as plt
+        plt.clf()
+        N = NT2 + 2
+        R,C = 2, (N+1) / 2
+        for i in range(NT2):
+            im1 = np.zeros((1+yhi-ylo, 1+xhi-xlo))
+            im1[ipixes[:,1], ipixes[:,0]] = A[:, i]
+            plt.subplot(R, C, i+1)
+            plt.imshow(im1, interpolation='nearest', origin='lower')
+
+        plt.subplot(R, C, NT2+1)
+        im1 = np.zeros((1+yhi-ylo, 1+xhi-xlo))
+        im1[ipixes[:,1], ipixes[:,0]] = b
+        plt.imshow(im1, interpolation='nearest', origin='lower')
+        plt.subplot(R, C, NT2+2)
+        im1 = np.zeros((1+yhi-ylo, 1+xhi-xlo))
+        im1[ipixes[:,1], ipixes[:,0]] = w
+        plt.imshow(im1, interpolation='nearest', origin='lower')
+        plt.savefig('A.png')
+
     # We do fits with and without the decenter terms.
     # Since the dx,dy terms are at the end of the matrix,
     # we can do that just by trimming off those elements.
-    X1,r1,rank1,s1 = np.linalg.lstsq(Aw[:,:NT1], bw)
-    X2,r2,rank2,s2 = np.linalg.lstsq(Aw, bw)
+    #
+    # The SVD can fail if there are NaNs in the matrices; this should really be handled upstream
+    try:
+        X1,r1,rank1,s1 = np.linalg.lstsq(Aw[:,:NT1], bw)
+        X2,r2,rank2,s2 = np.linalg.lstsq(Aw, bw)
+    except np.linalg.LinAlgError, e:
+        log.log(log.WARN, "Failed to fit PSF to child: %s" % e)
+        pkres.out_of_bounds = True
+        return
+
     #print 'X1', X1
     #print 'X2', X2
     #print 'ranks', rank1, rank2
@@ -647,6 +680,36 @@ def _fit_psf(fp, fmask, pk, pkF, pkres, fbb, peaks, peaksF, log, psf,
         log.logdebug('Keeping unshifted PSF model')
     #A = A[:,:NT1]
     ispsf = (ispsf1 or ispsf2)
+
+    # Save the PSF models in images for posterity.
+    if debugPsf:
+        SW,SH = 1+xhi-xlo, 1+yhi-ylo
+        psfmod = afwImage.ImageF(SW,SH)
+        psfmod.setXY0(xlo,ylo)
+        psfderivmodm = afwImage.MaskedImageF(SW,SH)
+        psfderivmod = psfderivmodm.getImage()
+        psfderivmod.setXY0(xlo,ylo)
+        model = afwImage.ImageF(SW,SH)
+        model.setXY0(xlo,ylo)
+        for i in range(len(Xpsf)):
+            V = A[:,i]*Xpsf[i]
+            for (x,y),v in zip(ipixes, A[:,i]*Xpsf[i]):
+                ix,iy = int(x),int(y)
+                model.set(ix, iy, model.get(ix,iy) + float(v))
+                if i in [I_psf, I_dx, I_dy]:
+                    psfderivmod.set(ix, iy, psfderivmod.get(ix,iy) + float(v))
+        for ii in range(NP):
+            x,y = ipixes[ii,:]
+            psfmod.set(int(x),int(y), float(A[ii, I_psf] * Xpsf[I_psf]))
+        modelfp = afwDet.Footprint()
+        for (x,y) in ipixes:
+            modelfp.addSpan(int(y+ylo), int(x+xlo), int(x+xlo))
+        modelfp.normalize()
+
+        pkres.psf0img = psfimg
+        pkres.psfimg = psfmod
+        pkres.psfderivimg = psfderivmod
+        pkres.model = model
 
     # Save things we learned about this peak for posterity...
     pkres.R0 = R0
