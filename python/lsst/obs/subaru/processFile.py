@@ -21,6 +21,7 @@
 # see <http://www.lsstcorp.org/LegalNotices/>.
 #
 import argparse
+import getpass
 import os
 import sys
 from lsst.pipe.tasks.processImage import ProcessImageTask
@@ -31,10 +32,11 @@ import lsst.pex.config as pexConfig
 import lsst.pex.logging as pexLog
 import lsst.pipe.base as pipeBase
 import lsst.daf.persistence as dafPersist
+from lsst.obs.hscSim.fileMapper import FileMapper
 
 class ProcessFileConfig(ProcessImageTask.ConfigClass):
     """Config for ProcessFile"""
-    pass
+    doCalibrate = pexConfig.Field(dtype=bool, default=False, doc = "Perform calibration?")
 
 class ProcessFileTask(ProcessImageTask):
     """Process a CCD
@@ -59,7 +61,11 @@ class ProcessFileTask(ProcessImageTask):
     def _makeArgumentParser(cls):
         """Create an argument parser
         """
-        return FileArgumentParser(name=cls._DefaultName)
+        parser = FileArgumentParser(name=cls._DefaultName)
+        parser.add_id_argument(name="--id", datasetType="calexp",
+                               help="data ID, e.g. --id calexp=XXX")
+
+        return parser
 
     @pipeBase.timeMethod
     def run(self, sensorRef):
@@ -76,6 +82,8 @@ class ProcessFileTask(ProcessImageTask):
 
         # initialize outputs
         postIsrExposure = sensorRef.get("calexp")
+        postIsrExposure.getMaskedImage().getMask()[:] &= \
+            afwImage.MaskU.getPlaneBitMask(["SAT", "INTRP", "BAD", "EDGE"])
         
         # delegate the work to ProcessImageTask
         result = self.process(sensorRef, postIsrExposure)
@@ -113,22 +121,26 @@ class FileArgumentParser(pipeAP.ArgumentParser):
         if args == None:
             args = sys.argv[1:]
 
-        if len(args) < 1 or args[0].startswith("-") or args[0].startswith("@"):
-            self.print_help()
-            self.exit("%s: error: Must specify input as first argument" % self.prog)
+        if len(args) > 0 and not (args[0].startswith("-") or args[0].startswith("@")):
+            # note: don't set namespace.input until after running parse_args, else it will get overwritten
+            inputRoot = pipeAP._fixPath(pipeAP.DEFAULT_INPUT_NAME, args[0])
+            if not os.path.exists(inputRoot):
+                self.error("Error: input=%r not found" % (inputRoot,))
+            if not os.path.isdir(inputRoot):
+                inputRoot, fileName = os.path.split(inputRoot)
+                args[0:1] = [inputRoot, "--id", "calexp=%s" % fileName]
 
-        # note: don't set namespace.input until after running parse_args, else it will get overwritten
-        inputRoot = pipeAP._fixPath(pipeAP.DEFAULT_INPUT_NAME, args[0])
-        if not os.path.exists(inputRoot):
-            self.error("Error: input=%r not found" % (inputRoot,))
-        elif os.path.isdir(inputRoot):
-            self.error("Error: input=%r is a directory" % (inputRoot,))
+            if not os.path.isdir(inputRoot):
+                self.error("Error: input=%r is not a directory" % (inputRoot,))
         
         namespace = argparse.Namespace()
+        namespace.input = pipeAP._fixPath(pipeAP.DEFAULT_INPUT_NAME, args[0])
+        if not os.path.isdir(namespace.input):
+            self.error("Error: input=%r not found" % (namespace.input,))
         namespace.config = config
         namespace.log = log if log is not None else pexLog.Log.getDefaultLog()
         namespace.dataIdList = []
-        namespace.datasetType = self._datasetType
+        namespace.datasetType = "calexp"
 
         self.handleCamera(namespace)
 
@@ -137,32 +149,79 @@ class FileArgumentParser(pipeAP.ArgumentParser):
             self._applyInitialOverrides(namespace)
         if override is not None:
             override(namespace.config)
-        
+
+        # Add data ID containers to namespace
+        for dataIdArgument in self._dataIdArgDict.itervalues():
+            setattr(namespace, dataIdArgument.name, dataIdArgument.ContainerClass(level=dataIdArgument.level))
+
         namespace = argparse.ArgumentParser.parse_args(self, args=args, namespace=namespace)
-        namespace.input = inputRoot
         del namespace.configfile
-        del namespace.id
+                
+        namespace.calib = pipeAP._fixPath(pipeAP.DEFAULT_CALIB_NAME,  namespace.rawCalib)
+        if namespace.rawOutput:
+            namespace.output = pipeAP._fixPath(pipeAP.DEFAULT_OUTPUT_NAME, namespace.rawOutput)
+        else:
+            namespace.output = None
+            if namespace.rawRerun is None:
+                namespace.rawRerun = getpass.getuser()
+
+        if namespace.rawRerun:
+            if namespace.output:
+                self.error("Error: cannot specify both --output and --rerun")
+            namespace.rerun = tuple(os.path.join(namespace.input, "rerun", v)
+                                    for v in namespace.rawRerun.split(":"))
+            modifiedInput = False
+            if len(namespace.rerun) == 2:
+                namespace.input, namespace.output = namespace.rerun
+                modifiedInput = True
+            elif len(namespace.rerun) == 1:
+                if os.path.exists(namespace.rerun[0]):
+                    namespace.output = namespace.rerun[0]
+                    namespace.input = os.path.realpath(os.path.join(namespace.rerun[0], "_parent"))
+                    modifiedInput = True
+                else:
+                    namespace.output = namespace.rerun[0]
+            else:
+                self.error("Error: invalid argument for --rerun: %s" % namespace.rerun)
+            if modifiedInput:
+                try:
+                    inputMapper = dafPersist.Butler.getMapperClass(namespace.input)
+                except RuntimeError:
+                    inputMapper = None
+                if inputMapper and inputMapper != mapperClass:
+                    self.error("Error: input directory specified by --rerun must have the same mapper as INPUT")
+        else:
+            namespace.rerun = None
+        del namespace.rawInput
+        del namespace.rawCalib
+        del namespace.rawOutput
+        del namespace.rawRerun
         
-        namespace.calib  = pipeAP._fixPath(pipeAP.DEFAULT_CALIB_NAME,  namespace.calib)
-        namespace.output = pipeAP._fixPath(pipeAP.DEFAULT_OUTPUT_NAME, namespace.output)
-        
+        if namespace.clobberOutput:
+            if namespace.output is None:
+                self.error("--clobber-output is only valid with --output or --rerun")
+            elif namespace.output == namespace.input:
+                self.error("--clobber-output is not valid when the output and input repos are the same")
+            if os.path.exists(namespace.output):
+                namespace.log.info("Removing output repo %s for --clobber-output" % namespace.output)
+                shutil.rmtree(namespace.output)
+
         namespace.log.info("input=%s"  % (namespace.input,))
-        namespace.log.info("calib=%s"  % (namespace.calib,))
+        if namespace.calib:
+            namespace.log.info("calib=%s"  % (namespace.calib,))
         namespace.log.info("output=%s" % (namespace.output,))
         
         if "config" in namespace.show:
             namespace.config.saveToStream(sys.stdout, "config")
 
-        namespace.butler = FileButler(
-            root = namespace.input,
-            calibRoot = namespace.calib,
-            outputRoot = namespace.output,
-        )
+        mapper = FileMapper(root=namespace.input,
+                            calibRoot=namespace.calib, outputRoot=namespace.output)
+        namespace.butler = dafPersist.Butler(root=namespace.input, mapper=mapper)
 
-        self._castDataIds(namespace)
-
-        namespace.dataRefList = [FileDataRef(namespace.input)]
-        
+        # convert data in each of the identifier lists to proper types
+        # this is done after constructing the butler, hence after parsing the command line,
+        # because it takes a long time to construct a butler
+        self._processDataIds(namespace)
         if "data" in namespace.show:
             for dataRef in namespace.dataRefList:
                 print "dataRef.dataId =", dataRef.dataId
@@ -198,86 +257,16 @@ class FileArgumentParser(pipeAP.ArgumentParser):
 
         return namespace
 
-class FileButler(object):
-    def __init__(self, root, calibRoot, outputRoot):
-        self.root = root
-        self.calibRoot = calibRoot
-        self.outputRoot = outputRoot
+    def _processDataIds(self, namespace):
+        """See lsst.pipe.tasks.ArgumentParser._processDataIds"""
 
-    def __get(self, *args, **kwargs):
-        print "RHL get", args, kwargs
-        import pdb; pdb.set_trace()
-
-    def getKeys(self, *args, **kwargs):
-        return {}
-
-class FileDataRef(object):
-    """
-    A FileDataRef is like a ButlerDataRef, but only handles files
-
-    Public methods:
-
-    get(self, datasetType=None, **rest)
-
-    put(self, obj, datasetType=None, **rest)
-
-    datasetExists(self, datasetType=None, **rest)
-    """
-
-    def __init__(self, fileName):
-        self.fileName = fileName
-        self.dataId = fileName
-
-    def get(self, datasetType=None, **rest):
-        """
-        Retrieve a dataset of the given type (or the type used when creating
-        the ButlerSubset, if None) as specified by the ButlerDataRef.
-
-        @param datasetType (str)  dataset type to retrieve.
-        @param **rest             keyword arguments with data identifiers
-        @returns object corresponding to the given dataset type.
-        """
-
-        if datasetType == "calexp":
-            return afwImage.ExposureF(self.fileName)
-        elif datasetType == "ccdExposureId_bits":
-            return 32
-        elif datasetType == "ccdExposureId":
-            return 0
-
-        print "RHL", datasetType
-        import pdb; pdb.set_trace() 
-
-    def put(self, obj, datasetType=None, **rest):
-        """
-        Persist a dataset of the given type (or the type used when creating
-        the ButlerSubset, if None) as specified by the ButlerDataRef.
-
-        @param obj                object to persist.
-        @param datasetType (str)  dataset type to persist.
-        @param **rest             keyword arguments with data identifiers
-        """
-
-        if datasetType == "processFile_config":
-            return
-        elif datasetType == "processFile_metadata":
-            return
-
-        print "RHL datasetType", datasetType
-        return
-
-        import pdb; pdb.set_trace() 
-        if datasetType is None:
-            datasetType = self.butlerSubset.datasetType
-        self.butlerSubset.butler.put(obj, datasetType, self.dataId, **rest)
-
-    def datasetExists(self, datasetType=None, **rest):
-        """
-        Determine if a dataset exists of the given type (or the type used when
-        creating the ButlerSubset, if None) as specified by the ButlerDataRef.
-
-        @param datasetType (str) dataset type to check.
-        @param **rest            keywords arguments with data identifiers
-        @returns bool
-        """
-        return os.path.isfile(self.fileName)
+        # Strip the .fits (or .fit or .fts) extension from the name of the calexp
+        # as we'll be using the basename to specify the output directory
+        for d in namespace.id.idList:
+            calexp = d.get("calexp", None)
+            if calexp:
+                b, e = os.path.splitext(calexp)
+                if e in (".fits", ".fit", ".fts"):
+                    d["calexp"] = b
+                    
+        return pipeAP.ArgumentParser._processDataIds(self, namespace)
