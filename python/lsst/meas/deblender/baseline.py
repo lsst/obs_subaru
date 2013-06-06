@@ -227,21 +227,99 @@ def deblend(footprint, maskedImage, psf, psffwhm,
     log.logdebug('Apportioning flux among %i templates' % len(tmimgs))
     sumimg = afwImage.ImageF(bb.getDimensions())
     strayflux = butils.getEmptyStrayFluxList()
+
+    print 'Created empty stray flux list:'
+    butils.printHeavyFootprintList(strayflux)
+    
     ports = butils.apportionFlux(maskedImage, fp, tmimgs, sumimg,
                                  findStrayFlux, dpsf, pkx, pky, strayflux)
+
+    print 'After deblending, stray flux list:'
+    butils.printHeavyFootprintList(strayflux)
+
+    print 'list length:', len(strayflux)
+    if len(strayflux):
+        print 'element zero:', strayflux[0]
+
+    for i,s in enumerate(strayflux):
+        print '  ', i, '=', s
+    print
+    
     ii = 0
-    for (pk, pkres, stray) in zip(peaks, res.peaks, strayflux):
+    for j, (pk, pkres, stray) in enumerate(zip(peaks, res.peaks, strayflux)):
         if pkres.out_of_bounds:
             continue
         pkres.mportion = ports[ii]
         pkres.portion = ports[ii].getImage()
         ii += 1
         heavy = afwDet.makeHeavyFootprint(pkres.tfoot, pkres.mportion)
+        print 'Heavy:', heavy
+        print 'Stray:', stray
+
+        stray = strayflux[j]
+        print 'Stray:', stray
+
+        #print dir(heavy)
         heavy.getPeaks().push_back(pk)
         pkres.heavy = heavy
         pkres.stray = stray
-        # print 'Stray:', stray
+
+        print ' --------------------------'
+        print 'stray:', stray
+        print
+        print 'stray evaluates to', True if stray else False
+        print
+        print 'C++ isNonNull:', butils.isNonNull(stray)
+        print
+        print 'dir:', dir(stray)
+        print
         if stray:
+            print '.this:', stray.this
+            print
+            print 'dir(.this):', dir(stray.this)
+        print ' --------------------------'
+        print 'heavy:', heavy
+        print 'C++ isNonNull:', butils.isNonNull(heavy)
+        print ' --------------------------'
+        nix = butils.getNullHeavyFootprint()
+        print 'nix:', nix
+        print
+        print 'nix evaluates to', True if nix else False
+        print
+        print 'C++ isNonNull:', butils.isNonNull(nix)
+        print ' --------------------------'
+        print 'list with null element:'
+        xlist = butils.getStrayFluxList()
+        print 'xlist:', xlist
+        nix = xlist[0]
+        print 'nix = xlist[0]:', nix
+        print
+        print butils.printHeavyFootprintList(xlist)
+        print
+        print 'nix evaluates to', True if nix else False
+        print
+        print 'C++ isNonNull:', butils.isNonNull(nix)
+        print ' --------------------------'
+
+        if stray:
+            print 'Merging symmetric profile + stray footprints'
+            print '  ', heavy
+            print '  ', stray
+            print dir(heavy)
+            print dir(stray)
+            print heavy.this
+            print stray.this
+            print dir(heavy.this)
+            print dir(stray.this)
+            if heavy.this:
+                print 'heavy.this evals to True'
+            else:
+                print 'heavy.this evals to False'
+            if stray.this:
+                print 'stray.this evals to True'
+            else:
+                print 'stray.this evals to False'
+
             pkres.heavy2 = butils.mergeHeavyFootprints(heavy, stray)
             pkres.heavy2.getPeaks().push_back(pk)
         else:

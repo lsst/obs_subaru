@@ -51,6 +51,9 @@ using namespace lsst::afw::detection;
 
 %template(HeavyFootprintPtrListF) std::vector<boost::shared_ptr<lsst::afw::detection::HeavyFootprint<float, lsst::afw::image::MaskPixel,lsst::afw::image::VariancePixel> > >;
 
+// HeavyFootprintPtr* is already instantiated in afw/det/footprints.i
+///%template(HeavyFootprintPtrF) boost::shared_ptr<lsst::afw::detection::HeavyFootprint<float, lsst::afw::image::MaskPixel,lsst::afw::image::VariancePixel> >;
+
 /******************************************************************************/
 // Local Variables: ***
 // eval: (setq indent-tabs-mode nil) ***

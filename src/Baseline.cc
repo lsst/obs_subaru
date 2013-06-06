@@ -698,13 +698,22 @@ deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::
 mergeHeavyFootprints(HeavyFootprintT const& h1,
 					 HeavyFootprintT const& h2) {
 
+	printf("merging.\n");
+	printf("  heavy1: addr %p\n", &h1);
+	printf("  heavy2: addr %p\n", &h2);
+	printf("  heavy1: %i spans\n", h1.getSpans().size());
+	printf("  heavy2: %i spans\n", h2.getSpans().size());
 	// Merge the Footprints (by merging the Spans)
 	det::Footprint foot(h1);
+	printf("  new footprint (copy of h1): %i spans\n", foot.getSpans().size());
 	det::Footprint::SpanList spans = h2.getSpans();
 	for (det::Footprint::SpanList::iterator sp = spans.begin();
 		 sp != spans.end(); ++sp) {
 		foot.addSpan(**sp);
 	}
+	printf("  after adding h2's: %i spans\n", foot.getSpans().size());
+	foot.normalize();
+	printf("  after normalize: %i spans\n", foot.getSpans().size());
 
 	// Find the union bounding-box
 	geom::Box2I bbox(h1.getBBox());
