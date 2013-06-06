@@ -94,6 +94,8 @@ for i,pid in enumerate(pids):
         kheavy = afwDet.cast_HeavyFootprintF(kheavy)
         kbb = kfp.getBBox()
         kim = afwImage.ImageF(kbb)
+        print 'kid image bb:', kim.getBBox(afwImage.PARENT)
+        print 'kheavy    bb:', kheavy.getBBox()
         kheavy.insert(kim)
 
         plt.subplot(R, C, j+2)
