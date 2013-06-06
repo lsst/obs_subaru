@@ -26,8 +26,12 @@ class MyTask(CmdLineTask):
         calexp = dataRef.get("calexp")
         psf = calexp.getPsf()
         sources = dataRef.get("src")
+        print len(sources), 'sources before deblending'
 
         self.deblend.run(calexp, sources, psf)
+        print len(sources), 'sources after deblending'
 
+        sources.writeFits('deblended.fits')
+        
 if __name__ == "__main__":
     MyTask.parseAndRun()
