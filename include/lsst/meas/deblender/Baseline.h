@@ -83,37 +83,6 @@ namespace lsst {
                     return std::vector<boost::shared_ptr<typename lsst::afw::detection::HeavyFootprint<ImagePixelT,MaskPixelT,VariancePixelT> > >();
                 };
 
-                static bool isNonNull(
-                    boost::shared_ptr<lsst::afw::detection::HeavyFootprint<ImagePixelT, MaskPixelT, VariancePixelT> > X) {
-                    return (X.get() != NULL);
-                }
-
-                static boost::shared_ptr<typename lsst::afw::detection::HeavyFootprint<ImagePixelT,MaskPixelT,VariancePixelT> >
-                getNullHeavyFootprint() {
-                    return boost::shared_ptr<typename lsst::afw::detection::HeavyFootprint<ImagePixelT,MaskPixelT,VariancePixelT> >();
-                }
-
-                static
-                std::vector<boost::shared_ptr<typename lsst::afw::detection::HeavyFootprint<ImagePixelT,MaskPixelT,VariancePixelT> > >
-                getStrayFluxList() {
-                    std::vector<boost::shared_ptr<typename lsst::afw::detection::HeavyFootprint<ImagePixelT,MaskPixelT,VariancePixelT> > > lst;
-                    lst.push_back(boost::shared_ptr<typename lsst::afw::detection::HeavyFootprint<ImagePixelT,MaskPixelT,VariancePixelT> >());
-                    return lst;
-                };
-
-                static
-                void
-                printHeavyFootprintList(
-                    std::vector<boost::shared_ptr<typename lsst::afw::detection::HeavyFootprint<ImagePixelT,MaskPixelT,VariancePixelT> > > const& strays) {
-
-                    printf("printHeavyFootprintList: len %li\n", strays.size());
-                    for (size_t i=0; i<strays.size(); i++) {
-                        printf("  %i: %p\n", i, strays[i].get());
-                    }
-
-                }
-
-
                 /*** This should move to HeavyFootprint.cc ***/
                 static
                 boost::shared_ptr<lsst::afw::detection::HeavyFootprint<ImagePixelT, MaskPixelT, VariancePixelT> >

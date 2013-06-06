@@ -122,7 +122,7 @@ class StrayFluxTestCase(unittest.TestCase):
             fakefp.getPeaks().append(pk)
         
         ima = dict(interpolation='nearest', origin='lower', cmap='gray',
-                   vmin=0, vmax=1e6)
+                   vmin=0, vmax=1e3)
 
         if plots:
             plt.figure(figsize=(12,6))
