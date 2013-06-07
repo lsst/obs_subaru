@@ -204,7 +204,9 @@ apportionFlux(MaskedImageT const& img,
 			  int strayFluxOptions
 	) {
 
-	bool assignStrayFlux = (strayFluxOptions & ASSIGN_STRAYFLUX);
+    pexLog::Log log(pexLog::Log::getDefaultLog(), "lsst.meas.deblender.apportionFlux", pexLog::Log::INFO);
+
+	bool findStrayFlux = (strayFluxOptions & ASSIGN_STRAYFLUX);
 
 	typedef typename det::Footprint::SpanList SpanList;
 	typedef typename det::HeavyFootprint<ImagePixelT, MaskPixelT, VariancePixelT> HeavyFootprint;
@@ -243,7 +245,7 @@ apportionFlux(MaskedImageT const& img,
 		port->setXY0(timg->getXY0());
 		portions.push_back(port);
 
-		if (assignStrayFlux) {
+		if (findStrayFlux) {
 			strayfoot.push_back(det::Footprint::Ptr());
 			straypix.push_back(std::vector<ImagePixelT>());
 		}
@@ -272,7 +274,7 @@ apportionFlux(MaskedImageT const& img,
 		}
 	}
 
-	if (assignStrayFlux) {
+	if (findStrayFlux) {
 		if ((ispsf.size() > 0) && (ispsf.size() != timgs.size())) {
 			// Bail out!
 			assert(0);
@@ -317,45 +319,55 @@ apportionFlux(MaskedImageT const& img,
 					contrib[i] = 1. / (1. + dx*dx + dy*dy);
 				}
 
-				double csum = 0.;
 				// Round 1: 
 				bool always = (strayFluxOptions & STRAYFLUX_TO_POINT_SOURCES_ALWAYS);
+				//printf("always?: %i\n", always);
+
 				// are we going to assign stray flux to ptsrcs?
 				bool ptsrcs = always;
 
+				double csum = 0.;
 				for (int i=0; i<timgs.size(); ++i) {
 					// Skip deblended-as-PSF
-					if (!always & ispsf.size() && ispsf[i]) {
+					if ((!always) && ispsf.size() && ispsf[i]) {
 						continue;
 					}
 					csum += contrib[i];
 				}
+				//printf("csum = %g\n", csum);
+				//printf("when necessary: %i\n", (strayFluxOptions & STRAYFLUX_TO_POINT_SOURCES_WHEN_NECESSARY));
 				if ((csum == 0.) &&
 					(strayFluxOptions & STRAYFLUX_TO_POINT_SOURCES_WHEN_NECESSARY)) {
+					log.debugf("necessary to assign stray flux to point sources");
 					ptsrcs = true;
+					//printf("assigning stray flux to point sources\n");
 					// No extended sources -- assign to pt sources
 					for (int i=0; i<timgs.size(); ++i) {
 						csum += contrib[i];
 					}
 				}
+				//printf("csum = %g\n", csum);
 
 				// Drop very small contributions...
-				const double strayclip = (0.001 * csum);
-				
+				double strayclip = (0.001 * csum);
+				//printf("clip: %g\n", strayclip);
+
 				csum = 0.;
 				for (int i=0; i<timgs.size(); ++i) {
 					// skip ptsrcs?
-					if (!ptsrcs && (ispsf.size() && ispsf[i])) {
+					if ((!ptsrcs) && ispsf.size() && ispsf[i]) {
 						contrib[i] = 0.;
 						continue;
 					}
 					// skip small contributions
 					if (contrib[i] < strayclip) {
+						//printf("clipping %g to zero\n", contrib[i]);
 						contrib[i] = 0.;
 						continue;
 					}
 					csum += contrib[i];
 				}
+				//printf("csum = %g (after skipping small)\n", csum);
 
 				for (int i=0; i<timgs.size(); ++i) {
 					double c = contrib[i];

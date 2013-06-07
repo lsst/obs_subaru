@@ -9,6 +9,9 @@ import lsst.afw.table as afwTable
 import lsst.afw.detection as afwDet
 import lsst.afw.image as afwImage
 
+import lsst.meas.algorithms as measAlg
+from lsst.meas.deblender.baseline import deblend
+
 srcs = afwTable.SourceCatalog.readFits('deblended.fits')
 print len(srcs), 'sources'
 
@@ -43,17 +46,26 @@ print len(pidmap), 'top-level sources'
 pids = sibmap.keys()
 pids.sort()
 
+drill = [0, 33, 51]
+
 for i,pid in enumerate(pids):
+
+    # DEBUG
+    #if not i in drill:
+    #continue
+
     parent = pidmap[pid]
     kids = sibmap[pid]
-    print 'parent', parent
-    print 'kids:', len(kids)
+    print
+    print 'Plotting family', i
+    print 'parent', parent.getId()
+    print 'N kids:', len(kids)
     for kid in kids:
-        print '  ', kid
+        print '  ', kid.getId()
 
     pfp = parent.getFootprint()
-    print 'Parent footprint:', pfp
-    print ' is heavy?', pfp.isHeavy()
+    #print 'Parent footprint:', pfp
+    #print ' is heavy?', pfp.isHeavy()
 
     pheavy = afwDet.makeHeavyFootprint(pfp, mim)
     pbb = pfp.getBBox()
@@ -149,7 +161,79 @@ for i,pid in enumerate(pids):
     plt.title('sum of kids')
 
     plt.savefig('deb-%04i.png' % i)
-    
+
+
+
+    # Drill down...
+    if i in drill:
+        #
+        psf = cal.getPsf()
+        bb = pfp.getBBox()
+        xc = int((bb.getMinX() + bb.getMaxX()) / 2.)
+        yc = int((bb.getMinY() + bb.getMaxY()) / 2.)
+        if hasattr(psf, 'getFwhm'):
+            psf_fwhm = psf.getFwhm(xc, yc)
+        else:
+            pa = measAlg.PsfAttributes(psf, xc, yc)
+            psfw = pa.computeGaussianWidth(measAlg.PsfAttributes.ADAPTIVE_MOMENT)
+            psf_fwhm = 2.35 * psfw
+
+        import lsstDebug
+        lsstDebug.Info('lsst.meas.deblender.baseline').psf = True
+            
+        deb = deblend(pfp, mim, psf, psf_fwhm, sigma1=sig1)
+        print 'Got', deb
+
+        npks = len(deb.peaks)
+        plt.clf()
+        C = 6
+        for j,dpk in enumerate(deb.peaks):
+
+            if dpk.deblend_as_psf:
+                plt.subplot(npks, C, j*C + 1)
+                myimshow(dpk.psfimg)
+                plt.title('psf mod')
+
+                plt.subplot(npks, C, j*C + 2)
+                myimshow(dpk.tmimg.getImage())
+                plt.title('template')
+
+            else:
+                plt.subplot(npks, C, j*C + 1)
+                myimshow(dpk.tmimg.getImage())
+                plt.title('template')
+
+                plt.subplot(npks, C, j*C + 2)
+                myimshow(dpk.symm)
+                plt.title('symm')
+            
+            plt.subplot(npks, C, j*C + 3)
+            myimshow(dpk.portion)
+            plt.title('portion')
+
+            himg = afwImage.ImageF(bb)
+            dpk.heavy1.insert(himg)
+
+            plt.subplot(npks, C, j*C + 4)
+            myimshow(himg)
+            plt.title('heavy1')
+
+            if dpk.stray:
+                himg = afwImage.ImageF(bb)
+                dpk.stray.insert(himg)
+                plt.subplot(npks, C, j*C + 5)
+                myimshow(himg)
+                plt.title('stray')
+
+            himg = afwImage.ImageF(bb)
+            dpk.heavy.insert(himg)
+            plt.subplot(npks, C, j*C + 6)
+            myimshow(himg)
+            plt.title('heavy')
+                
+            
+        plt.savefig('drill-%04i.png' % i)
+            
     if i == 100:
         break
     

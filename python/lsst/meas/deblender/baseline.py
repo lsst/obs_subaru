@@ -229,8 +229,8 @@ def deblend(footprint, maskedImage, psf, psffwhm,
     strayflux = butils.getEmptyStrayFluxList()
     strayopts = 0
     if findStrayFlux:
-        strayopts += (butils.ASSIGN_STRAYFLUX |
-                      butils.STRAYFLUX_TO_POINT_SOURCES_WHEN_NECESSARY)
+        strayopts |= butils.ASSIGN_STRAYFLUX
+        strayopts |= butils.STRAYFLUX_TO_POINT_SOURCES_WHEN_NECESSARY
     ports = butils.apportionFlux(maskedImage, fp, tmimgs, sumimg,
                                  dpsf, pkx, pky, strayflux, strayopts)
     
@@ -250,7 +250,7 @@ def deblend(footprint, maskedImage, psf, psffwhm,
             stray = strayflux[j]
         else:
             stray = None
-            
+
         pkres.heavy1 = heavy
         pkres.stray = stray
 
@@ -358,6 +358,7 @@ def _fit_psf(fp, fmask, pk, pkF, pkres, fbb, peaks, peaksF, log, psf,
     R2 = R1 + min(psfimg.getWidth(), psfimg.getHeight())/2.
 
     import lsstDebug
+    # __name__ is lsst.meas.deblender.baseline
     debugPlots = lsstDebug.Info(__name__).plots
     debugPsf = lsstDebug.Info(__name__).psf
 
@@ -423,6 +424,9 @@ def _fit_psf(fp, fmask, pk, pkF, pkres, fbb, peaks, peaksF, log, psf,
     NP = (1 + yhi - ylo) * (1 + xhi - xlo)
     # indices of terms
     I_psf = 0
+    # I_sky = 1
+    # I_sky_ramp_x = 2
+    # I_sky_ramp_y = 3
     # start of other psf fluxes
     I_opsf = 4
     I_dx = NT1 + 0
@@ -491,7 +495,9 @@ def _fit_psf(fp, fmask, pk, pkF, pkres, fbb, peaks, peaksF, log, psf,
         return (xloclamp, xhiclamp+1, Xlo, Xhi+1)
     
     A = np.zeros((NP, NT2))
+    # Constant term
     A[:,1] = 1.
+    # Sky slope terms: dx, dy
     A[:,2] = ipixes[:,0] + (xlo-cx)
     A[:,3] = ipixes[:,1] + (ylo-cy)
 
@@ -579,7 +585,10 @@ def _fit_psf(fp, fmask, pk, pkF, pkres, fbb, peaks, peaksF, log, psf,
     #
     # The SVD can fail if there are NaNs in the matrices; this should really be handled upstream
     try:
+        # NT1 is number of terms without dx,dy;
+        # X1 is the result without decenter
         X1,r1,rank1,s1 = np.linalg.lstsq(Aw[:,:NT1], bw)
+        # X2 is with decenter
         X2,r2,rank2,s2 = np.linalg.lstsq(Aw, bw)
     except np.linalg.LinAlgError, e:
         log.log(log.WARN, "Failed to fit PSF to child: %s" % e)
@@ -754,19 +763,34 @@ def _fit_psf(fp, fmask, pk, pkF, pkres, fbb, peaks, peaksF, log, psf,
             modelfp.addSpan(int(y+ylo), int(x+xlo), int(x+xlo))
         modelfp.normalize()
 
+        psfimg = psf.computeImage(cx, cy)
+
         SW,SH = 1+xhi-xlo, 1+yhi-ylo
+        # psfmod = afwImage.MaskedImageF(SW,SH)
+        # psfmod.setXY0(xlo,ylo)
+        # pbb = psfimg.getBBox(afwImage.PARENT)
+        # px0,py0 = pbb.getMinX(), pbb.getMinY()
+        # px1,py1 = pbb.getMaxX(), pbb.getMaxY()
+        # sx1,sx2,sx3,sx4 = _overlap(xlo, xhi, px0, px1)
+        # sy1,sy2,sy3,sy4 = _overlap(ylo, yhi, py0, py1)
+        # psfmod.getImage().getArray()[sy1 - ylo: sy2 - ylo, sx1 - xlo: sx2 - xlo] = (
+        #     psfimg.getArray()[sy3 + ylo-py0: sy4 + ylo-py0, sx3 + xlo-px0: sx4 + xlo-px0]) * Xpsf[I_psf]
+
+        ## baseline.py creates the "heavy" from tfoot and mportion,
+        ## where mportion is the same shape as the psfmod, so for that
+        ## all to be consistent we need to make the "tfoot" and "tmimg"
+        ## match up -- either clip tmimg to tfoot, or make "tfoot" a box
+        ## rather than a circle.
+        #pkres.tmimg = psfmod
+        #pkres.tfoot = modelfp
+
         psfmod = afwImage.MaskedImageF(SW,SH)
         psfmod.setXY0(xlo,ylo)
-        psfimg = psf.computeImage(cx, cy)
-        pbb = psfimg.getBBox(afwImage.PARENT)
-        px0,py0 = pbb.getMinX(), pbb.getMinY()
-        px1,py1 = pbb.getMaxX(), pbb.getMaxY()
-        sx1,sx2,sx3,sx4 = _overlap(xlo, xhi, px0, px1)
-        sy1,sy2,sy3,sy4 = _overlap(ylo, yhi, py0, py1)
-        psfmod.getImage().getArray()[sy1 - ylo: sy2 - ylo, sx1 - xlo: sx2 - xlo] = (
-            psfimg.getArray()[sy3 + ylo-py0: sy4 + ylo-py0, sx3 + xlo-px0: sx4 + xlo-px0])
+        # Scale by fit flux.
+        psfimg *= Xpsf[I_psf]
+        psfmim = afwImage.MaskedImageF(psfimg.convertF())
+        heavy = afwDet.makeHeavyFootprint(modelfp, psfmim)
+        heavy.insert(psfmod)
 
         pkres.tmimg = psfmod
         pkres.tfoot = modelfp
-
-    
