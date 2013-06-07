@@ -66,20 +66,23 @@ namespace lsst {
                 static const int ASSIGN_STRAYFLUX                          = 0x1;
                 static const int STRAYFLUX_TO_POINT_SOURCES_WHEN_NECESSARY = 0x2;
                 static const int STRAYFLUX_TO_POINT_SOURCES_ALWAYS         = 0x4;
-
+                // split flux according to the closest distance to the template?
+                // (default is according to distance to the peak)
+                static const int STRAYFLUX_R_TO_FOOTPRINT                  = 0x8;
                 // swig doesn't seem to understand std::vector<MaskedImagePtrT>...
                 static
                 std::vector<typename lsst::afw::image::MaskedImage<ImagePixelT, MaskPixelT, VariancePixelT>::Ptr>
-                 apportionFlux(MaskedImageT const& img,
+                apportionFlux(MaskedImageT const& img,
                               lsst::afw::detection::Footprint const& foot,
-                              std::vector<typename lsst::afw::image::MaskedImage<ImagePixelT, MaskPixelT, VariancePixelT>::Ptr>,
-                               //
-                               ImagePtrT sumimg,
-                               std::vector<bool> const& ispsf,
-                               std::vector<int>  const& pkx,
-                               std::vector<int>  const& pky,
-                               std::vector<boost::shared_ptr<typename lsst::afw::detection::HeavyFootprint<ImagePixelT,MaskPixelT,VariancePixelT> > > & strays,
-                               int strayFluxOptions
+                              std::vector<typename lsst::afw::image::MaskedImage<ImagePixelT, MaskPixelT, VariancePixelT>::Ptr> templates,
+                              std::vector<boost::shared_ptr<lsst::afw::detection::Footprint> > templ_footprints,
+                              //
+                              ImagePtrT templ_sum,
+                              std::vector<bool> const& ispsf,
+                              std::vector<int>  const& pkx,
+                              std::vector<int>  const& pky,
+                              std::vector<boost::shared_ptr<typename lsst::afw::detection::HeavyFootprint<ImagePixelT,MaskPixelT,VariancePixelT> > > & strays,
+                              int strayFluxOptions
                      );
 
                 static

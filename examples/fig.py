@@ -46,7 +46,7 @@ print len(pidmap), 'top-level sources'
 pids = sibmap.keys()
 pids.sort()
 
-drill = [0, 33, 51]
+drill = [0, 5, 33, 51]
 
 for i,pid in enumerate(pids):
 

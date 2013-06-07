@@ -171,6 +171,7 @@ def deblend(footprint, maskedImage, psf, psffwhm,
         pkres.tfoot = tfoot
 
     tmimgs = []
+    tfoots = []
     dpsf = []
     pkxy = []
     pkx = []
@@ -180,6 +181,7 @@ def deblend(footprint, maskedImage, psf, psffwhm,
         if pkres.out_of_bounds:
             continue
         tmimgs.append(pkres.tmimg)
+        tfoots.append(pkres.tfoot)
         # for stray flux...
         dpsf.append(pkres.deblend_as_psf)
         pk = pkres.peak
@@ -231,7 +233,10 @@ def deblend(footprint, maskedImage, psf, psffwhm,
     if findStrayFlux:
         strayopts |= butils.ASSIGN_STRAYFLUX
         strayopts |= butils.STRAYFLUX_TO_POINT_SOURCES_WHEN_NECESSARY
-    ports = butils.apportionFlux(maskedImage, fp, tmimgs, sumimg,
+
+    strayopts |= butils.STRAYFLUX_R_TO_FOOTPRINT
+    
+    ports = butils.apportionFlux(maskedImage, fp, tmimgs, tfoots, sumimg,
                                  dpsf, pkx, pky, strayflux, strayopts)
     
     ii = 0
