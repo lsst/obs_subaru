@@ -197,12 +197,14 @@ apportionFlux(MaskedImageT const& img,
 			  det::Footprint const& foot,
 			  std::vector<MaskedImagePtrT> timgs,
 			  ImagePtrT sumimg,
-			  bool assignStrayFlux,
 			  std::vector<bool> const& ispsf,
 			  std::vector<int>  const& pkx,
 			  std::vector<int>  const& pky,
-			  std::vector<boost::shared_ptr<typename det::HeavyFootprint<ImagePixelT,MaskPixelT,VariancePixelT> > > & strays
+			  std::vector<boost::shared_ptr<typename det::HeavyFootprint<ImagePixelT,MaskPixelT,VariancePixelT> > > & strays,
+			  int strayFluxOptions
 	) {
+
+	bool assignStrayFlux = (strayFluxOptions & ASSIGN_STRAYFLUX);
 
 	typedef typename det::Footprint::SpanList SpanList;
 	typedef typename det::HeavyFootprint<ImagePixelT, MaskPixelT, VariancePixelT> HeavyFootprint;
@@ -241,8 +243,10 @@ apportionFlux(MaskedImageT const& img,
 		port->setXY0(timg->getXY0());
 		portions.push_back(port);
 
-		strayfoot.push_back(det::Footprint::Ptr());
-		straypix.push_back(std::vector<ImagePixelT>());
+		if (assignStrayFlux) {
+			strayfoot.push_back(det::Footprint::Ptr());
+			straypix.push_back(std::vector<ImagePixelT>());
+		}
 
 		geom::Box2I tbb = timg->getBBox(image::PARENT);
 		int tx0 = tbb.getMinX();
@@ -288,110 +292,112 @@ apportionFlux(MaskedImageT const& img,
 		for (SpanList::const_iterator s = spans.begin(); s < spans.end(); s++) {
 			int y = (*s)->getY();
 			int x0 = (*s)->getX0();
+			int x1 = (*s)->getX1();
 			typename ImageT::x_iterator sumptr =
 				sumimg->row_begin(y - sy0) + (x0 - sx0);
-			//typename MaskedImageT::x_iterator inptr =
-			//img.row_begin(y - iy0) + (x0 - ix0);
 			typename ImageT::x_iterator inptr =
 				img.getImage()->row_begin(y - iy0) + (x0 - ix0);
 
-			for (int x = x0; x <= (*s)->getX1(); ++x, ++sumptr, ++inptr) {
+			double contrib[timgs.size()];
+
+			for (int x = x0; x <= x1; ++x, ++sumptr, ++inptr) {
+				// Skip pixels that are covered by at least one
+				// template (*sumptr > 0) or the input is not
+				// positive (*inptr <= 0).
 				if ((*sumptr > 0) || (*inptr) <= 0) {
 					continue;
 				}
 				//printf("Pixel at (%i,%i) has stray flux: %g\n", x, y, (float)*inptr);
+
 				// Split the stray flux by 1/r^2 ...
-				double isum = 0.0;
 				for (int i=0; i<timgs.size(); ++i) {
 					int dx, dy;
-					// Skip deblended-as-PSF templates (?)
-					if (ispsf.size() && ispsf[i]) {
-						continue;
-					}
 					dx = pkx[i] - x;
 					dy = pky[i] - y;
-					isum += 1. / (1. + dx*dx + dy*dy);
+					contrib[i] = 1. / (1. + dx*dx + dy*dy);
 				}
-				//printf("isum = %g\n", isum);
+
+				double csum = 0.;
+				// Round 1: 
+				bool always = (strayFluxOptions & STRAYFLUX_TO_POINT_SOURCES_ALWAYS);
+				// are we going to assign stray flux to ptsrcs?
+				bool ptsrcs = always;
+
+				for (int i=0; i<timgs.size(); ++i) {
+					// Skip deblended-as-PSF
+					if (!always & ispsf.size() && ispsf[i]) {
+						continue;
+					}
+					csum += contrib[i];
+				}
+				if ((csum == 0.) &&
+					(strayFluxOptions & STRAYFLUX_TO_POINT_SOURCES_WHEN_NECESSARY)) {
+					ptsrcs = true;
+					// No extended sources -- assign to pt sources
+					for (int i=0; i<timgs.size(); ++i) {
+						csum += contrib[i];
+					}
+				}
 
 				// Drop very small contributions...
-				const double strayclip = 0.001;
-
-				double isum2 = 0.0;
+				const double strayclip = (0.001 * csum);
+				
+				csum = 0.;
 				for (int i=0; i<timgs.size(); ++i) {
-					int dx, dy;
-					// Skip deblended-as-PSF templates (?)
-					if (ispsf.size() && ispsf[i]) {
+					// skip ptsrcs?
+					if (!ptsrcs && (ispsf.size() && ispsf[i])) {
+						contrib[i] = 0.;
 						continue;
 					}
-					dx = pkx[i] - x;
-					dy = pky[i] - y;
-					double c;
-					c = 1. / (1. + dx*dx + dy*dy);
-					if (c < (isum * strayclip)) {
+					// skip small contributions
+					if (contrib[i] < strayclip) {
+						contrib[i] = 0.;
 						continue;
 					}
-					isum2 += c;
+					csum += contrib[i];
 				}
-				//printf("isum2 = %g\n", isum2);
-
-				// DEBUG
-				double sump = 0.0;
 
 				for (int i=0; i<timgs.size(); ++i) {
-					int dx, dy;
-					if (ispsf.size() && ispsf[i]) {
+					double c = contrib[i];
+					if (c == 0.) {
 						continue;
 					}
-					dx = pkx[i] - x;
-					dy = pky[i] - y;
-					double c;
-					c = 1. / (1. + dx*dx + dy*dy);
-					if (c < (isum * strayclip)) {
-						continue;
-					}
-
-					// the stray portion to give to template i
-					double p = c / isum2;
-					sump += p;
-					p *= (*inptr);
+					// the stray flux to give to template i
+					double p = (c / csum) * (*inptr);
 					/*
+					 // add it in
 					 geom::Box2I pbb = portions[i]->getBBox(image::PARENT);
 					 if (pbb.contains(geom::Point2I(x, y))) {
-					 // add it in
 					 portions[i]->getImage()->set0(x, y, p);
 					 } else {
 					 */
-					if (1) {
-						if (!strayfoot[i]) {
-							strayfoot[i] = det::Footprint::Ptr(new det::Footprint());
-						}
-						strayfoot[i]->addSpan(y, x, x);
-						straypix[i].push_back(p);
+					if (!strayfoot[i]) {
+						strayfoot[i] = det::Footprint::Ptr(new det::Footprint());
 					}
+					strayfoot[i]->addSpan(y, x, x);
+					straypix[i].push_back(p);
 				}
-				//printf("allocated fraction %g of stray flux\n", sump);
 			}
 		}
-	}
 
-	for (size_t i=0; i<timgs.size(); ++i) {
-		if (!strayfoot[i]) {
-			strays.push_back(HeavyFootprintPtr());
-		} else {
-			/// Hmm, this is a little bit dangerous: we're assuming that
-			/// the HeavyFootprint stores its pixels in the same order that
-			/// we iterate over them above (ie, lexicographic).
-			HeavyFootprintPtr heavy(new HeavyFootprint(*strayfoot[i]));
-			ndarray::Array<ImagePixelT,1,1> himg = heavy->getImageArray();
-			typename std::vector<ImagePixelT>::const_iterator spix;
-			typename ndarray::Array<ImagePixelT,1,1>::Iterator hpix;
-			for (spix = straypix[i].begin(), hpix = himg.begin();
-				 spix != straypix[i].end();
-				 ++spix, ++hpix) {
-				*hpix = *spix;
+		for (size_t i=0; i<timgs.size(); ++i) {
+			if (!strayfoot[i]) {
+				strays.push_back(HeavyFootprintPtr());
+			} else {
+				/// Hmm, this is a little bit dangerous: we're assuming that
+				/// the HeavyFootprint stores its pixels in the same order that
+				/// we iterate over them above (ie, lexicographic).
+				HeavyFootprintPtr heavy(new HeavyFootprint(*strayfoot[i]));
+				ndarray::Array<ImagePixelT,1,1> himg = heavy->getImageArray();
+				typename std::vector<ImagePixelT>::const_iterator spix;
+				typename ndarray::Array<ImagePixelT,1,1>::Iterator hpix;
+				for (spix = straypix[i].begin(), hpix = himg.begin();
+					 spix != straypix[i].end();
+					 ++spix, ++hpix) {
+					*hpix = *spix;
+				}
+				strays.push_back(heavy);
 			}
-			strays.push_back(heavy);
 		}
 	}
 

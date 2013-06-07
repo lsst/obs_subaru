@@ -227,8 +227,12 @@ def deblend(footprint, maskedImage, psf, psffwhm,
     log.logdebug('Apportioning flux among %i templates' % len(tmimgs))
     sumimg = afwImage.ImageF(bb.getDimensions())
     strayflux = butils.getEmptyStrayFluxList()
+    strayopts = 0
+    if findStrayFlux:
+        strayopts += (butils.ASSIGN_STRAYFLUX |
+                      butils.STRAYFLUX_TO_POINT_SOURCES_WHEN_NECESSARY)
     ports = butils.apportionFlux(maskedImage, fp, tmimgs, sumimg,
-                                 findStrayFlux, dpsf, pkx, pky, strayflux)
+                                 dpsf, pkx, pky, strayflux, strayopts)
     
     ii = 0
     for j, (pk, pkres) in enumerate(zip(peaks, res.peaks)):
@@ -240,11 +244,14 @@ def deblend(footprint, maskedImage, psf, psffwhm,
         heavy = afwDet.makeHeavyFootprint(pkres.tfoot, pkres.mportion)
         heavy.getPeaks().push_back(pk)
 
-        # NOTE that due to a swig bug (https://github.com/swig/swig/issues/59)
-        # we CANNOT iterate over "strayflux", but must index into it.
-        stray = strayflux[j]
-        
-        pkres.heavy = heavy
+        if findStrayFlux:
+            # NOTE that due to a swig bug (https://github.com/swig/swig/issues/59)
+            # we CANNOT iterate over "strayflux", but must index into it.
+            stray = strayflux[j]
+        else:
+            stray = None
+            
+        pkres.heavy1 = heavy
         pkres.stray = stray
 
         if stray:
@@ -253,9 +260,10 @@ def deblend(footprint, maskedImage, psf, psffwhm,
             pkres.heavy2 = heavy
 
         if assignStrayFlux:
-            pkres.heavy1 = pkres.heavy
             pkres.heavy = pkres.heavy2
-
+        else:
+            pkres.heavy = pkres.heavy1
+            
     return res
 
 class CachingPsf(object):

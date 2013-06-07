@@ -62,6 +62,11 @@ namespace lsst {
                               lsst::afw::detection::Peak const& pk,
                               double sigma1);
 
+
+                static const int ASSIGN_STRAYFLUX                          = 0x1;
+                static const int STRAYFLUX_TO_POINT_SOURCES_WHEN_NECESSARY = 0x2;
+                static const int STRAYFLUX_TO_POINT_SOURCES_ALWAYS         = 0x4;
+
                 // swig doesn't seem to understand std::vector<MaskedImagePtrT>...
                 static
                 std::vector<typename lsst::afw::image::MaskedImage<ImagePixelT, MaskPixelT, VariancePixelT>::Ptr>
@@ -70,11 +75,11 @@ namespace lsst {
                               std::vector<typename lsst::afw::image::MaskedImage<ImagePixelT, MaskPixelT, VariancePixelT>::Ptr>,
                                //
                                ImagePtrT sumimg,
-                               bool assignStrayFlux,
                                std::vector<bool> const& ispsf,
                                std::vector<int>  const& pkx,
                                std::vector<int>  const& pky,
-                               std::vector<boost::shared_ptr<typename lsst::afw::detection::HeavyFootprint<ImagePixelT,MaskPixelT,VariancePixelT> > > & strays
+                               std::vector<boost::shared_ptr<typename lsst::afw::detection::HeavyFootprint<ImagePixelT,MaskPixelT,VariancePixelT> > > & strays,
+                               int strayFluxOptions
                      );
 
                 static
