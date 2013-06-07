@@ -54,10 +54,7 @@ for i,pid in enumerate(pids):
     pfp = parent.getFootprint()
     print 'Parent footprint:', pfp
     print ' is heavy?', pfp.isHeavy()
-    for kid in kids:
-        kfp = kid.getFootprint()
-        print '  is kid heavy:', kfp.isHeavy()
-        
+
     pheavy = afwDet.makeHeavyFootprint(pfp, mim)
     pbb = pfp.getBBox()
     pim = afwImage.ImageF(pbb)
@@ -89,14 +86,33 @@ for i,pid in enumerate(pids):
         plt.xticks([]); plt.yticks([])
         plt.axis(ax)
         
-        
-    X = [pk.getIx() for pk in pfp.getPeaks()]
-    Y = [pk.getIy() for pk in pfp.getPeaks()]    
-        
+
+    Xpsf,Ypsf = [],[]
+    Xext,Yext = [],[]
+    X,Y = [],[]
+
+    psfkey = srcs.getSchema().find('deblend.deblended-as-psf').key
+    for kid in kids:
+        pks = kid.getFootprint().getPeaks()
+        xx = [pk.getIx() for pk in pks]
+        yy = [pk.getIy() for pk in pks]
+        if kid.get(psfkey):
+            Xpsf.extend(xx)
+            Ypsf.extend(yy)
+        else:
+            Xext.extend(xx)
+            Yext.extend(yy)
+        X.extend(xx)
+        Y.extend(yy)
+
+    esty = dict(linestyle='None', marker='o', mec='r', mfc='none')
+    psty = dict(linestyle='None', marker='.', color='r')
+    
     plt.clf()
     plt.subplot(R,C, 1)
     myimshow(pim)
-    plt.plot(X, Y, 'r.')
+    plt.plot(Xpsf, Ypsf, **psty)
+    plt.plot(Xext, Yext,  **esty)
     plt.axis(ax)
     plt.title('pid %i' % pid)
 
@@ -107,10 +123,7 @@ for i,pid in enumerate(pids):
         assert(kheavy.isHeavy())
         kheavy = afwDet.cast_HeavyFootprintF(kheavy)
         kbb = kheavy.getBBox()
-        #print 'kbb:', kbb
         kim = afwImage.ImageF(kbb)
-        #print 'kid image bb:', kim.getBBox(afwImage.PARENT)
-        #print 'kheavy    bb:', kheavy.getBBox()
         kheavy.insert(kim)
 
         # add to accumulator
@@ -120,13 +133,18 @@ for i,pid in enumerate(pids):
         
         plt.subplot(R, C, j+3)
         myimshow(kim)
-        plt.plot(X[j], Y[j], 'r.')
+        if kid.get(psfkey):
+            plt.plot(X[j], Y[j], **psty)
+        else:
+            plt.plot(X[j], Y[j], **esty)
         plt.axis(ax)
         plt.title('kid %i' % kid.getId())
 
     plt.subplot(R,C, 2)
     myimshow(ksum)
-    plt.plot(X, Y, 'r.')
+    plt.plot(Xpsf, Ypsf, **psty)
+    plt.plot(Xext, Yext, **esty)
+
     plt.axis(ax)
     plt.title('sum of kids')
 
