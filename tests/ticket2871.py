@@ -31,7 +31,6 @@ import lsst.afw.image as afwImage
 import lsst.afw.geom as afwGeom
 import lsst.afw.table as afwTable
 import lsst.meas.algorithms as algorithms
-import testLib
 
 #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
@@ -67,7 +66,8 @@ class DeblendTestCase(unittest.TestCase):
         image.set(xGood, yGood, flux)
 
         exposure = afwImage.makeExposure(mi)
-        psf = testLib.makeTestPsf(image)
+        #psf = testLib.makeTestPsf(image)
+        psf = algorithms.DoubleGaussianPsf(21, 21, 3.)
         exposure.setPsf(psf)
 
         schema = afwTable.SourceTable.makeMinimalSchema()
