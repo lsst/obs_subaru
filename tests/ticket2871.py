@@ -66,7 +66,6 @@ class DeblendTestCase(unittest.TestCase):
         image.set(xGood, yGood, flux)
 
         exposure = afwImage.makeExposure(mi)
-        #psf = testLib.makeTestPsf(image)
         psf = algorithms.DoubleGaussianPsf(21, 21, 3.)
         exposure.setPsf(psf)
 
