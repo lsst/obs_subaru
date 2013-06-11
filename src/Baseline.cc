@@ -453,6 +453,14 @@ apportionFlux(MaskedImageT const& img,
 }
 
 
+/**
+ This is a convenience class used in symmetrizeFootprint, wrapping the
+ idea of iterating through a SpanList either forward or backward, and
+ looking at dx,dy coordinates relative to a center cx,cy coordinate.
+ This makes the symmetrizeFootprint code much tidier and more
+ symmetric-looking; the operations on the forward and backward
+ iterators are mostly the same.
+ */
 class RelativeSpanIterator {
 public:
 	typedef det::Footprint::SpanList SpanList;
@@ -469,12 +477,6 @@ public:
 			} else {
 				_end = arr.begin();
 			}
-            /*
-             printf("RelativeSpanIterator: real is [%i], end is [%i]\n",
-             (int)(real - arr.begin()), (int)(arr.end() - arr.begin()));
-             printf("forward is %i; _end is %i\n", _forward, (int)(_end - arr.begin()));
-             printf("notDone? %i\n", notDone());
-             */
         }
 
 	bool operator==(const SpanList::const_iterator & other) {
@@ -640,30 +642,35 @@ symmetrizeFootprint(
 	// iterator.  When we fail to find an overlapping pair of Spans,
 	// we move on to the next row.
 	//
-	// In reading the code, "forward", "advancing", etc, are all from
-	// the perspective of the "fwd" iterator (the one going forward
-	// through the Span list, from low to high Y and then low to high
-	// X).  It will help to imagine making a copy of the footprint and
-	// rotating it around the center pixel by 180 degrees, so that
-	// "fwd" and "back" are both iterating the same direction; we're
-	// then just finding the AND of those two iterators, except we
-	// have to work in dx,dy coordinates rather than original x,y
-	// coords, and the accessors for "back" are opposite.
+	// [The following paragraph is somewhat obsoleted by the
+	// RelativeSpanIterator class, which performs some of the renaming
+	// and the dx,dy coords.]
+	//
+	// '''In reading the code, "forward", "advancing", etc, are all
+	// from the perspective of the "fwd" iterator (the one going
+	// forward through the Span list, from low to high Y and then low
+	// to high X).  It will help to imagine making a copy of the
+	// footprint and rotating it around the center pixel by 180
+	// degrees, so that "fwd" and "back" are both iterating the same
+	// direction; we're then just finding the AND of those two
+	// iterators, except we have to work in dx,dy coordinates rather
+	// than original x,y coords, and the accessors for "back" are
+	// opposite.'''
 
 	RelativeSpanIterator fwd (peakspan, spans, cx, cy, true);
 	RelativeSpanIterator back(peakspan, spans, cx, cy, false);
 
 	int dy = 0;
 	while (fwd.notDone() && back.notDone()) {
-		// forward and backward "y"
+		// forward and backward "y"; just symmetric around cy
 		int fy = cy + dy;
 		int by = cy - dy;
-		// forward and backward delta-x of the beginnings of the spans
+		// delta-x of the beginnings of the spans, for "fwd" and "back"
 		int fdxlo =  fwd.dxlo();
 		int bdxlo = back.dxlo();
 
 		// First find:
-		//    fend -- first span in the next row, or end();
+		//    fend -- first span in the next row, or end(); ie,
 		//            the end of this row in the forward direction
 		//    bend -- the end of this row in the backward direction
 		RelativeSpanIterator fend, bend;
@@ -680,11 +687,13 @@ symmetrizeFootprint(
 				   dy, fy, fwd.x0(), fwd.x1(), by, back.x0(), back.x1(),
 				   fdxlo, bdxlo);
 
+		// Find possibly-overlapping span
 		if (bdxlo > fdxlo) {
 			log.debugf("Advancing forward.");
-			int dx = bdxlo;
-			// advance "fwd" until the first possibly-overlapping span is found.
-			while ((fwd != fend) && (fwd.dxhi() < dx)) {
+			// While the "forward" span is entirely to the "left" of the "backward" span,
+			// (in dx coords), ie, |---fwd---X   X---back---|
+			// and we are comparing the edges marked X
+			while ((fwd != fend) && (fwd.dxhi() < bdxlo)) {
 				fwd++;
 				if (fwd == fend) {
 					log.debugf("Reached fend");
@@ -695,9 +704,10 @@ symmetrizeFootprint(
 			}
 		} else if (fdxlo > bdxlo) {
 			log.debugf("Advancing backward.");
-			int dx = fdxlo;
-			// advance "back" until the first possibly-overlapping span is found.
-			while ((back != bend) && (back.dxhi() < dx)) {
+			// While the "backward" span is entirely to the "left" of the "foreward" span,
+			// (in dx coords), ie, |---back---X   X---fwd---|
+			// and we are comparing the edges marked X
+			while ((back != bend) && (back.dxhi() < fdxlo)) {
 				back++;
 				if (back == bend) {
 					log.debugf("Reached bend");
