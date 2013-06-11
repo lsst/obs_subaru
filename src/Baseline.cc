@@ -565,23 +565,8 @@ private:
 };
 
 
-template<typename ImagePixelT, typename MaskPixelT, typename VariancePixelT>
-lsst::afw::detection::Footprint::Ptr
-deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::
-symmetrizeFootprint(
-    det::Footprint const& foot,
-    int cx, int cy) {
-
-	typedef typename det::Footprint::SpanList SpanList;
-
-    det::Footprint::Ptr sfoot(new det::Footprint);
-	const SpanList spans = foot.getSpans();
-    assert(foot.isNormalized());
-
-    pexLog::Log log(pexLog::Log::getDefaultLog(),
-					"lsst.meas.deblender.symmetrizeFootprint");
-
-	/*
+/*
+ // Check symmetrizeFootprint by computing truth naively.
 	 // compute correct answer dumbly
 	 det::Footprint truefoot;
 	 geom::Box2I bbox = foot.getBBox();
@@ -598,7 +583,50 @@ symmetrizeFootprint(
 	 }
 	 }
 	 truefoot.normalize();
-	 */
+
+	 SpanList sp1 = truefoot.getSpans();
+	 SpanList sp2 = sfoot->getSpans();
+	 for (SpanList::const_iterator spit1 = sp1.begin(),
+	 spit2 = sp2.begin();
+	 spit1 != sp1.end() && spit2 != sp2.end();
+	 spit1++, spit2++) {
+	 //printf("\n");
+	 printf(" true   y %i, x [%i, %i]\n", (*spit1)->getY(), (*spit1)->getX0(), (*spit1)->getX1());
+	 printf(" sfoot  y %i, x [%i, %i]\n", (*spit2)->getY(), (*spit2)->getX0(), (*spit2)->getX1());
+	 if (((*spit1)->getY()  != (*spit2)->getY()) ||
+	 ((*spit1)->getX0() != (*spit2)->getX0()) ||
+	 ((*spit1)->getX1() != (*spit2)->getX1())) {
+	 printf("*******************************************\n");
+	 }
+	 }
+	 assert(sp1.size() == sp2.size());
+	 for (SpanList::const_iterator spit1 = sp1.begin(),
+	 spit2 = sp2.begin();
+	 spit1 != sp1.end() && spit2 != sp2.end();
+	 spit1++, spit2++) {
+	 assert((*spit1)->getY()  == (*spit2)->getY());
+	 assert((*spit1)->getX0() == (*spit2)->getX0());
+	 assert((*spit1)->getX1() == (*spit2)->getX1());
+	 }
+ */
+
+
+template<typename ImagePixelT, typename MaskPixelT, typename VariancePixelT>
+lsst::afw::detection::Footprint::Ptr
+deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::
+symmetrizeFootprint(
+    det::Footprint const& foot,
+    int cx, int cy) {
+
+	typedef typename det::Footprint::SpanList SpanList;
+
+    det::Footprint::Ptr sfoot(new det::Footprint);
+	const SpanList spans = foot.getSpans();
+    assert(foot.isNormalized());
+
+    pexLog::Log log(pexLog::Log::getDefaultLog(),
+					"lsst.meas.deblender.symmetrizeFootprint");
+
 
 	// Find the Span containing the peak.
 	det::Span::Ptr target(new det::Span(cy, cx, cx));
@@ -778,34 +806,6 @@ symmetrizeFootprint(
 
 	}
     sfoot->normalize();
-
-	/*
-	 SpanList sp1 = truefoot.getSpans();
-	 SpanList sp2 = sfoot->getSpans();
-	 for (SpanList::const_iterator spit1 = sp1.begin(),
-	 spit2 = sp2.begin();
-	 spit1 != sp1.end() && spit2 != sp2.end();
-	 spit1++, spit2++) {
-	 //printf("\n");
-	 printf(" true   y %i, x [%i, %i]\n", (*spit1)->getY(), (*spit1)->getX0(), (*spit1)->getX1());
-	 printf(" sfoot  y %i, x [%i, %i]\n", (*spit2)->getY(), (*spit2)->getX0(), (*spit2)->getX1());
-	 if (((*spit1)->getY()  != (*spit2)->getY()) ||
-	 ((*spit1)->getX0() != (*spit2)->getX0()) ||
-	 ((*spit1)->getX1() != (*spit2)->getX1())) {
-	 printf("*******************************************\n");
-	 }
-	 }
-	 assert(sp1.size() == sp2.size());
-	 for (SpanList::const_iterator spit1 = sp1.begin(),
-	 spit2 = sp2.begin();
-	 spit1 != sp1.end() && spit2 != sp2.end();
-	 spit1++, spit2++) {
-	 assert((*spit1)->getY()  == (*spit2)->getY());
-	 assert((*spit1)->getX0() == (*spit2)->getX0());
-	 assert((*spit1)->getX1() == (*spit2)->getX1());
-	 }
-	 */
-
     return sfoot;
 }
 
