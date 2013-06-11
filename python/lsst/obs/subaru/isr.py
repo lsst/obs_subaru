@@ -333,6 +333,8 @@ class SubaruIsrTask(IsrTask):
     def measureBackground(self, exposure):
         statsControl = afwMath.StatisticsControl(self.config.qa.flatness.clipSigma,
                                                  self.config.qa.flatness.nIter)
+        maskVal = exposure.getMaskedImage().getMask().getPlaneBitMask(["BAD","SAT","DETECTED"])
+        statsControl.setAndMask(maskVal)
         maskedImage = exposure.getMaskedImage()
         stats = afwMath.makeStatistics(maskedImage, afwMath.MEDIAN | afwMath.STDEVCLIP, statsControl)
         skyLevel = stats.getValue(afwMath.MEDIAN)
