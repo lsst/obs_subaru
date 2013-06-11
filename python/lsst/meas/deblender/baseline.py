@@ -134,6 +134,11 @@ def deblend(footprint, maskedImage, psf, psffwhm,
 
         # for debugging purposes: copy the original symmetric template
         pkres.symm = t1.getImage().Factory(t1.getImage(), True)
+
+        if True:
+            if butils.hasSignificantFluxAtEdge(t1.getImage(), tfoot,
+                                               3. * sigma1):
+                print 'Found significant flux at template edge.'
         
         # Smooth / filter
         if False:

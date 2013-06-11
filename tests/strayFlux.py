@@ -41,6 +41,176 @@ def gaussianPsf(W, H, fwhm):
 
 
 class StrayFluxTestCase(unittest.TestCase):
+
+    def testClippedAtEdge(self):
+        plots = True and doPlot
+        
+        H,W = 100,100
+        fpbb = afwGeom.Box2I(afwGeom.Point2I(0,0),
+                             afwGeom.Point2I(W-1,H-1))
+
+        afwimg = afwImage.MaskedImageF(fpbb)
+        imgbb = afwimg.getBBox(afwImage.PARENT)
+        img = afwimg.getImage().getArray()
+
+        var = afwimg.getVariance().getArray()
+        var[:,:] = 1.
+        
+        blob_fwhm = 15.
+        blob_psf = doubleGaussianPsf(201, 201, blob_fwhm, 3.*blob_fwhm, 0.03)
+
+        fakepsf_fwhm = 3.
+        fakepsf = gaussianPsf(11, 11, fakepsf_fwhm)
+
+        blobimgs = []
+        XY = [(90.,50.), (50.,50.)]
+        flux = 1e6
+        for x,y in XY:
+            bim = blob_psf.computeImage(afwGeom.Point2D(x, y))
+            bbb = bim.getBBox(afwImage.PARENT)
+            bbb.clip(imgbb)
+
+            bim = bim.Factory(bim, bbb, afwImage.PARENT)
+            bim2 = bim.getArray()
+
+            blobimg = np.zeros_like(img)
+            blobimg[bbb.getMinY():bbb.getMaxY()+1,
+                    bbb.getMinX():bbb.getMaxX()+1] += flux * bim2
+            blobimgs.append(blobimg)
+
+            img[bbb.getMinY():bbb.getMaxY()+1,
+                bbb.getMinX():bbb.getMaxX()+1] += flux * bim2
+
+        # Run the detection code to get a ~ realistic footprint
+        thresh = afwDet.createThreshold(5., 'value', True)
+        fpSet = afwDet.FootprintSet(afwimg, thresh, 'DETECTED', 1)
+        fps = fpSet.getFootprints()
+        print 'found', len(fps), 'footprints'
+        pks2 = []
+        for fp in fps:
+            #print 'footprint', fp
+            print 'peaks:', len(fp.getPeaks())
+            for pk in fp.getPeaks():
+                print '  ', pk.getIx(), pk.getIy()
+                pks2.append((pk.getIx(), pk.getIy()))
+
+        self.assertEqual(len(fps), 1)
+        fp = fps[0]
+        self.assertEqual(len(fp.getPeaks()), 2)
+        
+        ima = dict(interpolation='nearest', origin='lower', cmap='gray',
+                   vmin=0, vmax=1e2)
+
+        if plots:
+            plt.figure(figsize=(12,6))
+
+            plt.clf()
+            plt.subplot(2,2,1)
+            plt.imshow(img, **ima)
+            ax = plt.axis()
+            plt.plot([x for x,y in XY], [y for x,y in XY], 'r.')
+
+            plt.axis(ax)
+            for i,(b,(x,y)) in enumerate(zip(blobimgs, XY)):
+                plt.subplot(2,2, 2+i)
+                plt.imshow(b, **ima)
+                ax = plt.axis()
+                plt.plot(x, y, 'r.')
+                plt.axis(ax)
+            plt.savefig('edge1.png')
+
+        print 'Deblending...'
+        deb = deblend(fp, afwimg, fakepsf, fakepsf_fwhm, verbose=True)
+        print 'Result:', deb
+        print len(deb.peaks), 'deblended peaks'
+
+        hfp = afwDet.makeHeavyFootprint(fp, afwimg)
+        parent_img = afwImage.ImageF(fpbb)
+        hfp.insert(parent_img)
+
+        if plots:
+            def myimshow(*args, **kwargs):
+                plt.imshow(*args, **kwargs)
+                plt.xticks([]); plt.yticks([])
+                plt.axis(imExt(afwimg))
+    
+            plt.clf()
+    
+            R,C = 3,5
+            plt.subplot(R, C, (2*C) + 1)
+            myimshow(img, **ima)
+            ax = plt.axis()
+            plt.plot([x for x,y in XY], [y for x,y in XY], 'r.')
+            plt.axis(ax)
+            plt.title('Image')
+    
+            plt.subplot(R, C, (2*C) + 2)
+            myimshow(parent_img.getArray(), **ima)
+            ax = plt.axis()
+            plt.plot([pk.getIx() for pk in fp.getPeaks()],
+                     [pk.getIy() for pk in fp.getPeaks()], 'r.')
+            plt.axis(ax)
+            plt.title('Footprint')
+            
+            sumimg = None
+            for i,dpk in enumerate(deb.peaks):
+                plt.subplot(R, C, i*C + 1)
+                myimshow(dpk.symm.getArray(), extent=imExt(dpk.symm), **ima)
+                plt.title('symm')
+    
+                plt.subplot(R, C, i*C + 2)
+                myimshow(dpk.portion.getArray(), extent=imExt(dpk.portion), **ima)
+                plt.title('portion')
+    
+                himg = afwImage.ImageF(fpbb)
+                dpk.heavy1.insert(himg)
+                
+                plt.subplot(R, C, i*C + 3)
+                myimshow(himg.getArray(), **ima)
+                plt.title('heavy')
+                ax = plt.axis()
+                plt.plot([x for x,y in XY], [y for x,y in XY], 'r.')
+                plt.axis(ax)
+    
+                simg = afwImage.ImageF(fpbb)
+                dpk.stray.insert(simg)
+                
+                plt.subplot(R, C, i*C + 4)
+                myimshow(simg.getArray(), **ima)
+                plt.title('stray')
+                ax = plt.axis()
+                plt.plot([x for x,y in XY], [y for x,y in XY], 'r.')
+                plt.axis(ax)
+    
+                himg2 = afwImage.ImageF(fpbb)
+                dpk.heavy2.insert(himg2)
+    
+                if sumimg is None:
+                    sumimg = himg2.getArray().copy()
+                else:
+                    sumimg += himg2.getArray()
+                    
+                plt.subplot(R, C, i*C + 5)
+                myimshow(himg2.getArray(), **ima)
+                plt.title('heavy+stray')
+                ax = plt.axis()
+                plt.plot([x for x,y in XY], [y for x,y in XY], 'r.')
+                plt.axis(ax)
+    
+            plt.subplot(R, C, (2*C) + C)
+            myimshow(sumimg, **ima)
+            ax = plt.axis()
+            plt.plot([x for x,y in XY], [y for x,y in XY], 'r.')
+            plt.axis(ax)
+            plt.title('Sum of deblends')
+                
+            plt.savefig('edge2.png')
+
+            
+        # import sys
+        # sys.exit(0)
+
+
     def test1(self):
         '''
         A simple example: three overlapping blobs (detected as 1
