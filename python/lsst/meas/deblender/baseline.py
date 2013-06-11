@@ -33,7 +33,8 @@ def deblend(footprint, maskedImage, psf, psffwhm,
             maxNumberOfPeaks=0,
             dropTinyFootprints=True,
             findStrayFlux=True,
-            assignStrayFlux=True
+            assignStrayFlux=True,
+            strayFluxToPointSources='necessary',
             ):
     '''
     Deblend a single ``footprint`` in a ``maskedImage``.
@@ -58,6 +59,11 @@ def deblend(footprint, maskedImage, psf, psffwhm,
     import lsst.meas.deblender as deb
     butils = deb.BaselineUtilsF
 
+    validStrayPtSrc = ['never', 'necessary', 'always']
+    if not strayFluxToPointSources in validStrayPtSrc:
+        raise ValueError(('strayFluxToPointSources: value \"%s\" not in the set of allowed values: '
+                          % strayFluxToPointSources) + str(validStrayPtSrc))
+    
     if log is None:
         import lsst.pex.logging as pexLogging
         loglvl = pexLogging.Log.INFO
@@ -90,14 +96,9 @@ def deblend(footprint, maskedImage, psf, psffwhm,
         pkres.pki = pki
         res.peaks.append(pkres)
 
-    #print 'Initial mask planes:'
-    #mask.printMaskPlanes()
     for nm in ['SYMM_1SIG', 'SYMM_3SIG', 'MONOTONIC_1SIG']:
         bit = mask.addMaskPlane(nm)
         val = mask.getPlaneBitMask(nm)
-        #print 'Added', nm, '=', val
-    #print 'New mask planes:'
-    #mask.printMaskPlanes()
 
     imbb = img.getBBox(afwImage.PARENT)
     bb = fp.getBBox()
@@ -232,8 +233,11 @@ def deblend(footprint, maskedImage, psf, psffwhm,
     strayopts = 0
     if findStrayFlux:
         strayopts |= butils.ASSIGN_STRAYFLUX
-        strayopts |= butils.STRAYFLUX_TO_POINT_SOURCES_WHEN_NECESSARY
-
+        if strayFluxToPointSources == 'necessary':
+            strayopts |= butils.STRAYFLUX_TO_POINT_SOURCES_WHEN_NECESSARY
+        elif strayFluxToPointSources == 'always':
+            strayopts |= butils.STRAYFLUX_TO_POINT_SOURCES_ALWAYS
+            
     strayopts |= butils.STRAYFLUX_R_TO_FOOTPRINT
     
     ports = butils.apportionFlux(maskedImage, fp, tmimgs, tfoots, sumimg,
