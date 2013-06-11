@@ -212,7 +212,8 @@ apportionFlux(MaskedImageT const& img,
 	std::vector<det::Footprint::Ptr > strayfoot;
 	std::vector<std::vector<ImagePixelT> > straypix;
 
-    pexLog::Log log(pexLog::Log::getDefaultLog(), "lsst.meas.deblender.apportionFlux", pexLog::Log::INFO);
+    pexLog::Log log(pexLog::Log::getDefaultLog(),
+					"lsst.meas.deblender.apportionFlux");
 	bool findStrayFlux = (strayFluxOptions & ASSIGN_STRAYFLUX);
 
 	int ix0 = img.getX0();
@@ -318,7 +319,7 @@ apportionFlux(MaskedImageT const& img,
 
 				if (strayFluxOptions & STRAYFLUX_R_TO_FOOTPRINT) {
 					// By 1/r^2 to nearest pixel within the footprint
-					for (int i=0; i<timgs.size(); ++i) {
+					for (size_t i=0; i<timgs.size(); ++i) {
 						double minr2 = 1e12;
 						const SpanList tspans = tfoots[i]->getSpans();
 						for (SpanList::const_iterator ts = tspans.begin();
@@ -346,7 +347,7 @@ apportionFlux(MaskedImageT const& img,
 
 				} else {
 					// Split the stray flux by 1/r^2 ...
-					for (int i=0; i<timgs.size(); ++i) {
+					for (size_t i=0; i<timgs.size(); ++i) {
 						int dx, dy;
 						dx = pkx[i] - x;
 						dy = pky[i] - y;
@@ -362,7 +363,7 @@ apportionFlux(MaskedImageT const& img,
 				bool ptsrcs = always;
 
 				double csum = 0.;
-				for (int i=0; i<timgs.size(); ++i) {
+				for (size_t i=0; i<timgs.size(); ++i) {
 					// Skip deblended-as-PSF
 					if ((!always) && ispsf.size() && ispsf[i]) {
 						continue;
@@ -377,7 +378,7 @@ apportionFlux(MaskedImageT const& img,
 					ptsrcs = true;
 					//printf("assigning stray flux to point sources\n");
 					// No extended sources -- assign to pt sources
-					for (int i=0; i<timgs.size(); ++i) {
+					for (size_t i=0; i<timgs.size(); ++i) {
 						csum += contrib[i];
 					}
 				}
@@ -388,7 +389,7 @@ apportionFlux(MaskedImageT const& img,
 				//printf("clip: %g\n", strayclip);
 
 				csum = 0.;
-				for (int i=0; i<timgs.size(); ++i) {
+				for (size_t i=0; i<timgs.size(); ++i) {
 					// skip ptsrcs?
 					if ((!ptsrcs) && ispsf.size() && ispsf[i]) {
 						contrib[i] = 0.;
@@ -404,7 +405,7 @@ apportionFlux(MaskedImageT const& img,
 				}
 				//printf("csum = %g (after skipping small)\n", csum);
 
-				for (int i=0; i<timgs.size(); ++i) {
+				for (size_t i=0; i<timgs.size(); ++i) {
 					double c = contrib[i];
 					if (c == 0.) {
 						continue;
@@ -451,6 +452,117 @@ apportionFlux(MaskedImageT const& img,
 	return portions;
 }
 
+
+class RelativeSpanIterator {
+public:
+	typedef det::Footprint::SpanList SpanList;
+
+	RelativeSpanIterator() {}
+
+	RelativeSpanIterator(SpanList::const_iterator const& real,
+						 SpanList const& arr,
+						 int cx, int cy, bool forward=true) 
+		: _real(real), _cx(cx), _cy(cy), _forward(forward)
+		{
+			if (_forward) {
+				_end = arr.end();
+			} else {
+				_end = arr.begin();
+			}
+            /*
+             printf("RelativeSpanIterator: real is [%i], end is [%i]\n",
+             (int)(real - arr.begin()), (int)(arr.end() - arr.begin()));
+             printf("forward is %i; _end is %i\n", _forward, (int)(_end - arr.begin()));
+             printf("notDone? %i\n", notDone());
+             */
+        }
+
+	bool operator==(const SpanList::const_iterator & other) {
+		return _real == other;
+	}
+	bool operator!=(const SpanList::const_iterator & other) {
+		return _real != other;
+	}
+	bool operator<=(const SpanList::const_iterator & other) {
+		return _real <= other;
+	}
+	bool operator<(const SpanList::const_iterator & other) {
+		return _real < other;
+	}
+	bool operator>=(const SpanList::const_iterator & other) {
+		return _real >= other;
+	}
+	bool operator>(const SpanList::const_iterator & other) {
+		return _real > other;
+	}
+
+	bool operator==(RelativeSpanIterator & other) {
+		return (_real == other._real) &&
+			(_cx == other._cx) && (_cy == other._cy) &&
+			(_forward == other._forward);
+	}
+	bool operator!=(RelativeSpanIterator & other) {
+		return !(*this == other);
+	}
+
+	RelativeSpanIterator operator++() {
+		if (_forward) {
+			_real++;
+		} else {
+			_real--;
+		}
+		return *this;
+	}
+	RelativeSpanIterator operator++(int dummy) {
+		RelativeSpanIterator result = *this;
+		++(*this);
+		return result;
+	}
+
+	bool notDone() {
+		if (_forward) {
+			return _real < _end;
+		} else {
+			return _real >= _end;
+		}
+	}
+
+	int dxlo() {
+		if (_forward) {
+			return (*_real)->getX0() - _cx;
+		} else {
+			return _cx - (*_real)->getX1();
+		}
+	}
+	int dxhi() {
+		if (_forward) {
+			return (*_real)->getX1() - _cx;
+		} else {
+			return _cx - (*_real)->getX0();
+		}
+	}
+	int dy() {
+		return std::abs((*_real)->getY() - _cy);
+	}
+	int x0() {
+		return (*_real)->getX0();
+	}
+	int x1() {
+		return (*_real)->getX1();
+	}
+	int y() {
+		return (*_real)->getY();
+	}
+
+private:
+	SpanList::const_iterator _real;
+	SpanList::const_iterator _end;
+	int _cx;
+	int _cy;
+	bool _forward;
+};
+
+
 template<typename ImagePixelT, typename MaskPixelT, typename VariancePixelT>
 lsst::afw::detection::Footprint::Ptr
 deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::
@@ -464,9 +576,8 @@ symmetrizeFootprint(
 	const SpanList spans = foot.getSpans();
     assert(foot.isNormalized());
 
-    pexLog::Log log(pexLog::Log::getDefaultLog(), "lsst.meas.deblender",
-					//pexLog::Log::DEBUG);
-					pexLog::Log::INFO);
+    pexLog::Log log(pexLog::Log::getDefaultLog(),
+					"lsst.meas.deblender.symmetrizeFootprint");
 
 	/*
 	 // compute correct answer dumbly
@@ -513,62 +624,93 @@ symmetrizeFootprint(
 			return det::Footprint::Ptr();
 		}
 	}
-	assert(sp->contains(cx,cy));
 	log.debugf("Span containing (%i,%i): (x=[%i,%i], y=%i)",
                cx, cy, sp->getX0(), sp->getX1(), sp->getY());
 
-	SpanList::const_iterator fwd  = peakspan;
-	SpanList::const_iterator back = peakspan;
+	// The symmetric templates are essentially an AND of the footprint
+	// pixels and its 180-degree-rotated self, rotated around the
+	// peak (cx,cy).
+	//
+	// We iterate forward and backward simultaneously, starting from
+	// the span containing the peak and moving out, row by row.
+	// 
+	// In the loop below, we search for the next pair of Spans that
+	// overlap (in "dx" from the center), output the overlapping
+	// portion of the Spans, and advance either the "fwd" or "back"
+	// iterator.  When we fail to find an overlapping pair of Spans,
+	// we move on to the next row.
+	//
+	// In reading the code, "forward", "advancing", etc, are all from
+	// the perspective of the "fwd" iterator (the one going forward
+	// through the Span list, from low to high Y and then low to high
+	// X).  It will help to imagine making a copy of the footprint and
+	// rotating it around the center pixel by 180 degrees, so that
+	// "fwd" and "back" are both iterating the same direction; we're
+	// then just finding the AND of those two iterators, except we
+	// have to work in dx,dy coordinates rather than original x,y
+	// coords, and the accessors for "back" are opposite.
+
+	RelativeSpanIterator fwd (peakspan, spans, cx, cy, true);
+	RelativeSpanIterator back(peakspan, spans, cx, cy, false);
+
 	int dy = 0;
-	while ((fwd < spans.end()) && (back >= spans.begin())) {
+	while (fwd.notDone() && back.notDone()) {
+		// forward and backward "y"
 		int fy = cy + dy;
 		int by = cy - dy;
-		// forward and backward delta-xs of the beginnings of the spans
-		int fdx = (*fwd)->getX0() - cx;
-		int bdx = cx - (*back)->getX1();
+		// forward and backward delta-x of the beginnings of the spans
+		int fdxlo =  fwd.dxlo();
+		int bdxlo = back.dxlo();
 
-		SpanList::const_iterator fend;
-		for (fend = fwd; fend != spans.end(); ++fend) {
-			if ((*fend)->getY() != fy)
+		// First find:
+		//    fend -- first span in the next row, or end();
+		//            the end of this row in the forward direction
+		//    bend -- the end of this row in the backward direction
+		RelativeSpanIterator fend, bend;
+		for (fend = fwd; fend.notDone(); ++fend) {
+			if (fend.dy() != dy)
 				break;
 		}
-		SpanList::const_iterator bend;
-		for (bend=back; bend >= spans.begin(); --bend) {
-			if ((*bend)->getY() != by)
+		for (bend = back; bend.notDone(); ++bend) {
+			if (bend.dy() != dy)
 				break;
 		}
+
 		log.debugf("dy=%i, fy=%i, fx=[%i, %i],   by=%i, fx=[%i, %i],  fdx=%i, bdx=%i",
-				   dy, fy, (*fwd)->getX0(), (*fwd)->getX1(), by, (*back)->getX0(), (*back)->getX1(), fdx, bdx);
+				   dy, fy, fwd.x0(), fwd.x1(), by, back.x0(), back.x1(),
+				   fdxlo, bdxlo);
 
-		if (bdx > fdx) {
+		if (bdxlo > fdxlo) {
 			log.debugf("Advancing forward.");
-			int fx = cx + bdx;
+			int dx = bdxlo;
 			// advance "fwd" until the first possibly-overlapping span is found.
-			while ((fwd != fend) && (*fwd)->getX1() < fx) {
+			while ((fwd != fend) && (fwd.dxhi() < dx)) {
 				fwd++;
 				if (fwd == fend) {
 					log.debugf("Reached fend");
 				} else {
 					log.debugf("Advanced to forward span %i, [%i, %i]",
-							   (*fwd)->getY(), (*fwd)->getX0(), (*fwd)->getX1());
+							   fy, fwd.x0(), fwd.x1());
 				}
 			}
-		} else if (fdx > bdx) {
+		} else if (fdxlo > bdxlo) {
 			log.debugf("Advancing backward.");
-			int bx = cx - fdx;
+			int dx = fdxlo;
 			// advance "back" until the first possibly-overlapping span is found.
-			while ((back != bend) && (*back)->getX0() > bx) {
-				back--;
+			while ((back != bend) && (back.dxhi() < dx)) {
+				back++;
 				if (back == bend) {
 					log.debugf("Reached bend");
 				} else {
 					log.debugf("Advanced to backward span %i, [%i, %i]",
-							   (*back)->getY(), (*back)->getX0(), (*back)->getX1());
+							   by, back.x0(), back.x1());
 				}
 			}
 		}
 
 		if ((back == bend) || (fwd == fend)) {
+			// We reached the end of the row without finding spans that could
+			// overlap.  Move onto the next dy.
 			if (back == bend) {
 				log.debugf("Reached bend");
 			}
@@ -581,10 +723,9 @@ symmetrizeFootprint(
 			continue;
 		}
 
-		int dxlo = std::max((*fwd)->getX0() - cx, cx - (*back)->getX1());
-		int dxhi = std::min((*fwd)->getX1() - cx, cx - (*back)->getX0());
-		//log.debugf("fy,by %i,%i, dx [%i, %i] --> [%i, %i], [%i, %i]\n", fy, by,
-		//dxlo, dxhi, cx+dxlo, cx+dxhi, cx-dxhi, cx-dxlo);
+		// Spans may overlap -- find the overlapping part.
+		int dxlo = std::max(fwd.dxlo(), back.dxlo());
+		int dxhi = std::min(fwd.dxhi(), back.dxhi());
 		if (dxlo <= dxhi) {
 			log.debugf("Adding span fwd %i, [%i, %i],  back %i, [%i, %i]",
 					   fy, cx+dxlo, cx+dxhi, by, cx-dxhi, cx-dxlo);
@@ -593,27 +734,26 @@ symmetrizeFootprint(
 		}
 
 		// Advance the one whose "hi" edge is smallest
-		fdx = (*fwd)->getX1() - cx;
-		bdx = cx - (*back)->getX0();
-		if (fdx < bdx) {
+		if (fwd.dxhi() < back.dxhi()) {
 			fwd++;
 			if (fwd == fend) {
 				log.debugf("Stepped to fend\n");
 			} else {
 				log.debugf("Stepped forward to span %i, [%i, %i]",
-						   (*fwd)->getY(), (*fwd)->getX0(), (*fwd)->getX1());
+						   fwd.y(), fwd.x0(), fwd.x1());
 			}
 		} else {
-			back--;
+			back++;
 			if (back == bend) {
 				log.debugf("Stepped to bend\n");
 			} else {
 				log.debugf("Stepped backward to span %i, [%i, %i]",
-						   (*back)->getY(), (*back)->getX0(), (*back)->getX1());
+						   back.y(), back.x0(), back.x1());
 			}
 		}
 
 		if ((back == bend) || (fwd == fend)) {
+			// Reached the end of the row.  On to the next dy!
 			if (back == bend) {
 				log.debugf("Reached bend");
 			}
@@ -675,11 +815,13 @@ buildSymmetricTemplate(
 
 	int cx = peak.getIx();
 	int cy = peak.getIy();
+
     FootprintPtrT sfoot = symmetrizeFootprint(foot, cx, cy);
 	if (!sfoot) {
 		return std::pair<MaskedImagePtrT, FootprintPtrT>(MaskedImagePtrT(), sfoot);
 	}
-    pexLog::Log log(pexLog::Log::getDefaultLog(), "lsst.meas.deblender", pexLog::Log::INFO);
+    pexLog::Log log(pexLog::Log::getDefaultLog(),
+					"lsst.meas.deblender.symmetricFootprint");
 
     // The result image will be at most as large as the footprint
 	geom::Box2I fbb = foot.getBBox();
