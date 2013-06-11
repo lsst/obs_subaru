@@ -113,6 +113,8 @@ def deblend(footprint, maskedImage, psf, psffwhm,
                   psf_chisq_cut1, psf_chisq_cut2, psf_chisq_cut2b,
                   dropTiny = dropTinyFootprints)
 
+    # fluxAtEdge = False
+        
     log.logdebug('Creating templates for footprint at x0,y0,W,H = (%i,%i, %i,%i)' % (x0,y0,W,H))
     for pkres in res.peaks:
         if pkres.out_of_bounds or pkres.deblend_as_psf:
@@ -135,11 +137,76 @@ def deblend(footprint, maskedImage, psf, psffwhm,
         # for debugging purposes: copy the original symmetric template
         pkres.symm = t1.getImage().Factory(t1.getImage(), True)
 
+        #if not fluxAtEdge:
         if True:
             if butils.hasSignificantFluxAtEdge(t1.getImage(), tfoot,
                                                3. * sigma1):
                 print 'Found significant flux at template edge.'
-        
+                #fluxAtEdge = True
+
+                # Take footprint-clipped image, convolve by PSF,
+                # and find the symmetric template of that?
+
+                # Or take symmetric-template-clipped image, convolve by
+                # PSF, take max with footprint-clipped image, and find
+                # symmetric template of that.
+
+                S = psffwhm * 1.5
+                # make odd integer
+                S = (int(S + 0.5) / 2) * 2 + 1
+                #
+                tbb = tfoot.getBBox()
+                tbb.grow(S)
+
+                # template-clipped original image
+                #tcim = t1.getImage().Factory(tbb)
+                tcim = t1.Factory(tbb)
+                theavy = afwDet.makeHeavyFootprint(tfoot, maskedImage)
+                theavy.insert(tcim)
+
+                # convolve by PSF (Gaussian approx)
+                psfsigma = (psffwhm / 2.35)
+                gaussFunc = afwMath.GaussianFunction1D(psfsigma)
+                gaussKernel = afwMath.SeparableKernel(S, S, gaussFunc, gaussFunc)
+                #tcconv = t1.getImage().Factory(tbb)
+                tcconv = t1.Factory(tbb)
+                #print 'Convolve:'
+                #print '  ', type(tcconv)#, tcconv
+                #print '  ', type(tcim)
+                afwMath.convolve(tcconv, tcim, gaussKernel,
+                                 afwMath.ConvolutionControl())
+                
+                # footprint-clipped image
+                #fcim = t1.getImage().Factory(tbb)
+                fcim = t1.Factory(tbb)
+                fpcopy = afwDet.Footprint(fp)
+                fpcopy.clipTo(tbb)
+                theavy = afwDet.makeHeavyFootprint(fpcopy, maskedImage)
+                theavy.insert(fcim)
+
+                # Fill the "fcim" (which has the right variance and mask planes)
+                # with the max pixels.
+                maximg = fcim
+                maximg.getImage().getArray()[:,:] = np.maximum(tcconv.getImage().getArray(),
+                                                               fcim.getImage().getArray())
+
+                fpcopy = afwDet.growFootprint(fpcopy, S)
+                fpcopy.normalize()
+                
+                rtn = butils.buildSymmetricTemplate(maximg, fpcopy, pk, sigma1, True)
+
+                # SWIG doesn't know how to unpack an std::pair into a 2-tuple...
+                t1, tfoot = rtn[0], rtn[1]
+
+                # This template footprint may extend outside the parent
+                # footprint -- or the image -- clip it.
+                ## FIXME -- this is not strong enough clipping!
+                tfoot.clipTo(imbb)
+                
+                # Copy for debugging
+                pkres.symm = t1.getImage().Factory(t1.getImage(), True)
+                
+                
         # Smooth / filter
         if False:
             sig = 0.5

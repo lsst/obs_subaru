@@ -206,12 +206,8 @@ class StrayFluxTestCase(unittest.TestCase):
                 
             plt.savefig('edge2.png')
 
-            
-        # import sys
-        # sys.exit(0)
 
-
-    def test1(self):
+    def tst1(self):
         '''
         A simple example: three overlapping blobs (detected as 1
         footprint with three peaks).  We artificially omit one of the
@@ -418,7 +414,7 @@ class StrayFluxTestCase(unittest.TestCase):
         self.assertTrue(absdiff < imgmax * 1e-6)
 
 
-    def test2(self):
+    def tst2(self):
         '''
         A 1-d example, to test the stray-flux assignment.
         '''
