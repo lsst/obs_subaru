@@ -158,10 +158,7 @@ def deblend(footprint, maskedImage, psf, psffwhm,
                 S = (int(S + 0.5) / 2) * 2 + 1
 
                 tbb = tfoot.getBBox()
-                print 'tbb:', tbb
                 tbb.grow(S)
-                print 'after: orig:', tfoot.getBBox()
-                print '      grown:', tbb
 
                 # footprint-clipped image
                 fcim = t1.Factory(tbb)
@@ -184,12 +181,26 @@ def deblend(footprint, maskedImage, psf, psffwhm,
                 ctl = afwMath.ConvolutionControl(True, True)
                 afwMath.convolve(tcconv, tcim, gaussKernel, ctl)
 
+                weightim = t1.Factory(tbb)
+                # ICK!
+                oneim = t1.Factory(tbb)
+                oneim.getImage().getArray()[:,:] = 1.
+                theavy = afwDet.makeHeavyFootprint(tfoot, oneim)
+                theavy.insert(weightim)
+                wconv = t1.Factory(tbb)
+                afwMath.convolve(wconv, weightim, gaussKernel, ctl)
+                    
                 # Fill the "fcim" (which has the right variance and
                 # mask planes) with the max pixels.
+                # [where it is zero / outside the footprint]
                 maximg = t1.Factory(fcim, True)
-                maximg.getImage().getArray()[:,:] = np.maximum(tcconv.getImage().getArray(),
-                                                               fcim.getImage().getArray())
-
+                #maximg.getImage().getArray()[:,:] = np.maximum(tcconv.getImage().getArray(),
+                #                                              fcim.getImage().getArray())
+                weps = 1e-9
+                I = ((maximg.getImage().getArray() == 0) * (wconv.getImage().getArray() > weps))
+                maximg.getImage().getArray()[I] = (tcconv.getImage().getArray()[I] /
+                                                    wconv.getImage().getArray()[I])
+                
                 fpcopy = afwDet.growFootprint(fpcopy, S)
                 fpcopy.normalize()
                 
@@ -201,31 +212,42 @@ def deblend(footprint, maskedImage, psf, psffwhm,
                 import pylab as plt
                 plt.clf()
                 ima = dict(interpolation='nearest', origin='lower')
-                plt.subplot(2,3,1)
+                plt.subplot(2,4,1)
                 plt.imshow(t1.getImage().getArray(), **ima)
                 plt.colorbar()
                 plt.title('t1')
-                plt.subplot(2,3,2)
+                plt.subplot(2,4,2)
                 plt.imshow(tcim.getImage().getArray(), **ima)
                 plt.colorbar()
                 plt.title('tcim')
-                plt.subplot(2,3,3)
+                plt.subplot(2,4,3)
                 plt.imshow(tcconv.getImage().getArray(), **ima)
                 plt.colorbar()
                 plt.title('tcconv')
-                plt.subplot(2,3,4)
+                plt.subplot(2,4,4)
                 plt.imshow(fcim.getImage().getArray(), **ima)
                 plt.colorbar()
                 plt.title('fcim')
-                plt.subplot(2,3,5)
+                plt.subplot(2,4,5)
                 plt.imshow(maximg.getImage().getArray(), **ima)
                 plt.colorbar()
                 plt.title('maximg')
-                plt.subplot(2,3,6)
+                plt.subplot(2,4,6)
                 plt.imshow(t2.getImage().getArray(), **ima)
                 plt.colorbar()
                 plt.title('t2')
 
+                plt.subplot(2,4,7)
+                plt.imshow(wconv.getImage().getArray(), **ima)
+                plt.colorbar()
+                plt.title('wconv')
+                plt.subplot(2,4,8)
+                plt.imshow((tcconv.getImage().getArray() /
+                            wconv.getImage().getArray()), **ima)
+                plt.colorbar()
+                plt.title('tcconv / wconv')
+
+                
                 global plotnum
 
                 plt.savefig('edge-%03i.png' % plotnum)

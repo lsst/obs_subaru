@@ -172,15 +172,16 @@ class StrayFluxTestCase(unittest.TestCase):
                 plt.plot([x for x,y in XY], [y for x,y in XY], 'r.')
                 plt.axis(ax)
     
-                simg = afwImage.ImageF(fpbb)
-                dpk.stray.insert(simg)
+                if dpk.stray is not None:
+                    simg = afwImage.ImageF(fpbb)
+                    dpk.stray.insert(simg)
                 
-                plt.subplot(R, C, i*C + 4)
-                myimshow(simg.getArray(), **ima)
-                plt.title('stray')
-                ax = plt.axis()
-                plt.plot([x for x,y in XY], [y for x,y in XY], 'r.')
-                plt.axis(ax)
+                    plt.subplot(R, C, i*C + 4)
+                    myimshow(simg.getArray(), **ima)
+                    plt.title('stray')
+                    ax = plt.axis()
+                    plt.plot([x for x,y in XY], [y for x,y in XY], 'r.')
+                    plt.axis(ax)
     
                 himg2 = afwImage.ImageF(fpbb)
                 dpk.heavy2.insert(himg2)
