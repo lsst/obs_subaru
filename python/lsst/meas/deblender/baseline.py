@@ -6,6 +6,8 @@ import lsst.afw.detection as afwDet
 import lsst.afw.geom  as afwGeom
 import lsst.afw.math  as afwMath
 
+plotnum = 1
+
 # Result objects; will probably go away as we push more results
 # into earlier-created Source objects, but useful for now for
 # hauling debugging results around.
@@ -154,12 +156,19 @@ def deblend(footprint, maskedImage, psf, psffwhm,
                 S = psffwhm * 1.5
                 # make odd integer
                 S = (int(S + 0.5) / 2) * 2 + 1
-                #
+
                 tbb = tfoot.getBBox()
                 tbb.grow(S)
 
+                # footprint-clipped image
+                fcim = t1.Factory(tbb)
+                fcim.getImage()[:,:] = 0.
+                fpcopy = afwDet.Footprint(fp)
+                fpcopy.clipTo(tbb)
+                theavy = afwDet.makeHeavyFootprint(fpcopy, maskedImage)
+                theavy.insert(fcim)
+                
                 # template-clipped original image
-                #tcim = t1.getImage().Factory(tbb)
                 tcim = t1.Factory(tbb)
                 theavy = afwDet.makeHeavyFootprint(tfoot, maskedImage)
                 theavy.insert(tcim)
@@ -168,25 +177,15 @@ def deblend(footprint, maskedImage, psf, psffwhm,
                 psfsigma = (psffwhm / 2.35)
                 gaussFunc = afwMath.GaussianFunction1D(psfsigma)
                 gaussKernel = afwMath.SeparableKernel(S, S, gaussFunc, gaussFunc)
-                #tcconv = t1.getImage().Factory(tbb)
-                tcconv = t1.Factory(tbb)
-                #print 'Convolve:'
-                #print '  ', type(tcconv)#, tcconv
-                #print '  ', type(tcim)
-                afwMath.convolve(tcconv, tcim, gaussKernel,
-                                 afwMath.ConvolutionControl())
+                tcconv = t1.Factory(tcim, True)
+                # doCopyEdge = True
+                ctl = afwMath.ConvolutionControl(True, True)
+                afwMath.convolve(tcconv, tcim, gaussKernel, ctl)
                 
-                # footprint-clipped image
-                #fcim = t1.getImage().Factory(tbb)
-                fcim = t1.Factory(tbb)
-                fpcopy = afwDet.Footprint(fp)
-                fpcopy.clipTo(tbb)
-                theavy = afwDet.makeHeavyFootprint(fpcopy, maskedImage)
-                theavy.insert(fcim)
 
-                # Fill the "fcim" (which has the right variance and mask planes)
-                # with the max pixels.
-                maximg = fcim
+                # Fill the "fcim" (which has the right variance and
+                # mask planes) with the max pixels.
+                maximg = t1.Factory(fcim, True)
                 maximg.getImage().getArray()[:,:] = np.maximum(tcconv.getImage().getArray(),
                                                                fcim.getImage().getArray())
 
@@ -196,16 +195,51 @@ def deblend(footprint, maskedImage, psf, psffwhm,
                 rtn = butils.buildSymmetricTemplate(maximg, fpcopy, pk, sigma1, True)
 
                 # SWIG doesn't know how to unpack an std::pair into a 2-tuple...
-                t1, tfoot = rtn[0], rtn[1]
+                t2, tfoot = rtn[0], rtn[1]
 
+                import pylab as plt
+                plt.clf()
+                ima = dict(interpolation='nearest', origin='lower')
+                plt.subplot(2,3,1)
+                plt.imshow(t1.getImage().getArray(), **ima)
+                plt.colorbar()
+                plt.title('t1')
+                plt.subplot(2,3,2)
+                plt.imshow(tcim.getImage().getArray(), **ima)
+                plt.colorbar()
+                plt.title('tcim')
+                plt.subplot(2,3,3)
+                plt.imshow(tcconv.getImage().getArray(), **ima)
+                plt.colorbar()
+                plt.title('tcconv')
+                plt.subplot(2,3,4)
+                plt.imshow(fcim.getImage().getArray(), **ima)
+                plt.colorbar()
+                plt.title('fcim')
+                plt.subplot(2,3,5)
+                plt.imshow(maximg.getImage().getArray(), **ima)
+                plt.colorbar()
+                plt.title('maximg')
+                plt.subplot(2,3,6)
+                plt.imshow(t2.getImage().getArray(), **ima)
+                plt.colorbar()
+                plt.title('t2')
+
+                global plotnum
+
+                plt.savefig('edge-%03i.png' % plotnum)
+                plotnum += 1
+                            
+                
                 # This template footprint may extend outside the parent
                 # footprint -- or the image -- clip it.
                 ## FIXME -- this is not strong enough clipping!
                 tfoot.clipTo(imbb)
                 
                 # Copy for debugging
-                pkres.symm = t1.getImage().Factory(t1.getImage(), True)
-                
+                pkres.symm = t2.getImage().Factory(t2.getImage(), True)
+
+                t1 = t2
                 
         # Smooth / filter
         if False:
