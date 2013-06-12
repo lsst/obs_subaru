@@ -914,7 +914,6 @@ hasSignificantFluxAtEdge(ImagePtrT img,
 						 det::Footprint::Ptr sfoot,
 						 ImagePixelT thresh) {
 	// ASSUME "sfoot" is a symmetric footprint!!!
-
 	typedef typename det::Footprint::SpanList SpanList;
 
     pexLog::Log log(pexLog::Log::getDefaultLog(),
@@ -928,7 +927,6 @@ hasSignificantFluxAtEdge(ImagePtrT img,
 
 	SpanList::const_iterator fwd  = spans.begin();
 	SpanList::const_iterator back = spans.end()-1;
-	//double thresh = 3. * sigma1;
 
 	for (; fwd <= back; fwd++, back--) {
 		// Technically we have to check above and below all pixels
@@ -962,6 +960,50 @@ hasSignificantFluxAtEdge(ImagePtrT img,
 	}
 	return false;
 }
+
+template<typename ImagePixelT, typename MaskPixelT, typename VariancePixelT>
+boost::shared_ptr<det::Footprint>
+deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::
+getSignificantEdgePixels(ImagePtrT img,
+						 det::Footprint::Ptr sfoot,
+						 ImagePixelT thresh) {
+	typedef typename det::Footprint::SpanList SpanList;
+    pexLog::Log log(pexLog::Log::getDefaultLog(),
+					"lsst.meas.deblender.getSignificantEdgePixels");
+	const SpanList spans = sfoot->getSpans();
+	SpanList::const_iterator fwd;
+	det::Footprint::Ptr edgepix(new det::Footprint());
+
+	for (fwd = spans.begin(); fwd != spans.end(); fwd++) {
+		int y = (*fwd)->getY();
+		int x0 = (*fwd)->getX0();
+		int x1 = (*fwd)->getX1();
+		int x;
+		typename ImageT::const_x_iterator xiter;
+		for (xiter = img->x_at(x0,y), x=x0; 
+			 x<=x1; ++x, ++xiter) {
+			if (*xiter < thresh)
+				// not significant
+				continue;
+			// Since the footprint is normalized, all span endpoints
+			// are on the boundary.
+			if ((x != x0) && (x != x1) &&
+				sfoot->contains(geom::Point2I(x, y-1)) &&
+				sfoot->contains(geom::Point2I(x, y+1))) {
+				// not edge
+				continue;
+			}
+			log.debugf("Found significant edge pixel: %i,%i = %f",
+					   x, y, (float)*xiter);
+			edgepix->addSpan(y, x, x);
+		}
+	}
+	edgepix->normalize();
+	return edgepix;
+}
+
+
+
 
 
 template<typename ImagePixelT, typename MaskPixelT, typename VariancePixelT>

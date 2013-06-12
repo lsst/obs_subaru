@@ -91,11 +91,18 @@ namespace lsst {
                     return std::vector<boost::shared_ptr<typename lsst::afw::detection::HeavyFootprint<ImagePixelT,MaskPixelT,VariancePixelT> > >();
                 };
 
+                // ASSUMES a symmetric footprint!!!
                 static
                 bool
                 hasSignificantFluxAtEdge(ImagePtrT,
                                          boost::shared_ptr<lsst::afw::detection::Footprint>,
                     ImagePixelT threshold);
+
+                static
+                boost::shared_ptr<lsst::afw::detection::Footprint>
+                getSignificantEdgePixels(ImagePtrT,
+                                         boost::shared_ptr<lsst::afw::detection::Footprint>,
+                                         ImagePixelT threshold);
 
                 /*** This should move to HeavyFootprint.cc ***/
                 static
