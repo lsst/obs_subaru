@@ -146,23 +146,25 @@ def deblend(footprint, maskedImage, psf, psffwhm,
                 print 'Found significant flux at template edge.'
                 #fluxAtEdge = True
 
-                # Take footprint-clipped image, convolve by PSF,
-                # and find the symmetric template of that?
-
-                # Or take symmetric-template-clipped image, convolve by
-                # PSF, take max with footprint-clipped image, and find
-                # symmetric template of that.
+                # Compute the max of:
+                #  -symmetric-template-clipped image * PSF
+                #  -footprint-clipped image
+                # Ie, extend the template by the PSF and "fill in" the
+                # footprint.
+                # Then find the symmetric template of that image.
 
                 S = psffwhm * 1.5
-                # make odd integer
+                # make it an odd integer
                 S = (int(S + 0.5) / 2) * 2 + 1
 
                 tbb = tfoot.getBBox()
+                print 'tbb:', tbb
                 tbb.grow(S)
+                print 'after: orig:', tfoot.getBBox()
+                print '      grown:', tbb
 
                 # footprint-clipped image
                 fcim = t1.Factory(tbb)
-                fcim.getImage()[:,:] = 0.
                 fpcopy = afwDet.Footprint(fp)
                 fpcopy.clipTo(tbb)
                 theavy = afwDet.makeHeavyFootprint(fpcopy, maskedImage)
@@ -177,11 +179,10 @@ def deblend(footprint, maskedImage, psf, psffwhm,
                 psfsigma = (psffwhm / 2.35)
                 gaussFunc = afwMath.GaussianFunction1D(psfsigma)
                 gaussKernel = afwMath.SeparableKernel(S, S, gaussFunc, gaussFunc)
-                tcconv = t1.Factory(tcim, True)
+                tcconv = t1.Factory(tbb)
                 # doCopyEdge = True
                 ctl = afwMath.ConvolutionControl(True, True)
                 afwMath.convolve(tcconv, tcim, gaussKernel, ctl)
-                
 
                 # Fill the "fcim" (which has the right variance and
                 # mask planes) with the max pixels.
@@ -195,7 +196,7 @@ def deblend(footprint, maskedImage, psf, psffwhm,
                 rtn = butils.buildSymmetricTemplate(maximg, fpcopy, pk, sigma1, True)
 
                 # SWIG doesn't know how to unpack an std::pair into a 2-tuple...
-                t2, tfoot = rtn[0], rtn[1]
+                t2, tfoot2 = rtn[0], rtn[1]
 
                 import pylab as plt
                 plt.clf()
@@ -234,12 +235,33 @@ def deblend(footprint, maskedImage, psf, psffwhm,
                 # This template footprint may extend outside the parent
                 # footprint -- or the image -- clip it.
                 ## FIXME -- this is not strong enough clipping!
-                tfoot.clipTo(imbb)
-                
+                tfoot2.clipTo(imbb)
+                tfoot2.clipTo(bb)
+
+                tbb = tfoot2.getBBox()
+
+                print 'tfoot2 bb:', tbb
+                print 't2 bb:', t2.getBBox(afwImage.PARENT)
+
+                # clip to bbox
+                t2 = t2.Factory(t2, tbb, afwImage.PARENT, True)
+                print 't2 bb:', t2.getBBox(afwImage.PARENT)
+
                 # Copy for debugging
                 pkres.symm = t2.getImage().Factory(t2.getImage(), True)
 
                 t1 = t2
+                tfoot = tfoot2
+
+                # DEBUG memory issues
+                del t2
+                del maximg
+                del fpcopy
+                del tcconv
+                del tcim
+                del theavy
+                del fcim
+
                 
         # Smooth / filter
         if False:

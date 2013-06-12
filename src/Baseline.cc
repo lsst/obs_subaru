@@ -439,10 +439,21 @@ apportionFlux(MaskedImageT const& img,
 				ndarray::Array<ImagePixelT,1,1> himg = heavy->getImageArray();
 				typename std::vector<ImagePixelT>::const_iterator spix;
 				typename ndarray::Array<ImagePixelT,1,1>::Iterator hpix;
-				for (spix = straypix[i].begin(), hpix = himg.begin();
+
+                /// FIXME -- we just put in zeros for the mask and variance planes.
+				typename ndarray::Array<MaskPixelT,1,1>::Iterator mpix;
+				typename ndarray::Array<VariancePixelT,1,1>::Iterator vpix;
+
+                assert(strayfoot[i].getNpix() == straypix[i].count());
+
+				for (spix = straypix[i].begin(), hpix = himg.begin(),
+                         mpix = heavy->getMaskArray().begin(),
+                         vpix = heavy->getVarianceArray().begin();
 					 spix != straypix[i].end();
-					 ++spix, ++hpix) {
+					 ++spix, ++hpix, ++mpix, ++vpix) {
 					*hpix = *spix;
+                    *mpix = 0;
+                    *vpix = 0;
 				}
 				strays.push_back(heavy);
 			}
