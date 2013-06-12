@@ -229,23 +229,56 @@ def deblend(footprint, maskedImage, psf, psffwhm,
                 global plotnum
 
                 plt.savefig('edge-%03i.png' % plotnum)
+
+                plt.clf()
+                plt.imshow(t1.getImage().getArray(), **ima)
+                plt.colorbar()
+                plt.title('t1')
+                plt.savefig('edge-%03i-1.png' % plotnum)
+
+                plt.clf()
+                plt.imshow(tcim.getImage().getArray(), **ima)
+                plt.colorbar()
+                plt.title('tcim')
+                plt.savefig('edge-%03i-2.png' % plotnum)
+
+                plt.clf()
+                plt.imshow(tcconv.getImage().getArray(), **ima)
+                plt.colorbar()
+                plt.title('tcconv')
+                plt.savefig('edge-%03i-3.png' % plotnum)
+                
+                plt.clf()
+                plt.imshow(fcim.getImage().getArray(), **ima)
+                plt.colorbar()
+                plt.title('fcim')
+                plt.savefig('edge-%03i-4.png' % plotnum)
+
+                plt.clf()
+                plt.imshow(maximg.getImage().getArray(), **ima)
+                plt.colorbar()
+                plt.title('maximg')
+                plt.savefig('edge-%03i-5.png' % plotnum)
+
+                plt.clf()
+                plt.imshow(t2.getImage().getArray(), **ima)
+                plt.colorbar()
+                plt.title('t2')
+                plt.savefig('edge-%03i-6.png' % plotnum)
+
                 plotnum += 1
-                            
+
+                
                 
                 # This template footprint may extend outside the parent
                 # footprint -- or the image -- clip it.
-                ## FIXME -- this is not strong enough clipping!
+                ## FIXME -- is this strong enough clipping?
                 tfoot2.clipTo(imbb)
                 tfoot2.clipTo(bb)
 
                 tbb = tfoot2.getBBox()
-
-                print 'tfoot2 bb:', tbb
-                print 't2 bb:', t2.getBBox(afwImage.PARENT)
-
                 # clip to bbox
                 t2 = t2.Factory(t2, tbb, afwImage.PARENT, True)
-                print 't2 bb:', t2.getBBox(afwImage.PARENT)
 
                 # Copy for debugging
                 pkres.symm = t2.getImage().Factory(t2.getImage(), True)
@@ -253,16 +286,6 @@ def deblend(footprint, maskedImage, psf, psffwhm,
                 t1 = t2
                 tfoot = tfoot2
 
-                # DEBUG memory issues
-                del t2
-                del maximg
-                del fpcopy
-                del tcconv
-                del tcim
-                del theavy
-                del fcim
-
-                
         # Smooth / filter
         if False:
             sig = 0.5

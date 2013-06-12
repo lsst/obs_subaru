@@ -444,7 +444,7 @@ apportionFlux(MaskedImageT const& img,
 				typename ndarray::Array<MaskPixelT,1,1>::Iterator mpix;
 				typename ndarray::Array<VariancePixelT,1,1>::Iterator vpix;
 
-                assert(strayfoot[i].getNpix() == straypix[i].count());
+                assert(strayfoot[i]->getNpix() == straypix[i].size());
 
 				for (spix = straypix[i].begin(), hpix = himg.begin(),
                          mpix = heavy->getMaskArray().begin(),
