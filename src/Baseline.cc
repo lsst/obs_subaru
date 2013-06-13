@@ -828,7 +828,8 @@ buildSymmetricTemplate(
 	det::Footprint const& foot,
 	det::Peak const& peak,
 	double sigma1,
-	bool minZero) {
+	bool minZero,
+	bool patchOob) {
 
 	typedef typename MaskedImageT::const_xy_locator xy_loc;
 	typedef typename det::Footprint::SpanList SpanList;
@@ -836,29 +837,64 @@ buildSymmetricTemplate(
 	int cx = peak.getIx();
 	int cy = peak.getIy();
 
+    pexLog::Log log(pexLog::Log::getDefaultLog(),
+					"lsst.meas.deblender.symmetricFootprint");
+
     FootprintPtrT sfoot = symmetrizeFootprint(foot, cx, cy);
 	if (!sfoot) {
 		return std::pair<MaskedImagePtrT, FootprintPtrT>(MaskedImagePtrT(), sfoot);
 	}
-    pexLog::Log log(pexLog::Log::getDefaultLog(),
-					"lsst.meas.deblender.symmetricFootprint");
+	const SpanList spans = sfoot->getSpans();
 
-    // The result image will be at most as large as the footprint
-	geom::Box2I fbb = foot.getBBox();
-	MaskedImageT timg(fbb.getDimensions());
-	timg.setXY0(fbb.getMinX(), fbb.getMinY());
+	// does this footprint touch an EDGE?
+	bool touchesEdge = false;
+	if (patchOob) {
+		log.debugf("Checking footprint for EDGE bits");
+		MaskPtrT mask = img.getMask();
+		bool edge = false;
+		MaskPixelT edgebit = mask->getPlaneBitMask("EDGE");
+		for (SpanList::const_iterator fwd=spans.begin();
+			 fwd != spans.end(); ++fwd) {
+			int x0 = (*fwd)->getX0();
+			int x1 = (*fwd)->getX1();
+			typename MaskT::x_iterator xiter = mask->x_at(x0 - mask->getX0(), (*fwd)->getY() - mask->getY0());
+			for (int x=x0; x<=x1; ++x, ++xiter) {
+				if ((x == x0) || (x == x1)) {
+					MaskPixelT maskpix = (*xiter);
+					log.debugf("  edge: x,y %i,%i, mask 0x%x, edgebit 0x%x",
+							   x, (*fwd)->getY(), maskpix, edgebit);
+				}
+				if ((*xiter) & edgebit) {
+					edge = true;
+					break;
+				}
+			}
+			if (edge)
+				break;
+		}
+		if (edge) {
+			log.debugf("Footprint includes an EDGE pixel.");
+			touchesEdge = true;
+			// ???
+			// Build a fake SpanList containing all the original
+			// spans, plus the portion of their mirrors that would
+			// fall outside the image bounds.
+		}
+	}
+	
+
+    // The result image:
+	MaskedImagePtrT timg(new MaskedImageT(sfoot->getBBox()));
 
 	MaskPixelT symm1sig = img.getMask()->getPlaneBitMask("SYMM_1SIG");
 	MaskPixelT symm3sig = img.getMask()->getPlaneBitMask("SYMM_3SIG");
-
-	const SpanList spans = sfoot->getSpans();
 
 	SpanList::const_iterator fwd  = spans.begin();
 	SpanList::const_iterator back = spans.end()-1;
 
     ImagePtrT theimg = img.getImage();
-    ImagePtrT targetimg  = timg.getImage();
-    MaskPtrT  targetmask = timg.getMask();
+    ImagePtrT targetimg  = timg->getImage();
+    MaskPtrT  targetmask = timg->getMask();
 
 	for (; fwd <= back; fwd++, back--) {
 		int fy = (*fwd)->getY();
@@ -901,10 +937,85 @@ buildSymmetricTemplate(
 	}
 
 
-    // Clip the result image to "tbb" (via this deep copy, ugh)
-    MaskedImagePtrT rimg(new MaskedImageT(timg, sfoot->getBBox(), image::PARENT, true));
+	if (touchesEdge) {
+		// Find spans whose mirrors fall outside the image bounds,
+		// grow the footprint to include those spans, and plug in
+		// their pixel values.
+		geom::Box2I bb = sfoot->getBBox();
+		geom::Box2I imbb = img.getBBox(image::PARENT);
+		log.debugf("Footprint touches EDGE: start bbox [%i,%i],[%i,%i]",
+				   bb.getMinX(), bb.getMaxX(), bb.getMinY(), bb.getMaxY());
+		// original footprint spans
+		const SpanList ospans = foot.getSpans();
+		for (fwd = ospans.begin(); fwd != ospans.end(); ++fwd) {
+			int y = (*fwd)->getY();
+			int ym = 2 * cy - y;
+			int x = (*fwd)->getX0();
+			int xm = 2 * cx - x;
+			if (!imbb.contains(geom::Point2I(xm, ym))) {
+				bb.include(geom::Point2I(x, y));
+			}
+			x = (*fwd)->getX1();
+			xm = 2 * cx - x;
+			if (!imbb.contains(geom::Point2I(xm, ym))) {
+				bb.include(geom::Point2I(x, y));
+			}
+		}
+		log.debugf("Footprint touches EDGE: grown bbox [%i,%i],[%i,%i]",
+				   bb.getMinX(), bb.getMaxX(), bb.getMinY(), bb.getMaxY());
 
-	return std::pair<MaskedImagePtrT, FootprintPtrT>(rimg, sfoot);
+		// New template image
+		MaskedImagePtrT timg2(new MaskedImageT(bb));
+		// copy pixels within sfoot
+		for (fwd = spans.begin(); fwd != spans.end(); ++fwd) {
+			int y = (*fwd)->getY();
+			int x0 = (*fwd)->getX0();
+			int x1 = (*fwd)->getX1();
+			typename MaskedImageT::x_iterator initer  = timg ->x_at(x0 - timg ->getX0(), y - timg ->getY0());
+			typename MaskedImageT::x_iterator outiter = timg2->x_at(x0 - timg2->getX0(), y - timg2->getY0());
+			for (int x=x0; x<=x1; ++x, ++outiter, ++initer) {
+				*outiter = *initer;
+			}
+		}
+		// copy original 'img' pixels for the portion of spans whose
+		// mirrors are out of bounds.
+		for (fwd = ospans.begin(); fwd != ospans.end(); ++fwd) {
+			int y = (*fwd)->getY();
+			int ym = 2 * cy - y;
+			int x0 = (*fwd)->getX0();
+			int xm0 = 2 * cx - x0;
+			int x1 = (*fwd)->getX1();
+			int xm1 = 2 * cx - x1;
+			bool in0 = imbb.contains(geom::Point2I(xm0, ym));
+			bool in1 = imbb.contains(geom::Point2I(xm1, ym));
+			if (in0 && in1) {
+				continue;
+			}
+			// clip
+			if (in0) {
+				x0 = 2 * cx - (imbb.getMinX() - 1);
+			}
+			if (in1) {
+				x1 = 2 * cx - (imbb.getMaxX() + 1);
+			}
+			log.debugf("Span y=%i, x=[%i,%i] has mirror out-of-bounds: %i,[%i,%i]; clipped to %i,[%i,%i]",
+					   y, (*fwd)->getX0(), (*fwd)->getX1(), ym, xm1, xm0, y, x0, x1);
+			typename MaskedImageT::x_iterator initer = img.x_at(x0 - img.getX0(), y - img.getY0());
+			typename MaskedImageT::x_iterator outiter = timg2->x_at(x0 - timg2->getX0(), y - timg2->getY0());
+			for (int x=x0; x<=x1; ++x, ++outiter, ++initer) {
+				*outiter = *initer;
+			}
+
+			sfoot->addSpan(y, x0, x1);
+		}
+		sfoot->normalize();
+		timg = timg2;
+
+	}
+
+
+
+	return std::pair<MaskedImagePtrT, FootprintPtrT>(timg, sfoot);
 }
 
 template<typename ImagePixelT, typename MaskPixelT, typename VariancePixelT>

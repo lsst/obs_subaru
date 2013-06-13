@@ -49,7 +49,8 @@ namespace lsst {
                                        lsst::afw::detection::Footprint const& foot,
                                        lsst::afw::detection::Peak const& pk,
                                        double sigma1,
-                                       bool minZero);
+                                       bool minZero,
+                                       bool patchOob);
 
                 static void
                 medianFilter(MaskedImageT const& img,

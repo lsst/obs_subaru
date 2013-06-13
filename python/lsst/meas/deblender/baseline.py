@@ -36,6 +36,7 @@ def deblend(footprint, maskedImage, psf, psffwhm,
             assignStrayFlux=True,
             strayFluxToPointSources='necessary',
             rampFluxAtEdge=False,
+            patchEdges=False
             ):
     '''
     Deblend a single ``footprint`` in a ``maskedImage``.
@@ -125,10 +126,10 @@ def deblend(footprint, maskedImage, psf, psffwhm,
             pkres.out_of_bounds = True
             continue
         log.logdebug('computing template for peak %i at (%i,%i)' % (pkres.pki, cx, cy))
-        S = butils.buildSymmetricTemplate(maskedImage, fp, pk, sigma1, True)
+        S = butils.buildSymmetricTemplate(maskedImage, fp, pk, sigma1, True,
+                                          patchEdges)
         # SWIG doesn't know how to unpack an std::pair into a 2-tuple...
         t1, tfoot = S[0], S[1]
-        # tfoot.normalize()
 
         if t1 is None:
             log.logdebug('Peak %i at (%i,%i): failed to build symmetric template' % (pkres.pki, cx,cy))
@@ -189,9 +190,12 @@ def deblend(footprint, maskedImage, psf, psffwhm,
                 # clip to S
                 Sbox = afwGeom.Box2I(afwGeom.Point2I(-S, -S),
                                      afwGeom.Extent2I(2*S+1, 2*S+1))
+                print 'PSF bb', pbb
+                print 'Sbox', Sbox
                 if not Sbox.contains(pbb):
                     #print 'Clipping PSF image'
-                    psfim = psfim.Factory(psfim, Sbox)
+                    psfim = psfim.Factory(psfim, Sbox, afwImage.PARENT,
+                                          True)
                     pbb = psfim.getBBox(afwImage.PARENT)
                 px0 = pbb.getMinX()
                 px1 = pbb.getMaxX()
@@ -228,7 +232,7 @@ def deblend(footprint, maskedImage, psf, psffwhm,
                 fpcopy = afwDet.growFootprint(fpcopy, S)
                 fpcopy.normalize()
                 
-                rtn = butils.buildSymmetricTemplate(maximg, fpcopy, pk, sigma1, True)
+                rtn = butils.buildSymmetricTemplate(maximg, fpcopy, pk, sigma1, True, patchEdges)
                 # silly SWIG
                 t2, tfoot2 = rtn[0], rtn[1]
                 
@@ -331,11 +335,9 @@ def deblend(footprint, maskedImage, psf, psffwhm,
 
 
     #
-    # Remove templates that are too similar (via dot-product test)
+    # FIXME -- Remove templates that are too similar (via dot-product test)
     #
     
-    # Find and assign stray flux (or do this after apportionFlux?)
-            
     # Now apportion flux according to the templates
     log.logdebug('Apportioning flux among %i templates' % len(tmimgs))
     sumimg = afwImage.ImageF(bb.getDimensions())
