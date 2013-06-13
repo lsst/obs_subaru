@@ -6,8 +6,6 @@ import lsst.afw.detection as afwDet
 import lsst.afw.geom  as afwGeom
 import lsst.afw.math  as afwMath
 
-plotnum = 1
-
 # Result objects; will probably go away as we push more results
 # into earlier-created Source objects, but useful for now for
 # hauling debugging results around.
@@ -37,6 +35,7 @@ def deblend(footprint, maskedImage, psf, psffwhm,
             findStrayFlux=True,
             assignStrayFlux=True,
             strayFluxToPointSources='necessary',
+            rampFluxAtEdge=False,
             ):
     '''
     Deblend a single ``footprint`` in a ``maskedImage``.
@@ -115,8 +114,6 @@ def deblend(footprint, maskedImage, psf, psffwhm,
                   psf_chisq_cut1, psf_chisq_cut2, psf_chisq_cut2b,
                   dropTiny = dropTinyFootprints)
 
-    # fluxAtEdge = False
-        
     log.logdebug('Creating templates for footprint at x0,y0,W,H = (%i,%i, %i,%i)' % (x0,y0,W,H))
     for pkres in res.peaks:
         if pkres.out_of_bounds or pkres.deblend_as_psf:
@@ -141,13 +138,10 @@ def deblend(footprint, maskedImage, psf, psffwhm,
         # for debugging purposes: copy the original symmetric template
         pkres.symm = t1.getImage().Factory(t1.getImage(), True)
 
-        #if not fluxAtEdge:
-        if True:
+        if rampFluxAtEdge:
             if butils.hasSignificantFluxAtEdge(t1.getImage(), tfoot,
                                                3. * sigma1):
-                print 'Found significant flux at template edge.'
-                #fluxAtEdge = True
-
+                log.logdebug('Found significant flux at template edge.')
                 # Compute the max of:
                 #  -symmetric-template-clipped image * PSF
                 #  -footprint-clipped image
@@ -155,6 +149,7 @@ def deblend(footprint, maskedImage, psf, psffwhm,
                 # footprint.
                 # Then find the symmetric template of that image.
 
+                # The size we'll grow by
                 S = psffwhm * 1.5
                 # make it an odd integer
                 S = (int(S + 0.5) / 2) * 2 + 1
@@ -174,199 +169,79 @@ def deblend(footprint, maskedImage, psf, psffwhm,
                 theavy = afwDet.makeHeavyFootprint(tfoot, maskedImage)
                 theavy.insert(tcim)
 
-                if False:
-                    # convolve by PSF (Gaussian approx)
-                    psfsigma = (psffwhm / 2.35)
-                    gaussFunc = afwMath.GaussianFunction1D(psfsigma)
-                    gaussKernel = afwMath.SeparableKernel(S, S, gaussFunc, gaussFunc)
-                    tcconv = t1.Factory(tbb)
-                    # doCopyEdge = True
-                    ctl = afwMath.ConvolutionControl(True, True)
-                    afwMath.convolve(tcconv, tcim, gaussKernel, ctl)
-                else:
-                    
-                    edgepix = butils.getSignificantEdgePixels(t1.getImage(),
-                                                              tfoot, -1e6)
+                # pixels on the edge of the template
+                edgepix = butils.getSignificantEdgePixels(t1.getImage(),
+                                                          tfoot, -1e6)
+                # Debugging -- make picture of edge pixels
+                #hedge = afwDet.makeHeavyFootprint(edgepix, t1)
+                #eim = t1.Factory(edgepix.getBBox())
+                #hedge.insert(eim)
 
-                    # oneim = t1.Factory(tfoot.getBBox())
-                    # oneim.getImage().getArray()[:,:] = 1.
-                    # hone = afwDet.makeHeavyFootprint(tfoot, oneim)
-                    # oneim = t1.Factory(tfoot.getBBox())
-                    # oneim.getImage().getArray()[:,:] = 1.
-                    # hone.insert(oneim)
-                    # print 'ones image:', oneim.getImage().getArray().max()
-                    # 1print 'ones image:', oneim.getImage().getArray().min()
-                    
-                    hedge = afwDet.makeHeavyFootprint(edgepix, t1)
-                    eim = t1.Factory(edgepix.getBBox())
-                    hedge.insert(eim)
-
-                    print 'S:', S
-                    print 'tfoot bbox', tfoot.getBBox()
-                    print 'edgepix bbox', edgepix.getBBox()
-                    xc = int((x0 + x1)/2)
-                    yc = int((y0 + y1)/2)
-                    psfim = psf.computeImage(afwGeom.Point2D(xc, yc))
+                # instantiate PSF image
+                xc = int((x0 + x1)/2)
+                yc = int((y0 + y1)/2)
+                psfim = psf.computeImage(afwGeom.Point2D(xc, yc))
+                pbb = psfim.getBBox(afwImage.PARENT)
+                # shift it to by centered on zero
+                lx,ly = pbb.getMinX(), pbb.getMinY()
+                psfim.setXY0(lx - xc, ly - yc)
+                pbb = psfim.getBBox(afwImage.PARENT)
+                # clip to S
+                Sbox = afwGeom.Box2I(afwGeom.Point2I(-S, -S),
+                                     afwGeom.Extent2I(2*S+1, 2*S+1))
+                if not Sbox.contains(pbb):
+                    #print 'Clipping PSF image'
+                    psfim = psfim.Factory(psfim, Sbox)
                     pbb = psfim.getBBox(afwImage.PARENT)
-                    print 'PSF image bbox:', pbb
-                    lx,ly = pbb.getMinX(), pbb.getMinY()
-                    psfim.setXY0(lx - xc, ly - yc)
-                    pbb = psfim.getBBox(afwImage.PARENT)
-                    print 'PSF image bbox:', pbb
-                    
-                    # clip to S?
-                    Sbox = afwGeom.Box2I(afwGeom.Point2I(-S, -S),
-                                         afwGeom.Extent2I(2*S+1, 2*S+1))
-                    if not Sbox.contains(pbb):
-                        print 'Clipping PSF image'
-                        psfim = psfim.Factory(psfim, Sbox)
-                        print 'New PSF image bbox:', pbb
-                        pbb = psfim.getBBox(afwImage.PARENT)
-                    
-                    px0 = pbb.getMinX()
-                    px1 = pbb.getMaxX()
-                    py0 = pbb.getMinY()
-                    py1 = pbb.getMaxY()
-                    tcconv = t1.Factory(tbb)
-                    Tout = tcconv.getImage().getArray()
-                    Tin  = t1.getImage().getArray()
-                    tx0,ty0 = t1.getX0(), t1.getY0()
-                    ox0,oy0 = tcconv.getX0(), tcconv.getY0()
-                    P = psfim.getArray()
+                px0 = pbb.getMinX()
+                px1 = pbb.getMaxX()
+                py0 = pbb.getMinY()
+                py1 = pbb.getMaxY()
 
-                    P /= P.max()
-                    
-                    for span in edgepix.getSpans():
-                        y = span.getY()
-                        for x in range(span.getX0(), span.getX1()+1):
-                            print
-                            print 'x,y', x,y
-                            print 'P shape', P.shape
-                            sy0, sy1 = y+py0 - oy0, y+py1+1 - oy0
-                            sx0, sx1 = x+px0 - ox0, x+px1+1 - ox0
-                            print 'y slice', sy0, sy1
-                            print 'x slice', sx0, sx1
-                            print 'Tout shape', Tout.shape
-                            print 'Tout slice shape', Tout[sy0:sy1, sx0:sx1].shape
-                            print 'Tin shape', Tin.shape
-                            Tout[sy0:sy1, sx0:sx1] = (
-                                np.maximum(Tout[sy0:sy1, sx0:sx1],
-                                           Tin[y-ty0, x-tx0] * P))
-                    
-                # Fill the "fcim" (which has the right variance and
-                # mask planes) with the max pixels.
+                # Compute the ramp
+                ramped = t1.Factory(tbb)
+                Tout = ramped.getImage().getArray()
+                Tin  = t1.getImage().getArray()
+                tx0,ty0 = t1.getX0(), t1.getY0()
+                ox0,oy0 = ramped.getX0(), ramped.getY0()
+                P = psfim.getArray()
+                P /= P.max()
+                # For each edge pixel, Tout = max(Tout, edgepix * PSF)
+                for span in edgepix.getSpans():
+                    y = span.getY()
+                    for x in range(span.getX0(), span.getX1()+1):
+                        sy0, sy1 = y+py0 - oy0, y+py1+1 - oy0
+                        sx0, sx1 = x+px0 - ox0, x+px1+1 - ox0
+                        Tout[sy0:sy1, sx0:sx1] = (
+                            np.maximum(Tout[sy0:sy1, sx0:sx1],
+                                       Tin[y-ty0, x-tx0] * P))
+
+                # Fill in the "fcim" (which has the right variance and
+                # mask planes) with the ramped pixels
                 # [where it is zero / outside the footprint]
-                maximg = t1.Factory(fcim, True)
-                #maximg.getImage().getArray()[:,:] = np.maximum(tcconv.getImage().getArray(),
-                #                                              fcim.getImage().getArray())
+                # debugging: make a copy
+                #maximg = t1.Factory(fcim, True)
+                maximg = fcim
                 I = (maximg.getImage().getArray() == 0)
-                maximg.getImage().getArray()[I] = (tcconv.getImage().getArray()[I])
+                maximg.getImage().getArray()[I] = ramped.getImage().getArray()[I]
                 
                 fpcopy = afwDet.growFootprint(fpcopy, S)
                 fpcopy.normalize()
                 
                 rtn = butils.buildSymmetricTemplate(maximg, fpcopy, pk, sigma1, True)
-
-                # SWIG doesn't know how to unpack an std::pair into a 2-tuple...
+                # silly SWIG
                 t2, tfoot2 = rtn[0], rtn[1]
-
-                import pylab as plt
-                plt.clf()
-                ima = dict(interpolation='nearest', origin='lower')
-                plt.subplot(2,3,1)
-                plt.imshow(t1.getImage().getArray(), **ima)
-                plt.colorbar()
-                plt.title('t1')
-                plt.subplot(2,3,2)
-                plt.imshow(tcim.getImage().getArray(), **ima)
-                plt.colorbar()
-                plt.title('tcim')
-                plt.subplot(2,3,3)
-                plt.imshow(tcconv.getImage().getArray(), **ima)
-                plt.colorbar()
-                plt.title('tcconv')
-                plt.subplot(2,3,4)
-                plt.imshow(fcim.getImage().getArray(), **ima)
-                plt.colorbar()
-                plt.title('fcim')
-                plt.subplot(2,3,5)
-                plt.imshow(maximg.getImage().getArray(), **ima)
-                plt.colorbar()
-                plt.title('maximg')
-                plt.subplot(2,3,6)
-                plt.imshow(t2.getImage().getArray(), **ima)
-                plt.colorbar()
-                plt.title('t2')
-
-                global plotnum
-
-                plt.savefig('edge-%03i.png' % plotnum)
-
-                plt.clf()
-                plt.imshow(t1.getImage().getArray(), **ima)
-                plt.colorbar()
-                plt.title('t1')
-                plt.savefig('edge-%03i-1.png' % plotnum)
-
-                plt.clf()
-                plt.imshow(eim.getImage().getArray(), **ima)
-                plt.colorbar()
-                plt.title('eim')
-                plt.savefig('edge-%03i-1b.png' % plotnum)
-
-                # plt.clf()
-                # plt.imshow(oneim.getImage().getArray(), **ima)
-                # plt.colorbar()
-                # plt.title('tfoot')
-                # plt.savefig('edge-%03i-1c.png' % plotnum)
-                
-                plt.clf()
-                plt.imshow(tcim.getImage().getArray(), **ima)
-                plt.colorbar()
-                plt.title('tcim')
-                plt.savefig('edge-%03i-2.png' % plotnum)
-
-                plt.clf()
-                plt.imshow(tcconv.getImage().getArray(), **ima)
-                plt.colorbar()
-                plt.title('tcconv')
-                plt.savefig('edge-%03i-3.png' % plotnum)
-                
-                plt.clf()
-                plt.imshow(fcim.getImage().getArray(), **ima)
-                plt.colorbar()
-                plt.title('fcim')
-                plt.savefig('edge-%03i-4.png' % plotnum)
-
-                plt.clf()
-                plt.imshow(maximg.getImage().getArray(), **ima)
-                plt.colorbar()
-                plt.title('maximg')
-                plt.savefig('edge-%03i-5.png' % plotnum)
-
-                plt.clf()
-                plt.imshow(t2.getImage().getArray(), **ima)
-                plt.colorbar()
-                plt.title('t2')
-                plt.savefig('edge-%03i-6.png' % plotnum)
-
-                plotnum += 1
-
-                
                 
                 # This template footprint may extend outside the parent
                 # footprint -- or the image -- clip it.
-                ## FIXME -- is this strong enough clipping?
                 tfoot2.clipTo(imbb)
                 tfoot2.clipTo(bb)
-
                 tbb = tfoot2.getBBox()
-                # clip to bbox
+                # clip template to bbox
                 t2 = t2.Factory(t2, tbb, afwImage.PARENT, True)
 
                 # Copy for debugging
                 pkres.symm = t2.getImage().Factory(t2.getImage(), True)
-
                 t1 = t2
                 tfoot = tfoot2
 
