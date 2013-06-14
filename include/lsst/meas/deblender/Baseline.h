@@ -112,6 +112,18 @@ namespace lsst {
                     lsst::afw::detection::HeavyFootprint<ImagePixelT, MaskPixelT, VariancePixelT> const& h1,
                     lsst::afw::detection::HeavyFootprint<ImagePixelT, MaskPixelT, VariancePixelT> const& h2);
 
+                static
+                void
+                copyWithinFootprint(lsst::afw::detection::Footprint const& foot,
+                                    ImagePtrT const input,
+                                    ImagePtrT output);
+                static
+                void
+                copyWithinFootprint(lsst::afw::detection::Footprint const& foot,
+                                    MaskedImagePtrT const input,
+                                    MaskedImagePtrT output);
+
+
             };
         }
     }

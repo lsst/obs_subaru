@@ -1148,6 +1148,56 @@ mergeHeavyFootprints(HeavyFootprintT const& h1,
 }
 
 
+template<typename ImagePixelT, typename MaskPixelT, typename VariancePixelT>
+void
+deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::
+copyWithinFootprint(lsst::afw::detection::Footprint const& foot,
+					ImagePtrT const input,
+					ImagePtrT output) {
+	det::Footprint::SpanList spans = foot.getSpans();
+	for (det::Footprint::SpanList::iterator sp = spans.begin();
+		 sp != spans.end(); ++sp) {
+		int y  = (*sp)->getY();
+		int x0 = (*sp)->getX0();
+		int x1 = (*sp)->getX1();
+		typename ImageT::const_x_iterator initer = input->x_at(
+			x0 - input->getX0(), y - input->getY0());
+		typename ImageT::const_x_iterator inend = input->x_at(
+			x1 - input->getX0(), y - input->getY0());
+		typename ImageT::x_iterator outiter = output->x_at(
+			x0 - output->getX0(), y - output->getY0());
+		for (; initer <= inend; ++initer, ++outiter) {
+			*outiter = *initer;
+		}
+	}
+}
+template<typename ImagePixelT, typename MaskPixelT, typename VariancePixelT>
+void
+deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::
+copyWithinFootprint(lsst::afw::detection::Footprint const& foot,
+					MaskedImagePtrT const input,
+					MaskedImagePtrT output) {
+	det::Footprint::SpanList spans = foot.getSpans();
+	for (det::Footprint::SpanList::iterator sp = spans.begin();
+		 sp != spans.end(); ++sp) {
+		int y  = (*sp)->getY();
+		int x0 = (*sp)->getX0();
+		int x1 = (*sp)->getX1();
+		int x;
+		typename MaskedImageT::const_x_iterator initer = input->x_at(
+			x0 - input->getX0(), y - input->getY0());
+		typename MaskedImageT::x_iterator outiter = output->x_at(
+			x0 - output->getX0(), y - output->getY0());
+		for (x=x0; x<=x1; ++x, ++initer, ++outiter) {
+			*outiter = *initer;
+		}
+	}
+}
+
+
+
+
+
 // Instantiate
 template class deblend::BaselineUtils<float>;
 

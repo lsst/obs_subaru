@@ -158,53 +158,40 @@ def deblend(footprint, maskedImage, psf, psffwhm,
                 tbb = tfoot.getBBox()
                 tbb.grow(S)
 
-                # footprint-clipped image
-                fcim = t1.Factory(tbb)
+                # (footprint+margin)-clipped image;
+                # we need the pixels OUTSIDE the footprint to be 0.
                 fpcopy = afwDet.Footprint(fp)
                 fpcopy.clipTo(tbb)
-                theavy = afwDet.makeHeavyFootprint(fpcopy, maskedImage)
-                theavy.insert(fcim)
+                padim = t1.Factory(tbb)
+                butils.copyWithinFootprint(fpcopy, maskedImage, padim)
                 
-                # template-clipped original image
-                tcim = t1.Factory(tbb)
-                theavy = afwDet.makeHeavyFootprint(tfoot, maskedImage)
-                theavy.insert(tcim)
-
-                # pixels on the edge of the template
+                # find pixels on the edge of the template
                 edgepix = butils.getSignificantEdgePixels(t1.getImage(),
                                                           tfoot, -1e6)
-                # Debugging -- make picture of edge pixels
-                #hedge = afwDet.makeHeavyFootprint(edgepix, t1)
-                #eim = t1.Factory(edgepix.getBBox())
-                #hedge.insert(eim)
-
                 # instantiate PSF image
                 xc = int((x0 + x1)/2)
                 yc = int((y0 + y1)/2)
                 psfim = psf.computeImage(afwGeom.Point2D(xc, yc))
                 pbb = psfim.getBBox(afwImage.PARENT)
-                # shift it to by centered on zero
+                # shift PSF image to by centered on zero
                 lx,ly = pbb.getMinX(), pbb.getMinY()
                 psfim.setXY0(lx - xc, ly - yc)
                 pbb = psfim.getBBox(afwImage.PARENT)
-                # clip to S
+                # clip PSF to S, if necessary
                 Sbox = afwGeom.Box2I(afwGeom.Point2I(-S, -S),
                                      afwGeom.Extent2I(2*S+1, 2*S+1))
-                print 'PSF bb', pbb
-                print 'Sbox', Sbox
                 if not Sbox.contains(pbb):
-                    #print 'Clipping PSF image'
-                    psfim = psfim.Factory(psfim, Sbox, afwImage.PARENT,
-                                          True)
+                    # clip PSF image
+                    psfim = psfim.Factory(psfim, Sbox, afwImage.PARENT, True)
                     pbb = psfim.getBBox(afwImage.PARENT)
                 px0 = pbb.getMinX()
                 px1 = pbb.getMaxX()
                 py0 = pbb.getMinY()
                 py1 = pbb.getMaxY()
 
-                # Compute the ramp
-                ramped = t1.Factory(tbb)
-                Tout = ramped.getImage().getArray()
+                # Compute the ramped-down edge pixels
+                ramped = t1.getImage().Factory(tbb)
+                Tout = ramped.getArray()
                 Tin  = t1.getImage().getArray()
                 tx0,ty0 = t1.getX0(), t1.getY0()
                 ox0,oy0 = ramped.getX0(), ramped.getY0()
@@ -214,34 +201,32 @@ def deblend(footprint, maskedImage, psf, psffwhm,
                 for span in edgepix.getSpans():
                     y = span.getY()
                     for x in range(span.getX0(), span.getX1()+1):
+                        # slices:
                         sy0, sy1 = y+py0 - oy0, y+py1+1 - oy0
                         sx0, sx1 = x+px0 - ox0, x+px1+1 - ox0
                         Tout[sy0:sy1, sx0:sx1] = (
                             np.maximum(Tout[sy0:sy1, sx0:sx1],
                                        Tin[y-ty0, x-tx0] * P))
 
-                # Fill in the "fcim" (which has the right variance and
-                # mask planes) with the ramped pixels
-                # [where it is zero / outside the footprint]
-                # debugging: make a copy
-                #maximg = t1.Factory(fcim, True)
-                maximg = fcim
-                I = (maximg.getImage().getArray() == 0)
-                maximg.getImage().getArray()[I] = ramped.getImage().getArray()[I]
+                # Fill in the "padim" (which has the right variance and
+                # mask planes) with the ramped pixels, outside the footprint
+                I = (padim.getImage().getArray() == 0)
+                padim.getImage().getArray()[I] = ramped.getArray()[I]
                 
                 fpcopy = afwDet.growFootprint(fpcopy, S)
                 fpcopy.normalize()
                 
-                rtn = butils.buildSymmetricTemplate(maximg, fpcopy, pk, sigma1, True, patchEdges)
+                rtn = butils.buildSymmetricTemplate(padim, fpcopy, pk, sigma1, True, patchEdges)
                 # silly SWIG
                 t2, tfoot2 = rtn[0], rtn[1]
                 
                 # This template footprint may extend outside the parent
                 # footprint -- or the image -- clip it.
+                # NOTE that this may make it asymmetric, unlike normal templates.
                 tfoot2.clipTo(imbb)
                 tfoot2.clipTo(bb)
                 tbb = tfoot2.getBBox()
-                # clip template to bbox
+                # clip template image to bbox
                 t2 = t2.Factory(t2, tbb, afwImage.PARENT, True)
 
                 # Copy for debugging

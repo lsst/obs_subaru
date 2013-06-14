@@ -18,6 +18,7 @@ import lsst.afw.geom as afwGeom
 import lsst.afw.image as afwImage
 import lsst.pex.logging as pexLogging
 from lsst.meas.deblender.baseline import *
+from lsst.meas.deblender import BaselineUtilsF as butils
 
 import lsst.meas.algorithms as measAlg
 
@@ -108,27 +109,26 @@ class StrayFluxTestCase(unittest.TestCase):
         print 'edgebit:', edgebit
         measAlg.SourceDetectionTask.setEdgeBits(afwimg, goodbbox, edgebit)
 
-        plt.clf()
-        plt.imshow(afwimg.getMask().getArray(),
-                   interpolation='nearest', origin='lower')
-        plt.colorbar()
-        plt.title('Mask')
-        plt.savefig('mask.png')
-
-        M = afwimg.getMask().getArray()
-        for bit in range(32):
-            mbit = (1 << bit)
-            if not np.any(M & mbit):
-                continue
-            plt.clf()
-            plt.imshow(M & mbit,
-                       interpolation='nearest', origin='lower')
-            plt.colorbar()
-            plt.title('Mask bit %i (0x%x)' % (bit, mbit))
-            plt.savefig('mask-%02i.png' % bit)
-
-
-        
+        if False:
+	        plt.clf()
+	        plt.imshow(afwimg.getMask().getArray(),
+	                   interpolation='nearest', origin='lower')
+	        plt.colorbar()
+	        plt.title('Mask')
+	        plt.savefig('mask.png')
+	
+	        M = afwimg.getMask().getArray()
+	        for bit in range(32):
+	            mbit = (1 << bit)
+	            if not np.any(M & mbit):
+	                continue
+	            plt.clf()
+	            plt.imshow(M & mbit,
+	                       interpolation='nearest', origin='lower')
+	            plt.colorbar()
+	            plt.title('Mask bit %i (0x%x)' % (bit, mbit))
+	            plt.savefig('mask-%02i.png' % bit)
+	
         for fp in fps:
             print 'peaks:', len(fp.getPeaks())
             for pk in fp.getPeaks():
@@ -155,9 +155,8 @@ class StrayFluxTestCase(unittest.TestCase):
             if not plots:
                 continue
 
-            hfp = afwDet.makeHeavyFootprint(fp, afwimg)
             parent_img = afwImage.ImageF(fpbb)
-            hfp.insert(parent_img)
+            butils.copyWithinFootprint(fp, afwimg.getImage(), parent_img)
 
             X = [x for x,y in XY]
             Y = [y for x,y in XY]
@@ -191,11 +190,6 @@ class StrayFluxTestCase(unittest.TestCase):
             plt.axis(ax)
             plt.title('Footprint')
 
-            #plt.subplot(R, C, (2*C) + 3)
-            #myimshow(img, **ima)
-            #plt.colorbar()
-            #plt.title('Image')
-            
             sumimg = None
             for i,dpk in enumerate(deb.peaks):
 
@@ -214,12 +208,11 @@ class StrayFluxTestCase(unittest.TestCase):
                 plt.title('symm')
 
                 # monotonic template
-                mimg = afwImage.MaskedImageF(fpbb)
-                hm = afwDet.makeHeavyFootprint(dpk.tfoot, dpk.tmimg)
-                hm.insert(mimg)
+                mimg = afwImage.ImageF(fpbb)
+                butils.copyWithinFootprint(dpk.tfoot, dpk.timg, mimg)
 
                 plt.subplot(R, C, i*C + 3)
-                myimshow(mimg.getImage().getArray(), extent=imExt(mimg), **ima)
+                myimshow(mimg.getArray(), extent=imExt(mimg), **ima)
                 ax = plt.axis()
                 plt.plot(PX[i], PY[i], **pa)
                 plt.axis(ax)
@@ -228,11 +221,6 @@ class StrayFluxTestCase(unittest.TestCase):
                 plt.subplot(R, C, i*C + 4)
                 myimshow(dpk.portion.getArray(), extent=imExt(dpk.portion), **ima)
                 plt.title('portion')
-                # himg = afwImage.ImageF(fpbb)
-                # dpk.heavy1.insert(himg)
-                # plt.subplot(R, C, i*C + 3)
-                # myimshow(himg.getArray(), **ima)
-                # plt.title('heavy')
                 ax = plt.axis()
                 plt.plot(PX[i], PY[i], **pa)
                 plt.axis(ax)
@@ -274,8 +262,7 @@ class StrayFluxTestCase(unittest.TestCase):
             
             plt.savefig('edge%i.png' % j)
 
-
-    def tst1(self):
+    def test1(self):
         '''
         A simple example: three overlapping blobs (detected as 1
         footprint with three peaks).  We artificially omit one of the
@@ -381,9 +368,8 @@ class StrayFluxTestCase(unittest.TestCase):
         print 'Result:', deb
         print len(deb.peaks), 'deblended peaks'
 
-        hfp = afwDet.makeHeavyFootprint(fakefp, afwimg)
         parent_img = afwImage.ImageF(fpbb)
-        hfp.insert(parent_img)
+        butils.copyWithinFootprint(fakefp, afwimg.getImage(), parent_img)
 
         if plots:
             def myimshow(*args, **kwargs):
@@ -482,7 +468,7 @@ class StrayFluxTestCase(unittest.TestCase):
         self.assertTrue(absdiff < imgmax * 1e-6)
 
 
-    def tst2(self):
+    def test2(self):
         '''
         A 1-d example, to test the stray-flux assignment.
         '''
