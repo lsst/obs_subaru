@@ -34,10 +34,6 @@ namespace lsst {
 
                 typedef typename boost::shared_ptr<lsst::afw::detection::HeavyFootprint<ImagePixelT, MaskPixelT, VariancePixelT> > HeavyFootprintPtr;
 
-                static std::vector<double>
-                fitEllipse(ImageT const& img,
-                           double bkgd, double xc, double yc);
-
                 static
                 lsst::afw::detection::Footprint::Ptr
                 symmetrizeFootprint(lsst::afw::detection::Footprint const& foot,

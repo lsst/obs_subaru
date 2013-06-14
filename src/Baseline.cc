@@ -16,24 +16,6 @@ namespace geom = lsst::afw::geom;
 namespace malg = lsst::meas::algorithms;
 namespace pexLog = lsst::pex::logging;
 
-template<typename ImagePixelT, typename MaskPixelT, typename VariancePixelT>
-std::vector<double>
-deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::
-fitEllipse(ImageT const& image, double bkgd, double xc, double yc) {
-	double shiftmax = 5.0;
-	malg::detail::SdssShapeImpl shape;
-	bool ok = malg::detail::getAdaptiveMoments(image, bkgd, xc, yc, shiftmax, &shape);
-	assert(ok);
-	std::vector<double> vals;
-	vals.push_back(shape.getX());
-	vals.push_back(shape.getY());
-	vals.push_back(shape.getI0());
-	vals.push_back(shape.getIxx());
-	vals.push_back(shape.getIyy());
-	vals.push_back(shape.getIxy());
-	return vals;
-}
-
 static bool span_ptr_compare(det::Span::Ptr sp1, det::Span::Ptr sp2) {
 	return (*sp1 < *sp2);
 }
