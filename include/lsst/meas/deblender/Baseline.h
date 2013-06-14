@@ -46,7 +46,7 @@ namespace lsst {
                                        lsst::afw::detection::Peak const& pk,
                                        double sigma1,
                                        bool minZero,
-                                       bool patchOob);
+                                       bool patchEdges);
 
                 static void
                 medianFilter(MaskedImageT const& img,
