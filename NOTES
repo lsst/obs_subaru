@@ -1,37 +1,48 @@
-------------------------------------------------
-2012-02-17 - dstn
+2013-06-06 - dstn - Notes on running on Subaru data.
 
-Build with master:
-  utils
-  pex_config
-  afw
-  meas_algorithms
+export PIPE_INPUT_ROOT=/Users/dstn/lsst/SUP
 
-and meas_deblender tickets/1091
+Get a modern stack:
 
-Test patch from Suprime data of an ACT cluster:
+export EUPS_PKGROOT=http://hsca.ipmu.jp/sumire/packages/
 
-python examples/testDeblend.py --image examples/data/act-img.fits \
-  --psf examples/data/act.psf --footprints examples/data/act.fp \
-  --psfx0 690 --psfy0 2090 
+add to ~/.eups/startup.py:
+hooks.config.Eups.userTags += ["dstnHSC"]
 
--------
-For a 2012-03-01 attempt at running hsc data in the pipette world:
+Then:
 
-examples/runHscDeblend.py -I suprimecam --output=/Users/cloomis/HSC/output -f126969 -c 5
+eups distrib install hscPipe 2.5.2b_hsc -d dstnHSC
 
-
----------------------------
-2012-04-02 - dstn
-
-Reviewing photo's deblend.c
-
-* "We've got all the templates, so it's time to reconsider some of
-those choices of DEBLENDED_AS_PSF.  In particular, if we created a PSF
-template from a peak superimposed on a significant pedestal, but
-there's no other template to provide that pedestal, clear
-DEBLENDED_AS_PSF"
+cd ~/hsc/meas_deblender
+git checkout tickets/2453
+setup -v -t dstnHSC -r .
+setup -v -t dstnHSC -k obs_subaru
+setup -v -t dstnHSC -k hscPipe
 
 
+Update files to match those on tiger:
 
+cat > ~/lsst/SUP/_mapper
+lsst.obs.suprimecam.SuprimecamMapper
 
+cat > ~/lsst/SUP/mapper.py
+from lsst.obs.suprimecam.suprimecamMapper import SuprimecamMapper as Mapper
+
+rsync -arvz tigert3:/home/astro/hsc/hsc/SUPA/CALIB/calibRegistry.sqlite3 ~/lsst/SUP/CALIB/
+rsync -Rarvz tigert3:/home/astro/hsc/hsc/SUPA/./CALIB/BIAS/2009-03-27/NONE/0/BIAS-5.fits ~/lsst/SUP/
+rsync -Rarvz tigert3:/home/astro/hsc/hsc/SUPA/./CALIB/FLAT/2009-03-31/W-S-G+/0/FLAT-5.fits ~/lsst/SUP/
+
+for x in 1 2 3 4; do wget http://broiler.astrometry.net/~dstn/4200/HSC/index-13033100${x}-06.fits; done
+mv index-13* ~/lsst/astrometry_net_data/2mass
+
+edit andConfig.py...
+
+setup -v -r ~/lsst/astrometry_net_data/2mass/
+
+python -u $HSCPIPE_DIR/bin/scProcessCcd.py . --id visit=108792 --clobber-config -c doDeblend=False > log 2>&1
+
+and then,
+
+python examples/rerun.py . --id visit=108792
+
+python examples/fig.py
