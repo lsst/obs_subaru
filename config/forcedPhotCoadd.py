@@ -7,6 +7,13 @@ root.measurement.algorithms.names |= ["flux.sinc2"]
 # Enable model mags, disable Gaussian mags (which aren't really forced)
 root.measurement.algorithms.names -= ["flux.gaussian"]
 root.measurement.slots.instFlux = None
+
+try:
+    import lsst.meas.extensions.photometryKron
+    root.measurement.algorithms.names |= ["flux.kron"]
+except ImportError:
+    print "Unable to import lsst.meas.extensions.photometryKron: Kron fluxes disabled"
+
 try:
     import lsst.meas.extensions.multiShapelet
     root.measurement.algorithms.names |= lsst.meas.extensions.multiShapelet.algorithms
