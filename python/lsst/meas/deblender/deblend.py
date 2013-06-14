@@ -33,6 +33,32 @@ import lsst.afw.detection as afwDet
 __all__ = 'SourceDeblendConfig', 'SourceDeblendTask'
 
 class SourceDeblendConfig(pexConf.Config):
+
+    edgeHandling = pexConf.ChoiceField(
+        doc='What to do when a peak to be deblended is close to the edge of the image',
+        dtype=str, default='ramp',
+        allowed = {
+            'clip': 'Clip the template at the edge AND the mirror of the edge.',
+            'ramp': 'Ramp down flux at the image edge by the PSF',
+            'noclip': 'Ignore the edge when building the symmetric template.',
+            })
+    
+    strayFluxToPointSources = pexConf.ChoiceField(
+        doc='When the deblender should attribute stray flux to point sources',
+        dtype=str, default='necessary',
+        allowed = {
+            'necessary': 'When there is not an extended object in the footprint',
+            'always': 'Always',
+            'never': 'Never; stray flux will not be attributed to any deblended child if the deblender thinks all peaks look like point sources',
+            }
+            )
+
+    findStrayFlux = pexConf.Field(dtype=bool, default=True,
+                                  doc='Find stray flux---flux not claimed by any child in the deblender.')
+
+    assignStrayFlux = pexConf.Field(dtype=bool, default=True,
+                                    doc='Assign stray flux to deblend children.  Implies findStrayFlux.')
+    
     psf_chisq_1 = pexConf.Field(dtype=float, default=1.5, optional=False,
                                 doc=('Chi-squared per DOF cut for deciding a source is '+
                                      'a PSF during deblending (un-shifted PSF model)'))
@@ -140,11 +166,19 @@ class SourceDeblendTask(pipeBase.Task):
             src.set(self.tooManyPeaksKey, len(fp.getPeaks()) > self.config.maxNumberOfPeaks)
 
             try:
-                res = deblend(fp, mi, psf, psf_fwhm, sigma1=sigma1,
-                              psf_chisq_cut1 = self.config.psf_chisq_1,
-                              psf_chisq_cut2 = self.config.psf_chisq_2,
-                              psf_chisq_cut2b= self.config.psf_chisq_2b,
-                              maxNumberOfPeaks=self.config.maxNumberOfPeaks)
+                res = deblend(
+                    fp, mi, psf, psf_fwhm, sigma1=sigma1,
+                    psf_chisq_cut1 = self.config.psf_chisq_1,
+                    psf_chisq_cut2 = self.config.psf_chisq_2,
+                    psf_chisq_cut2b= self.config.psf_chisq_2b,
+                    maxNumberOfPeaks=self.config.maxNumberOfPeaks,
+                    strayFluxToPointSources=self.config.strayFluxToPointSources,
+                    assignStrayFlux=self.config.assignStrayFlux,
+                    findStrayFlux=(self.config.assignStrayFlux or
+                                   self.config.findStrayFlux),
+                    rampFluxAtEdge=(self.config.edgeHandling == 'ramp'),
+                    patchEdges=(self.config.edgeHandling == 'noclip'),
+                    )
                 src.set(self.deblendFailedKey, False)
             except Exception as e:
                 self.log.warn("Error deblending source %d: %s" % (src.getId(), e))
