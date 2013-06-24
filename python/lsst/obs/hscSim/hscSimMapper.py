@@ -57,21 +57,29 @@ class HscSimMapper(CameraMapper):
         # y-band: Shimasaku et al., 2005, PASJ, 57, 447
 
         afwImageUtils.resetFilters()
-
-        afwImageUtils.defineFilter(name='g', lambdaEff=477, alias=['W-S-G+'])
-        afwImageUtils.defineFilter(name='r', lambdaEff=623, alias=['W-S-R+'])
-        afwImageUtils.defineFilter(name='i', lambdaEff=775, alias=['W-S-I+'])
-        afwImageUtils.defineFilter(name='z', lambdaEff=925, alias=['W-S-Z+'])
-        afwImageUtils.defineFilter(name='y', lambdaEff=990, alias=['W-S-ZR'])
+        afwImageUtils.defineFilter(name='g', lambdaEff=477, alias=['W-S-G+', 'HSC-G'])
+        afwImageUtils.defineFilter(name='r', lambdaEff=623, alias=['W-S-R+', 'HSC-R'])
+        afwImageUtils.defineFilter(name='i', lambdaEff=775, alias=['W-S-I+', 'HSC-I'])
+        afwImageUtils.defineFilter(name='z', lambdaEff=925, alias=['W-S-Z+', 'HSC-Z'])
+        afwImageUtils.defineFilter(name='y', lambdaEff=990, alias=['W-S-ZR', 'HSC-Y'])
+        afwImageUtils.defineFilter(name='SH', lambdaEff=0, alias=['SH',])
+        afwImageUtils.defineFilter(name='PH', lambdaEff=0, alias=['PH',])
         afwImageUtils.defineFilter(name='None', lambdaEff=0)
         afwImageUtils.defineFilter(name='Unrecognised', lambdaEff=0)
-        
+
         self.filters = {
             "W-S-G+"  : "g",
             "W-S-R+"  : "r",
             "W-S-I+"  : "i",
             "W-S-Z+"  : "z",
             "W-S-ZR"  : "y",
+            "HSC-G"   : "g",
+            "HSC-R"   : "r",
+            "HSC-I"   : "i",
+            "HSC-Z"   : "z",
+            "HSC-Y"   : "y",
+            "SH"   : "None",
+            "PH"   : "None",
             "NONE"    : "None",
             "UNRECOGNISED": "Unrecognised",
             }
