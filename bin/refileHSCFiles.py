@@ -196,7 +196,7 @@ def main():
                     shutil.copyfile(infile, outpath)
                     print "copied %s to %s" % (infile, outpath)
                 elif opts.doLink:
-                    os.symlink(infile, outpath)
+                    os.symlink(os.path.abspath(infile), outpath)
                     print "linked %s to %s" % (infile, outpath)
                 else:
                     os.rename(infile, outpath)
