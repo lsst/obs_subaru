@@ -4,10 +4,6 @@ AlgorithmRegistry.register("flux.sinc2", target=SincFluxConfig.Control, ConfigCl
 root.measurement.algorithms["flux.sinc2"].radius = 5.0
 root.measurement.algorithms.names |= ["flux.sinc2"]
 
-# Enable model mags, disable Gaussian mags (which aren't really forced)
-root.measurement.algorithms.names -= ["flux.gaussian"]
-root.measurement.slots.instFlux = None
-
 try:
     import lsst.meas.extensions.photometryKron
     root.measurement.algorithms.names |= ["flux.kron"]
