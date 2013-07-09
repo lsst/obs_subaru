@@ -40,6 +40,8 @@ parser.add_option("-f", "--frameID", action="store", dest="frameID",
                   default=False, help="set the frame number.")
 parser.add_option("-d", "--date", action="store", dest="expDate",
                   default=False, help="set the exposure time.")
+parser.add_option("--force", action="store_true", dest="force",
+                  default=False, help="Force refiling (by deleting existing)?")
 
 def datetime2mjd(date_time):
 
@@ -189,6 +191,8 @@ def main():
 
         if opts.execute:
             # Actually do the moves. 
+            if opts.force and os.path.exists(outpath):
+                os.unlink(outpath)
             try:
                 if not os.path.isdir(outdir):
                     os.makedirs(outdir)
