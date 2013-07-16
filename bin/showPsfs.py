@@ -35,7 +35,8 @@ def main(dataDir, visit, title="", outputTxtFileName=None,
     # Read all the tableSeeingMap files, converting their (x, y) to focal plane coordinates
     #
     xArr = []; yArr = []; ellArr = []; fwhmArr = []
-    paArr = []; aArr = []; bArr = []
+    paArr = []; aArr = []; bArr = [];
+    e1Arr=[]; e2Arr=[]; elle1e2Arr =[]; 
     for tab in butler.subset("tableSeeingMap", visit=visit):
         # we could use tab.datasetExists() but it prints a rude message
         fileName = butler.get("tableSeeingMap_filename", **tab.dataId)[0]
@@ -52,7 +53,7 @@ def main(dataDir, visit, title="", outputTxtFileName=None,
                 if ccd is None:
                     ccd = ccds[int(fields[0])]
 
-                x, y, fwhm, ell, pa, a, b  = fields[1:]
+                x, y, fwhm, ell, pa, a, b  = fields[1:8]
                 x, y = ccd.getPositionFromPixel(afwGeom.PointD(x, y)).getMm()
                 xArr.append(x)
                 yArr.append(y)
@@ -61,6 +62,15 @@ def main(dataDir, visit, title="", outputTxtFileName=None,
                 paArr.append(pa)
                 aArr.append(a)
                 bArr.append(b)
+                if len(fields) == 11:
+                    e1 = fields[8]
+                    e2 = fields[9]
+                    elle1e2 = fields[10]
+                else:
+                    e1 = -9999.; e2 = -9999. ; elle1e2 = -9999.
+                e1Arr.append(e1)
+                e2Arr.append(e2)
+                elle1e2Arr.append(elle1e2)
 
     xArr = np.array(xArr)
     yArr = np.array(yArr)
@@ -69,6 +79,11 @@ def main(dataDir, visit, title="", outputTxtFileName=None,
     paArr = np.radians(np.array(paArr))
     aArr = np.array(aArr)
     bArr = np.array(bArr)
+
+    e1Arr = np.array(e1Arr)
+    e2Arr = np.array(e2Arr)
+    elle1e2Arr = np.array(elle1e2Arr)
+
 
     if correctDistortion:
         import lsst.afw.geom.ellipses as afwEllipses
@@ -93,20 +108,33 @@ def main(dataDir, visit, title="", outputTxtFileName=None,
         extent = [min(xArr), max(xArr), min(yArr), max(yArr)]
         xs,ys = np.mgrid[extent[0]:extent[1]:N, extent[2]:extent[3]:N]
 
-    if outputTxtFileName:
-        pass
-
     title = [title,]
 
-    title.append("\n")
+    title.append("\n#")
+
+    if outputTxtFileName:
+        f = open(outputTxtFileName, 'w')
+        f.write("# %s visit %s\n" % (" ".join(title), visit))
+        for x, y, ell, fwhm, pa, a, b, e1, e2, elle1e2 in zip(xArr, yArr,  ellArr, fwhmArr, paArr, aArr, bArr, e1Arr, e2Arr, elle1e2Arr):
+            f.write('%f %f %f %f %f %f %f %f %f %f\n' % (x, y, ell, fwhm, pa, a, b, e1, e2, elle1e2))
 
     if showFwhm:
         title.append("FWHM (arcsec)")
         if len(xs) > 0:
             fwhmResampled = griddata(xArr, yArr, fwhmArr, xs, ys)
-            
+
             plt.imshow(fwhmResampled.T, extent=extent, vmin=minFwhm, vmax=maxFwhm)
             plt.colorbar()
+
+        if outputTxtFileName:
+            f = open(outputTxtFileName+'-fwhm-grid.txt', 'w')
+            f.write("# %s visit %s\n" % (" ".join(title), visit))
+            for xline, yline, fwhmline in zip(xs.tolist(), ys.tolist(), fwhmResampled.tolist()):
+                for xx, yy, fwhm in zip(xline, yline, fwhmline):
+                    if fwhm is None:
+                        fwhm = -9999
+                    f.write('%f %f %f\n' % (xx, yy, fwhm))
+
     elif showEllipticity:
         title.append("Ellipticity")
         scale = 4
@@ -132,7 +160,19 @@ def main(dataDir, visit, title="", outputTxtFileName=None,
         keyLen = 0.10
         if not ellipticityDirection:    # we care about the magnitude
             plt.quiverkey(Q, 0.20, 0.95, keyLen, "e=%g" % keyLen, labelpos='W')
-        
+
+        if outputTxtFileName:
+            f = open(outputTxtFileName+'-ell-grid.txt', 'w')
+            f.write("# %s visit %s\n" % (" ".join(title), visit))
+            #f.write('# %f %f %f %f %f %f %f\n' % (x, y, ell, fwhm, pa, a, b))
+            for xline, yline, uline, vline in zip(x.tolist(), y.tolist(), u.tolist(), v.tolist()):
+                for xx, yy, uu, vv in zip(xline, yline, uline, vline):
+                    if uu is None:
+                        uu = -9999
+                    if vv is None:
+                        vv = -9999
+                    f.write('%f %f %f %f\n' % (xx, yy, uu, vv))
+
     #plt.plot(xArr, yArr, "r.")
     #plt.plot(xs, ys, "b.")
     plt.axes().set_aspect('equal')
