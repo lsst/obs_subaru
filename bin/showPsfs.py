@@ -10,16 +10,49 @@ import lsst.afw.cameraGeom as cameraGeom
 import lsst.daf.persistence as dafPersist
 import lsst.obs.hscSim as hscSim
 
+def getNumDataGrids(xArr, yArr, dataArr, xs, ys):
+    """
+    xs = [[0,0,..,0][1,1,..,1][2,2,..,2],..,[n,n,..,n]]
+    ys = [[0,1,..,n][0,1,..,n][0,1,..,n],..,[0,1,..,n]]
+    """
+
+    gridWidth  = xs[1][0] - xs[0][0]
+    gridHeight = ys[0][1] - ys[0][0]
+    nx = len(xs)
+    ny = len(ys)
+
+    nDataList = []
+    for i in range(nx):
+        nDataX = []
+        for j in range(ny):
+            xmin = xs[i][j] - int(gridWidth/2.0)
+            xmax = xs[i][j] + int(gridWidth/2.0)
+            ymin = ys[i][j] - int(gridHeight/2.0)
+            ymax = ys[i][j] + int(gridHeight/2.0)
+
+            ndata = 0
+            for xc, yc, v in zip(xArr, yArr, dataArr):
+                if xmin <= xc and xc < xmax and ymin <= yc and yc < ymax and (not np.isnan(v)) and v > -9999.0:
+                    ndata += 1
+            nDataX.append(ndata)
+
+        nDataList.append(nDataX)
+
+    return nDataList
+
+
 def main(dataDir, visit, title="", outputTxtFileName=None,
          showFwhm=False, minFwhm=None, maxFwhm=None,
          correctDistortion=False,
          showEllipticity=False, ellipticityDirection=False,
+         showNdataFwhm=False, showNdataEll=False,
+         minNdata=None, maxNdata=None, 
          gridPoints=30, verbose=False):
 
     butler = dafPersist.ButlerFactory(mapper=hscSim.HscSimMapper(root=dataDir)).create()
     camera = butler.get("camera")
 
-    if not (showFwhm or showEllipticity or outputTxtFileName):
+    if not (showFwhm or showEllipticity or showNdataFwhm or showNdataEll or outputTxtFileName):
         showFwhm = True
     #
     # Get a dict of cameraGeom::Ccd indexed by serial number
@@ -122,18 +155,20 @@ def main(dataDir, visit, title="", outputTxtFileName=None,
         title.append("FWHM (arcsec)")
         if len(xs) > 0:
             fwhmResampled = griddata(xArr, yArr, fwhmArr, xs, ys)
-
             plt.imshow(fwhmResampled.T, extent=extent, vmin=minFwhm, vmax=maxFwhm)
             plt.colorbar()
 
         if outputTxtFileName:
+
+            ndataGrids = getNumDataGrids(xArr, yArr, fwhmArr, xs, ys)
+
             f = open(outputTxtFileName+'-fwhm-grid.txt', 'w')
             f.write("# %s visit %s\n" % (" ".join(title), visit))
-            for xline, yline, fwhmline in zip(xs.tolist(), ys.tolist(), fwhmResampled.tolist()):
-                for xx, yy, fwhm in zip(xline, yline, fwhmline):
+            for xline, yline, fwhmline, ndataline in zip(xs.tolist(), ys.tolist(), fwhmResampled.tolist(), ndataGrids):
+                for xx, yy, fwhm, ndata in zip(xline, yline, fwhmline, ndataline):
                     if fwhm is None:
                         fwhm = -9999
-                    f.write('%f %f %f\n' % (xx, yy, fwhm))
+                    f.write('%f %f %f %d\n' % (xx, yy, fwhm, ndata))
 
     elif showEllipticity:
         title.append("Ellipticity")
@@ -162,16 +197,36 @@ def main(dataDir, visit, title="", outputTxtFileName=None,
             plt.quiverkey(Q, 0.20, 0.95, keyLen, "e=%g" % keyLen, labelpos='W')
 
         if outputTxtFileName:
+            ndataGrids = getNumDataGrids(xArr, yArr, ellArr, xs, ys)
+
             f = open(outputTxtFileName+'-ell-grid.txt', 'w')
             f.write("# %s visit %s\n" % (" ".join(title), visit))
             #f.write('# %f %f %f %f %f %f %f\n' % (x, y, ell, fwhm, pa, a, b))
-            for xline, yline, uline, vline in zip(x.tolist(), y.tolist(), u.tolist(), v.tolist()):
-                for xx, yy, uu, vv in zip(xline, yline, uline, vline):
+            for xline, yline, uline, vline, ndataline in zip(x.tolist(), y.tolist(), u.tolist(), v.tolist(), ndataGrids):
+                for xx, yy, uu, vv, ndata in zip(xline, yline, uline, vline, ndataline):
                     if uu is None:
                         uu = -9999
                     if vv is None:
                         vv = -9999
-                    f.write('%f %f %f %f\n' % (xx, yy, uu, vv))
+                    f.write('%f %f %f %f %d\n' % (xx, yy, uu, vv, ndata))
+
+    elif showNdataFwhm:
+        title.append("N per fwhm grid")
+        if len(xs) > 0:
+            ndataGrids = getNumDataGrids(xArr, yArr, fwhmArr, xs, ys)
+            plt.imshow(ndataGrids, interpolation='none', extent=extent, vmin=minNdata, vmax=maxNdata)
+            plt.colorbar()
+        else:
+            pass
+
+    elif showNdataEll:
+        title.append("N per ell grid")
+        if len(xs) > 0:
+            ndataGrids = getNumDataGrids(xArr, yArr, ellArr, xs, ys)
+            plt.imshow(ndataGrids, interpolation='none', extent=extent, vmin=minNdata, vmax=maxNdata)
+            plt.colorbar()
+        else:
+            pass
 
     #plt.plot(xArr, yArr, "r.")
     #plt.plot(xs, ys, "b.")
@@ -201,6 +256,11 @@ switches to that dataDir (the one on the command line is used previously)
     parser.add_argument('--maxFwhm', type=float, help="Maximum FWHM to plot", default=None)
     parser.add_argument('--showEllipticity', action="store_true", help="Show the stars' ellipticity",
                         default=False)
+    parser.add_argument('--showNdataFwhm', action="store_true", help="Show the num of sources used to make Fwhm grids", default=False)
+    parser.add_argument('--showNdataEll', action="store_true", help="Show the num of sources used to make ellipticity grids", default=False)        
+    parser.add_argument('--minNdata', type=int, help="Minimum N sources to plot", default=None)
+    parser.add_argument('--maxNdata', type=int, help="Maximum N sources to plot", default=None)
+
     parser.add_argument('--ellipticityDirection', action="store_true",
                         help="Show the ellipticity direction, not value", default=False)
     parser.add_argument('--correctDistortion', action="store_true",
@@ -274,6 +334,8 @@ switches to that dataDir (the one on the command line is used previously)
                    showFwhm=args.showFwhm, minFwhm=args.minFwhm, maxFwhm=args.maxFwhm,
                    correctDistortion=args.correctDistortion,
                    showEllipticity=args.showEllipticity, ellipticityDirection=args.ellipticityDirection,
+                   showNdataFwhm = args.showNdataFwhm, showNdataEll = args.showNdataEll,
+                   minNdata=args.minNdata, maxNdata=args.maxNdata, 
                    verbose=args.verbose)
                         
         if pp:
@@ -290,3 +352,4 @@ switches to that dataDir (the one on the command line is used previously)
             plt.savefig(args.outputPlotFile)
         else:
             plt.show()
+
