@@ -155,7 +155,7 @@ def main(dataDir, visit, title="", outputTxtFileName=None,
         title.append("FWHM (arcsec)")
         if len(xs) > 0:
             fwhmResampled = griddata(xArr, yArr, fwhmArr, xs, ys)
-            plt.imshow(fwhmResampled.T, extent=extent, vmin=minFwhm, vmax=maxFwhm)
+            plt.imshow(fwhmResampled.T, extent=extent, vmin=minFwhm, vmax=maxFwhm, origin='lower')
             plt.colorbar()
 
         if outputTxtFileName:
@@ -214,7 +214,7 @@ def main(dataDir, visit, title="", outputTxtFileName=None,
         title.append("N per fwhm grid")
         if len(xs) > 0:
             ndataGrids = getNumDataGrids(xArr, yArr, fwhmArr, xs, ys)
-            plt.imshow(ndataGrids, interpolation='none', extent=extent, vmin=minNdata, vmax=maxNdata)
+            plt.imshow(ndataGrids, interpolation='none', extent=extent, vmin=minNdata, vmax=maxNdata, origin='lower')
             plt.colorbar()
         else:
             pass
@@ -223,7 +223,7 @@ def main(dataDir, visit, title="", outputTxtFileName=None,
         title.append("N per ell grid")
         if len(xs) > 0:
             ndataGrids = getNumDataGrids(xArr, yArr, ellArr, xs, ys)
-            plt.imshow(ndataGrids, interpolation='none', extent=extent, vmin=minNdata, vmax=maxNdata)
+            plt.imshow(ndataGrids, interpolation='none', extent=extent, vmin=minNdata, vmax=maxNdata, origin='lower')
             plt.colorbar()
         else:
             pass
