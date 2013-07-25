@@ -121,6 +121,7 @@ SELECT
     validStart, validEnd, calibDate, filter, calibVersion, count(ccd)
 FROM %s
 %s
+GROUP BY filter
 ORDER BY filter
 """ % (what, where)
 
@@ -133,13 +134,13 @@ ORDER BY filter
         print >> sys.stderr, "No summary is available for calib data"
         return
     else:
-        print "%-10s--%-10s  %-10s  %7s %12s %4s" % (
+        print "%-10s--%-10s  %-10s  %-7s %-24s %4s" % (
             "validStart", "validEnd", "calibDate", "filter", "calibVersion", "nCCD")
 
     for line in cursor.execute(query, vals):
         validStart, validEnd, calibDate, filter, calibVersion, nCCD = line
 
-        print "%-10s--%-10s  %-10s  %7s %12s %4d" % (
+        print "%-10s--%-10s  %-10s  %-7s %-24s %4d" % (
             validStart, validEnd, calibDate, filter, calibVersion, nCCD)
 
     conn.close()
