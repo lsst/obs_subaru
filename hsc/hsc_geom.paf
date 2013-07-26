@@ -977,7 +977,7 @@ Raft: {
     # Focus chips
     Ccd: {
        serial: 104                      # CCDs serial number
-       name: "hsc104"                   # CCDs name
+       name: "1_48"                     # CCDs name
        ptype: "default"
        index: 0 0
        offset: 16984.36 -6646.92        # offset of CCD center from raft center, (x, y)
@@ -986,7 +986,7 @@ Raft: {
     }
     Ccd: {
        serial: 105                      # CCDs serial number
-       name: "hsc105"                   # CCDs name
+       name: "1_51"                     # CCDs name
        ptype: "default"
        index: 0 0
        offset: 16984.36 6647.36         # offset of CCD center from raft center, (x, y)
@@ -995,7 +995,7 @@ Raft: {
     }
     Ccd: {
        serial: 110                      # CCDs serial number
-       name: "hsc110"                   # CCDs name
+       name: "0_51"                     # CCDs name
        ptype: "default"
        index: 0 0
        offset: -16986.55 -6646.92       # offset of CCD center from raft center, (x, y)
@@ -1004,7 +1004,7 @@ Raft: {
     }
     Ccd: {
        serial: 111                      # CCDs serial number
-       name: "hsc111"                   # CCDs name
+       name: "0_48"                     # CCDs name
        ptype: "default"
        index: 0 0
        offset: -16986.55 6647.36        # offset of CCD center from raft center, (x, y)
@@ -1013,7 +1013,7 @@ Raft: {
     }
     Ccd: {
        serial: 106                      # CCDs serial number
-       name: "hsc106"                   # CCDs name
+       name: "1_52"                     # CCDs name
        ptype: "default"
        index: 0 0
        offset: 14861.21 -11113.09       # offset of CCD center from raft center, (x, y)
@@ -1022,7 +1022,7 @@ Raft: {
     }
     Ccd: {
        serial: 107                      # CCDs serial number
-       name: "hsc107"                   # CCDs name
+       name: "1_57"                     # CCDs name
        ptype: "default"
        index: 0 0
        offset: 14861.21 11112.45        # offset of CCD center from raft center, (x, y)
@@ -1031,7 +1031,7 @@ Raft: {
     }
     Ccd: {
        serial: 108                      # CCDs serial number
-       name: "hsc108"                   # CCDs name
+       name: "0_57"                     # CCDs name
        ptype: "default"
        index: 0 0
        offset:  -14862.26 -11113.09     # offset of CCD center from raft center, (x, y)
@@ -1040,7 +1040,7 @@ Raft: {
     }
     Ccd: {
        serial: 109                      # CCDs serial number
-       name: "hsc109"                   # CCDs name
+       name: "0_52"                     # CCDs name
        ptype: "default"
        index: 0 0
        offset: -14862.26 11112.45       # offset of CCD center from raft center, (x, y)
@@ -4146,7 +4146,7 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "hsc104"
+            name: "1_48"
             ptype: "default"
             serial: 104
             Amp: {
@@ -4175,7 +4175,7 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "hsc105"
+            name: "1_51"
             ptype: "default"
             serial: 105
             Amp: {
@@ -4204,7 +4204,7 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "hsc106"
+            name: "1_52"
             ptype: "default"
             serial: 106
             Amp: {
@@ -4233,7 +4233,7 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "hsc107"
+            name: "1_57"
             ptype: "default"
             serial: 107
             Amp: {
@@ -4262,7 +4262,7 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "hsc108"
+            name: "0_57"
             ptype: "default"
             serial: 108
             Amp: {
@@ -4291,7 +4291,7 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "hsc109"
+            name: "0_52"
             ptype: "default"
             serial: 109
             Amp: {
@@ -4320,7 +4320,7 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "hsc110"
+            name: "0_51"
             ptype: "default"
             serial: 110
             Amp: {
@@ -4349,7 +4349,7 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "hsc111"
+            name: "0_48"
             ptype: "default"
             serial: 111
             Amp: {
