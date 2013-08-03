@@ -22,13 +22,12 @@ class SubaruAstrometryConfig(ptAstrometry.AstrometryConfig):
 class SubaruAstrometryTask(ptAstrometry.AstrometryTask):
     ConfigClass = SubaruAstrometryConfig
     @pipeBase.timeMethod
-    def astrometry(self, exposure, sources, llc=(0,0), size=None):
+    def astrometry(self, exposure, sources, bbox=None):
         """Solve astrometry to produce WCS
 
         @param exposure Exposure to process
         @param sources Sources
-        @param llc Lower left corner (minimum x,y)
-        @param size Size of exposure
+        @param bbox Bounding box
         @return Star matches, match metadata
         """
         assert exposure, "No exposure provided"
@@ -37,11 +36,8 @@ class SubaruAstrometryTask(ptAstrometry.AstrometryTask):
 
         wcs = exposure.getWcs()
         if wcs is None:
-            self.log.log(self.log.WARN, "Unable to use hsc.meas.astrom; reverting to lsst.meas.astrom")
-            return ptAstrometry.AstrometryTask.astrometry(exposure, sources, llc=llc, size=size)
-
-        if size is None:
-            size = (exposure.getWidth(), exposure.getHeight())
+            self.log.warn("Unable to use hsc.meas.astrom; reverting to lsst.meas.astrom")
+            return ptAstrometry.AstrometryTask.astrometry(exposure, sources, bbox=bbox)
 
         astrom = None
         try:
@@ -51,7 +47,7 @@ class SubaruAstrometryTask(ptAstrometry.AstrometryTask):
             if astrom is None:
                 raise RuntimeError("hsc.meas.astrom failed to determine the WCS")
         except Exception, e:
-            self.log.log(self.log.WARN, "hsc.meas.astrom failed (%s)" % e)
+            self.log.warn("hsc.meas.astrom failed (%s)" % e)
             if self.config.failover:
                 self.log.info("Failing over to lsst.meas.astrom....")
                 # N.b. this will replace the previous astrometer with a meas_astrom one
@@ -70,15 +66,14 @@ class SubaruAstrometryTask(ptAstrometry.AstrometryTask):
             matchMeta = astrom.getMatchMetadata()
             if matches is None or len(matches) == 0:
                 raise RuntimeError("No astrometric matches for %s" % exposure.getDetector().getId())
-            self.log.log(self.log.INFO, "%d astrometric matches for %s" % \
-                         (len(matches), exposure.getDetector().getId()))
+            self.log.info("%d astrometric matches for %s" % (len(matches), exposure.getDetector().getId()))
             exposure.setWcs(wcs)
 
         # Apply WCS to sources
         for source in sources:
             distorted = source.get(self.centroidKey)
             sky = wcs.pixelToSky(distorted.getX(), distorted.getY())
-            source.setCoord(sky) 
+            source.setCoord(sky)
 
         self.display('astrometry', exposure=exposure, sources=sources, matches=matches)
 
@@ -86,7 +81,7 @@ class SubaruAstrometryTask(ptAstrometry.AstrometryTask):
         for key in self.metadata.names():
             val = self.metadata.get(key)
             if isinstance(val, tuple):
-                self.log.log(self.log.DEBUG, "Value of %s is a tuple: %s" % (key, val))
+                self.log.logdebug("Value of %s is a tuple: %s" % (key, val))
                 val = val[-1]
 
             try:
@@ -95,13 +90,13 @@ class SubaruAstrometryTask(ptAstrometry.AstrometryTask):
                 else:
                     metadata.set(key, val)
             except Exception, e:
-                self.log.log(self.log.WARN, "Value of %s == %s is invalid; %s" % (key, val, e))
+                self.log.warn("Value of %s == %s is invalid; %s" % (key, val, e))
 
         metadata.set('NOBJ_BRIGHT', len(sources))
         metadata.set('NOBJ_MATCHED', len(matches))
         metadata.set('WCS_NOBJ', len(matches))
 
-        return matches, matchMeta
+        return pipeBase.Struct(matches=matches, matchMeta=matchMeta)
 
     def refitWcs(self, exposure, sources, matches):
         sip = ptAstrometry.AstrometryTask.refitWcs(self, exposure, sources, matches)
