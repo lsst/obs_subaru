@@ -95,7 +95,7 @@ class HscSimMapper(CameraMapper):
             "SH"   : "None",
             "PH"   : "None",
             "NONE"    : "None",
-            "UNRECOGNISED": "Unrecognised",
+            "UNRECOGNISED": "i",
             }
 
         # next line makes a dict that maps filter names to sequential integers (arbitrarily sorted),
