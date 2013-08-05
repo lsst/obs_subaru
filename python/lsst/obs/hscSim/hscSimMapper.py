@@ -102,6 +102,19 @@ class HscSimMapper(CameraMapper):
         # for use in generating unique IDs for sources.
         self.filterIdMap = dict(zip(self.filters, range(len(self.filters))))
 
+    def map(self, datasetType, dataId, write=False):
+        """Need to strip 'flags' argument from map
+
+        We want the 'flags' argument passed to the butler to work (it's
+        used to change how the reading/writing is done), but want it
+        removed from the mapper (because it doesn't correspond to a
+        registry column).
+        """
+        copyId = dataId.copy()
+        copyId.pop("flags", None)
+        return super(HscSimMapper, self).map(datasetType, copyId, write=write)
+
+
     def std_camera(self, item, dataId):
         """Standardize a camera dataset by converting it to a camera object."""
         return self.camera

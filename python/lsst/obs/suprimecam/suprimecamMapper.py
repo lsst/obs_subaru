@@ -47,6 +47,18 @@ class SuprimecamMapperBase(CameraMapper):
                      ):
             self.mappings[name].keyDict.update(keys)
 
+    def map(self, datasetType, dataId, write=False):
+        """Need to strip 'flags' argument from map
+
+        We want the 'flags' argument passed to the butler to work (it's
+        used to change how the reading/writing is done), but want it
+        removed from the mapper (because it doesn't correspond to a
+        registry column).
+        """
+        copyId = dataId.copy()
+        copyId.pop("flags", None)
+        return super(SuprimecamMapperBase, self).map(datasetType, copyId, write=write)
+
     def defineFilters(self):
         afwImageUtils.resetFilters()
         
