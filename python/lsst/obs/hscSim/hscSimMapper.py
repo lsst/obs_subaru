@@ -42,7 +42,21 @@ class HscSimMapper(CameraMapper):
                 'expTime': float,
                 'pointing': int,
                 }
-        for name in ("raw", "calexp", "postISRCCD", "src"):
+        for name in ("raw",
+                     # processCcd outputs
+                     "postISRCCD", "calexp", "postISRCCD", "src", "icSrc", "icMatch", "icMatchFull",
+                     "srcMatch", "srcMatchFull",
+                     # processCcd QA
+                     "ossThumb", "flattenedThumb", "calexpThumb", "plotMagHist", "plotSeeingRough",
+                     "plotSeeingRobust", "plotSeeingMap", "plotEllipseMap", "plotEllipticityMap",
+                     "plotFwhmGrid", "plotEllipseGrid", "plotEllipticityGrid", "plotPsfSrcGrid",
+                     "plotPsfModelGrid", "fitsFwhmGrid", "fitsEllipticityGrid", "fitsEllPaGrid",
+                     "fitsPsfSrcGrid", "fitsPsfModelGrid", "tableSeeingMap", "tableSeeingGrid",
+                     # forcedPhot outputs
+                     "forced_src",
+                     # Warp
+                     "coaddTempExp",
+                     ):
             self.mappings[name].keyDict.update(keys)
 
         # Distortion isn't pluggable, so we'll put in our own
