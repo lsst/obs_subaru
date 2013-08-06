@@ -300,6 +300,16 @@ class SuprimecamMapperBase(CameraMapper):
             obsMidpoint = obsStart.nsecs() + long(expTime * 1000000000L / 2)
             calib.setMidTime(dafBase.DateTime(obsMidpoint))
 
+    # The following allow grabbing a 'psf' from the butler directly, without having to get it from a calexp
+    def map_psf(self, dataId, write=False):
+        if write:
+            raise RuntimeError("Writing a psf directly is no longer permitted: write as part of a calexp")
+        copyId = dataId.copy()
+        copyId['bbox'] = afwGeom.Box2I(afwGeom.Point2I(0,0), afwGeom.Extent2I(1,1))
+        return self.map_calexp_sub(copyId)
+    def std_psf(self, calexp, dataId):
+        return calexp.getPsf()
+
     @classmethod
     def getEupsProductName(cls):
         return "obs_subaru"
