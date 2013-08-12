@@ -132,7 +132,7 @@ exposures: {
         tables:        "raw_visit"
     }
     calibrated_src: {
-        template:      "%(pointing)05d/%(filter)s/output/CALSRC%(visit)07d%(ccd)1d.fits"
+        template:      "%(pointing)05d/%(filter)s/output/CALSRC-%(visit)07d-%(ccd)03d.fits"
         python:        "lsst.afw.table.SourceCatalog"
         persistable:   "SourceCatalog"
         storage:       "FitsCatalogStorage"
