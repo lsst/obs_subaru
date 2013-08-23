@@ -18,7 +18,14 @@ root.detection.background.undersampleStyle = 'REDUCE_INTERP_ORDER'
 
 # PSF determination
 root.calibrate.measurePsf.starSelector.name = "objectSize"
-root.calibrate.measurePsf.psfDeterminer.name = "pca"
+root.calibrate.measurePsf.starSelector["objectSize"].sourceFluxField = "initial.flux.psf"
+try:
+    import lsst.meas.extensions.psfex.psfexPsfDeterminer
+    root.calibrate.measurePsf.psfDeterminer["psfex"].spatialOrder = 2
+    root.calibrate.measurePsf.psfDeterminer.name = "psfex"
+except ImportError as e:
+    print "WARNING: Unable to use psfex: %s" % e
+    root.calibrate.measurePsf.psfDeterminer.name = "pca"
 
 # Astrometry
 try:
