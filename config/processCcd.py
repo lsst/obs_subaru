@@ -48,6 +48,8 @@ try:
 except ImportError:
     print "Cannot import lsst.meas.extensions.photometryKron: disabling Kron measurements"
 
+measurement.algorithms['classification.extendedness'].fluxRatio = 0.95
+
 # Enable deblender for processCcd
 root.measurement.doReplaceWithNoise = True
 root.doDeblend = True
