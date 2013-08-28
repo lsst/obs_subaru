@@ -49,6 +49,10 @@ root.detection.returnOriginalFootprints = False
 # Measurement
 root.doWriteSourceMatches = True
 root.measurement.algorithms.names |= ["jacobian", "focalplane"]
+
+root.measurement.algorithms.names |= ["flux.aperture"]
+root.measurement.algorithms["flux.aperture"].radii = [3.0, 4.5, 6.0, 9.0, 12.0, 20.0, 30.0]
+
 try:
     import lsst.meas.extensions.photometryKron
     root.measurement.algorithms.names |= ["flux.kron"]
