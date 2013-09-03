@@ -476,7 +476,7 @@ class SuprimecamIsrConfig(SubaruIsrConfig):
         self.crosstalk.retarget(YagiCrosstalkTask)
 
 class SuprimeCamIsrTask(SubaruIsrTask):
-    ConfigClass = SuprimeCamIsrConfig
+    ConfigClass = SuprimecamIsrConfig
 
     def guider(self, exposure):
         """Mask defects and trim guider shadow

@@ -284,7 +284,7 @@ def main(visit=131634, ccd=None, threshold=45000, nSample=1, showCoeffs=True, fi
 
 class YagiCrosstalkConfig(pexConfig.Config):
     coeffs = pexConfig.ConfigField(
-        dtype = crosstalk.CrosstalkYagiCoeffsConfig,
+        dtype = CrosstalkYagiCoeffsConfig,
         doc = "Crosstalk coefficients by Yagi+ 2012",
     )
     crosstalkMaskPlane = pexConfig.Field(
@@ -302,10 +302,10 @@ class YagiCrosstalkTask(pipeBase.Task):
     ConfigClass = YagiCrosstalkConfig
 
     def run(self, exposure):
-        coeffs1List = self.config.crosstalkCoeffs.getCoeffs1() # primary crosstalk
-        coeffs2List = self.config.crosstalkCoeffs.getCoeffs2() # secondary crosstalk
-        gainsPreampSig = self.config.crosstalkCoeffs.getGainsPreampSigboard()
-        if not numpy.any(coeffs1List):
+        coeffs1List = self.config.coeffs.getCoeffs1() # primary crosstalk
+        coeffs2List = self.config.coeffs.getCoeffs2() # secondary crosstalk
+        gainsPreampSig = self.config.coeffs.getGainsPreampSigboard()
+        if not np.any(coeffs1List):
             self.log.info("No crosstalk info available. Skipping crosstalk corrections to CCD %s" %
                           (exposure.getDetector().getId()))
             return
@@ -316,9 +316,9 @@ class YagiCrosstalkTask(pipeBase.Task):
         ccdId = int(exposure.getDetector().getId().getSerial())
         gainsPreampSigCcd = gainsPreampSig[ccdId]
 
-        crosstalk.subtractCrosstalkYagi(exposure.getMaskedImage(), coeffs1List, coeffs2List,
-                                        gainsPreampSigCcd,
-                                        self.config.minPixelToMask, self.config.crosstalkMaskPlane)
+        subtractCrosstalkYagi(exposure.getMaskedImage(), coeffs1List, coeffs2List,
+                              gainsPreampSigCcd,
+                              self.config.minPixelToMask, self.config.crosstalkMaskPlane)
 
 
 if __name__ == "__main__":

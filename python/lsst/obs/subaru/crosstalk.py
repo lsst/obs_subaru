@@ -77,7 +77,8 @@ class CrosstalkTask(pipeBase.Task):
     ConfigClass = CrosstalkConfig
 
     def run(self, exp):
-        subtractXTalk(exp.getMaskedImage(), self.config.coeffs, self.config.minPixelToMask,
+        self.log.info("Applying crosstalk correction")
+        subtractXTalk(exp.getMaskedImage(), self.config.coeffs.getCoeffs(), self.config.minPixelToMask,
                       self.config.crosstalkMaskPlane)
 
 
