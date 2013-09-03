@@ -4,7 +4,7 @@ import os
 import numpy
 
 from lsst.pex.config import Field
-from lsst.pipe.base import Struct
+from lsst.pipe.base import Task, Struct
 from lsst.ip.isr import IsrTask
 from lsst.ip.isr import isr as lsstIsr
 import lsst.pex.config as pexConfig
@@ -13,7 +13,7 @@ import lsst.afw.detection as afwDetection
 import lsst.afw.image as afwImage
 import lsst.afw.geom as afwGeom
 import lsst.afw.math as afwMath
-from . import crosstalkYagi as crosstalk
+from lsst.obs.subaru.crosstalkYagi import YagiCrosstalkTask
 import lsst.meas.algorithms as measAlg
 
 try:
@@ -55,6 +55,11 @@ class QaConfig(pexConfig.Config):
     doWriteFlattened = pexConfig.Field(doc="Write flattened image?", dtype=bool, default=False)
     doThumbnailFlattened = pexConfig.Field(doc="Write flattened thumbnail?", dtype=bool, default=True)
 
+class NullCrosstalkTask(Task):
+    ConfigClass = pexConfig.Config
+    def run(self, exposure):
+        self.log.info("Not performing any crosstalk correction")
+
 class SubaruIsrConfig(IsrTask.ConfigClass):
     qa = pexConfig.ConfigField(doc="QA-related config options", dtype=QaConfig)
     doSaturation = pexConfig.Field(doc="Mask saturated pixels?", dtype=bool, default=True)
@@ -68,6 +73,7 @@ class SubaruIsrConfig(IsrTask.ConfigClass):
         doc = "Trim guider shadow",
         default = True,
     )
+    crosstalk = pexConfig.ConfigurableField(target=NullCrosstalkTask, doc="Crosstalk correction")
     doCrosstalk = pexConfig.Field(
         dtype = bool,
         doc = "Correct for crosstalk",
@@ -125,6 +131,10 @@ class SubaruIsrTask(IsrTask):
 
     ConfigClass = SubaruIsrConfig
 
+    def __init__(self, *args, **kwargs):
+        super(SubaruIsrTask, self).__init__(*args, **kwargs)
+        self.makeSubtask("crosstalk")
+
     def run(self, sensorRef):
         self.log.log(self.log.INFO, "Performing ISR on sensor %s" % (sensorRef.dataId))
         ccdExposure = sensorRef.get('raw')
@@ -174,7 +184,7 @@ class SubaruIsrTask(IsrTask):
         if self.config.doLinearize:
             self.linearize(ccdExposure)
         if self.config.doCrosstalk:
-            self.crosstalk(ccdExposure)
+            self.crosstalk.run(ccdExposure)
         if self.config.doDark:
             self.darkCorrection(ccdExposure, sensorRef)
         if self.config.doFlat:
@@ -385,9 +395,6 @@ class SubaruIsrTask(IsrTask):
         metadata.set('FLATNESS_MESHY', self.config.qa.flatness.meshY)
 
 
-    def crosstalk(self, exposure):
-        raise NotImplementedError("Crosstalk correction is enabled but no generic implementation is present")
-
     def guider(self, exposure):
         raise NotImplementedError(
             "Guider shadow trimming is enabled but no generic implementation is present"
@@ -462,49 +469,14 @@ class SubaruIsrTask(IsrTask):
         if wcs:
             fwhm /= wcs.pixelScale().asArcseconds()
         lsstIsr.interpolateDefectList(maskedImage, defectList, fwhm)
-        
-class HamamatsuIsrTaskConfig(SubaruIsrTask.ConfigClass):
-    crosstalkCoeffs = pexConfig.ConfigField(
-        dtype = crosstalk.CrosstalkYagiCoeffsConfig,
-        doc = "Crosstalk coefficients by Yagi+ 2012",
-    )
-    crosstalkMaskPlane = pexConfig.Field(
-        dtype = str,
-        doc = "Name of Mask plane for crosstalk corrected pixels",
-        default = "CROSSTALK",
-    )
-    minPixelToMask = pexConfig.Field(
-        dtype = float,
-        doc = "Minimum pixel value (in electrons) to cause crosstalkMaskPlane bit to be set",
-        default = 45000,
-        )
 
-class SuprimeCamIsrTaskConfig(HamamatsuIsrTaskConfig):
-    pass
+
+class SuprimecamIsrConfig(SubaruIsrConfig):
+    def setDefaults(self):
+        self.crosstalk.retarget(YagiCrosstalkTask)
 
 class SuprimeCamIsrTask(SubaruIsrTask):
-    
-    ConfigClass = SuprimeCamIsrTaskConfig
-
-    def crosstalk(self, exposure):
-        coeffs1List = self.config.crosstalkCoeffs.getCoeffs1() # primary crosstalk
-        coeffs2List = self.config.crosstalkCoeffs.getCoeffs2() # secondary crosstalk
-        gainsPreampSig = self.config.crosstalkCoeffs.getGainsPreampSigboard()
-        if not numpy.any(coeffs1List):
-            self.log.info("No crosstalk info available. Skipping crosstalk corrections to CCD %s" %
-                          (exposure.getDetector().getId()))
-            return
-
-        self.log.info("Applying crosstalk corrections to CCD %s based on Yagi+2012" %
-                      (exposure.getDetector().getId()))
-
-        ccdId = int(exposure.getDetector().getId().getSerial())
-        gainsPreampSigCcd = gainsPreampSig[ccdId]
-
-        crosstalk.subtractCrosstalkYagi(exposure.getMaskedImage(), coeffs1List, coeffs2List,
-                                        gainsPreampSigCcd,
-                                        self.config.minPixelToMask, self.config.crosstalkMaskPlane)
-
+    ConfigClass = SuprimeCamIsrConfig
 
     def guider(self, exposure):
         """Mask defects and trim guider shadow
@@ -556,12 +528,12 @@ class SuprimeCamIsrTask(SubaruIsrTask):
             good = mi.Factory(mi, bbox, afwImage.LOCAL)
             exposure.setMaskedImage(good)
 
-class SuprimeCamMitIsrTaskConfig(SubaruIsrTask.ConfigClass):
+class SuprimeCamMitIsrConfig(SubaruIsrTask.ConfigClass):
     pass
 
 class SuprimeCamMitIsrTask(SubaruIsrTask):
     
-    ConfigClass = SuprimeCamMitIsrTaskConfig
+    ConfigClass = SuprimeCamMitIsrConfig
 
     def guider(self, exposure):
         """Mask defects and trim guider shadow

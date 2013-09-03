@@ -66,6 +66,21 @@ class CrosstalkCoeffsConfig(pexConfig.Config):
         """Return a 2-D numpy array of crosstalk coefficients of the proper shape"""
         return np.array(self.values).reshape(self.shape)
 
+
+class CrosstalkConfig(pexConfig.Config):
+    minPixelToMask = pexConfig.Field(dtype=float, default=45000,
+                                     doc="Set crosstalk mask plane for pixels over this value")
+    crosstalkMaskPlane = pexConfig.Field(dtype=str, default="CROSSTALK", doc="Name for crosstalk mask plane")
+    coeffs = pexConfig.ConfigField(dtype=CrosstalkCoeffsConfig, doc="Crosstalk coefficients")
+
+class CrosstalkTask(pipeBase.Task):
+    ConfigClass = CrosstalkConfig
+
+    def run(self, exp):
+        subtractXTalk(exp.getMaskedImage(), self.config.coeffs, self.config.minPixelToMask,
+                      self.config.crosstalkMaskPlane)
+
+
 nAmp = 4
 
 def getXPos(width, hwidth, x):
