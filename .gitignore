@@ -4,6 +4,7 @@
 *.pyc
 *.so
 *.os
+*.dylib
 tests/.tests
 ups/*.cfgc
 config.log
