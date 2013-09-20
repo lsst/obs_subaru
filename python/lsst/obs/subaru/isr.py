@@ -122,11 +122,15 @@ after applying the nominal gain
             },
         )
     def validate(self):
-        pexConfig.Config.validate(self)
-
+        super(SubaruIsrConfig, self).validate()
         if self.doFlat and self.doApplyGains:
             raise ValueError("You may not specify both self.doFlat and self.doApplyGains")
-        
+
+    def setDefaults(self):
+        super(SubaruIsrConfig, self).setDefaults()
+        # Relative gains in the camera should be taken out by the flat-field, not by "gain" values.
+        self.assembleCcd.doRenorm = False # Don't multiply by the gain
+
 class SubaruIsrTask(IsrTask):
 
     ConfigClass = SubaruIsrConfig
@@ -473,6 +477,7 @@ class SubaruIsrTask(IsrTask):
 
 class SuprimecamIsrConfig(SubaruIsrConfig):
     def setDefaults(self):
+        super(SuprimecamIsrConfig, self).setDefaults()
         self.crosstalk.retarget(YagiCrosstalkTask)
 
 class SuprimeCamIsrTask(SubaruIsrTask):
