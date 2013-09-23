@@ -9,6 +9,7 @@ setupOptional(psycopg2)
 setupOptional(meas_extensions_multiShapelet)
 setupOptional(fitsthumb)
 setupOptional(distEst)
+setupOptional(meas_extensions_psfex)
 
 setupOptional(suprime_data)
 
