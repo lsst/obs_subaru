@@ -93,7 +93,7 @@ class CrosstalkYagiCoeffsConfig(pexConfig.Config):
                     1.19014,  0.987111, 0.984164, 1.03382,
                     0.971049, 1.05928,  1.06713,  0.980967,
                     1.0107,   1.25209,  1.27565,  1.17183,
-                    1.13003,  1.077,    1.03909,  1.03241,  ],
+                    0.993771, 1.077,    1.03909,  1.03241,  ],
         )
 
     relativeGainsTotalAfterOct2010 = pexConfig.ListField(
@@ -109,7 +109,7 @@ class CrosstalkYagiCoeffsConfig(pexConfig.Config):
                     1.19014,  0.987111, 0.984164, 1.03382,
                     0.971049, 1.05928,  1.06713,  0.980967,
                     1.0107,   1.25209,  1.27565,  1.17183,
-                    0.993771, 1.077,    1.03909,  1.03241, ],
+                    1.13003, 1.077,    1.03909,  1.03241, ],
         )
 
     shapeGainsArray = pexConfig.ListField(
