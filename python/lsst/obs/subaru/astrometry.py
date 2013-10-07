@@ -2,6 +2,7 @@
 
 # NOTE: THIS MODULE SHOULD NOT BE IMPORTED BY __init__.py, AS IT IMPORTS THE OPTIONAL hscAstrom PACKAGE.
 
+import numpy
 import lsst.pex.config as pexConfig
 import lsst.daf.base as dafBase
 import lsst.pipe.base as pipeBase
@@ -99,9 +100,18 @@ class SubaruAstrometryTask(ptAstrometry.AstrometryTask):
         return pipeBase.Struct(matches=matches, matchMeta=matchMeta)
 
     def refitWcs(self, exposure, sources, matches):
-        sip = ptAstrometry.AstrometryTask.refitWcs(self, exposure, sources, matches)
+        sip = super(SubaruAstrometryTask, self).refitWcs(exposure, sources, matches)
         order = self.config.solver.sipOrder if self.config.solver.calculateSip else 0
-        rms = sip.getScatterOnSky().asArcseconds() if sip else -1
+
+        if sip:
+            rms = sip.getScatterOnSky().asArcseconds()
+        else:
+            wcs = exposure.getWcs()
+            ref = numpy.array([wcs.skyToPixel(m.first.getCoord()) for m in matches])
+            src = numpy.array([m.second.getCentroid() for m in matches])
+            diff = ref - src
+            rms = diff.std() * wcs.pixelScale().asArcseconds()
+
         metadata = exposure.getMetadata()
         metadata.set('WCS_SIPORDER', order)
         metadata.set('WCS_RMS', rms)
