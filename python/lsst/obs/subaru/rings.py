@@ -103,7 +103,6 @@ values of r and dlnI/dr from this image appended.
     else:
         residualImage = None
 
-    boresight = (0, -160)               # position of boresight
     with ds9.Buffering():
         for iy in range(ny):
             for ix in range(nx):
@@ -122,7 +121,7 @@ values of r and dlnI/dr from this image appended.
                 if ccd:
                     cen = afwGeom.PointD(bbox.getBegin() + bbox.getDimensions()/2)
                     x, y = ccd.getPositionFromPixel(cen).getMm() # I really want pixels here
-                    t = np.arctan2(y - boresight[1], x - boresight[0])
+                    t = np.arctan2(y, x)
                     dlnzdra[iy, ix] = np.cos(t)*dlnzdxa[iy, ix] + np.sin(t)*dlnzdya[iy, ix]
 
                     if r is not None:
