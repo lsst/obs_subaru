@@ -28,9 +28,9 @@ have an example.
 
 N.b. To estimate crosstalk from the SuprimeCam data, the commands are e.g.:
 import crosstalk
-coeffs = crosstalk.estimateCoeffs(range(131634, 131642), range(10), threshold=1e5,
-                                  plot=True, title="CCD0..9", fig=1)
-crosstalk.fixCcd(131634, 0, coeffs)
+coeffs, coeffsErr = crosstalk.estimateCoeffs(butler, range(131634, 131642), range(10), threshold=1e5,
+                                             plot=True, title="CCD0..9", fig=1)
+crosstalk.fixCcd(butler, 131634, 0, coeffs)
 """
 import math
 import numpy as np
@@ -111,6 +111,11 @@ def getXPos(width, hwidth, x):
 
 
 def getAmplitudeRatios(mi, threshold=45000, bkgd=None, rats=None):
+    img = mi.getImage()
+    msk = mi.getMask()
+    width = mi.getWidth()
+    hwidth = width//2
+
     if rats is None:
         rats = []
         for i in range(nAmp):
@@ -123,13 +128,11 @@ def getAmplitudeRatios(mi, threshold=45000, bkgd=None, rats=None):
 
     if bkgd is None:
         sctrl = afwMath.StatisticsControl()
-        sctrl.setAndMask(mi.getMask().getPlaneBitMask("DETECTED"))
+        sctrl.setAndMask(msk.getPlaneBitMask("DETECTED"))
         
         bkgd = afwMath.makeStatistics(mi, afwMath.MEDIAN, sctrl).getValue()
     
-    img = mi.getImage()
-    width = mi.getWidth()
-    hwidth = width//2
+    badMask = msk.getPlaneBitMask(["BAD", "EDGE", "SAT", "INTRP"])
 
     for foot in fs.getFootprints():
         for s in foot.getSpans():
@@ -139,6 +142,14 @@ def getAmplitudeRatios(mi, threshold=45000, bkgd=None, rats=None):
                 amp, xx = getXPos(width, hwidth, x)
                 for a, _x in enumerate(xx):
                     if a != amp:
+                        if msk.get(_x, y) & badMask:
+                            continue
+                        if False:
+                            foo = (img.get(_x, y) - bkgd)/val
+                            if np.abs(foo) < 1e-5:
+                                print img.get(_x, y) - bkgd, val
+                                mi.getMask().set(_x, y, 0x100)
+
                         rats[amp][a].append((img.get(_x, y) - bkgd)/val)
 
     return rats
@@ -146,6 +157,7 @@ def getAmplitudeRatios(mi, threshold=45000, bkgd=None, rats=None):
 def calculateCoeffs(rats, nsigma, plot=False, fig=None, title=None):
     """Calculate cross-talk coefficients"""
     coeffs = np.empty((nAmp, nAmp))
+    coeffsErr = np.empty_like(coeffs)
 
     if plot:
         if fig is None:
@@ -154,7 +166,7 @@ def calculateCoeffs(rats, nsigma, plot=False, fig=None, title=None):
         fig = getMpFigure(fig, clear=True)
         subplots = makeSubplots(fig, nAmp, nAmp)
 
-        rMin=1e-3
+        rMin=2e-3
         bins = np.arange(-rMin, rMin, 0.05*rMin)
 
         xMajorLocator   = ticker.MaxNLocator(nbins=3) # steps=(-rMin/2, 0, rMin/2))
@@ -172,6 +184,11 @@ def calculateCoeffs(rats, nsigma, plot=False, fig=None, title=None):
                 tmp = tmp[w]
 
             coeffs[ain][aout] = tmp[len(tmp)//2]
+            
+            err = 0.741*(tmp[3*len(tmp)//4] - tmp[len(tmp)//4]) # estimate s.d. from IQR
+            err /= math.sqrt(len(tmp))                          # standard error of mean
+            err *= math.sqrt(math.pi/2)                         # standard error of median
+            coeffsErr[ain][aout] = err
 
             if plot:
                 axes = subplots.next()
@@ -181,8 +198,10 @@ def calculateCoeffs(rats, nsigma, plot=False, fig=None, title=None):
                     hist = np.histogram(rats[ain][aout], bins)[0]
                     axes.bar(bins[0:-1], hist, width=bins[1]-bins[0], color="red", linewidth=0, alpha=0.8)
 
-                axes.plot((0, 0), axes.get_ylim(), linestyle="--", color="blue")
-                axes.plot(coeffs[ain][aout]*np.ones(2), axes.get_ylim(), linestyle="-", color="green")
+                axes.axvline(0, linestyle="--", color="green")
+                axes.axvline(coeffs[ain][aout], linestyle="-", color="blue")
+                for i in (-1, 1):
+                    axes.axvline(coeffs[ain][aout] + i*coeffsErr[ain][aout] , linestyle=":", color="cyan")
                 axes.text(-0.9*rMin,0.8*axes.get_ylim()[1], r"%.1e" % coeffs[ain][aout], fontsize="smaller")
                 axes.set_xlim(-1.05*rMin, 1.05*rMin)
 
@@ -191,7 +210,7 @@ def calculateCoeffs(rats, nsigma, plot=False, fig=None, title=None):
             fig.suptitle(title)
         fig.show()
                     
-    return coeffs
+    return coeffs, coeffsErr
 
 def subtractXTalk(mi, coeffs, minPixelToMask=45000, crosstalkStr="CROSSTALK"):
     """Subtract the crosstalk from MaskedImage mi given a set of coefficients
@@ -249,18 +268,50 @@ The pixels affected by signal over minPixelToMask have the crosstalkStr bit set
     except AttributeError:
         ds9.setMaskPlaneVisibility(tempStr, False)
             
-def printCoeffs(coeffs):
+def printCoeffs(coeffs, coeffsErr=None, LaTeX=False, ppm=False):
     """Print cross-talk coefficients"""
+
+    if LaTeX:
+        print r"""\begin{tabular}{l|*{4}{l}}
+ampIn    &    \multicolumn{4}{c}{ampOut} \\
+     &    0              &    1              &     2             &    3           \\
+\hline"""
+        for ain in range(nAmp):
+            msg = "%-4d " % ain
+            for aout in range(nAmp):
+                if ppm:
+                    msg += "&         " if ain == aout else "&   %5.0f " % (1e6*coeffs[ain][aout])
+                else:
+                    msg += "&   %9.2e " % (coeffs[ain][aout])
+                if coeffsErr is not None:
+                    if ppm:
+                        if ain != aout:
+                            val = int(1e6*coeffsErr[ain][aout] + 0.5)
+                            msg += r"$\pm$ %s%d " % (r"$\phantom{0}$" if val < 10 else "", val)
+                    else:
+                        msg += r"$\pm$ %7.1e " % (coeffsErr[ain][aout])
+            print msg + r" \\"
+        print r"\end{tabular}"
+
+        return
     
-    print "ampIn                   ampOut"
+    print "ampIn                   ",
+    if coeffsErr is not None:
+        print "                         ",
+    print "ampOut"
+
     msg = "%-4s " % ""
     for aout in range(nAmp):
-        msg += "     %d    " % aout
+        msg += "       %d    " % aout
+        if coeffsErr is not None:
+            msg += "%11s" % ""
     print msg
     for ain in range(nAmp):
         msg = "%-4d " % ain
         for aout in range(nAmp):
-            msg += " %9.2e" % coeffs[ain][aout]
+            msg += "   %9.2e" % coeffs[ain][aout]
+            if coeffsErr is not None:
+                msg += " +- %7.1e" % coeffsErr[ain][aout]
 
         print msg
 
@@ -324,9 +375,12 @@ def makeImage(width=500, height=1000):
 
     return mi
 
-def readImage(visit=131634, ccd=0):
-    return afwImage.MaskedImageF("/Users/rhl/SUPA/rerun/sky_10/01041/W-S-R+/CORR/CORR%07d%d.fits" %
-                                 (visit, ccd))
+def readImage(butler, **kwargs):
+    try:
+        return butler.get("calexp", **kwargs).getMaskedImage()
+    except Exception, e:
+        print e
+        import pdb; pdb.set_trace() 
 
 def makeList(x):
     try:
@@ -335,20 +389,20 @@ def makeList(x):
     except TypeError:
         return [x]
 
-def estimateCoeffs(visitList, ccdList, threshold=45000, nSample=1, plot=False, fig=None, title=None):
+def estimateCoeffs(butler, visitList, ccdList, threshold=45000, nSample=1, plot=False, fig=None, title=None):
     rats = None
     for v in visitList:
         for ccd in ccdList:
             if ccd == "simulated":
                 mi = makeImage()
             else:
-                mi = readImage(visit=v, ccd=ccd)
+                mi = readImage(butler, visit=v, ccd=ccd)
 
             rats = getAmplitudeRatios(mi, threshold, rats=rats)
 
     return calculateCoeffs(rats, nsigma=2, plot=plot, title=title, fig=fig)
         
-def main(visit=131634, ccd=None, threshold=45000, nSample=1, showCoeffs=True, fixXTalk=True,
+def main(butler, visit=131634, ccd=None, threshold=45000, nSample=1, showCoeffs=True, fixXTalk=True,
                        plot=False, title=None):
     if ccd is None:
         visitList = range(nSample)
@@ -357,12 +411,12 @@ def main(visit=131634, ccd=None, threshold=45000, nSample=1, showCoeffs=True, fi
         ccdList = makeList(ccd)
         visitList = makeList(visit)
 
-    coeffs = estimateCoeffs(visitList, ccdList, threshold=45000, plot=plot, title=title)
+    coeffs, coeffsErr = estimateCoeffs(butler, visitList, ccdList, threshold=45000, plot=plot, title=title)
     
     if showCoeffs:
-        printCoeffs(coeffs)
+        printCoeffs(coeffs, coeffsErr)
 
-    mi = readImage(visitList[0], ccdList[0])
+    mi = readImage(butler, visit=visitList[0], ccd=ccdList[0])
     if fixXTalk:
         subtractXTalk(mi, coeffs, threshold)
         
@@ -450,9 +504,9 @@ def getMpFigure(fig=None, clear=True):
 
     return fig
 
-def fixCcd(visit, ccd, coeffs, display=True):
+def fixCcd(butler, visit, ccd, coeffs, display=True):
     """Apply cross-talk correction to a CCD, given the cross-talk coefficients"""
-    mi = readImage(visit, ccd)
+    mi = readImage(butler, visit=visit, ccd=ccd)
     if display:
         ds9.mtv(mi.getImage(), frame=0, title="CCD %d" % ccd)
 
