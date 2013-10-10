@@ -1,6 +1,37 @@
+"""
+Process images using Kawanomoto-san's clever d(lnI)/dr algorithm.
+
+E.g.
+
+import lsst.daf.persistence as dafPersist
+import lsst.afw.cameraGeom.utils as cgUtils
+import lsst.obs.subaru.rings as rings
+
+butler = dafPersist.Butler("/home/astro/hsc/hsc/SUPA")
+
+bin=64
+
+frame = 1
+visit = 129102
+im = cgUtils.showCamera(butler.get("camera"), rings.LnGradImage(butler, bin=bin, visit=visit, verbose=True), frame=frame, bin=bin, title=visit, overlay=True)
+
+grad = {}
+if False:
+   grad[visit] = rings.radialProfile(butler, visit=visit, bin=bin)
+else:
+   # This has the side effect of reading the visits and plotting
+   r, profs = rings.profilePca(butler, visits=[129085, 129102], bin=bin, grad=grad, plotProfile=True)
+
+rings.plotRadial(r, profs, xlim=(-100, 5500), ylim=(0.8, 1.03))
+"""
+
 import sys
 from lsstImports import *
-import matplotlib.pyplot as pyplot
+try:
+    pyplot
+except NameError:
+    import matplotlib.pyplot as pyplot
+    pyplot.interactive(1)
 import numpy.linalg
 
 def fitPlane(mi, niter=3, tol=1e-5, nsigma=5, returnResidualImage=False):
@@ -246,12 +277,16 @@ def reconstruct(xsize, ysize, dzdx, dzdy):
 
     return recon
 
-def radialProfile(butler, visit, ccds=range(100), bin=128, frame=None):
+def radialProfile(butler, visit, ccds=None, bin=128, frame=None, plot=False):
     """Return arrays giving the radius, logarithmic derivative, and theta for all patches in the camera"""
     r, lnGrad, theta = [], [], []
+
+    if ccds is None:
+        ccds = butler.queryMetadata('raw', 'visit', 'ccd', visit=visit)
+
     for ccdNum in ccds:
         if len(ccds) > 1:
-            print "CCD %03d\r" % ccdNum, ; sys.stdout.flush()
+            print "%d CCD %03d\r" % (visit, ccdNum), ; sys.stdout.flush()
 
         raw = cgUtils.trimExposure(butler.get("raw", visit=visit, ccd=ccdNum), subtractBias=True)
         ccd = afwCamGeom.cast_Ccd(raw.getDetector())
@@ -273,12 +308,41 @@ def radialProfile(butler, visit, ccds=range(100), bin=128, frame=None):
         
     r = np.array(r); lnGrad = np.array(lnGrad); theta = np.array(theta)
 
-    plotRadial(r, lnGrad, theta)
+    if plot:
+        plotRadial(r, lnGrad, theta)
 
     return r, lnGrad, theta
     
-def plotRadial(r, lnGrad, theta, title=None, profile=False, showMedians=False,
-               nBin=100, binAngle=30, alpha=1.0):
+def makeRadial(r, lnGrad, nBin=100, profile=False, rmax=None):
+    """
+Return r and lnGrad binned into nBin bins.  If profile is True, integrate the lnGrad to get the radial profile
+    """
+
+    bins = np.linspace(0, min(18000, np.max(r)), nBin)
+    binWidth = bins[1] - bins[0]
+
+    rbar = np.empty_like(bins)
+    lng = np.empty_like(bins)
+
+    for i in range(len(bins)):
+        inBin = np.where(np.abs(r - bins[i]) < 0.5*binWidth)
+        rbar[i] = np.mean(r[inBin])
+        lng[i] = np.median(lnGrad[inBin]) if len(inBin[0]) else np.nan
+
+    if rmax:
+        ok = np.where(rbar < rmax)
+        rbar = rbar[ok]
+        lng = lng[ok]
+
+    if profile:
+        lng[np.where(np.logical_not(np.isfinite(lng)))] = 0.0
+        lng = np.exp(np.cumsum(binWidth*lng))
+
+    return rbar, lng
+
+def plotRadial(r, lnGrad, theta=None, title=None, profile=False, showMedians=False,
+               nBin=100, binAngle=0, alpha=1.0, xmin=-100,
+               xlim = (-100, 18000), ylim = None):
     """
     N.b. theta is in radians, but binAngle is in degrees
     """
@@ -297,47 +361,37 @@ def plotRadial(r, lnGrad, theta, title=None, profile=False, showMedians=False,
         bins = np.linspace(0, min(18000, np.max(r)), nBin)
         binWidth = bins[1] - bins[0]
 
-        angleBin = np.pi/180*(np.linspace(-180, 180 - binAngle, 360.0/binAngle, binAngle) + 0.5*binAngle) if binAngle else [0] 
-        binAngle *= np.pi/180
+        if binAngle <= 0:
+            rbar, lng = makeRadial(r, lnGrad, nBin, profile=profile)
 
-        for a in reversed(angleBin):
-            rbar = np.empty_like(bins)
-            lng = np.empty_like(bins)
+            pyplot.plot(rbar, lng, 'o', markersize=5.0, markeredgewidth=0, color='black', alpha=alpha)
+        else:
+            angleBin = np.pi/180*(np.linspace(-180, 180 - binAngle, 360.0/binAngle, binAngle) + 0.5*binAngle)
+            binAngle *= np.pi/180
 
-            for i in range(len(bins)):
-                inBin = np.abs(r - bins[i]) < 0.5*binWidth
-                #inBin = np.logical_and(inBin, lnGrad > -2e-7)
-                if len(angleBin) > 1:
-                    inBin = np.logical_and(inBin, np.abs(theta - a) < 0.5*binAngle)
-                inBin = np.where(inBin)
-                    
-                rbar[i] = np.mean(r[inBin])
-                lng[i] = np.median(lnGrad[inBin]) if len(inBin[0]) else 0
-                if False and len(inBin[0]) > 10 and not profile:
-                    lng[i] = np.nan
-                color = scalarMap.to_rgba(a*180/np.pi) if binAngle else "black"
-                if False and lng[i] < -0.6e-7 and rbar[i] < 10000:
-                    pyplot.plot(rbar[i] + np.zeros_like(lnGrad[inBin]), lnGrad[inBin], '*',
-                                color=color, markeredgewidth=0, alpha=alpha)
-                    #pyplot.show(); import pdb; pdb.set_trace() 
+            for a in reversed(angleBin):
+                inBin = np.where(np.abs(theta - a) < 0.5*binAngle)
 
-            if profile:
-                lng = np.exp(np.cumsum(binWidth*lng))
+                rbar, lng = makeRadial(r[inBin], lnGrad[inBin], nBin, profile=profile)
 
-            pyplot.plot(rbar, lng, 'o', markersize=5.0, markeredgewidth=0, color=color, alpha=alpha,
-                        label="%6.1f" % (a*180/np.pi))
-            if len(angleBin) > 1:
-                pyplot.legend(loc="lower left")
+                color = scalarMap.to_rgba(a*180/np.pi)
+
+                pyplot.plot(rbar, lng, 'o', markersize=5.0, markeredgewidth=0, color=color, alpha=alpha,
+                            label="%6.1f" % (a*180/np.pi))
+
+            pyplot.legend(loc="lower left")
     else:
-        pyplot.scatter(r, lnGrad, c=theta*180/np.pi, norm=norm, cmap=cmap, alpha=alpha,
-                       marker='o', s=2.0, edgecolors="none")
-        pyplot.colorbar()
+        if theta:
+            pyplot.scatter(r, lnGrad, c=theta*180/np.pi, norm=norm, cmap=cmap, alpha=alpha,
+                           marker='o', s=2.0, edgecolors="none")
+            pyplot.colorbar()
+        else:
+            pyplot.plot(r, lnGrad, 'o', alpha=alpha, markeredgewidth=0)
 
-    pyplot.xlim(-100, 18000); 
-    if profile:
-        pyplot.ylim(0.5, 1.05)
-    else:
-        pyplot.ylim(-15e-5, 5e-5)
+    pyplot.xlim(xlim)
+    if profile and ylim is None:
+        ylim = (0.5, 1.05)
+    pyplot.ylim(ylim)
     pyplot.xlabel("R/pixels")
     pyplot.ylabel("I" if profile else "d lnI/d r")
     if title:
@@ -345,62 +399,128 @@ def plotRadial(r, lnGrad, theta, title=None, profile=False, showMedians=False,
         
     pyplot.show()
 
-#-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-    
-def test():
-    mi = afwImage.MaskedImageF(10, 12)
-    im = mi.getImage()
-    width, height = mi.getDimensions()
-    X, Y = np.meshgrid(np.arange(width), np.arange(height))
-    
-    z, dzdx, dzdy = 10, 0.4, 2
-    plane = z + dzdx*X + dzdy*Y
 
-    im.getArray()[:] = plane
-    im.getArray()[:] += np.random.normal(0, 1, im.getArray().shape)
+def profilePca(butler, visits=None, ccds=None, bin=64, nBin=30, nPca=2, grad={},
+               rmax=None, xlim=(None, None), ylim=(None, None), showLegend=True,
+               plotProfile=False, plotFit=False, plotResidual=False, plotPca=False, plotCoeff=False):
 
-    im[3, 4] += 100
-    im[7, 5] -= 100
+    if visits:
+        for v in visits:
+            if not grad.has_key(v):
+                grad[v] = radialProfile(butler, visit=v, ccds=ccds, bin=bin)
+    else:
+        visits = list(sorted(grad.keys())) # sorted returns a generator
 
-    b, res = fitPlane(mi, returnResidualImage=True)
+    rbar, prof = makeRadial(*grad[visits[0]][0:2], nBin=nBin, profile=True, rmax=rmax)
+    nprof = len(visits)
+    npt = len(rbar)
 
-    ds9.mtv(mi, frame=5)
-    ds9.mtv(res, frame=6)
+    profiles = np.empty((npt, nprof))
 
-    print b
+    rbar = 0
+    for i, v in enumerate(visits):
+        r, profiles[:, i] = makeRadial(*grad[v][0:2], nBin=nBin, profile=True, rmax=rmax)
+        rbar += r
 
-def test2():
-    """Fit to an image initialised to sin(x)*cos(y) + noise"""
-    xsize, ysize = 16, 16
-    nx, ny = 20, 30
-    mi = afwImage.MaskedImageF(nx*xsize, ny*ysize)
-    im = mi.getImage()
+    rbar /= nprof
 
-    width, height = im.getDimensions()
-    X, Y = np.meshgrid(np.arange(width), np.arange(height))
-    z, dzdx, dzdy = 1000, 2, 1
+    plotting = []                       # False, but modified by plotInit
+    xlabel, ylabel = "R/pixels", ""
+    def plotInit(plotting=plotting):
+        plotting.append(True)
+        pyplot.clf()
 
-    ax = 2*np.pi/width
-    ay = 4*np.pi/height
-    plane = z + dzdx/ax*np.sin(ax*X) + dzdy/ay*np.cos(ay*Y)
-
-    im.getArray()[:] = plane
-    im.getArray()[:] += np.random.normal(0, 10, im.getArray().shape)
+    if plotProfile:
+        plotInit()
+        for i, v in enumerate(visits):
+            pyplot.plot(rbar, profiles[:, i], label="%d" % v)
+        if showLegend:
+            pyplot.legend(loc="upper right")
+        pyplot.show()
     #
-    # Multiply each block by a random number (!= 0)
+    # Normalise profiles
     #
-    im0 = im.clone()
-    for iy in range(ny):
-        for ix in range(nx):
-            im[ix*xsize:(ix + 1)*xsize, iy*ysize:(iy + 1)*ysize] *= 1 + 0.05*np.random.poisson(4)
+    nprofiles = profiles.copy()
+    for i in range(nprof):
+        p = nprofiles[:, i]
+        #p -= np.mean(p)
+        p /= np.std(p)
 
-    dlnzdx, dlnzdy, dlnzdr, residualImage = fitPatches(mi, nx, ny)
+    if False:
+        plotInit()
+        for i, v in enumerate(visits):
+            pyplot.plot(rbar, nprofiles[:, i], label="%d" % v)
+        if showLegend:
+            pyplot.legend(loc="upper right")
+        pyplot.show()
+    #
+    # Find covariance and eigenvectors using svd
+    #
+    U, s, Vt = np.linalg.svd(nprofiles, full_matrices=False)
+    V = Vt.T
 
-    recon = reconstruct(xsize, ysize, dzdx, dzdy)
+    # sort the PCs by descending order of the singular values (i.e. by the
+    # proportion of total variance they explain)
+    ind = np.argsort(s)[::-1]
+    U = U[:, ind]
+    s = s[ind]
+    V = V[:, ind]
 
-    frame = 5
-    ds9.mtv(im0,  title="im0",   frame=frame); frame += 1
-    ds9.mtv(im,   title="im",    frame=frame); frame += 1
-    ds9.mtv(dlnzdx, title="dlnz/dx", frame=frame); frame += 1
-    ds9.mtv(dlnzdy, title="dlnz/dy", frame=frame); frame += 1
-    ds9.mtv(recon, title="recon", frame=frame); frame += 1
+    if plotPca:
+        plotInit()
+        pyplot.title("PCA Components")
+        for i in range(nPca):
+            y = U[:, i]
+            y /= y[0] if i == 0 else np.max(y)
+
+            pyplot.plot(rbar, y, label="%d %.4f" % (i, s[i]/s[0]))
+        if showLegend:
+            pyplot.legend() # loc="upper center")
+
+    fitProfiles = profiles.copy()
+    b = np.empty((nPca, nprof))
+    for i in range(nprof):
+        b[:, i] = np.linalg.lstsq(U[:, 0:nPca], profiles[:, i])[0]
+        fitProfiles[:, i] = np.sum(b[:, i]*U[:, 0:nPca], axis=1)
+
+    if plotCoeff:
+        plotInit()
+        for i, v in enumerate(visits):
+            if v not in range(903420, 903438+1):
+                pass # continue
+            if v in (903434, 903438, ):
+                #continue
+                pass
+
+            pyplot.plot(b[1][i]/(1 if True else b[0][i]), b[2][i]/(1 if True else b[0][i]), "o", label="%d" % (v))
+            print v, b[:, i] # , profiles[0:10, i]
+
+        if showLegend:
+            pyplot.legend(loc="lower right", ncol=2, numpoints=1, columnspacing=0)
+        xlabel = "$C_1/C_0$"
+        ylabel = "$C_2/C_0$"
+        
+    if plotFit or plotResidual:
+        plotInit()
+        pyplot.title( ("%d PCA components" % nPca))
+        ylabel = "I - model" if plotResidual else "model"
+        for i, v in enumerate(visits):
+            if v not in (903424, 903434, 903436, 903438, ):
+                pass
+                #continue
+            if  v in (903434, 903438, ):
+                pass
+                #continue
+
+            y = fitProfiles[:, i] - profiles[:, i] if plotResidual else fitProfiles[:, i]
+            pyplot.plot(rbar, y, label="%d" % (v))
+        if showLegend:
+            pyplot.legend(loc="lower left", ncol=2, numpoints=1, columnspacing=1)
+
+    if plotting:
+        pyplot.xlabel(xlabel)
+        pyplot.ylabel(ylabel)
+        pyplot.xlim(xlim)
+        pyplot.ylim(ylim)
+
+    return rbar, profiles
