@@ -403,13 +403,18 @@ def plotRadial(r, lnGrad, theta=None, title=None, profile=False, showMedians=Fal
 def profilePca(butler, visits=None, ccds=None, bin=64, nBin=30, nPca=2, grad={},
                rmax=None, xlim=(None, None), ylim=(None, None), showLegend=True,
                plotProfile=False, plotFit=False, plotResidual=False, plotPca=False, plotCoeff=False):
-
+    """N.b. we fit a constant and nPca components"""
     if visits:
         for v in visits:
             if not grad.has_key(v):
                 grad[v] = radialProfile(butler, visit=v, ccds=ccds, bin=bin)
     else:
         visits = list(sorted(grad.keys())) # sorted returns a generator
+
+    bad = (902996, 902976,)
+    if bad:
+        print "Skipping", bad
+        visits = [v for v in visits if v not in bad]
 
     rbar, prof = makeRadial(*grad[visits[0]][0:2], nBin=nBin, profile=True, rmax=rmax)
     nprof = len(visits)
@@ -433,9 +438,15 @@ def profilePca(butler, visits=None, ccds=None, bin=64, nBin=30, nPca=2, grad={},
     if plotProfile:
         plotInit()
         for i, v in enumerate(visits):
+            if v not in range(902978, 903002+10):
+                #continue
+                pass
+            if v not in (902990, 902976,):
+                #continue
+                pass
             pyplot.plot(rbar, profiles[:, i], label="%d" % v)
         if showLegend:
-            pyplot.legend(loc="upper right")
+            pyplot.legend(loc="best")
         pyplot.show()
     #
     # Normalise profiles
@@ -443,16 +454,8 @@ def profilePca(butler, visits=None, ccds=None, bin=64, nBin=30, nPca=2, grad={},
     nprofiles = profiles.copy()
     for i in range(nprof):
         p = nprofiles[:, i]
-        #p -= np.mean(p)
+        p -= np.mean(p)
         p /= np.std(p)
-
-    if False:
-        plotInit()
-        for i, v in enumerate(visits):
-            pyplot.plot(rbar, nprofiles[:, i], label="%d" % v)
-        if showLegend:
-            pyplot.legend(loc="upper right")
-        pyplot.show()
     #
     # Find covariance and eigenvectors using svd
     #
@@ -466,48 +469,54 @@ def profilePca(butler, visits=None, ccds=None, bin=64, nBin=30, nPca=2, grad={},
     s = s[ind]
     V = V[:, ind]
 
+    # Add a constant term (as we subtracted the mean)
+    assert nprof > 2, "I need at least 3 input profiles"
+    U[:, 1:nPca + 1] = U[:, 0:nPca]
+    U[:, 0] = 1
+    nFit = nPca + 1
+
     if plotPca:
         plotInit()
         pyplot.title("PCA Components")
-        for i in range(nPca):
+        for i in range(nFit):
             y = U[:, i]
-            y /= y[0] if i == 0 else np.max(y)
+            y /= y[0] if i == 1 else np.max(y)
 
-            pyplot.plot(rbar, y, label="%d %.4f" % (i, s[i]/s[0]))
+            pyplot.plot(rbar, y, label="%d %s" % (i, "" if i == 0 else ("%.4f" % (s[i]/s[1]))))
         if showLegend:
-            pyplot.legend() # loc="upper center")
+            pyplot.legend(loc="best")
 
     fitProfiles = profiles.copy()
-    b = np.empty((nPca, nprof))
+    b = np.empty((nFit, nprof))
     for i in range(nprof):
-        b[:, i] = np.linalg.lstsq(U[:, 0:nPca], profiles[:, i])[0]
-        fitProfiles[:, i] = np.sum(b[:, i]*U[:, 0:nPca], axis=1)
+        b[:, i] = np.linalg.lstsq(U[:, 0:nFit], profiles[:, i])[0]
+        fitProfiles[:, i] = np.sum(b[:, i]*U[:, 0:nFit], axis=1)
 
     if plotCoeff:
         plotInit()
         for i, v in enumerate(visits):
-            if v not in range(903420, 903438+1):
-                pass # continue
+            if v not in range(902978, 903002+10):
+                #continue
+                pass
             if v in (903434, 903438, ):
                 #continue
                 pass
 
-            pyplot.plot(b[1][i]/(1 if True else b[0][i]), b[2][i]/(1 if True else b[0][i]), "o", label="%d" % (v))
-            print v, b[:, i] # , profiles[0:10, i]
+            pyplot.plot(b[1][i]/b[0][i], b[2][i]/b[0][i], "o", label="%d" % (v))
 
         if showLegend:
-            pyplot.legend(loc="lower right", ncol=2, numpoints=1, columnspacing=0)
+            pyplot.legend(loc="best", ncol=2, numpoints=1, columnspacing=0)
         xlabel = "$C_1/C_0$"
         ylabel = "$C_2/C_0$"
         
     if plotFit or plotResidual:
         plotInit()
-        pyplot.title( ("%d PCA components" % nPca))
+        pyplot.title( ("Const + %d PCA components" % nPca))
         ylabel = "I - model" if plotResidual else "model"
         for i, v in enumerate(visits):
-            if v not in (903424, 903434, 903436, 903438, ):
-                pass
+            if v not in range(902978, 903002+10):
                 #continue
+                pass
             if  v in (903434, 903438, ):
                 pass
                 #continue
@@ -515,7 +524,7 @@ def profilePca(butler, visits=None, ccds=None, bin=64, nBin=30, nPca=2, grad={},
             y = fitProfiles[:, i] - profiles[:, i] if plotResidual else fitProfiles[:, i]
             pyplot.plot(rbar, y, label="%d" % (v))
         if showLegend:
-            pyplot.legend(loc="lower left", ncol=2, numpoints=1, columnspacing=1)
+            pyplot.legend(loc="best", ncol=2, numpoints=1, columnspacing=1)
 
     if plotting:
         pyplot.xlabel(xlabel)
