@@ -207,12 +207,7 @@ class LnGradImage(cgUtils.GetCcdImage):
         ccdNum = ccd.getId().getSerial()
 
         try:
-            if False and ccdNum not in range(0, 100,5):
-                raise RuntimeError("skipping CCD %d" % ccdNum)
-                pass
-            if ccdNum not in (33, 34, 35, 41, 42, 43, 49, 50, 51,):
-                pass
-            if False:
+            if False and ccdNum not in range(0, 100, 5):
                 raise RuntimeError("skipping CCD %d" % ccdNum)
 
             if self.kwargs.get("ccd") is not None and not ccdNum in self.kwargs.get("ccd"):
@@ -288,7 +283,11 @@ def radialProfile(butler, visit, ccds=None, bin=128, frame=None, plot=False):
         if len(ccds) > 1:
             print "%d CCD %03d\r" % (visit, ccdNum), ; sys.stdout.flush()
 
-        raw = cgUtils.trimExposure(butler.get("raw", visit=visit, ccd=ccdNum), subtractBias=True)
+        raw = butler.get("raw", visit=visit, ccd=ccdNum, immediate=True)
+        try:
+            raw = cgUtils.trimExposure(raw, subtractBias=True)
+        except:
+            continue
         ccd = afwCamGeom.cast_Ccd(raw.getDetector())
         nQuarter = ccd.getOrientation().getNQuarter()
         if nQuarter != 0:
@@ -401,20 +400,33 @@ def plotRadial(r, lnGrad, theta=None, title=None, profile=False, showMedians=Fal
 
 
 def profilePca(butler, visits=None, ccds=None, bin=64, nBin=30, nPca=2, grad={},
+               fluxes=None, bad=None,
                rmax=None, xlim=(None, None), ylim=(None, None), showLegend=True,
-               plotProfile=False, plotFit=False, plotResidual=False, plotPca=False, plotCoeff=False):
+               plotProfile=False, plotFit=False, plotResidual=False, plotPca=False, plotCoeff=False,
+               plotFlux=False):
     """N.b. we fit a constant and nPca components"""
     if visits:
+        visits = list(visits)
         for v in visits:
+            if grad.has_key(v) and len(grad[v][0]) == 0:
+                del grad[v]
+
+        for v in visits[:]:
             if not grad.has_key(v):
                 grad[v] = radialProfile(butler, visit=v, ccds=ccds, bin=bin)
+            if len(grad[v][0]) == 0:
+                print >> sys.stderr, "Failed to read any data from visit %d" % v
+                del grad[v]
+                del visits[visits.index(v)]
     else:
         visits = list(sorted(grad.keys())) # sorted returns a generator
 
-    bad = (902996, 902976,)
     if bad:
         print "Skipping", bad
         visits = [v for v in visits if v not in bad]
+
+    if len(visits) < 2:
+        raise RuntimeError("Please specify at least two valid visits")
 
     rbar, prof = makeRadial(*grad[visits[0]][0:2], nBin=nBin, profile=True, rmax=rmax)
     nprof = len(visits)
@@ -435,15 +447,19 @@ def profilePca(butler, visits=None, ccds=None, bin=64, nBin=30, nPca=2, grad={},
         plotting.append(True)
         pyplot.clf()
 
+        def generateColors():
+            colors = ["red", "green", "blue", "cyan", "magenta", "yellow", "black",
+                      "orange", "brown", "gray", "darkGreen", "chartreuse"]
+            i = 0
+            while True:
+                yield colors[i%len(colors)]
+                i += 1
+
+        return generateColors()
+
     if plotProfile:
         plotInit()
         for i, v in enumerate(visits):
-            if v not in range(902978, 903002+10):
-                #continue
-                pass
-            if v not in (902990, 902976,):
-                #continue
-                pass
             pyplot.plot(rbar, profiles[:, i], label="%d" % v)
         if showLegend:
             pyplot.legend(loc="best")
@@ -451,10 +467,13 @@ def profilePca(butler, visits=None, ccds=None, bin=64, nBin=30, nPca=2, grad={},
     #
     # Normalise profiles
     #
+    subtractMean = True
+
     nprofiles = profiles.copy()
     for i in range(nprof):
         p = nprofiles[:, i]
-        p -= np.mean(p)
+        if subtractMean:
+            p -= np.mean(p)
         p /= np.std(p)
     #
     # Find covariance and eigenvectors using svd
@@ -469,11 +488,14 @@ def profilePca(butler, visits=None, ccds=None, bin=64, nBin=30, nPca=2, grad={},
     s = s[ind]
     V = V[:, ind]
 
-    # Add a constant term (as we subtracted the mean)
-    assert nprof > 2, "I need at least 3 input profiles"
-    U[:, 1:nPca + 1] = U[:, 0:nPca]
-    U[:, 0] = 1
-    nFit = nPca + 1
+    if subtractMean:
+        # Add a constant term (as we subtracted the mean)
+        assert nprof > 2, "I need at least 3 input profiles"
+        U[:, 1:nPca + 1] = U[:, 0:nPca]
+        U[:, 0] = 1
+        nFit = nPca + 1
+    else:
+        nFit = nPca
 
     if plotPca:
         plotInit()
@@ -493,34 +515,22 @@ def profilePca(butler, visits=None, ccds=None, bin=64, nBin=30, nPca=2, grad={},
         fitProfiles[:, i] = np.sum(b[:, i]*U[:, 0:nFit], axis=1)
 
     if plotCoeff:
-        plotInit()
+        colors = plotInit()
         for i, v in enumerate(visits):
-            if v not in range(902978, 903002+10):
-                #continue
-                pass
-            if v in (903434, 903438, ):
-                #continue
-                pass
-
-            pyplot.plot(b[1][i]/b[0][i], b[2][i]/b[0][i], "o", label="%d" % (v))
+            pyplot.plot(b[1][i]/b[0][i],
+                        fluxes[v] if plotFlux else b[2][i]/b[0][i],
+                        "o", label="%d" % (v), c=next(colors))
 
         if showLegend:
             pyplot.legend(loc="best", ncol=2, numpoints=1, columnspacing=0)
         xlabel = "$C_1/C_0$"
-        ylabel = "$C_2/C_0$"
+        ylabel = "flux" if plotFlux else "$C_2/C_0$"
         
     if plotFit or plotResidual:
         plotInit()
-        pyplot.title( ("Const + %d PCA components" % nPca))
+        pyplot.title(("Const + " if subtractMean else "") + ("%d PCA components" % nPca))
         ylabel = "I - model" if plotResidual else "model"
         for i, v in enumerate(visits):
-            if v not in range(902978, 903002+10):
-                #continue
-                pass
-            if  v in (903434, 903438, ):
-                pass
-                #continue
-
             y = fitProfiles[:, i] - profiles[:, i] if plotResidual else fitProfiles[:, i]
             pyplot.plot(rbar, y, label="%d" % (v))
         if showLegend:
