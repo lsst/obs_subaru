@@ -117,6 +117,19 @@ class SourceDeblendTask(pipeBase.Task):
         """
         self.deblend(exposure, sources, psf)
 
+    def _get_psf_fwhm(self, psf, bbox):
+        # It should be easier to get a PSF's fwhm;
+        # https://dev.lsstcorp.org/trac/ticket/3030
+        return psf.computeShape().getDeterminantRadius() * 2.35
+        # xc = int((bb.getMinX() + bb.getMaxX()) / 2.)
+        # yc = int((bb.getMinY() + bb.getMaxY()) / 2.)
+        # if hasattr(psf, 'getFwhm'):
+        #     psf_fwhm = psf.getFwhm(xc, yc)
+        # else:
+        #     pa = measAlg.PsfAttributes(psf, xc, yc)
+        #     psfw = pa.computeGaussianWidth(measAlg.PsfAttributes.ADAPTIVE_MOMENT)
+        #     psf_fwhm = 2.35 * psfw
+        
     @pipeBase.timeMethod
     def deblend(self, exposure, srcs, psf):
         """Deblend.
@@ -148,14 +161,7 @@ class SourceDeblendTask(pipeBase.Task):
                 continue
             nparents += 1
             bb = fp.getBBox()
-            xc = int((bb.getMinX() + bb.getMaxX()) / 2.)
-            yc = int((bb.getMinY() + bb.getMaxY()) / 2.)
-            if hasattr(psf, 'getFwhm'):
-                psf_fwhm = psf.getFwhm(xc, yc)
-            else:
-                pa = measAlg.PsfAttributes(psf, xc, yc)
-                psfw = pa.computeGaussianWidth(measAlg.PsfAttributes.ADAPTIVE_MOMENT)
-                psf_fwhm = 2.35 * psfw
+            psf_fwhm = self._get_psf_fwhm(psf, bb)
 
             self.log.logdebug('Parent %i: deblending %i peaks' % (int(src.getId()), len(pks)))
 

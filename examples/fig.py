@@ -12,10 +12,27 @@ import lsst.afw.image as afwImage
 import lsst.meas.algorithms as measAlg
 from lsst.meas.deblender.baseline import deblend
 
-srcs = afwTable.SourceCatalog.readFits('deblended.fits')
+import lsst.pex.logging as pexLogging
+
+root = pexLogging.Log.getDefaultLog()
+root.setThreshold(pexLogging.Log.DEBUG)
+# Quiet some of the more chatty loggers
+for pkg in ['lsst.meas.deblender.symmetrizeFootprint',
+            'lsst.meas.deblender.symmetricFootprint',
+            'lsst.meas.deblender.getSignificantEdgePixels',
+            'afw.Mask',
+            'lsst.afw.math.convolve',
+            ]:
+    log = pexLogging.Log(root, pkg, pexLogging.Log.INFO)
+
+fn = 'deblended.fits'
+print 'Reading sources from', fn
+srcs = afwTable.SourceCatalog.readFits(fn)
 print len(srcs), 'sources'
 
-cal = afwImage.ExposureF('calexp.fits')
+fn = 'calexp.fits'
+print 'Reading calexp from', fn
+cal = afwImage.ExposureF(fn)
 print 'Read cal', cal
 
 mim = cal.getMaskedImage()
@@ -46,6 +63,7 @@ print len(pidmap), 'top-level sources'
 pids = sibmap.keys()
 pids.sort()
 
+# Drill down on specific families...
 drill = [0, 5, 33, 51]
 
 for i,pid in enumerate(pids):
@@ -160,8 +178,9 @@ for i,pid in enumerate(pids):
     plt.axis(ax)
     plt.title('sum of kids')
 
-    plt.savefig('deb-%04i.png' % i)
-
+    fn = 'deb-%04i.png' % i
+    plt.savefig(fn)
+    print 'Wrote', fn
 
 
     # Drill down...
@@ -171,6 +190,7 @@ for i,pid in enumerate(pids):
         bb = pfp.getBBox()
         xc = int((bb.getMinX() + bb.getMaxX()) / 2.)
         yc = int((bb.getMinY() + bb.getMaxY()) / 2.)
+
         if hasattr(psf, 'getFwhm'):
             psf_fwhm = psf.getFwhm(xc, yc)
         else:
@@ -180,8 +200,11 @@ for i,pid in enumerate(pids):
 
         import lsstDebug
         lsstDebug.Info('lsst.meas.deblender.baseline').psf = True
-            
-        deb = deblend(pfp, mim, psf, psf_fwhm, sigma1=sig1)
+
+        print 'Running deblender on drill-down source', i
+        print '  # peaks:', len(pfp.getPeaks())
+        deb = deblend(pfp, mim, psf, psf_fwhm, sigma1=sig1,
+                      verbose=True)
         print 'Got', deb
 
         npks = len(deb.peaks)
@@ -189,6 +212,10 @@ for i,pid in enumerate(pids):
         C = 6
         for j,dpk in enumerate(deb.peaks):
 
+            print 'dpk', j, ':'#, type(dpk), dir(dpk)
+            print '  oob:', dpk.out_of_bounds
+            print '  deblended as psf:', dpk.deblend_as_psf
+            
             if dpk.deblend_as_psf:
                 plt.subplot(npks, C, j*C + 1)
                 myimshow(dpk.psfimg)
@@ -231,8 +258,10 @@ for i,pid in enumerate(pids):
             myimshow(himg)
             plt.title('heavy')
                 
-            
-        plt.savefig('drill-%04i.png' % i)
+
+        fn = 'drill-%04i.png' % i
+        plt.savefig(fn)
+        print 'wrote', fn
             
     if i == 100:
         break

@@ -34,16 +34,19 @@ class MyTask(CmdLineTask):
         outsources = afwTable.SourceCatalog(schema)
         outsources.extend(sources, mapper=mapper)
         sources = outsources
-        
         print len(sources), 'sources before deblending'
 
         self.deblend.run(calexp, sources, psf)
         print len(sources), 'sources after deblending'
 
         sources.setWriteHeavyFootprints(True)
-        sources.writeFits('deblended.fits')
+        fn = 'deblended.fits'
+        sources.writeFits(fn)
+        print 'Wrote sources to', fn
 
-        calexp.writeFits('calexp.fits')
+        fn = 'calexp.fits'
+        calexp.writeFits(fn)
+        print 'Wrote calexp to', fn
         
 if __name__ == "__main__":
     MyTask.parseAndRun()

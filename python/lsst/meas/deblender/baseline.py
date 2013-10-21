@@ -19,7 +19,7 @@ class PerPeak(object):
 
     def __str__(self):
         return 'Per-peak deblend result: out_of_bounds: %s, deblend_as_psf: %s' % (self.out_of_bounds, self.deblend_as_psf)
-        
+
 def deblend(footprint, maskedImage, psf, psffwhm,
             psf_chisq_cut1 = 1.5,
             psf_chisq_cut2 = 1.5,
@@ -339,7 +339,6 @@ def deblend(footprint, maskedImage, psf, psffwhm,
     
     ports = butils.apportionFlux(maskedImage, fp, tmimgs, tfoots, sumimg,
                                  dpsf, pkx, pky, strayflux, strayopts)
-    
     ii = 0
     for j, (pk, pkres) in enumerate(zip(peaks, res.peaks)):
         if pkres.out_of_bounds:
