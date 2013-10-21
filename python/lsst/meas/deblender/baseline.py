@@ -9,16 +9,133 @@ import lsst.afw.math  as afwMath
 # Result objects; will probably go away as we push more results
 # into earlier-created Source objects, but useful for now for
 # hauling debugging results around.
+
 class PerFootprint(object):
-    # .peaks: list of PerPeak objects
-    pass
+    '''
+    Result of deblending a single parent Footprint.
+
+    
+    '''
+    def __init__(self, fp, peaks=None):
+        '''
+        Creates a result object for the given parent Footprint 'fp'.
+
+        fp: Footprint
+        peaks: if specified, the list of peaks to use; default is
+               fp.getPeaks().
+        '''
+        # PerPeak objects, one per Peak
+        self.peaks = []
+        if peaks is None:
+            peaks = fp.getPeaks()
+        for pki,pk in enumerate(peaks):
+            pkres = PerPeak()
+            pkres.peak = pk
+            pkres.pki = pki
+            self.peaks.append(pkres)
+
+
 class PerPeak(object):
+    '''
+    Result of deblending a single Peak within a parent Footprint.
+
+    There is one of these objects for each Peak in the Footprint.
+    '''
     def __init__(self):
-        self.out_of_bounds = False      # Used to mean "Bad Peak" rather than just out of bounds
+        # Peak object
+        self.peak = None
+        # int, peak index number
+        self.pki = None
+        # union of all the ways of failing...
+        self.skip = False
+        
+        self.out_of_bounds = False
+        self.tiny_footprint = False
+        self.no_valid_pixels = False
         self.deblend_as_psf = False
 
+        # Field set during _fit_psf:
+        self.psf_fit_failed = False
+        self.psf_bad_dof = False
+        # (chisq, dof) for PSF fit without decenter
+        self.psf_fit1 = None
+        # (chisq, dof) for PSF fit with decenter
+        self.psf_fit2 = None
+        # (chisq, dof) for PSF fit after applying decenter
+        self.psf_fit3 = None
+        # decentered PSF fit wanted to move the center too much
+        self.psf_fit_big_decenter = False
+        # was the fit with decenter better?
+        self.psf_fit_with_decenter = False
+        #
+        self.psf_R0 = None
+        self.psf_R1 = None
+        self.psf_stamp_extent = None
+        self.psf_fit_center = None
+        self.psf_fit_best = None
+        self.psf_fit_params = None
+        self.psf_fit_nothers = None
+        self.psf_fit_flux = None
+        
+        # Things only set in _fit_psf when debugging is turned on:
+        self.psf_psf0img = None
+        self.psf_psfimg = None
+        self.psf_psfderivimg = None
+        self.psf_model = None
+
+        self.failed_symmetric_template = False
+        
+        self.template_mimg = None
+        self.template_foot = None
+
+        # debug -- a copy of the original symmetric template
+        self.orig_template = None
+        self.ramped_template = None
+        self.median_filtered_template = None
+        
+    # DEBUG
+    def set_orig_template(self, t, tfoot):
+        self.orig_template = t.getImage().Factory(t.getImage(), True)
+    def set_ramped_template(self, t, tfoot):
+        self.ramped_template = t.getImage().Factory(t.getImage(), True)
+    def set_median_filtered_template(self, t, tfoot):
+        self.median_filtered_template = t.getImage().Factory(t.getImage(), True)
+
+        
+    def set_out_of_bounds(self):
+        self.out_of_bounds = True
+        self.skip = True
+
+    def set_tiny_footprint(self):
+        self.tiny_footprint = True
+        self.skip = True
+
+    def set_no_valid_pixels(self):
+        self.no_valid_pixels = True
+        self.skip = True
+
+    def set_psf_fit_failed(self):
+        self.psf_fit_failed = True
+
+    def set_bad_psf_dof(self):
+        self.psf_bad_dof = True
+
+    def set_deblended_as_psf(self):
+        self.deblend_as_psf = True
+
+    def set_failed_symmetric_template(self):
+        self.failed_symmetric_template = True
+        self.skip = True
+
+    def set_template(self, maskedImage, footprint):
+        self.template_mimg = maskedImage
+        self.template_foot = footprint
+        
     def __str__(self):
-        return 'Per-peak deblend result: out_of_bounds: %s, deblend_as_psf: %s' % (self.out_of_bounds, self.deblend_as_psf)
+        return (('Per-peak deblend result: out_of_bounds: %s, ' +
+                'deblend_as_psf: %s') %
+                (self.out_of_bounds, self.deblend_as_psf))
+
 
 def deblend(footprint, maskedImage, psf, psffwhm,
             psf_chisq_cut1 = 1.5,
@@ -26,6 +143,7 @@ def deblend(footprint, maskedImage, psf, psffwhm,
             psf_chisq_cut2b = 1.5,
             fit_psfs = True,
             median_smooth_template=True,
+            median_filter_halfsize=2,
             monotonic_template=True,
             lstsq_weight_templates=False,
             log=None, verbose=False,
@@ -55,7 +173,8 @@ def deblend(footprint, maskedImage, psf, psffwhm,
     decentering.  The model is accepted if its chi-squared-per-DOF is
     less than this value.
 
-    maxNumberOfPeaks: if positive, only deblend the brightest maxNumberOfPeaks peaks in the parent
+    maxNumberOfPeaks: if positive, only deblend the brightest
+            maxNumberOfPeaks peaks in the parent
     '''
     # Import C++ routines
     import lsst.meas.deblender as deb
@@ -63,16 +182,17 @@ def deblend(footprint, maskedImage, psf, psffwhm,
 
     validStrayPtSrc = ['never', 'necessary', 'always']
     if not strayFluxToPointSources in validStrayPtSrc:
-        raise ValueError(('strayFluxToPointSources: value \"%s\" not in the set of allowed values: '
-                          % strayFluxToPointSources) + str(validStrayPtSrc))
+        raise ValueError((('strayFluxToPointSources: value \"%s\" not in the '
+                           + 'set of allowed values: ')
+                           % strayFluxToPointSources) + str(validStrayPtSrc))
     
     if log is None:
         import lsst.pex.logging as pexLogging
         loglvl = pexLogging.Log.INFO
         if verbose:
             loglvl = pexLogging.Log.DEBUG
-        log = pexLogging.Log(pexLogging.Log.getDefaultLog(), 'meas_deblender.baseline',
-                             loglvl)
+        log = pexLogging.Log(pexLogging.Log.getDefaultLog(),
+                             'meas_deblender.baseline', loglvl)
 
     img = maskedImage.getImage()
     varimg = maskedImage.getVariance()
@@ -82,32 +202,20 @@ def deblend(footprint, maskedImage, psf, psffwhm,
     fp.normalize()
     peaks = fp.getPeaks()
     if maxNumberOfPeaks > 0:
-        peaks = peaks[0:maxNumberOfPeaks]
+        peaks = peaks[:maxNumberOfPeaks]
 
+    # 'sigma1' is an estimate of the average noise level in this image.
     if sigma1 is None:
         # FIXME -- just within the bbox?
         stats = afwMath.makeStatistics(varimg, mask, afwMath.MEDIAN)
         sigma1 = math.sqrt(stats.getValue(afwMath.MEDIAN))
 
-    # prepare results structure
-    res = PerFootprint()
-    res.peaks = []
-    for pki,pk in enumerate(peaks):
-        pkres = PerPeak()
-        pkres.peak = pk
-        pkres.pki = pki
-        res.peaks.append(pkres)
-
+    # Add the mask planes we will set.
     for nm in ['SYMM_1SIG', 'SYMM_3SIG', 'MONOTONIC_1SIG']:
         bit = mask.addMaskPlane(nm)
-        val = mask.getPlaneBitMask(nm)
 
-    imbb = img.getBBox(afwImage.PARENT)
-    bb = fp.getBBox()
-    assert(imbb.contains(bb))
-    W,H = bb.getWidth(), bb.getHeight()
-    x0,y0 = bb.getMinX(), bb.getMinY()
-    x1,y1 = bb.getMaxX(), bb.getMaxY()
+    # get object that will hold our results
+    res = PerFootprint(fp)
 
     if fit_psfs:
         # Find peaks that are well-fit by a PSF + background model.
@@ -115,160 +223,73 @@ def deblend(footprint, maskedImage, psf, psffwhm,
                   psf_chisq_cut1, psf_chisq_cut2, psf_chisq_cut2b,
                   dropTiny = dropTinyFootprints)
 
-    log.logdebug('Creating templates for footprint at x0,y0,W,H = (%i,%i, %i,%i)' % (x0,y0,W,H))
+    # Pull out the image bounds of the parent Footprint
+    imbb = img.getBBox(afwImage.PARENT)
+    bb = fp.getBBox()
+    assert(imbb.contains(bb))
+    W,H = bb.getWidth(), bb.getHeight()
+    x0,y0 = bb.getMinX(), bb.getMinY()
+    x1,y1 = bb.getMaxX(), bb.getMaxY()
+
+    # Create templates...
+    log.logdebug(('Creating templates for footprint at x0,y0,W,H = ' +
+                  '(%i,%i, %i,%i)') % (x0,y0,W,H))
     for pkres in res.peaks:
-        if pkres.out_of_bounds or pkres.deblend_as_psf:
+        if pkres.skip or pkres.deblend_as_psf:
             continue
         pk = pkres.peak
         cx,cy = pk.getIx(), pk.getIy()
         if not imbb.contains(afwGeom.Point2I(cx,cy)):
-            log.logdebug('Peak center is not inside image; skipping %i' % pkres.pki)
-            pkres.out_of_bounds = True
+            log.logdebug('Peak center is not inside image; skipping %i' %
+                         pkres.pki)
+            pkres.set_out_of_bounds()
             continue
-        log.logdebug('computing template for peak %i at (%i,%i)' % (pkres.pki, cx, cy))
+        log.logdebug('computing template for peak %i at (%i,%i)' %
+                     (pkres.pki, cx, cy))
         S = butils.buildSymmetricTemplate(maskedImage, fp, pk, sigma1, True,
                                           patchEdges)
-        # SWIG doesn't know how to unpack an std::pair into a 2-tuple...
+        # SWIG doesn't know how to unpack a std::pair into a 2-tuple...
         t1, tfoot = S[0], S[1]
 
         if t1 is None:
-            log.logdebug('Peak %i at (%i,%i): failed to build symmetric template' % (pkres.pki, cx,cy))
-            pkres.out_of_bounds = True
+            log.logdebug(('Peak %i at (%i,%i): failed to build symmetric ' +
+                          'template') % (pkres.pki, cx,cy))
+            pkres.set_failed_symmetric_template()
             continue
 
-        # for debugging purposes: copy the original symmetric template
-        pkres.symm = t1.getImage().Factory(t1.getImage(), True)
+        # possibly save the original symmetric template
+        pkres.set_orig_template(t1, tfoot)
 
         if rampFluxAtEdge:
-            if butils.hasSignificantFluxAtEdge(t1.getImage(), tfoot,
-                                               3. * sigma1):
-                log.logdebug('Found significant flux at template edge.')
-                # Compute the max of:
-                #  -symmetric-template-clipped image * PSF
-                #  -footprint-clipped image
-                # Ie, extend the template by the PSF and "fill in" the
-                # footprint.
-                # Then find the symmetric template of that image.
-
-                # The size we'll grow by
-                S = psffwhm * 1.5
-                # make it an odd integer
-                S = (int(S + 0.5) / 2) * 2 + 1
-
-                tbb = tfoot.getBBox()
-                tbb.grow(S)
-
-                # (footprint+margin)-clipped image;
-                # we need the pixels OUTSIDE the footprint to be 0.
-                fpcopy = afwDet.Footprint(fp)
-                fpcopy.clipTo(tbb)
-                padim = t1.Factory(tbb)
-                butils.copyWithinFootprint(fpcopy, maskedImage, padim)
-                
-                # find pixels on the edge of the template
-                edgepix = butils.getSignificantEdgePixels(t1.getImage(),
-                                                          tfoot, -1e6)
-                # instantiate PSF image
-                xc = int((x0 + x1)/2)
-                yc = int((y0 + y1)/2)
-                psfim = psf.computeImage(afwGeom.Point2D(xc, yc))
-                pbb = psfim.getBBox(afwImage.PARENT)
-                # shift PSF image to by centered on zero
-                lx,ly = pbb.getMinX(), pbb.getMinY()
-                psfim.setXY0(lx - xc, ly - yc)
-                pbb = psfim.getBBox(afwImage.PARENT)
-                # clip PSF to S, if necessary
-                Sbox = afwGeom.Box2I(afwGeom.Point2I(-S, -S),
-                                     afwGeom.Extent2I(2*S+1, 2*S+1))
-                if not Sbox.contains(pbb):
-                    # clip PSF image
-                    psfim = psfim.Factory(psfim, Sbox, afwImage.PARENT, True)
-                    pbb = psfim.getBBox(afwImage.PARENT)
-                px0 = pbb.getMinX()
-                px1 = pbb.getMaxX()
-                py0 = pbb.getMinY()
-                py1 = pbb.getMaxY()
-
-                # Compute the ramped-down edge pixels
-                ramped = t1.getImage().Factory(tbb)
-                Tout = ramped.getArray()
-                Tin  = t1.getImage().getArray()
-                tx0,ty0 = t1.getX0(), t1.getY0()
-                ox0,oy0 = ramped.getX0(), ramped.getY0()
-                P = psfim.getArray()
-                P /= P.max()
-                # For each edge pixel, Tout = max(Tout, edgepix * PSF)
-                for span in edgepix.getSpans():
-                    y = span.getY()
-                    for x in range(span.getX0(), span.getX1()+1):
-                        # slices:
-                        sy0, sy1 = y+py0 - oy0, y+py1+1 - oy0
-                        sx0, sx1 = x+px0 - ox0, x+px1+1 - ox0
-                        Tout[sy0:sy1, sx0:sx1] = (
-                            np.maximum(Tout[sy0:sy1, sx0:sx1],
-                                       Tin[y-ty0, x-tx0] * P))
-
-                # Fill in the "padim" (which has the right variance and
-                # mask planes) with the ramped pixels, outside the footprint
-                I = (padim.getImage().getArray() == 0)
-                padim.getImage().getArray()[I] = ramped.getArray()[I]
-                
-                fpcopy = afwDet.growFootprint(fpcopy, S)
-                fpcopy.normalize()
-                
-                rtn = butils.buildSymmetricTemplate(padim, fpcopy, pk, sigma1, True, patchEdges)
-                # silly SWIG
-                t2, tfoot2 = rtn[0], rtn[1]
-                
-                # This template footprint may extend outside the parent
-                # footprint -- or the image -- clip it.
-                # NOTE that this may make it asymmetric, unlike normal templates.
-                tfoot2.clipTo(imbb)
-                tfoot2.clipTo(bb)
-                tbb = tfoot2.getBBox()
-                # clip template image to bbox
-                t2 = t2.Factory(t2, tbb, afwImage.PARENT, True)
-
-                # Copy for debugging
-                pkres.symm = t2.getImage().Factory(t2.getImage(), True)
+            if butils.hasSignificantFluxAtEdge(t1.getImage(), tfoot, 3*sigma1):
+                (t2, tfoot2) = _handle_flux_at_edge(
+                    log, psffwhm, t1, tfoot, fp, maskedImage, x0,x1,y0,y1, psf)
+                # possibly save this ramped template
+                pkres.set_ramped_template(t1, tfoot)
                 t1 = t2
                 tfoot = tfoot2
-
-        # Smooth / filter
-        if False:
-            sig = 0.5
-            G = afwMath.GaussianFunction1D(sig)
-            S = 1+int(math.ceil(sig*4.))
-            kern = afwMath.SeparableKernel(S, S, G, G)
-            # Place output back into input -- so create a copy first
-            t1im = t1.getImage()
-            inimg = t1im.Factory(t1im, True)
-            outimg = t1im
-            ctrl = afwMath.ConvolutionControl()
-            ctrl.setDoCopyEdge(True)
-            afwMath.convolve(outimg, inimg, kern, ctrl)
-
+                
         if median_smooth_template:
-            if t1.getWidth() > 5 and t1.getHeight() > 5:
+            filtsize = median_filter_halfsize * 2 + 1
+            if t1.getWidth() >= filtsize and t1.getHeight() >= filtsize:
                 log.logdebug('Median filtering template %i' % pkres.pki)
-                # We want the output to go in "t1", so copy it into "inimg" for input
+                # We want the output to go in "t1", so copy it into
+                # "inimg" for input
                 inimg = t1.Factory(t1, True)
-                outimg = t1
-                butils.medianFilter(inimg, outimg, 2)
-
-                # save for debugging purposes
-                pkres.median = t1.getImage().Factory(t1.getImage(), True)
+                butils.medianFilter(inimg, t1, median_filter_halfsize)
+                # possible save this median-filtered template
+                pkres.set_median_filtered_template(t1, tfoot)
             else:
-                log.logdebug('Not median-filtering template %i: size %i x %i' %
-                             (pkres.pki, t1.getWidth(), t1.getHeight()))
+                log.logdebug(('Not median-filtering template %i: size '
+                              + '%i x %i smaller than required %i x %i') %
+                              (pkres.pki, t1.getWidth(), t1.getHeight(),
+                               filtsize, filtsize))
                 
         if monotonic_template:
             log.logdebug('Making template %i monotonic' % pkres.pki)
             butils.makeMonotonic(t1, fp, pk, sigma1)
 
-        pkres.tmimg = t1
-        pkres.timg = t1.getImage()
-        pkres.tfoot = tfoot
+        pkres.set_template(t1, tfoot)
 
     tmimgs = []
     tfoots = []
@@ -309,7 +330,6 @@ def deblend(footprint, maskedImage, psf, psffwhm,
                 A[r0 + sx0-x0: r0+1+sx1-x0, i] = imrow
 
         X1,r1,rank1,s1 = np.linalg.lstsq(A, b)
-        # print 'Template weights:', X1
         del A
         del b
 
@@ -318,10 +338,8 @@ def deblend(footprint, maskedImage, psf, psffwhm,
             im *= w
             res.peaks[i].tweight = w
 
-
-    #
-    # FIXME -- Remove templates that are too similar (via dot-product test)
-    #
+    # FIXME -- Remove templates that are too similar (via dot-product
+    # test)?
     
     # Now apportion flux according to the templates
     log.logdebug('Apportioning flux among %i templates' % len(tmimgs))
@@ -350,7 +368,8 @@ def deblend(footprint, maskedImage, psf, psffwhm,
         heavy.getPeaks().push_back(pk)
 
         if findStrayFlux:
-            # NOTE that due to a swig bug (https://github.com/swig/swig/issues/59)
+            # NOTE that due to a swig bug
+            #   (https://github.com/swig/swig/issues/59)
             # we CANNOT iterate over "strayflux", but must index into it.
             stray = strayflux[j]
         else:
@@ -372,6 +391,12 @@ def deblend(footprint, maskedImage, psf, psffwhm,
     return res
 
 class CachingPsf(object):
+    '''
+    In the PSF fitting code, we request PSF models for all peaks near
+    the one being fit.  This was turning out to be quite expensive in
+    some cases.  Here, we cache the PSF models to bring the cost down
+    closer to O(N) rather than O(N^2).
+    '''
     def __init__(self, psf):
         self.cache = {}
         self.psf = psf
@@ -382,7 +407,6 @@ class CachingPsf(object):
         im = self.psf.computeImage(afwGeom.Point2D(cx,cy))
         self.cache[(cx,cy)] = im
         return im
-
 
 def _fit_psfs(fp, peaks, fpres, log, psf, psffwhm, img, varimg,
               psf_chisq_cut1, psf_chisq_cut2, psf_chisq_cut2b,
@@ -401,7 +425,8 @@ def _fit_psfs(fp, peaks, fpres, log, psf, psffwhm, img, varimg,
     psffwhm: FWHM of the PSF, in pixels
     img: umm, the Image in which this Footprint finds itself
     varimg: Variance plane
-    psf_chisq_cut*: floats: cuts in chisq-per-pixel at which to accept the PSF model
+    psf_chisq_cut*: floats: cuts in chisq-per-pixel at which to accept
+        the PSF model
 
     Results go into the fpres.peaks objects.
     
@@ -429,10 +454,11 @@ def _fit_psfs(fp, peaks, fpres, log, psf, psffwhm, img, varimg,
 def _fit_psf(fp, fmask, pk, pkF, pkres, fbb, peaks, peaksF, log, psf,
              psffwhm, img, varimg,
              psf_chisq_cut1, psf_chisq_cut2, psf_chisq_cut2b,
-             dropTiny = True
+             dropTiny=True, tinyFootprintSize=2,
              ):
     '''
-    Fit a PSF + smooth background model (linear) to a small region around the peak.
+    Fit a PSF + smooth background model (linear) to a small region
+    around the peak.
 
     fp: Footprint
     fmask: the Mask plane for pixels in the Footprint
@@ -450,8 +476,13 @@ def _fit_psf(fp, fmask, pk, pkF, pkres, fbb, peaks, peaksF, log, psf,
     psf_chisq_cut*: floats: cuts in chisq-per-pixel at which to accept the PSF model
     
     '''
-    # The small region is a disk out to R0, plus a ramp with decreasing weight
-    # down to R1.
+    import lsstDebug
+    # my __name__ is lsst.meas.deblender.baseline
+    debugPlots = lsstDebug.Info(__name__).plots
+    debugPsf = lsstDebug.Info(__name__).psf
+
+    # The small region is a disk out to R0, plus a ramp with
+    # decreasing weight down to R1.
     R0 = int(math.ceil(psffwhm * 1.))
     # ramp down to zero weight at this radius...
     R1 = int(math.ceil(psffwhm * 1.5))
@@ -462,23 +493,9 @@ def _fit_psf(fp, fmask, pk, pkF, pkres, fbb, peaks, peaksF, log, psf,
     # into the model
     R2 = R1 + min(psfimg.getWidth(), psfimg.getHeight())/2.
 
-    import lsstDebug
-    # __name__ is lsst.meas.deblender.baseline
-    debugPlots = lsstDebug.Info(__name__).plots
-    debugPsf = lsstDebug.Info(__name__).psf
-
     pbb = psfimg.getBBox(afwImage.PARENT)
-
-    #print 'PSFimg bb x[%i,%i], y[%i,%i]' % (
-    #    pbb.getMinX(), pbb.getMaxX(), pbb.getMinY(), pbb.getMaxY())
-    #print 'Foot bb x[%i,%i], y[%i,%i]' % (
-    #    fbb.getMinX(), fbb.getMaxX(), fbb.getMinY(), fbb.getMaxY())
-
     pbb.clip(fbb)
     px0,py0 = psfimg.getX0(), psfimg.getY0()
-
-    #print 'Clipped PSFimg bb x[%i,%i], y[%i,%i]' % (
-    #    pbb.getMinX(), pbb.getMaxX(), pbb.getMinY(), pbb.getMaxY())
     
     # The bounding-box of the local region we are going to fit ("stamp")
     xlo = int(math.floor(cx - R1))
@@ -491,17 +508,14 @@ def _fit_psf(fp, fmask, pk, pkF, pkres, fbb, peaks, peaksF, log, psf,
     ylo,yhi = stampbb.getMinY(), stampbb.getMaxY()
     if xlo > xhi or ylo > yhi:
         log.logdebug('Skipping this peak: out of bounds')
-        pkres.out_of_bounds = True
+        pkres.set_out_of_bounds()
         return
 
-    #print 'Clipped stamp bb x[%i,%i], y[%i,%i]' % (
-    #    stampbb.getMinX(), stampbb.getMaxX(), stampbb.getMinY(), stampbb.getMaxY())
-    #print 'Stamp bb x[%i,%i], y[%i,%i]' % (xlo,xhi,ylo,yhi)
-    
     # drop tiny footprints too?
-    if dropTiny and (xhi < (xlo + 2) or yhi < (ylo + 2)):
+    if dropTiny and (((xhi - xlo) < tinyFootprintSize) or
+                     ((yhi - ylo) < tinyFootprintSize)):
         log.logdebug('Skipping this peak: tiny footprint / close to edge')
-        pkres.out_of_bounds = True
+        pkres.set_tiny_footprint()
         return
 
     # find other peaks within range...
@@ -512,7 +526,7 @@ def _fit_psf(fp, fmask, pk, pkF, pkres, fbb, peaks, peaksF, log, psf,
         if pkF.distanceSquared(pkF2) > R2**2:
             continue
         opsfimg = psf.computeImage(pkF2.getX(), pkF2.getY())
-        if not opsfimg.getBBox().overlaps(stampbb): # Local PSF may be a different size than central
+        if not opsfimg.getBBox().overlaps(stampbb):
             continue
         otherpeaks.append(opsfimg)
         log.logdebug('%i other peaks within range' % len(otherpeaks))
@@ -521,18 +535,18 @@ def _fit_psf(fp, fmask, pk, pkF, pkres, fbb, peaks, peaksF, log, psf,
     # in this PSF, plus a decenter term, a linear sky, and
     # fluxes of nearby sources (assumed point sources).  Build
     # up the matrix...
-    # Number of terms -- PSF flux, constant, X, Y, + other PSF fluxes
+    # Number of terms -- PSF flux, constant sky, X, Y, + other PSF fluxes
     NT1 = 4 + len(otherpeaks)
     # + PSF dx, dy
     NT2 = NT1 + 2
     # Number of pixels -- at most
     NP = (1 + yhi - ylo) * (1 + xhi - xlo)
-    # indices of terms
+    # indices of columns in the "A" matrix.
     I_psf = 0
-    # I_sky = 1
-    # I_sky_ramp_x = 2
-    # I_sky_ramp_y = 3
-    # start of other psf fluxes
+    I_sky = 1
+    I_sky_ramp_x = 2
+    I_sky_ramp_y = 3
+    # offset of other psf fluxes:
     I_opsf = 4
     I_dx = NT1 + 0
     I_dy = NT1 + 1
@@ -543,9 +557,9 @@ def _fit_psf(fp, fmask, pk, pkF, pkres, fbb, peaks, peaksF, log, psf,
     fx0,fy0 = fbb.getMinX(), fbb.getMinY()
     fslice = (slice(ylo-fy0, yhi-fy0+1), slice(xlo-fx0, xhi-fx0+1))
     islice = (slice(ylo-iy0, yhi-iy0+1), slice(xlo-ix0, xhi-ix0+1))
-    fmask_sub = fmask.getArray()[fslice]
-    var_sub = varimg.getArray()[islice]
-    img_sub = img.getArray()[islice]
+    fmask_sub = fmask .getArray()[fslice]
+    var_sub   = varimg.getArray()[islice]
+    img_sub   = img   .getArray()[islice]
 
     # Clip the PSF image to match its bbox
     psfarr = psfimg.getArray()[pbb.getMinY()-py0: 1+pbb.getMaxY()-py0,
@@ -556,29 +570,20 @@ def _fit_psf(fp, fmask, pk, pkF, pkres, fbb, peaks, peaksF, log, psf,
     # Compute the "valid" pixels within our region-of-interest
     valid = (fmask_sub > 0)
     xx,yy = np.arange(xlo, xhi+1), np.arange(ylo, yhi+1)
-    #RR = (XX - cx)**2 + (YY - cy)**2
     RR = ((xx - cx)**2)[np.newaxis,:] + ((yy - cy)**2)[:,np.newaxis]
     valid *= (RR <= R1**2)
     valid *= (var_sub > 0)
     NP = valid.sum()
 
     if NP == 0:
-        log.warn('Skipping peak at (%.1f,%.1f): NP = 0' % (cx,cy))
-        pkres.out_of_bounds = True
+        log.warn('Skipping peak at (%.1f,%.1f): no unmasked pixels nearby'
+                 % (cx,cy))
+        pkres.set_no_valid_pixels()
         return
 
+    # pixel coords of valid pixels
     XX,YY = np.meshgrid(xx, yy)
     ipixes = np.vstack((XX[valid] - xlo, YY[valid] - ylo)).T
-
-    # ipixes = np.empty((NP, 2))
-    # dx = np.arange(0, xhi-xlo+1)
-    # i0 = 0
-    # for y,vr in enumerate(valid):
-    #     n = vr.sum()
-    #     ipixes[i0:i0+n, 0] = dx[vr]
-    #     ipixes[i0:i0+n, 1] = y
-    #     i0 += n
-    #assert(np.all(ipixes == ipixes2))
 
     inpsfx = (xx >= px0) * (xx <= px1)
     inpsfy = (yy >= py0) * (yy <= py1)
@@ -590,7 +595,8 @@ def _fit_psf(fp, fmask, pk, pkF, pkres, fbb, peaks, peaksF, log, psf,
     del inpsfy
 
     def _overlap(xlo, xhi, xmin, xmax):
-        assert xlo <= xmax and xhi >= xmin and xlo <= xhi and xmin <= xmax, "No overlap"
+        assert((xlo <= xmax) and (xhi >= xmin) and
+               (xlo <= xhi)  and (xmin <= xmax))
         xloclamp = max(xlo, xmin)
         Xlo = xloclamp - xlo
         xhiclamp = min(xhi, xmax)
@@ -601,37 +607,38 @@ def _fit_psf(fp, fmask, pk, pkF, pkres, fbb, peaks, peaksF, log, psf,
     
     A = np.zeros((NP, NT2))
     # Constant term
-    A[:,1] = 1.
+    A[:,I_sky] = 1.
     # Sky slope terms: dx, dy
-    A[:,2] = ipixes[:,0] + (xlo-cx)
-    A[:,3] = ipixes[:,1] + (ylo-cy)
+    A[:,I_sky_ramp_x] = ipixes[:,0] + (xlo-cx)
+    A[:,I_sky_ramp_y] = ipixes[:,1] + (ylo-cy)
 
+    # whew, grab the valid overlapping PSF pixels
     px0,px1 = pbb.getMinX(), pbb.getMaxX()
     py0,py1 = pbb.getMinY(), pbb.getMaxY()
-
-    #print 'xlo,xhi', xlo,xhi
-    #print 'px0,px1', px0,px1
-
     sx1,sx2,sx3,sx4 = _overlap(xlo, xhi, px0, px1)
     sy1,sy2,sy3,sy4 = _overlap(ylo, yhi, py0, py1)
     dpx0,dpy0 = px0 - xlo, py0 - ylo
-    psfsub = psfarr[sy3 - dpy0 : sy4 - dpy0, sx3 - dpx0: sx4 - dpx0]
+    psf_y_slice = slice(sy3 - dpy0, sy4 - dpy0)
+    psf_x_slice = slice(sx3 - dpx0: sx4 - dpx0)
+    psfsub = psfarr[psf_y_slice, psf_x_slice)
     vsub = valid[sy1-ylo: sy2-ylo, sx1-xlo: sx2-xlo]
     A[inpsf[valid], I_psf] = psfsub[vsub]
 
-    # dx
+    # PSF dx -- by taking the half-difference of shifted-by-one and
+    # shifted-by-minus-one.
     oldsx = (sx1,sx2,sx3,sx4)
     sx1,sx2,sx3,sx4 = _overlap(xlo, xhi, px0+1, px1-1)
-    psfsub = (psfarr[sy3 - dpy0 : sy4 - dpy0, sx3 - dpx0 + 1: sx4 - dpx0 + 1] -
-              psfarr[sy3 - dpy0 : sy4 - dpy0, sx3 - dpx0 - 1: sx4 - dpx0 - 1]) / 2.
+    psfsub = (psfarr[psf_y_slice, sx3 - dpx0 + 1: sx4 - dpx0 + 1] -
+              psfarr[psf_y_slice, sx3 - dpx0 - 1: sx4 - dpx0 - 1]) / 2.
     vsub = valid[sy1-ylo: sy2-ylo, sx1-xlo: sx2-xlo]
     A[indx[valid], I_dx] = psfsub[vsub]
-
-    # dy
+    # revert x indices...
     (sx1,sx2,sx3,sx4) = oldsx
+
+    # PSF dy
     sy1,sy2,sy3,sy4 = _overlap(ylo, yhi, py0+1, py1-1)
-    psfsub = (psfarr[sy3 - dpy0 + 1: sy4 - dpy0 + 1, sx3 - dpx0: sx4 - dpx0] -
-              psfarr[sy3 - dpy0 - 1: sy4 - dpy0 - 1, sx3 - dpx0: sx4 - dpx0]) / 2.
+    psfsub = (psfarr[sy3 - dpy0 + 1: sy4 - dpy0 + 1, psf_x_slice] -
+              psfarr[sy3 - dpy0 - 1: sy4 - dpy0 - 1, psf_x_slice]) / 2.
     vsub = valid[sy1-ylo: sy2-ylo, sx1-xlo: sx2-xlo]
     A[indy[valid], I_dy] = psfsub[vsub]
 
@@ -650,13 +657,15 @@ def _fit_psf(fp, fmask, pk, pkF, pkres, fbb, peaks, peaksF, log, psf,
 
     b = img_sub[valid]
 
+    # Weights -- from ramp and image variance map.
+    # ramp weights -- from 1 at R0 down to 0 at R1.
     rw = np.ones_like(RR)
     ii = (RR > R0**2)
     rr = np.sqrt(RR[ii])
-    rw[ii] = 1. - ((rr - R0) / (R1-R0))
+    rw[ii] = 1. - ((rr - R0) / (R1 - R0))
     w = np.sqrt(rw[valid] / var_sub[valid])
+    # save the effective number of pixels
     sumr = np.sum(rw[valid])
-
     del rw
     del ii
 
@@ -684,7 +693,7 @@ def _fit_psf(fp, fmask, pk, pkF, pkres, fbb, peaks, peaksF, log, psf,
         plt.imshow(im1, interpolation='nearest', origin='lower')
         plt.savefig('A.png')
 
-    # We do fits with and without the decenter terms.
+    # We do fits with and without the decenter (dx,dy) terms.
     # Since the dx,dy terms are at the end of the matrix,
     # we can do that just by trimming off those elements.
     #
@@ -698,14 +707,11 @@ def _fit_psf(fp, fmask, pk, pkF, pkres, fbb, peaks, peaksF, log, psf,
         X2,r2,rank2,s2 = np.linalg.lstsq(Aw, bw)
     except np.linalg.LinAlgError, e:
         log.log(log.WARN, "Failed to fit PSF to child: %s" % e)
-        pkres.out_of_bounds = True
+        pkres.set_psf_fit_failed()
         return
 
-    #print 'X1', X1
-    #print 'X2', X2
-    #print 'ranks', rank1, rank2
-    #print 'r', r1, r2
-    # r is weighted chi-squared = sum over pixels:  ramp * (model - data)**2/sigma**2
+    # r is weighted chi-squared = sum over pixels: ramp * (model -
+    # data)**2/sigma**2
     if len(r1) > 0:
         chisq1 = r1[0]
     else:
@@ -714,24 +720,24 @@ def _fit_psf(fp, fmask, pk, pkF, pkres, fbb, peaks, peaksF, log, psf,
         chisq2 = r2[0]
     else:
         chisq2 = 1e30
-
     dof1 = sumr - len(X1)
     dof2 = sumr - len(X2)
-    #print 'Chi-squareds', chisq1, chisq2
-    #print 'Degrees of freedom', dof1, dof2
+
     # This can happen if we're very close to the edge (?)
     if dof1 <= 0 or dof2 <= 0:
         log.logdebug('Skipping this peak: bad DOF %g, %g' % (dof1, dof2))
-        pkres.out_of_bounds = True
+        pkres.set_bad_psf_dof()
         return
 
     q1 = chisq1/dof1
     q2 = chisq2/dof2
     log.logdebug('PSF fits: chisq/dof = %g, %g' % (q1,q2))
-
     ispsf1 = (q1 < psf_chisq_cut1)
     ispsf2 = (q2 < psf_chisq_cut2)
 
+    pkres.psf_fit1 = (chisq1, dof1)
+    pkres.psf_fit2 = (chisq2, dof2)
+    
     # check that the fit PSF spatial derivative terms aren't too big
     if ispsf2:
         fdx, fdy = X2[I_dx], X2[I_dy]
@@ -742,7 +748,9 @@ def _fit_psf(fp, fmask, pk, pkF, pkres, fbb, peaks, peaksF, log, psf,
         ispsf2 = ispsf2 and (abs(dx) < 1. and abs(dy) < 1.)
         log.logdebug('isPSF2 -- checking derivatives: dx,dy = %g, %g -> %s' %
                      (dx,dy, str(ispsf2)))
-
+        if not ispsf2:
+            pkres.psf_fit_big_decenter = True
+        
     # Looks like a shifted PSF: try actually shifting the PSF by that amount
     # and re-evaluate the fit.
     if ispsf2:
@@ -772,20 +780,18 @@ def _fit_psf(fp, fmask, pk, pkF, pkres, fbb, peaks, peaksF, log, psf,
         Aw  = Ab * w[:,np.newaxis]
         # re-solve...
         Xb,rb,rankb,sb = np.linalg.lstsq(Aw, bw)
-        #print 'Xb', Xb
         if len(rb) > 0:
             chisqb = rb[0]
         else:
             chisqb = 1e30
-        #print 'chisq', chisqb
         dofb = sumr - len(Xb)
-        #print 'dof', dofb
         qb = chisqb / dofb
-        #print 'chisq/dof', qb
         ispsf2 = (qb < psf_chisq_cut2b)
         q2 = qb
         X2 = Xb
-        log.logdebug('shifted PSF: new chisq/dof = %g; good? %s' % (qb, ispsf2))
+        log.logdebug('shifted PSF: new chisq/dof = %g; good? %s' %
+                     (qb, ispsf2))
+        pkres.psf_fit3 = (chisqb, dofb)
 
     # Which one do we keep?
     if (((ispsf1 and ispsf2) and (q2 < q1)) or
@@ -796,6 +802,7 @@ def _fit_psf(fp, fmask, pk, pkF, pkres, fbb, peaks, peaksF, log, psf,
         log.logdebug('Keeping shifted-PSF model')
         cx += dx
         cy += dy
+        pkres.psf_fit_with_decenter = True
     else:
         # (arbitrarily set to X1 when neither fits well)
         Xpsf = X1
@@ -830,24 +837,24 @@ def _fit_psf(fp, fmask, pk, pkF, pkres, fbb, peaks, peaksF, log, psf,
             modelfp.addSpan(int(y+ylo), int(x+xlo), int(x+xlo))
         modelfp.normalize()
 
-        pkres.psf0img = psfimg
-        pkres.psfimg = psfmod
-        pkres.psfderivimg = psfderivmod
-        pkres.model = model
+        pkres.psf_psf0img = psfimg
+        pkres.psf_psfimg = psfmod
+        pkres.psf_psfderivimg = psfderivmod
+        pkres.psf_model = model
 
     # Save things we learned about this peak for posterity...
-    pkres.R0 = R0
-    pkres.R1 = R1
-    pkres.stampxy0 = xlo,ylo
-    pkres.stampxy1 = xhi,yhi
-    pkres.center = cx,cy
-    pkres.chisq = chisq
-    pkres.dof = dof
-    pkres.X = Xpsf
-    pkres.otherpsfs = len(otherpeaks)
-    pkres.w = w
-    pkres.psfflux = Xpsf[I_psf]
-    pkres.deblend_as_psf = bool(ispsf)
+    pkres.psf_R0 = R0
+    pkres.psf_R1 = R1
+    pkres.psf_stamp_extent = (xlo, xhi, ylo, yhi)
+    pkres.psf_fit_center = (cx,cy)
+    pkres.psf_fit_best = (chisq, dof)
+    pkres.psf_fit_params = Xpsf
+    pkres.psf_fit_flux = Xpsf[I_psf]
+    pkres.psf_fit_nothers = len(otherpeaks)
+    # pkres.w = w
+
+    if ispsf:
+        pkres.set_deblended_as_psf()
 
     if ispsf:
         # replace the template image by the PSF + derivatives
@@ -860,21 +867,121 @@ def _fit_psf(fp, fmask, pk, pkF, pkres, fbb, peaks, peaksF, log, psf,
         # simpler and maybe more sensible by just creating a circular
         # Footprint centered on the PSF.
 
-        modelfp = afwDet.Footprint()
+        # FIXME
+        # Import C++ routines ... copyWithinFootprint should move to
+        # the Footprint class (or at least afwDet namespace), making
+        # this unnecessary...
+        import lsst.meas.deblender as deb
+        butils = deb.BaselineUtilsF
+        
+        modelfoot = afwDet.Footprint()
         for (x,y) in ipixes:
-            modelfp.addSpan(int(y+ylo), int(x+xlo), int(x+xlo))
-        modelfp.normalize()
+            modelfoot.addSpan(int(y+ylo), int(x+xlo), int(x+xlo))
+        modelfoot.normalize()
 
-        # Instantiate the PSF model and clip it to modelfp.
+        # Instantiate the PSF model and clip it to modelfoot.
         psfimg = psf.computeImage(cx, cy)
         SW,SH = 1+xhi-xlo, 1+yhi-ylo
         psfmod = afwImage.MaskedImageF(SW,SH)
         psfmod.setXY0(xlo,ylo)
         # Scale by fit flux.
         psfimg *= Xpsf[I_psf]
-        psfmim = afwImage.MaskedImageF(psfimg.convertF())
-        heavy = afwDet.makeHeavyFootprint(modelfp, psfmim)
-        heavy.insert(psfmod)
+        butils.copyWithinFootprint(modelfoot, psfimg, psfmod.getImage())
+        # Save it as our template.
+        pkres.set_template(psfmod, modelfoot)
 
-        pkres.tmimg = psfmod
-        pkres.tfoot = modelfp
+
+
+
+def _handle_flux_at_edge(log, psffwhm, t1, tfoot, fp, maskedImage,
+                         x0,x1,y0,y1, psf):
+    # Import C++ routines
+    import lsst.meas.deblender as deb
+    butils = deb.BaselineUtilsF
+
+    log.logdebug('Found significant flux at template edge.')
+    # Compute the max of:
+    #  -symmetric-template-clipped image * PSF
+    #  -footprint-clipped image
+    # Ie, extend the template by the PSF and "fill in" the
+    # footprint.
+    # Then find the symmetric template of that image.
+
+    # The size we'll grow by
+    S = psffwhm * 1.5
+    # make it an odd integer
+    S = (int(S + 0.5) / 2) * 2 + 1
+
+    tbb = tfoot.getBBox()
+    tbb.grow(S)
+
+    # (footprint+margin)-clipped image;
+    # we need the pixels OUTSIDE the footprint to be 0.
+    fpcopy = afwDet.Footprint(fp)
+    fpcopy.clipTo(tbb)
+    padim = t1.Factory(tbb)
+    butils.copyWithinFootprint(fpcopy, maskedImage, padim)
+    
+    # find pixels on the edge of the template
+    edgepix = butils.getSignificantEdgePixels(t1.getImage(), tfoot, -1e6)
+                                              
+    # instantiate PSF image
+    xc = int((x0 + x1)/2)
+    yc = int((y0 + y1)/2)
+    psfim = psf.computeImage(afwGeom.Point2D(xc, yc))
+    pbb = psfim.getBBox(afwImage.PARENT)
+    # shift PSF image to by centered on zero
+    lx,ly = pbb.getMinX(), pbb.getMinY()
+    psfim.setXY0(lx - xc, ly - yc)
+    pbb = psfim.getBBox(afwImage.PARENT)
+    # clip PSF to S, if necessary
+    Sbox = afwGeom.Box2I(afwGeom.Point2I(-S, -S),
+                         afwGeom.Extent2I(2*S+1, 2*S+1))
+    if not Sbox.contains(pbb):
+        # clip PSF image
+        psfim = psfim.Factory(psfim, Sbox, afwImage.PARENT, True)
+        pbb = psfim.getBBox(afwImage.PARENT)
+    px0 = pbb.getMinX()
+    px1 = pbb.getMaxX()
+    py0 = pbb.getMinY()
+    py1 = pbb.getMaxY()
+
+    # Compute the ramped-down edge pixels
+    ramped = t1.getImage().Factory(tbb)
+    Tout = ramped.getArray()
+    Tin  = t1.getImage().getArray()
+    tx0,ty0 = t1.getX0(), t1.getY0()
+    ox0,oy0 = ramped.getX0(), ramped.getY0()
+    P = psfim.getArray()
+    P /= P.max()
+    # For each edge pixel, Tout = max(Tout, edgepix * PSF)
+    for span in edgepix.getSpans():
+        y = span.getY()
+        for x in range(span.getX0(), span.getX1()+1):
+            slc = (slice(y+py0 - oy0, y+py1+1 - oy0),
+                   slice(x+px0 - ox0, x+px1+1 - ox0))
+            Tout[slc] = np.maximum(Tout[slc], Tin[y-ty0, x-tx0] * P)
+
+    # Fill in the "padim" (which has the right variance and
+    # mask planes) with the ramped pixels, outside the footprint
+    I = (padim.getImage().getArray() == 0)
+    padim.getImage().getArray()[I] = ramped.getArray()[I]
+    
+    fpcopy = afwDet.growFootprint(fpcopy, S)
+    fpcopy.normalize()
+    
+    rtn = butils.buildSymmetricTemplate(padim, fpcopy, pk, sigma1, True,
+                                        patchEdges)
+    # silly SWIG
+    t2, tfoot2 = rtn[0], rtn[1]
+    
+    # This template footprint may extend outside the parent
+    # footprint -- or the image.  Clip it.
+    # NOTE that this may make it asymmetric, unlike normal templates.
+    tfoot2.clipTo(imbb)
+    tfoot2.clipTo(bb)
+    tbb = tfoot2.getBBox()
+    # clip template image to bbox
+    t2 = t2.Factory(t2, tbb, afwImage.PARENT, True)
+
+    return t2, tfoot2
