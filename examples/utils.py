@@ -423,11 +423,11 @@ def readCatalog(sourcefn, heavypat, ndeblends=0, dataref=None,
                 patargs=dict()):
     if sourcefn is None:
         cat = dataref.get('src')
-	try:
-	    if not cat:
-		return None
-	except:
-	    return None
+    try:
+        if not cat:
+        return None
+    except:
+        return None
 
     else:
         if not os.path.exists(sourcefn):
