@@ -482,7 +482,9 @@ class SubaruIsrTask(IsrTask):
         This version allows tweaking the flat-field to match the observed
         ratios of background flux in the amplifiers.  This may be necessary
         if the gains drift or the levels are slightly affected by non-linearity
-        or similar.
+        or similar.  Note that this tweak may not work if there is significant
+        structure in the image, and especially if the structure varies over
+        the amplifiers.
 
         @param[in,out]  exposure        exposure to process
         @param[in]      dataRef         data reference at same level as exposure
@@ -498,17 +500,15 @@ class SubaruIsrTask(IsrTask):
             stats.setAndMask(bad)
             for amp in afwCG.cast_Ccd(exposure.getDetector()):
                 box = amp.getDataSec(True)
-                dataAmp = afwImage.MaskedImageF(exposure.getMaskedImage(), box, afwImage.LOCAL)
+                dataAmp = afwImage.MaskedImageF(exposure.getMaskedImage(), box, afwImage.LOCAL).clone()
                 flatAmp = afwImage.MaskedImageF(flatfield.getMaskedImage(), box, afwImage.LOCAL)
-                data.append(afwMath.makeStatistics(dataAmp, afwMath.MEDIAN, stats).getValue())
-                flatData.append(afwMath.makeStatistics(flatAmp, afwMath.MEDIAN, stats).getValue())
                 flatAmpList.append(flatAmp)
+                dataAmp /= flatAmp
+                data.append(afwMath.makeStatistics(dataAmp, afwMath.MEDIAN, stats).getValue())
 
             data = numpy.array(data)
-            flatData = numpy.array(flatData)
-            tweak = (data/data.sum()) / (flatData/flatData.sum())
+            tweak = data/data.sum()*len(data)
             self.log.warn("Tweaking flat-field to match observed amplifier ratios: %s" % tweak)
-
             for i, flat in enumerate(flatAmpList):
                 flat *= tweak[i]
 
