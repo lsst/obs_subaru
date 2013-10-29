@@ -121,6 +121,8 @@ after applying the nominal gain
             "MEDIAN": "Correct using the median of the good data",
             },
         )
+    doTweakFlat = pexConfig.Field(dtype=bool, doc="Tweak flats to match observed amplifier ratios?",
+                                  default=False)
     def validate(self):
         super(SubaruIsrConfig, self).validate()
         if self.doFlat and self.doApplyGains:
@@ -473,6 +475,45 @@ class SubaruIsrTask(IsrTask):
         if wcs:
             fwhm /= wcs.pixelScale().asArcseconds()
         lsstIsr.interpolateDefectList(maskedImage, defectList, fwhm)
+
+    def flatCorrection(self, exposure, dataRef):
+        """Apply flat correction in-place
+
+        This version allows tweaking the flat-field to match the observed
+        ratios of background flux in the amplifiers.  This may be necessary
+        if the gains drift or the levels are slightly affected by non-linearity
+        or similar.
+
+        @param[in,out]  exposure        exposure to process
+        @param[in]      dataRef         data reference at same level as exposure
+        """
+        flatfield = self.getDetrend(dataRef, "flat")
+
+        if self.config.doTweakFlat:
+            data = []
+            flatData = []
+            flatAmpList = []
+            bad = exposure.getMaskedImage().getMask().getPlaneBitMask(["BAD", "SAT"])
+            stats = afwMath.StatisticsControl()
+            stats.setAndMask(bad)
+            for amp in afwCG.cast_Ccd(exposure.getDetector()):
+                box = amp.getDataSec(True)
+                dataAmp = afwImage.MaskedImageF(exposure.getMaskedImage(), box, afwImage.LOCAL)
+                flatAmp = afwImage.MaskedImageF(flatfield.getMaskedImage(), box, afwImage.LOCAL)
+                data.append(afwMath.makeStatistics(dataAmp, afwMath.MEDIAN, stats).getValue())
+                flatData.append(afwMath.makeStatistics(flatAmp, afwMath.MEDIAN, stats).getValue())
+                flatAmpList.append(flatAmp)
+
+            data = numpy.array(data)
+            flatData = numpy.array(flatData)
+            tweak = (data/data.sum()) / (flatData/flatData.sum())
+            self.log.warn("Tweaking flat-field to match observed amplifier ratios: %s" % tweak)
+
+            for i, flat in enumerate(flatAmpList):
+                flat *= tweak[i]
+
+        lsstIsr.flatCorrection(exposure.getMaskedImage(), flatfield.getMaskedImage(),
+                               scalingType="USER", userScale=1.0)
 
 
 class SuprimecamIsrConfig(SubaruIsrConfig):
