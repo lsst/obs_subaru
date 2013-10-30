@@ -207,9 +207,6 @@ class LnGradImage(cgUtils.GetCcdImage):
         ccdNum = ccd.getId().getSerial()
 
         try:
-            if False and ccdNum not in range(0, 100, 5):
-                raise RuntimeError("skipping CCD %d" % ccdNum)
-
             if self.kwargs.get("ccd") is not None and not ccdNum in self.kwargs.get("ccd"):
                 raise RuntimeError
 
@@ -219,16 +216,13 @@ class LnGradImage(cgUtils.GetCcdImage):
                 del dataId["ccd"]
 
             raw = cgUtils.trimExposure(self.butler.get("raw", ccd=ccdNum, immediate=True, **dataId).convertF(),
-                                       subtractBias=True)
-            nQuarter = ccd.getOrientation().getNQuarter()
-            msk = raw.getMaskedImage().getMask()
+                                       subtractBias=True, rotate=True)
+
             if False:
+                msk = raw.getMaskedImage().getMask()
                 BAD=msk.getPlaneBitMask("BAD")
                 msk |= BAD
                 msk[15:-15, 0:-20] &= ~BAD
-
-            if nQuarter != 0:
-                raw.setMaskedImage(afwMath.rotateImageBy90(raw.getMaskedImage(), nQuarter))
         except Exception, e:
             if self.verbose and str(e):
                 print e
@@ -340,13 +334,14 @@ Return r and lnGrad binned into nBin bins.  If profile is True, integrate the ln
     return rbar, lng
 
 def plotRadial(r, lnGrad, theta=None, title=None, profile=False, showMedians=False,
-               nBin=100, binAngle=0, alpha=1.0, xmin=-100,
+               nBin=100, binAngle=0, alpha=1.0, xmin=-100, ctype='black', overplot=False,
                xlim = (-100, 18000), ylim = None):
     """
     N.b. theta is in radians, but binAngle is in degrees
     """
 
-    pyplot.clf()
+    if not overplot:
+        pyplot.clf()
 
     norm = pyplot.Normalize(-180, 180)
     cmap = pyplot.cm.rainbow
@@ -363,7 +358,7 @@ def plotRadial(r, lnGrad, theta=None, title=None, profile=False, showMedians=Fal
         if binAngle <= 0:
             rbar, lng = makeRadial(r, lnGrad, nBin, profile=profile)
 
-            pyplot.plot(rbar, lng, 'o', markersize=5.0, markeredgewidth=0, color='black', alpha=alpha)
+            pyplot.plot(rbar, lng, 'o', markersize=5.0, markeredgewidth=0, color=ctype, alpha=alpha)
         else:
             angleBin = np.pi/180*(np.linspace(-180, 180 - binAngle, 360.0/binAngle, binAngle) + 0.5*binAngle)
             binAngle *= np.pi/180
@@ -380,12 +375,12 @@ def plotRadial(r, lnGrad, theta=None, title=None, profile=False, showMedians=Fal
 
             pyplot.legend(loc="lower left")
     else:
-        if theta:
+        if theta is None:
+            pyplot.plot(r, lnGrad, 'o', alpha=alpha, markeredgewidth=0)
+        else:
             pyplot.scatter(r, lnGrad, c=theta*180/np.pi, norm=norm, cmap=cmap, alpha=alpha,
                            marker='o', s=2.0, edgecolors="none")
             pyplot.colorbar()
-        else:
-            pyplot.plot(r, lnGrad, 'o', alpha=alpha, markeredgewidth=0)
 
     pyplot.xlim(xlim)
     if profile and ylim is None:
@@ -397,7 +392,6 @@ def plotRadial(r, lnGrad, theta=None, title=None, profile=False, showMedians=Fal
         pyplot.title(title)
         
     pyplot.show()
-
 
 def profilePca(butler, visits=None, ccds=None, bin=64, nBin=30, nPca=2, grad={},
                fluxes=None, bad=None,
