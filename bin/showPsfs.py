@@ -214,7 +214,7 @@ def main(dataDir, visit, title="", outputTxtFileName=None,
         title.append("N per fwhm grid")
         if len(xs) > 0:
             ndataGrids = getNumDataGrids(xArr, yArr, fwhmArr, xs, ys)
-            plt.imshow(ndataGrids, interpolation='none', extent=extent, vmin=minNdata, vmax=maxNdata, origin='lower')
+            plt.imshow(ndataGrids, interpolation='nearest', extent=extent, vmin=minNdata, vmax=maxNdata, origin='lower')
             plt.colorbar()
         else:
             pass
@@ -223,7 +223,7 @@ def main(dataDir, visit, title="", outputTxtFileName=None,
         title.append("N per ell grid")
         if len(xs) > 0:
             ndataGrids = getNumDataGrids(xArr, yArr, ellArr, xs, ys)
-            plt.imshow(ndataGrids, interpolation='none', extent=extent, vmin=minNdata, vmax=maxNdata, origin='lower')
+            plt.imshow(ndataGrids, interpolation='nearest', extent=extent, vmin=minNdata, vmax=maxNdata, origin='lower')
             plt.colorbar()
         else:
             pass
