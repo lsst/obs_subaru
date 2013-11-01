@@ -25,6 +25,7 @@ else:
 rings.plotRadial(r, profs, xlim=(-100, 5500), ylim=(0.8, 1.03))
 """
 
+import multiprocessing
 import sys
 from lsstImports import *
 try:
@@ -89,8 +90,8 @@ def fitPatches(exp, nx=4, ny=8, bin=None, frame=None, returnResidualImage=False,
                r=None, lnGrad=None, theta=None):
     """Fit planes to a set of patches of an image im
 
-If r and lnGrad are provided they should be lists (more accurately, support .append), and they have the
-values of r and dlnI/dr from this image appended.
+If r, theta, and lnGrad are provided they should be lists (more accurately, support .append), and they have the
+values of r, theta, and dlnI/dr from this image appended.
     """
 
     width, height = exp.getDimensions()
@@ -171,6 +172,32 @@ values of r and dlnI/dr from this image appended.
         ds9.mtv(dlnzdr, title="dlnz/dr %s" % (ccd.getId().getSerial() if ccd else ""), frame=frame); frame += 1
 
     return dlnzdx, dlnzdy, dlnzdr, residualImage
+
+class FitPatchesWork(object): 
+    """Given a bin factor and dataId, return r, theta, and lnGrad arrays"""
+    def __init__(self, butler, bin, verbose=False):
+        self.butler = butler
+        self.bin = bin
+        self.verbose = verbose
+
+    def __call__(self, dataId):
+        if self.verbose:
+            print "Visit %(visit)d CCD%(ccd)03d\r" % dataId
+
+        raw = self.butler.get("raw", immediate=True, **dataId)
+        try:
+            raw = cgUtils.trimExposure(raw, subtractBias=True, rotate=True)
+        except:
+            return None
+
+        if False:
+            msk=raw.getMaskedImage().getMask()
+            BAD=msk.getPlaneBitMask("BAD"); msk |= BAD; msk[15:-15, 20:-20] &= ~BAD
+
+        r, lnGrad, theta = [], [], []
+        fitPatches(raw, bin=self.bin, r=r, lnGrad=lnGrad, theta=theta)
+
+        return r, theta, lnGrad
 
 #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
@@ -266,38 +293,32 @@ def reconstruct(xsize, ysize, dzdx, dzdy):
 
     return recon
 
-def radialProfile(butler, visit, ccds=None, bin=128, frame=None, plot=False):
+def radialProfile(butler, visit, ccds=None, bin=128, nJob=None, plot=False):
     """Return arrays giving the radius, logarithmic derivative, and theta for all patches in the camera"""
-    r, lnGrad, theta = [], [], []
 
     if ccds is None:
         ccds = butler.queryMetadata('raw', 'visit', 'ccd', visit=visit)
-
+    #
+    # If we're using multiprocessing we need to create the jobs now
+    #
+    verbose = True
+    if nJob:
+        pool = multiprocessing.Pool(nJob)
+        
+    fitPatchesWorkArgs = []
     for ccdNum in ccds:
-        if len(ccds) > 1:
-            print "%d CCD %03d\r" % (visit, ccdNum), ; sys.stdout.flush()
+        dataId = dict(visit=visit, ccd=ccdNum)
+        fitPatchesWorkArgs.append(dataId)
 
-        raw = butler.get("raw", visit=visit, ccd=ccdNum, immediate=True)
-        try:
-            raw = cgUtils.trimExposure(raw, subtractBias=True)
-        except:
-            continue
-        ccd = afwCamGeom.cast_Ccd(raw.getDetector())
-        nQuarter = ccd.getOrientation().getNQuarter()
-        if nQuarter != 0:
-            raw.setMaskedImage(afwMath.rotateImageBy90(raw.getMaskedImage(), nQuarter))
-
-        if False:
-            msk=raw.getMaskedImage().getMask()
-            BAD=msk.getPlaneBitMask("BAD"); msk |= BAD; msk[15:-15, 20:-20] &= ~BAD
-
-        dlnzdx, dlnzdy, dlnzdr = fitPatches(raw, bin=bin, r=r, lnGrad=lnGrad, theta=theta)[0:3]
-
-        if frame is not None:
-            ds9.mtv(dlnzdr, title="dlnz/dr %s" % (ccd.getId().getSerial()), frame=frame)
-                
-    if len(ccds) > 1:
-        print ""
+    r, lnGrad, theta = [], [], []
+    worker = FitPatchesWork(butler, bin, verbose)
+    if not nJob:
+        for dataId in fitPatchesWorkArgs:
+            _r, _theta, _lnGrad = worker(dataId)
+            r += _r; theta += _theta; lnGrad += _lnGrad
+    else:
+        for _r, _theta, _lnGrad in pool.map(worker, fitPatchesWorkArgs):
+            r += _r; theta += _theta; lnGrad += _lnGrad
         
     r = np.array(r); lnGrad = np.array(lnGrad); theta = np.array(theta)
 
