@@ -27,7 +27,16 @@ rings.plotRadial(r, profs, xlim=(-100, 5500), ylim=(0.8, 1.03))
 
 import multiprocessing
 import sys
-from lsstImports import *
+import numpy as np
+
+import lsst.afw.cameraGeom as afwCamGeom
+import lsst.afw.cameraGeom.utils as cgUtils
+import lsst.afw.geom        as afwGeom
+import lsst.afw.image       as afwImage
+import lsst.afw.math        as afwMath
+import lsst.afw.display.ds9 as ds9
+import lsst.afw.display.utils as ds9Utils
+
 try:
     pyplot
 except NameError:
@@ -142,7 +151,7 @@ values of r, theta, and dlnI/dr from this image appended.
                 if False and frame is not None:
                     ds9Utils.drawBBox(bbox, frame=frame0)
 
-                b, res = fitPlane(mi[bbox].getImage(), returnResidualImage=returnResidualImage, niter=3)
+                b, res = fitPlane(mi[bbox].getImage(), returnResidualImage=returnResidualImage, niter=5)
                 
                 b[1:] /= b[0]
                 za[iy, ix], dlnzdxa[iy, ix], dlnzdya[iy, ix] = b
@@ -317,8 +326,13 @@ def radialProfile(butler, visit, ccds=None, bin=128, nJob=None, plot=False):
             _r, _theta, _lnGrad = worker(dataId)
             r += _r; theta += _theta; lnGrad += _lnGrad
     else:
-        for _r, _theta, _lnGrad in pool.map(worker, fitPatchesWorkArgs):
+        # We use map_async(...).get(9999) instead of map(...) to workaround a python bug
+        # in handling ^C in subprocesses (http://bugs.python.org/issue8296)
+        for _r, _theta, _lnGrad in pool.map_async(worker, fitPatchesWorkArgs).get(9999):
             r += _r; theta += _theta; lnGrad += _lnGrad
+
+        pool.close()
+        pool.join()
         
     r = np.array(r); lnGrad = np.array(lnGrad); theta = np.array(theta)
 
@@ -354,8 +368,8 @@ Return r and lnGrad binned into nBin bins.  If profile is True, integrate the ln
 
     return rbar, lng
 
-def plotRadial(r, lnGrad, theta=None, title=None, profile=False, showMedians=False,
-               nBin=100, binAngle=0, alpha=1.0, xmin=-100, ctype='black', overplot=False,
+def plotRadial(r, lnGrad, theta=None, title=None, profile=False, showMedians=False, tieIndex=None,
+               marker="o", nBin=100, binAngle=0, alpha=1.0, xmin=-100, ctype='black', overplot=False,
                xlim = (-100, 18000), ylim = None):
     """
     N.b. theta is in radians, but binAngle is in degrees
@@ -369,31 +383,37 @@ def plotRadial(r, lnGrad, theta=None, title=None, profile=False, showMedians=Fal
     scalarMap = pyplot.cm.ScalarMappable(norm=norm, cmap=cmap)
     
     if profile or showMedians:
-        if False:
-            import scipy.ndimage
-            scipy.ndimage.filters.median_filter(ref, size=[size], output=sky, mode='reflect')
-
         bins = np.linspace(0, min(18000, np.max(r)), nBin)
         binWidth = bins[1] - bins[0]
 
-        if binAngle <= 0:
-            rbar, lng = makeRadial(r, lnGrad, nBin, profile=profile)
-
-            pyplot.plot(rbar, lng, 'o', markersize=5.0, markeredgewidth=0, color=ctype, alpha=alpha)
-        else:
-            angleBin = np.pi/180*(np.linspace(-180, 180 - binAngle, 360.0/binAngle, binAngle) + 0.5*binAngle)
+        if binAngle > 0:
+            angleBin = np.pi/180*(np.linspace(-180, 180 - binAngle, 360.0/binAngle, binAngle))
             binAngle *= np.pi/180
 
-            for a in reversed(angleBin):
+        lng0 = None
+        for a in [None] if binAngle <= 0 else reversed(angleBin):
+            if a is None:
+                rbar, lng = makeRadial(r, lnGrad, nBin, profile=profile)
+                color, label = ctype, None
+            else:
                 inBin = np.where(np.abs(theta - a) < 0.5*binAngle)
 
                 rbar, lng = makeRadial(r[inBin], lnGrad[inBin], nBin, profile=profile)
 
                 color = scalarMap.to_rgba(a*180/np.pi)
+                label="%6.1f" % (a*180/np.pi)
 
-                pyplot.plot(rbar, lng, 'o', markersize=5.0, markeredgewidth=0, color=color, alpha=alpha,
-                            label="%6.1f" % (a*180/np.pi))
+            if tieIndex is not None:
+                if lng0 is None: 
+                    if tieIndex == 0:
+                        lng /= lng[0]
+                    lng0 = lng
+                else:
+                    lng *= lng0[tieIndex]/lng[tieIndex]
 
+            pyplot.plot(rbar, lng, marker, markersize=5.0, markeredgewidth=0, color=color, alpha=alpha,
+                        label=label)
+        if binAngle > 0:
             pyplot.legend(loc="lower left")
     else:
         if theta is None:
@@ -558,3 +578,68 @@ def profilePca(butler, visits=None, ccds=None, bin=64, nBin=30, nPca=2, grad={},
         pyplot.ylim(ylim)
 
     return rbar, profiles
+
+def plotProfiles(butler, visits, outputPlotFile=None, bin=64, nBin=30, binAngle=45, marker='o',
+                 tieIndex=3, ctype=['k'], nJob=10, grad={}):
+    try:
+        iter(visits)
+    except TypeError:
+        visits = [visits]
+
+    if outputPlotFile:
+        from matplotlib.backends.backend_pdf import PdfPages
+        pp = PdfPages(outputPlotFile)
+    else:
+        pp = None
+
+    for i, visit in enumerate(visits):
+        print "Processing %d" % (visit)
+        if not grad.has_key(visit):
+            grad[visit] = radialProfile(butler, visit=visit, bin=bin, nJob=nJob)
+
+        md = butler.get("raw_md", visit=visit, ccd=0)
+        title = "%s %s %d binned %d" % (md.get("OBJECT"), afwImage.Filter(md).getName(), visit, bin)
+        plotRadial(*grad[visit], title=title, alpha=1.0, ctype=ctype[i%len(ctype)],
+                    overplot=True if (pp is None and i > 0) else True,
+                    profile=True, nBin=nBin, binAngle=binAngle, marker=marker, tieIndex=tieIndex)
+        if pp:
+            try:
+                pp.savefig()
+            except ValueError:          # thrown if we failed to actually plot anything
+                pass
+            pyplot.clf()
+
+    if pp:
+        pp.close()
+    else:
+        pyplot.show()
+
+    return grad
+
+def medianFilterImage(img, nx, ny=None):
+    if nx%1 == 0:
+        nx += 1
+    if ny:
+        if ny%1 == 0:
+            ny += 1
+    else:
+        ny = nx
+
+    w, h = img.getDimensions()
+
+    mimg = img.clone()
+
+    imga = img.getArray()
+    mimga = mimg.getArray()
+    sim = afwImage.ImageF(nx, ny); sima = sim.getArray() # permits me to mtv it
+
+    for y in range(nx//2, h - nx//2):
+        print "%d\r" % y,; sys.stdout.flush()
+        for x in range(ny//2, w - ny//2):
+            sima[:] = imga[y - ny//2:y + ny//2, x - nx//2:x + nx//2]
+            mimga[y, x] = np.median(sima[np.where(np.isfinite(sima))])
+
+            if False:
+                ds9.mtv(sim)
+
+    return mimg
