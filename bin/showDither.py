@@ -3,6 +3,7 @@ import argparse, fnmatch, os, re, sys
 
 import numpy as np
 import lsst.afw.geom as afwGeom
+import lsst.afw.image as afwImage
 import lsst.afw.cameraGeom as afwCG
 import lsst.daf.persistence as dafPersist
 import lsst.obs.hscSim as hscSim
@@ -10,11 +11,13 @@ try:
     plt
 except NameError:
     import matplotlib.pyplot as plt
-    from matplotlib.patches import Circle
+    from matplotlib.patches import Circle, PathPatch
+    from matplotlib.path import Path
 
     plt.interactive(1)
 
-def main(butler, visits, fields, fieldRadius, title="", aitoff=False, verbose=False):
+def main(butler, visits, fields, fieldRadius, showCCDs=False, aitoff=False, alpha=0.2,
+         title="", verbose=False):
     camera = butler.get("camera")
 
     ra, dec = [], []
@@ -53,7 +56,7 @@ def main(butler, visits, fields, fieldRadius, title="", aitoff=False, verbose=Fa
                         i="magenta",
                         z="brown",
                         y="black",
-                    )
+                        )
 
     if aitoff:
         fieldRadius = np.radians(fieldRadius)
@@ -62,17 +65,44 @@ def main(butler, visits, fields, fieldRadius, title="", aitoff=False, verbose=Fa
         ra  = np.radians(np.where(ra > 180, ra - 360, ra))
 
     plots, labels = [], []
+    plt.interactive(0)
     for v, r, d in zip(visits, ra, dec):
         field = fields.get(v)
+        if verbose:
+            print "Drawing %s %s         \r" % (v, field),; sys.stdout.flush()
 
-        circ = Circle(xy=(r, d), radius=fieldRadius)
+        facecolor = ctypes.get(field, ctypeFilters.get(filters[v], "gray"))
+        
+        circ = Circle(xy=(r, d), radius=fieldRadius, fill=False if showCCDs else True,
+                      facecolor=facecolor, alpha=alpha)
         axes.add_artist(circ)
-        circ.set_alpha(0.2)
-        circ.set_facecolor(ctypes.get(field, ctypeFilters.get(filters[v], "gray")))
+
+        if showCCDs:
+            pathCodes = [Path.MOVETO, Path.LINETO, Path.LINETO, Path.LINETO, Path.CLOSEPOLY,]
+            
+            for ccd in butler.queryMetadata("raw", "visit", ["ccd"], visit=v):
+                try:
+                    md = butler.get("raw_md", visit=v, ccd=ccd)
+                except RuntimeError, e:
+                    if verbose:
+                        print >> sys.stderr, e
+                    continue
+
+                width, height = md.get("NAXIS1"), md.get("NAXIS2")
+                wcs = afwImage.makeWcs(md)
+
+                verts = []
+                for p in [(0, 0), (width, 0), (width, height), (0, height)]:
+                    sky = wcs.pixelToSky(afwGeom.PointD(*p))
+                    verts.append([sky[0].asDegrees(), sky[1].asDegrees()])
+                verts.append((0, 0))    # dummy
+
+                axes.add_patch(PathPatch(Path(verts, pathCodes), alpha=alpha, facecolor=facecolor))
 
         if not labels.count(field):
-            plots.append(circ); labels.append(field)
+            plots.append(Circle((0,0), facecolor=facecolor)); labels.append(field)
 
+    plt.interactive(1)
     plt.legend(plots, labels,
                loc='lower left', bbox_to_anchor=(0, 1.02, 1, 0.102)).draggable()
 
@@ -104,7 +134,10 @@ E.g.
     parser.add_argument('--exclude', type=str, nargs="*",
                         help='Exclude these types of  field (e.g. BIAS DARK *FOCUS*)')
     parser.add_argument('--dateObs', type=str, nargs="*", help='Desired date[s] (e.g. 2013-06-15 2013-06-16)')
+    parser.add_argument('--alpha', type=float, help='Transparency of observed regions', default=0.2)
     parser.add_argument('--fieldRadius', type=float, help='Radius of usable field (degrees)', default=0.75)
+    parser.add_argument('--showCCDs', action="store_true",
+                        help="Show the individual CCDs (quite slow)", default=False)
     parser.add_argument('--aitoff', action="store_true", help="Use an Aitoff projection", default=False)
     parser.add_argument('--verbose', action="store_true", help="Be chatty", default=False)
     
@@ -175,11 +208,16 @@ E.g.
         sys.exit(1)
 
     fields = dict([(v, f) for v, f in fields.items() if v in visits])
+    visits = sorted(fields.keys())
 
     if args.verbose:
-        for v in sorted(fields.keys()):
+        for v in visits:
             print v, fields[v]
 
-    main(butler, visits, fields, args.fieldRadius, aitoff=args.aitoff, title="", verbose=args.verbose)
+    main(butler, visits, fields, args.fieldRadius,
+         showCCDs=args.showCCDs, aitoff=args.aitoff, alpha=args.alpha, title="", verbose=args.verbose)
 
+    if args.verbose:
+        print "                          \r",; sys.stdout.flush()
+        
     raw_input("Exit? ")
