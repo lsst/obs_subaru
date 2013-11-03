@@ -14,7 +14,7 @@ except NameError:
 
     plt.interactive(1)
 
-def main(butler, visits, fields, title="", aitoff=False, verbose=False):
+def main(butler, visits, fields, fieldRadius, title="", aitoff=False, verbose=False):
     camera = butler.get("camera")
 
     ra, dec = [], []
@@ -55,7 +55,6 @@ def main(butler, visits, fields, title="", aitoff=False, verbose=False):
                         y="black",
                     )
 
-    fieldRadius = 0.9                   # degrees
     if aitoff:
         fieldRadius = np.radians(fieldRadius)
         dec = np.radians(dec)
@@ -105,6 +104,7 @@ E.g.
     parser.add_argument('--exclude', type=str, nargs="*",
                         help='Exclude these types of  field (e.g. BIAS DARK *FOCUS*)')
     parser.add_argument('--dateObs', type=str, nargs="*", help='Desired date[s] (e.g. 2013-06-15 2013-06-16)')
+    parser.add_argument('--fieldRadius', type=float, help='Radius of usable field (degrees)', default=0.75)
     parser.add_argument('--aitoff', action="store_true", help="Use an Aitoff projection", default=False)
     parser.add_argument('--verbose', action="store_true", help="Be chatty", default=False)
     
@@ -180,6 +180,6 @@ E.g.
         for v in sorted(fields.keys()):
             print v, fields[v]
 
-    main(butler, visits, fields, aitoff=args.aitoff, title="", verbose=args.verbose)
+    main(butler, visits, fields, args.fieldRadius, aitoff=args.aitoff, title="", verbose=args.verbose)
 
     raw_input("Exit? ")
