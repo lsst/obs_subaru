@@ -226,4 +226,4 @@ Most chips are flipped L/R, but the rotated ones (100..103) are flipped T/B
 
     @classmethod
     def getCameraName(cls):
-        return "HSC"
+        return "hsc"
