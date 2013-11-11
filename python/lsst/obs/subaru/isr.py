@@ -394,8 +394,8 @@ class SubaruIsrTask(IsrTask):
         self.log.info("Measuring sky levels in %dx%d grids: %f" % (nX, nY, skyMedian))
         self.log.info("Sky flatness in %dx%d grids - pp: %f rms: %f" % (nX, nY, flatness_pp, flatness_rms))
 
-        metadata.set('FLATNESS_PP', flatness_pp)
-        metadata.set('FLATNESS_RMS', flatness_rms)
+        metadata.set('FLATNESS_PP', float(flatness_pp))
+        metadata.set('FLATNESS_RMS', float(flatness_rms))
         metadata.set('FLATNESS_NGRIDS', '%dx%d' % (nX, nY))
         metadata.set('FLATNESS_MESHX', self.config.qa.flatness.meshX)
         metadata.set('FLATNESS_MESHY', self.config.qa.flatness.meshY)
