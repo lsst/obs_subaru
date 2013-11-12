@@ -56,7 +56,18 @@ class HscParseTask(ParseTask):
         if not m:
             raise RuntimeError("Unable to interpret EXP-ID: %s" % expId)
         letter, visit = m.groups()
-        return int(visit) + 1000000*(ord(letter) - ord("A"))
+        visit = int(visit)
+        if int(visit) == 0:
+            # Don't believe it
+            frameId = md.get("FRAMEID").strip()
+            m = re.search("^HSC([A-Z])(\d{6})\d{2}$", frameId)
+            if not m:
+                raise RuntimeError("Unable to interpret FRAMEID: %s" % frameId)
+            letter, visit = m.groups()
+            visit = int(visit)
+            if visit % 2: # Odd?
+                visit -= 1
+        return visit + 1000000*(ord(letter) - ord("A"))
 
     def getTjd(self, md):
         """Return truncated (modified) Julian Date"""
@@ -109,3 +120,10 @@ class HscParseTask(ParseTask):
             ccd = self.CCD_MAP_COMMISSIONING_2.get(ccd, ccd)
 
         return ccd
+
+    def translate_filter(self, md):
+        """Want upper-case filter names"""
+        try:
+            return md.get('FILTER01').strip().upper()
+        except:
+            return "Unrecognized"

@@ -4,7 +4,6 @@ root.parse.retarget(HscParseTask)
 root.parse.translation = {'proposal': 'PROP-ID',
                           'dataType': 'DATA-TYP',
                           'field': 'OBJECT',
-                          'filter': 'FILTER01',
                           'expTime': 'EXPTIME',
                           'ccd': 'DET-ID',
                           'pa': 'INST-PA',
@@ -20,6 +19,7 @@ root.parse.defaults = {'ccdTemp': "0", # Added in commissioning run 3
                        }
 root.parse.translators = {'visit': 'translate_visit',
                           'pointing': 'translate_pointing',
+                          'filter': 'translate_filter',
 }
 
 root.register.columns = {'field': 'text',
