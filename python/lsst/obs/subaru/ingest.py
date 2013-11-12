@@ -50,6 +50,12 @@ def datetime2mjd(date_time):
 class HscParseTask(ParseTask):
     DAY0 = 55927  # Zero point for  2012-01-01  51544 -> 2000-01-01
 
+    def translate_field(self, md):
+        field = md.get("OBJECT").strip()
+        if field == "#":
+            field = "UNKNOWN"
+        return field
+
     def translate_visit(self, md):
         expId = md.get("EXP-ID").strip()
         m = re.search("^HSC([A-Z])(\d{6})00$", expId)
