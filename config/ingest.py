@@ -40,4 +40,4 @@ root.register.columns = {'field': 'text',
                          'dataType': 'text',
                          }
 root.register.unique = ['visit', 'ccd',]
-root.register.visit = ['visit', 'field', 'filter', 'dateObs',]
+root.register.visit = ['visit', 'field', 'filter', 'dateObs', 'taiObs']
