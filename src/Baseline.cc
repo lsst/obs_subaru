@@ -34,7 +34,7 @@ fitEllipse(ImageT const& image, double bkgd, double xc, double yc) {
 	return vals;
 }
 
-static bool span_ptr_compare(det::Span::Ptr sp1, det::Span::Ptr sp2) {
+static bool span_ptr_compare(PTR(det::Span) sp1, PTR(det::Span) sp2) {
 	return (*sp1 < *sp2);
 }
 
@@ -191,7 +191,7 @@ makeMonotonic(
 }
 
 template<typename ImagePixelT, typename MaskPixelT, typename VariancePixelT>
-std::vector<typename image::MaskedImage<ImagePixelT, MaskPixelT, VariancePixelT>::Ptr>
+std::vector<typename PTR(image::MaskedImage<ImagePixelT, MaskPixelT, VariancePixelT>)>
 deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::
 apportionFlux(MaskedImageT const& img,
 			  det::Footprint const& foot,
@@ -253,7 +253,7 @@ apportionFlux(MaskedImageT const& img,
 }
 
 template<typename ImagePixelT, typename MaskPixelT, typename VariancePixelT>
-lsst::afw::detection::Footprint::Ptr
+PTR(lsst::afw::detection::Footprint)
 deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::
 symmetrizeFootprint(
     det::Footprint const& foot,
@@ -261,7 +261,7 @@ symmetrizeFootprint(
 
 	typedef typename det::Footprint::SpanList SpanList;
 
-    det::Footprint::Ptr sfoot(new det::Footprint);
+    PTR(det::Footprint) sfoot(new det::Footprint);
 	const SpanList spans = foot.getSpans();
     assert(foot.isNormalized());
 
@@ -289,7 +289,7 @@ symmetrizeFootprint(
 	 */
 
 	// Find the Span containing the peak.
-	det::Span::Ptr target(new det::Span(cy, cx, cx));
+	PTR(det::Span) target(new det::Span(cy, cx, cx));
 	SpanList::const_iterator peakspan =
         std::lower_bound(spans.begin(), spans.end(), target, span_ptr_compare);
 	// lower_bound returns the first position where "target" could be inserted;
@@ -297,16 +297,16 @@ symmetrizeFootprint(
 	// should be peakspan-1.
 	if (peakspan == spans.begin()) {
 		log.warnf("Failed to find span containing (%i,%i): before the beginning of this footprint", cx, cy);
-		return det::Footprint::Ptr();
+		return PTR(det::Footprint)();
 	}
 	peakspan--;
-	det::Span::Ptr sp = *peakspan;
+	PTR(det::Span) sp = *peakspan;
 	if (!(sp->contains(cx,cy))) {
 		geom::Box2I fbb = foot.getBBox();
 		log.warnf("Failed to find span containing (%i,%i): nearest is %i, [%i,%i].  Footprint bbox is [%i,%i],[%i,%i]",
 				  cx, cy, sp->getY(), sp->getX0(), sp->getX1(),
 				  fbb.getMinX(), fbb.getMaxX(), fbb.getMinY(), fbb.getMaxY());
-		return det::Footprint::Ptr();
+		return PTR(det::Footprint)();
 	}
 	assert(sp->contains(cx,cy));
 	log.debugf("Span containing (%i,%i): (x=[%i,%i], y=%i)",
@@ -455,8 +455,8 @@ symmetrizeFootprint(
 }
 
 template<typename ImagePixelT, typename MaskPixelT, typename VariancePixelT>
-std::pair<typename lsst::afw::image::MaskedImage<ImagePixelT,MaskPixelT,VariancePixelT>::Ptr,
-		  typename lsst::afw::detection::Footprint::Ptr>
+std::pair<typename PTR(lsst::afw::image::MaskedImage<ImagePixelT,MaskPixelT,VariancePixelT>),
+		  typename PTR(lsst::afw::detection::Footprint)>
 deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::
 buildSymmetricTemplate(
 	MaskedImageT const& img,
