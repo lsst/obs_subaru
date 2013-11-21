@@ -5,7 +5,9 @@ root.isr.retarget(SubaruIsrTask)
 from lsst.obs.subaru.crosstalk import CrosstalkTask
 root.isr.crosstalk.retarget(CrosstalkTask)
 
-root.isr.doBias = False # XXX For now
+root.isr.overscanFitType = "AKIMA_SPLINE"
+root.isr.overscanPolyOrder = 30
+root.isr.doBias = False # Overscan is fairly efficient at removing bias level
 root.isr.doDark = False
 root.isr.doWrite = False
 root.isr.doCrosstalk = True
