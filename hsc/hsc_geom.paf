@@ -43,937 +43,937 @@ Raft: {
         name: "1_53"
         ptype: "default"
         index: 0 0
-        offset:   14861.10   -6629.29	# offset of CCD center from raft center, (x, y)
+        offset: 14861.08  -6629.29        # offset of CCD center from raft center, (x, y)
         nQuarter: 2			# number of quarter turns applied to CCD when put into raft
-        orientation: 0.000000 0.000000 0.000075		# pitch, roll, yaw; degrees
+        orientation: 0.0 0.0 0.0042795 # pitch, roll, yaw; degrees
     }
     Ccd: {
         serial: 1
         name: "1_54"
         ptype: "default"
         index: 0 0
-        offset:   14861.20   -2150.71	# offset of CCD center from raft center, (x, y)
+        offset: 14861.25  -2150.71        # offset of CCD center from raft center, (x, y)
         nQuarter: 2			# number of quarter turns applied to CCD when put into raft
-        orientation: 0.000000 0.000000 -0.000017		# pitch, roll, yaw; degrees
+        orientation: 0.0 0.0 -0.0009544 # pitch, roll, yaw; degrees
     }
     Ccd: {
         serial: 2
         name: "1_55"
         ptype: "default"
         index: 0 0
-        offset:   14861.59    2324.13	# offset of CCD center from raft center, (x, y)
+        offset: 14861.61  2324.13        # offset of CCD center from raft center, (x, y)
         nQuarter: 2			# number of quarter turns applied to CCD when put into raft
-        orientation: 0.000000 0.000000 0.000174		# pitch, roll, yaw; degrees
+        orientation: 0.0 0.0 0.0099409 # pitch, roll, yaw; degrees
     }
     Ccd: {
         serial: 3
         name: "1_56"
         ptype: "default"
         index: 0 0
-        offset:   14860.90    6801.66	# offset of CCD center from raft center, (x, y)
+        offset: 14860.90  6801.66        # offset of CCD center from raft center, (x, y)
         nQuarter: 2			# number of quarter turns applied to CCD when put into raft
-        orientation: 0.000000 0.000000 -0.000114		# pitch, roll, yaw; degrees
+        orientation: 0.0 0.0 -0.0065592 # pitch, roll, yaw; degrees
     }
     Ccd: {
         serial: 4
         name: "1_42"
         ptype: "default"
         index: 0 0
-        offset:   12736.50  -11104.20	# offset of CCD center from raft center, (x, y)
+        offset: 12736.52  -11104.21        # offset of CCD center from raft center, (x, y)
         nQuarter: 2			# number of quarter turns applied to CCD when put into raft
-        orientation: 0.000000 0.000000 0.000104		# pitch, roll, yaw; degrees
+        orientation: 0.0 0.0 0.0059564 # pitch, roll, yaw; degrees
     }
     Ccd: {
         serial: 5
         name: "1_43"
         ptype: "default"
         index: 0 0
-        offset:   12737.11   -6627.91	# offset of CCD center from raft center, (x, y)
+        offset: 12737.10  -6627.90        # offset of CCD center from raft center, (x, y)
         nQuarter: 2			# number of quarter turns applied to CCD when put into raft
-        orientation: 0.000000 0.000000 -0.000342		# pitch, roll, yaw; degrees
+        orientation: 0.0 0.0 -0.0195999 # pitch, roll, yaw; degrees
     }
     Ccd: {
         serial: 6
         name: "1_44"
         ptype: "default"
         index: 0 0
-        offset:   12737.62   -2151.60	# offset of CCD center from raft center, (x, y)
+        offset: 12737.60  -2151.59        # offset of CCD center from raft center, (x, y)
         nQuarter: 2			# number of quarter turns applied to CCD when put into raft
-        orientation: 0.000000 0.000000 -0.000492		# pitch, roll, yaw; degrees
+        orientation: 0.0 0.0 -0.0282071 # pitch, roll, yaw; degrees
     }
     Ccd: {
         serial: 7
         name: "1_45"
         ptype: "default"
         index: 0 0
-        offset:   12740.68    2322.95	# offset of CCD center from raft center, (x, y)
+        offset: 12740.74  2322.94        # offset of CCD center from raft center, (x, y)
         nQuarter: 2			# number of quarter turns applied to CCD when put into raft
-        orientation: 0.000000 0.000000 0.000684		# pitch, roll, yaw; degrees
+        orientation: 0.0 0.0 0.0391671 # pitch, roll, yaw; degrees
     }
     Ccd: {
         serial: 8
         name: "1_46"
         ptype: "default"
         index: 0 0
-        offset:   12738.42    6802.12	# offset of CCD center from raft center, (x, y)
+        offset: 12738.40  6802.13        # offset of CCD center from raft center, (x, y)
         nQuarter: 2			# number of quarter turns applied to CCD when put into raft
-        orientation: 0.000000 0.000000 -0.000434		# pitch, roll, yaw; degrees
+        orientation: 0.0 0.0 -0.0248711 # pitch, roll, yaw; degrees
     }
     Ccd: {
         serial: 9
         name: "1_47"
         ptype: "default"
         index: 0 0
-        offset:   12738.03   11277.69	# offset of CCD center from raft center, (x, y)
+        offset: 12738.00  11277.68        # offset of CCD center from raft center, (x, y)
         nQuarter: 2			# number of quarter turns applied to CCD when put into raft
-        orientation: 0.000000 0.000000 -0.000739		# pitch, roll, yaw; degrees
+        orientation: 0.0 0.0 -0.0423397 # pitch, roll, yaw; degrees
     }
     Ccd: {
         serial: 10
         name: "1_36"
         ptype: "default"
         index: 0 0
-        offset:   10614.30  -11103.50	# offset of CCD center from raft center, (x, y)
+        offset: 10614.27  -11103.46        # offset of CCD center from raft center, (x, y)
         nQuarter: 2			# number of quarter turns applied to CCD when put into raft
-        orientation: 0.000000 0.000000 -0.000058		# pitch, roll, yaw; degrees
+        orientation: 0.0 0.0 -0.0033008 # pitch, roll, yaw; degrees
     }
     Ccd: {
         serial: 11
         name: "1_37"
         ptype: "default"
         index: 0 0
-        offset:   10616.07   -6629.14	# offset of CCD center from raft center, (x, y)
+        offset: 10616.06  -6629.15        # offset of CCD center from raft center, (x, y)
         nQuarter: 2			# number of quarter turns applied to CCD when put into raft
-        orientation: 0.000000 0.000000 0.000708		# pitch, roll, yaw; degrees
+        orientation: 0.0 0.0 0.0405792 # pitch, roll, yaw; degrees
     }
     Ccd: {
         serial: 12
         name: "1_38"
         ptype: "default"
         index: 0 0
-        offset:   10614.22   -2147.64	# offset of CCD center from raft center, (x, y)
+        offset: 10614.16  -2147.63        # offset of CCD center from raft center, (x, y)
         nQuarter: 2			# number of quarter turns applied to CCD when put into raft
-        orientation: 0.000000 0.000000 -0.000588		# pitch, roll, yaw; degrees
+        orientation: 0.0 0.0 -0.0336698 # pitch, roll, yaw; degrees
     }
     Ccd: {
         serial: 13
         name: "1_39"
         ptype: "default"
         index: 0 0
-        offset:   10613.52    2324.77	# offset of CCD center from raft center, (x, y)
+        offset: 10613.55  2324.78        # offset of CCD center from raft center, (x, y)
         nQuarter: 2			# number of quarter turns applied to CCD when put into raft
-        orientation: 0.000000 0.000000 -0.000477		# pitch, roll, yaw; degrees
+        orientation: 0.0 0.0 -0.0273391 # pitch, roll, yaw; degrees
     }
     Ccd: {
         serial: 14
         name: "1_40"
         ptype: "default"
         index: 0 0
-        offset:   10617.88    6800.26	# offset of CCD center from raft center, (x, y)
+        offset: 10617.91  6800.25        # offset of CCD center from raft center, (x, y)
         nQuarter: 2			# number of quarter turns applied to CCD when put into raft
-        orientation: 0.000000 0.000000 0.000583		# pitch, roll, yaw; degrees
+        orientation: 0.0 0.0 0.0334285 # pitch, roll, yaw; degrees
     }
     Ccd: {
         serial: 15
         name: "1_41"
         ptype: "default"
         index: 0 0
-        offset:   10615.41   11277.40	# offset of CCD center from raft center, (x, y)
+        offset: 10615.43  11277.41        # offset of CCD center from raft center, (x, y)
         nQuarter: 2			# number of quarter turns applied to CCD when put into raft
-        orientation: 0.000000 0.000000 -0.000278		# pitch, roll, yaw; degrees
+        orientation: 0.0 0.0 -0.0159151 # pitch, roll, yaw; degrees
     }
     Ccd: {
         serial: 16
         name: "0_30"
         ptype: "default"
         index: 0 0
-        offset:    8489.38  -10881.61	# offset of CCD center from raft center, (x, y)
+        offset: 8489.37  -10881.57        # offset of CCD center from raft center, (x, y)
         nQuarter: 0			# number of quarter turns applied to CCD when put into raft
-        orientation: 0.000000 0.000000 -0.000312		# pitch, roll, yaw; degrees
+        orientation: 0.0 0.0 -0.0178983 # pitch, roll, yaw; degrees
     }
     Ccd: {
         serial: 17
         name: "0_29"
         ptype: "default"
         index: 0 0
-        offset:    8490.21   -6401.95	# offset of CCD center from raft center, (x, y)
+        offset: 8490.20  -6401.94        # offset of CCD center from raft center, (x, y)
         nQuarter: 0			# number of quarter turns applied to CCD when put into raft
-        orientation: 0.000000 0.000000 -0.000367		# pitch, roll, yaw; degrees
+        orientation: 0.0 0.0 -0.0210420 # pitch, roll, yaw; degrees
     }
     Ccd: {
         serial: 18
         name: "0_28"
         ptype: "default"
         index: 0 0
-        offset:    8491.34   -1927.58	# offset of CCD center from raft center, (x, y)
+        offset: 8491.33  -1927.58        # offset of CCD center from raft center, (x, y)
         nQuarter: 0			# number of quarter turns applied to CCD when put into raft
-        orientation: 0.000000 0.000000 -0.000197		# pitch, roll, yaw; degrees
+        orientation: 0.0 0.0 -0.0113135 # pitch, roll, yaw; degrees
     }
     Ccd: {
         serial: 19
         name: "1_32"
         ptype: "default"
         index: 0 0
-        offset:    8492.63    2323.79	# offset of CCD center from raft center, (x, y)
+        offset: 8492.64  2323.79        # offset of CCD center from raft center, (x, y)
         nQuarter: 2			# number of quarter turns applied to CCD when put into raft
-        orientation: 0.000000 0.000000 0.000237		# pitch, roll, yaw; degrees
+        orientation: 0.0 0.0 0.0135889 # pitch, roll, yaw; degrees
     }
     Ccd: {
         serial: 20
         name: "1_33"
         ptype: "default"
         index: 0 0
-        offset:    8490.86    6801.58	# offset of CCD center from raft center, (x, y)
+        offset: 8490.86  6801.58        # offset of CCD center from raft center, (x, y)
         nQuarter: 2			# number of quarter turns applied to CCD when put into raft
-        orientation: 0.000000 0.000000 -0.000132		# pitch, roll, yaw; degrees
+        orientation: 0.0 0.0 -0.0075758 # pitch, roll, yaw; degrees
     }
     Ccd: {
         serial: 21
         name: "1_34"
         ptype: "default"
         index: 0 0
-        offset:    8495.38   11274.62	# offset of CCD center from raft center, (x, y)
+        offset: 8495.42  11274.63        # offset of CCD center from raft center, (x, y)
         nQuarter: 2			# number of quarter turns applied to CCD when put into raft
-        orientation: 0.000000 0.000000 0.001082		# pitch, roll, yaw; degrees
+        orientation: 0.0 0.0 0.0619751 # pitch, roll, yaw; degrees
     }
     Ccd: {
         serial: 22
         name: "0_27"
         ptype: "default"
         index: 0 0
-        offset:    6365.74  -15353.50	# offset of CCD center from raft center, (x, y)
+        offset: 6365.74  -15353.45        # offset of CCD center from raft center, (x, y)
         nQuarter: 0			# number of quarter turns applied to CCD when put into raft
-        orientation: 0.000000 0.000000 -0.000075		# pitch, roll, yaw; degrees
+        orientation: 0.0 0.0 -0.0043208 # pitch, roll, yaw; degrees
     }
     Ccd: {
         serial: 23
         name: "0_26"
         ptype: "default"
         index: 0 0
-        offset:    6369.72  -10878.69	# offset of CCD center from raft center, (x, y)
+        offset: 6369.73  -10878.72        # offset of CCD center from raft center, (x, y)
         nQuarter: 0			# number of quarter turns applied to CCD when put into raft
-        orientation: 0.000000 0.000000 0.000384		# pitch, roll, yaw; degrees
+        orientation: 0.0 0.0 0.0219764 # pitch, roll, yaw; degrees
     }
     Ccd: {
         serial: 24
         name: "0_25"
         ptype: "default"
         index: 0 0
-        offset:    6370.03   -6402.19	# offset of CCD center from raft center, (x, y)
+        offset: 6370.05  -6402.20        # offset of CCD center from raft center, (x, y)
         nQuarter: 0			# number of quarter turns applied to CCD when put into raft
-        orientation: 0.000000 0.000000 0.000532		# pitch, roll, yaw; degrees
+        orientation: 0.0 0.0 0.0304970 # pitch, roll, yaw; degrees
     }
     Ccd: {
         serial: 25
         name: "0_24"
         ptype: "default"
         index: 0 0
-        offset:    6369.02   -1924.56	# offset of CCD center from raft center, (x, y)
+        offset: 6369.03  -1924.57        # offset of CCD center from raft center, (x, y)
         nQuarter: 0			# number of quarter turns applied to CCD when put into raft
-        orientation: 0.000000 0.000000 0.000325		# pitch, roll, yaw; degrees
+        orientation: 0.0 0.0 0.0186323 # pitch, roll, yaw; degrees
     }
     Ccd: {
         serial: 26
         name: "1_00"
         ptype: "default"
         index: 0 0
-        offset:    6369.55    2323.60	# offset of CCD center from raft center, (x, y)
+        offset: 6369.54  2323.60        # offset of CCD center from raft center, (x, y)
         nQuarter: 2			# number of quarter turns applied to CCD when put into raft
-        orientation: 0.000000 0.000000 -0.000187		# pitch, roll, yaw; degrees
+        orientation: 0.0 0.0 -0.0107046 # pitch, roll, yaw; degrees
     }
     Ccd: {
         serial: 27
         name: "1_01"
         ptype: "default"
         index: 0 0
-        offset:    6370.53    6801.22	# offset of CCD center from raft center, (x, y)
+        offset: 6370.54  6801.21        # offset of CCD center from raft center, (x, y)
         nQuarter: 2			# number of quarter turns applied to CCD when put into raft
-        orientation: 0.000000 0.000000 0.000295		# pitch, roll, yaw; degrees
+        orientation: 0.0 0.0 0.0168835 # pitch, roll, yaw; degrees
     }
     Ccd: {
         serial: 28
         name: "1_02"
         ptype: "default"
         index: 0 0
-        offset:    6373.19   11275.92	# offset of CCD center from raft center, (x, y)
+        offset: 6373.22  11275.95        # offset of CCD center from raft center, (x, y)
         nQuarter: 2			# number of quarter turns applied to CCD when put into raft
-        orientation: 0.000000 0.000000 0.000843		# pitch, roll, yaw; degrees
+        orientation: 0.0 0.0 0.0483200 # pitch, roll, yaw; degrees
     }
     Ccd: {
         serial: 29
         name: "1_03"
         ptype: "default"
         index: 0 0
-        offset:    6368.58   15753.80	# offset of CCD center from raft center, (x, y)
+        offset: 6368.58  15753.83        # offset of CCD center from raft center, (x, y)
         nQuarter: 2			# number of quarter turns applied to CCD when put into raft
-        orientation: 0.000000 0.000000 -0.000132		# pitch, roll, yaw; degrees
+        orientation: 0.0 0.0 -0.0075553 # pitch, roll, yaw; degrees
     }
     Ccd: {
         serial: 30
         name: "0_23"
         ptype: "default"
         index: 0 0
-        offset:    4245.90  -15353.79	# offset of CCD center from raft center, (x, y)
+        offset: 4245.91  -15353.81        # offset of CCD center from raft center, (x, y)
         nQuarter: 0			# number of quarter turns applied to CCD when put into raft
-        orientation: 0.000000 0.000000 0.000351		# pitch, roll, yaw; degrees
+        orientation: 0.0 0.0 0.0201211 # pitch, roll, yaw; degrees
     }
     Ccd: {
         serial: 31
         name: "0_22"
         ptype: "default"
         index: 0 0
-        offset:    4243.74  -10879.81	# offset of CCD center from raft center, (x, y)
+        offset: 4243.72  -10879.82        # offset of CCD center from raft center, (x, y)
         nQuarter: 0			# number of quarter turns applied to CCD when put into raft
-        orientation: 0.000000 0.000000 -0.000441		# pitch, roll, yaw; degrees
+        orientation: 0.0 0.0 -0.0252791 # pitch, roll, yaw; degrees
     }
     Ccd: {
         serial: 32
         name: "0_21"
         ptype: "default"
         index: 0 0
-        offset:    4243.28   -6403.10	# offset of CCD center from raft center, (x, y)
+        offset: 4243.29  -6403.10        # offset of CCD center from raft center, (x, y)
         nQuarter: 0			# number of quarter turns applied to CCD when put into raft
-        orientation: 0.000000 0.000000 0.000139		# pitch, roll, yaw; degrees
+        orientation: 0.0 0.0 0.0079653 # pitch, roll, yaw; degrees
     }
     Ccd: {
         serial: 33
         name: "0_20"
         ptype: "default"
         index: 0 0
-        offset:    4247.57   -1926.09	# offset of CCD center from raft center, (x, y)
+        offset: 4247.59  -1926.10        # offset of CCD center from raft center, (x, y)
         nQuarter: 0			# number of quarter turns applied to CCD when put into raft
-        orientation: 0.000000 0.000000 0.000516		# pitch, roll, yaw; degrees
+        orientation: 0.0 0.0 0.0295685 # pitch, roll, yaw; degrees
     }
     Ccd: {
         serial: 34
         name: "1_04"
         ptype: "default"
         index: 0 0
-        offset:    4246.05    2323.65	# offset of CCD center from raft center, (x, y)
+        offset: 4246.04  2323.65        # offset of CCD center from raft center, (x, y)
         nQuarter: 2			# number of quarter turns applied to CCD when put into raft
-        orientation: 0.000000 0.000000 -0.000150		# pitch, roll, yaw; degrees
+        orientation: 0.0 0.0 -0.0085848 # pitch, roll, yaw; degrees
     }
     Ccd: {
         serial: 35
         name: "1_05"
         ptype: "default"
         index: 0 0
-        offset:    4244.98    6801.09	# offset of CCD center from raft center, (x, y)
+        offset: 4244.97  6801.10        # offset of CCD center from raft center, (x, y)
         nQuarter: 2			# number of quarter turns applied to CCD when put into raft
-        orientation: 0.000000 0.000000 -0.000311		# pitch, roll, yaw; degrees
+        orientation: 0.0 0.0 -0.0178263 # pitch, roll, yaw; degrees
     }
     Ccd: {
         serial: 36
         name: "1_06"
         ptype: "default"
         index: 0 0
-        offset:    4247.17   11275.90	# offset of CCD center from raft center, (x, y)
+        offset: 4247.17  11275.93        # offset of CCD center from raft center, (x, y)
         nQuarter: 2			# number of quarter turns applied to CCD when put into raft
-        orientation: 0.000000 0.000000 0.000005		# pitch, roll, yaw; degrees
+        orientation: 0.0 0.0 0.0002939 # pitch, roll, yaw; degrees
     }
     Ccd: {
         serial: 37
         name: "1_07"
         ptype: "default"
         index: 0 0
-        offset:    4245.85   15754.10	# offset of CCD center from raft center, (x, y)
+        offset: 4245.84  15754.11        # offset of CCD center from raft center, (x, y)
         nQuarter: 2			# number of quarter turns applied to CCD when put into raft
-        orientation: 0.000000 0.000000 -0.000186		# pitch, roll, yaw; degrees
+        orientation: 0.0 0.0 -0.0106645 # pitch, roll, yaw; degrees
     }
     Ccd: {
         serial: 38
         name: "0_19"
         ptype: "default"
         index: 0 0
-        offset:    2122.03  -15353.90	# offset of CCD center from raft center, (x, y)
+        offset: 2122.03  -15353.88        # offset of CCD center from raft center, (x, y)
         nQuarter: 0			# number of quarter turns applied to CCD when put into raft
-        orientation: 0.000000 0.000000 -0.000005		# pitch, roll, yaw; degrees
+        orientation: 0.0 0.0 -0.0002905 # pitch, roll, yaw; degrees
     }
     Ccd: {
         serial: 39
         name: "0_18"
         ptype: "default"
         index: 0 0
-        offset:    2119.66  -10877.41	# offset of CCD center from raft center, (x, y)
+        offset: 2119.64  -10877.39        # offset of CCD center from raft center, (x, y)
         nQuarter: 0			# number of quarter turns applied to CCD when put into raft
-        orientation: 0.000000 0.000000 -0.000470		# pitch, roll, yaw; degrees
+        orientation: 0.0 0.0 -0.0269482 # pitch, roll, yaw; degrees
     }
     Ccd: {
         serial: 40
         name: "0_17"
         ptype: "default"
         index: 0 0
-        offset:    2121.79   -6401.97	# offset of CCD center from raft center, (x, y)
+        offset: 2121.78  -6401.97        # offset of CCD center from raft center, (x, y)
         nQuarter: 0			# number of quarter turns applied to CCD when put into raft
-        orientation: 0.000000 0.000000 -0.000158		# pitch, roll, yaw; degrees
+        orientation: 0.0 0.0 -0.0090759 # pitch, roll, yaw; degrees
     }
     Ccd: {
         serial: 41
         name: "0_16"
         ptype: "default"
         index: 0 0
-        offset:    2123.01   -1923.94	# offset of CCD center from raft center, (x, y)
+        offset: 2123.02  -1923.94        # offset of CCD center from raft center, (x, y)
         nQuarter: 0			# number of quarter turns applied to CCD when put into raft
-        orientation: 0.000000 0.000000 0.000139		# pitch, roll, yaw; degrees
+        orientation: 0.0 0.0 0.0079447 # pitch, roll, yaw; degrees
     }
     Ccd: {
         serial: 42
         name: "1_08"
         ptype: "default"
         index: 0 0
-        offset:    2125.34    2324.09	# offset of CCD center from raft center, (x, y)
+        offset: 2125.35  2324.09        # offset of CCD center from raft center, (x, y)
         nQuarter: 2			# number of quarter turns applied to CCD when put into raft
-        orientation: 0.000000 0.000000 0.000276		# pitch, roll, yaw; degrees
+        orientation: 0.0 0.0 0.0157999 # pitch, roll, yaw; degrees
     }
     Ccd: {
         serial: 43
         name: "1_09"
         ptype: "default"
         index: 0 0
-        offset:    2123.66    6801.52	# offset of CCD center from raft center, (x, y)
+        offset: 2123.68  6801.51        # offset of CCD center from raft center, (x, y)
         nQuarter: 2			# number of quarter turns applied to CCD when put into raft
-        orientation: 0.000000 0.000000 0.000462		# pitch, roll, yaw; degrees
+        orientation: 0.0 0.0 0.0264757 # pitch, roll, yaw; degrees
     }
     Ccd: {
         serial: 44
         name: "1_10"
         ptype: "default"
         index: 0 0
-        offset:    2124.31   11278.40	# offset of CCD center from raft center, (x, y)
+        offset: 2124.32  11278.40        # offset of CCD center from raft center, (x, y)
         nQuarter: 2			# number of quarter turns applied to CCD when put into raft
-        orientation: 0.000000 0.000000 0.000214		# pitch, roll, yaw; degrees
+        orientation: 0.0 0.0 0.0122845 # pitch, roll, yaw; degrees
     }
     Ccd: {
         serial: 45
         name: "1_11"
         ptype: "default"
         index: 0 0
-        offset:    2123.59   15753.60	# offset of CCD center from raft center, (x, y)
+        offset: 2123.59  15753.62        # offset of CCD center from raft center, (x, y)
         nQuarter: 2			# number of quarter turns applied to CCD when put into raft
-        orientation: 0.000000 0.000000 0.000124		# pitch, roll, yaw; degrees
+        orientation: 0.0 0.0 0.0071262 # pitch, roll, yaw; degrees
     }
     Ccd: {
         serial: 46
         name: "0_15"
         ptype: "default"
         index: 0 0
-        offset:      -1.62  -15354.40	# offset of CCD center from raft center, (x, y)
+        offset: -1.62  -15354.40        # offset of CCD center from raft center, (x, y)
         nQuarter: 0			# number of quarter turns applied to CCD when put into raft
-        orientation: 0.000000 0.000000 -0.000123		# pitch, roll, yaw; degrees
+        orientation: 0.0 0.0 -0.0070215 # pitch, roll, yaw; degrees
     }
     Ccd: {
         serial: 47
         name: "0_14"
         ptype: "default"
         index: 0 0
-        offset:      -2.99  -10878.10	# offset of CCD center from raft center, (x, y)
+        offset: -2.98  -10878.12        # offset of CCD center from raft center, (x, y)
         nQuarter: 0			# number of quarter turns applied to CCD when put into raft
-        orientation: 0.000000 0.000000 0.000125		# pitch, roll, yaw; degrees
+        orientation: 0.0 0.0 0.0071423 # pitch, roll, yaw; degrees
     }
     Ccd: {
         serial: 48
         name: "0_13"
         ptype: "default"
         index: 0 0
-        offset:      -0.66   -6402.65	# offset of CCD center from raft center, (x, y)
+        offset: -0.66  -6402.65        # offset of CCD center from raft center, (x, y)
         nQuarter: 0			# number of quarter turns applied to CCD when put into raft
-        orientation: 0.000000 0.000000 -0.000061		# pitch, roll, yaw; degrees
+        orientation: 0.0 0.0 -0.0035169 # pitch, roll, yaw; degrees
     }
     Ccd: {
         serial: 49
         name: "0_12"
         ptype: "default"
         index: 0 0
-        offset:       0.28   -1925.76	# offset of CCD center from raft center, (x, y)
+        offset: 0.28  -1925.76        # offset of CCD center from raft center, (x, y)
         nQuarter: 0			# number of quarter turns applied to CCD when put into raft
-        orientation: 0.000000 0.000000 0.000128		# pitch, roll, yaw; degrees
+        orientation: 0.0 0.0 0.0073295 # pitch, roll, yaw; degrees
     }
     Ccd: {
         serial: 50
         name: "1_12"
         ptype: "default"
         index: 0 0
-        offset:       0.67    2325.50	# offset of CCD center from raft center, (x, y)
+        offset: 0.70  2325.48        # offset of CCD center from raft center, (x, y)
         nQuarter: 2			# number of quarter turns applied to CCD when put into raft
-        orientation: 0.000000 0.000000 0.000899		# pitch, roll, yaw; degrees
+        orientation: 0.0 0.0 0.0515083 # pitch, roll, yaw; degrees
     }
     Ccd: {
         serial: 51
         name: "1_13"
         ptype: "default"
         index: 0 0
-        offset:       2.26    6800.70	# offset of CCD center from raft center, (x, y)
+        offset: 2.30  6800.68        # offset of CCD center from raft center, (x, y)
         nQuarter: 2			# number of quarter turns applied to CCD when put into raft
-        orientation: 0.000000 0.000000 0.000934		# pitch, roll, yaw; degrees
+        orientation: 0.0 0.0 0.0535273 # pitch, roll, yaw; degrees
     }
     Ccd: {
         serial: 52
         name: "1_14"
         ptype: "default"
         index: 0 0
-        offset:      -0.14   11279.69	# offset of CCD center from raft center, (x, y)
+        offset: -0.15  11279.73        # offset of CCD center from raft center, (x, y)
         nQuarter: 2			# number of quarter turns applied to CCD when put into raft
-        orientation: 0.000000 0.000000 -0.000304		# pitch, roll, yaw; degrees
+        orientation: 0.0 0.0 -0.0174426 # pitch, roll, yaw; degrees
     }
     Ccd: {
         serial: 53
         name: "1_15"
         ptype: "default"
         index: 0 0
-        offset:       1.22   15753.00	# offset of CCD center from raft center, (x, y)
+        offset: 1.23  15753.02        # offset of CCD center from raft center, (x, y)
         nQuarter: 2			# number of quarter turns applied to CCD when put into raft
-        orientation: 0.000000 0.000000 0.000172		# pitch, roll, yaw; degrees
+        orientation: 0.0 0.0 0.0098542 # pitch, roll, yaw; degrees
     }
     Ccd: {
         serial: 54
         name: "0_11"
         ptype: "default"
         index: 0 0
-        offset:   -2124.05  -15355.01	# offset of CCD center from raft center, (x, y)
+        offset: -2124.06  -15355.02        # offset of CCD center from raft center, (x, y)
         nQuarter: 0			# number of quarter turns applied to CCD when put into raft
-        orientation: 0.000000 0.000000 -0.000353		# pitch, roll, yaw; degrees
+        orientation: 0.0 0.0 -0.0202233 # pitch, roll, yaw; degrees
     }
     Ccd: {
         serial: 55
         name: "0_10"
         ptype: "default"
         index: 0 0
-        offset:   -2125.00  -10877.61	# offset of CCD center from raft center, (x, y)
+        offset: -2125.02  -10877.59        # offset of CCD center from raft center, (x, y)
         nQuarter: 0			# number of quarter turns applied to CCD when put into raft
-        orientation: 0.000000 0.000000 -0.000549		# pitch, roll, yaw; degrees
+        orientation: 0.0 0.0 -0.0314783 # pitch, roll, yaw; degrees
     }
     Ccd: {
         serial: 56
         name: "0_09"
         ptype: "default"
         index: 0 0
-        offset:   -2122.67   -6400.98	# offset of CCD center from raft center, (x, y)
+        offset: -2122.67  -6400.98        # offset of CCD center from raft center, (x, y)
         nQuarter: 0			# number of quarter turns applied to CCD when put into raft
-        orientation: 0.000000 0.000000 0.000020		# pitch, roll, yaw; degrees
+        orientation: 0.0 0.0 0.0011322 # pitch, roll, yaw; degrees
     }
     Ccd: {
         serial: 57
         name: "0_08"
         ptype: "default"
         index: 0 0
-        offset:   -2123.81   -1926.80	# offset of CCD center from raft center, (x, y)
+        offset: -2123.83  -1926.79        # offset of CCD center from raft center, (x, y)
         nQuarter: 0			# number of quarter turns applied to CCD when put into raft
-        orientation: 0.000000 0.000000 -0.000604		# pitch, roll, yaw; degrees
+        orientation: 0.0 0.0 -0.0346153 # pitch, roll, yaw; degrees
     }
     Ccd: {
         serial: 58
         name: "1_16"
         ptype: "default"
         index: 0 0
-        offset:   -2121.87    2324.64	# offset of CCD center from raft center, (x, y)
+        offset: -2121.87  2324.64        # offset of CCD center from raft center, (x, y)
         nQuarter: 2			# number of quarter turns applied to CCD when put into raft
-        orientation: 0.000000 0.000000 0.000097		# pitch, roll, yaw; degrees
+        orientation: 0.0 0.0 0.0055530 # pitch, roll, yaw; degrees
     }
     Ccd: {
         serial: 59
         name: "1_17"
         ptype: "default"
         index: 0 0
-        offset:   -2121.57    6802.57	# offset of CCD center from raft center, (x, y)
+        offset: -2121.57  6802.57        # offset of CCD center from raft center, (x, y)
         nQuarter: 2			# number of quarter turns applied to CCD when put into raft
-        orientation: 0.000000 0.000000 -0.000029		# pitch, roll, yaw; degrees
+        orientation: 0.0 0.0 -0.0016467 # pitch, roll, yaw; degrees
     }
     Ccd: {
         serial: 60
         name: "1_18"
         ptype: "default"
         index: 0 0
-        offset:   -2119.82   11278.60	# offset of CCD center from raft center, (x, y)
+        offset: -2119.82  11278.65        # offset of CCD center from raft center, (x, y)
         nQuarter: 2			# number of quarter turns applied to CCD when put into raft
-        orientation: 0.000000 0.000000 0.000044		# pitch, roll, yaw; degrees
+        orientation: 0.0 0.0 0.0025056 # pitch, roll, yaw; degrees
     }
     Ccd: {
         serial: 61
         name: "1_19"
         ptype: "default"
         index: 0 0
-        offset:   -2121.78   15754.20	# offset of CCD center from raft center, (x, y)
+        offset: -2121.77  15754.23        # offset of CCD center from raft center, (x, y)
         nQuarter: 2			# number of quarter turns applied to CCD when put into raft
-        orientation: 0.000000 0.000000 0.000155		# pitch, roll, yaw; degrees
+        orientation: 0.0 0.0 0.0088666 # pitch, roll, yaw; degrees
     }
     Ccd: {
         serial: 62
         name: "0_07"
         ptype: "default"
         index: 0 0
-        offset:   -4245.15  -15354.50	# offset of CCD center from raft center, (x, y)
+        offset: -4245.14  -15354.47        # offset of CCD center from raft center, (x, y)
         nQuarter: 0			# number of quarter turns applied to CCD when put into raft
-        orientation: 0.000000 0.000000 0.000267		# pitch, roll, yaw; degrees
+        orientation: 0.0 0.0 0.0153155 # pitch, roll, yaw; degrees
     }
     Ccd: {
         serial: 63
         name: "0_06"
         ptype: "default"
         index: 0 0
-        offset:   -4247.68  -10878.20	# offset of CCD center from raft center, (x, y)
+        offset: -4247.68  -10878.23        # offset of CCD center from raft center, (x, y)
         nQuarter: 0			# number of quarter turns applied to CCD when put into raft
-        orientation: 0.000000 0.000000 -0.000014		# pitch, roll, yaw; degrees
+        orientation: 0.0 0.0 -0.0008302 # pitch, roll, yaw; degrees
     }
     Ccd: {
         serial: 64
         name: "0_05"
         ptype: "default"
         index: 0 0
-        offset:   -4247.10   -6400.36	# offset of CCD center from raft center, (x, y)
+        offset: -4247.11  -6400.36        # offset of CCD center from raft center, (x, y)
         nQuarter: 0			# number of quarter turns applied to CCD when put into raft
-        orientation: 0.000000 0.000000 -0.000259		# pitch, roll, yaw; degrees
+        orientation: 0.0 0.0 -0.0148248 # pitch, roll, yaw; degrees
     }
     Ccd: {
         serial: 65
         name: "0_04"
         ptype: "default"
         index: 0 0
-        offset:   -4245.92   -1924.77	# offset of CCD center from raft center, (x, y)
+        offset: -4245.93  -1924.77        # offset of CCD center from raft center, (x, y)
         nQuarter: 0			# number of quarter turns applied to CCD when put into raft
-        orientation: 0.000000 0.000000 -0.000176		# pitch, roll, yaw; degrees
+        orientation: 0.0 0.0 -0.0100663 # pitch, roll, yaw; degrees
     }
     Ccd: {
         serial: 66
         name: "1_20"
         ptype: "default"
         index: 0 0
-        offset:   -4244.82    2325.30	# offset of CCD center from raft center, (x, y)
+        offset: -4244.82  2325.30        # offset of CCD center from raft center, (x, y)
         nQuarter: 2			# number of quarter turns applied to CCD when put into raft
-        orientation: 0.000000 0.000000 0.000022		# pitch, roll, yaw; degrees
+        orientation: 0.0 0.0 0.0012338 # pitch, roll, yaw; degrees
     }
     Ccd: {
         serial: 67
         name: "1_21"
         ptype: "default"
         index: 0 0
-        offset:   -4244.54    6803.70	# offset of CCD center from raft center, (x, y)
+        offset: -4244.55  6803.70        # offset of CCD center from raft center, (x, y)
         nQuarter: 2			# number of quarter turns applied to CCD when put into raft
-        orientation: 0.000000 0.000000 -0.000145		# pitch, roll, yaw; degrees
+        orientation: 0.0 0.0 -0.0083052 # pitch, roll, yaw; degrees
     }
     Ccd: {
         serial: 68
         name: "1_22"
         ptype: "default"
         index: 0 0
-        offset:   -4244.49   11277.30	# offset of CCD center from raft center, (x, y)
+        offset: -4244.48  11277.26        # offset of CCD center from raft center, (x, y)
         nQuarter: 2			# number of quarter turns applied to CCD when put into raft
-        orientation: 0.000000 0.000000 0.000157		# pitch, roll, yaw; degrees
+        orientation: 0.0 0.0 0.0090084 # pitch, roll, yaw; degrees
     }
     Ccd: {
         serial: 69
         name: "1_23"
         ptype: "default"
         index: 0 0
-        offset:   -4243.97   15754.39	# offset of CCD center from raft center, (x, y)
+        offset: -4243.98  15754.40        # offset of CCD center from raft center, (x, y)
         nQuarter: 2			# number of quarter turns applied to CCD when put into raft
-        orientation: 0.000000 0.000000 -0.000391		# pitch, roll, yaw; degrees
+        orientation: 0.0 0.0 -0.0224195 # pitch, roll, yaw; degrees
     }
     Ccd: {
         serial: 70
         name: "0_03"
         ptype: "default"
         index: 0 0
-        offset:   -6373.18  -15353.02	# offset of CCD center from raft center, (x, y)
+        offset: -6373.22  -15352.97        # offset of CCD center from raft center, (x, y)
         nQuarter: 0			# number of quarter turns applied to CCD when put into raft
-        orientation: 0.000000 0.000000 -0.001083		# pitch, roll, yaw; degrees
+        orientation: 0.0 0.0 -0.0620490 # pitch, roll, yaw; degrees
     }
     Ccd: {
         serial: 71
         name: "0_02"
         ptype: "default"
         index: 0 0
-        offset:   -6369.97  -10877.90	# offset of CCD center from raft center, (x, y)
+        offset: -6369.97  -10877.90        # offset of CCD center from raft center, (x, y)
         nQuarter: 0			# number of quarter turns applied to CCD when put into raft
-        orientation: 0.000000 0.000000 0.000006		# pitch, roll, yaw; degrees
+        orientation: 0.0 0.0 0.0003689 # pitch, roll, yaw; degrees
     }
     Ccd: {
         serial: 72
         name: "0_01"
         ptype: "default"
         index: 0 0
-        offset:   -6368.16   -6400.99	# offset of CCD center from raft center, (x, y)
+        offset: -6368.16  -6400.99        # offset of CCD center from raft center, (x, y)
         nQuarter: 0			# number of quarter turns applied to CCD when put into raft
-        orientation: 0.000000 0.000000 0.000040		# pitch, roll, yaw; degrees
+        orientation: 0.0 0.0 0.0023180 # pitch, roll, yaw; degrees
     }
     Ccd: {
         serial: 73
         name: "0_00"
         ptype: "default"
         index: 0 0
-        offset:   -6371.09   -1926.52	# offset of CCD center from raft center, (x, y)
+        offset: -6371.08  -1926.52        # offset of CCD center from raft center, (x, y)
         nQuarter: 0			# number of quarter turns applied to CCD when put into raft
-        orientation: 0.000000 0.000000 0.000174		# pitch, roll, yaw; degrees
+        orientation: 0.0 0.0 0.0099480 # pitch, roll, yaw; degrees
     }
     Ccd: {
         serial: 74
         name: "1_24"
         ptype: "default"
         index: 0 0
-        offset:   -6367.55    2326.12	# offset of CCD center from raft center, (x, y)
+        offset: -6367.54  2326.12        # offset of CCD center from raft center, (x, y)
         nQuarter: 2			# number of quarter turns applied to CCD when put into raft
-        orientation: 0.000000 0.000000 0.000149		# pitch, roll, yaw; degrees
+        orientation: 0.0 0.0 0.0085427 # pitch, roll, yaw; degrees
     }
     Ccd: {
         serial: 75
         name: "1_25"
         ptype: "default"
         index: 0 0
-        offset:   -6368.01    6803.56	# offset of CCD center from raft center, (x, y)
+        offset: -6368.01  6803.56        # offset of CCD center from raft center, (x, y)
         nQuarter: 2			# number of quarter turns applied to CCD when put into raft
-        orientation: 0.000000 0.000000 0.000039		# pitch, roll, yaw; degrees
+        orientation: 0.0 0.0 0.0022241 # pitch, roll, yaw; degrees
     }
     Ccd: {
         serial: 76
         name: "1_26"
         ptype: "default"
         index: 0 0
-        offset:   -6368.86   11279.99	# offset of CCD center from raft center, (x, y)
+        offset: -6368.88  11279.99        # offset of CCD center from raft center, (x, y)
         nQuarter: 2			# number of quarter turns applied to CCD when put into raft
-        orientation: 0.000000 0.000000 -0.000434		# pitch, roll, yaw; degrees
+        orientation: 0.0 0.0 -0.0248477 # pitch, roll, yaw; degrees
     }
     Ccd: {
         serial: 77
         name: "1_27"
         ptype: "default"
         index: 0 0
-        offset:   -6367.36   15754.70	# offset of CCD center from raft center, (x, y)
+        offset: -6367.36  15754.72        # offset of CCD center from raft center, (x, y)
         nQuarter: 2			# number of quarter turns applied to CCD when put into raft
-        orientation: 0.000000 0.000000 0.000041		# pitch, roll, yaw; degrees
+        orientation: 0.0 0.0 0.0023689 # pitch, roll, yaw; degrees
     }
     Ccd: {
         serial: 78
         name: "0_34"
         ptype: "default"
         index: 0 0
-        offset:   -8490.72  -10880.09	# offset of CCD center from raft center, (x, y)
+        offset: -8490.69  -10880.12        # offset of CCD center from raft center, (x, y)
         nQuarter: 0			# number of quarter turns applied to CCD when put into raft
-        orientation: 0.000000 0.000000 0.000700		# pitch, roll, yaw; degrees
+        orientation: 0.0 0.0 0.0400992 # pitch, roll, yaw; degrees
     }
     Ccd: {
         serial: 79
         name: "0_33"
         ptype: "default"
         index: 0 0
-        offset:   -8491.40   -6399.93	# offset of CCD center from raft center, (x, y)
+        offset: -8491.39  -6399.94        # offset of CCD center from raft center, (x, y)
         nQuarter: 0			# number of quarter turns applied to CCD when put into raft
-        orientation: 0.000000 0.000000 0.000341		# pitch, roll, yaw; degrees
+        orientation: 0.0 0.0 0.0195534 # pitch, roll, yaw; degrees
     }
     Ccd: {
         serial: 80
         name: "0_32"
         ptype: "default"
         index: 0 0
-        offset:   -8491.61   -1924.08	# offset of CCD center from raft center, (x, y)
+        offset: -8491.61  -1924.08        # offset of CCD center from raft center, (x, y)
         nQuarter: 0			# number of quarter turns applied to CCD when put into raft
-        orientation: 0.000000 0.000000 -0.000110		# pitch, roll, yaw; degrees
+        orientation: 0.0 0.0 -0.0062940 # pitch, roll, yaw; degrees
     }
     Ccd: {
         serial: 81
         name: "1_28"
         ptype: "default"
         index: 0 0
-        offset:   -8492.59    2328.36	# offset of CCD center from raft center, (x, y)
+        offset: -8492.59  2328.36        # offset of CCD center from raft center, (x, y)
         nQuarter: 2			# number of quarter turns applied to CCD when put into raft
-        orientation: 0.000000 0.000000 -0.000004		# pitch, roll, yaw; degrees
+        orientation: 0.0 0.0 -0.0002492 # pitch, roll, yaw; degrees
     }
     Ccd: {
         serial: 82
         name: "1_29"
         ptype: "default"
         index: 0 0
-        offset:   -8491.91    6801.96	# offset of CCD center from raft center, (x, y)
+        offset: -8491.90  6801.95        # offset of CCD center from raft center, (x, y)
         nQuarter: 2			# number of quarter turns applied to CCD when put into raft
-        orientation: 0.000000 0.000000 0.000325		# pitch, roll, yaw; degrees
+        orientation: 0.0 0.0 0.0186303 # pitch, roll, yaw; degrees
     }
     Ccd: {
         serial: 83
         name: "1_30"
         ptype: "default"
         index: 0 0
-        offset:   -8490.91   11278.10	# offset of CCD center from raft center, (x, y)
+        offset: -8490.91  11278.15        # offset of CCD center from raft center, (x, y)
         nQuarter: 2			# number of quarter turns applied to CCD when put into raft
-        orientation: 0.000000 0.000000 0.000136		# pitch, roll, yaw; degrees
+        orientation: 0.0 0.0 0.0077724 # pitch, roll, yaw; degrees
     }
     Ccd: {
         serial: 84
         name: "0_41"
         ptype: "default"
         index: 0 0
-        offset:  -10614.42  -10877.59	# offset of CCD center from raft center, (x, y)
+        offset: -10614.41  -10877.58        # offset of CCD center from raft center, (x, y)
         nQuarter: 0			# number of quarter turns applied to CCD when put into raft
-        orientation: 0.000000 0.000000 0.000670		# pitch, roll, yaw; degrees
+        orientation: 0.0 0.0 0.0384124 # pitch, roll, yaw; degrees
     }
     Ccd: {
         serial: 85
         name: "0_40"
         ptype: "default"
         index: 0 0
-        offset:  -10614.61   -6401.01	# offset of CCD center from raft center, (x, y)
+        offset: -10614.65  -6401.01        # offset of CCD center from raft center, (x, y)
         nQuarter: 0			# number of quarter turns applied to CCD when put into raft
-        orientation: 0.000000 0.000000 0.000204		# pitch, roll, yaw; degrees
+        orientation: 0.0 0.0 0.0116824 # pitch, roll, yaw; degrees
     }
     Ccd: {
         serial: 86
         name: "0_39"
         ptype: "default"
         index: 0 0
-        offset:  -10615.70   -1922.50	# offset of CCD center from raft center, (x, y)
+        offset: -10615.67  -1922.50        # offset of CCD center from raft center, (x, y)
         nQuarter: 0			# number of quarter turns applied to CCD when put into raft
-        orientation: 0.000000 0.000000 -0.000029		# pitch, roll, yaw; degrees
+        orientation: 0.0 0.0 -0.0016385 # pitch, roll, yaw; degrees
     }
     Ccd: {
         serial: 87
         name: "0_38"
         ptype: "default"
         index: 0 0
-        offset:  -10617.98    2549.72	# offset of CCD center from raft center, (x, y)
+        offset: -10617.99  2549.73        # offset of CCD center from raft center, (x, y)
         nQuarter: 0			# number of quarter turns applied to CCD when put into raft
-        orientation: 0.000000 0.000000 -0.000638		# pitch, roll, yaw; degrees
+        orientation: 0.0 0.0 -0.0365359 # pitch, roll, yaw; degrees
     }
     Ccd: {
         serial: 88
         name: "0_37"
         ptype: "default"
         index: 0 0
-        offset:  -10616.08    7028.12	# offset of CCD center from raft center, (x, y)
+        offset: -10616.10  7028.13        # offset of CCD center from raft center, (x, y)
         nQuarter: 0			# number of quarter turns applied to CCD when put into raft
-        orientation: 0.000000 0.000000 -0.000455		# pitch, roll, yaw; degrees
+        orientation: 0.0 0.0 -0.0260835 # pitch, roll, yaw; degrees
     }
     Ccd: {
         serial: 89
         name: "0_36"
         ptype: "default"
         index: 0 0
-        offset:  -10614.49   11503.80	# offset of CCD center from raft center, (x, y)
+        offset: -10614.50  11503.76        # offset of CCD center from raft center, (x, y)
         nQuarter: 0			# number of quarter turns applied to CCD when put into raft
-        orientation: 0.000000 0.000000 -0.000239		# pitch, roll, yaw; degrees
+        orientation: 0.0 0.0 -0.0136941 # pitch, roll, yaw; degrees
     }
     Ccd: {
         serial: 90
         name: "0_47"
         ptype: "default"
         index: 0 0
-        offset:  -12737.90  -10875.50	# offset of CCD center from raft center, (x, y)
+        offset: -12737.89  -10875.50        # offset of CCD center from raft center, (x, y)
         nQuarter: 0			# number of quarter turns applied to CCD when put into raft
-        orientation: 0.000000 0.000000 0.000079		# pitch, roll, yaw; degrees
+        orientation: 0.0 0.0 0.0045054 # pitch, roll, yaw; degrees
     }
     Ccd: {
         serial: 91
         name: "0_46"
         ptype: "default"
         index: 0 0
-        offset:  -12738.52   -6400.97	# offset of CCD center from raft center, (x, y)
+        offset: -12738.51  -6400.98        # offset of CCD center from raft center, (x, y)
         nQuarter: 0			# number of quarter turns applied to CCD when put into raft
-        orientation: 0.000000 0.000000 0.000583		# pitch, roll, yaw; degrees
+        orientation: 0.0 0.0 0.0333861 # pitch, roll, yaw; degrees
     }
     Ccd: {
         serial: 92
         name: "0_45"
         ptype: "default"
         index: 0 0
-        offset:  -12737.80   -1923.33	# offset of CCD center from raft center, (x, y)
+        offset: -12737.75  -1923.33        # offset of CCD center from raft center, (x, y)
         nQuarter: 0			# number of quarter turns applied to CCD when put into raft
-        orientation: 0.000000 0.000000 0.000017		# pitch, roll, yaw; degrees
+        orientation: 0.0 0.0 0.0009777 # pitch, roll, yaw; degrees
     }
     Ccd: {
         serial: 93
         name: "0_44"
         ptype: "default"
         index: 0 0
-        offset:  -12739.78    2551.59	# offset of CCD center from raft center, (x, y)
+        offset: -12739.82  2551.60        # offset of CCD center from raft center, (x, y)
         nQuarter: 0			# number of quarter turns applied to CCD when put into raft
-        orientation: 0.000000 0.000000 -0.000448		# pitch, roll, yaw; degrees
-    }
+         orientation: 0.0 0.0 -0.0256466 # pitch, roll, yaw; degrees
+   }
     Ccd: {
         serial: 94
         name: "0_43"
         ptype: "default"
         index: 0 0
-        offset:  -12737.10    7029.70	# offset of CCD center from raft center, (x, y)
+        offset: -12737.14  7029.70        # offset of CCD center from raft center, (x, y)
         nQuarter: 0			# number of quarter turns applied to CCD when put into raft
-        orientation: 0.000000 0.000000 -0.000101		# pitch, roll, yaw; degrees
-    }
+         orientation: 0.0 0.0 -0.0057758 # pitch, roll, yaw; degrees
+   }
     Ccd: {
         serial: 95
         name: "0_42"
         ptype: "default"
         index: 0 0
-        offset:  -12736.70   11504.30	# offset of CCD center from raft center, (x, y)
+        offset: -12736.72  11504.26        # offset of CCD center from raft center, (x, y)
         nQuarter: 0			# number of quarter turns applied to CCD when put into raft
-        orientation: 0.000000 0.000000 -0.000106		# pitch, roll, yaw; degrees
-    }
+         orientation: 0.0 0.0 -0.0060941 # pitch, roll, yaw; degrees
+   }
     Ccd: {
         serial: 96
         name: "0_56"
         ptype: "default"
         index: 0 0
-        offset:  -14861.60   -6401.36	# offset of CCD center from raft center, (x, y)
+        offset: -14861.60  -6401.36        # offset of CCD center from raft center, (x, y)
         nQuarter: 0			# number of quarter turns applied to CCD when put into raft
-        orientation: 0.000000 0.000000 0.000027		# pitch, roll, yaw; degrees
-    }
+         orientation: 0.0 0.0 0.0015567 # pitch, roll, yaw; degrees
+   }
     Ccd: {
         serial: 97
         name: "0_55"
         ptype: "default"
         index: 0 0
-        offset:  -14861.70   -1923.30	# offset of CCD center from raft center, (x, y)
+        offset: -14861.73  -1923.30        # offset of CCD center from raft center, (x, y)
         nQuarter: 0			# number of quarter turns applied to CCD when put into raft
-        orientation: 0.000000 0.000000 0.000022		# pitch, roll, yaw; degrees
-    }
+         orientation: 0.0 0.0 0.0012757 # pitch, roll, yaw; degrees
+   }
     Ccd: {
         serial: 98
         name: "0_54"
         ptype: "default"
         index: 0 0
-        offset:  -14862.97    2552.96	# offset of CCD center from raft center, (x, y)
+        offset: -14862.99  2552.97        # offset of CCD center from raft center, (x, y)
         nQuarter: 0			# number of quarter turns applied to CCD when put into raft
-        orientation: 0.000000 0.000000 -0.000738		# pitch, roll, yaw; degrees
-    }
+         orientation: 0.0 0.0 -0.0422711 # pitch, roll, yaw; degrees
+   }
     Ccd: {
         serial: 99
         name: "0_53"
         ptype: "default"
         index: 0 0
-        offset:  -14862.67    7030.60	# offset of CCD center from raft center, (x, y)
+        offset: -14862.74  7030.61        # offset of CCD center from raft center, (x, y)
         nQuarter: 0			# number of quarter turns applied to CCD when put into raft
-        orientation: 0.000000 0.000000 -0.000768		# pitch, roll, yaw; degrees
-    }
+         orientation: 0.0 0.0 -0.0439981 # pitch, roll, yaw; degrees
+   }
     Ccd: {
         serial: 100
         name: "0_31"
         ptype: "default"
         index: 0 0
-        offset:    9588.26  -14289.21	# offset of CCD center from raft center, (x, y)
+        offset: 9588.26  -14289.16        # offset of CCD center from raft center, (x, y)
         nQuarter: 3			# number of quarter turns applied to CCD when put into raft
-        orientation: 0.000000 0.000000 -0.000197		# pitch, roll, yaw; degrees
-    }
+         orientation: 0.0 0.0 -0.0112589 # pitch, roll, yaw; degrees
+   }
     Ccd: {
         serial: 101
         name: "1_35"
         ptype: "default"
         index: 0 0
-        offset:    9591.73   14690.30	# offset of CCD center from raft center, (x, y)
+        offset: 9591.73  14690.27        # offset of CCD center from raft center, (x, y)
         nQuarter: 3			# number of quarter turns applied to CCD when put into raft
-        orientation: 0.000000 0.000000 -0.000012		# pitch, roll, yaw; degrees
-    }
+         orientation: 0.0 0.0 -0.0006615 # pitch, roll, yaw; degrees
+   }
     Ccd: {
         serial: 102
         name: "0_35"
         ptype: "default"
         index: 0 0
-        offset:   -9591.85  -14290.18	# offset of CCD center from raft center, (x, y)
+        offset: -9591.84  -14290.21        # offset of CCD center from raft center, (x, y)
         nQuarter: 1			# number of quarter turns applied to CCD when put into raft
-        orientation: 0.000000 0.000000 0.000518		# pitch, roll, yaw; degrees
-    }
+         orientation: 0.0 0.0 0.0296679 # pitch, roll, yaw; degrees
+   }
     Ccd: {
         serial: 103
         name: "1_31"
         ptype: "default"
         index: 0 0
-        offset:   -9588.19   14689.31	# offset of CCD center from raft center, (x, y)
+        offset: -9588.18  14689.29        # offset of CCD center from raft center, (x, y)
         nQuarter: 1			# number of quarter turns applied to CCD when put into raft
-        orientation: 0.000000 0.000000 0.000319		# pitch, roll, yaw; degrees
-    }
+         orientation: 0.0 0.0 0.0182958 # pitch, roll, yaw; degrees
+   }
     Ccd: {
         serial: 104
         name: "1_48"
