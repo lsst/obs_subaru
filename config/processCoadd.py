@@ -1,8 +1,9 @@
 # Add another aperture flux - it shouldn't be this painful to do (see LSST #2465)
-from lsst.meas.algorithms.algorithmRegistry import AlgorithmRegistry, SincFluxConfig
-AlgorithmRegistry.register("flux.sinc2", target=SincFluxConfig.Control, ConfigClass=SincFluxConfig)
-root.measurement.algorithms["flux.sinc2"].radius = 5.0
-root.measurement.algorithms.names |= ["flux.sinc2"]
+if False: # This doesn't pickle
+    from lsst.meas.algorithms.algorithmRegistry import AlgorithmRegistry, SincFluxConfig
+    AlgorithmRegistry.register("flux.sinc2", target=SincFluxConfig.Control, ConfigClass=SincFluxConfig)
+    root.measurement.algorithms["flux.sinc2"].radius = 5.0
+    root.measurement.algorithms.names |= ["flux.sinc2"]
 
 root.measurement.slots.instFlux = None
 
