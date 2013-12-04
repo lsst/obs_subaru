@@ -123,6 +123,9 @@ after applying the nominal gain
         )
     doTweakFlat = pexConfig.Field(dtype=bool, doc="Tweak flats to match observed amplifier ratios?",
                                   default=False)
+    overscanMaxDev = pexConfig.Field(dtype=float, doc="Maximum deviation from the median for overscan",
+                                     default=1000.0, check=lambda x: x > 0)
+
     def validate(self):
         super(SubaruIsrConfig, self).validate()
         if self.doFlat and self.doApplyGains:
@@ -168,7 +171,24 @@ class SubaruIsrTask(IsrTask):
             if self.config.doSaturation:
                 self.saturationDetection(ccdExposure, amp)
             if self.config.doOverscan:
-                self.overscanCorrection(ccdExposure, amp)
+                ampImage = afwImage.MaskedImageF(ccdExposure.getMaskedImage(), amp.getDiskDataSec(),
+                                                 afwImage.PARENT)
+                overscan = afwImage.MaskedImageF(ccdExposure.getMaskedImage(), amp.getDiskBiasSec(),
+                                                 afwImage.PARENT)
+                overscanArray = overscan.getImage().getArray()
+                median = numpy.median(overscanArray)
+                bad = numpy.where(numpy.abs(overscanArray - median) > self.config.overscanMaxDev)
+                overscan.getMask().getArray()[bad] = overscan.getMask().getPlaneBitMask("SAT")
+
+                statControl = afwMath.StatisticsControl()
+                statControl.setAndMask(ccdExposure.getMaskedImage().getMask().getPlaneBitMask("SAT"))
+                lsstIsr.overscanCorrection(ampMaskedImage=ampImage, overscanImage=overscan,
+                                           fitType=self.config.overscanFitType,
+                                           polyOrder=self.config.overscanPolyOrder,
+                                           collapseRej=self.config.overscanRej,
+                                           statControl=statControl,
+                                   )
+
             if self.config.doVariance:
                 # Ideally, this should be done after bias subtraction,
                 # but CCD assembly demands a variance plane
