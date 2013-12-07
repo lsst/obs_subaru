@@ -4,7 +4,7 @@ HSC-specific overrides for ProcessCcdTask
 """
 
 import os
-root.load(os.path.join(os.environ['OBS_SUBARU_DIR'], 'config', 'hscSim', 'isr.py'))
+root.load(os.path.join(os.environ['OBS_SUBARU_DIR'], 'config', 'hsc', 'isr.py'))
 
 root.calibrate.measurePsf.starSelector.name='objectSize'
 root.calibrate.measurePsf.starSelector['objectSize'].widthMin=1.0
@@ -16,6 +16,6 @@ root.measurement.algorithms["jacobian"].pixelScale = 0.168
 
 # color terms
 from lsst.meas.photocal.colorterms import Colorterm
-from lsst.obs.hscSim.colorterms import colortermsData
+from lsst.obs.hsc.colorterms import colortermsData
 Colorterm.setColorterms(colortermsData)
 Colorterm.setActiveDevice("Hamamatsu")

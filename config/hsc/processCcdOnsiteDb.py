@@ -3,4 +3,4 @@ root.onsiteDb.retarget(HscOnsiteDbTask)
 
 # Load regular processCcd configuration
 import os
-root.load(os.path.join(os.environ['OBS_SUBARU_DIR'], 'config', 'hscSim', 'processCcd.py'))
+root.load(os.path.join(os.environ['OBS_SUBARU_DIR'], 'config', 'hsc', 'processCcd.py'))

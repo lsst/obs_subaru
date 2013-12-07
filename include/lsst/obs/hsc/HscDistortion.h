@@ -1,5 +1,5 @@
-#ifndef LSST_OBS_HSCSIM_HSC_DISTORTION_H
-#define LSST_OBS_HSCSIM_HSC_DISTORTION_H
+#ifndef LSST_OBS_HSC_HSC_DISTORTION_H
+#define LSST_OBS_HSC_HSC_DISTORTION_H
 
 
 #include "lsst/afw/cameraGeom.h"
@@ -15,7 +15,7 @@
 
 namespace lsst {
 namespace obs {
-namespace hscSim {
+namespace hsc {
 
 /**
  * @class Interface class for HSC "distEst" distortion
