@@ -9,18 +9,18 @@ import lsst.afw.image as afwImage
 import lsst.afw.math as afwMath
 import lsst.afw.geom as afwGeom
 import lsst.pex.policy as pexPolicy
-from .hscSimLib import HscDistortion
+from .hscLib import HscDistortion
 
 try: # just to let meas_mosaic be an optional dependency
     from lsst.meas.mosaic import applyMosaicResults
 except ImportError:
     applyMosaicResults = None
 
-class HscSimMapper(CameraMapper):
-    """Provides abstract-physical mapping for HSC Simulation data"""
+class HscMapper(CameraMapper):
+    """Provides abstract-physical mapping for HSC data"""
     
     def __init__(self, **kwargs):
-        policyFile = pexPolicy.DefaultPolicyFile("obs_subaru", "HscSimMapper.paf", "policy")
+        policyFile = pexPolicy.DefaultPolicyFile("obs_subaru", "HscMapper.paf", "policy")
         policy = pexPolicy.Policy(policyFile)
         if not kwargs.get('root', None):
             try:
@@ -30,7 +30,7 @@ class HscSimMapper(CameraMapper):
         if not kwargs.get('calibRoot', None):
             kwargs['calibRoot'] = os.path.join(kwargs['root'], 'CALIB')
 
-        super(HscSimMapper, self).__init__(policy, policyFile.getRepositoryPath(), **kwargs)
+        super(HscMapper, self).__init__(policy, policyFile.getRepositoryPath(), **kwargs)
         
         # Ensure each dataset type of interest knows about the full range of keys available from the registry
         keys = {'field': str,
@@ -113,7 +113,7 @@ class HscSimMapper(CameraMapper):
         """
         copyId = dataId.copy()
         copyId.pop("flags", None)
-        return super(HscSimMapper, self).map(datasetType, copyId, write=write)
+        return super(HscMapper, self).map(datasetType, copyId, write=write)
 
 
     def std_camera(self, item, dataId):
@@ -135,7 +135,7 @@ Most chips are flipped L/R, but the rotated ones (100..103) are flipped T/B
 
     def std_raw_md(self, md, dataId):
         if False:            # no std_raw_md in baseclass
-            md = super(HscSimMapper, self).std_raw_md(md, dataId) # not present in baseclass
+            md = super(HscMapper, self).std_raw_md(md, dataId) # not present in baseclass
         #
         # We need to flip the WCS defined by the metadata in case anyone ever constructs a Wcs from it
         #
@@ -150,7 +150,7 @@ Most chips are flipped L/R, but the rotated ones (100..103) are flipped T/B
         return md
     
     def std_raw(self, item, dataId):
-        exp = super(HscSimMapper, self).std_raw(item, dataId)
+        exp = super(HscMapper, self).std_raw(item, dataId)
 
         return self._flipChipsLR(exp, exp.getWcs(), dataId)
     
@@ -227,4 +227,4 @@ Most chips are flipped L/R, but the rotated ones (100..103) are flipped T/B
 
     @classmethod
     def getCameraName(cls):
-        return "hscSim"
+        return "hsc"
