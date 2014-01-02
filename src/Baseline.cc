@@ -1096,7 +1096,12 @@ mergeHeavyFootprints(HeavyFootprintT const& h1,
     return HeavyFootprintPtr(new HeavyFootprintT(foot, im1));
 }
 
+/***
+ Copies pixels within the *foot* from *input* to *output*.
 
+ ASSUMES the *input* and *output* images are at least as large as the
+ *foot*; ie, the footprint is totally contained within the images.
+ ***/
 template<typename ImagePixelT, typename MaskPixelT, typename VariancePixelT>
 void
 deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::

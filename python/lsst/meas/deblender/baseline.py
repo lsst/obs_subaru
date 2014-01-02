@@ -74,8 +74,8 @@ class PerPeak(object):
         self.psf_fit_center = None
         self.psf_fit_best = None
         self.psf_fit_params = None
-        self.psf_fit_nothers = None
         self.psf_fit_flux = None
+        self.psf_fit_nothers = None
         
         # Things only set in _fit_psf when debugging is turned on:
         self.psf_psf0img = None
@@ -85,14 +85,47 @@ class PerPeak(object):
 
         self.failed_symmetric_template = False
         
+        # The actual template MaskedImage and Footprint
         self.template_mimg = None
         self.template_foot = None
+
+        # The flux assigned to this template
+        self.portion_mimg = None
+
+        # The stray flux assigned to this template (may be None)
+        self.stray_flux = None
 
         # debug -- a copy of the original symmetric template
         self.orig_template = None
         self.ramped_template = None
         self.median_filtered_template = None
+
+        # when least-squares fitting templates, the template weight.
+        self.template_weight = 1.0
+
+    def get_flux_portion(self, strayFlux=True):
+        '''
+        Return a HeavyFootprint containing the flux apportioned to
+        this peak.
+
+        'strayFlux': include stray flux also?
+        '''
+        heavy = afwDet.makeHeavyFootprint(self.template_foot,
+                                          self.portion_mimg)
+        heavy.getPeaks().push_back(self.peak)
+
+        if strayFlux:
+            if self.stray_flux is not None:
+                heavy = butils.mergeHeavyFootprints(heavy, self.stray_flux)
+
+        return heavy
+
+    def set_apportioned_flux(self, mimg):
+        self.portion_mimg = mimg
         
+    def set_template_weight(self, w):
+        self.template_weight = w
+
     # DEBUG
     def set_orig_template(self, t, tfoot):
         self.orig_template = t.getImage().Factory(t.getImage(), True)
@@ -291,25 +324,29 @@ def deblend(footprint, maskedImage, psf, psffwhm,
 
         pkres.set_template(t1, tfoot)
 
+    # Prepare inputs to "apportionFlux" call.
+    # template maskedImages
     tmimgs = []
+    # template footprints
     tfoots = []
+    # deblended as psf
     dpsf = []
-    pkxy = []
+    # peak x,y
     pkx = []
     pky = []
-    ibi = [] # in-bounds indices
+    # indices of valid templates
+    ibi = [] 
+
     for pkres in res.peaks:
-        if pkres.out_of_bounds:
+        if pkres.skip:
             continue
-        tmimgs.append(pkres.tmimg)
-        tfoots.append(pkres.tfoot)
+        tmimgs.append(pkres.template_mimg)
+        tfoots.append(pkres.template_foot)
         # for stray flux...
         dpsf.append(pkres.deblend_as_psf)
         pk = pkres.peak
-        pkxy.append((pk.getIx(), pk.getIy()))
         pkx.append(pk.getIx())
         pky.append(pk.getIy())
-
         ibi.append(pkres.pki)
 
     if lstsq_weight_templates:
@@ -321,7 +358,7 @@ def deblend(footprint, maskedImage, psf, psffwhm,
             ibb = mim.getBBox(afwImage.PARENT)
             ix0,iy0 = ibb.getMinX(), ibb.getMinY()
             pkres = res.peaks[i]
-            foot = pkres.tfoot
+            foot = pkres.template_foot
             ima = mim.getImage().getArray()
             for sp in foot.getSpans():
                 sy, sx0, sx1 = sp.getY(), sp.getX0(), sp.getX1()
@@ -336,7 +373,7 @@ def deblend(footprint, maskedImage, psf, psffwhm,
         for mim,i,w in zip(tmimgs, ibi, X1):
             im = mim.getImage()
             im *= w
-            res.peaks[i].tweight = w
+            res.peaks[i].set_template_weight(w)
 
     # FIXME -- Remove templates that are too similar (via dot-product
     # test)?
@@ -352,20 +389,17 @@ def deblend(footprint, maskedImage, psf, psffwhm,
             strayopts |= butils.STRAYFLUX_TO_POINT_SOURCES_WHEN_NECESSARY
         elif strayFluxToPointSources == 'always':
             strayopts |= butils.STRAYFLUX_TO_POINT_SOURCES_ALWAYS
-            
     strayopts |= butils.STRAYFLUX_R_TO_FOOTPRINT
     
-    ports = butils.apportionFlux(maskedImage, fp, tmimgs, tfoots, sumimg,
-                                 dpsf, pkx, pky, strayflux, strayopts)
+    portions = butils.apportionFlux(maskedImage, fp, tmimgs, tfoots, sumimg,
+                                    dpsf, pkx, pky, strayflux, strayopts)
+    # Save the apportioned fluxes
     ii = 0
     for j, (pk, pkres) in enumerate(zip(peaks, res.peaks)):
-        if pkres.out_of_bounds:
+        if pkres.skip:
             continue
-        pkres.mportion = ports[ii]
-        pkres.portion = ports[ii].getImage()
+        pkres.set_apportioned_flux(portions[ii])
         ii += 1
-        heavy = afwDet.makeHeavyFootprint(pkres.tfoot, pkres.mportion)
-        heavy.getPeaks().push_back(pk)
 
         if findStrayFlux:
             # NOTE that due to a swig bug
@@ -374,19 +408,7 @@ def deblend(footprint, maskedImage, psf, psffwhm,
             stray = strayflux[j]
         else:
             stray = None
-
-        pkres.heavy1 = heavy
-        pkres.stray = stray
-
-        if stray:
-            pkres.heavy2 = butils.mergeHeavyFootprints(heavy, stray)
-        else:
-            pkres.heavy2 = heavy
-
-        if assignStrayFlux:
-            pkres.heavy = pkres.heavy2
-        else:
-            pkres.heavy = pkres.heavy1
+        pkres.set_stray_flux(stray)
             
     return res
 
@@ -434,6 +456,7 @@ def _fit_psfs(fp, peaks, fpres, log, psf, psffwhm, img, varimg,
     fbb = fp.getBBox()
     cpsf = CachingPsf(psf)
 
+    # create mask image for pixels within the footprint
     fmask = afwImage.MaskU(fbb)
     fmask.setXY0(fbb.getMinX(), fbb.getMinY())
     afwDet.setMaskFromFootprint(fmask, fp, 1)
@@ -682,7 +705,6 @@ def _fit_psf(fp, fmask, pk, pkF, pkres, fbb, peaks, peaksF, log, psf,
             im1[ipixes[:,1], ipixes[:,0]] = A[:, i]
             plt.subplot(R, C, i+1)
             plt.imshow(im1, interpolation='nearest', origin='lower')
-
         plt.subplot(R, C, NT2+1)
         im1 = np.zeros((1+yhi-ylo, 1+xhi-xlo))
         im1[ipixes[:,1], ipixes[:,0]] = b
@@ -851,21 +873,13 @@ def _fit_psf(fp, fmask, pk, pkF, pkres, fbb, peaks, peaksF, log, psf,
     pkres.psf_fit_params = Xpsf
     pkres.psf_fit_flux = Xpsf[I_psf]
     pkres.psf_fit_nothers = len(otherpeaks)
-    # pkres.w = w
 
     if ispsf:
         pkres.set_deblended_as_psf()
 
-    if ispsf:
         # replace the template image by the PSF + derivatives
         # image.
         log.logdebug('Deblending as PSF; setting template to PSF model')
-
-        # Hmm.... here we create a model footprint and MaskedImage BUT
-        # the footprint covers the little region we fit, which is
-        # different than the PSF size.  We could make this code much
-        # simpler and maybe more sensible by just creating a circular
-        # Footprint centered on the PSF.
 
         # FIXME
         # Import C++ routines ... copyWithinFootprint should move to
@@ -874,22 +888,26 @@ def _fit_psf(fp, fmask, pk, pkF, pkres, fbb, peaks, peaksF, log, psf,
         import lsst.meas.deblender as deb
         butils = deb.BaselineUtilsF
         
-        modelfoot = afwDet.Footprint()
-        for (x,y) in ipixes:
-            modelfoot.addSpan(int(y+ylo), int(x+xlo), int(x+xlo))
-        modelfoot.normalize()
-
-        # Instantiate the PSF model and clip it to modelfoot.
+        # Instantiate the PSF model and clip it to the footprint
         psfimg = psf.computeImage(cx, cy)
-        SW,SH = 1+xhi-xlo, 1+yhi-ylo
-        psfmod = afwImage.MaskedImageF(SW,SH)
-        psfmod.setXY0(xlo,ylo)
         # Scale by fit flux.
         psfimg *= Xpsf[I_psf]
-        butils.copyWithinFootprint(modelfoot, psfimg, psfmod.getImage())
-        # Save it as our template.
-        pkres.set_template(psfmod, modelfoot)
 
+        # Clip the Footprint to the PSF model image bbox.
+        fpcopy = afwDet.Footprint(fp)
+        psfbb = psfimg.getBBox(afwImage.PARENT)
+        fpcopy.clipTo(psfbb)
+        bb = fpcopy.getBBox()
+        
+        # Copy the part of the PSF model within the clipped footprint.
+        x0, x1 = bb.getMinX(), bb.getMaxX()
+        y0, y1 = bb.getMinY(), bb.getMaxY()
+        W, H = 1 + x1 - x0, 1 + y1 - y0
+        psfmod = afwImage.MaskedImageF(W, H)
+        psfmod.setXY0(x0, y0)
+        butils.copyWithinFootprint(fpcopy, psfimg, psfmod.getImage())
+        # Save it as our template.
+        pkres.set_template(psfmod, fpcopy)
 
 
 
