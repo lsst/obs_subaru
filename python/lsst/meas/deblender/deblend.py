@@ -189,6 +189,8 @@ class SourceDeblendTask(pipeBase.Task):
             except Exception as e:
                 self.log.warn("Error deblending source %d: %s" % (src.getId(), e))
                 src.set(self.deblendFailedKey, True)
+                import traceback
+                traceback.print_exc()
                 continue
 
             kids = []
@@ -207,9 +209,9 @@ class SourceDeblendTask(pipeBase.Task):
                     #print 'Mask bits set: 0x%x' % maskbits
 
                 child.set(self.psfKey, pkres.deblend_as_psf)
-                (cx,cy) = pkres.center
+                (cx,cy) = pkres.psf_fit_center
                 child.set(self.psfCenterKey, afwGeom.Point2D(cx, cy))
-                child.set(self.psfFluxKey, pkres.psfflux)
+                child.set(self.psfFluxKey, pkres.psf_fit_flux)
                 kids.append(child)
 
             src.set(self.nChildKey, nchild)

@@ -103,6 +103,9 @@ class PerPeak(object):
         # when least-squares fitting templates, the template weight.
         self.template_weight = 1.0
 
+    def set_stray_flux(self, stray):
+        self.stray_flux = stray
+        
     def get_flux_portion(self, strayFlux=True):
         '''
         Return a HeavyFootprint containing the flux apportioned to
@@ -116,6 +119,8 @@ class PerPeak(object):
 
         if strayFlux:
             if self.stray_flux is not None:
+                import lsst.meas.deblender as deb
+                butils = deb.BaselineUtilsF
                 heavy = butils.mergeHeavyFootprints(heavy, self.stray_flux)
 
         return heavy
@@ -237,6 +242,16 @@ def deblend(footprint, maskedImage, psf, psffwhm,
     if maxNumberOfPeaks > 0:
         peaks = peaks[:maxNumberOfPeaks]
 
+    # Pull out the image bounds of the parent Footprint
+    imbb = img.getBBox(afwImage.PARENT)
+    bb = fp.getBBox()
+    if not imbb.contains(bb):
+        raise ValueError(('Footprint bounding-box %s extends outside image '
+                          + 'bounding-box %s') % (str(bb), str(imbb)))
+    W,H = bb.getWidth(), bb.getHeight()
+    x0,y0 = bb.getMinX(), bb.getMinY()
+    x1,y1 = bb.getMaxX(), bb.getMaxY()
+
     # 'sigma1' is an estimate of the average noise level in this image.
     if sigma1 is None:
         # FIXME -- just within the bbox?
@@ -255,14 +270,6 @@ def deblend(footprint, maskedImage, psf, psffwhm,
         _fit_psfs(fp, peaks, res, log, psf, psffwhm, img, varimg,
                   psf_chisq_cut1, psf_chisq_cut2, psf_chisq_cut2b,
                   dropTiny = dropTinyFootprints)
-
-    # Pull out the image bounds of the parent Footprint
-    imbb = img.getBBox(afwImage.PARENT)
-    bb = fp.getBBox()
-    assert(imbb.contains(bb))
-    W,H = bb.getWidth(), bb.getHeight()
-    x0,y0 = bb.getMinX(), bb.getMinY()
-    x1,y1 = bb.getMaxX(), bb.getMaxY()
 
     # Create templates...
     log.logdebug(('Creating templates for footprint at x0,y0,W,H = ' +
@@ -296,7 +303,8 @@ def deblend(footprint, maskedImage, psf, psffwhm,
         if rampFluxAtEdge:
             if butils.hasSignificantFluxAtEdge(t1.getImage(), tfoot, 3*sigma1):
                 (t2, tfoot2) = _handle_flux_at_edge(
-                    log, psffwhm, t1, tfoot, fp, maskedImage, x0,x1,y0,y1, psf)
+                    log, psffwhm, t1, tfoot, fp, maskedImage, x0,x1,y0,y1, psf, pk,
+                    sigma1, patchEdges)
                 # possibly save this ramped template
                 pkres.set_ramped_template(t1, tfoot)
                 t1 = t2
@@ -642,8 +650,8 @@ def _fit_psf(fp, fmask, pk, pkF, pkres, fbb, peaks, peaksF, log, psf,
     sy1,sy2,sy3,sy4 = _overlap(ylo, yhi, py0, py1)
     dpx0,dpy0 = px0 - xlo, py0 - ylo
     psf_y_slice = slice(sy3 - dpy0, sy4 - dpy0)
-    psf_x_slice = slice(sx3 - dpx0: sx4 - dpx0)
-    psfsub = psfarr[psf_y_slice, psf_x_slice)
+    psf_x_slice = slice(sx3 - dpx0, sx4 - dpx0)
+    psfsub = psfarr[psf_y_slice, psf_x_slice]
     vsub = valid[sy1-ylo: sy2-ylo, sx1-xlo: sx2-xlo]
     A[inpsf[valid], I_psf] = psfsub[vsub]
 
@@ -892,6 +900,7 @@ def _fit_psf(fp, fmask, pk, pkF, pkres, fbb, peaks, peaksF, log, psf,
         psfimg = psf.computeImage(cx, cy)
         # Scale by fit flux.
         psfimg *= Xpsf[I_psf]
+        psfimg = psfimg.convertF()
 
         # Clip the Footprint to the PSF model image bbox.
         fpcopy = afwDet.Footprint(fp)
@@ -905,14 +914,14 @@ def _fit_psf(fp, fmask, pk, pkF, pkres, fbb, peaks, peaksF, log, psf,
         W, H = 1 + x1 - x0, 1 + y1 - y0
         psfmod = afwImage.MaskedImageF(W, H)
         psfmod.setXY0(x0, y0)
+
         butils.copyWithinFootprint(fpcopy, psfimg, psfmod.getImage())
         # Save it as our template.
         pkres.set_template(psfmod, fpcopy)
 
 
-
 def _handle_flux_at_edge(log, psffwhm, t1, tfoot, fp, maskedImage,
-                         x0,x1,y0,y1, psf):
+                         x0,x1,y0,y1, psf, pk, sigma1, patchEdges):
     # Import C++ routines
     import lsst.meas.deblender as deb
     butils = deb.BaselineUtilsF
@@ -996,8 +1005,9 @@ def _handle_flux_at_edge(log, psffwhm, t1, tfoot, fp, maskedImage,
     # This template footprint may extend outside the parent
     # footprint -- or the image.  Clip it.
     # NOTE that this may make it asymmetric, unlike normal templates.
+    imbb = maskedImage.getBBox(afwImage.PARENT)
     tfoot2.clipTo(imbb)
-    tfoot2.clipTo(bb)
+    #tfoot2.clipTo(bb)
     tbb = tfoot2.getBBox()
     # clip template image to bbox
     t2 = t2.Factory(t2, tbb, afwImage.PARENT, True)
