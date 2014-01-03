@@ -7013,7 +7013,7 @@ Linearity: {
     serial: 75
     Amp: {
       serial: 1
-      coefficient: -2.34695e-07
+      coefficient: -3.56033e-07
       type: "PROPORTIONAL"
       threshold: 0.0
       maxCorrectable: 5.0e4
@@ -7021,7 +7021,7 @@ Linearity: {
     }
     Amp: {
       serial: 2
-      coefficient: 1.53436e-08
+      coefficient: -3.47615e-08
       type: "PROPORTIONAL"
       threshold: 0.0
       maxCorrectable: 5.0e4
@@ -7029,7 +7029,7 @@ Linearity: {
     }
     Amp: {
       serial: 3
-      coefficient: 2.58632e-08
+      coefficient: -2.55996e-08
       type: "PROPORTIONAL"
       threshold: 0.0
       maxCorrectable: 5.0e4
@@ -7037,7 +7037,7 @@ Linearity: {
     }
     Amp: {
       serial: 4
-      coefficient: 3.90925e-08
+      coefficient: -9.17291e-09
       type: "PROPORTIONAL"
       threshold: 0.0
       maxCorrectable: 5.0e4
@@ -7713,7 +7713,7 @@ Linearity: {
     serial: 95
     Amp: {
       serial: 1
-      coefficient: -1.31815e-07
+      coefficient: -2.40608e-07
       type: "PROPORTIONAL"
       threshold: 0.0
       maxCorrectable: 5.0e4
@@ -7721,7 +7721,7 @@ Linearity: {
     }
     Amp: {
       serial: 2
-      coefficient: 9.59227e-08
+      coefficient: -6.58323e-09
       type: "PROPORTIONAL"
       threshold: 0.0
       maxCorrectable: 5.0e4
@@ -7729,7 +7729,7 @@ Linearity: {
     }
     Amp: {
       serial: 3
-      coefficient: 9.80117e-08
+      coefficient: 6.20761e-09
       type: "PROPORTIONAL"
       threshold: 0.0
       maxCorrectable: 5.0e4
@@ -7737,7 +7737,7 @@ Linearity: {
     }
     Amp: {
       serial: 4
-      coefficient: 5.42111e-08
+      coefficient: -3.06338e-08
       type: "PROPORTIONAL"
       threshold: 0.0
       maxCorrectable: 5.0e4
@@ -7853,7 +7853,7 @@ Linearity: {
     serial: 99
     Amp: {
       serial: 1
-      coefficient: -9.64049e-08
+      coefficient: -2.12699e-07
       type: "PROPORTIONAL"
       threshold: 0.0
       maxCorrectable: 5.0e4
@@ -7861,7 +7861,7 @@ Linearity: {
     }
     Amp: {
       serial: 2
-      coefficient: 1.23418e-07
+      coefficient: 5.37031e-08
       type: "PROPORTIONAL"
       threshold: 0.0
       maxCorrectable: 5.0e4
@@ -7869,7 +7869,7 @@ Linearity: {
     }
     Amp: {
       serial: 3
-      coefficient: 1.1041e-07
+      coefficient: 4.26398e-08
       type: "PROPORTIONAL"
       threshold: 0.0
       maxCorrectable: 5.0e4
@@ -7877,7 +7877,7 @@ Linearity: {
     }
     Amp: {
       serial: 4
-      coefficient: 6.13175e-08
+      coefficient: -1.66227e-09
       type: "PROPORTIONAL"
       threshold: 0.0
       maxCorrectable: 5.0e4
