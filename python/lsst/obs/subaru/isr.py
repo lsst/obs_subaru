@@ -465,7 +465,7 @@ class SubaruIsrTask(IsrTask):
                          " for ccd %s amp %s") % (linearity.threshold, ccd.getId(), amp.getId()))
                 
                 ampArr = ampImage.getImage().getArray()
-                ampArr += linearity.coefficient*ampArr
+                ampArr *= 1.0 + linearity.coefficient*ampArr
             else:
                 raise NotImplementedError("Unimplemented linearity type: %d", linearity.type)
 
