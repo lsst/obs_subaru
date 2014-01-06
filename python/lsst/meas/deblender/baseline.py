@@ -330,7 +330,7 @@ def deblend(footprint, maskedImage, psf, psffwhm,
                 
         if monotonic_template:
             log.logdebug('Making template %i monotonic' % pkres.pki)
-            butils.makeMonotonic(t1, pk, sigma1)
+            butils.makeMonotonic(t1, pk)
 
         pkres.set_template(t1, tfoot)
 

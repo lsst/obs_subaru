@@ -55,9 +55,7 @@ namespace lsst {
 
                 static void
                 makeMonotonic(MaskedImageT & img,
-                              lsst::afw::detection::Peak const& pk,
-                              double sigma1);
-
+                              lsst::afw::detection::Peak const& pk);
 
                 static const int ASSIGN_STRAYFLUX                          = 0x1;
                 static const int STRAYFLUX_TO_POINT_SOURCES_WHEN_NECESSARY = 0x2;

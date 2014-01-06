@@ -118,8 +118,7 @@ void
 deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::
 makeMonotonic(
     MaskedImageT & mimg,
-    det::Peak const& peak,
-    double sigma1) {
+    det::Peak const& peak) {
 
     int cx = peak.getIx();
     int cy = peak.getIy();
