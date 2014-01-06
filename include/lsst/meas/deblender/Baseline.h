@@ -55,7 +55,6 @@ namespace lsst {
 
                 static void
                 makeMonotonic(MaskedImageT & img,
-                              lsst::afw::detection::Footprint const& foot,
                               lsst::afw::detection::Peak const& pk,
                               double sigma1);
 

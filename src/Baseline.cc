@@ -20,6 +20,19 @@ static bool span_ptr_compare(det::Span::Ptr sp1, det::Span::Ptr sp2) {
     return (*sp1 < *sp2);
 }
 
+/**
+ Run a spatial median filter over the given input *img*, writing the
+ results to *out*.  *halfsize* is half the box size of the filter; ie,
+ a halfsize of 50 means that each output pixel will be the median of
+ the pixels in a 101 x 101-pixel box in the input image.
+
+ Margins are handled horribly: the median is computed only for pixels
+ more than *halfsize* away from the edges; pixels near the edges are
+ simply copied from the input *img* to *out*.
+
+ Mask and variance planes are, likewise, simply copied from *img* to
+ *out*.
+ */
 template<typename ImagePixelT, typename MaskPixelT, typename VariancePixelT>
 void
 deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::
@@ -76,12 +89,35 @@ medianFilter(MaskedImageT const& img,
 
 }
 
+/**
+ Given an image *mimg* and Peak location *peak*, overwrite *mimg* so
+ that pixels further from the peak have values smaller than those
+ close to the peak; make the profile monotonic-decreasing.
+
+ The exact algorithm is a little more complicated than that.  The
+ basic idea is of "casting a shadow" from a pixel to pixels farther
+ from the peak in the same direction.  Done naively, this results in
+ very narrow "shadows" and ragged profiles.  A tweak is to make the
+ shadows "fatter" -- make a pixel shadow a wedge of pixels -- but if
+ one does this naively, the wedge gets wider and wider too quickly.
+ The algorithm works out from the peak in square "rings" of pixels, so
+ if a pixel shadows a wedge 30 degrees wide, in the next ring of
+ pixels the shadowed pixel at largest angle from the shadowing pixel
+ will shade a yet-larger wedge, expanding the shadowing angle.  To
+ reduce this effect, we work in chunks of 5 pixels in radius, only
+ copying the intermediate pixels to the "shadowing" image at the end
+ of each chunk.
+
+ Currently the mask and variance planes of the input are totally
+ ignored.
+
+ For illustration, run tests/monotonic.py and look at im*.png
+ */
 template<typename ImagePixelT, typename MaskPixelT, typename VariancePixelT>
 void
 deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::
 makeMonotonic(
     MaskedImageT & mimg,
-    det::Footprint const& foot,
     det::Peak const& peak,
     double sigma1) {
 
@@ -93,26 +129,31 @@ makeMonotonic(
     int iH = mimg.getHeight();
 
     ImagePtrT img = mimg.getImage();
-    MaskPtrT mask = mimg.getMask();
+    ImagePtrT shadowingImg = ImagePtrT(new ImageT(*img, true));
 
     int DW = std::max(cx - mimg.getX0(), mimg.getX0() + mimg.getWidth() - cx);
     int DH = std::max(cy - mimg.getY0(), mimg.getY0() + mimg.getHeight() - cy);
 
-    ImagePtrT origimg = ImagePtrT(new ImageT(*img, true));
-
     const int S = 5;
 
+    // Work out from the peak in chunks of "S" pixels.
     int s;
     for (s = 0; s < std::max(DW,DH); s += S) {
         int p;
         for (p=0; p<S; p++) {
-            // visit pixels with L_inf distance = s + p from the center
-            // (ie, the s+p'th square ring of pixels)
+            // visit pixels with L_inf distance = s + p from the
+            // center (ie, the s+p'th square ring of pixels)
+            // L is the half-length of the ring (box).
             int L = s+p;
-            int i;
-
             int x = L, y = -L;
-            int dx = 0, dy = 0; // make compiler happy; initialised the first time through the loop
+            int dx = 0, dy = 0; // initialized here to satisfy the
+                                // compiler; initialized for real
+                                // below (first time through loop)
+
+            printf("\nL=%i\n", L);
+
+            /*
+            int i;
             int leg;
             for (i=0; i<(8*L); i++, x += dx, y += dy) {
                 if (i % (2*L) == 0) {
@@ -120,46 +161,92 @@ makeMonotonic(
                     dx = ( leg    % 2) * (-1 + 2*(leg/2));
                     dy = ((leg+1) % 2) * ( 1 - 2*(leg/2));
                 }
+             */
 
+            /*
+             We visit pixels in a box of "radius" L, in this order:
+
+             L=1:
+
+             4 3 2
+             5   1
+             6 7 0
+
+             L=2:
+
+             8  7  6  5  4
+             9           3
+             10          2
+             11          1
+             12 13 14 15 0
+
+             Note that the number of pixel visited is 8*L, and that we
+             change "dx" or "dy" each "2*L" steps.
+             */
+            for (int i=0; i<(8*L); i++, x += dx, y += dy) {
+                // time to change directions?  (Note that this runs
+                // the first time through the loop, initializing dx,dy
+                // appropriately.)
+                if (i % (2*L) == 0) {
+                    int leg = (i/(2*L));
+                    // dx = [ 0, -1,  0, 1 ][leg]
+                    dx = ( leg    % 2) * (-1 + 2*(leg/2));
+                    // dy = [ 1,  0, -1, 0 ][leg]
+                    dy = ((leg+1) % 2) * ( 1 - 2*(leg/2));
+                }
+                //printf("  i=%i, leg=%i, dx=%i, dy=%i, x=%i, y=%i\n", i, leg, dx, dy, x, y);
                 int px = cx + x - ix0;
                 int py = cy + y - iy0;
+                // If the shadowing pixel is out of bounds, nothing to do.
                 if (px < 0 || px >= iW || py < 0 || py >= iH)
                     continue;
-                ImagePixelT pix = (*origimg)(px,py);
+                // The pixel casting the shadow
+                ImagePixelT pix = (*shadowingImg)(px,py);
 
-                // Cast this pixel's shadow S pixels long in a cone centered on angle "a"
-                //double a = std::atan2(dy, dx);
+                // Cast this pixel's shadow S pixels long in a cone.
+                // We compute the range of slopes (or inverse-slopes)
+                // shadowed by the pixel, [ds0,ds1]
                 double ds0, ds1;
+                // Range of slopes shadowed
+                const double A = 0.3;
                 int shx, shy;
                 int psx, psy;
-                double A = 0.3;
+                // Are we traversing a vertical edge of the box?
                 if (dx == 0) {
+                    // (if so, then "x" is +- L, so no div-by-zero)
                     ds0 = (double(y) / double(x)) - A;
                     ds1 = ds0 + 2.0 * A;
+                    // cast the shadow on column x + sign(x)*shx
                     for (shx=1; shx<=S; shx++) {
-                        int xs = (x>0?1:-1);
-                        psx = cx + x + (xs*shx) - ix0;
+                        int xsign = (x>0?1:-1);
+                        // the column being shadowed
+                        psx = cx + x + (xsign*shx) - ix0;
                         if (psx < 0 || psx >= iW)
                             continue;
-                        for (shy = iround(shx * ds0); shy <= iround(shx * ds1); shy++) {
-                            psy = cy + y + xs*shy - iy0;
+                        // shadow covers a range of y values based on slope
+                        for (shy  = iround(shx * ds0);
+                             shy <= iround(shx * ds1); shy++) {
+                            psy = cy + y + xsign*shy - iy0;
                             if (psy < 0 || psy >= iH)
                                 continue;
-                            //(*tempimg)(psx, psy) = std::min((*tempimg)(psx, psy), pix);
                             (*img)(psx, psy) = std::min((*img)(psx, psy), pix);
                         }
                     }
-                    
+
                 } else {
+                    // We're traversing a horizontal edge of the box; y = +-L
                     ds0 = (double(x) / double(y)) - A;
                     ds1 = ds0 + 2.0 * A;
+                    // Cast shadow on row y + sign(y)*shy
                     for (shy=1; shy<=S; shy++) {
-                        int ys = (y>0?1:-1);
-                        psy = cy + y + (ys*shy) - iy0;
+                        int ysign = (y>0?1:-1);
+                        psy = cy + y + (ysign*shy) - iy0;
                         if (psy < 0 || psy >= iH)
                             continue;
-                        for (shx = iround(shy * ds0); shx <= iround(shy * ds1); shx++) {
-                            psx = cx + x + ys*shx - ix0;
+                        // shadow covers a range of x vals based on slope
+                        for (shx  = iround(shy * ds0);
+                             shx <= iround(shy * ds1); shx++) {
+                            psx = cx + x + ysign*shx - ix0;
                             if (psx < 0 || psx >= iW)
                                 continue;
                             (*img)(psx, psy) = std::min((*img)(psx, psy), pix);
@@ -168,10 +255,13 @@ makeMonotonic(
                 }
             }
         }
-        *origimg <<= *img;
+        *shadowingImg <<= *img;
     }
 }
 
+/**
+ 
+ */
 template<typename ImagePixelT, typename MaskPixelT, typename VariancePixelT>
 std::vector<typename image::MaskedImage<ImagePixelT, MaskPixelT, VariancePixelT>::Ptr>
 deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::
