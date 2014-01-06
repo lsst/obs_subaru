@@ -259,7 +259,46 @@ makeMonotonic(
 }
 
 /**
- 
+ Splits flux in a given image *img*, within a given footprint *foot*,
+ among a number of templates *timgs*,*tfoots*.  This is where actual
+ "deblending" takes place.
+
+ *timgs* and *tfoots* MUST be the same length.
+
+ Flux is assigned to templates according to their relative heights at
+ each pixel.
+
+ If *strayFluxOptions* includes *ASSIGN_STRAYFLUX*, then "stray flux"
+ -- flux in the parent footprint that is not covered by any of the
+ template footprints -- is assigned to templates based on their
+ 1/(1+r^2) distance.
+
+ If *strayFluxOptions* includes *STRAYFLUX_R_TO_FOOTPRINT*, the stray
+ flux is distributed to the footprints based on 1/(1+r^2) of the
+ minimum distance from the stray flux to footprint; otherwise, it's
+ based on (1/(1+r^2) from the peaks.
+
+ If *strayFluxOptions* includes *STRAYFLUX_TO_POINT_SOURCES_ALWAYS*,
+ then point sources are always included in the 1/(1+r^2) splitting.
+ Otherwise, if *STRAYFLUX_TO_POINT_SOURCES_WHEN_NECESSARY*, point
+ sources are included only if there are no extended sources nearby.
+
+ If any stray-flux portion is less than 0.1%, it is clipped to zero.
+
+ When doing stray flux, the "strays" arg is used as an extra return
+ value, the stray flux assigned to each template.
+
+ When doing stray flux, the *ispsf*, *pkx*, and *pky* arrays are
+ required.  They give the peak x,y coords plus whether the peak is
+ believed (by the deblender) to be a point source.  *pkx* and *pky*
+ MUST be the same length as *timgs*.  If *ispsf* has nonzero length,
+ it MUST be the same length as *timgs*.
+
+ If *tsum* is given, is it set to the sum of max(0, template).
+
+ The return value is a vector of MaskedImages containing the flux
+ assigned to each template.
+
  */
 template<typename ImagePixelT, typename MaskPixelT, typename VariancePixelT>
 std::vector<typename image::MaskedImage<ImagePixelT, MaskPixelT, VariancePixelT>::Ptr>
@@ -279,9 +318,19 @@ apportionFlux(MaskedImageT const& img,
     typedef typename det::HeavyFootprint<ImagePixelT, MaskPixelT, VariancePixelT> HeavyFootprint;
     typedef typename boost::shared_ptr< HeavyFootprint > HeavyFootprintPtr;
 
+    if (timgs.size() != tfoots.size()) {
+        throw LSST_EXCEPT(lsst::pex::exceptions::LengthErrorException,
+                          (boost::format("Template images must be the same length as template footprints (%d vs %d)") % timgs.size(), tfoots.size()));
+    }
+
+    // the apportioned flux return value
     std::vector<MaskedImagePtrT> portions;
+    // when doing stray flux: the footprints and pixels, which we'll
+    // combine into the return 'strays' HeavyFootprint at the end.
     std::vector<det::Footprint::Ptr > strayfoot;
     std::vector<std::vector<ImagePixelT> > straypix;
+    std::vector<std::vector<MaskPixelT> > straymask;
+    std::vector<std::vector<VariancePixelT> > strayvar;
 
     pexLog::Log log(pexLog::Log::getDefaultLog(),
                     "lsst.meas.deblender.apportionFlux");
@@ -296,18 +345,19 @@ apportionFlux(MaskedImageT const& img,
     int sx0 = fbb.getMinX();
     int sy0 = fbb.getMinY();
 
-    // We could iterate over tfoots instead...
-
     // Compute  tsum = the sum of templates
     for (size_t i=0; i<timgs.size(); ++i) {
         MaskedImagePtrT timg = timgs[i];
         geom::Box2I tbb = timg->getBBox(image::PARENT);
         int tx0 = tbb.getMinX();
         int ty0 = tbb.getMinY();
+        // Here we iterate over the template bbox -- we could instead
+        // iterate over the "tfoot"s.
         for (int y=tbb.getMinY(); y<=tbb.getMaxY(); ++y) {
             typename MaskedImageT::x_iterator in_it = timg->row_begin(y - ty0);
             typename MaskedImageT::x_iterator inend = in_it + tbb.getWidth();
-            typename ImageT::x_iterator tsum_it = tsum->row_begin(y - sy0) + (tx0 - sx0);
+            typename ImageT::x_iterator tsum_it = 
+                tsum->row_begin(y - sy0) + (tx0 - sx0);
             for (; in_it != inend; ++in_it, ++tsum_it) {
                 *tsum_it += std::max((ImagePixelT)0., (*in_it).image());
             }
@@ -317,13 +367,15 @@ apportionFlux(MaskedImageT const& img,
     for (size_t i=0; i<timgs.size(); ++i) {
         MaskedImagePtrT timg = timgs[i];
 
-        // Initialize return values:
+        // Initialize return value:
         MaskedImagePtrT port(new MaskedImageT(timg->getDimensions()));
         port->setXY0(timg->getXY0());
         portions.push_back(port);
         if (findStrayFlux) {
             strayfoot.push_back(det::Footprint::Ptr());
             straypix.push_back(std::vector<ImagePixelT>());
+            straymask.push_back(std::vector<MaskPixelT>());
+            strayvar.push_back(std::vector<VariancePixelT>());
         }
 
         // Split flux = image * template / tsum
@@ -353,20 +405,16 @@ apportionFlux(MaskedImageT const& img,
 
     if (findStrayFlux) {
         if ((ispsf.size() > 0) && (ispsf.size() != timgs.size())) {
-            // Bail out!
-            assert(0);
+            throw LSST_EXCEPT(lsst::pex::exceptions::LengthErrorException,
+                              (boost::format("'ispsf' must be the same length as templates (%d vs %d)") % ispsf.size(), timgs.size()));
         }
-        if (pkx.size() != timgs.size()) {
-            // Bail out!
-            assert(0);
-        }
-        if (pky.size() != timgs.size()) {
-            // Bail out!
-            assert(0);
+        if ((pkx.size() != timgs.size()) || (pky.size() != timgs.size())) {
+            throw LSST_EXCEPT(lsst::pex::exceptions::LengthErrorException,
+                              (boost::format("'pkx' and 'pky' must be the same length as templates (%d,%d vs %d)") % pkx.size(), pky.size(), timgs.size()));
         }
 
-        // Go through the (parent) Footprint looking for pixels that are
-        // not claimed by any templates, and positive.
+        // Go through the (parent) Footprint looking for stray flux:
+        // pixels that are not claimed by any template, and positive.
         const SpanList spans = foot.getSpans();
         for (SpanList::const_iterator s = spans.begin(); s < spans.end(); s++) {
             int y = (*s)->getY();
@@ -374,8 +422,9 @@ apportionFlux(MaskedImageT const& img,
             int x1 = (*s)->getX1();
             typename ImageT::x_iterator tsum_it =
                 tsum->row_begin(y - sy0) + (x0 - sx0);
-            typename ImageT::x_iterator in_it =
-                img.getImage()->row_begin(y - iy0) + (x0 - ix0);
+
+            typename MaskedImageT::x_iterator in_it =
+                img.row_begin(y - iy0) + (x0 - ix0);
 
             double contrib[timgs.size()];
 
@@ -383,7 +432,7 @@ apportionFlux(MaskedImageT const& img,
                 // Skip pixels that are covered by at least one
                 // template (*tsum_it > 0) or the input is not
                 // positive (*in_it <= 0).
-                if ((*tsum_it > 0) || (*in_it) <= 0) {
+                if ((*tsum_it > 0) || (*in_it).image() <= 0) {
                     continue;
                 }
                 //printf("Pixel at (%i,%i) has stray flux: %g\n", x, y, (float)*in_it);
@@ -427,7 +476,8 @@ apportionFlux(MaskedImageT const& img,
                 }
 
                 // Round 1: 
-                bool always = (strayFluxOptions & STRAYFLUX_TO_POINT_SOURCES_ALWAYS);
+                bool always = (strayFluxOptions &
+                               STRAYFLUX_TO_POINT_SOURCES_ALWAYS);
                 // are we going to assign stray flux to ptsrcs?
                 bool ptsrcs = always;
 
@@ -440,7 +490,8 @@ apportionFlux(MaskedImageT const& img,
                     csum += contrib[i];
                 }
                 if ((csum == 0.) &&
-                    (strayFluxOptions & STRAYFLUX_TO_POINT_SOURCES_WHEN_NECESSARY)) {
+                    (strayFluxOptions &
+                     STRAYFLUX_TO_POINT_SOURCES_WHEN_NECESSARY)) {
                     // No extended sources -- assign to pt sources
                     //log.debugf("necessary to assign stray flux to point sources");
                     ptsrcs = true;
@@ -468,17 +519,18 @@ apportionFlux(MaskedImageT const& img,
                 }
 
                 for (size_t i=0; i<timgs.size(); ++i) {
-                    double c = contrib[i];
-                    if (c == 0.) {
+                    if (contrib[i] == 0.) {
                         continue;
                     }
                     // the stray flux to give to template i
-                    double p = (c / csum) * (*in_it);
+                    double p = (contrib[i] / csum) * (*in_it).image();
                     if (!strayfoot[i]) {
                         strayfoot[i] = det::Footprint::Ptr(new det::Footprint());
                     }
                     strayfoot[i]->addSpan(y, x, x);
                     straypix[i].push_back(p);
+                    straymask[i].push_back((*in_it).mask());
+                    strayvar[i].push_back((*in_it).variance());
                 }
             }
         }
@@ -494,6 +546,8 @@ apportionFlux(MaskedImageT const& img,
                 HeavyFootprintPtr heavy(new HeavyFootprint(*strayfoot[i]));
                 ndarray::Array<ImagePixelT,1,1> himg = heavy->getImageArray();
                 typename std::vector<ImagePixelT>::const_iterator spix;
+                typename std::vector<MaskPixelT>::const_iterator smask;
+                typename std::vector<VariancePixelT>::const_iterator svar;
                 typename ndarray::Array<ImagePixelT,1,1>::Iterator hpix;
 
                 /// FIXME -- we just put in zeros for the mask and variance planes.
@@ -502,20 +556,22 @@ apportionFlux(MaskedImageT const& img,
 
                 assert(strayfoot[i]->getNpix() == straypix[i].size());
 
-                for (spix = straypix[i].begin(), hpix = himg.begin(),
+                for (spix = straypix[i].begin(),
+                         smask = straymask[i].begin(),
+                         svar  = strayvar [i].begin(),
+                         hpix = himg.begin(),
                          mpix = heavy->getMaskArray().begin(),
                          vpix = heavy->getVarianceArray().begin();
                      spix != straypix[i].end();
-                     ++spix, ++hpix, ++mpix, ++vpix) {
+                     ++spix, ++smask, ++svar, ++hpix, ++mpix, ++vpix) {
                     *hpix = *spix;
-                    *mpix = 0;
-                    *vpix = 0;
+                    *mpix = *smask;
+                    *vpix = *svar;
                 }
                 strays.push_back(heavy);
             }
         }
     }
-
     return portions;
 }
 
@@ -677,7 +733,11 @@ private:
      }
  */
 
-
+/**
+ Given a Footprint *foot* and peak *cx*,*cy*, returns a Footprint that
+ is symmetric around the peak (with twofold rotational symmetry) --
+ the AND of the two symmetric halves.
+ */
 template<typename ImagePixelT, typename MaskPixelT, typename VariancePixelT>
 lsst::afw::detection::Footprint::Ptr
 deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::
@@ -875,6 +935,21 @@ symmetrizeFootprint(
     return sfoot;
 }
 
+/**
+ Given an *img*, footprint *foot*, and *peak*, creates a symmetric
+ template around the peak; produce a MaskedImage and Footprint
+ describing a footprint where:
+   output pixels (cx + dx, cy + dy) and (cx - dx, cy - dy)
+   = min(input pixels (cx + dx, cy + dy) and (cx - dx, cy - dy))
+
+ For pixels that are pulled down by more than 1 sigma, the SYMM_1SIG
+ bit is set; for pixels pulled down by more than 3 sigma, SYMM_3SIG.
+
+ If *patchEdge* is true and if the footprint touches pixels with the
+ EDGE bit set, then for spans whose symmetric mirror are outside the
+ image, the symmetric footprint is grown to include them and their
+ pixel values are stored.
+ */
 template<typename ImagePixelT, typename MaskPixelT, typename VariancePixelT>
 std::pair<typename lsst::afw::image::MaskedImage<ImagePixelT,MaskPixelT,VariancePixelT>::Ptr,
           typename lsst::afw::detection::Footprint::Ptr>
@@ -898,7 +973,8 @@ buildSymmetricTemplate(
 
     FootprintPtrT sfoot = symmetrizeFootprint(foot, cx, cy);
     if (!sfoot) {
-        return std::pair<MaskedImagePtrT, FootprintPtrT>(MaskedImagePtrT(), sfoot);
+        return std::pair<MaskedImagePtrT, FootprintPtrT>(MaskedImagePtrT(),
+                                                         sfoot);
     }
     const SpanList spans = sfoot->getSpans();
 
@@ -913,7 +989,8 @@ buildSymmetricTemplate(
              fwd != spans.end(); ++fwd) {
             int x0 = (*fwd)->getX0();
             int x1 = (*fwd)->getX1();
-            typename MaskT::x_iterator xiter = mask->x_at(x0 - mask->getX0(), (*fwd)->getY() - mask->getY0());
+            typename MaskT::x_iterator xiter =
+                mask->x_at(x0 - mask->getX0(), (*fwd)->getY() - mask->getY0());
             for (int x=x0; x<=x1; ++x, ++xiter) {
                 if ((x == x0) || (x == x1)) {
                     MaskPixelT maskpix = (*xiter);
@@ -951,14 +1028,17 @@ buildSymmetricTemplate(
         int fy = (*fwd)->getY();
         int by = (*back)->getY();
 
-        for (int fx=(*fwd)->getX0(), bx=(*back)->getX1(); fx <= (*fwd)->getX1(); fx++, bx--) {
-            // FIXME -- CURRENTLY WE IGNORE THE MASK PLANE!
-            // options include ORing the mask bits, or being clever about ignoring
-            // some masked pixels, or copying the mask bits of the min pixel
+        for (int fx=(*fwd)->getX0(), bx=(*back)->getX1();
+             fx <= (*fwd)->getX1();
+             fx++, bx--) {
+            // FIXME -- CURRENTLY WE IGNORE THE MASK PLANE!  options
+            // include ORing the mask bits, or being clever about
+            // ignoring some masked pixels, or copying the mask bits
+            // of the min pixel
 
-            // FIXME -- we could do this with image iterators
-            // instead.  But first profile to show that it's
-            // necessary and an improvement.
+            // FIXME -- we could do this with image iterators instead.
+            // But first profile to show that it's necessary and an
+            // improvement.
             ImagePixelT pixf = theimg->get0(fx, fy);
             ImagePixelT pixb = theimg->get0(bx, by);
             ImagePixelT pix = std::min(pixf, pixb);
@@ -1042,12 +1122,13 @@ buildSymmetricTemplate(
             }
             log.debugf("Span y=%i, x=[%i,%i] has mirror out-of-bounds: %i,[%i,%i]; clipped to %i,[%i,%i]",
                        y, (*fwd)->getX0(), (*fwd)->getX1(), ym, xm1, xm0, y, x0, x1);
-            typename MaskedImageT::x_iterator initer = img.x_at(x0 - img.getX0(), y - img.getY0());
-            typename MaskedImageT::x_iterator outiter = timg2->x_at(x0 - timg2->getX0(), y - timg2->getY0());
+            typename MaskedImageT::x_iterator initer =
+                img.x_at(x0 - img.getX0(), y - img.getY0());
+            typename MaskedImageT::x_iterator outiter =
+                timg2->x_at(x0 - timg2->getX0(), y - timg2->getY0());
             for (int x=x0; x<=x1; ++x, ++outiter, ++initer) {
                 *outiter = *initer;
             }
-
             sfoot->addSpan(y, x0, x1);
         }
         sfoot->normalize();
@@ -1057,13 +1138,16 @@ buildSymmetricTemplate(
     return std::pair<MaskedImagePtrT, FootprintPtrT>(timg, sfoot);
 }
 
+/**
+ Returns true if the given Footprint *sfoot* in image *img* has flux
+ above value *thresh* at its edge.
+ */
 template<typename ImagePixelT, typename MaskPixelT, typename VariancePixelT>
 bool
 deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::
 hasSignificantFluxAtEdge(ImagePtrT img,
                          det::Footprint::Ptr sfoot,
                          ImagePixelT thresh) {
-    // ASSUME "sfoot" is a symmetric footprint!!!
     typedef typename det::Footprint::SpanList SpanList;
 
     pexLog::Log log(pexLog::Log::getDefaultLog(),
@@ -1075,10 +1159,10 @@ hasSignificantFluxAtEdge(ImagePtrT img,
 
     const SpanList spans = sfoot->getSpans();
 
-    SpanList::const_iterator fwd  = spans.begin();
-    SpanList::const_iterator back = spans.end()-1;
+    SpanList::const_iterator fwd = spans.begin();
+    SpanList::const_iterator end = spans.end();
 
-    for (; fwd <= back; fwd++, back--) {
+    for (; fwd != endback; fwd++) {
         // We have to check above and below all pixels and left and
         // right of the end pixels.  Faster to do this in image space?
         // (Inserting footprint into image, operating on image,
@@ -1110,6 +1194,10 @@ hasSignificantFluxAtEdge(ImagePtrT img,
     return false;
 }
 
+/**
+ Returns a list of pixels that are on the edge of the given Footprint
+ *sfoot* in image *img*, above threshold *thresh*.
+ */
 template<typename ImagePixelT, typename MaskPixelT, typename VariancePixelT>
 boost::shared_ptr<det::Footprint>
 deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::
@@ -1151,10 +1239,11 @@ getSignificantEdgePixels(ImagePtrT img,
     return edgepix;
 }
 
-
-
-
-
+/**
+ Sums the two given HeavyFootprints *h1* and *h2*, returning a
+ HeavyFootprint with the union footprint, and summed pixels where they
+ overlap.
+ */
 template<typename ImagePixelT, typename MaskPixelT, typename VariancePixelT>
 boost::shared_ptr<typename det::HeavyFootprint<ImagePixelT,MaskPixelT,VariancePixelT> >
 deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::
