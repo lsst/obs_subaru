@@ -207,34 +207,45 @@ def main():
         tsum = np.zeros((bb.getHeight(), bb.getWidth()))
         k = 0
         for pkres,pk in zip(res.peaks, pks):
-            if not hasattr(pkres, 'timg'):
-                continue
-            if not hasattr(pkres, 'heavy'):
+
+            heavy = pkres.get_flux_portion()
+            if heavy is None:
+                print 'Child has no HeavyFootprint -- skipping'
                 continue
 
             kk = mapchild(k)
 
-            w = pkres.tweight
-            cfp = pkres.heavy
-            cbb = cfp.getBBox()
-            msk = afwImage.ImageF(cbb.getWidth(), cbb.getHeight())
-            msk.setXY0(cbb.getMinX(), cbb.getMinY())
-            afwDet.setImageFromFootprint(msk, cfp, 1.)
-            cext = getExtent(cbb)
-            tim = pkres.timg
-            tim *= msk
-            tim = tim.getArray()
-            (x0,x1,y0,y1) = cext
-            tsum[y0-py0:y1-py0, x0-px0:x1-px0] += tim
-            cim = footprintToImage(cfp).getArray()
+            w = pkres.template_weight
 
+            cfp = pkres.template_foot
+            cbb = cfp.getBBox()
+            cext = getExtent(cbb)
+
+            #msk = afwImage.ImageF(cbb.getWidth(), cbb.getHeight())
+            #msk.setXY0(cbb.getMinX(), cbb.getMinY())
+            #afwDet.setImageFromFootprint(msk, cfp, 1.)
+
+            tim = pkres.template_mimg.getImage()
+            timext = cext
+            #timext = getExtent(tim.getBBox(afwImage.PARENT))
+            #tim *= msk
+            tim = tim.getArray()
+            (x0,x1,y0,y1) = timext
+            #(x0,x1,y0,y1) = cext
+
+            tsum[y0-py0:y1-py0, x0-px0:x1-px0] += tim
+            #cim = footprintToImage(cfp, mi=pkres.template_mimg).getArray()
+
+            him = footprintToImage(heavy).getArray()
+            hext = getExtent(heavy.getBBox())
+            
             if opt.sec == 'median':
                 try:
-                    med = pkres.median
+                    med = pkres.median_filtered_template
                 except:
-                    med = pkres.symm
+                    med = pkres.orig_template
 
-                for im,nm in [(pkres.symm, 'symm'), (med, 'med')]:
+                for im,nm in [(pkres.orig_template, 'symm'), (med, 'med')]:
                     #print 'im:', im
                     plt.clf()
                     myimshow(im.getArray(), extent=cext, **imargs)
@@ -246,7 +257,7 @@ def main():
                     savefig(pid, nm + '%i' % (kk))
 
             plt.clf()
-            myimshow(pkres.timg.getArray() / w, extent=cext, **imargs)
+            myimshow(pkres.template_mimg.getImage().getArray() / w, extent=cext, **imargs)
             plt.gray()
             plt.xticks([])
             plt.yticks([])
@@ -264,7 +275,7 @@ def main():
             savefig(pid, 'tw%i' % (kk))
 
             plt.clf()
-            myimshow(cim, extent=cext, **imargs)
+            myimshow(him, extent=hext, **imargs)
             plt.gray()
             plt.xticks([])
             plt.yticks([])
@@ -285,15 +296,20 @@ def main():
 
         k = 0
         for pkres,pk in zip(res.peaks, pks):
-            if not hasattr(pkres, 'timg'):
+            heavy = pkres.get_flux_portion()
+            if heavy is None:
                 continue
-            if not hasattr(pkres, 'heavy'):
-                continue
-            cfp = pkres.heavy
+
+            print 'Template footprint:', pkres.template_foot.getBBox()
+            print 'Template img:', pkres.template_mimg.getBBox(afwImage.PARENT)
+            print 'Heavy footprint:', heavy.getBBox()
+
+            cfp = pkres.template_foot
             cbb = cfp.getBBox()
             cext = getExtent(cbb)
-            tim = pkres.timg.getArray()
+            tim = pkres.template_mimg.getImage().getArray()
             (x0,x1,y0,y1) = cext
+
             frac = tim / tsum[y0-py0:y1-py0, x0-px0:x1-px0]
 
             msk = afwImage.ImageF(cbb.getWidth(), cbb.getHeight())
