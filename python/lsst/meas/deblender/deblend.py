@@ -121,14 +121,6 @@ class SourceDeblendTask(pipeBase.Task):
         # It should be easier to get a PSF's fwhm;
         # https://dev.lsstcorp.org/trac/ticket/3030
         return psf.computeShape().getDeterminantRadius() * 2.35
-        # xc = int((bb.getMinX() + bb.getMaxX()) / 2.)
-        # yc = int((bb.getMinY() + bb.getMaxY()) / 2.)
-        # if hasattr(psf, 'getFwhm'):
-        #     psf_fwhm = psf.getFwhm(xc, yc)
-        # else:
-        #     pa = measAlg.PsfAttributes(psf, xc, yc)
-        #     psfw = pa.computeGaussianWidth(measAlg.PsfAttributes.ADAPTIVE_MOMENT)
-        #     psf_fwhm = 2.35 * psfw
         
     @pipeBase.timeMethod
     def deblend(self, exposure, srcs, psf):
