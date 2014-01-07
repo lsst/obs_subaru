@@ -149,6 +149,8 @@ class SourceDeblendTask(pipeBase.Task):
 
         n0 = len(srcs)
         nparents = 0
+        #for i,src in enumerate([srcs[71]]):
+        #for i,src in enumerate([srcs[74]]):
         for i,src in enumerate(srcs):
             fp = src.getFootprint()
             pks = fp.getPeaks()
@@ -167,6 +169,7 @@ class SourceDeblendTask(pipeBase.Task):
             src.set(self.tooManyPeaksKey, len(fp.getPeaks()) > self.config.maxNumberOfPeaks)
 
             try:
+                print 'Deblending src', i, ':', len(pks)
                 res = deblend(
                     fp, mi, psf, psf_fwhm, sigma1=sigma1,
                     psf_chisq_cut1 = self.config.psf_chisq_1,
@@ -181,6 +184,7 @@ class SourceDeblendTask(pipeBase.Task):
                     patchEdges=(self.config.edgeHandling == 'noclip'),
                     tinyFootprintSize=self.config.tinyFootprintSize
                     )
+                print 'Deblended src', i
                 src.set(self.deblendFailedKey, False)
             except Exception as e:
                 self.log.warn("Error deblending source %d: %s" % (src.getId(), e))
@@ -189,6 +193,7 @@ class SourceDeblendTask(pipeBase.Task):
                 traceback.print_exc()
                 continue
 
+            print 'Saving kids for', i
             kids = []
             nchild = 0
             for j,pkres in enumerate(res.peaks):
@@ -211,12 +216,17 @@ class SourceDeblendTask(pipeBase.Task):
                 kids.append(child)
 
             src.set(self.nChildKey, nchild)
+            print 'Saved kids for', i
             
+            print 'post hook...'
             self.postSingleDeblendHook(exposure, srcs, i, npre, kids, fp, psf, psf_fwhm, sigma1, res)
+            print 'post hook done'
 
+        print 'finished deblending'
         n1 = len(srcs)
         self.log.info('Deblended: of %i sources, %i were deblended, creating %i children, total %i sources' %
                       (n0, nparents, n1-n0, n1))
+        print 'deblend() returning'
 
     def preSingleDeblendHook(self, exposure, srcs, i, fp, psf, psf_fwhm, sigma1):
         pass

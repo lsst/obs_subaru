@@ -148,9 +148,6 @@ makeMonotonic(
             int dx = 0, dy = 0; // initialized here to satisfy the
                                 // compiler; initialized for real
                                 // below (first time through loop)
-
-            printf("\nL=%i\n", L);
-
             /*
             int i;
             int leg;
@@ -254,7 +251,8 @@ makeMonotonic(
                 }
             }
         }
-        *shadowingImg <<= *img;
+        //*shadowingImg <<= *img;
+        shadowingImg->operator<<=(*img);
     }
 }
 
@@ -320,7 +318,32 @@ apportionFlux(MaskedImageT const& img,
 
     if (timgs.size() != tfoots.size()) {
         throw LSST_EXCEPT(lsst::pex::exceptions::LengthErrorException,
-                          (boost::format("Template images must be the same length as template footprints (%d vs %d)") % timgs.size(), tfoots.size()));
+                          (boost::format("Template images must be the same length as template footprints (%d vs %d)") % timgs.size() % tfoots.size()).str());
+    }
+
+    for (int i=0; i<timgs.size(); ++i) {
+        if (!timgs[i]->getBBox(image::PARENT).contains(tfoots[i]->getBBox())) {
+            throw LSST_EXCEPT(lsst::pex::exceptions::RuntimeErrorException,
+                              "Template image MUST contain template footprint");
+        }
+        if (!foot.getBBox().contains(timgs[i]->getBBox(image::PARENT))) {
+            printf("Parent footprint bbox: x [%i, %i], y [%i, %i]\n",
+                   foot.getBBox().getMinX(), foot.getBBox().getMaxX(),
+                   foot.getBBox().getMinY(), foot.getBBox().getMaxY());
+            geom::Box2I bb = timgs[i]->getBBox(image::PARENT);
+            printf("Template image bbox:  x [%i, %i], y [%i, %i]\n",
+                   bb.getMinX(), bb.getMaxX(),
+                   bb.getMinY(), bb.getMaxY());
+            // This can happen when "ramping" template with flux at edge.
+            /*
+             throw LSST_EXCEPT(lsst::pex::exceptions::RuntimeErrorException,
+             "Template footprint MUST be contained within parent footprint");
+             */
+        }
+        if (!img.getBBox(image::PARENT).contains(foot.getBBox())) {
+            throw LSST_EXCEPT(lsst::pex::exceptions::RuntimeErrorException,
+                              "Image bbox MUST contain parent footprint");
+        }
     }
 
     // the apportioned flux return value
@@ -339,11 +362,28 @@ apportionFlux(MaskedImageT const& img,
     int ix0 = img.getX0();
     int iy0 = img.getY0();
     geom::Box2I fbb = foot.getBBox();
+
     if (!tsum) {
         tsum = ImagePtrT(new ImageT(fbb.getDimensions()));
+        tsum->setXY0(fbb.getMinX(), fbb.getMinY());
     }
-    int sx0 = fbb.getMinX();
-    int sy0 = fbb.getMinY();
+
+    if (!tsum->getBBox(image::PARENT).contains(foot.getBBox())) {
+        throw LSST_EXCEPT(lsst::pex::exceptions::RuntimeErrorException,
+                          "Template sum image MUST contain parent footprint");
+    }
+
+    geom::Box2I sumbb = tsum->getBBox(image::PARENT);
+    int sumx0 = sumbb.getMinX();
+    int sumy0 = sumbb.getMinY();
+
+    printf("Footprint bounding-box: x [%i, %i], y [%i, %i]\n",
+           fbb.getMinX(), fbb.getMaxX(), fbb.getMinY(), fbb.getMaxY());
+    {
+        geom::Box2I tbb = tsum->getBBox(image::PARENT);
+        printf("Tsum bounding-box: x [%i, %i], y [%i, %i]\n",
+               tbb.getMinX(), tbb.getMaxX(), tbb.getMinY(), tbb.getMaxY());
+    }
 
     // Compute  tsum = the sum of templates
     for (size_t i=0; i<timgs.size(); ++i) {
@@ -351,21 +391,39 @@ apportionFlux(MaskedImageT const& img,
         geom::Box2I tbb = timg->getBBox(image::PARENT);
         int tx0 = tbb.getMinX();
         int ty0 = tbb.getMinY();
+
+        printf("Timg bounding-box: x [%i, %i], y [%i, %i]\n",
+               tbb.getMinX(), tbb.getMaxX(), tbb.getMinY(), tbb.getMaxY());
+
+        // To handle "ramped" templates that can extend outside the
+        // parent, clip the bbox...
+        tbb.clip(sumbb);
+        tx0 = tbb.getMinX();
+        ty0 = tbb.getMinY();
+        printf("Clipped timg bounding-box: x [%i, %i], y [%i, %i]\n",
+               tbb.getMinX(), tbb.getMaxX(), tbb.getMinY(), tbb.getMaxY());
+
         // Here we iterate over the template bbox -- we could instead
         // iterate over the "tfoot"s.
         for (int y=tbb.getMinY(); y<=tbb.getMaxY(); ++y) {
             typename MaskedImageT::x_iterator in_it = timg->row_begin(y - ty0);
             typename MaskedImageT::x_iterator inend = in_it + tbb.getWidth();
             typename ImageT::x_iterator tsum_it = 
-                tsum->row_begin(y - sy0) + (tx0 - sx0);
+                tsum->row_begin(y - sumy0) + (tx0 - sumx0);
             for (; in_it != inend; ++in_it, ++tsum_it) {
-                *tsum_it += std::max((ImagePixelT)0., (*in_it).image());
+                ImagePixelT p = (*in_it).image();
+                *tsum_it += std::max((ImagePixelT)0., p);
+                //*tsum_it += std::max((ImagePixelT)0., (*in_it).image());
             }
         }
     }
 
     for (size_t i=0; i<timgs.size(); ++i) {
         MaskedImagePtrT timg = timgs[i];
+
+        printf("timg dimensions: %s\n", timg->getDimensions().toString().c_str());
+        //%i x %i\n", timg->getDimensions().getWidth(),
+        //timg->getDimensions().getHeight());
 
         // Initialize return value:
         MaskedImagePtrT port(new MaskedImageT(timg->getDimensions()));
@@ -386,7 +444,8 @@ apportionFlux(MaskedImageT const& img,
             typename MaskedImageT::x_iterator in_it = img.row_begin(y - iy0) + (tx0 - ix0);
             typename MaskedImageT::x_iterator tptr = timg->row_begin(y - ty0);
             typename MaskedImageT::x_iterator tend = tptr + tbb.getWidth();
-            typename ImageT::x_iterator tsum_it = tsum->row_begin(y - sy0) + (tx0 - sx0);
+            typename ImageT::x_iterator tsum_it = 
+                tsum->row_begin(y - sumy0) + (tx0 - sumx0);
             typename MaskedImageT::x_iterator out_it = port->row_begin(y - ty0);
             for (; tptr != tend; ++tptr, ++in_it, ++out_it, ++tsum_it) {
                 if (*tsum_it == 0) {
@@ -406,11 +465,11 @@ apportionFlux(MaskedImageT const& img,
     if (findStrayFlux) {
         if ((ispsf.size() > 0) && (ispsf.size() != timgs.size())) {
             throw LSST_EXCEPT(lsst::pex::exceptions::LengthErrorException,
-                              (boost::format("'ispsf' must be the same length as templates (%d vs %d)") % ispsf.size(), timgs.size()));
+                              (boost::format("'ispsf' must be the same length as templates (%d vs %d)") % ispsf.size() % timgs.size()).str());
         }
         if ((pkx.size() != timgs.size()) || (pky.size() != timgs.size())) {
             throw LSST_EXCEPT(lsst::pex::exceptions::LengthErrorException,
-                              (boost::format("'pkx' and 'pky' must be the same length as templates (%d,%d vs %d)") % pkx.size(), pky.size(), timgs.size()));
+                              (boost::format("'pkx' and 'pky' must be the same length as templates (%d,%d vs %d)") % pkx.size() % pky.size() % timgs.size()).str());
         }
 
         // Go through the (parent) Footprint looking for stray flux:
@@ -421,7 +480,7 @@ apportionFlux(MaskedImageT const& img,
             int x0 = (*s)->getX0();
             int x1 = (*s)->getX1();
             typename ImageT::x_iterator tsum_it =
-                tsum->row_begin(y - sy0) + (x0 - sx0);
+                tsum->row_begin(y - sumy0) + (x0 - sumx0);
 
             typename MaskedImageT::x_iterator in_it =
                 img.row_begin(y - iy0) + (x0 - ix0);
@@ -554,7 +613,7 @@ apportionFlux(MaskedImageT const& img,
                 typename ndarray::Array<MaskPixelT,1,1>::Iterator mpix;
                 typename ndarray::Array<VariancePixelT,1,1>::Iterator vpix;
 
-                assert(strayfoot[i]->getNpix() == straypix[i].size());
+                assert((size_t)strayfoot[i]->getNpix() == straypix[i].size());
 
                 for (spix = straypix[i].begin(),
                          smask = straymask[i].begin(),
@@ -1158,23 +1217,27 @@ hasSignificantFluxAtEdge(ImagePtrT img,
     // (clipped by an image edge, etc)
 
     const SpanList spans = sfoot->getSpans();
-
-    SpanList::const_iterator fwd = spans.begin();
-    SpanList::const_iterator end = spans.end();
-
-    for (; fwd != endback; fwd++) {
+    for (SpanList::const_iterator sp = spans.begin();
+         sp != spans.end(); ++sp) {
+        // We first search for significant pixels, and then check
+        // whether they are on the edge of the footprint.
         // We have to check above and below all pixels and left and
         // right of the end pixels.  Faster to do this in image space?
         // (Inserting footprint into image, operating on image,
         // re-grabbing footprint, like growFootprint) Or cache the
         // span starts and ends of a sliding window of rows?
-        int y = (*fwd)->getY();
-        int x0 = (*fwd)->getX0();
-        int x1 = (*fwd)->getX1();
+        int y  = (*sp)->getY();
+        int x0 = (*sp)->getX0();
+        int x1 = (*sp)->getX1();
         int x;
+        //printf("span: %s\n", (*sp)->toString().c_str());
+        //printf("Span: y=%i, x=[%i,%i]\n", y, x0, x1);
         typename ImageT::const_x_iterator xiter;
-        for (xiter = img->x_at(x0,y), x=x0; 
+        for (xiter = img->x_at(x0 - img->getX0(), y - img->getY0()), x=x0; 
              x<=x1; ++x, ++xiter) {
+
+            assert(img->getBBox(image::PARENT).contains(geom::Point2I(x, y)));
+
             if (*xiter < thresh)
                 // not significant
                 continue;
@@ -1208,16 +1271,16 @@ getSignificantEdgePixels(ImagePtrT img,
     pexLog::Log log(pexLog::Log::getDefaultLog(),
                     "lsst.meas.deblender.getSignificantEdgePixels");
     const SpanList spans = sfoot->getSpans();
-    SpanList::const_iterator fwd;
+    SpanList::const_iterator sp;
     det::Footprint::Ptr edgepix(new det::Footprint());
 
-    for (fwd = spans.begin(); fwd != spans.end(); fwd++) {
-        int y = (*fwd)->getY();
-        int x0 = (*fwd)->getX0();
-        int x1 = (*fwd)->getX1();
+    for (sp = spans.begin(); sp != spans.end(); sp++) {
+        int y  = (*sp)->getY();
+        int x0 = (*sp)->getX0();
+        int x1 = (*sp)->getX1();
         int x;
         typename ImageT::const_x_iterator xiter;
-        for (xiter = img->x_at(x0,y), x=x0; 
+        for (xiter = img->x_at(x0 - img->getX0(), y - img->getY0()), x=x0; 
              x<=x1; ++x, ++xiter) {
             if (*xiter < thresh)
                 // not significant
