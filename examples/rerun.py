@@ -37,8 +37,8 @@ class MyTask(CmdLineTask):
         sources = outsources
         print len(sources), 'sources before deblending'
 
-        #self.deblend.run(calexp, sources, psf)
-        run_deblend(self, calexp,sources, psf)
+        self.deblend.run(calexp, sources, psf)
+        #run_deblend(self, calexp,sources, psf)
         print len(sources), 'sources after deblending'
 
         print 'Setting writeHeavyFootprints...'
@@ -53,11 +53,9 @@ class MyTask(CmdLineTask):
         calexp.writeFits(fn)
         print 'Wrote calexp to', fn
 
-## DEBUG -- pdb target
-def run_deblend(task, calexp, sources, psf):
-    print len(sources), 'sources before deblending'
-    task.deblend.run(calexp, sources, psf)
-    print len(sources), 'sources after deblending'
+## DEBUG -- it's easy to set a pdb breakpoint here
+#def run_deblend(task, calexp, sources, psf):
+#    task.deblend.run(calexp, sources, psf)
 
         
 if __name__ == "__main__":

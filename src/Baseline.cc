@@ -326,24 +326,13 @@ apportionFlux(MaskedImageT const& img,
             throw LSST_EXCEPT(lsst::pex::exceptions::RuntimeErrorException,
                               "Template image MUST contain template footprint");
         }
-        if (!foot.getBBox().contains(timgs[i]->getBBox(image::PARENT))) {
-            printf("Parent footprint bbox: x [%i, %i], y [%i, %i]\n",
-                   foot.getBBox().getMinX(), foot.getBBox().getMaxX(),
-                   foot.getBBox().getMinY(), foot.getBBox().getMaxY());
-            geom::Box2I bb = timgs[i]->getBBox(image::PARENT);
-            printf("Template image bbox:  x [%i, %i], y [%i, %i]\n",
-                   bb.getMinX(), bb.getMaxX(),
-                   bb.getMinY(), bb.getMaxY());
-            // This can happen when "ramping" template with flux at edge.
-            /*
-             throw LSST_EXCEPT(lsst::pex::exceptions::RuntimeErrorException,
-             "Template footprint MUST be contained within parent footprint");
-             */
-        }
         if (!img.getBBox(image::PARENT).contains(foot.getBBox())) {
             throw LSST_EXCEPT(lsst::pex::exceptions::RuntimeErrorException,
                               "Image bbox MUST contain parent footprint");
         }
+        // template bounding-boxes *can* extend outside the parent
+        // footprint if we are ramping templates with significant flux
+        // at the edges.  We handle this below.
     }
 
     // the apportioned flux return value
@@ -377,31 +366,15 @@ apportionFlux(MaskedImageT const& img,
     int sumx0 = sumbb.getMinX();
     int sumy0 = sumbb.getMinY();
 
-    printf("Footprint bounding-box: x [%i, %i], y [%i, %i]\n",
-           fbb.getMinX(), fbb.getMaxX(), fbb.getMinY(), fbb.getMaxY());
-    {
-        geom::Box2I tbb = tsum->getBBox(image::PARENT);
-        printf("Tsum bounding-box: x [%i, %i], y [%i, %i]\n",
-               tbb.getMinX(), tbb.getMaxX(), tbb.getMinY(), tbb.getMaxY());
-    }
-
     // Compute  tsum = the sum of templates
     for (size_t i=0; i<timgs.size(); ++i) {
         MaskedImagePtrT timg = timgs[i];
         geom::Box2I tbb = timg->getBBox(image::PARENT);
-        int tx0 = tbb.getMinX();
-        int ty0 = tbb.getMinY();
-
-        printf("Timg bounding-box: x [%i, %i], y [%i, %i]\n",
-               tbb.getMinX(), tbb.getMaxX(), tbb.getMinY(), tbb.getMaxY());
-
         // To handle "ramped" templates that can extend outside the
         // parent, clip the bbox...
         tbb.clip(sumbb);
-        tx0 = tbb.getMinX();
-        ty0 = tbb.getMinY();
-        printf("Clipped timg bounding-box: x [%i, %i], y [%i, %i]\n",
-               tbb.getMinX(), tbb.getMaxX(), tbb.getMinY(), tbb.getMaxY());
+        int tx0 = tbb.getMinX();
+        int ty0 = tbb.getMinY();
 
         // Here we iterate over the template bbox -- we could instead
         // iterate over the "tfoot"s.
@@ -411,20 +384,13 @@ apportionFlux(MaskedImageT const& img,
             typename ImageT::x_iterator tsum_it = 
                 tsum->row_begin(y - sumy0) + (tx0 - sumx0);
             for (; in_it != inend; ++in_it, ++tsum_it) {
-                ImagePixelT p = (*in_it).image();
-                *tsum_it += std::max((ImagePixelT)0., p);
-                //*tsum_it += std::max((ImagePixelT)0., (*in_it).image());
+                *tsum_it += std::max((ImagePixelT)0., (*in_it).image());
             }
         }
     }
 
     for (size_t i=0; i<timgs.size(); ++i) {
         MaskedImagePtrT timg = timgs[i];
-
-        printf("timg dimensions: %s\n", timg->getDimensions().toString().c_str());
-        //%i x %i\n", timg->getDimensions().getWidth(),
-        //timg->getDimensions().getHeight());
-
         // Initialize return value:
         MaskedImagePtrT port(new MaskedImageT(timg->getDimensions()));
         port->setXY0(timg->getXY0());
@@ -1230,8 +1196,6 @@ hasSignificantFluxAtEdge(ImagePtrT img,
         int x0 = (*sp)->getX0();
         int x1 = (*sp)->getX1();
         int x;
-        //printf("span: %s\n", (*sp)->toString().c_str());
-        //printf("Span: y=%i, x=[%i,%i]\n", y, x0, x1);
         typename ImageT::const_x_iterator xiter;
         for (xiter = img->x_at(x0 - img->getX0(), y - img->getY0()), x=x0; 
              x<=x1; ++x, ++xiter) {

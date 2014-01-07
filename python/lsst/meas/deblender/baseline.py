@@ -115,6 +115,8 @@ class PerPeak(object):
 
         'strayFlux': include stray flux also?
         '''
+        if self.template_foot is None or self.portion_mimg is None:
+            return None
         heavy = afwDet.makeHeavyFootprint(self.template_foot,
                                           self.portion_mimg)
         heavy.getPeaks().push_back(self.peak)
@@ -176,16 +178,6 @@ class PerPeak(object):
         return (('Per-peak deblend result: out_of_bounds: %s, ' +
                 'deblend_as_psf: %s') %
                 (self.out_of_bounds, self.deblend_as_psf))
-
-
-def print_footprint(foot):
-    print '  Footprint:', foot
-    print '  npix', foot.getNpix()
-    print '  peaks:', len(foot.getPeaks())
-    print '  bbox:', foot.getBBox()
-    for span in foot.getSpans():
-        print '    Span:', span
-        #print '    y=%i, x=[%i,%i]' % (span.getY(), span.getX0(), span.getX1())
 
 
 def deblend(footprint, maskedImage, psf, psffwhm,
@@ -313,35 +305,15 @@ def deblend(footprint, maskedImage, psf, psffwhm,
         # possibly save the original symmetric template
         pkres.set_orig_template(t1, tfoot)
 
-        #print 'tfoot before hasSignificantFluxAtEdge()...'
-        #print_footprint(tfoot)
-        #print
-
-        # if (rampFluxAtEdge and
-        #     butils.hasSignificantFluxAtEdge(t1.getImage(), tfoot, 3*sigma1)):
-        #     (t2, tfoot2) = _handle_flux_at_edge(
-        #         log, psffwhm, t1, tfoot, fp, maskedImage, x0,x1,y0,y1,
-        #         psf, pk, sigma1, patchEdges)
-        #     pkres.set_ramped_template(t1, tfoot)
-        #     t1 = t2
-        #     tfoot = tfoot2
-
-        if rampFluxAtEdge:
-            has = butils.hasSignificantFluxAtEdge(t1.getImage(), tfoot, 3*sigma1)
-
-            #print 'tfoot after hasSignificantFluxAtEdge()...'
-            #print_footprint(tfoot)
-            #print
-
-            if has:
-                (t2, tfoot2) = _handle_flux_at_edge(
-                    log, psffwhm, t1, tfoot, fp, maskedImage, x0,x1,y0,y1,
-                    psf, pk, sigma1, patchEdges)
-                pkres.set_ramped_template(t1, tfoot)
-                t1 = t2
-                tfoot = tfoot2
-
-                print 'Ramped template with flux at edge'
+        if (rampFluxAtEdge and
+            butils.hasSignificantFluxAtEdge(t1.getImage(), tfoot, 3*sigma1)):
+            log.logdebug("Template %i has significant flux at edge: ramping" % pkres.pki)
+            (t2, tfoot2) = _handle_flux_at_edge(
+                log, psffwhm, t1, tfoot, fp, maskedImage, x0,x1,y0,y1,
+                psf, pk, sigma1, patchEdges)
+            pkres.set_ramped_template(t1, tfoot)
+            t1 = t2
+            tfoot = tfoot2
                 
         if median_smooth_template:
             filtsize = median_filter_halfsize * 2 + 1
@@ -982,9 +954,6 @@ def _handle_flux_at_edge(log, psffwhm, t1, tfoot, fp, maskedImage,
     fpcopy.clipTo(tbb)
     padim = t1.Factory(tbb)
     butils.copyWithinFootprint(fpcopy, maskedImage, padim)
-
-    #print 'tfoot before getSignificantEdgePixels...:'
-    #print_footprint(tfoot)
 
     # find pixels on the edge of the template
     edgepix = butils.getSignificantEdgePixels(t1.getImage(), tfoot, -1e6)

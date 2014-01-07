@@ -149,8 +149,6 @@ class SourceDeblendTask(pipeBase.Task):
 
         n0 = len(srcs)
         nparents = 0
-        #for i,src in enumerate([srcs[71]]):
-        #for i,src in enumerate([srcs[74]]):
         for i,src in enumerate(srcs):
             fp = src.getFootprint()
             pks = fp.getPeaks()
@@ -169,7 +167,6 @@ class SourceDeblendTask(pipeBase.Task):
             src.set(self.tooManyPeaksKey, len(fp.getPeaks()) > self.config.maxNumberOfPeaks)
 
             try:
-                print 'Deblending src', i, ':', len(pks)
                 res = deblend(
                     fp, mi, psf, psf_fwhm, sigma1=sigma1,
                     psf_chisq_cut1 = self.config.psf_chisq_1,
@@ -184,7 +181,6 @@ class SourceDeblendTask(pipeBase.Task):
                     patchEdges=(self.config.edgeHandling == 'noclip'),
                     tinyFootprintSize=self.config.tinyFootprintSize
                     )
-                print 'Deblended src', i
                 src.set(self.deblendFailedKey, False)
             except Exception as e:
                 self.log.warn("Error deblending source %d: %s" % (src.getId(), e))
@@ -193,7 +189,8 @@ class SourceDeblendTask(pipeBase.Task):
                 traceback.print_exc()
                 continue
 
-            print 'Saving kids for', i
+
+            print 'Max number of peaks:', self.config.maxNumberOfPeaks
             kids = []
             nchild = 0
             for j,pkres in enumerate(res.peaks):
@@ -202,31 +199,36 @@ class SourceDeblendTask(pipeBase.Task):
                     self.log.logdebug('Skipping out-of-bounds peak at (%i,%i)' %
                                       (pks[j].getIx(), pks[j].getIy()))
                     continue
+
+                heavy = pkres.get_flux_portion()
+                if heavy is None:
+                    # This can happen for children >= maxNumberOfPeaks
+                    self.log.logdebug('Skipping peak at (%i,%i), child %i of %i: no heavy footprint (flux portion)'
+                                      % (pks[j].getIx(), pks[j].getIy(), j+1, len(res.peaks)))
+                    print 'Child footprint/template is None'
+                    print 'child', j, 'of', len(res.peaks)
+                    print pkres
+                    for k in dir(pkres):
+                        print 'pkres ', k, '=', getattr(pkres, k)
+                    continue
+
                 child = srcs.addNew(); nchild += 1
                 child.setParent(src.getId())
-                if hasattr(pkres, 'heavy'):
-                    child.setFootprint(pkres.heavy)
-                    #maskbits = pkres.heavy.getMaskBitsSet()
-                    #print 'Mask bits set: 0x%x' % maskbits
-
+                child.setFootprint(heavy)
                 child.set(self.psfKey, pkres.deblend_as_psf)
-                (cx,cy) = pkres.psf_fit_center
-                child.set(self.psfCenterKey, afwGeom.Point2D(cx, cy))
-                child.set(self.psfFluxKey, pkres.psf_fit_flux)
+                if pkres.deblend_as_psf:
+                    (cx,cy) = pkres.psf_fit_center
+                    child.set(self.psfCenterKey, afwGeom.Point2D(cx, cy))
+                    child.set(self.psfFluxKey, pkres.psf_fit_flux)
                 kids.append(child)
 
             src.set(self.nChildKey, nchild)
-            print 'Saved kids for', i
             
-            print 'post hook...'
             self.postSingleDeblendHook(exposure, srcs, i, npre, kids, fp, psf, psf_fwhm, sigma1, res)
-            print 'post hook done'
 
-        print 'finished deblending'
         n1 = len(srcs)
         self.log.info('Deblended: of %i sources, %i were deblended, creating %i children, total %i sources' %
                       (n0, nparents, n1-n0, n1))
-        print 'deblend() returning'
 
     def preSingleDeblendHook(self, exposure, srcs, i, fp, psf, psf_fwhm, sigma1):
         pass
