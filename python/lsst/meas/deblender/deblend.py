@@ -72,6 +72,9 @@ class SourceDeblendConfig(pexConf.Config):
                                      doc=("Only deblend the brightest maxNumberOfPeaks peaks in the parent" +
                                           " (<= 0: unlimited)"))
 
+    tinyFootprintSize = pexConf.Field(dtype=int, default=2,
+                                      doc=('Footprints smaller in width or height than this value will be ignored; 0 to never ignore.'))
+    
 class SourceDeblendTask(pipeBase.Task):
     """Split blended sources into individual sources.
 
@@ -176,6 +179,7 @@ class SourceDeblendTask(pipeBase.Task):
                                    self.config.findStrayFlux),
                     rampFluxAtEdge=(self.config.edgeHandling == 'ramp'),
                     patchEdges=(self.config.edgeHandling == 'noclip'),
+                    tinyFootprintSize=self.config.tinyFootprintSize
                     )
                 src.set(self.deblendFailedKey, False)
             except Exception as e:

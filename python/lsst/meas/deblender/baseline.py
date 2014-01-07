@@ -95,6 +95,8 @@ class PerPeak(object):
         # The stray flux assigned to this template (may be None)
         self.stray_flux = None
 
+        self.has_ramped_template = False
+        
         # debug -- a copy of the original symmetric template
         self.orig_template = None
         self.ramped_template = None
@@ -135,6 +137,7 @@ class PerPeak(object):
     def set_orig_template(self, t, tfoot):
         self.orig_template = t.getImage().Factory(t.getImage(), True)
     def set_ramped_template(self, t, tfoot):
+        self.has_ramped_template = True
         self.ramped_template = t.getImage().Factory(t.getImage(), True)
     def set_median_filtered_template(self, t, tfoot):
         self.median_filtered_template = t.getImage().Factory(t.getImage(), True)
@@ -187,12 +190,12 @@ def deblend(footprint, maskedImage, psf, psffwhm,
             log=None, verbose=False,
             sigma1=None,
             maxNumberOfPeaks=0,
-            dropTinyFootprints=True,
             findStrayFlux=True,
             assignStrayFlux=True,
             strayFluxToPointSources='necessary',
             rampFluxAtEdge=False,
-            patchEdges=False
+            patchEdges=False,
+            tinyFootprintSize=2,
             ):
     '''
     Deblend a single ``footprint`` in a ``maskedImage``.
@@ -269,7 +272,7 @@ def deblend(footprint, maskedImage, psf, psffwhm,
         # Find peaks that are well-fit by a PSF + background model.
         _fit_psfs(fp, peaks, res, log, psf, psffwhm, img, varimg,
                   psf_chisq_cut1, psf_chisq_cut2, psf_chisq_cut2b,
-                  dropTiny = dropTinyFootprints)
+                  tinyFootprintSize=tinyFootprintSize)
 
     # Create templates...
     log.logdebug(('Creating templates for footprint at x0,y0,W,H = ' +
@@ -300,15 +303,14 @@ def deblend(footprint, maskedImage, psf, psffwhm,
         # possibly save the original symmetric template
         pkres.set_orig_template(t1, tfoot)
 
-        if rampFluxAtEdge:
-            if butils.hasSignificantFluxAtEdge(t1.getImage(), tfoot, 3*sigma1):
-                (t2, tfoot2) = _handle_flux_at_edge(
-                    log, psffwhm, t1, tfoot, fp, maskedImage, x0,x1,y0,y1, psf, pk,
-                    sigma1, patchEdges)
-                # possibly save this ramped template
-                pkres.set_ramped_template(t1, tfoot)
-                t1 = t2
-                tfoot = tfoot2
+        if (rampFluxAtEdge and
+            butils.hasSignificantFluxAtEdge(t1.getImage(), tfoot, 3*sigma1)):
+            (t2, tfoot2) = _handle_flux_at_edge(
+                log, psffwhm, t1, tfoot, fp, maskedImage, x0,x1,y0,y1,
+                psf, pk, sigma1, patchEdges)
+            pkres.set_ramped_template(t1, tfoot)
+            t1 = t2
+            tfoot = tfoot2
                 
         if median_smooth_template:
             filtsize = median_filter_halfsize * 2 + 1
@@ -328,7 +330,7 @@ def deblend(footprint, maskedImage, psf, psffwhm,
                 
         if monotonic_template:
             log.logdebug('Making template %i monotonic' % pkres.pki)
-            butils.makeMonotonic(t1, fp, pk, sigma1)
+            butils.makeMonotonic(t1, pk)
 
         pkres.set_template(t1, tfoot)
 
@@ -485,7 +487,7 @@ def _fit_psfs(fp, peaks, fpres, log, psf, psffwhm, img, varimg,
 def _fit_psf(fp, fmask, pk, pkF, pkres, fbb, peaks, peaksF, log, psf,
              psffwhm, img, varimg,
              psf_chisq_cut1, psf_chisq_cut2, psf_chisq_cut2b,
-             dropTiny=True, tinyFootprintSize=2,
+             tinyFootprintSize=2,
              ):
     '''
     Fit a PSF + smooth background model (linear) to a small region
@@ -543,8 +545,8 @@ def _fit_psf(fp, fmask, pk, pkF, pkres, fbb, peaks, peaksF, log, psf,
         return
 
     # drop tiny footprints too?
-    if dropTiny and (((xhi - xlo) < tinyFootprintSize) or
-                     ((yhi - ylo) < tinyFootprintSize)):
+    if tinyFootprintSize>0 and (((xhi - xlo) < tinyFootprintSize) or
+                                ((yhi - ylo) < tinyFootprintSize)):
         log.logdebug('Skipping this peak: tiny footprint / close to edge')
         pkres.set_tiny_footprint()
         return
@@ -999,7 +1001,7 @@ def _handle_flux_at_edge(log, psffwhm, t1, tfoot, fp, maskedImage,
     
     rtn = butils.buildSymmetricTemplate(padim, fpcopy, pk, sigma1, True,
                                         patchEdges)
-    # silly SWIG
+    # silly SWIG can't unpack pairs as tuples
     t2, tfoot2 = rtn[0], rtn[1]
     
     # This template footprint may extend outside the parent

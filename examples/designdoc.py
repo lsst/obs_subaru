@@ -16,6 +16,9 @@ import lsst.afw.detection as afwDet
 from utils import *
 from suprime import *
 
+from lsst.afw.detection import Psf
+from lsst.meas.algorithms import * #pcaPsf
+
 def main():
     from optparse import OptionParser
     parser = OptionParser()
@@ -169,14 +172,13 @@ def main():
         from lsst.meas.deblender.baseline import deblend
 
         psf = dr.get('psf')
+        #psf = exposure.getPsf()
         xc = int((bb.getMinX() + bb.getMaxX()) / 2.)
         yc = int((bb.getMinY() + bb.getMaxY()) / 2.)
         if hasattr(psf, 'getFwhm'):
             psf_fwhm = psf.getFwhm(xc, yc)
         else:
-            pa = measAlg.PsfAttributes(psf, xc, yc)
-            psfw = pa.computeGaussianWidth(measAlg.PsfAttributes.ADAPTIVE_MOMENT)
-            psf_fwhm = 2.35 * psfw
+            psf_fwhm = psf.computeShape().getDeterminantRadius() * 2.35
 
         # SDSS intro
         kwargs = dict(sigma1=sigma1, verbose=opt.verbose)
