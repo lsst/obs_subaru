@@ -16,8 +16,26 @@ namespace geom = lsst::afw::geom;
 namespace malg = lsst::meas::algorithms;
 namespace pexLog = lsst::pex::logging;
 
-static bool span_ptr_compare(det::Span::Ptr sp1, det::Span::Ptr sp2) {
+
+static bool span_ptr_compare(PTR(det::Span) sp1, PTR(det::Span) sp2) {
     return (*sp1 < *sp2);
+
+template<typename ImagePixelT, typename MaskPixelT, typename VariancePixelT>
+std::vector<double>
+deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::
+fitEllipse(ImageT const& image, double bkgd, double xc, double yc) {
+	double shiftmax = 5.0;
+	malg::detail::SdssShapeImpl shape;
+	bool ok = malg::detail::getAdaptiveMoments(image, bkgd, xc, yc, shiftmax, &shape);
+	assert(ok);
+	std::vector<double> vals;
+	vals.push_back(shape.getX());
+	vals.push_back(shape.getY());
+	vals.push_back(shape.getI0());
+	vals.push_back(shape.getIxx());
+	vals.push_back(shape.getIyy());
+	vals.push_back(shape.getIxy());
+	return vals;
 }
 
 /**
@@ -299,7 +317,7 @@ makeMonotonic(
 
  */
 template<typename ImagePixelT, typename MaskPixelT, typename VariancePixelT>
-std::vector<typename image::MaskedImage<ImagePixelT, MaskPixelT, VariancePixelT>::Ptr>
+std::vector<typename PTR(image::MaskedImage<ImagePixelT, MaskPixelT, VariancePixelT>)>
 deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::
 apportionFlux(MaskedImageT const& img,
               det::Footprint const& foot,
@@ -764,7 +782,7 @@ private:
  the AND of the two symmetric halves.
  */
 template<typename ImagePixelT, typename MaskPixelT, typename VariancePixelT>
-lsst::afw::detection::Footprint::Ptr
+PTR(lsst::afw::detection::Footprint)
 deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::
 symmetrizeFootprint(
     det::Footprint const& foot,
@@ -772,7 +790,7 @@ symmetrizeFootprint(
 
     typedef typename det::Footprint::SpanList SpanList;
 
-    det::Footprint::Ptr sfoot(new det::Footprint);
+    PTR(det::Footprint) sfoot(new det::Footprint);
     const SpanList spans = foot.getSpans();
     assert(foot.isNormalized());
 
@@ -780,18 +798,18 @@ symmetrizeFootprint(
                     "lsst.meas.deblender.symmetrizeFootprint");
 
     // Find the Span containing the peak.
-    det::Span::Ptr target(new det::Span(cy, cx, cx));
+    PTR(det::Span) target(new det::Span(cy, cx, cx));
     SpanList::const_iterator peakspan =
         std::lower_bound(spans.begin(), spans.end(), target, span_ptr_compare);
     // lower_bound returns the first position where "target" could be inserted;
     // ie, the first Span larger than "target".  The Span containing "target"
     // should be peakspan-1.
-    det::Span::Ptr sp;
+    PTR(det::Span) sp;
     if (peakspan == spans.begin()) {
         sp = *peakspan;
         if (!sp->contains(cx, cy)) {
             log.warnf("Failed to find span containing (%i,%i): before the beginning of this footprint", cx, cy);
-            return det::Footprint::Ptr();
+            return PTR(det::Footprint)();
         }
     } else {
         peakspan--;
@@ -976,8 +994,8 @@ symmetrizeFootprint(
  pixel values are stored.
  */
 template<typename ImagePixelT, typename MaskPixelT, typename VariancePixelT>
-std::pair<typename lsst::afw::image::MaskedImage<ImagePixelT,MaskPixelT,VariancePixelT>::Ptr,
-          typename lsst::afw::detection::Footprint::Ptr>
+std::pair<typename PTR(lsst::afw::image::MaskedImage<ImagePixelT,MaskPixelT,VariancePixelT>),
+		  typename PTR(lsst::afw::detection::Footprint)>
 deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::
 buildSymmetricTemplate(
     MaskedImageT const& img,
