@@ -2,9 +2,8 @@
 set -e
 set -u
 
-ARGS="--root $(pwd)/out"
-
-# python examples/ticket1091-subaru.py --visit 108792 --ccd 5 --no-plots --root $SUPRIME_DATA_DIR/SUPA --outroot $PWD/out -f
+#ARGS="--root $(pwd)/out"
+ARGS="--sources deblended.fits --calexp calexp.fits --psf psf.fits"
 
 # SDSS section
 python examples/designdoc.py ${ARGS} --drillxy 1665,1543 --order 1,0,2 --pat "design-sdss-%(name)s.pdf"

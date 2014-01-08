@@ -92,7 +92,8 @@ class PerPeak(object):
         # The flux assigned to this template
         self.portion_mimg = None
 
-        # The stray flux assigned to this template (may be None)
+        # The stray flux assigned to this template (may be None),
+        # a HeavyFootprint
         self.stray_flux = None
 
         self.has_ramped_template = False

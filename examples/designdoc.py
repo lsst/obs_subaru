@@ -200,21 +200,34 @@ def main():
         else:
             psf_fwhm = psf.computeShape().getDeterminantRadius() * 2.35
 
-        # SDSS intro
         kwargs = dict(sigma1=sigma1, verbose=opt.verbose)
 
+        basic = kwargs.copy()
+        basic.update(fit_psfs=False,
+                     median_smooth_template=False,
+                     monotonic_template=False,
+                     lstsq_weight_templates=False,
+                     findStrayFlux=False,
+                     rampFluxAtEdge=False,
+                     patchEdges=False)
+
         if opt.sec == 'sdss':
-            kwargs.update(fit_psfs=False,
-                          median_smooth_template=False, monotonic_template=False,
-                          lstsq_weight_templates=True)
+            # SDSS intro
+            kwargs = basic
+            kwargs.update(lstsq_weight_templates=True)
+                          
         elif opt.sec == 'mono':
-            kwargs.update(fit_psfs=False,
-                          median_smooth_template=False, monotonic_template=True,
-                          lstsq_weight_templates=True)
+            kwargs = basic
+            kwargs.update(lstsq_weight_templates=True,
+                          monotonic_template=True)
         elif opt.sec == 'median':
-            kwargs.update(fit_psfs=False,
-                          median_smooth_template=True, monotonic_template=True,
-                          lstsq_weight_templates=True)
+            kwargs = basic
+            kwargs.update(lstsq_weight_templates=True,
+                          median_smooth_template=True,
+                          monotonic_template=True)
+
+        
+
         else:
             raise 'Unknown section: "%s"' % opt.sec
 
