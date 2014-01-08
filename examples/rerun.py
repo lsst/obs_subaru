@@ -33,6 +33,7 @@ class MyTask(CmdLineTask):
         self.makeSubtask("deblend", schema=schema)
 
         outsources = afwTable.SourceCatalog(schema)
+        outsources.reserve(2 * len(sources))
         outsources.extend(sources, mapper=mapper)
         sources = outsources
         print len(sources), 'sources before deblending'
@@ -41,9 +42,6 @@ class MyTask(CmdLineTask):
         #run_deblend(self, calexp,sources, psf)
         print len(sources), 'sources after deblending'
 
-        print 'Setting writeHeavyFootprints...'
-        print type(sources)
-        sources.setWriteHeavyFootprints(True)
         fn = 'deblended.fits'
         print 'Writing sources...'
         sources.writeFits(fn)
@@ -52,6 +50,11 @@ class MyTask(CmdLineTask):
         fn = 'calexp.fits'
         calexp.writeFits(fn)
         print 'Wrote calexp to', fn
+
+        fn = 'psf.fits'
+        psf.writeFits(fn)
+        print 'Wrote PSF to', fn
+
 
 ## DEBUG -- it's easy to set a pdb breakpoint here
 #def run_deblend(task, calexp, sources, psf):

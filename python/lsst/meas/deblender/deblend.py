@@ -190,7 +190,7 @@ class SourceDeblendTask(pipeBase.Task):
                 continue
 
 
-            print 'Max number of peaks:', self.config.maxNumberOfPeaks
+            #print 'Max number of peaks:', self.config.maxNumberOfPeaks
             kids = []
             nchild = 0
             for j,pkres in enumerate(res.peaks):

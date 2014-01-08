@@ -24,6 +24,10 @@ def main():
     parser = OptionParser()
     parser.add_option('--root', dest='root', help='Root directory for Subaru data')
     parser.add_option('--outroot', '-o', dest='outroot', help='Output root directory for Subaru data')
+    parser.add_option('--sources', help='Read a FITS table of sources')
+    parser.add_option('--calexp', help='Read a FITS calexp')
+    parser.add_option('--psf', help='Read a FITS PSF')
+
     parser.add_option('-H', '--heavy', dest='heavypat', #default='heavy-%(visit)i-%(ccd)i-%(id)04i.fits',
                       help='Input filename pattern for heavy footprints (with %i pattern); FITS')
     parser.add_option('--drill', '-D', dest='drill', action='append', type=str, default=[],
@@ -80,8 +84,13 @@ def main():
         fn = plotpattern % dict(pid=pid, name=figname)
         plt.savefig(fn)
 
-    dr = getSuprimeDataref(opt.visit, opt.ccd, rootdir=opt.root, outrootdir=opt.outroot)
-
+    dr = None
+    if opt.sources is None or opt.calexp is None:
+        print 'Creating DataRef...'
+        dr = getSuprimeDataref(opt.visit, opt.ccd, rootdir=opt.root,
+                               outrootdir=opt.outroot)
+        print 'Got', dr
+        
     keepids = None
     if len(opt.drill):
         keepids = []
@@ -100,14 +109,27 @@ def main():
                 keepxys.append((int(xy[0]),int(xy[1])))
         print 'Keeping parents at xy', keepxys
         
-    cat = readCatalog(None, opt.heavypat, dataref=dr, keepids=keepids,
-                      keepxys=keepxys,
-                      patargs=dict(visit=opt.visit, ccd=opt.ccd))
+    cat = readCatalog(opt.sources, opt.heavypat, dataref=dr, keepids=keepids,
+                      keepxys=keepxys, patargs=dict(visit=opt.visit, ccd=opt.ccd))
     print 'Got', len(cat), 'sources'
-    
-    exposure = dr.get('calexp')
+
+    if opt.calexp is not None:
+        print 'Reading exposure from', opt.calexp
+        exposure = afwImage.ExposureF(opt.calexp)
+    else:
+        exposure = dr.get('calexp')
     print 'Exposure', exposure
     mi = exposure.getMaskedImage()
+
+    if opt.psf is not None:
+        print 'Reading PSF from', opt.psf
+        psf = afwDet.Psf.readFits(opt.psf)
+        print 'Got', psf
+    elif dr:
+        psf = dr.get('psf')
+    else:
+        psf = exposure.getPsf()
+        
 
     sigma1 = get_sigma1(mi)
 
@@ -171,8 +193,6 @@ def main():
 
         from lsst.meas.deblender.baseline import deblend
 
-        psf = dr.get('psf')
-        #psf = exposure.getPsf()
         xc = int((bb.getMinX() + bb.getMaxX()) / 2.)
         yc = int((bb.getMinY() + bb.getMaxY()) / 2.)
         if hasattr(psf, 'getFwhm'):
