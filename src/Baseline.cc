@@ -19,23 +19,6 @@ namespace pexLog = lsst::pex::logging;
 
 static bool span_ptr_compare(PTR(det::Span) sp1, PTR(det::Span) sp2) {
     return (*sp1 < *sp2);
-
-template<typename ImagePixelT, typename MaskPixelT, typename VariancePixelT>
-std::vector<double>
-deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::
-fitEllipse(ImageT const& image, double bkgd, double xc, double yc) {
-	double shiftmax = 5.0;
-	malg::detail::SdssShapeImpl shape;
-	bool ok = malg::detail::getAdaptiveMoments(image, bkgd, xc, yc, shiftmax, &shape);
-	assert(ok);
-	std::vector<double> vals;
-	vals.push_back(shape.getX());
-	vals.push_back(shape.getY());
-	vals.push_back(shape.getI0());
-	vals.push_back(shape.getIxx());
-	vals.push_back(shape.getIyy());
-	vals.push_back(shape.getIxy());
-	return vals;
 }
 
 /**
