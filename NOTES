@@ -1,3 +1,94 @@
+------------------------------------------------------------------------------------------------
+2014-01-08 - dstn - Notes on running on Subaru data to generate
+design-doc figures.
+------------------------------------------------------------------------------------------------
+
+(Note that if you grab the intermediate results (CORR*.fits file,
+etc), this HSC-specific stuff shouldn't be necessary.)
+
+Set up a modern stack from the HSC world:
+
+export EUPS_PKGROOT=http://hsca.ipmu.jp/sumire/packages/
+
+add to ~/.eups/startup.py:
+hooks.config.Eups.userTags += ["dstnHSC"]
+
+Then:
+
+eups distrib install -v hscPipe 2.9.1a_hsc -d dstnHSC
+
+Get data:
+
+cd ~/lsst
+wget http://broiler.astrometry.net/~dstn/lsst/SUP.tgz
+tar xzf SUP.tgz
+
+Or on lsst cluster filesystem: ~dstn/lsst/SUP.tgz
+
+Files:
+
+SUP/mapper.py
+SUP/_mapper
+SUP/config/processCcd.py
+SUP/CALIB/FLAT/2009-03-31/W-S-G+/000/FLAT-00000005.fits
+SUP/CALIB/FLAT/2009-03-31/W-S-G+/0/FLAT-5.fits
+SUP/CALIB/calibRegistry.sqlite3
+SUP/CALIB/BIAS/2009-03-27/NONE/0/BIAS-5.fits
+SUP/registry.sqlite3
+SUP/SDSS1115/2009-03-31/00253/W-S-G+/SUPA01087925.fits
+
+Get astrometry_net_data containing the index file(s) you need for this
+test image:
+
+wget http://broiler.astrometry.net/~dstn/lsst/and.tgz
+tar xzf and.tgz
+
+Files:
+
+astrometry_net_data/2mass/index-130331000-06.fits
+astrometry_net_data/2mass/index-130331001-06.fits
+astrometry_net_data/2mass/index-130331002-06.fits
+astrometry_net_data/2mass/index-130331003-06.fits
+astrometry_net_data/2mass/index-130331004-06.fits
+astrometry_net_data/2mass/metadata.paf
+astrometry_net_data/2mass/ups/astrometry_net_data.table
+astrometry_net_data/2mass/andConfig.py
+
+Setup and run:
+
+cd ~/lsst/meas_deblender
+git checkout tickets/2453
+setup -v -t dstnHSC -r .
+setup -v -t dstnHSC -k obs_subaru
+setup -v -t dstnHSC -k hscPipe
+setup -v -r ~/lsst/astrometry_net_data/2mass
+
+python -u $HSCPIPE_DIR/bin/hscProcessCcd.py $HOME/lsst/SUP --output $(pwd)/out --id visit=108792 --clobber-config -c doDeblend=False
+
+The resulting outputs are in:
+
+http://broiler.astrometry.net/~dstn/lsst/out.tgz
+
+
+To (re-)run just the deblending phase:
+
+python examples/rerun.py $HOME/lsst/SUP --output $(pwd)/out --id visit=108792
+
+This writes {sources,calexp,psf}.fits in the current directory.
+
+To produce the plots for the design doc, you can either use the Butler
+infrastructure to read the sources (in which case you need to give a
+--root, --visit, etc, and it will assume SuprimeCam), or you can
+specify the {sources,calexp,psf}.fits files directly:
+
+python -u examples/designdoc.py --sources deblended.fits --calexp calexp.fits --psf psf.fits \
+       --drillxy 1665,1543 --order 1,0,2 --pat "design-sdss-%(name)s.pdf"
+
+For the full set of plots in the design doc, see doc/plots.sh
+
+
+------------------------------------------------------------------------------------------------
+
 2013-06-06 - dstn - Notes on running on Subaru data.
 
 export PIPE_INPUT_ROOT=/Users/dstn/lsst/SUP
@@ -46,3 +137,7 @@ and then,
 python examples/rerun.py . --id visit=108792
 
 python examples/fig.py
+
+
+--------------------------------------------------------
+python -u $HSCPIPE_DIR/bin/hscProcessCcd.py SUP --id visit=108792 --clobber-config -c doDeblend=False
