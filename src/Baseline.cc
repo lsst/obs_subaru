@@ -371,19 +371,21 @@ apportionFlux(MaskedImageT const& img,
     for (size_t i=0; i<timgs.size(); ++i) {
         MaskedImagePtrT timg = timgs[i];
         geom::Box2I tbb = timg->getBBox(image::PARENT);
-        // To handle "ramped" templates that can extend outside the
-        // parent, clip the bbox...
-        tbb.clip(sumbb);
         int tx0 = tbb.getMinX();
         int ty0 = tbb.getMinY();
-
+        // To handle "ramped" templates that can extend outside the
+        // parent, clip the bbox.  Note that we saved tx0,ty0 BEFORE
+        // doing this!
+        tbb.clip(sumbb);
+        int copyx0 = tbb.getMinX();
         // Here we iterate over the template bbox -- we could instead
         // iterate over the "tfoot"s.
         for (int y=tbb.getMinY(); y<=tbb.getMaxY(); ++y) {
-            typename MaskedImageT::x_iterator in_it = timg->row_begin(y - ty0);
+            typename MaskedImageT::x_iterator in_it = timg->row_begin(y - ty0) +
+                (copyx0 - tx0);
             typename MaskedImageT::x_iterator inend = in_it + tbb.getWidth();
             typename ImageT::x_iterator tsum_it = 
-                tsum->row_begin(y - sumy0) + (tx0 - sumx0);
+                tsum->row_begin(y - sumy0) + (copyx0 - sumx0);
             for (; in_it != inend; ++in_it, ++tsum_it) {
                 *tsum_it += std::max((ImagePixelT)0., (*in_it).image());
             }
@@ -407,13 +409,19 @@ apportionFlux(MaskedImageT const& img,
         geom::Box2I tbb = timg->getBBox(image::PARENT);
         int tx0 = tbb.getMinX();
         int ty0 = tbb.getMinY();
+        // As above
+        tbb.clip(sumbb);
+        int copyx0 = tbb.getMinX();
         for (int y=tbb.getMinY(); y<=tbb.getMaxY(); ++y) {
-            typename MaskedImageT::x_iterator in_it = img.row_begin(y - iy0) + (tx0 - ix0);
-            typename MaskedImageT::x_iterator tptr = timg->row_begin(y - ty0);
+            typename MaskedImageT::x_iterator in_it =
+                img.row_begin(y - iy0) + (copyx0 - ix0);
+            typename MaskedImageT::x_iterator tptr =
+                timg->row_begin(y - ty0) + (copyx0 - tx0);
             typename MaskedImageT::x_iterator tend = tptr + tbb.getWidth();
             typename ImageT::x_iterator tsum_it = 
-                tsum->row_begin(y - sumy0) + (tx0 - sumx0);
-            typename MaskedImageT::x_iterator out_it = port->row_begin(y - ty0);
+                tsum->row_begin(y - sumy0) + (copyx0 - sumx0);
+            typename MaskedImageT::x_iterator out_it =
+                port->row_begin(y - ty0) + (copyx0 - tx0);
             for (; tptr != tend; ++tptr, ++in_it, ++out_it, ++tsum_it) {
                 if (*tsum_it == 0) {
                     continue;

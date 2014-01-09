@@ -53,6 +53,8 @@ def main():
                       help='Produce plots for the "monotonic" section.')
     parser.add_option('--median', dest='sec', action='store_const', const='median',
                       help='Produce plots for the "median filter" section.')
+    parser.add_option('--ramp', dest='sec', action='store_const', const='ramp',
+                      help='Produce plots for the "ramp edge" section.')
 
     opt,args = parser.parse_args()
 
@@ -165,6 +167,8 @@ def main():
     for j,(parent,children) in enumerate(fams):
         print 'parent', parent.getId()
         print 'children', [ch.getId() for ch in children]
+        print 'parent x,y', parent.getX(), parent.getY()
+
         pid = parent.getId()
         fp = parent.getFootprint()
         bb = fp.getBBox()
@@ -200,7 +204,8 @@ def main():
         else:
             psf_fwhm = psf.computeShape().getDeterminantRadius() * 2.35
 
-        kwargs = dict(sigma1=sigma1, verbose=opt.verbose)
+        kwargs = dict(sigma1=sigma1, verbose=opt.verbose,
+                      getTemplateSum=True)
 
         basic = kwargs.copy()
         basic.update(fit_psfs=False,
@@ -225,19 +230,42 @@ def main():
             kwargs.update(lstsq_weight_templates=True,
                           median_smooth_template=True,
                           monotonic_template=True)
-
-        
+        elif opt.sec == 'ramp':
+            kwargs = basic
+            kwargs.update(median_smooth_template=True,
+                          monotonic_template=True,
+                          rampFluxAtEdge=True)
 
         else:
             raise 'Unknown section: "%s"' % opt.sec
 
-        print 'Running deblender...'
+        print 'Running deblender with kwargs:', kwargs
         res = deblend(fp, mi, psf, psf_fwhm, **kwargs)
-        print 'got result with', [x for x in dir(res) if not x.startswith('__')]
-        for pk in res.peaks:
-            print 'got peak with', [x for x in dir(pk) if not x.startswith('__')]
-            print '  deblend as psf?', pk.deblend_as_psf
-        tsum = np.zeros((bb.getHeight(), bb.getWidth()))
+        #print 'got result with', [x for x in dir(res) if not x.startswith('__')]
+        #for pk in res.peaks:
+        #    print 'got peak with', [x for x in dir(pk) if not x.startswith('__')]
+        #    print '  deblend as psf?', pk.deblend_as_psf
+
+        # Find bounding-box of all templates.
+        tbb = fp.getBBox()
+        for pkres,pk in zip(res.peaks, pks):
+            tbb.include(pkres.template_foot.getBBox())
+        print 'Bounding-box of all templates:', tbb
+
+        tsum = np.zeros((tbb.getHeight(), tbb.getWidth()))
+        tx0,ty0 = tbb.getMinX(), tbb.getMinY()
+
+        # "heavy" bbox == template bbox.
+        hsum = np.zeros((tbb.getHeight(), tbb.getWidth()))
+
+        plt.clf()
+        t = res.templateSum
+        myimshow(t.getArray(), extent=getExtent(t.getBBox(afwImage.PARENT)), **imargs)
+        plt.gray()
+        plt.xticks([])
+        plt.yticks([])
+        savefig(pid, 'tsum1')
+
         k = 0
         for pkres,pk in zip(res.peaks, pks):
 
@@ -254,23 +282,19 @@ def main():
             cbb = cfp.getBBox()
             cext = getExtent(cbb)
 
-            #msk = afwImage.ImageF(cbb.getWidth(), cbb.getHeight())
-            #msk.setXY0(cbb.getMinX(), cbb.getMinY())
-            #afwDet.setImageFromFootprint(msk, cfp, 1.)
-
             tim = pkres.template_mimg.getImage()
             timext = cext
-            #timext = getExtent(tim.getBBox(afwImage.PARENT))
-            #tim *= msk
             tim = tim.getArray()
-            (x0,x1,y0,y1) = timext
-            #(x0,x1,y0,y1) = cext
 
-            tsum[y0-py0:y1-py0, x0-px0:x1-px0] += tim
-            #cim = footprintToImage(cfp, mi=pkres.template_mimg).getArray()
+            (x0,x1,y0,y1) = timext
+            print 'tim ext', timext
+            tsum[y0-ty0:y1-ty0, x0-tx0:x1-tx0] += tim
 
             him = footprintToImage(heavy).getArray()
             hext = getExtent(heavy.getBBox())
+
+            (x0,x1,y0,y1) = hext
+            hsum[y0-ty0:y1-ty0, x0-tx0:x1-tx0] += him
             
             if opt.sec == 'median':
                 try:
@@ -316,16 +340,74 @@ def main():
             plt.axis(pext)
             savefig(pid, 'h%i' % (kk))
 
+            if opt.sec == 'ramp' and pkres.has_ramped_template:
+                plt.clf()
+                #t = footprintToImage(pkres.template_foot, pkres.ramped_template,
+                #                     mask=False)
+                t = pkres.ramped_template
+                myimshow(t.getArray(), extent=getExtent(t.getBBox(afwImage.PARENT)),
+                         **imargs)
+                plt.gray()
+                plt.xticks([])
+                plt.yticks([])
+                plt.plot([pk.getIx()], [pk.getIy()], **pksty)
+                plt.axis(pext)
+                savefig(pid, 'r%i' % (kk))
+
+                plt.clf()
+                t = pkres.orig_template
+                foot = pkres.orig_foot
+                myimshow(t.getArray(), extent=getExtent(foot.getBBox()), **imargs)
+                plt.gray()
+                plt.xticks([])
+                plt.yticks([])
+                plt.plot([pk.getIx()], [pk.getIy()], **pksty)
+                plt.axis(pext)
+                savefig(pid, 'o%i' % (kk))
+
+                plt.clf()
+                t = pkres.median_filtered_template
+                myimshow(t.getArray(), extent=getExtent(t.getBBox(afwImage.PARENT)),
+                         **imargs)
+                plt.gray()
+                plt.xticks([])
+                plt.yticks([])
+                plt.plot([pk.getIx()], [pk.getIy()], **pksty)
+                plt.axis(pext)
+                savefig(pid, 'med%i' % (kk))
+
+                plt.clf()
+                t = pkres.portion_mimg.getImage()
+                myimshow(t.getArray(), extent=getExtent(t.getBBox(afwImage.PARENT)),
+                         **imargs)
+                plt.gray()
+                plt.xticks([])
+                plt.yticks([])
+                plt.plot([pk.getIx()], [pk.getIy()], **pksty)
+                plt.axis(pext)
+                savefig(pid, 'p%i' % (kk))
+
+
+
             k += 1
 
         plt.clf()
-        myimshow(tsum, extent=pext, **imargs)
+        myimshow(tsum, extent=getExtent(tbb), **imargs)
         plt.gray()
         plt.xticks([])
         plt.yticks([])
         plt.plot([pk.getIx() for pk in pks], [pk.getIy() for pk in pks], **pksty)
         plt.axis(pext)
         savefig(pid, 'tsum')
+
+        plt.clf()
+        myimshow(hsum, extent=getExtent(tbb), **imargs)
+        plt.gray()
+        plt.xticks([])
+        plt.yticks([])
+        plt.plot([pk.getIx() for pk in pks], [pk.getIy() for pk in pks], **pksty)
+        plt.axis(pext)
+        savefig(pid, 'hsum')
 
         k = 0
         for pkres,pk in zip(res.peaks, pks):
@@ -343,7 +425,7 @@ def main():
             tim = pkres.template_mimg.getImage().getArray()
             (x0,x1,y0,y1) = cext
 
-            frac = tim / tsum[y0-py0:y1-py0, x0-px0:x1-px0]
+            frac = tim / tsum[y0-ty0:y1-ty0, x0-tx0:x1-tx0]
 
             msk = afwImage.ImageF(cbb.getWidth(), cbb.getHeight())
             msk.setXY0(cbb.getMinX(), cbb.getMinY())

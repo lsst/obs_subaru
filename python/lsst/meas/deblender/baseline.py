@@ -34,6 +34,10 @@ class PerFootprint(object):
             pkres.pki = pki
             self.peaks.append(pkres)
 
+        self.templateSum = None
+
+    def set_template_sum(self, tsum):
+        self.templateSum = tsum
 
 class PerPeak(object):
     '''
@@ -100,6 +104,7 @@ class PerPeak(object):
         
         # debug -- a copy of the original symmetric template
         self.orig_template = None
+        self.orig_foot = None
         self.ramped_template = None
         self.median_filtered_template = None
 
@@ -139,6 +144,7 @@ class PerPeak(object):
     # DEBUG
     def set_orig_template(self, t, tfoot):
         self.orig_template = t.getImage().Factory(t.getImage(), True)
+        self.orig_foot = tfoot
     def set_ramped_template(self, t, tfoot):
         self.has_ramped_template = True
         self.ramped_template = t.getImage().Factory(t.getImage(), True)
@@ -199,6 +205,7 @@ def deblend(footprint, maskedImage, psf, psffwhm,
             rampFluxAtEdge=False,
             patchEdges=False,
             tinyFootprintSize=2,
+            getTemplateSum=False,
             ):
     '''
     Deblend a single ``footprint`` in a ``maskedImage``.
@@ -312,7 +319,7 @@ def deblend(footprint, maskedImage, psf, psffwhm,
             (t2, tfoot2) = _handle_flux_at_edge(
                 log, psffwhm, t1, tfoot, fp, maskedImage, x0,x1,y0,y1,
                 psf, pk, sigma1, patchEdges)
-            pkres.set_ramped_template(t1, tfoot)
+            pkres.set_ramped_template(t2, tfoot2)
             t1 = t2
             tfoot = tfoot2
                 
@@ -408,6 +415,9 @@ def deblend(footprint, maskedImage, psf, psffwhm,
     
     portions = butils.apportionFlux(maskedImage, fp, tmimgs, tfoots, sumimg,
                                     dpsf, pkx, pky, strayflux, strayopts)
+    if getTemplateSum:
+        res.set_template_sum(sumimg)
+        
     # Save the apportioned fluxes
     ii = 0
     for j, (pk, pkres) in enumerate(zip(peaks, res.peaks)):
