@@ -3,7 +3,6 @@ import datetime
 
 from lsst.pipe.tasks.ingest import IngestTask, ParseTask, IngestArgumentParser
 
-
 class HscIngestArgumentParser(IngestArgumentParser):
     def _parseDirectories(self, namespace):
         """Don't do any 'rerun' hacking: we want the raw data to end up in the root directory"""
@@ -54,6 +53,8 @@ class HscParseTask(ParseTask):
         field = md.get("OBJECT").strip()
         if field == "#":
             field = "UNKNOWN"
+        field = re.sub(r'\W', '_', field).upper() # replacing inappropriate characters for file path and upper()
+
         return field
 
     def translate_visit(self, md):

@@ -46,7 +46,7 @@ def getFrameInfo(filename):
         raise SystemExit
 
     d['frameID'] = h['FRAMEID']
-    d['progID'] = h['OBJECT'].upper()
+    d['progID'] = re.sub(r'\W', '_', h['OBJECT']).upper()
     d['filterName'] = h['FILTER01'].upper()
     d['date'] = h['DATE-OBS']
 

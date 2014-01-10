@@ -88,7 +88,8 @@ def getFrameInfo(filename):
     if not re.search('^HSC[A-Z]\d{8}', d['frameID']):
         raise SystemExit("frameID=%s for %s is invalid" % (d['frameID'], filename))
 
-    d['progID'] = h['OBJECT'].upper()
+    d['progID'] = re.sub(r'\W', '_', h['OBJECT']).upper()
+
     try:
         d['filterName'] = h['FILTER01'].upper()
     except:
