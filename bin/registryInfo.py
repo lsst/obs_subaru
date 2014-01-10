@@ -2,11 +2,21 @@
 import argparse
 import os
 import sys
+
 try:
     import sqlite3 as sqlite
 except ImportError:
     import sqlite
-
+try:
+    import psycopg2 as pgsql
+    havePgSql = True
+except ImportError:
+    try:
+        from pg8000 import DBAPI as pgsql
+        havePgSql = True
+    except ImportError:
+        havePgSql = False
+from lsst.daf.butlerUtils import PgSqlConfig
 
 def formatVisits(visits):
     """Format a set of visits into the format used for an --id argument"""
@@ -59,29 +69,47 @@ def queryRegistry(field=None, visit=None, filterName=None, summary=False):
     if visit:
         where.append("visit = ?")
         vals.append(visit)
-    if where:
-        where = "WHERE " + " AND ".join(where) if where else ""
+    where = "WHERE " + " AND ".join(where) if where else ""
 
     query = """
-SELECT field, visit, filter, expTime, dateObs, pointing, count(ccd)
+SELECT max(field), visit, max(filter), max(expTime), max(dateObs), max(pointing), count(ccd)
 FROM raw
 %s
 GROUP BY visit
-ORDER BY filter
+ORDER BY max(filter), visit
 """ % (where)
 
     n = {}; expTimes = {}; visits = {}
 
-    conn = sqlite.connect(registryFile)
+    if registryFile.endswith('sqlite3'):
+        conn = sqlite.connect(registryFile)
+        isSqlite = True
+    else:
+        pgsqlConf = PgSqlConfig()
+        pgsqlConf.load(registryFile)
+        conn = pgsql.connect(host=pgsqlConf.host, port=pgsqlConf.port, 
+                             user=pgsqlConf.user, password=pgsqlConf.password,
+                             database=pgsqlConf.db)
+        isSqlite = False
+        
     cursor = conn.cursor()
 
     if args.summary:
         print "%-7s %-20s %7s %s" % ("filter", "field", "expTime", "visit")
     else:
-        print "%-7s %-20s %10s %7s %6s %6s %3s" % ("filter", "field", "dataObs", "expTime",
+        print "%-7s %-20s %10s %7s %8s %6s %4s" % ("filter", "field", "dataObs", "expTime",
                                                    "pointing", "visit", "nCCD")
 
-    for line in cursor.execute(query, vals):
+    if not isSqlite:
+        query = query.replace("?", "%s")
+
+    if isSqlite:
+        ret = cursor.execute(query, vals)
+    else:
+        cursor.execute(query, vals)
+        ret = cursor.fetchall()
+
+    for line in ret:
         field, visit, filter, expTime, dateObs, pointing, nCCD = line
 
         if summary:
@@ -95,7 +123,7 @@ ORDER BY filter
             expTimes[k] += expTime
             visits[k].append(visit)
         else:
-            print "%-7s %-20s %10s %7.1f %6d %6d %3d" % (filter, field, dateObs, expTime,
+            print "%-7s %-20s %10s %7.1f %8d %6d %4d" % (filter, field, dateObs, expTime,
                                                          pointing, visit, nCCD)
 
     conn.close()
@@ -113,12 +141,11 @@ def queryCalibRegistry(what, filterName=None, summary=False):
     if filterName:
         where.append('filter like ?')
         vals.append(filterName.replace("*", "%"))
-    if where:
-        where = "WHERE " + " AND ".join(where) if where else ""
+    where = "WHERE " + " AND ".join(where) if where else ""
 
     query = """
 SELECT
-    validStart, validEnd, calibDate, filter, calibVersion, count(ccd)
+    max(validStart), max(validEnd), max(calibDate), filter, max(calibVersion), count(ccd)
 FROM %s
 %s
 GROUP BY filter
@@ -127,8 +154,21 @@ ORDER BY filter
 
     n = {}; expTimes = {}; visits = {}
 
-    conn = sqlite.connect(registryFile)
+    if registryFile.endswith('sqlite3'):
+        conn = sqlite.connect(registryFile)
+        isSqlite = True
+    else:
+        pgsqlConf = PgSqlConfig()
+        pgsqlConf.load(registryFile)
+        conn = pgsql.connect(host=pgsqlConf.host, port=pgsqlConf.port, 
+                           user=pgsqlConf.user, password=pgsqlConf.password,
+                           database=pgsqlConf.db)
+        isSqlite = False
+
     cursor = conn.cursor()
+
+    if not isSqlite:
+        query = query.replace("?", "%s")
 
     if summary:
         print >> sys.stderr, "No summary is available for calib data"
@@ -137,7 +177,13 @@ ORDER BY filter
         print "%-10s--%-10s  %-10s  %-7s %-24s %4s" % (
             "validStart", "validEnd", "calibDate", "filter", "calibVersion", "nCCD")
 
-    for line in cursor.execute(query, vals):
+    if isSqlite:
+        ret = cursor.execute(query, vals)
+    else:
+        cursor.execute(query, vals)
+        ret = cursor.fetchall()
+
+    for line in ret:
         validStart, validEnd, calibDate, filter, calibVersion, nCCD = line
 
         print "%-10s--%-10s  %-10s  %-7s %-24s %4d" % (
@@ -174,7 +220,10 @@ If no registry is provided, try $SUPRIME_DATA_DIR
         registryFile = args.registryFile
     else:
         registryFile = os.path.join(args.registryFile,
-                                    "calibRegistry.sqlite3" if args.calib else "registry.sqlite3")
+                                    "calibRegistry_pgsql.py" if args.calib else "registry_pgsql.py")
+        if not os.path.exists(registryFile):
+            registryFile = os.path.join(args.registryFile,
+                                        "calibRegistry.sqlite3" if args.calib else "registry.sqlite3")
         if not os.path.exists(registryFile):
             print >> sys.stderr, "Unable to open %s" % registryFile
             sys.exit(1)
