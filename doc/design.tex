@@ -276,6 +276,13 @@ set, to expand the symmetric footprint so that any pixel whose
 symmetric partner is outside the image bounds is ``patched'' into the
 template.  This is shown in \figref{fig:edgepatch}.
 
+Even after these edge-handling tweaks, there can still be flux in the
+parent footprint that is not claimed by any child template.  This is
+called ``stray flux'', and can be seen in these example figures as the
+difference between the parent and the sum of children.  We assign flux
+based on the distance from the peak to the stray flux.  This is shown
+in \figref{fig:stray}.
+
 
 \begin{figure}[p]
 \begin{center}
@@ -312,6 +319,24 @@ template.  This is shown in \figref{fig:edgepatch}.
 
 
 
+\begin{figure}[p]
+\begin{center}
+\newcommand{\exfig}[1]{\includegraphics[width=0.12\textheight]{design-ramp3-#1}}
+%\newcommand{\befig}[1]{\includegraphics[width=0.12\textheight,angle=90]{design-ramp1-#1}}
+\begin{tabular}{m{1in}CCCC}
+  Parent footprint \& Sum of children (before)        & \exfig{parent} & & & \exfig{hsum2} \\
+  %Sum of children (before) & & \exfig{hsum2} \\
+  %
+  Stray flux               & \exfig{s0} & \exfig{s1} & \exfig{s2} & \exfig{s3} \\
+  %
+  Template flux            & \exfig{hb0} & \exfig{hb1} & \exfig{hb2} & \exfig{hb3} \\
+  %
+  Sum of children (after) & & \exfig{hsum}
+\end{tabular}
+\end{center}
+\caption{Deblending results using ``ramped'' edge-handling and stray flux assignment.
+  With stray-flux assignment, the sum of children equals the parent.\label{fig:stray}}
+\end{figure}
 
 
 
