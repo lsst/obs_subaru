@@ -21,7 +21,10 @@ python examples/designdoc.py ${ARGS} --drillxy 1378,3971 --order 3,0,1,2 --pat "
 
 
 # Edge-ramp section
-python examples/designdoc.py ${ARGS} --drillxy 10,158 --pat "design-ramp1-%(name)s.pdf" --median
-python examples/designdoc.py ${ARGS} --drillxy 10,158 --pat "design-ramp2-%(name)s.pdf" --ramp
+python examples/designdoc.py ${ARGS} --drillxy 10,158 --pat "design-ramp1-%(name)s.pdf" --figw 2 --median
+python examples/designdoc.py ${ARGS} --drillxy 10,158 --pat "design-ramp2-%(name)s.pdf" --figw 2 --ramp
+
+# Patch-edge section
+python examples/designdoc.py ${ARGS} --drillxy 10,158 --pat "design-patch-%(name)s.pdf" --figw 2 --patch
 
 

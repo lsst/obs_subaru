@@ -315,14 +315,14 @@ apportionFlux(MaskedImageT const& img,
     ) {
     typedef typename det::Footprint::SpanList SpanList;
     typedef typename det::HeavyFootprint<ImagePixelT, MaskPixelT, VariancePixelT> HeavyFootprint;
-    typedef typename boost::shared_ptr< HeavyFootprint > HeavyFootprintPtr;
+    typedef typename boost::shared_ptr< HeavyFootprint > HeavyFootprintPtrT;
 
     if (timgs.size() != tfoots.size()) {
         throw LSST_EXCEPT(lsst::pex::exceptions::LengthErrorException,
                           (boost::format("Template images must be the same length as template footprints (%d vs %d)") % timgs.size() % tfoots.size()).str());
     }
 
-    for (int i=0; i<timgs.size(); ++i) {
+    for (size_t i=0; i<timgs.size(); ++i) {
         if (!timgs[i]->getBBox(image::PARENT).contains(tfoots[i]->getBBox())) {
             throw LSST_EXCEPT(lsst::pex::exceptions::RuntimeErrorException,
                               "Template image MUST contain template footprint");
@@ -572,12 +572,12 @@ apportionFlux(MaskedImageT const& img,
         // Store the stray flux in HeavyFootprints
         for (size_t i=0; i<timgs.size(); ++i) {
             if (!strayfoot[i]) {
-                strays.push_back(HeavyFootprintPtr());
+                strays.push_back(HeavyFootprintPtrT());
             } else {
                 /// Hmm, this is a little bit dangerous: we're assuming that
                 /// the HeavyFootprint stores its pixels in the same order that
                 /// we iterate over them above (ie, lexicographic).
-                HeavyFootprintPtr heavy(new HeavyFootprint(*strayfoot[i]));
+                HeavyFootprintPtrT heavy(new HeavyFootprint(*strayfoot[i]));
                 ndarray::Array<ImagePixelT,1,1> himg = heavy->getImageArray();
                 typename std::vector<ImagePixelT>::const_iterator spix;
                 typename std::vector<MaskPixelT>::const_iterator smask;
@@ -985,8 +985,12 @@ symmetrizeFootprint(
  pixel values are stored.
  */
 template<typename ImagePixelT, typename MaskPixelT, typename VariancePixelT>
+//std::tuple<
+//std::pair<std::pair<typename PTR(lsst::afw::image::MaskedImage<ImagePixelT,MaskPixelT,VariancePixelT>),
+//typename PTR(lsst::afw::detection::Footprint)>,
+//bool>
 std::pair<typename PTR(lsst::afw::image::MaskedImage<ImagePixelT,MaskPixelT,VariancePixelT>),
-		  typename PTR(lsst::afw::detection::Footprint)>
+          typename PTR(lsst::afw::detection::Footprint) >
 deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::
 buildSymmetricTemplate(
     MaskedImageT const& img,
@@ -994,10 +998,13 @@ buildSymmetricTemplate(
     det::Peak const& peak,
     double sigma1,
     bool minZero,
-    bool patchEdge) {
+    bool patchEdge,
+    bool* patchedEdges) {
 
     typedef typename MaskedImageT::const_xy_locator xy_loc;
     typedef typename det::Footprint::SpanList SpanList;
+
+    *patchedEdges = false;
 
     int cx = peak.getIx();
     int cy = peak.getIy();
@@ -1007,8 +1014,11 @@ buildSymmetricTemplate(
 
     FootprintPtrT sfoot = symmetrizeFootprint(foot, cx, cy);
     if (!sfoot) {
-        return std::pair<MaskedImagePtrT, FootprintPtrT>(MaskedImagePtrT(),
-                                                         sfoot);
+        //return std::tuple<MaskedImagePtrT, FootprintPtrT, bool>(
+        //return std::pair<std::pair<MaskedImagePtrT, FootprintPtrT>, bool>(
+        //std::pair<MaskedImagePtrT, FootprintPtrT>(
+        //MaskedImagePtrT(), sfoot), false);
+        return std::pair<MaskedImagePtrT, FootprintPtrT>(MaskedImagePtrT(), sfoot);
     }
     const SpanList spans = sfoot->getSpans();
 
@@ -1026,11 +1036,6 @@ buildSymmetricTemplate(
             typename MaskT::x_iterator xiter =
                 mask->x_at(x0 - mask->getX0(), (*fwd)->getY() - mask->getY0());
             for (int x=x0; x<=x1; ++x, ++xiter) {
-                if ((x == x0) || (x == x1)) {
-                    MaskPixelT maskpix = (*xiter);
-                    log.debugf("  edge: x,y %i,%i, mask 0x%x, edgebit 0x%x",
-                               x, (*fwd)->getY(), maskpix, edgebit);
-                }
                 if ((*xiter) & edgebit) {
                     edge = true;
                     break;
@@ -1169,6 +1174,11 @@ buildSymmetricTemplate(
         timg = timg2;
     }
 
+    //return std::tuple<MaskedImagePtrT, FootprintPtrT, bool>(
+    //return std::pair<std::pair<MaskedImagePtrT, FootprintPtrT>, bool>(
+    //std::pair<MaskedImagePtrT, FootprintPtrT>(
+    //timg, sfoot), touchesEdge);
+    *patchedEdges = touchesEdge;
     return std::pair<MaskedImagePtrT, FootprintPtrT>(timg, sfoot);
 }
 
@@ -1307,7 +1317,7 @@ mergeHeavyFootprints(HeavyFootprintT const& h1,
     im1 += im2;
 
     // Build new HeavyFootprint from the merged spans and summed pixels.
-    return HeavyFootprintPtr(new HeavyFootprintT(foot, im1));
+    return HeavyFootprintPtrT(new HeavyFootprintT(foot, im1));
 }
 
 /***

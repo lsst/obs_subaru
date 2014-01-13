@@ -101,6 +101,8 @@ class PerPeak(object):
         self.stray_flux = None
 
         self.has_ramped_template = False
+
+        self.patched = False
         
         # debug -- a copy of the original symmetric template
         self.orig_template = None
@@ -140,6 +142,9 @@ class PerPeak(object):
         
     def set_template_weight(self, w):
         self.template_weight = w
+
+    def set_patched(self):
+        self.patched = True
 
     # DEBUG
     def set_orig_template(self, t, tfoot):
@@ -299,10 +304,12 @@ def deblend(footprint, maskedImage, psf, psffwhm,
             continue
         log.logdebug('computing template for peak %i at (%i,%i)' %
                      (pkres.pki, cx, cy))
-        S = butils.buildSymmetricTemplate(maskedImage, fp, pk, sigma1, True,
-                                          patchEdges)
+        S,patched = butils.buildSymmetricTemplate(
+            maskedImage, fp, pk, sigma1, True, patchEdges)
         # SWIG doesn't know how to unpack a std::pair into a 2-tuple...
+        # (in this case, a nested pair)
         t1, tfoot = S[0], S[1]
+        del S
 
         if t1 is None:
             log.logdebug(('Peak %i at (%i,%i): failed to build symmetric ' +
@@ -310,16 +317,21 @@ def deblend(footprint, maskedImage, psf, psffwhm,
             pkres.set_failed_symmetric_template()
             continue
 
+        if patched:
+            pkres.set_patched()
+
         # possibly save the original symmetric template
         pkres.set_orig_template(t1, tfoot)
 
         if (rampFluxAtEdge and
             butils.hasSignificantFluxAtEdge(t1.getImage(), tfoot, 3*sigma1)):
             log.logdebug("Template %i has significant flux at edge: ramping" % pkres.pki)
-            (t2, tfoot2) = _handle_flux_at_edge(
+            (t2, tfoot2, patched) = _handle_flux_at_edge(
                 log, psffwhm, t1, tfoot, fp, maskedImage, x0,x1,y0,y1,
                 psf, pk, sigma1, patchEdges)
             pkres.set_ramped_template(t2, tfoot2)
+            if patched:
+                pkres.set_patched()
             t1 = t2
             tfoot = tfoot2
                 
@@ -1014,19 +1026,19 @@ def _handle_flux_at_edge(log, psffwhm, t1, tfoot, fp, maskedImage,
     fpcopy = afwDet.growFootprint(fpcopy, S)
     fpcopy.normalize()
     
-    rtn = butils.buildSymmetricTemplate(padim, fpcopy, pk, sigma1, True,
-                                        patchEdges)
+    rtn,patched = butils.buildSymmetricTemplate(
+        padim, fpcopy, pk, sigma1, True, patchEdges)
     # silly SWIG can't unpack pairs as tuples
     t2, tfoot2 = rtn[0], rtn[1]
+    del rtn
     
     # This template footprint may extend outside the parent
     # footprint -- or the image.  Clip it.
     # NOTE that this may make it asymmetric, unlike normal templates.
     imbb = maskedImage.getBBox(afwImage.PARENT)
     tfoot2.clipTo(imbb)
-    #tfoot2.clipTo(bb)
     tbb = tfoot2.getBBox()
     # clip template image to bbox
     t2 = t2.Factory(t2, tbb, afwImage.PARENT, True)
 
-    return t2, tfoot2
+    return t2, tfoot2, patched

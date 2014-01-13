@@ -3,6 +3,7 @@
 #define LSST_DEBLENDER_BASELINE_H
 //!
 
+//#include <tuple>
 #include <vector>
 #include <utility>
 
@@ -32,7 +33,7 @@ namespace lsst {
                 typedef typename PTR(lsst::afw::detection::Footprint) FootprintPtrT;
                 typedef typename lsst::afw::detection::HeavyFootprint<ImagePixelT, MaskPixelT, VariancePixelT> HeavyFootprintT;
 
-                typedef typename boost::shared_ptr<lsst::afw::detection::HeavyFootprint<ImagePixelT, MaskPixelT, VariancePixelT> > HeavyFootprintPtr;
+                typedef typename PTR(lsst::afw::detection::HeavyFootprint<ImagePixelT, MaskPixelT, VariancePixelT>) HeavyFootprintPtrT;
 
                 static
                 PTR(lsst::afw::detection::Footprint)
@@ -40,13 +41,16 @@ namespace lsst {
                                     int cx, int cy);
 
                 static
+                //std::tuple<MaskedImagePtrT, FootprintPtrT, bool>
+                //std::pair<std::pair<MaskedImagePtrT, FootprintPtrT>, bool>
                 std::pair<MaskedImagePtrT, FootprintPtrT>
                 buildSymmetricTemplate(MaskedImageT const& img,
                                        lsst::afw::detection::Footprint const& foot,
                                        lsst::afw::detection::Peak const& pk,
                                        double sigma1,
                                        bool minZero,
-                                       bool patchEdges);
+                                       bool patchEdges,
+                                       bool* patchedEdges);
 
                 static void
                 medianFilter(MaskedImageT const& img,

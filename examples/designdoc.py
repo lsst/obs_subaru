@@ -54,9 +54,27 @@ def main():
     parser.add_option('--median', dest='sec', action='store_const', const='median',
                       help='Produce plots for the "median filter" section.')
     parser.add_option('--ramp', dest='sec', action='store_const', const='ramp',
-                      help='Produce plots for the "ramp edge" section.')
+                      help='Produce plots for the "ramp edges" section.')
+    parser.add_option('--patch', dest='sec', action='store_const', const='patch',
+                      help='Produce plots for the "patch edges" section.')
 
     opt,args = parser.parse_args()
+
+    root = pexLog.Log.getDefaultLog()
+    if opt.verbose:
+        root.setThreshold(pexLog.Log.DEBUG)
+    else:
+        root.setThreshold(pexLog.Log.INFO)
+
+    # Quiet some of the more chatty loggers
+    pexLog.Log(root, 'lsst.meas.deblender.symmetrizeFootprint',
+                   pexLog.Log.INFO)
+    #pexLog.Log(root, 'lsst.meas.deblender.symmetricFootprint',
+    #               pexLog.Log.INFO)
+    pexLog.Log(root, 'lsst.meas.deblender.getSignificantEdgePixels',
+                   pexLog.Log.INFO)
+    pexLog.Log(root, 'afw.Mask', pexLog.Log.INFO)
+
 
     if opt.sec is None:
         opt.sec = 'sdss'
@@ -235,6 +253,11 @@ def main():
             kwargs.update(median_smooth_template=True,
                           monotonic_template=True,
                           rampFluxAtEdge=True)
+        elif opt.sec == 'patch':
+            kwargs = basic
+            kwargs.update(median_smooth_template=True,
+                          monotonic_template=True,
+                          patchEdges=True)
 
         else:
             raise 'Unknown section: "%s"' % opt.sec
@@ -339,6 +362,8 @@ def main():
             plt.plot([pk.getIx()], [pk.getIy()], **pksty)
             plt.axis(pext)
             savefig(pid, 'h%i' % (kk))
+
+            if opt.sec == 'patch' and pkres.
 
             if opt.sec == 'ramp' and pkres.has_ramped_template:
                 plt.clf()
