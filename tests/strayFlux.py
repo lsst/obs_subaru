@@ -351,10 +351,15 @@ class StrayFluxTestCase(unittest.TestCase):
             plt.ylim(-2, 22)
             plt.savefig(plotpat % 4)
 
+        # test abs diff
         d = np.max(np.abs(s1 - strays[0]))
         self.assertTrue(d < 1e-6)
         d = np.max(np.abs(s2 - strays[1]))
         self.assertTrue(d < 1e-6)
+
+        # test relative diff
+        self.assertTrue(np.max(np.abs(s1 - strays[0]) / np.maximum(1e-3, s1)) < 1e-6)
+        self.assertTrue(np.max(np.abs(s2 - strays[1]) / np.maximum(1e-3, s2)) < 1e-6)
         
 #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
