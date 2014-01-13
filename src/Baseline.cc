@@ -1112,21 +1112,27 @@ buildSymmetricTemplate(
         // grow the footprint to include those spans, and plug in
         // their pixel values.
         geom::Box2I bb = sfoot->getBBox();
-        geom::Box2I imbb = img.getBBox(image::PARENT);
+
+        // Actually, it's not necessarily the IMAGE bounds that count
+        //-- the footprint may not go right to the image edge.
+        //geom::Box2I imbb = img.getBBox(image::PARENT);
+        geom::Box2I imbb = foot.getBBox();
+
         log.debugf("Footprint touches EDGE: start bbox [%i,%i],[%i,%i]",
                    bb.getMinX(), bb.getMaxX(), bb.getMinY(), bb.getMaxY());
         // original footprint spans
         const SpanList ospans = foot.getSpans();
         for (fwd = ospans.begin(); fwd != ospans.end(); ++fwd) {
             int y = (*fwd)->getY();
-            int ym = 2 * cy - y;
             int x = (*fwd)->getX0();
-            int xm = 2 * cx - x;
+            // mirrored coords
+            int ym = cy + (cy - y);
+            int xm = cx + (cx - x);
             if (!imbb.contains(geom::Point2I(xm, ym))) {
                 bb.include(geom::Point2I(x, y));
             }
             x = (*fwd)->getX1();
-            xm = 2 * cx - x;
+            xm = cx + (cx - x);
             if (!imbb.contains(geom::Point2I(xm, ym))) {
                 bb.include(geom::Point2I(x, y));
             }
@@ -1138,28 +1144,38 @@ buildSymmetricTemplate(
         MaskedImagePtrT timg2(new MaskedImageT(bb));
         copyWithinFootprint(*sfoot, timg, timg2);
 
+        log.debugf("Symmetric footprint spans:");
+        const SpanList sspans = sfoot->getSpans();
+        for (fwd = sspans.begin(); fwd != sspans.end(); ++fwd) {
+            log.debugf("  %s", (*fwd)->toString().c_str());
+        }
+
         // copy original 'img' pixels for the portion of spans whose
         // mirrors are out of bounds.
         for (fwd = ospans.begin(); fwd != ospans.end(); ++fwd) {
-            int y = (*fwd)->getY();
-            int ym = 2 * cy - y;
-            int x0 = (*fwd)->getX0();
-            int xm0 = 2 * cx - x0;
+            int y   = (*fwd)->getY();
+            int x0  = (*fwd)->getX0();
             int x1 = (*fwd)->getX1();
-            int xm1 = 2 * cx - x1;
+            // mirrored coords
+            int ym  = cy + (cy - y);
+            int xm0 = cx + (cx - x0);
+            int xm1 = cx + (cx - x1);
             bool in0 = imbb.contains(geom::Point2I(xm0, ym));
             bool in1 = imbb.contains(geom::Point2I(xm1, ym));
             if (in0 && in1) {
+                // both endpoints of the symmetric span are in bounds; nothing to do
                 continue;
             }
-            // clip
+            // clip to the part of the span where the mirror is out of bounds
             if (in0) {
-                x0 = 2 * cx - (imbb.getMinX() - 1);
+                // the mirror of x0 is in-bounds; move x0 to be the first pixel
+                // whose mirror would be out-of-bounds
+                x0 = cx + (cx - (imbb.getMinX() - 1));
             }
             if (in1) {
-                x1 = 2 * cx - (imbb.getMaxX() + 1);
+                x1 = cx + (cx - (imbb.getMaxX() + 1));
             }
-            log.debugf("Span y=%i, x=[%i,%i] has mirror out-of-bounds: %i,[%i,%i]; clipped to %i,[%i,%i]",
+            log.debugf("Span y=%i, x=[%i,%i] has mirror (%i,[%i,%i]) out-of-bounds; clipped to %i,[%i,%i]",
                        y, (*fwd)->getX0(), (*fwd)->getX1(), ym, xm1, xm0, y, x0, x1);
             typename MaskedImageT::x_iterator initer =
                 img.x_at(x0 - img.getX0(), y - img.getY0());

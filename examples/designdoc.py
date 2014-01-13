@@ -363,7 +363,17 @@ def main():
             plt.axis(pext)
             savefig(pid, 'h%i' % (kk))
 
-            if opt.sec == 'patch' and pkres.
+            if opt.sec == 'patch' and pkres.patched:
+                plt.clf()
+                t = pkres.orig_template
+                foot = pkres.orig_foot
+                myimshow(t.getArray(), extent=getExtent(foot.getBBox()), **imargs)
+                plt.gray()
+                plt.xticks([])
+                plt.yticks([])
+                plt.plot([pk.getIx()], [pk.getIy()], **pksty)
+                plt.axis(pext)
+                savefig(pid, 'o%i' % (kk))
 
             if opt.sec == 'ramp' and pkres.has_ramped_template:
                 plt.clf()
