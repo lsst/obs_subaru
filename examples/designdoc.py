@@ -53,6 +53,8 @@ def main():
                       help='Produce plots for the "median filter" section.')
     parser.add_option('--ramp', dest='sec', action='store_const', const='ramp',
                       help='Produce plots for the "ramp edges" section.')
+    parser.add_option('--ramp2', dest='sec', action='store_const', const='ramp2',
+                      help='Produce plots for the "ramp edges + stray flux" section.')
     parser.add_option('--patch', dest='sec', action='store_const', const='patch',
                       help='Produce plots for the "patch edges" section.')
 
@@ -249,6 +251,15 @@ def main():
             kwargs.update(median_smooth_template=True,
                           monotonic_template=True,
                           rampFluxAtEdge=True)
+
+        elif opt.sec == 'ramp2':
+            kwargs = basic
+            kwargs.update(median_smooth_template=True,
+                          monotonic_template=True,
+                          rampFluxAtEdge=True,
+                          findStrayFlux=True,
+                          assignStrayFlux=True)
+
         elif opt.sec == 'patch':
             kwargs = basic
             kwargs.update(median_smooth_template=True,
@@ -276,6 +287,8 @@ def main():
 
         # "heavy" bbox == template bbox.
         hsum = np.zeros((tbb.getHeight(), tbb.getWidth()))
+
+        hsum2 = np.zeros((tbb.getHeight(), tbb.getWidth()))
 
         plt.clf()
         t = res.templateSum
@@ -314,6 +327,12 @@ def main():
 
             (x0,x1,y0,y1) = hext
             hsum[y0-ty0:y1-ty0, x0-tx0:x1-tx0] += him
+
+            h2 = pkres.get_flux_portion(strayFlux=False)
+            him2 = footprintToImage(h2).getArray()
+            hext2 = getExtent(h2.getBBox())
+            (x0,x1,y0,y1) = hext2
+            hsum2[y0-ty0:y1-ty0, x0-tx0:x1-tx0] += him2
             
             if opt.sec == 'median':
                 try:
@@ -359,12 +378,22 @@ def main():
             plt.axis(pext)
             savefig(pid, 'h%i' % (kk))
 
-            if opt.sec == 'patch' and pkres.
+            plt.clf()
+            t = pkres.orig_template
+            foot = pkres.orig_foot
+            myimshow(t.getArray(), extent=getExtent(foot.getBBox()), **imargs)
+            plt.gray()
+            plt.xticks([])
+            plt.yticks([])
+            plt.plot([pk.getIx()], [pk.getIy()], **pksty)
+            plt.axis(pext)
+            savefig(pid, 'o%i' % (kk))
 
-            if opt.sec == 'ramp' and pkres.has_ramped_template:
+            if opt.sec == 'patch' and pkres.patched:
+                pass
+            
+            if opt.sec in ['ramp','ramp2'] and pkres.has_ramped_template:
                 plt.clf()
-                #t = footprintToImage(pkres.template_foot, pkres.ramped_template,
-                #                     mask=False)
                 t = pkres.ramped_template
                 myimshow(t.getArray(), extent=getExtent(t.getBBox(afwImage.PARENT)),
                          **imargs)
@@ -374,17 +403,6 @@ def main():
                 plt.plot([pk.getIx()], [pk.getIy()], **pksty)
                 plt.axis(pext)
                 savefig(pid, 'r%i' % (kk))
-
-                plt.clf()
-                t = pkres.orig_template
-                foot = pkres.orig_foot
-                myimshow(t.getArray(), extent=getExtent(foot.getBBox()), **imargs)
-                plt.gray()
-                plt.xticks([])
-                plt.yticks([])
-                plt.plot([pk.getIx()], [pk.getIy()], **pksty)
-                plt.axis(pext)
-                savefig(pid, 'o%i' % (kk))
 
                 plt.clf()
                 t = pkres.median_filtered_template
@@ -408,6 +426,30 @@ def main():
                 plt.axis(pext)
                 savefig(pid, 'p%i' % (kk))
 
+            if opt.sec == 'ramp2':
+                # stray flux
+                if pkres.stray_flux is not None:
+                    s = pkres.stray_flux
+                    strayim = footprintToImage(s).getArray()
+                    strayext = getExtent(s.getBBox())
+
+                    plt.clf()
+                    myimshow(strayim, extent=strayext, **imargs)
+                    plt.gray()
+                    plt.xticks([])
+                    plt.yticks([])
+                    plt.plot([pk.getIx()], [pk.getIy()], **pksty)
+                    plt.axis(pext)
+                    savefig(pid, 's%i' % (kk))
+
+                    plt.clf()
+                    myimshow(him2, extent=hext2, **imargs)
+                    plt.gray()
+                    plt.xticks([])
+                    plt.yticks([])
+                    plt.plot([pk.getIx()], [pk.getIy()], **pksty)
+                    plt.axis(pext)
+                    savefig(pid, 'hb%i' % (kk))
 
 
             k += 1
@@ -429,6 +471,15 @@ def main():
         plt.plot([pk.getIx() for pk in pks], [pk.getIy() for pk in pks], **pksty)
         plt.axis(pext)
         savefig(pid, 'hsum')
+
+        plt.clf()
+        myimshow(hsum2, extent=getExtent(tbb), **imargs)
+        plt.gray()
+        plt.xticks([])
+        plt.yticks([])
+        plt.plot([pk.getIx() for pk in pks], [pk.getIy() for pk in pks], **pksty)
+        plt.axis(pext)
+        savefig(pid, 'hsum2')
 
         k = 0
         for pkres,pk in zip(res.peaks, pks):
