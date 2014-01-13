@@ -27,4 +27,8 @@ python examples/designdoc.py ${ARGS} --drillxy 10,158 --pat "design-ramp2-%(name
 # Patch-edge section
 python examples/designdoc.py ${ARGS} --drillxy 10,158 --pat "design-patch-%(name)s.pdf" --figw 2 --patch
 
+# Ramp + Stray
+python examples/designdoc.py ${ARGS} --drillxy 10,158 --pat "design-patch-%(name)s.pdf" --figw 2 --ramp2
+
+
 
