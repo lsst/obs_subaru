@@ -584,7 +584,6 @@ apportionFlux(MaskedImageT const& img,
                 typename std::vector<VariancePixelT>::const_iterator svar;
                 typename ndarray::Array<ImagePixelT,1,1>::Iterator hpix;
 
-                /// FIXME -- we just put in zeros for the mask and variance planes.
                 typename ndarray::Array<MaskPixelT,1,1>::Iterator mpix;
                 typename ndarray::Array<VariancePixelT,1,1>::Iterator vpix;
 
@@ -985,10 +984,6 @@ symmetrizeFootprint(
  pixel values are stored.
  */
 template<typename ImagePixelT, typename MaskPixelT, typename VariancePixelT>
-//std::tuple<
-//std::pair<std::pair<typename PTR(lsst::afw::image::MaskedImage<ImagePixelT,MaskPixelT,VariancePixelT>),
-//typename PTR(lsst::afw::detection::Footprint)>,
-//bool>
 std::pair<typename PTR(lsst::afw::image::MaskedImage<ImagePixelT,MaskPixelT,VariancePixelT>),
           typename PTR(lsst::afw::detection::Footprint) >
 deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::
@@ -1014,10 +1009,6 @@ buildSymmetricTemplate(
 
     FootprintPtrT sfoot = symmetrizeFootprint(foot, cx, cy);
     if (!sfoot) {
-        //return std::tuple<MaskedImagePtrT, FootprintPtrT, bool>(
-        //return std::pair<std::pair<MaskedImagePtrT, FootprintPtrT>, bool>(
-        //std::pair<MaskedImagePtrT, FootprintPtrT>(
-        //MaskedImagePtrT(), sfoot), false);
         return std::pair<MaskedImagePtrT, FootprintPtrT>(MaskedImagePtrT(), sfoot);
     }
     const SpanList spans = sfoot->getSpans();
@@ -1190,10 +1181,6 @@ buildSymmetricTemplate(
         timg = timg2;
     }
 
-    //return std::tuple<MaskedImagePtrT, FootprintPtrT, bool>(
-    //return std::pair<std::pair<MaskedImagePtrT, FootprintPtrT>, bool>(
-    //std::pair<MaskedImagePtrT, FootprintPtrT>(
-    //timg, sfoot), touchesEdge);
     *patchedEdges = touchesEdge;
     return std::pair<MaskedImagePtrT, FootprintPtrT>(timg, sfoot);
 }

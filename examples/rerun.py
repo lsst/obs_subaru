@@ -1,8 +1,15 @@
 from lsst.pex.config import Config, ConfigurableField
 from lsst.pipe.base import CmdLineTask
-#from lsst.meas.algorithms import SourceDeblendTask
 from lsst.meas.deblender import SourceDeblendTask
 import lsst.afw.table as afwTable
+
+'''
+This script allows one to quickly load an image and run just the
+deblender on it, without any of the calibration steps before that.
+
+That is, it reads the calexp and pre-deblending sources, then runs the
+deblender and writes the outputs to self-contained FITS files.
+'''
 
 class MyConfig(Config):
     deblend = ConfigurableField(target=SourceDeblendTask, doc="Deblender")
@@ -39,7 +46,6 @@ class MyTask(CmdLineTask):
         print len(sources), 'sources before deblending'
 
         self.deblend.run(calexp, sources, psf)
-        #run_deblend(self, calexp,sources, psf)
         print len(sources), 'sources after deblending'
 
         fn = 'deblended.fits'
@@ -55,11 +61,5 @@ class MyTask(CmdLineTask):
         psf.writeFits(fn)
         print 'Wrote PSF to', fn
 
-
-## DEBUG -- it's easy to set a pdb breakpoint here
-#def run_deblend(task, calexp, sources, psf):
-#    task.deblend.run(calexp, sources, psf)
-
-        
 if __name__ == "__main__":
     MyTask.parseAndRun()

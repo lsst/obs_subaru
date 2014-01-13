@@ -105,6 +105,16 @@ class SourceDeblendTask(pipeBase.Task):
         self.deblendFailedKey = schema.addField('deblend.failed', type='Flag',
                                                 doc="Deblending failed on source")
 
+        self.deblendRampedTemplate = schema.addField(
+            'deblend.ramped_template', type='Flag',
+            doc=('This source was near an image edge and the deblender used ' +
+                 '"ramp" edge-handling.'))
+
+        self.deblendPatchedTemplate = schema.addField(
+            'deblend.patched_template', type='Flag',
+            doc=('This source was near an image edge and the deblender used ' +
+                 '"patched" edge-handling.'))
+        
         self.log.logdebug('Added keys to schema: %s' % ", ".join(str(x) for x in (
                     self.nChildKey, self.psfKey, self.psfCenterKey, self.psfFluxKey, self.tooManyPeaksKey)))
 

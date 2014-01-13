@@ -54,27 +54,35 @@ def gaussianPsf(W, H, fwhm):
 class RampEdgeTestCase(unittest.TestCase):
 
     def test1(self):
+        '''
+        In this test, we create a test image containing two blobs, one 
+        of which is truncated by the edge of the image.
 
+        We run the detection code to get realistic peaks and
+        footprints.
+        
+        We then test out the different edge treatments and assert that
+        they do what they claim.  We also make plots, tests/edge*.png
+        '''
+        # Create fake image...
         H,W = 100,100
         fpbb = afwGeom.Box2I(afwGeom.Point2I(0,0),
                              afwGeom.Point2I(W-1,H-1))
-    
         afwimg = afwImage.MaskedImageF(fpbb)
         imgbb = afwimg.getBBox(afwImage.PARENT)
         img = afwimg.getImage().getArray()
-    
+
         var = afwimg.getVariance().getArray()
         var[:,:] = 1.
         
         blob_fwhm = 15.
         blob_psf = doubleGaussianPsf(201, 201, blob_fwhm, 3.*blob_fwhm, 0.03)
-    
-        #fakepsf_fwhm = 3.
         fakepsf_fwhm = 5.
         S = int(np.ceil(fakepsf_fwhm * 2.)) * 2 + 1
         print 'S', S
         fakepsf = gaussianPsf(S, S, fakepsf_fwhm)
     
+        # Create and save blob images, and add to image to deblend.
         blobimgs = []
         XY = [(50.,50.), (90.,50.)]
         flux = 1e6
@@ -95,13 +103,12 @@ class RampEdgeTestCase(unittest.TestCase):
                 bbb.getMinX():bbb.getMaxX()+1] += flux * bim2
     
         # Run the detection code to get a ~ realistic footprint
-        #thresh = afwDet.createThreshold(40., 'value', True)
         thresh = afwDet.createThreshold(10., 'value', True)
         fpSet = afwDet.FootprintSet(afwimg, thresh, 'DETECTED', 1)
         fps = fpSet.getFootprints()
         print 'found', len(fps), 'footprints'
     
-        # set EDGE bit.
+        # set EDGE bit on edge pixels.
         margin = 5
         lo = imgbb.getMin()
         lo.shift(afwGeom.Extent2I(margin, margin))
@@ -164,7 +171,8 @@ class RampEdgeTestCase(unittest.TestCase):
             Y = [y for x,y in XY]
             PX = [pk.getIx() for pk in fp.getPeaks()]
             PY = [pk.getIy() for pk in fp.getPeaks()]
-    
+
+            # Grab 1-d slices to make assertion about.
             symms = []
             monos = []
             symm1ds = []

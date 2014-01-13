@@ -49,19 +49,12 @@ using namespace lsst::afw::detection;
 %include "lsst/meas/deblender/Baseline.h"
 
 %template(BaselineUtilsF) lsst::meas::deblender::BaselineUtils<float>;
-//%template(pairMaskedImageFPtrAndFootprintPtr) std::pair<lsst::meas::deblender::BaselineUtils<float>::MaskedImagePtrT, lsst::meas::deblender::BaselineUtils<float>::FootprintPtrT>;
-//%template(tupleMaskedImageFPtrAndFootprintPtrAndbool) std::tuple<lsst::meas::deblender::BaselineUtils<float>::MaskedImagePtrT, lsst::meas::deblender::BaselineUtils<float>::FootprintPtrT, bool>;
 
 %template(pairMaskedImageFPtrAndFootprintPtr) std::pair<lsst::meas::deblender::BaselineUtils<float>::MaskedImagePtrT, lsst::meas::deblender::BaselineUtils<float>::FootprintPtrT>;
 
-//%template(pairpairMaskedImageFPtrAndFootprintPtrAndbool) std::pair<std::pair<lsst::meas::deblender::BaselineUtils<float>::MaskedImagePtrT, lsst::meas::deblender::BaselineUtils<float>::FootprintPtrT>, bool>;
-
-
-
 %template(HeavyFootprintPtrListF) std::vector<boost::shared_ptr<lsst::afw::detection::HeavyFootprint<float, lsst::afw::image::MaskPixel,lsst::afw::image::VariancePixel> > >;
 
-// HeavyFootprintPtr* is already instantiated in afw/det/footprints.i
-///%template(HeavyFootprintPtrF) boost::shared_ptr<lsst::afw::detection::HeavyFootprint<float, lsst::afw::image::MaskPixel,lsst::afw::image::VariancePixel> >;
+// HeavyFootprintPtr* is instantiated in afw/det/footprints.i
 
 /******************************************************************************/
 // Local Variables: ***

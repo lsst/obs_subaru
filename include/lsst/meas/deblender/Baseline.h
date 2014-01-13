@@ -3,7 +3,6 @@
 #define LSST_DEBLENDER_BASELINE_H
 //!
 
-//#include <tuple>
 #include <vector>
 #include <utility>
 
@@ -41,8 +40,6 @@ namespace lsst {
                                     int cx, int cy);
 
                 static
-                //std::tuple<MaskedImagePtrT, FootprintPtrT, bool>
-                //std::pair<std::pair<MaskedImagePtrT, FootprintPtrT>, bool>
                 std::pair<MaskedImagePtrT, FootprintPtrT>
                 buildSymmetricTemplate(MaskedImageT const& img,
                                        lsst::afw::detection::Footprint const& foot,
