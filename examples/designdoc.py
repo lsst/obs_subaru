@@ -28,8 +28,6 @@ def main():
     parser.add_option('--calexp', help='Read a FITS calexp')
     parser.add_option('--psf', help='Read a FITS PSF')
 
-    parser.add_option('-H', '--heavy', dest='heavypat', #default='heavy-%(visit)i-%(ccd)i-%(id)04i.fits',
-                      help='Input filename pattern for heavy footprints (with %i pattern); FITS')
     parser.add_option('--drill', '-D', dest='drill', action='append', type=str, default=[],
                       help='Drill down on individual source IDs')
     parser.add_option('--drillxy', dest='drillxy', action='append', type=str, default=[],
@@ -129,7 +127,7 @@ def main():
                 keepxys.append((int(xy[0]),int(xy[1])))
         print 'Keeping parents at xy', keepxys
         
-    cat = readCatalog(opt.sources, opt.heavypat, dataref=dr, keepids=keepids,
+    cat = readCatalog(opt.sources, None, dataref=dr, keepids=keepids,
                       keepxys=keepxys, patargs=dict(visit=opt.visit, ccd=opt.ccd))
     print 'Got', len(cat), 'sources'
 
@@ -178,8 +176,6 @@ def main():
         plt.imshow(nlmap(im), **kwargs)
     plt.figure(figsize=(opt.figw, opt.figh))
     plt.subplot(1,1,1)
-    #plt.subplots_adjust(left=0.05, right=0.95, bottom=0.05, top=0.9,
-    #                    wspace=0.05, hspace=0.1)
     plt.subplots_adjust(left=0.01, right=0.99, bottom=0.01, top=0.99,
                         wspace=0.05, hspace=0.1)
     for j,(parent,children) in enumerate(fams):
