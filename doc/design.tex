@@ -280,8 +280,12 @@ Even after these edge-handling tweaks, there can still be flux in the
 parent footprint that is not claimed by any child template.  This is
 called ``stray flux'', and can be seen in these example figures as the
 difference between the parent and the sum of children.  We assign flux
-based on the distance from the peak to the stray flux.  This is shown
-in \figref{fig:stray}.
+based on the distance from the peak to the stray flux: peak $i$ gets a
+fraction of the flux proportional to $1/(1 + r_i^2)$, where $r_i$ is
+the distance from peak $i$ to the pixel containing stray flux.  This
+is shown in \figref{fig:stray}.  There is also an option to assign
+stray flux to a child based on the distance to the nearest pixel
+within a child's footprint.
 
 
 \begin{figure}[p]
