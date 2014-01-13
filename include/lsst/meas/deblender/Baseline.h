@@ -3,6 +3,7 @@
 #define LSST_DEBLENDER_BASELINE_H
 //!
 
+//#include <tuple>
 #include <vector>
 #include <utility>
 
@@ -22,31 +23,34 @@ namespace lsst {
 
             public:
                 typedef typename lsst::afw::image::MaskedImage<ImagePixelT, MaskPixelT, VariancePixelT> MaskedImageT;
-                typedef typename lsst::afw::image::MaskedImage<ImagePixelT, MaskPixelT, VariancePixelT>::Ptr MaskedImagePtrT;
+                typedef typename PTR(lsst::afw::image::MaskedImage<ImagePixelT, MaskPixelT, VariancePixelT>) MaskedImagePtrT;
                 typedef typename lsst::afw::image::Image<ImagePixelT> ImageT;
-                typedef typename lsst::afw::image::Image<ImagePixelT>::Ptr ImagePtrT;
+                typedef typename PTR(lsst::afw::image::Image<ImagePixelT>) ImagePtrT;
                 typedef typename lsst::afw::image::Mask<MaskPixelT> MaskT;
-                typedef typename lsst::afw::image::Mask<MaskPixelT>::Ptr MaskPtrT;
+                typedef typename PTR(lsst::afw::image::Mask<MaskPixelT>) MaskPtrT;
 
                 typedef typename lsst::afw::detection::Footprint FootprintT;
-                typedef typename lsst::afw::detection::Footprint::Ptr FootprintPtrT;
+                typedef typename PTR(lsst::afw::detection::Footprint) FootprintPtrT;
                 typedef typename lsst::afw::detection::HeavyFootprint<ImagePixelT, MaskPixelT, VariancePixelT> HeavyFootprintT;
 
-                typedef typename boost::shared_ptr<lsst::afw::detection::HeavyFootprint<ImagePixelT, MaskPixelT, VariancePixelT> > HeavyFootprintPtr;
+                typedef typename PTR(lsst::afw::detection::HeavyFootprint<ImagePixelT, MaskPixelT, VariancePixelT>) HeavyFootprintPtrT;
 
                 static
-                lsst::afw::detection::Footprint::Ptr
+                PTR(lsst::afw::detection::Footprint)
                 symmetrizeFootprint(lsst::afw::detection::Footprint const& foot,
                                     int cx, int cy);
 
                 static
+                //std::tuple<MaskedImagePtrT, FootprintPtrT, bool>
+                //std::pair<std::pair<MaskedImagePtrT, FootprintPtrT>, bool>
                 std::pair<MaskedImagePtrT, FootprintPtrT>
                 buildSymmetricTemplate(MaskedImageT const& img,
                                        lsst::afw::detection::Footprint const& foot,
                                        lsst::afw::detection::Peak const& pk,
                                        double sigma1,
                                        bool minZero,
-                                       bool patchEdges);
+                                       bool patchEdges,
+                                       bool* patchedEdges);
 
                 static void
                 medianFilter(MaskedImageT const& img,
@@ -63,12 +67,13 @@ namespace lsst {
                 // split flux according to the closest distance to the template?
                 // (default is according to distance to the peak)
                 static const int STRAYFLUX_R_TO_FOOTPRINT                  = 0x8;
+
                 // swig doesn't seem to understand std::vector<MaskedImagePtrT>...
                 static
-                std::vector<typename lsst::afw::image::MaskedImage<ImagePixelT, MaskPixelT, VariancePixelT>::Ptr>
+                std::vector<typename PTR(lsst::afw::image::MaskedImage<ImagePixelT, MaskPixelT, VariancePixelT>)>
                 apportionFlux(MaskedImageT const& img,
                               lsst::afw::detection::Footprint const& foot,
-                              std::vector<typename lsst::afw::image::MaskedImage<ImagePixelT, MaskPixelT, VariancePixelT>::Ptr> templates,
+                              std::vector<typename PTR(lsst::afw::image::MaskedImage<ImagePixelT, MaskPixelT, VariancePixelT>)> templates,
                               std::vector<boost::shared_ptr<lsst::afw::detection::Footprint> > templ_footprints,
                               //
                               ImagePtrT templ_sum,
@@ -114,7 +119,6 @@ namespace lsst {
                 copyWithinFootprint(lsst::afw::detection::Footprint const& foot,
                                     MaskedImagePtrT const input,
                                     MaskedImagePtrT output);
-
 
             };
         }

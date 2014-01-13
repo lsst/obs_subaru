@@ -5,8 +5,6 @@
 *.so
 *.os
 *.dylib
-stray?.png
-edge?.png
 tests/.tests
 ups/*.cfgc
 config.log

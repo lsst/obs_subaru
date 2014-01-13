@@ -16,7 +16,8 @@ namespace geom = lsst::afw::geom;
 namespace malg = lsst::meas::algorithms;
 namespace pexLog = lsst::pex::logging;
 
-static bool span_ptr_compare(det::Span::Ptr sp1, det::Span::Ptr sp2) {
+
+static bool span_ptr_compare(PTR(det::Span) sp1, PTR(det::Span) sp2) {
     return (*sp1 < *sp2);
 }
 
@@ -299,7 +300,7 @@ makeMonotonic(
 
  */
 template<typename ImagePixelT, typename MaskPixelT, typename VariancePixelT>
-std::vector<typename image::MaskedImage<ImagePixelT, MaskPixelT, VariancePixelT>::Ptr>
+std::vector<typename PTR(image::MaskedImage<ImagePixelT, MaskPixelT, VariancePixelT>)>
 deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::
 apportionFlux(MaskedImageT const& img,
               det::Footprint const& foot,
@@ -314,14 +315,14 @@ apportionFlux(MaskedImageT const& img,
     ) {
     typedef typename det::Footprint::SpanList SpanList;
     typedef typename det::HeavyFootprint<ImagePixelT, MaskPixelT, VariancePixelT> HeavyFootprint;
-    typedef typename boost::shared_ptr< HeavyFootprint > HeavyFootprintPtr;
+    typedef typename boost::shared_ptr< HeavyFootprint > HeavyFootprintPtrT;
 
     if (timgs.size() != tfoots.size()) {
         throw LSST_EXCEPT(lsst::pex::exceptions::LengthErrorException,
                           (boost::format("Template images must be the same length as template footprints (%d vs %d)") % timgs.size() % tfoots.size()).str());
     }
 
-    for (int i=0; i<timgs.size(); ++i) {
+    for (size_t i=0; i<timgs.size(); ++i) {
         if (!timgs[i]->getBBox(image::PARENT).contains(tfoots[i]->getBBox())) {
             throw LSST_EXCEPT(lsst::pex::exceptions::RuntimeErrorException,
                               "Template image MUST contain template footprint");
@@ -370,19 +371,21 @@ apportionFlux(MaskedImageT const& img,
     for (size_t i=0; i<timgs.size(); ++i) {
         MaskedImagePtrT timg = timgs[i];
         geom::Box2I tbb = timg->getBBox(image::PARENT);
-        // To handle "ramped" templates that can extend outside the
-        // parent, clip the bbox...
-        tbb.clip(sumbb);
         int tx0 = tbb.getMinX();
         int ty0 = tbb.getMinY();
-
+        // To handle "ramped" templates that can extend outside the
+        // parent, clip the bbox.  Note that we saved tx0,ty0 BEFORE
+        // doing this!
+        tbb.clip(sumbb);
+        int copyx0 = tbb.getMinX();
         // Here we iterate over the template bbox -- we could instead
         // iterate over the "tfoot"s.
         for (int y=tbb.getMinY(); y<=tbb.getMaxY(); ++y) {
-            typename MaskedImageT::x_iterator in_it = timg->row_begin(y - ty0);
+            typename MaskedImageT::x_iterator in_it = timg->row_begin(y - ty0) +
+                (copyx0 - tx0);
             typename MaskedImageT::x_iterator inend = in_it + tbb.getWidth();
             typename ImageT::x_iterator tsum_it = 
-                tsum->row_begin(y - sumy0) + (tx0 - sumx0);
+                tsum->row_begin(y - sumy0) + (copyx0 - sumx0);
             for (; in_it != inend; ++in_it, ++tsum_it) {
                 *tsum_it += std::max((ImagePixelT)0., (*in_it).image());
             }
@@ -406,13 +409,19 @@ apportionFlux(MaskedImageT const& img,
         geom::Box2I tbb = timg->getBBox(image::PARENT);
         int tx0 = tbb.getMinX();
         int ty0 = tbb.getMinY();
+        // As above
+        tbb.clip(sumbb);
+        int copyx0 = tbb.getMinX();
         for (int y=tbb.getMinY(); y<=tbb.getMaxY(); ++y) {
-            typename MaskedImageT::x_iterator in_it = img.row_begin(y - iy0) + (tx0 - ix0);
-            typename MaskedImageT::x_iterator tptr = timg->row_begin(y - ty0);
+            typename MaskedImageT::x_iterator in_it =
+                img.row_begin(y - iy0) + (copyx0 - ix0);
+            typename MaskedImageT::x_iterator tptr =
+                timg->row_begin(y - ty0) + (copyx0 - tx0);
             typename MaskedImageT::x_iterator tend = tptr + tbb.getWidth();
             typename ImageT::x_iterator tsum_it = 
-                tsum->row_begin(y - sumy0) + (tx0 - sumx0);
-            typename MaskedImageT::x_iterator out_it = port->row_begin(y - ty0);
+                tsum->row_begin(y - sumy0) + (copyx0 - sumx0);
+            typename MaskedImageT::x_iterator out_it =
+                port->row_begin(y - ty0) + (copyx0 - tx0);
             for (; tptr != tend; ++tptr, ++in_it, ++out_it, ++tsum_it) {
                 if (*tsum_it == 0) {
                     continue;
@@ -563,12 +572,12 @@ apportionFlux(MaskedImageT const& img,
         // Store the stray flux in HeavyFootprints
         for (size_t i=0; i<timgs.size(); ++i) {
             if (!strayfoot[i]) {
-                strays.push_back(HeavyFootprintPtr());
+                strays.push_back(HeavyFootprintPtrT());
             } else {
                 /// Hmm, this is a little bit dangerous: we're assuming that
                 /// the HeavyFootprint stores its pixels in the same order that
                 /// we iterate over them above (ie, lexicographic).
-                HeavyFootprintPtr heavy(new HeavyFootprint(*strayfoot[i]));
+                HeavyFootprintPtrT heavy(new HeavyFootprint(*strayfoot[i]));
                 ndarray::Array<ImagePixelT,1,1> himg = heavy->getImageArray();
                 typename std::vector<ImagePixelT>::const_iterator spix;
                 typename std::vector<MaskPixelT>::const_iterator smask;
@@ -764,7 +773,7 @@ private:
  the AND of the two symmetric halves.
  */
 template<typename ImagePixelT, typename MaskPixelT, typename VariancePixelT>
-lsst::afw::detection::Footprint::Ptr
+PTR(lsst::afw::detection::Footprint)
 deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::
 symmetrizeFootprint(
     det::Footprint const& foot,
@@ -772,7 +781,7 @@ symmetrizeFootprint(
 
     typedef typename det::Footprint::SpanList SpanList;
 
-    det::Footprint::Ptr sfoot(new det::Footprint);
+    PTR(det::Footprint) sfoot(new det::Footprint);
     const SpanList spans = foot.getSpans();
     assert(foot.isNormalized());
 
@@ -780,18 +789,18 @@ symmetrizeFootprint(
                     "lsst.meas.deblender.symmetrizeFootprint");
 
     // Find the Span containing the peak.
-    det::Span::Ptr target(new det::Span(cy, cx, cx));
+    PTR(det::Span) target(new det::Span(cy, cx, cx));
     SpanList::const_iterator peakspan =
         std::lower_bound(spans.begin(), spans.end(), target, span_ptr_compare);
     // lower_bound returns the first position where "target" could be inserted;
     // ie, the first Span larger than "target".  The Span containing "target"
     // should be peakspan-1.
-    det::Span::Ptr sp;
+    PTR(det::Span) sp;
     if (peakspan == spans.begin()) {
         sp = *peakspan;
         if (!sp->contains(cx, cy)) {
             log.warnf("Failed to find span containing (%i,%i): before the beginning of this footprint", cx, cy);
-            return det::Footprint::Ptr();
+            return PTR(det::Footprint)();
         }
     } else {
         peakspan--;
@@ -976,8 +985,12 @@ symmetrizeFootprint(
  pixel values are stored.
  */
 template<typename ImagePixelT, typename MaskPixelT, typename VariancePixelT>
-std::pair<typename lsst::afw::image::MaskedImage<ImagePixelT,MaskPixelT,VariancePixelT>::Ptr,
-          typename lsst::afw::detection::Footprint::Ptr>
+//std::tuple<
+//std::pair<std::pair<typename PTR(lsst::afw::image::MaskedImage<ImagePixelT,MaskPixelT,VariancePixelT>),
+//typename PTR(lsst::afw::detection::Footprint)>,
+//bool>
+std::pair<typename PTR(lsst::afw::image::MaskedImage<ImagePixelT,MaskPixelT,VariancePixelT>),
+          typename PTR(lsst::afw::detection::Footprint) >
 deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::
 buildSymmetricTemplate(
     MaskedImageT const& img,
@@ -985,10 +998,13 @@ buildSymmetricTemplate(
     det::Peak const& peak,
     double sigma1,
     bool minZero,
-    bool patchEdge) {
+    bool patchEdge,
+    bool* patchedEdges) {
 
     typedef typename MaskedImageT::const_xy_locator xy_loc;
     typedef typename det::Footprint::SpanList SpanList;
+
+    *patchedEdges = false;
 
     int cx = peak.getIx();
     int cy = peak.getIy();
@@ -998,8 +1014,11 @@ buildSymmetricTemplate(
 
     FootprintPtrT sfoot = symmetrizeFootprint(foot, cx, cy);
     if (!sfoot) {
-        return std::pair<MaskedImagePtrT, FootprintPtrT>(MaskedImagePtrT(),
-                                                         sfoot);
+        //return std::tuple<MaskedImagePtrT, FootprintPtrT, bool>(
+        //return std::pair<std::pair<MaskedImagePtrT, FootprintPtrT>, bool>(
+        //std::pair<MaskedImagePtrT, FootprintPtrT>(
+        //MaskedImagePtrT(), sfoot), false);
+        return std::pair<MaskedImagePtrT, FootprintPtrT>(MaskedImagePtrT(), sfoot);
     }
     const SpanList spans = sfoot->getSpans();
 
@@ -1017,11 +1036,6 @@ buildSymmetricTemplate(
             typename MaskT::x_iterator xiter =
                 mask->x_at(x0 - mask->getX0(), (*fwd)->getY() - mask->getY0());
             for (int x=x0; x<=x1; ++x, ++xiter) {
-                if ((x == x0) || (x == x1)) {
-                    MaskPixelT maskpix = (*xiter);
-                    log.debugf("  edge: x,y %i,%i, mask 0x%x, edgebit 0x%x",
-                               x, (*fwd)->getY(), maskpix, edgebit);
-                }
                 if ((*xiter) & edgebit) {
                     edge = true;
                     break;
@@ -1160,6 +1174,11 @@ buildSymmetricTemplate(
         timg = timg2;
     }
 
+    //return std::tuple<MaskedImagePtrT, FootprintPtrT, bool>(
+    //return std::pair<std::pair<MaskedImagePtrT, FootprintPtrT>, bool>(
+    //std::pair<MaskedImagePtrT, FootprintPtrT>(
+    //timg, sfoot), touchesEdge);
+    *patchedEdges = touchesEdge;
     return std::pair<MaskedImagePtrT, FootprintPtrT>(timg, sfoot);
 }
 
@@ -1298,7 +1317,7 @@ mergeHeavyFootprints(HeavyFootprintT const& h1,
     im1 += im2;
 
     // Build new HeavyFootprint from the merged spans and summed pixels.
-    return HeavyFootprintPtr(new HeavyFootprintT(foot, im1));
+    return HeavyFootprintPtrT(new HeavyFootprintT(foot, im1));
 }
 
 /***

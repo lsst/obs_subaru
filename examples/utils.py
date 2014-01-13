@@ -435,6 +435,7 @@ def readCatalog(sourcefn, heavypat, ndeblends=0, dataref=None,
         cat = afwTable.SourceCatalog.readFits(sourcefn)
         print len(cat), 'sources'
     cat.sort()
+    cat.defineCentroid('centroid.sdss')
 
     if ndeblends or keepids or keepxys:
         cat = cutCatalog(cat, ndeblends, keepids, keepxys)
