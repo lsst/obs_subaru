@@ -26,7 +26,7 @@ rings.plotRadial(r, profs, xlim=(-100, 5500), ylim=(0.8, 1.03))
 """
 
 import multiprocessing
-import sys
+import os, re, sys
 import numpy as np
 
 import lsst.afw.cameraGeom as afwCamGeom
@@ -36,6 +36,7 @@ import lsst.afw.image       as afwImage
 import lsst.afw.math        as afwMath
 import lsst.afw.display.ds9 as ds9
 import lsst.afw.display.utils as ds9Utils
+import lsst.analysis.utils as utils
 
 try:
     pyplot
@@ -210,6 +211,64 @@ class FitPatchesWork(object):
 
 #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
+def fitRadialParabola(mi, niter=3, tol=1e-5, nsigma=5, returnResidualImage=False):
+    """Fit a radial parabola (centered at (0, 0) to the image im using a linear fit with an nsigma clip"""
+
+    width, height = mi.getDimensions()
+    BAD = afwImage.MaskU.getPlaneBitMask("BAD")
+
+    X, Y = np.meshgrid(np.arange(width), np.arange(height))
+    R = np.hypot(X + mi.getX0(), Y + mi.getY0())
+    R = R.flatten()
+    one = np.ones_like(R)
+
+    A = np.array([one, R, R**2]).transpose()
+    isMaskedImage = hasattr(mi, "getImage")
+    im = mi.getImage() if isMaskedImage else mi
+    ima = im.getArray().flatten()
+
+    sctrl = afwMath.StatisticsControl()
+    sctrl.setAndMask(afwImage.MaskU.getPlaneBitMask("BAD"))
+    c0, c1, c2 = afwMath.makeStatistics(mi, afwMath.MEANCLIP, sctrl).getValue(), 0, 0 # initial guess
+    c00 = c0
+
+    returnResidualImage = True
+    if returnResidualImage:
+        res = mi.clone()                # residuals from plane fit
+        resim = res.getImage() if isMaskedImage else res
+
+    for i in range(niter):
+        fit = c0 + c1*R + c2*R**2
+
+        resim.getArray()[:] = im.getArray() - fit.reshape(height, width)
+
+        stats = afwMath.makeStatistics(res, afwMath.MEANCLIP | afwMath.STDEVCLIP, sctrl)
+        mean, stdev = stats.getValue(afwMath.MEANCLIP), stats.getValue(afwMath.STDEVCLIP)
+        good = np.abs(resim.getArray().flatten()) < nsigma*stdev
+
+        if isMaskedImage:
+            good = np.where(np.logical_and(good,
+                                           np.bitwise_and(res.getMask().getArray().flatten(), BAD) == 0))[0]
+        else:
+            good = np.where(np.logical_and(good, np.isfinite(ima)))[0]
+
+        b, residuals = np.linalg.lstsq(A[good], ima[good])[:2]
+
+        if np.all(residuals < tol):
+            break
+
+        c0, c1, c2 = b
+        
+    if returnResidualImage:             # need to update with latest values
+        fit = (c0 - c00) + c1*R + c2*R**2 # n.b. not c0
+        resim.getArray()[:] = im.getArray() - fit.reshape(height, width)
+
+        return b, res
+    else:
+        return b, None
+    
+#-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
 class LnGradImage(cgUtils.GetCcdImage):
     """A class to return an Image dlnI/dr for a CCD, e.g.
 
@@ -334,6 +393,9 @@ def radialProfile(butler, visit, ccds=None, bin=128, nJob=None, plot=False):
         pool.close()
         pool.join()
         
+        pool.close()
+        pool.join()
+
     r = np.array(r); lnGrad = np.array(lnGrad); theta = np.array(theta)
 
     if plot:
@@ -370,7 +432,7 @@ Return r and lnGrad binned into nBin bins.  If profile is True, integrate the ln
 
 def plotRadial(r, lnGrad, theta=None, title=None, profile=False, showMedians=False, tieIndex=None,
                marker="o", nBin=100, binAngle=0, alpha=1.0, xmin=-100, ctype='black', overplot=False,
-               xlim = (-100, 18000), ylim = None):
+               label=None, xlabel=None, ylabel=None, xlim = (-100, 18000), ylim = None):
     """
     N.b. theta is in radians, but binAngle is in degrees
     """
@@ -394,7 +456,7 @@ def plotRadial(r, lnGrad, theta=None, title=None, profile=False, showMedians=Fal
         for a in [None] if binAngle <= 0 else reversed(angleBin):
             if a is None:
                 rbar, lng = makeRadial(r, lnGrad, nBin, profile=profile)
-                color, label = ctype, None
+                color, label = ctype, label if label else title
             else:
                 inBin = np.where(np.abs(theta - a) < 0.5*binAngle)
 
@@ -404,15 +466,21 @@ def plotRadial(r, lnGrad, theta=None, title=None, profile=False, showMedians=Fal
                 label="%6.1f" % (a*180/np.pi)
 
             if tieIndex is not None:
-                if lng0 is None: 
-                    if tieIndex == 0:
-                        lng /= lng[0]
-                    lng0 = lng
+                if a is None:
+                    lng /= lng[tieIndex]
                 else:
-                    lng *= lng0[tieIndex]/lng[tieIndex]
+                    if lng0 is None: 
+                        if tieIndex == 0:
+                            lng /= lng[0]
+                        lng0 = lng
+                    else:
+                        lng *= lng0[tieIndex]/lng[tieIndex]
 
-            pyplot.plot(rbar, lng, marker, markersize=5.0, markeredgewidth=0, color=color, alpha=alpha,
-                        label=label)
+            kwargs = dict(markersize=5.0, markeredgewidth=0, alpha=alpha, label=label)
+            if color:
+                kwargs["color"] = color
+            
+            pyplot.plot(rbar, lng, marker, **kwargs)
         if binAngle > 0:
             pyplot.legend(loc="lower left")
     else:
@@ -427,8 +495,8 @@ def plotRadial(r, lnGrad, theta=None, title=None, profile=False, showMedians=Fal
     if profile and ylim is None:
         ylim = (0.5, 1.05)
     pyplot.ylim(ylim)
-    pyplot.xlabel("R/pixels")
-    pyplot.ylabel("I" if profile else "d lnI/d r")
+    pyplot.xlabel(xlabel if xlabel else "R/pixels")
+    pyplot.ylabel(ylabel if ylabel else "I" if profile else "d lnI/d r")
     if title:
         pyplot.title(title)
         
@@ -617,29 +685,481 @@ def plotProfiles(butler, visits, outputPlotFile=None, bin=64, nBin=30, binAngle=
     return grad
 
 def medianFilterImage(img, nx, ny=None):
-    if nx%1 == 0:
-        nx += 1
-    if ny:
-        if ny%1 == 0:
-            ny += 1
-    else:
-        ny = nx
+    raise RuntimeError("medianFilterImage is moved to analysis.utils")
 
-    w, h = img.getDimensions()
+#-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
-    mimg = img.clone()
+try:
+    labels
+except NameError:
+    labels = {904670 : "El=90", 904672 : "El=60", 904678 : "El=45", 904674 : "El=30", 904676 : "El=15", 
+              904524 : "domeflat", 904526 : "domeflat", 904528 : "domeflat", 904530 : "domeflat",
+              904532 : "domeflat",
+              904778 : "skyflat", 904780 : "skyflat", 904782 : "skyflat",
+              }
+    bad = {902636 : "only half of camera read",
+           902996 : "looks like a dark",
+           }
 
-    imga = img.getArray()
-    mimga = mimg.getArray()
-    sim = afwImage.ImageF(nx, ny); sima = sim.getArray() # permits me to mtv it
+def diffs(mosaics, visits, refVisit=None, scale=True, raw=None,
+          rng=20, IRatioMax=1.0, frame0=0, verbose=False):
+    """Display a series of differences and/or scaled differences
+    (scale = True, False, (True, False), ...)    
+    """
 
-    for y in range(nx//2, h - nx//2):
-        print "%d\r" % y,; sys.stdout.flush()
-        for x in range(ny//2, w - ny//2):
-            sima[:] = imga[y - ny//2:y + ny//2, x - nx//2:x + nx//2]
-            mimga[y, x] = np.median(sima[np.where(np.isfinite(sima))])
+    visits = list(visits)               # in case it's an iterator, and to get a copy
+
+    if refVisit is None:
+        refVisit = visits[0]
+
+    ref = mosaics[refVisit]
+    nameRef = str(refVisit)
+    refMedian = float(np.median(ref.getArray()))
+
+    visits = [v for v in visits if v != refVisit]
+
+    try:
+        scale[0]
+    except TypeError:
+        scale = (scale,)
+
+    frame = frame0
+    goodVisits = [refVisit]
+    for v2 in visits:
+        for s in scale:
+            nameA, nameB = str(v2), nameRef
+            diff = mosaics[v2].clone()
+
+            IRatio = np.median(mosaics[v2].getArray())/refMedian
+            if IRatioMax and IRatio > IRatioMax and IRatio < 1/IRatioMax:
+                if verbose:
+                    print "Skipping %d [ratio = %.2f]" % (v2, IRatio)
+                break
+
+            if s == scale[0]:
+                goodVisits.append(v2)
+
+            if s:
+                diff /= IRatio
+                nameA = "%s/%.2f" % (nameA, IRatio)
+
+            diffa = diff.getArray()
+            good = np.where(np.isfinite(diffa))
+            v2Median = np.mean(diffa[good])
+
+            if raw:
+                title = nameA
+            else:
+                diff -= ref
+                if IRatio < 1:
+                    diff *= -1
+                    nameA, nameB = nameB, nameA
+
+                if verbose:
+                    print "%s %5.1f%% %-s" % (v2, 100*np.mean(diffa[good])/v2Median, labels.get(v2, ""))
+
+                title = "%s - %s" % (nameA, nameB)
+                if not s:
+                    title += " [rat=%.2f]" % (IRatio)
+
+            if True:
+                ds9.mtv(diff, title=title, frame=frame)
+            else:
+                ds9.erase(frame=frame)
+
+            ds9.dot(title, int(0.5*diff.getWidth()), int(0.05*diff.getHeight()),
+                    frame=frame, ctype=ds9.RED)
+            if labels.has_key(v2):
+                ds9.dot(labels[v2], int(0.5*diff.getWidth()), int(0.95*diff.getHeight()),
+                        frame=frame, ctype=ds9.RED)
+
+            s0 = 0 if (s and not raw) else afwMath.makeStatistics(diff, afwMath.MEDIAN).getValue()
+            s0 -= 0.5*rng
+            ds9.ds9Cmd("scale linear; scale limits %g %g" % (s0, s0 + rng), frame=frame)
+
+            frame += 1
+
+    return list(sorted(goodVisits))
+
+def imagePca(mosaics, visits=None, nComponent=3, log=False, rng=30,
+             showEigen=True, showResiduals=False, showOriginal=True, showRecon=False,
+             normalizeEimages=True, scale=False, frame0=0, verbose=False):
+
+    if showOriginal and showRecon:
+        raise RuntimeError("You may not specify both showOriginal and showRecon")
+    
+    try:
+        rng[0]
+    except TypeError:
+        rng = [rng, rng]
+
+    if not visits:
+        visits = sorted(mosaics.keys())
+
+    mosaics = mosaics.copy()
+    for v in visits:
+        mosaics[v] = mosaics[v].clone()
+
+    pca = afwImage.ImagePcaF()
+    mask = None
+    for v in visits:
+        im = mosaics[v]
+        if not mask:
+            mask = im.Factory(im.getDimensions())
+            maska = mask.getArray()
+            X, Y = np.meshgrid(np.arange(mask.getWidth()), np.arange(mask.getHeight()))
+            maska[np.where(np.hypot(X - 571, Y - 552) > 531)] = np.nan
+            del maska
+            
+            mask[ 168: 184, 701:838] = np.nan
+            mask[ 667: 733, 420:556] = np.nan
+            mask[ 653: 677, 548:570] = np.nan
+            mask[1031:1047, 274:414] = np.nan
 
             if False:
-                ds9.mtv(sim)
+                mask[866:931, 697:828] = np.nan
+                mask[267:334, 145:276] = np.nan
 
-    return mimg
+        im += mask
+
+        pca.addImage(im, afwMath.makeStatistics(im, afwMath.SUM).getValue())
+    pca.analyze()
+
+    eValues = np.array(pca.getEigenValues())
+    eValues /= eValues[0]
+    eImages = pca.getEigenImages()
+    #
+    # Fiddle eigen images (we don't care about orthogonality)
+    #
+    if False:
+        f10 =  0.1
+        f20 = -0.3
+        f30 =  0.55
+        eImages[1].getArray()[:] += f10*eImages[0].getArray()
+        eImages[2].getArray()[:] += f20*eImages[0].getArray()
+        eImages[3].getArray()[:] += f30*eImages[0].getArray()
+
+    if nComponent:
+        eImages = eImages[:nComponent]
+    else:
+        nComponent = len(eImages)
+    #
+    # Normalize
+    #
+    good = np.where(np.isfinite(eImages[0].getArray()))
+    if normalizeEimages:
+        for eim in eImages:
+            eima = eim.getArray()
+            eima /= 1e-3*np.sqrt(np.sum(eima[good]**2))
+    #
+    # Plot/display eigen values/images
+    #
+    frame = frame0
+    if showEigen:
+        for i in range(len(eImages)):
+            ds9.mtv(eImages[i], frame=frame, title="%d %.2g" % (i, eValues[i]))
+            ds9.ds9Cmd("scale linear; scale mode zscale")
+            frame += 1
+
+        pyplot.clf()
+        if log:
+            eValues = np.log10(eValues)
+        pyplot.plot(eValues)
+        pyplot.plot(eValues, marker='o')
+        pyplot.xlim(-0.5, len(eValues))
+        pyplot.ylim(max(-5, pyplot.ylim()[0]), 0.05 if log else 1.05)
+        pyplot.xlabel("n")
+        pyplot.ylabel(r"$lg(\lambda)$" if log else r"$\lambda$")
+        pyplot.show()
+
+    if showOriginal or showRecon or showResiduals:
+        #
+        # Expand input images in the (modified) eImages
+        #
+        A = np.empty(nComponent*nComponent).reshape((nComponent, nComponent))
+        b = np.empty(nComponent)
+        for v in visits:
+            im = mosaics[v]
+            if scale:
+                im /= afwMath.makeStatistics(im, afwMath.MEANCLIP).getValue()
+                
+            for i in range(nComponent):
+                b[i] = np.dot(eImages[i].getArray()[good], im.getArray()[good])
+
+                for j in range(i, nComponent):
+                    A[i, j] = np.dot(eImages[i].getArray()[good], eImages[j].getArray()[good])
+                    A[j, i] = A[i, j]
+
+            x = np.linalg.solve(A, b)
+            #print v, A, b, x
+            print "%d [%s] %s" % (v, ", ".join(["%9.2e" % _ for _ in x/x[0]]), labels.get(v, ""))
+
+            recon = eImages[0].clone(); recon *= x[0]
+            recona = recon.getArray()
+            for i in range(1, nComponent):
+                recona += x[i]*eImages[i].getArray()
+
+            mtv = True
+            if showOriginal or showRecon:
+                if mtv:
+                    ds9.mtv(im if showOriginal else recon, frame=frame, title=v)
+                else:
+                    ds9.erase(frame=frame)
+                s0 = afwMath.makeStatistics(recon, afwMath.MEDIAN).getValue()
+                s0 -= 0.5*rng[0]
+                ds9.ds9Cmd("scale linear; scale limits %g %g" % (s0, s0 + rng[0]), frame=frame)
+                ds9.dot("%s %d" % ("orig" if showOriginal else "resid", v),
+                        int(0.5*im.getWidth()), int(0.15*im.getHeight()), frame=frame, ctype=ds9.RED)
+                if labels.has_key(v):
+                    ds9.dot(labels[v], int(0.5*im.getWidth()), int(0.85*im.getHeight()),
+                            frame=frame, ctype=ds9.RED)
+
+                frame += 1
+
+            if showResiduals:
+                recon -= im
+                if mtv:
+                    ds9.mtv(recon, frame=frame)
+                else:
+                    ds9.erase(frame=frame)
+                s0 = 0
+                s0 -= 0.5*rng[1]
+                ds9.ds9Cmd("scale linear; scale limits %g %g" % (s0, s0 + rng[1]), frame=frame)
+
+                frame += 1
+
+    return eImages
+
+def mosaicIo(mosaics, dirName, mode):
+    if mode == "r":
+        import glob
+        for f in glob.glob(os.path.join(dirName, "*.fits")):
+            fileName = os.path.basename(f)
+            mat = re.search(r"^(\d+)\.fits", fileName)
+            v = int(mat.group(1))
+            mosaics[v] = afwImage.ImageF(f)
+    elif mode == "w":
+        if not os.path.isdir(dirName):
+            os.makedirs(dirName)
+
+        for k, v in mosaics.items():
+            v.writeFits(os.path.join(dirName, "%d.fits" % k))
+    else:
+        raise RuntimeError("Please use a mode of r or w")
+
+def correctVignettingAndDistortion(camera, mosaics, bin=32):
+    """Correct a dict of mosaics IN PLACE for vignetting and distortion"""
+    im = mosaics.values()[0]
+
+    X, Y = bin*np.meshgrid(np.arange(im.getWidth()), np.arange(im.getHeight()))
+    X -= 18208.0; Y -= 17472.0
+    
+    vig = utils.getVignetting(X, Y);           # Vignetting correction
+    correction = utils.getPixelArea(camera, X, Y) # Jacobian correction
+    correction *= vig
+
+    for im in mosaics.values():
+        im /= correction
+
+def makeMos(butler, mos, frame0=0, bin=32, nJob=20, visits=[]):
+    if not visits:
+        visits = [904288, 904320, 904330, 904520, 904534, 904536, 904538, 904670, 904672,
+                  904674, 904676, 904678, 904786, 904788, 904790, 904792, 904794, 905034, 905036]
+
+    frame = frame0
+    for visit in visits:
+        if mos.has_key(visit):
+            continue
+
+        if bad.has_key(visit):
+            print "Skipping bad visit %d: %s" % (visit, bad[visit])
+            continue
+
+        global labels
+        try:
+            md = butler.get("raw_md", visit=visit, ccd=10)
+            labels[visit] = afwImage.Filter(md).getName()
+        except RuntimeError as e:
+            print e
+
+        mos[visit] = cgUtils.showCamera(butler.get("camera"),
+                                        cgUtils.ButlerImage(butler, visit=visit,
+                                                            callback=utils.trimRemoveCrCallback,
+                                                            verbose=True),
+                                        nJob=nJob, frame=frame, bin=bin,
+                                        title=visit, overlay=True, names=False)
+        frame += 1
+
+def flattenBackground(im, nx=2, ny=2, scale=False):
+    """Fit and subtract an nx*ny background model"""
+
+    bctrl = afwMath.BackgroundControl(nx, ny)
+    bkgd = afwMath.makeBackground(im, bctrl).getImageF(afwMath.Interpolate.LINEAR)
+    mean = np.mean(bkgd.getArray())
+
+    im -= bkgd
+    im += float(mean)
+
+    if scale:
+        im /= mean
+
+#-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+def plotRadialProfile(mos, visits, butler=None, showMedians=True, title="", xlim=None, ylim=None,
+                      binning=1, tieIndex=None, normalize=True,
+                      marker='-', labelVisit=False):
+    """
+plotRadialProfile(mos, range(902686, 902702+1, 2) + range(902612, 902634+1, 2) + [904006, 904008, 904036, 904038, 902876], butler=butler, xlim=(-10, 850), tieIndex=40
+    """
+    colors = ["red", "blue", "green", "cyan", "magenta", "yellow", "black", "brown", "orchid", "orange"]
+
+    abell2163 = []
+    abell2163 += range(902924, 902928+1, 2) # g
+    abell2163 += range(903266, 903274+1, 2) # r
+    abell2163 += [v for v in range(902876, 902894+1, 2) if v not in (902884, 902886, 902890)] # i
+
+    dth_a = []
+    dth_a += range(904410, 904450+1, 4) + range(904456, 904474+1, 2) # y
+
+    dth_16h = []
+    dth_16h += range(902800, 902860 + 1, 6) + range(902862, 902870+1, 2) # i
+
+    stripe82l = []
+    stripe82l += range(902936, 902942+1, 2)            # g
+    stripe82l += range(903332, 903338+1, 2)            # r
+    stripe82l += range(904006, 904008+1, 2) + range(904036, 904038+1, 2) # i
+    stripe82l +=  range(904350, 904400+1, 2)           # y
+
+    science = abell2163 + dth_a + dth_16h + stripe82l
+    
+    darkDome = []
+    darkDome += range(904326, 904330+1, 2) # g
+    darkDome += [904520] + range(904534, 904538+1, 2) + range(904670, 904678+1, 2) + range(904786, 904794+1,2) # i
+
+    domeflats = []
+    domeflats += range(903036, 903044+1, 2) # g
+    domeflats += range(903440, 903452+1, 2) # r
+    domeflats += range(902686, 902704+1, 2) # i
+    domeflats += range(904478, 904490+1, 2) # y
+    domeflats += range(904742, 904766+1, 2) # NB921
+
+    skyflats = []
+    skyflats += range(902976, 903002+1, 2)          # g
+    skyflats += range(903420, 903432 + 1, 2)        # r
+    skyflats += range(902612, 902634+1, 2)          # i
+    skyflats = [v for v in skyflats if v != 902996] # remove failed exposures
+
+    if isinstance(visits, str):         # get all visits taken with that title
+        filterName = visits.lower()
+
+        if not title:
+            title = filterName
+
+        visits = []
+        for v in mos.keys():
+            if v in darkDome:
+                continue
+
+            if False:
+                raw = butler.get("raw", visit=v, ccd=10)
+                rawFilterName = raw.getFilter().getName()
+            elif False:
+                md = butler.get("raw_md", visit=v, ccd=10) # why does this fail?
+                rawFilterName = afwImage.Filter(md).getName()
+            else:
+                rawFilterName = butler.get("raw_md", visit=v, ccd=10).get("FILTER01").lower()
+                if re.search(r"^hsc-", rawFilterName):
+                    rawFilterName = rawFilterName[-1:]
+                if rawFilterName == "z" and v in range(904672, 905068+1, 2): # z wasn't available
+                    rawFilterName = "i"                                      # error in header
+
+            if rawFilterName == filterName.lower():
+                visits.append(v)
+                
+    if not visits:
+        raise RuntimeError("Please provide at least on visit for me to plot")
+
+    pyplot.clf()
+    for i, v in enumerate(sorted(visits)):
+        label = [str(v)]
+        im = mos[v].clone()
+
+        if v in domeflats:
+            flattenBackground(im)
+
+        if False:
+            im = fitRadialParabola(im)[1]
+
+        ima = im.getArray()
+        med = np.median(ima)
+        if normalize:
+            ima /= med
+
+        if butler:
+            raw = butler.get("raw", visit=v, ccd=10)
+            filter = raw.getFilter()
+            calib = raw.getCalib()
+            if labelVisit:
+                pass
+            else:
+                label = []
+
+                if False:
+                    label.append('domeflat' if v in domeflats else
+                                 'science ' if v in science else
+                                 'skyflat ' if v in skyflats else
+                                 'other   ')
+
+                if False:
+                    label.append(r"%5.0f" % med)
+                    label.append(r"%3gs" % calib.getExptime())
+                else:
+                    label.append(r"%3.0f e/s" % (med/calib.getExptime()))
+
+                if False:
+                    label.append(r"%s" % filter.getName())
+
+        if i == 0:
+            width, height = im.getDimensions()
+            x, y = np.meshgrid(np.arange(width), np.arange(height))
+            x += im.getX0(); y += im.getY0()
+            r = np.hypot(x, y)
+            theta = np.arctan2(y, x)
+
+        if False and i < 10:
+            print "Skipping", v
+            continue
+
+        if xlim is None:
+            xlim = (0, np.max(r))
+        if ylim is None:
+            f = 0.10
+            m = np.median(ima)
+            ylim = (m*(1 - f), m*(1 + f))
+
+        label = " ".join(label)
+
+        if False:
+            marker = '-' if i < len(colors) else '-.' if i < 2*len(colors) else '--'
+        else:
+            marker = '-' if v in science else '-.' if v in domeflats else '--' if v in skyflats else 'o'
+        ctype=colors[i%len(colors)] if True else \
+              'green' if v in domeflats else \
+              'black' if v in science else \
+              'red'   if v in skyflats else \
+              'blue'
+        
+        if True:
+            print "%s %s %6.0f %3.0f  %2s %s" % (filter.getName(), v, med, calib.getExptime(), marker, ctype)
+
+        plotRadial(binning*r.flatten(), ima.flatten(), theta.flatten(), title=title, alpha=1.0,
+                   showMedians=showMedians, xlim=xlim, ylim=ylim,
+                   marker=marker, ctype=ctype, tieIndex=tieIndex,
+                   label=label, xlabel="R (pixels)", ylabel="Relative Intensity", overplot=i > 0)
+
+        if False and i == 3:
+            break
+
+    legend = pyplot.legend(loc="best", ncol=3,
+                           borderpad=0.1, labelspacing=0, handletextpad=0, handlelength=2, borderaxespad=0)
+    legend.draggable(True)
