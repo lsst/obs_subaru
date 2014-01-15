@@ -105,12 +105,15 @@ class SourceDeblendTask(pipeBase.Task):
         self.deblendFailedKey = schema.addField('deblend.failed', type='Flag',
                                                 doc="Deblending failed on source")
 
-        self.deblendRampedTemplate = schema.addField(
+        self.deblendSkippedKey = schema.addField('deblend.skipped', type='Flag',
+                                                doc="Deblender skipped this source")
+
+        self.deblendRampedTemplateKey = schema.addField(
             'deblend.ramped_template', type='Flag',
             doc=('This source was near an image edge and the deblender used ' +
                  '"ramp" edge-handling.'))
 
-        self.deblendPatchedTemplate = schema.addField(
+        self.deblendPatchedTemplateKey = schema.addField(
             'deblend.patched_template', type='Flag',
             doc=('This source was near an image edge and the deblender used ' +
                  '"patched" edge-handling.'))
@@ -199,15 +202,14 @@ class SourceDeblendTask(pipeBase.Task):
                 traceback.print_exc()
                 continue
 
-
-            #print 'Max number of peaks:', self.config.maxNumberOfPeaks
             kids = []
             nchild = 0
             for j,pkres in enumerate(res.peaks):
-                if pkres.out_of_bounds:
+                if pkres.skip:
                     # skip this source?
                     self.log.logdebug('Skipping out-of-bounds peak at (%i,%i)' %
                                       (pks[j].getIx(), pks[j].getIy()))
+                    src.set(self.deblendSkippedKey, True)
                     continue
 
                 heavy = pkres.get_flux_portion()
@@ -215,12 +217,10 @@ class SourceDeblendTask(pipeBase.Task):
                     # This can happen for children >= maxNumberOfPeaks
                     self.log.logdebug('Skipping peak at (%i,%i), child %i of %i: no heavy footprint (flux portion)'
                                       % (pks[j].getIx(), pks[j].getIy(), j+1, len(res.peaks)))
-                    print 'Child footprint/template is None'
-                    print 'child', j, 'of', len(res.peaks)
-                    print pkres
-                    for k in dir(pkres):
-                        print 'pkres ', k, '=', getattr(pkres, k)
+                    src.set(self.deblendSkippedKey, True)
                     continue
+
+                src.set(self.deblendSkippedKey, False)
 
                 child = srcs.addNew(); nchild += 1
                 child.setParent(src.getId())
@@ -230,6 +230,8 @@ class SourceDeblendTask(pipeBase.Task):
                     (cx,cy) = pkres.psf_fit_center
                     child.set(self.psfCenterKey, afwGeom.Point2D(cx, cy))
                     child.set(self.psfFluxKey, pkres.psf_fit_flux)
+                child.set(self.deblendRampedTemplateKey, pkres.has_ramped_template)
+                child.set(self.deblendPatchedTemplateKey, pkres.patched)
                 kids.append(child)
 
             src.set(self.nChildKey, nchild)
