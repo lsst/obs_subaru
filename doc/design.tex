@@ -5,6 +5,16 @@
 \usepackage{multirow}
 \usepackage{array}
 
+%
+%  The plots in this document are produced by the script
+%     examples/designdoc.py
+%  And use a Subaru exposure, visit 108792 ccd 5.
+%
+%  To run/rerun this, see the NOTES file, and for the plot
+%  command-lines, see plots.sh
+%
+
+
 % Add used figures to git:
 
 % for x in $(grep 'use .*pdf' design.log | sed 's/<use //g' | tr '>' ' '); do git add $x; done
@@ -245,7 +255,92 @@ constraint.
 
 
 
+\clearpage
 
+\section{Tweak: Edge handling and stray flux}
+
+Edges are a pain.  In particular, image edges are problematic when
+building our symmetric templates.  We want to use the two symmetric
+halves of an object to create its template, but what do we do if one
+of the halves is outside the image bounds?  That is, what do we do
+when part of the object is not available because the object is close
+to an image edge?
+
+We have implemented two ideas for dealing with edges.  One is to find
+pixels on the edge of footprints with significant flux, grow the
+footprint, and fabricate flux to ``ramp down'' the template, so that
+there are no sharp edges but rather ``smooth'' (PSF shaped) glides
+down to zero.  This is shown in \figref{fig:edgeramp}.  The second
+option is, for footprints with at least one pixel with the EDGE bit
+set, to expand the symmetric footprint so that any pixel whose
+symmetric partner is outside the image bounds is ``patched'' into the
+template.  This is shown in \figref{fig:edgepatch}.
+
+Even after these edge-handling tweaks, there can still be flux in the
+parent footprint that is not claimed by any child template.  This is
+called ``stray flux'', and can be seen in these example figures as the
+difference between the parent and the sum of children.  We assign flux
+based on the distance from the peak to the stray flux: peak $i$ gets a
+fraction of the flux proportional to $1/(1 + r_i^2)$, where $r_i$ is
+the distance from peak $i$ to the pixel containing stray flux.  This
+is shown in \figref{fig:stray}.  There is also an option to assign
+stray flux to a child based on the distance to the nearest pixel
+within a child's footprint.
+
+
+\begin{figure}[p]
+\begin{center}
+\newcommand{\exfig}[1]{\includegraphics[width=0.12\textheight,angle=90]{design-ramp2-#1}}
+\newcommand{\befig}[1]{\includegraphics[width=0.12\textheight,angle=90]{design-ramp1-#1}}
+\begin{tabular}{m{1in}C}
+  Parent footprint         & \exfig{parent} \\
+  Symm template (before)   & \exfig{o0} \\
+  Symm template (ramped)   & \exfig{r0} \\
+  Smoothed template        & \exfig{t0} \\
+  Sum of children (before) & \befig{hsum} \\
+  Sum of children (after)  & \exfig{hsum}
+\end{tabular}
+\end{center}
+\caption{Deblending results using ``ramped'' edge-handling.\label{fig:edgeramp}}
+\end{figure}
+
+
+\begin{figure}[p]
+\begin{center}
+\newcommand{\exfig}[1]{\includegraphics[width=0.12\textheight,angle=90]{design-patch-#1}}
+\newcommand{\befig}[1]{\includegraphics[width=0.12\textheight,angle=90]{design-ramp1-#1}}
+\begin{tabular}{m{1in}C}
+  Parent footprint         & \exfig{parent} \\
+  Symm template (before)   & \befig{o0} \\
+  Symm template (patched)  & \exfig{o0} \\
+  Smoothed template        & \exfig{t0} \\
+  Sum of children (before) & \befig{hsum} \\
+  Sum of children (after)  & \exfig{hsum}
+\end{tabular}
+\end{center}
+\caption{Deblending results using ``patched'' edge-handling.\label{fig:edgepatch}}
+\end{figure}
+
+
+
+\begin{figure}[p]
+\begin{center}
+\newcommand{\exfig}[1]{\includegraphics[width=0.12\textheight]{design-ramp3-#1}}
+%\newcommand{\befig}[1]{\includegraphics[width=0.12\textheight,angle=90]{design-ramp1-#1}}
+\begin{tabular}{m{1in}CCCC}
+  Parent footprint \& Sum of children (before)        & \exfig{parent} & & & \exfig{hsum2} \\
+  %Sum of children (before) & & \exfig{hsum2} \\
+  %
+  Stray flux               & \exfig{s0} & \exfig{s1} & \exfig{s2} & \exfig{s3} \\
+  %
+  Template flux            & \exfig{hb0} & \exfig{hb1} & \exfig{hb2} & \exfig{hb3} \\
+  %
+  Sum of children (after) & & \exfig{hsum}
+\end{tabular}
+\end{center}
+\caption{Deblending results using ``ramped'' edge-handling and stray flux assignment.
+  With stray-flux assignment, the sum of children equals the parent.\label{fig:stray}}
+\end{figure}
 
 
 

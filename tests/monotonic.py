@@ -17,7 +17,6 @@ def main000():
     mim = afwImg.MaskedImageF(S,S)
     x0,y0 = S/2, S/2
     im = mim.getImage().getArray()
-    foot = afwDet.Footprint()
     peak = afwDet.Peak(x0, y0)
 
     mask = mim.getMask()
@@ -33,7 +32,7 @@ def main000():
         plt.clf()
         plt.imshow(im, origin='lower', interpolation='nearest')
         plt.savefig('im2.png')
-        butils.makeMonotonic(mim, foot, peak, 1.)
+        butils.makeMonotonic(mim, peak)
         plt.clf()
         plt.imshow(mim.getImage().getArray(), origin='lower', interpolation='nearest')
         plt.savefig('mono2.png')
@@ -46,7 +45,6 @@ def randoms(S=10, N=1, GA=10, GS=10):
     for nm in ['SYMM_1SIG', 'SYMM_3SIG', 'MONOTONIC_1SIG']:
         bit = mask.addMaskPlane(nm)
         val = mask.getPlaneBitMask(nm)
-    foot = afwDet.Footprint()
     peak = afwDet.Peak(x0, y0)
     im = mim.getImage().getArray()
 
@@ -63,7 +61,7 @@ def randoms(S=10, N=1, GA=10, GS=10):
             plt.imshow(im, **ima)
             plt.gray()
             plt.savefig('Rim%i.png' % i)
-            butils.makeMonotonic(mim, foot, peak, 1.)
+            butils.makeMonotonic(mim, peak)
             plt.clf()
             plt.imshow(mim.getImage().getArray(), **ima)
             plt.gray()
@@ -78,7 +76,6 @@ def cardinal():
     x0,y0 = S/2, S/2
 
     im = mim.getImage().getArray()
-    foot = afwDet.Footprint()
     peak = afwDet.Peak(x0, y0)
     
     mask = mim.getMask()
@@ -106,7 +103,7 @@ def cardinal():
             plt.clf()
             plt.imshow(im, **plota)
             plt.savefig('im%i.png' % i)
-            butils.makeMonotonic(mim, foot, peak, 1.)
+            butils.makeMonotonic(mim, peak)
             plt.clf()
             plt.imshow(mim.getImage().getArray(), **plota)
             plt.savefig('im%im.png' % i)

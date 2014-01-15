@@ -11,6 +11,8 @@ config.log
 doc/html
 doc/*.tag
 doc/doxygen.conf
+doc/*aux
+doc/*log
 python/lsst/meas/deblender/version.py
 python/lsst/meas/deblender/deblenderLib.py
 python/lsst/meas/deblender/deblenderLib_wrap.cc

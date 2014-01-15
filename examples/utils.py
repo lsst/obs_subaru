@@ -69,7 +69,7 @@ class DebugSourceMeasTask(measAlg.SourceMeasurementTask):
         #         continue
         #     pset.add(p)
         # self.parents = list(pset)
-        
+
     def postMeasureHook(self, exposure, sources):
         measAlg.SourceMeasurementTask.postMeasureHook(self, exposure, sources)
         mi = exposure.getMaskedImage()
@@ -130,7 +130,7 @@ class DebugSourceMeasTask(measAlg.SourceMeasurementTask):
         bb.clip(exposure.getBBox())
         #self.plotregion = (x0,x1,y0,y1)
         self.plotregion = getExtent(bb)
-        
+
         mi = exposure.getMaskedImage()
         im = mi.getImage()
         self._plotimage(im)
@@ -199,7 +199,7 @@ class _mockSource(object):
         return self.ell[3]
     def getIxy(self):
         return self.ell[4]
-        
+
 def plotDeblendFamily(*args, **kwargs):
     X = plotDeblendFamilyPre(*args, **kwargs)
     plotDeblendFamilyReal(*X, **kwargs)
@@ -348,7 +348,6 @@ def plotDeblendFamilyReal(parent, kids, dkids, sigma1, plotb=False, idmask=None,
         plt.plot(xx, yy, 'y-')
         # peak(s)
         plt.plot(kid.pfx, kid.pfy, 'yx')
-    
     plt.axis(pax)
 
 
@@ -405,11 +404,11 @@ def cutCatalog(cat, ndeblends, keepids=None, keepxys=None):
                     keep.append((p,kids))
                     break
         fams = keep
-        
+
     if ndeblends:
         # We want to select the first "ndeblends" parents and all their children.
         fams = fams[:ndeblends]
-        
+
     keepcat = afwTable.SourceCatalog(cat.getTable())
     for p,kids in fams:
         keepcat.append(p)
@@ -423,12 +422,11 @@ def readCatalog(sourcefn, heavypat, ndeblends=0, dataref=None,
                 patargs=dict()):
     if sourcefn is None:
         cat = dataref.get('src')
-	try:
-	    if not cat:
-		return None
-	except:
-	    return None
-
+        try:
+            if not cat:
+                return None
+        except:
+            return None
     else:
         if not os.path.exists(sourcefn):
             print 'No source catalog:', sourcefn
@@ -437,6 +435,7 @@ def readCatalog(sourcefn, heavypat, ndeblends=0, dataref=None,
         cat = afwTable.SourceCatalog.readFits(sourcefn)
         print len(cat), 'sources'
     cat.sort()
+    cat.defineCentroid('centroid.sdss')
 
     if ndeblends or keepids or keepxys:
         cat = cutCatalog(cat, ndeblends, keepids, keepxys)
@@ -479,13 +478,15 @@ class WrapperMapper(object):
                     return self.func(*args)
             setattr(self, x, relay_bypass(self.real, x))
             #print 'Wrapping', x
-            
-    def map(self, *args):
-        print 'Mapping', args
-        R = self.real.map(*args)
+
+    def map(self, *args, **kwargs):
+        print 'Mapping', args, kwargs
+        R = self.real.map(*args, **kwargs)
         print '->', R
         return R
     # relay
+    def isAggregate(self, *args):
+        return self.real.isAggregate(*args)
     def getKeys(self, *args):
         return self.real.getKeys(*args)
     def getDatasetTypes(self):
