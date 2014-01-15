@@ -211,6 +211,7 @@ def deblend(footprint, maskedImage, psf, psffwhm,
             patchEdges=False,
             tinyFootprintSize=2,
             getTemplateSum=False,
+            clipStrayFluxFraction=0.001
             ):
     '''
     Deblend a single ``footprint`` in a ``maskedImage``.
@@ -426,7 +427,8 @@ def deblend(footprint, maskedImage, psf, psffwhm,
     strayopts |= butils.STRAYFLUX_R_TO_FOOTPRINT
     
     portions = butils.apportionFlux(maskedImage, fp, tmimgs, tfoots, sumimg,
-                                    dpsf, pkx, pky, strayflux, strayopts)
+                                    dpsf, pkx, pky, strayflux, strayopts,
+                                    clipStrayFluxFraction)
     if getTemplateSum:
         res.set_template_sum(sumimg)
         

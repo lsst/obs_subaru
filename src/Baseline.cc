@@ -311,7 +311,8 @@ apportionFlux(MaskedImageT const& img,
               std::vector<int>  const& pkx,
               std::vector<int>  const& pky,
               std::vector<boost::shared_ptr<typename det::HeavyFootprint<ImagePixelT,MaskPixelT,VariancePixelT> > > & strays,
-              int strayFluxOptions
+              int strayFluxOptions,
+              double clipStrayFluxFraction
     ) {
     typedef typename det::Footprint::SpanList SpanList;
     typedef typename det::HeavyFootprint<ImagePixelT, MaskPixelT, VariancePixelT> HeavyFootprint;
@@ -535,7 +536,7 @@ apportionFlux(MaskedImageT const& img,
                 }
 
                 // Drop small contributions...
-                double strayclip = (0.001 * csum);
+                double strayclip = (clipStrayFluxFraction * csum);
                 csum = 0.;
                 for (size_t i=0; i<timgs.size(); ++i) {
                     // skip ptsrcs?

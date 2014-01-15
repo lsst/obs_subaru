@@ -58,6 +58,9 @@ class SourceDeblendConfig(pexConf.Config):
 
     assignStrayFlux = pexConf.Field(dtype=bool, default=True,
                                     doc='Assign stray flux to deblend children.  Implies findStrayFlux.')
+
+    clipStrayFluxFraction = pexConf.Field(dtype=float, default=0.001,
+                                          doc=('When splitting stray flux, clip fractions below this value to zero.'))
     
     psf_chisq_1 = pexConf.Field(dtype=float, default=1.5, optional=False,
                                 doc=('Chi-squared per DOF cut for deciding a source is '+
@@ -196,7 +199,8 @@ class SourceDeblendTask(pipeBase.Task):
                                    self.config.findStrayFlux),
                     rampFluxAtEdge=(self.config.edgeHandling == 'ramp'),
                     patchEdges=(self.config.edgeHandling == 'noclip'),
-                    tinyFootprintSize=self.config.tinyFootprintSize
+                    tinyFootprintSize=self.config.tinyFootprintSize,
+                    clipStrayFluxFraction=self.config.clipStrayFluxFraction,
                     )
                 src.set(self.deblendFailedKey, False)
             except Exception as e:

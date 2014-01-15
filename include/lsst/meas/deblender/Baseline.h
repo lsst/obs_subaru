@@ -78,7 +78,8 @@ namespace lsst {
                               std::vector<int>  const& pkx,
                               std::vector<int>  const& pky,
                               std::vector<boost::shared_ptr<typename lsst::afw::detection::HeavyFootprint<ImagePixelT,MaskPixelT,VariancePixelT> > > & strays,
-                              int strayFluxOptions
+                              int strayFluxOptions,
+                              double clipStrayFluxFraction
                      );
 
                 static
