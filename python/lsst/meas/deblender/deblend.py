@@ -117,6 +117,10 @@ class SourceDeblendTask(pipeBase.Task):
             'deblend.patched_template', type='Flag',
             doc=('This source was near an image edge and the deblender used ' +
                  '"patched" edge-handling.'))
+
+        self.hasStrayFluxKey = schema.addField(
+            'deblend.has_stray_flux', type='Flag',
+            doc=('This source was assigned some stray flux'))
         
         self.log.logdebug('Added keys to schema: %s' % ", ".join(str(x) for x in (
                     self.nChildKey, self.psfKey, self.psfCenterKey, self.psfFluxKey, self.tooManyPeaksKey)))
@@ -226,6 +230,7 @@ class SourceDeblendTask(pipeBase.Task):
                 child.setParent(src.getId())
                 child.setFootprint(heavy)
                 child.set(self.psfKey, pkres.deblend_as_psf)
+                child.set(self.hasStrayFluxKey, pkres.stray_flux is not None)
                 if pkres.deblend_as_psf:
                     (cx,cy) = pkres.psf_fit_center
                     child.set(self.psfCenterKey, afwGeom.Point2D(cx, cy))
