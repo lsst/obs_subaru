@@ -165,7 +165,7 @@ class RampEdgeTestCase(unittest.TestCase):
             #print len(deb.peaks), 'deblended peaks'
     
             parent_img = afwImage.ImageF(fpbb)
-            butils.copyWithinFootprint(fp, afwimg.getImage(), parent_img)
+            afwDet.copyWithinFootprintImage(fp, afwimg.getImage(), parent_img)
     
             X = [x for x,y in XY]
             Y = [y for x,y in XY]
@@ -192,8 +192,8 @@ class RampEdgeTestCase(unittest.TestCase):
                 symm1ds.append(oned)
     
                 mono = afwImage.ImageF(fpbb)
-                butils.copyWithinFootprint(dpk.template_foot,
-                                           dpk.template_mimg.getImage(), mono)
+                afwDet.copyWithinFootprintImage(dpk.template_foot,
+                                                dpk.template_mimg.getImage(), mono)
                 monos.append(mono)
 
                 im = mono.getArray()
@@ -293,8 +293,8 @@ class RampEdgeTestCase(unittest.TestCase):
     
                 # monotonic template
                 mimg = afwImage.ImageF(fpbb)
-                butils.copyWithinFootprint(dpk.template_foot,
-                                           dpk.template_mimg.getImage(), mimg)
+                afwDet.copyWithinFootprintImage(dpk.template_foot,
+                                                dpk.template_mimg.getImage(), mimg)
     
                 plt.subplot(R, C, i*C + 3)
                 myimshow(mimg.getArray(), extent=imExt(mimg), **ima)

@@ -143,7 +143,7 @@ class StrayFluxTestCase(unittest.TestCase):
 
         deb = deblend(fakefp, afwimg, fakepsf, fakepsf_fwhm, verbose=True)
         parent_img = afwImage.ImageF(fpbb)
-        butils.copyWithinFootprint(fakefp, afwimg.getImage(), parent_img)
+        afwDet.copyWithinFootprintImage(fakefp, afwimg.getImage(), parent_img)
 
         if doPlot:
             def myimshow(*args, **kwargs):
