@@ -180,7 +180,7 @@ class RampEdgeTestCase(unittest.TestCase):
             yslice = H/2
             parent1d = img[yslice, :]
             for i,dpk in enumerate(deb.peaks):
-                symm = dpk.orig_template
+                symm = dpk.origTemplate
                 symms.append(symm)
 
                 bbox = symm.getBBox(afwImage.PARENT)
@@ -192,8 +192,8 @@ class RampEdgeTestCase(unittest.TestCase):
                 symm1ds.append(oned)
     
                 mono = afwImage.ImageF(fpbb)
-                butils.copyWithinFootprint(dpk.template_foot,
-                                           dpk.template_mimg.getImage(), mono)
+                butils.copyWithinFootprint(dpk.templateFootprint,
+                                           dpk.templateMaskedImage.getImage(), mono)
                 monos.append(mono)
 
                 im = mono.getArray()
@@ -284,7 +284,7 @@ class RampEdgeTestCase(unittest.TestCase):
                 plt.title('true')
     
                 plt.subplot(R, C, i*C + 2)
-                t = dpk.orig_template
+                t = dpk.origTemplate
                 myimshow(t.getArray(), extent=imExt(t), **ima)
                 ax = plt.axis()
                 plt.plot(PX[i], PY[i], **pa)
@@ -293,8 +293,8 @@ class RampEdgeTestCase(unittest.TestCase):
     
                 # monotonic template
                 mimg = afwImage.ImageF(fpbb)
-                butils.copyWithinFootprint(dpk.template_foot,
-                                           dpk.template_mimg.getImage(), mimg)
+                butils.copyWithinFootprint(dpk.templateFootprint,
+                                           dpk.templateMaskedImage.getImage(), mimg)
     
                 plt.subplot(R, C, i*C + 3)
                 myimshow(mimg.getArray(), extent=imExt(mimg), **ima)
@@ -304,16 +304,16 @@ class RampEdgeTestCase(unittest.TestCase):
                 plt.title('monotonic')
     
                 plt.subplot(R, C, i*C + 4)
-                port = dpk.portion_mimg.getImage()
+                port = dpk.fluxPortion.getImage()
                 myimshow(port.getArray(), extent=imExt(port), **ima)
                 plt.title('portion')
                 ax = plt.axis()
                 plt.plot(PX[i], PY[i], **pa)
                 plt.axis(ax)
     
-                if dpk.stray_flux is not None:
+                if dpk.strayFlux is not None:
                     simg = afwImage.ImageF(fpbb)
-                    dpk.stray_flux.insert(simg)
+                    dpk.strayFlux.insert(simg)
                 
                     plt.subplot(R, C, i*C + 5)
                     myimshow(simg.getArray(), **ima)
@@ -323,7 +323,7 @@ class RampEdgeTestCase(unittest.TestCase):
                     plt.axis(ax)
     
                 himg2 = afwImage.ImageF(fpbb)
-                portion = dpk.get_flux_portion()
+                portion = dpk.getFluxPortion()
                 portion.insert(himg2)
     
                 if sumimg is None:

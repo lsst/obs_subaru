@@ -19,7 +19,7 @@ import lsst.afw.geom as afwGeom
 import lsst.afw.image as afwImage
 import lsst.pex.logging as pexLogging
 import lsst.meas.algorithms as measAlg
-from lsst.meas.deblender.baseline import _fit_psf, CachingPsf, PerPeak
+from lsst.meas.deblender.baseline import _fitPsf, CachingPsf, PerPeak
 
 class FitPsfTestCase(unittest.TestCase):
     def test1(self):
@@ -114,7 +114,7 @@ class FitPsfTestCase(unittest.TestCase):
         peaksF = [pk.getF() for pk in peaks]
         pkF = pk1.getF()
 
-        _fit_psf(fp, fmask, pk1, pkF, pkres, fbb, peaks, peaksF, log, cpsf, psffwhm,
+        _fitPsf(fp, fmask, pk1, pkF, pkres, fbb, peaks, peaksF, log, cpsf, psffwhm,
                  img, varimg,
                  psf_chisq_cut1, psf_chisq_cut2, psf_chisq_cut2b)
         for k in dir(pkres):
@@ -123,7 +123,7 @@ class FitPsfTestCase(unittest.TestCase):
             print '  ', k, getattr(pkres, k)
 
         cpsf = CachingPsf(psf2)
-        _fit_psf(fp, fmask, pk1, pkF, pkres, fbb, peaks, peaksF, log, cpsf, psffwhm,
+        _fitPsf(fp, fmask, pk1, pkF, pkres, fbb, peaks, peaksF, log, cpsf, psffwhm,
                  img, varimg,
                  psf_chisq_cut1, psf_chisq_cut2, psf_chisq_cut2b)
         for k in dir(pkres):
@@ -133,7 +133,7 @@ class FitPsfTestCase(unittest.TestCase):
 
 
         pkF = pk3.getF()
-        _fit_psf(fp, fmask, pk3, pkF, pkres, fbb, peaks, peaksF, log, cpsf, psffwhm,
+        _fitPsf(fp, fmask, pk3, pkF, pkres, fbb, peaks, peaksF, log, cpsf, psffwhm,
                  img, varimg,
                  psf_chisq_cut1, psf_chisq_cut2, psf_chisq_cut2b)
         for k in dir(pkres):
