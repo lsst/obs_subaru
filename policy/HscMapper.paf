@@ -358,7 +358,7 @@ datasets: {
         persistable:   "PurePythonClass"
         storage:       "FitsCatalogStorage"
         tables:        raw
-        tables:        raw_skyTile
+        tables:        raw_visit
     }
     deepCoadd_calexpBackground: {
         template:    "deepCoadd-results/%(filter)s/%(tract)d/%(patch)s/bkgd-%(filter)s-%(tract)d-%(patch)s.fits"
