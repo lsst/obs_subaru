@@ -9,6 +9,7 @@
 #include "lsst/afw/image/Image.h"
 #include "lsst/afw/image/MaskedImage.h"
 #include "lsst/afw/detection/Footprint.h"
+#include "lsst/afw/detection/HeavyFootprint.h"
 #include "lsst/afw/detection/Peak.h"
 
 namespace lsst {
