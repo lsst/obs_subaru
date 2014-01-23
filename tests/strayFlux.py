@@ -1,11 +1,6 @@
 #!/usr/bin/env python
 
-try:
-    import debug
-    doPlot = debug.plots
-except NameError:
-    doPlot = False
-
+doPlot = False
 if doPlot:
     import matplotlib
     matplotlib.use('Agg')
@@ -14,8 +9,7 @@ if doPlot:
     plotpat = os.path.join(os.path.dirname(__file__), 'stray%i.png')
     print 'Writing plots to', plotpat
 else:
-    print '"doPlot" not set -- not making plots.  To enable plots, do:'
-    print '  (cd tests; python -c "import debug; debug.plots=True; import strayFlux; strayFlux.run()"; )'
+    print '"doPlot" not set -- not making plots.  To enable plots, edit', __file__
 
 import unittest
 import lsst.utils.tests         as utilsTests
