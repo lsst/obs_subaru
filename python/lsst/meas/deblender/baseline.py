@@ -131,9 +131,7 @@ class PerPeak(object):
 
         if strayFlux:
             if self.stray_flux is not None:
-                import lsst.meas.deblender as deb
-                butils = deb.BaselineUtilsF
-                heavy = butils.mergeHeavyFootprints(heavy, self.stray_flux)
+                heavy = afwDet.mergeHeavyFootprintsF(heavy, self.stray_flux)
 
         return heavy
 
@@ -416,7 +414,9 @@ def deblend(footprint, maskedImage, psf, psffwhm,
     log.logdebug('Apportioning flux among %i templates' % len(tmimgs))
     sumimg = afwImage.ImageF(bb.getDimensions())
     sumimg.setXY0(bb.getMinX(), bb.getMinY())
-    strayflux = butils.getEmptyStrayFluxList()
+
+    strayflux = afwDet.HeavyFootprintPtrListF()
+
     strayopts = 0
     if findStrayFlux:
         strayopts |= butils.ASSIGN_STRAYFLUX
@@ -919,13 +919,6 @@ def _fit_psf(fp, fmask, pk, pkF, pkres, fbb, peaks, peaksF, log, psf,
         # replace the template image by the PSF + derivatives
         # image.
         log.logdebug('Deblending as PSF; setting template to PSF model')
-
-        # FIXME
-        # Import C++ routines ... copyWithinFootprint should move to
-        # the Footprint class (or at least afwDet namespace), making
-        # this unnecessary...
-        import lsst.meas.deblender as deb
-        butils = deb.BaselineUtilsF
         
         # Instantiate the PSF model and clip it to the footprint
         psfimg = psf.computeImage(cx, cy)
@@ -946,7 +939,7 @@ def _fit_psf(fp, fmask, pk, pkF, pkres, fbb, peaks, peaksF, log, psf,
         psfmod = afwImage.MaskedImageF(W, H)
         psfmod.setXY0(x0, y0)
 
-        butils.copyWithinFootprint(fpcopy, psfimg, psfmod.getImage())
+        afwDet.copyWithinFootprintImage(fpcopy, psfimg, psfmod.getImage())
         # Save it as our template.
         pkres.set_template(psfmod, fpcopy)
 
@@ -978,7 +971,7 @@ def _handle_flux_at_edge(log, psffwhm, t1, tfoot, fp, maskedImage,
     fpcopy = afwDet.Footprint(fp)
     fpcopy.clipTo(tbb)
     padim = t1.Factory(tbb)
-    butils.copyWithinFootprint(fpcopy, maskedImage, padim)
+    afwDet.copyWithinFootprintMaskedImage(fpcopy, maskedImage, padim)
 
     # find pixels on the edge of the template
     edgepix = butils.getSignificantEdgePixels(t1.getImage(), tfoot, -1e6)

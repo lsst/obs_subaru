@@ -9,6 +9,7 @@
 #include "lsst/afw/image/Image.h"
 #include "lsst/afw/image/MaskedImage.h"
 #include "lsst/afw/detection/Footprint.h"
+#include "lsst/afw/detection/HeavyFootprint.h"
 #include "lsst/afw/detection/Peak.h"
 
 namespace lsst {
@@ -83,12 +84,6 @@ namespace lsst {
                      );
 
                 static
-                std::vector<boost::shared_ptr<typename lsst::afw::detection::HeavyFootprint<ImagePixelT,MaskPixelT,VariancePixelT> > >
-                getEmptyStrayFluxList() {
-                    return std::vector<boost::shared_ptr<typename lsst::afw::detection::HeavyFootprint<ImagePixelT,MaskPixelT,VariancePixelT> > >();
-                };
-
-                static
                 bool
                 hasSignificantFluxAtEdge(ImagePtrT,
                                          boost::shared_ptr<lsst::afw::detection::Footprint>,
@@ -99,24 +94,6 @@ namespace lsst {
                 getSignificantEdgePixels(ImagePtrT,
                                          boost::shared_ptr<lsst::afw::detection::Footprint>,
                                          ImagePixelT threshold);
-
-                /*** This should move to HeavyFootprint.cc ***/
-                static
-                boost::shared_ptr<lsst::afw::detection::HeavyFootprint<ImagePixelT, MaskPixelT, VariancePixelT> >
-                mergeHeavyFootprints(
-                    lsst::afw::detection::HeavyFootprint<ImagePixelT, MaskPixelT, VariancePixelT> const& h1,
-                    lsst::afw::detection::HeavyFootprint<ImagePixelT, MaskPixelT, VariancePixelT> const& h2);
-
-                static
-                void
-                copyWithinFootprint(lsst::afw::detection::Footprint const& foot,
-                                    ImagePtrT const input,
-                                    ImagePtrT output);
-                static
-                void
-                copyWithinFootprint(lsst::afw::detection::Footprint const& foot,
-                                    MaskedImagePtrT const input,
-                                    MaskedImagePtrT output);
 
             };
         }
