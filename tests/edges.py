@@ -1,18 +1,20 @@
 #!/usr/bin/env python
-
 try:
+    import debug
+    doPlot = debug.plots
+except NameError:
+    doPlot = False
+
+if doPlot:
     import matplotlib
     matplotlib.use('Agg')
     import pylab as plt
-    doPlot = True
-
     import os.path
     plotpat = os.path.join(os.path.dirname(__file__), 'edge%i.png')
     print 'Writing plots to', plotpat
-
-except:
-    doPlot = False
-
+else:
+    print '"doPlot" not set -- not making plots.  To enable plots, do:'
+    print '  (cd tests; python -c "import debug; debug.plots=True; import edges; edges.run()"; )'
 
 import unittest
 import lsst.utils.tests         as utilsTests
@@ -64,6 +66,8 @@ class RampEdgeTestCase(unittest.TestCase):
         We then test out the different edge treatments and assert that
         they do what they claim.  We also make plots, tests/edge*.png
         '''
+
+
         # Create fake image...
         H,W = 100,100
         fpbb = afwGeom.Box2I(afwGeom.Point2I(0,0),
