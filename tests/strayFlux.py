@@ -1,17 +1,15 @@
 #!/usr/bin/env python
 
-try:
+doPlot = False
+if doPlot:
     import matplotlib
     matplotlib.use('Agg')
     import pylab as plt
-    doPlot = True
-
     import os.path
     plotpat = os.path.join(os.path.dirname(__file__), 'stray%i.png')
     print 'Writing plots to', plotpat
-
-except:
-    doPlot = False
+else:
+    print '"doPlot" not set -- not making plots.  To enable plots, edit', __file__
 
 import unittest
 import lsst.utils.tests         as utilsTests
@@ -174,16 +172,16 @@ class StrayFluxTestCase(unittest.TestCase):
             for i,dpk in enumerate(deb.peaks):
                 plt.subplot(R, C, i*C + 1)
                 plt.title('ch%i symm' % i)
-                symm = dpk.template_mimg.getImage()
+                symm = dpk.templateMaskedImage.getImage()
                 myimshow(symm.getArray(), extent=imExt(symm), **ima)
     
                 plt.subplot(R, C, i*C + 2)
                 plt.title('ch%i portion' % i)
-                port = dpk.portion_mimg.getImage()
+                port = dpk.fluxPortion.getImage()
                 myimshow(port.getArray(), extent=imExt(port), **ima)
     
                 himg = afwImage.ImageF(fpbb)
-                heavy = dpk.get_flux_portion(strayFlux=False)
+                heavy = dpk.getFluxPortion(strayFlux=False)
                 heavy.insert(himg)
                 
                 # plt.subplot(R, C, i*C + 3)
@@ -194,7 +192,7 @@ class StrayFluxTestCase(unittest.TestCase):
                 # plt.axis(ax)
     
                 simg = afwImage.ImageF(fpbb)
-                dpk.stray_flux.insert(simg)
+                dpk.strayFlux.insert(simg)
                 
                 plt.subplot(R, C, i*C + 3)
                 plt.title('ch%i stray' % i)
@@ -204,7 +202,7 @@ class StrayFluxTestCase(unittest.TestCase):
                 plt.axis(ax)
 
                 himg2 = afwImage.ImageF(fpbb)
-                heavy = dpk.get_flux_portion(strayFlux=True)
+                heavy = dpk.getFluxPortion(strayFlux=True)
                 heavy.insert(himg2)
     
                 if sumimg is None:
@@ -232,7 +230,7 @@ class StrayFluxTestCase(unittest.TestCase):
         sumimg = None
         for i,dpk in enumerate(deb.peaks):
             himg2 = afwImage.ImageF(fpbb)
-            dpk.get_flux_portion().insert(himg2)
+            dpk.getFluxPortion().insert(himg2)
             if sumimg is None:
                 sumimg = himg2.getArray().copy()
             else:
@@ -287,7 +285,7 @@ class StrayFluxTestCase(unittest.TestCase):
         #    print '  ', pk.getFx(), pk.getFy()
         
         deb = deblend(fp, afwimg, fakepsf, fakepsf_fwhm, verbose=True,
-                      fit_psfs=False, )
+                      fitPsfs=False, )
 
         if doPlot:
             XX = np.arange(W+1).repeat(2)[1:-1]
@@ -297,14 +295,14 @@ class StrayFluxTestCase(unittest.TestCase):
 
             for i,dpk in enumerate(deb.peaks):
                 print dpk
-                port = dpk.portion_mimg.getImage()
+                port = dpk.fluxPortion.getImage()
                 bb = port.getBBox(afwImage.PARENT)
                 YY = np.zeros(XX.shape)
                 YY[bb.getMinX()*2 : (bb.getMaxX()+1)*2] = port.getArray()[0,:].repeat(2)
                 p2 = plt.plot(XX, YY, 'r-')
 
                 simg = afwImage.ImageF(fpbb)
-                dpk.stray_flux.insert(simg)
+                dpk.strayFlux.insert(simg)
                 p3 = plt.plot(XX, simg.getArray()[y,:].repeat(2), 'b-')
 
             plt.legend((p1[0],p2[0],p3[0]),
@@ -315,7 +313,7 @@ class StrayFluxTestCase(unittest.TestCase):
         strays = []
         for i,dpk in enumerate(deb.peaks):
             simg = afwImage.ImageF(fpbb)
-            dpk.stray_flux.insert(simg)
+            dpk.strayFlux.insert(simg)
             strays.append(simg.getArray())
 
         ssum = reduce(np.add, strays)

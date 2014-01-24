@@ -62,13 +62,13 @@ class SourceDeblendConfig(pexConf.Config):
     clipStrayFluxFraction = pexConf.Field(dtype=float, default=0.001,
                                           doc=('When splitting stray flux, clip fractions below this value to zero.'))
     
-    psf_chisq_1 = pexConf.Field(dtype=float, default=1.5, optional=False,
+    psfChisq1 = pexConf.Field(dtype=float, default=1.5, optional=False,
                                 doc=('Chi-squared per DOF cut for deciding a source is '+
                                      'a PSF during deblending (un-shifted PSF model)'))
-    psf_chisq_2 = pexConf.Field(dtype=float, default=1.5, optional=False,
+    psfChisq2 = pexConf.Field(dtype=float, default=1.5, optional=False,
                                 doc=('Chi-squared per DOF cut for deciding a source is '+
                                      'PSF during deblending (shifted PSF model)'))
-    psf_chisq_2b = pexConf.Field(dtype=float, default=1.5, optional=False,
+    psfChisq2b = pexConf.Field(dtype=float, default=1.5, optional=False,
                                 doc=('Chi-squared per DOF cut for deciding a source is '+
                                      'a PSF during deblending (shifted PSF model #2)'))
     maxNumberOfPeaks = pexConf.Field(dtype=int, default=0,
@@ -140,7 +140,7 @@ class SourceDeblendTask(pipeBase.Task):
         """
         self.deblend(exposure, sources, psf)
 
-    def _get_psf_fwhm(self, psf, bbox):
+    def _getPsfFwhm(self, psf, bbox):
         # It should be easier to get a PSF's fwhm;
         # https://dev.lsstcorp.org/trac/ticket/3030
         return psf.computeShape().getDeterminantRadius() * 2.35
@@ -176,7 +176,7 @@ class SourceDeblendTask(pipeBase.Task):
                 continue
             nparents += 1
             bb = fp.getBBox()
-            psf_fwhm = self._get_psf_fwhm(psf, bb)
+            psf_fwhm = self._getPsfFwhm(psf, bb)
 
             self.log.logdebug('Parent %i: deblending %i peaks' % (int(src.getId()), len(pks)))
 
@@ -189,9 +189,9 @@ class SourceDeblendTask(pipeBase.Task):
             try:
                 res = deblend(
                     fp, mi, psf, psf_fwhm, sigma1=sigma1,
-                    psf_chisq_cut1 = self.config.psf_chisq_1,
-                    psf_chisq_cut2 = self.config.psf_chisq_2,
-                    psf_chisq_cut2b= self.config.psf_chisq_2b,
+                    psfChisqCut1 = self.config.psfChisq1,
+                    psfChisqCut2 = self.config.psfChisq2,
+                    psfChisqCut2b= self.config.psfChisq2b,
                     maxNumberOfPeaks=self.config.maxNumberOfPeaks,
                     strayFluxToPointSources=self.config.strayFluxToPointSources,
                     assignStrayFlux=self.config.assignStrayFlux,
@@ -212,18 +212,18 @@ class SourceDeblendTask(pipeBase.Task):
 
             kids = []
             nchild = 0
-            for j,pkres in enumerate(res.peaks):
-                if pkres.skip:
+            for j,peak in enumerate(res.peaks):
+                if peak.skip:
                     # skip this source?
                     self.log.logdebug('Skipping out-of-bounds peak at (%i,%i)' %
                                       (pks[j].getIx(), pks[j].getIy()))
                     src.set(self.deblendSkippedKey, True)
                     continue
 
-                heavy = pkres.get_flux_portion()
+                heavy = peak.getFluxPortion()
                 if heavy is None:
                     # This can happen for children >= maxNumberOfPeaks
-                    self.log.logdebug('Skipping peak at (%i,%i), child %i of %i: no heavy footprint (flux portion)'
+                    self.log.logdebug('Skipping peak at (%i,%i), child %i of %i: no flux portion'
                                       % (pks[j].getIx(), pks[j].getIy(), j+1, len(res.peaks)))
                     src.set(self.deblendSkippedKey, True)
                     continue
@@ -233,14 +233,14 @@ class SourceDeblendTask(pipeBase.Task):
                 child = srcs.addNew(); nchild += 1
                 child.setParent(src.getId())
                 child.setFootprint(heavy)
-                child.set(self.psfKey, pkres.deblend_as_psf)
-                child.set(self.hasStrayFluxKey, pkres.stray_flux is not None)
-                if pkres.deblend_as_psf:
-                    (cx,cy) = pkres.psf_fit_center
+                child.set(self.psfKey, peak.deblendedAsPsf)
+                child.set(self.hasStrayFluxKey, peak.strayFlux is not None)
+                if peak.deblendedAsPsf:
+                    (cx,cy) = peak.psfFitCenter
                     child.set(self.psfCenterKey, afwGeom.Point2D(cx, cy))
-                    child.set(self.psfFluxKey, pkres.psf_fit_flux)
-                child.set(self.deblendRampedTemplateKey, pkres.has_ramped_template)
-                child.set(self.deblendPatchedTemplateKey, pkres.patched)
+                    child.set(self.psfFluxKey, peak.psfFitFlux)
+                child.set(self.deblendRampedTemplateKey, peak.hasRampedTemplate)
+                child.set(self.deblendPatchedTemplateKey, peak.patched)
                 kids.append(child)
 
             src.set(self.nChildKey, nchild)
