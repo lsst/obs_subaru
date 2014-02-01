@@ -1134,7 +1134,7 @@ Electronic: {
             serial: 0
             Amp: {
                 index: 0 0
-                gain: 3.2516
+                gain: 3.5118
                 readNoise: 10.0
                 saturationLevel: 55000.0
             }
@@ -1146,13 +1146,13 @@ Electronic: {
             }
             Amp: {
                 index: 2 0
-                gain: 3.2368
+                gain: 3.5089
                 readNoise: 10.0
                 saturationLevel: 55000.0
             }
             Amp: {
                 index: 3 0
-                gain: 3.2688
+                gain: 3.5495
                 readNoise: 10.0
                 saturationLevel: 55000.0
             }
@@ -1163,25 +1163,25 @@ Electronic: {
             serial: 1
             Amp: {
                 index: 0 0
-                gain: 3.1925
+                gain: 3.4806
                 readNoise: 10.0
                 saturationLevel: 52000.0
             }
             Amp: {
                 index: 1 0
-                gain: 3.1965
+                gain: 3.4654
                 readNoise: 10.0
                 saturationLevel: 52000.0
             }
             Amp: {
                 index: 2 0
-                gain: 3.1369
+                gain: 3.3887
                 readNoise: 10.0
                 saturationLevel: 52000.0
             }
             Amp: {
                 index: 3 0
-                gain: 3.2089
+                gain: 3.4770
                 readNoise: 10.0
                 saturationLevel: 52000.0
             }
@@ -1192,25 +1192,25 @@ Electronic: {
             serial: 2
             Amp: {
                 index: 0 0
-                gain: 3.9153
+                gain: 4.2467
                 readNoise: 10.0
                 saturationLevel: 45000.0
             }
             Amp: {
                 index: 1 0
-                gain: 3.7420
+                gain: 4.0574
                 readNoise: 10.0
                 saturationLevel: 45000.0
             }
             Amp: {
                 index: 2 0
-                gain: 3.6982
+                gain: 4.0085
                 readNoise: 10.0
                 saturationLevel: 45000.0
             }
             Amp: {
                 index: 3 0
-                gain: 3.6916
+                gain: 4.0065
                 readNoise: 10.0
                 saturationLevel: 45000.0
             }
@@ -1221,25 +1221,25 @@ Electronic: {
             serial: 3
             Amp: {
                 index: 0 0
-                gain: 3.3459
+                gain: 3.6091
                 readNoise: 10.0
                 saturationLevel: 50000.0
             }
             Amp: {
                 index: 1 0
-                gain: 3.3427
+                gain: 3.6289
                 readNoise: 10.0
                 saturationLevel: 50000.0
             }
             Amp: {
                 index: 2 0
-                gain: 3.2611
+                gain: 3.5242
                 readNoise: 10.0
                 saturationLevel: 50000.0
             }
             Amp: {
                 index: 3 0
-                gain: 3.3090
+                gain: 3.5918
                 readNoise: 10.0
                 saturationLevel: 50000.0
             }
@@ -1250,25 +1250,25 @@ Electronic: {
             serial: 4
             Amp: {
                 index: 0 0
-                gain: 3.6811
+                gain: 3.9351
                 readNoise: 10.0
                 saturationLevel: 45000.0
             }
             Amp: {
                 index: 1 0
-                gain: 3.7358
+                gain: 3.9913
                 readNoise: 10.0
                 saturationLevel: 45000.0
             }
             Amp: {
                 index: 2 0
-                gain: 3.7007
+                gain: 3.9616
                 readNoise: 10.0
                 saturationLevel: 45000.0
             }
             Amp: {
                 index: 3 0
-                gain: 3.7859
+                gain: 4.0744
                 readNoise: 10.0
                 saturationLevel: 45000.0
             }
@@ -1279,25 +1279,25 @@ Electronic: {
             serial: 5
             Amp: {
                 index: 0 0
-                gain: 3.2518
+                gain: 3.5280
                 readNoise: 10.0
                 saturationLevel: 48500.0
             }
             Amp: {
                 index: 1 0
-                gain: 3.3687
+                gain: 3.6529
                 readNoise: 10.0
                 saturationLevel: 48500.0
             }
             Amp: {
                 index: 2 0
-                gain: 3.3273
+                gain: 3.6044
                 readNoise: 10.0
                 saturationLevel: 48500.0
             }
             Amp: {
                 index: 3 0
-                gain: 3.3427
+                gain: 3.6263
                 readNoise: 10.0
                 saturationLevel: 48500.0
             }
@@ -1308,25 +1308,25 @@ Electronic: {
             serial: 6
             Amp: {
                 index: 0 0
-                gain: 3.3013
+                gain: 3.6108
                 readNoise: 10.0
                 saturationLevel: 50000.0
             }
             Amp: {
                 index: 1 0
-                gain: 3.3518
+                gain: 3.6409
                 readNoise: 10.0
                 saturationLevel: 50000.0
             }
             Amp: {
                 index: 2 0
-                gain: 3.3114
+                gain: 3.5754
                 readNoise: 10.0
                 saturationLevel: 50000.0
             }
             Amp: {
                 index: 3 0
-                gain: 3.2562
+                gain: 3.5318
                 readNoise: 10.0
                 saturationLevel: 50000.0
             }
@@ -1337,25 +1337,25 @@ Electronic: {
             serial: 7
             Amp: {
                 index: 0 0
-                gain: 3.2613
+                gain: 3.5333
                 readNoise: 10.0
                 saturationLevel: 51000.0
             }
             Amp: {
                 index: 1 0
-                gain: 3.3545
+                gain: 3.6363
                 readNoise: 10.0
                 saturationLevel: 51000.0
             }
             Amp: {
                 index: 2 0
-                gain: 3.3123
+                gain: 3.5879
                 readNoise: 10.0
                 saturationLevel: 51000.0
             }
             Amp: {
                 index: 3 0
-                gain: 3.3129
+                gain: 3.5798
                 readNoise: 10.0
                 saturationLevel: 51000.0
             }
@@ -1366,25 +1366,25 @@ Electronic: {
             serial: 8
             Amp: {
                 index: 0 0
-                gain: 3.3543
+                gain: 3.6401
                 readNoise: 10.0
                 saturationLevel: 52000.0
             }
             Amp: {
                 index: 1 0
-                gain: 3.2910
+                gain: 3.5708
                 readNoise: 10.0
                 saturationLevel: 52000.0
             }
             Amp: {
                 index: 2 0
-                gain: 3.3212
+                gain: 3.5970
                 readNoise: 10.0
                 saturationLevel: 52000.0
             }
             Amp: {
                 index: 3 0
-                gain: 3.3663
+                gain: 3.6521
                 readNoise: 10.0
                 saturationLevel: 52000.0
             }
@@ -1395,25 +1395,25 @@ Electronic: {
             serial: 9
             Amp: {
                 index: 0 0
-                gain: 3.2930
+                gain: 3.5330
                 readNoise: 10.0
                 saturationLevel: 49000.0
             }
             Amp: {
                 index: 1 0
-                gain: 3.3184
+                gain: 3.5729
                 readNoise: 10.0
                 saturationLevel: 49000.0
             }
             Amp: {
                 index: 2 0
-                gain: 3.2288
+                gain: 3.4773
                 readNoise: 10.0
                 saturationLevel: 49000.0
             }
             Amp: {
                 index: 3 0
-                gain: 3.2844
+                gain: 3.5509
                 readNoise: 10.0
                 saturationLevel: 49000.0
             }
@@ -1424,25 +1424,25 @@ Electronic: {
             serial: 10
             Amp: {
                 index: 0 0
-                gain: 3.7726
+                gain: 4.0693
                 readNoise: 10.0
                 saturationLevel: 45000.0
             }
             Amp: {
                 index: 1 0
-                gain: 3.7628
+                gain: 4.0580
                 readNoise: 10.0
                 saturationLevel: 45000.0
             }
             Amp: {
                 index: 2 0
-                gain: 3.7892
+                gain: 4.0932
                 readNoise: 10.0
                 saturationLevel: 45000.0
             }
             Amp: {
                 index: 3 0
-                gain: 3.7708
+                gain: 4.0788
                 readNoise: 10.0
                 saturationLevel: 45000.0
             }
@@ -1453,19 +1453,2252 @@ Electronic: {
             serial: 11
             Amp: {
                 index: 0 0
-                gain: 3.3156
+                gain: 3.5943
                 readNoise: 10.0
                 saturationLevel: 49000.0
             }
             Amp: {
                 index: 1 0
-                gain: 3.4006
+                gain: 3.6865
                 readNoise: 10.0
                 saturationLevel: 49000.0
             }
             Amp: {
                 index: 2 0
-                gain: 3.3335
+                gain: 3.6034
+                readNoise: 10.0
+                saturationLevel: 49000.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.7033
+                readNoise: 10.0
+                saturationLevel: 49000.0
+            }
+        }
+        Ccd: {
+            name: "1_38"
+            ptype: "default"
+            serial: 12
+            Amp: {
+                index: 0 0
+                gain: 3.5874
+                readNoise: 10.0
+                saturationLevel: 52500.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.5323
+                readNoise: 10.0
+                saturationLevel: 52500.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.5920
+                readNoise: 10.0
+                saturationLevel: 52500.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.4052
+                readNoise: 10.0
+                saturationLevel: 52500.0
+            }
+        }
+        Ccd: {
+            name: "1_39"
+            ptype: "default"
+            serial: 13
+            Amp: {
+                index: 0 0
+                gain: 3.5924
+                readNoise: 10.0
+                saturationLevel: 50000.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.7142
+                readNoise: 10.0
+                saturationLevel: 50000.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.6971
+                readNoise: 10.0
+                saturationLevel: 50000.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.6920
+                readNoise: 10.0
+                saturationLevel: 50000.0
+            }
+        }
+        Ccd: {
+            name: "1_40"
+            ptype: "default"
+            serial: 14
+            Amp: {
+                index: 0 0
+                gain: 3.5169
+                readNoise: 10.0
+                saturationLevel: 53000.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.5761
+                readNoise: 10.0
+                saturationLevel: 53000.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.5784
+                readNoise: 10.0
+                saturationLevel: 53000.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.6089
+                readNoise: 10.0
+                saturationLevel: 53000.0
+            }
+        }
+        Ccd: {
+            name: "1_41"
+            ptype: "default"
+            serial: 15
+            Amp: {
+                index: 0 0
+                gain: 3.4745
+                readNoise: 10.0
+                saturationLevel: 52000.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.5879
+                readNoise: 10.0
+                saturationLevel: 52000.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.5942
+                readNoise: 10.0
+                saturationLevel: 52000.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.6219
+                readNoise: 10.0
+                saturationLevel: 52000.0
+            }
+        }
+        Ccd: {
+            name: "0_30"
+            ptype: "default"
+            serial: 16
+            Amp: {
+                index: 0 0
+                gain: 3.7430
+                readNoise: 10.0
+                saturationLevel: 48500.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.6459
+                readNoise: 10.0
+                saturationLevel: 48500.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.5879
+                readNoise: 10.0
+                saturationLevel: 48500.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.5248
+                readNoise: 10.0
+                saturationLevel: 48500.0
+            }
+        }
+        Ccd: {
+            name: "0_29"
+            ptype: "default"
+            serial: 17
+            Amp: {
+                index: 0 0
+                gain: 3.3771
+                readNoise: 10.0
+                saturationLevel: 55000.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.4122
+                readNoise: 10.0
+                saturationLevel: 55000.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.3818
+                readNoise: 10.0
+                saturationLevel: 55000.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.4246
+                readNoise: 10.0
+                saturationLevel: 55000.0
+            }
+        }
+        Ccd: {
+            name: "0_28"
+            ptype: "default"
+            serial: 18
+            Amp: {
+                index: 0 0
+                gain: 3.6675
+                readNoise: 10.0
+                saturationLevel: 49500.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.6478
+                readNoise: 10.0
+                saturationLevel: 49500.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.6674
+                readNoise: 10.0
+                saturationLevel: 49500.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 4.8096
+                readNoise: 10.0
+                saturationLevel: 39500.0
+            }
+        }
+        Ccd: {
+            name: "1_32"
+            ptype: "default"
+            serial: 19
+            Amp: {
+                index: 0 0
+                gain: 4.2931
+                readNoise: 10.0
+                saturationLevel: 42000.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 4.1028
+                readNoise: 10.0
+                saturationLevel: 42000.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 4.1015
+                readNoise: 10.0
+                saturationLevel: 42000.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 4.0497
+                readNoise: 10.0
+                saturationLevel: 42000.0
+            }
+        }
+        Ccd: {
+            name: "1_33"
+            ptype: "default"
+            serial: 20
+            Amp: {
+                index: 0 0
+                gain: 4.0951
+                readNoise: 10.0
+                saturationLevel: 45000.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 4.2265
+                readNoise: 10.0
+                saturationLevel: 45000.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 4.2242
+                readNoise: 10.0
+                saturationLevel: 45000.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 4.1731
+                readNoise: 10.0
+                saturationLevel: 45000.0
+            }
+        }
+        Ccd: {
+            name: "1_34"
+            ptype: "default"
+            serial: 21
+            Amp: {
+                index: 0 0
+                gain: 3.5503
+                readNoise: 10.0
+                saturationLevel: 52000.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.4786
+                readNoise: 10.0
+                saturationLevel: 52000.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.4501
+                readNoise: 10.0
+                saturationLevel: 52000.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.5623
+                readNoise: 10.0
+                saturationLevel: 52000.0
+            }
+        }
+        Ccd: {
+            name: "0_27"
+            ptype: "default"
+            serial: 22
+            Amp: {
+                index: 0 0
+                gain: 4.0108
+                readNoise: 10.0
+                saturationLevel: 43500.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 4.1789
+                readNoise: 10.0
+                saturationLevel: 43500.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 4.1640
+                readNoise: 10.0
+                saturationLevel: 43500.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 4.1089
+                readNoise: 10.0
+                saturationLevel: 43500.0
+            }
+        }
+        Ccd: {
+            name: "0_26"
+            ptype: "default"
+            serial: 23
+            Amp: {
+                index: 0 0
+                gain: 3.4311
+                readNoise: 10.0
+                saturationLevel: 50000.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.4982
+                readNoise: 10.0
+                saturationLevel: 50000.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.6575
+                readNoise: 10.0
+                saturationLevel: 50000.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.6190
+                readNoise: 10.0
+                saturationLevel: 50000.0
+            }
+        }
+        Ccd: {
+            name: "0_25"
+            ptype: "default"
+            serial: 24
+            Amp: {
+                index: 0 0
+                gain: 3.5397
+                readNoise: 10.0
+                saturationLevel: 52000.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.4463
+                readNoise: 10.0
+                saturationLevel: 52000.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.3666
+                readNoise: 10.0
+                saturationLevel: 52000.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.4027
+                readNoise: 10.0
+                saturationLevel: 52000.0
+            }
+        }
+        Ccd: {
+            name: "0_24"
+            ptype: "default"
+            serial: 25
+            Amp: {
+                index: 0 0
+                gain: 3.6623
+                readNoise: 10.0
+                saturationLevel: 51000.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.6113
+                readNoise: 10.0
+                saturationLevel: 51000.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.5542
+                readNoise: 10.0
+                saturationLevel: 51000.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.5547
+                readNoise: 10.0
+                saturationLevel: 51000.0
+            }
+        }
+        Ccd: {
+            name: "1_00"
+            ptype: "default"
+            serial: 26
+            Amp: {
+                index: 0 0
+                gain: 4.2009
+                readNoise: 10.0
+                saturationLevel: 44500.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 4.1102
+                readNoise: 10.0
+                saturationLevel: 44500.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 4.0652
+                readNoise: 10.0
+                saturationLevel: 44500.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 4.0380
+                readNoise: 10.0
+                saturationLevel: 44500.0
+            }
+        }
+        Ccd: {
+            name: "1_01"
+            ptype: "default"
+            serial: 27
+            Amp: {
+                index: 0 0
+                gain: 3.4271
+                readNoise: 10.0
+                saturationLevel: 55000.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.4766
+                readNoise: 10.0
+                saturationLevel: 55000.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.4194
+                readNoise: 10.0
+                saturationLevel: 55000.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.5167
+                readNoise: 10.0
+                saturationLevel: 55000.0
+            }
+        }
+        Ccd: {
+            name: "1_02"
+            ptype: "default"
+            serial: 28
+            Amp: {
+                index: 0 0
+                gain: 4.2689
+                readNoise: 10.0
+                saturationLevel: 45000.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.9250
+                readNoise: 10.0
+                saturationLevel: 45000.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.9383
+                readNoise: 10.0
+                saturationLevel: 45000.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.9370
+                readNoise: 10.0
+                saturationLevel: 45000.0
+            }
+        }
+        Ccd: {
+            name: "1_03"
+            ptype: "default"
+            serial: 29
+            Amp: {
+                index: 0 0
+                gain: 3.6933
+                readNoise: 10.0
+                saturationLevel: 48000.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.4925
+                readNoise: 10.0
+                saturationLevel: 48000.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.4640
+                readNoise: 10.0
+                saturationLevel: 48000.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.4893
+                readNoise: 10.0
+                saturationLevel: 48000.0
+            }
+        }
+        Ccd: {
+            name: "0_23"
+            ptype: "default"
+            serial: 30
+            Amp: {
+                index: 0 0
+                gain: 3.6852
+                readNoise: 10.0
+                saturationLevel: 51500.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.5346
+                readNoise: 10.0
+                saturationLevel: 51500.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.5048
+                readNoise: 10.0
+                saturationLevel: 51500.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.5941
+                readNoise: 10.0
+                saturationLevel: 51500.0
+            }
+        }
+        Ccd: {
+            name: "0_22"
+            ptype: "default"
+            serial: 31
+            Amp: {
+                index: 0 0
+                gain: 3.4972
+                readNoise: 10.0
+                saturationLevel: 52000.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.4192
+                readNoise: 10.0
+                saturationLevel: 52000.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.4315
+                readNoise: 10.0
+                saturationLevel: 52000.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.5786
+                readNoise: 10.0
+                saturationLevel: 52000.0
+            }
+        }
+        Ccd: {
+            name: "0_21"
+            ptype: "default"
+            serial: 32
+            Amp: {
+                index: 0 0
+                gain: 4.1764
+                readNoise: 10.0
+                saturationLevel: 45000.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.9905
+                readNoise: 10.0
+                saturationLevel: 45000.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 4.0414
+                readNoise: 10.0
+                saturationLevel: 45000.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.9232
+                readNoise: 10.0
+                saturationLevel: 45000.0
+            }
+        }
+        Ccd: {
+            name: "0_20"
+            ptype: "default"
+            serial: 33
+            Amp: {
+                index: 0 0
+                gain: 3.6177
+                readNoise: 10.0
+                saturationLevel: 49000.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.7089
+                readNoise: 10.0
+                saturationLevel: 49000.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.5542
+                readNoise: 10.0
+                saturationLevel: 49000.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.6315
+                readNoise: 10.0
+                saturationLevel: 49000.0
+            }
+        }
+        Ccd: {
+            name: "1_04"
+            ptype: "default"
+            serial: 34
+            Amp: {
+                index: 0 0
+                gain: 3.7581
+                readNoise: 10.0
+                saturationLevel: 48000.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.8587
+                readNoise: 10.0
+                saturationLevel: 48000.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.7873
+                readNoise: 10.0
+                saturationLevel: 48000.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.7672
+                readNoise: 10.0
+                saturationLevel: 48000.0
+            }
+        }
+        Ccd: {
+            name: "1_05"
+            ptype: "default"
+            serial: 35
+            Amp: {
+                index: 0 0
+                gain: 3.6509
+                readNoise: 10.0
+                saturationLevel: 51000.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.6521
+                readNoise: 10.0
+                saturationLevel: 51000.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.6376
+                readNoise: 10.0
+                saturationLevel: 51000.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.6400
+                readNoise: 10.0
+                saturationLevel: 51000.0
+            }
+        }
+        Ccd: {
+            name: "1_06"
+            ptype: "default"
+            serial: 36
+            Amp: {
+                index: 0 0
+                gain: 3.5652
+                readNoise: 10.0
+                saturationLevel: 50000.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.6996
+                readNoise: 10.0
+                saturationLevel: 50000.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.6888
+                readNoise: 10.0
+                saturationLevel: 50000.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.6660
+                readNoise: 10.0
+                saturationLevel: 50000.0
+            }
+        }
+        Ccd: {
+            name: "1_07"
+            ptype: "default"
+            serial: 37
+            Amp: {
+                index: 0 0
+                gain: 3.7531
+                readNoise: 10.0
+                saturationLevel: 48000.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.4899
+                readNoise: 10.0
+                saturationLevel: 48000.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.4376
+                readNoise: 10.0
+                saturationLevel: 48000.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.3731
+                readNoise: 10.0
+                saturationLevel: 48000.0
+            }
+        }
+        Ccd: {
+            name: "0_19"
+            ptype: "default"
+            serial: 38
+            Amp: {
+                index: 0 0
+                gain: 3.5176
+                readNoise: 10.0
+                saturationLevel: 52000.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.5802
+                readNoise: 10.0
+                saturationLevel: 52000.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.4294
+                readNoise: 10.0
+                saturationLevel: 52000.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.5904
+                readNoise: 10.0
+                saturationLevel: 52000.0
+            }
+        }
+        Ccd: {
+            name: "0_18"
+            ptype: "default"
+            serial: 39
+            Amp: {
+                index: 0 0
+                gain: 3.3525
+                readNoise: 10.0
+                saturationLevel: 55000.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.3915
+                readNoise: 10.0
+                saturationLevel: 55000.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.3761
+                readNoise: 10.0
+                saturationLevel: 55000.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.4485
+                readNoise: 10.0
+                saturationLevel: 55000.0
+            }
+        }
+        Ccd: {
+            name: "0_17"
+            ptype: "default"
+            serial: 40
+            Amp: {
+                index: 0 0
+                gain: 3.3695
+                readNoise: 10.0
+                saturationLevel: 55000.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.4810
+                readNoise: 10.0
+                saturationLevel: 55000.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.4087
+                readNoise: 10.0
+                saturationLevel: 55000.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.4190
+                readNoise: 10.0
+                saturationLevel: 55000.0
+            }
+        }
+        Ccd: {
+            name: "0_16"
+            ptype: "default"
+            serial: 41
+            Amp: {
+                index: 0 0
+                gain: 3.6126
+                readNoise: 10.0
+                saturationLevel: 48000.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.6638
+                readNoise: 10.0
+                saturationLevel: 48000.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.6969
+                readNoise: 10.0
+                saturationLevel: 48000.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.7518
+                readNoise: 10.0
+                saturationLevel: 48000.0
+            }
+        }
+        Ccd: {
+            name: "1_08"
+            ptype: "default"
+            serial: 42
+            Amp: {
+                index: 0 0
+                gain: 3.5753
+                readNoise: 10.0
+                saturationLevel: 49500.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.6195
+                readNoise: 10.0
+                saturationLevel: 49500.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.6502
+                readNoise: 10.0
+                saturationLevel: 49500.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.5942
+                readNoise: 10.0
+                saturationLevel: 49500.0
+            }
+        }
+        Ccd: {
+            name: "1_09"
+            ptype: "default"
+            serial: 43
+            Amp: {
+                index: 0 0
+                gain: 3.4815
+                readNoise: 10.0
+                saturationLevel: 46000.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 4.0725
+                readNoise: 10.0
+                saturationLevel: 46000.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.5448
+                readNoise: 10.0
+                saturationLevel: 46000.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.5217
+                readNoise: 10.0
+                saturationLevel: 46000.0
+            }
+        }
+        Ccd: {
+            name: "1_10"
+            ptype: "default"
+            serial: 44
+            Amp: {
+                index: 0 0
+                gain: 3.6218
+                readNoise: 10.0
+                saturationLevel: 50000.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.3945
+                readNoise: 10.0
+                saturationLevel: 50000.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.4882
+                readNoise: 10.0
+                saturationLevel: 50000.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.5858
+                readNoise: 10.0
+                saturationLevel: 50000.0
+            }
+        }
+        Ccd: {
+            name: "1_11"
+            ptype: "default"
+            serial: 45
+            Amp: {
+                index: 0 0
+                gain: 3.3674
+                readNoise: 10.0
+                saturationLevel: 55000.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.3472
+                readNoise: 10.0
+                saturationLevel: 55000.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.3710
+                readNoise: 10.0
+                saturationLevel: 55000.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.4040
+                readNoise: 10.0
+                saturationLevel: 55000.0
+            }
+        }
+        Ccd: {
+            name: "0_15"
+            ptype: "default"
+            serial: 46
+            Amp: {
+                index: 0 0
+                gain: 3.9854
+                readNoise: 10.0
+                saturationLevel: 45500.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 4.0760
+                readNoise: 10.0
+                saturationLevel: 45500.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 4.0109
+                readNoise: 10.0
+                saturationLevel: 45500.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 4.2024
+                readNoise: 10.0
+                saturationLevel: 45500.0
+            }
+        }
+        Ccd: {
+            name: "0_14"
+            ptype: "default"
+            serial: 47
+            Amp: {
+                index: 0 0
+                gain: 3.3579
+                readNoise: 10.0
+                saturationLevel: 51000.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.5747
+                readNoise: 10.0
+                saturationLevel: 51000.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.6535
+                readNoise: 10.0
+                saturationLevel: 51000.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.5840
+                readNoise: 10.0
+                saturationLevel: 51000.0
+            }
+        }
+        Ccd: {
+            name: "0_13"
+            ptype: "default"
+            serial: 48
+            Amp: {
+                index: 0 0
+                gain: 3.4362
+                readNoise: 10.0
+                saturationLevel: 55000.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.4420
+                readNoise: 10.0
+                saturationLevel: 55000.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.4081
+                readNoise: 10.0
+                saturationLevel: 55000.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.4557
+                readNoise: 10.0
+                saturationLevel: 55000.0
+            }
+        }
+        Ccd: {
+            name: "0_12"
+            ptype: "default"
+            serial: 49
+            Amp: {
+                index: 0 0
+                gain: 3.6664
+                readNoise: 10.0
+                saturationLevel: 48500.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.5893
+                readNoise: 10.0
+                saturationLevel: 48500.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.4973
+                readNoise: 10.0
+                saturationLevel: 48500.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.4956
+                readNoise: 10.0
+                saturationLevel: 48500.0
+            }
+        }
+        Ccd: {
+            name: "1_12"
+            ptype: "default"
+            serial: 50
+            Amp: {
+                index: 0 0
+                gain: 3.7614
+                readNoise: 10.0
+                saturationLevel: 46000.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.8688
+                readNoise: 10.0
+                saturationLevel: 46000.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.8732
+                readNoise: 10.0
+                saturationLevel: 46000.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.8159
+                readNoise: 10.0
+                saturationLevel: 46000.0
+            }
+        }
+        Ccd: {
+            name: "1_13"
+            ptype: "default"
+            serial: 51
+            Amp: {
+                index: 0 0
+                gain: 3.5855
+                readNoise: 10.0
+                saturationLevel: 51000.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.6576
+                readNoise: 10.0
+                saturationLevel: 51000.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.5981
+                readNoise: 10.0
+                saturationLevel: 51000.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.6408
+                readNoise: 10.0
+                saturationLevel: 51000.0
+            }
+        }
+        Ccd: {
+            name: "1_14"
+            ptype: "default"
+            serial: 52
+            Amp: {
+                index: 0 0
+                gain: 4.0625
+                readNoise: 10.0
+                saturationLevel: 42500.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 4.2531
+                readNoise: 10.0
+                saturationLevel: 42500.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 4.4095
+                readNoise: 10.0
+                saturationLevel: 42500.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 4.1928
+                readNoise: 10.0
+                saturationLevel: 42500.0
+            }
+        }
+        Ccd: {
+            name: "1_15"
+            ptype: "default"
+            serial: 53
+            Amp: {
+                index: 0 0
+                gain: 3.6964
+                readNoise: 10.0
+                saturationLevel: 48500.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.6477
+                readNoise: 10.0
+                saturationLevel: 48500.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.6157
+                readNoise: 10.0
+                saturationLevel: 48500.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.6935
+                readNoise: 10.0
+                saturationLevel: 48500.0
+            }
+        }
+        Ccd: {
+            name: "0_11"
+            ptype: "default"
+            serial: 54
+            Amp: {
+                index: 0 0
+                gain: 4.0956
+                readNoise: 10.0
+                saturationLevel: 46000.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 4.0372
+                readNoise: 10.0
+                saturationLevel: 46000.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.9997
+                readNoise: 10.0
+                saturationLevel: 46000.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.8727
+                readNoise: 10.0
+                saturationLevel: 46000.0
+            }
+        }
+        Ccd: {
+            name: "0_10"
+            ptype: "default"
+            serial: 55
+            Amp: {
+                index: 0 0
+                gain: 3.3652
+                readNoise: 10.0
+                saturationLevel: 55000.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.2922
+                readNoise: 10.0
+                saturationLevel: 55000.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.3499
+                readNoise: 10.0
+                saturationLevel: 55000.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.4548
+                readNoise: 10.0
+                saturationLevel: 55000.0
+            }
+        }
+        Ccd: {
+            name: "0_09"
+            ptype: "default"
+            serial: 56
+            Amp: {
+                index: 0 0
+                gain: 3.7129
+                readNoise: 10.0
+                saturationLevel: 50000.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.6167
+                readNoise: 10.0
+                saturationLevel: 50000.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.5726
+                readNoise: 10.0
+                saturationLevel: 50000.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.3898
+                readNoise: 10.0
+                saturationLevel: 50000.0
+            }
+        }
+        Ccd: {
+            name: "0_08"
+            ptype: "default"
+            serial: 57
+            Amp: {
+                index: 0 0
+                gain: 3.5473
+                readNoise: 10.0
+                saturationLevel: 51000.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.5862
+                readNoise: 10.0
+                saturationLevel: 51000.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.5173
+                readNoise: 10.0
+                saturationLevel: 51000.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.5326
+                readNoise: 10.0
+                saturationLevel: 51000.0
+            }
+        }
+        Ccd: {
+            name: "1_16"
+            ptype: "default"
+            serial: 58
+            Amp: {
+                index: 0 0
+                gain: 3.5387
+                readNoise: 10.0
+                saturationLevel: 51000.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.7454
+                readNoise: 10.0
+                saturationLevel: 51000.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.5618
+                readNoise: 10.0
+                saturationLevel: 51000.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.6503
+                readNoise: 10.0
+                saturationLevel: 51000.0
+            }
+        }
+        Ccd: {
+            name: "1_17"
+            ptype: "default"
+            serial: 59
+            Amp: {
+                index: 0 0
+                gain: 3.4369
+                readNoise: 10.0
+                saturationLevel: 51500.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.5157
+                readNoise: 10.0
+                saturationLevel: 51500.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.5347
+                readNoise: 10.0
+                saturationLevel: 51500.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.6027
+                readNoise: 10.0
+                saturationLevel: 51500.0
+            }
+        }
+        Ccd: {
+            name: "1_18"
+            ptype: "default"
+            serial: 60
+            Amp: {
+                index: 0 0
+                gain: 3.6806
+                readNoise: 10.0
+                saturationLevel: 52000.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.4790
+                readNoise: 10.0
+                saturationLevel: 52000.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.5373
+                readNoise: 10.0
+                saturationLevel: 52000.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.4512
+                readNoise: 10.0
+                saturationLevel: 52000.0
+            }
+        }
+        Ccd: {
+            name: "1_19"
+            ptype: "default"
+            serial: 61
+            Amp: {
+                index: 0 0
+                gain: 3.4316
+                readNoise: 10.0
+                saturationLevel: 55000.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.3752
+                readNoise: 10.0
+                saturationLevel: 55000.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.3773
+                readNoise: 10.0
+                saturationLevel: 55000.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.3953
+                readNoise: 10.0
+                saturationLevel: 55000.0
+            }
+        }
+        Ccd: {
+            name: "0_07"
+            ptype: "default"
+            serial: 62
+            Amp: {
+                index: 0 0
+                gain: 3.5347
+                readNoise: 10.0
+                saturationLevel: 50000.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.3952
+                readNoise: 10.0
+                saturationLevel: 50000.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.5172
+                readNoise: 10.0
+                saturationLevel: 50000.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.5641
+                readNoise: 10.0
+                saturationLevel: 50000.0
+            }
+        }
+        Ccd: {
+            name: "0_06"
+            ptype: "default"
+            serial: 63
+            Amp: {
+                index: 0 0
+                gain: 3.9209
+                readNoise: 10.0
+                saturationLevel: 45000.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.9650
+                readNoise: 10.0
+                saturationLevel: 45000.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 4.0174
+                readNoise: 10.0
+                saturationLevel: 45000.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 4.0330
+                readNoise: 10.0
+                saturationLevel: 45000.0
+            }
+        }
+        Ccd: {
+            name: "0_05"
+            ptype: "default"
+            serial: 64
+            Amp: {
+                index: 0 0
+                gain: 3.5861
+                readNoise: 10.0
+                saturationLevel: 49000.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.6431
+                readNoise: 10.0
+                saturationLevel: 49000.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.6012
+                readNoise: 10.0
+                saturationLevel: 49000.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.5822
+                readNoise: 10.0
+                saturationLevel: 49000.0
+            }
+        }
+        Ccd: {
+            name: "0_04"
+            ptype: "default"
+            serial: 65
+            Amp: {
+                index: 0 0
+                gain: 4.1845
+                readNoise: 10.0
+                saturationLevel: 43000.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 4.3031
+                readNoise: 10.0
+                saturationLevel: 43000.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 4.3020
+                readNoise: 10.0
+                saturationLevel: 43000.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 4.2607
+                readNoise: 10.0
+                saturationLevel: 43000.0
+            }
+        }
+        Ccd: {
+            name: "1_20"
+            ptype: "default"
+            serial: 66
+            Amp: {
+                index: 0 0
+                gain: 3.5527
+                readNoise: 10.0
+                saturationLevel: 46000.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.6236
+                readNoise: 10.0
+                saturationLevel: 46000.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.5445
+                readNoise: 10.0
+                saturationLevel: 46000.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.7014
+                readNoise: 10.0
+                saturationLevel: 46000.0
+            }
+        }
+        Ccd: {
+            name: "1_21"
+            ptype: "default"
+            serial: 67
+            Amp: {
+                index: 0 0
+                gain: 3.7645
+                readNoise: 10.0
+                saturationLevel: 48000.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.4889
+                readNoise: 10.0
+                saturationLevel: 48000.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.4623
+                readNoise: 10.0
+                saturationLevel: 48000.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.5169
+                readNoise: 10.0
+                saturationLevel: 48000.0
+            }
+        }
+        Ccd: {
+            name: "1_22"
+            ptype: "default"
+            serial: 68
+            Amp: {
+                index: 0 0
+                gain: 3.5799
+                readNoise: 10.0
+                saturationLevel: 51000.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.5371
+                readNoise: 10.0
+                saturationLevel: 51000.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.5079
+                readNoise: 10.0
+                saturationLevel: 51000.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.5179
+                readNoise: 10.0
+                saturationLevel: 51000.0
+            }
+        }
+        Ccd: {
+            name: "1_23"
+            ptype: "default"
+            serial: 69
+            Amp: {
+                index: 0 0
+                gain: 4.2310
+                readNoise: 10.0
+                saturationLevel: 48000.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 4.0347
+                readNoise: 10.0
+                saturationLevel: 48000.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 4.0239
+                readNoise: 10.0
+                saturationLevel: 48000.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.9215
+                readNoise: 10.0
+                saturationLevel: 48000.0
+            }
+        }
+        Ccd: {
+            name: "0_03"
+            ptype: "default"
+            serial: 70
+            Amp: {
+                index: 0 0
+                gain: 3.6968
+                readNoise: 10.0
+                saturationLevel: 55000.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.5811
+                readNoise: 10.0
+                saturationLevel: 55000.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.6060
+                readNoise: 10.0
+                saturationLevel: 55000.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.5445
+                readNoise: 10.0
+                saturationLevel: 55000.0
+            }
+        }
+        Ccd: {
+            name: "0_02"
+            ptype: "default"
+            serial: 71
+            Amp: {
+                index: 0 0
+                gain: 3.5863
+                readNoise: 10.0
+                saturationLevel: 50500.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.4424
+                readNoise: 10.0
+                saturationLevel: 50500.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.3541
+                readNoise: 10.0
+                saturationLevel: 50500.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.3098
+                readNoise: 10.0
+                saturationLevel: 50500.0
+            }
+        }
+        Ccd: {
+            name: "0_01"
+            ptype: "default"
+            serial: 72
+            Amp: {
+                index: 0 0
+                gain: 3.3832
+                readNoise: 10.0
+                saturationLevel: 51500.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.3351
+                readNoise: 10.0
+                saturationLevel: 51500.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.2788
+                readNoise: 10.0
+                saturationLevel: 51500.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.6075
+                readNoise: 10.0
+                saturationLevel: 51500.0
+            }
+        }
+        Ccd: {
+            name: "0_00"
+            ptype: "default"
+            serial: 73
+            Amp: {
+                index: 0 0
+                gain: 4.2097
+                readNoise: 10.0
+                saturationLevel: 44000.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 4.0540
+                readNoise: 10.0
+                saturationLevel: 44000.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.9717
+                readNoise: 10.0
+                saturationLevel: 44000.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.9878
+                readNoise: 10.0
+                saturationLevel: 44000.0
+            }
+        }
+        Ccd: {
+            name: "1_24"
+            ptype: "default"
+            serial: 74
+            Amp: {
+                index: 0 0
+                gain: 3.6479
+                readNoise: 10.0
+                saturationLevel: 49000.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.5397
+                readNoise: 10.0
+                saturationLevel: 49000.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.4948
+                readNoise: 10.0
+                saturationLevel: 49000.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.4321
+                readNoise: 10.0
+                saturationLevel: 49000.0
+            }
+        }
+        Ccd: {
+            name: "1_25"
+            ptype: "default"
+            serial: 75
+            Amp: {
+                index: 0 0
+                gain: 4.5439
+                readNoise: 10.0
+                saturationLevel: 41500.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.5370
+                readNoise: 10.0
+                saturationLevel: 51000.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.5125
+                readNoise: 10.0
+                saturationLevel: 51000.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.4109
+                readNoise: 10.0
+                saturationLevel: 51000.0
+            }
+        }
+        Ccd: {
+            name: "1_26"
+            ptype: "default"
+            serial: 76
+            Amp: {
+                index: 0 0
+                gain: 3.5270
+                readNoise: 10.0
+                saturationLevel: 55000.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.5171
+                readNoise: 10.0
+                saturationLevel: 55000.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.4995
+                readNoise: 10.0
+                saturationLevel: 55000.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.3932
+                readNoise: 10.0
+                saturationLevel: 55000.0
+            }
+        }
+        Ccd: {
+            name: "1_27"
+            ptype: "default"
+            serial: 77
+            Amp: {
+                index: 0 0
+                gain: 3.4713
+                readNoise: 10.0
+                saturationLevel: 51000.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.2932
+                readNoise: 10.0
+                saturationLevel: 51000.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.2263
+                readNoise: 10.0
+                saturationLevel: 51000.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.3141
+                readNoise: 10.0
+                saturationLevel: 51000.0
+            }
+        }
+        Ccd: {
+            name: "0_34"
+            ptype: "default"
+            serial: 78
+            Amp: {
+                index: 0 0
+                gain: 3.6720
+                readNoise: 10.0
+                saturationLevel: 40000.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 4.0952
+                readNoise: 10.0
+                saturationLevel: 40000.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 4.4608
+                readNoise: 10.0
+                saturationLevel: 40000.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 4.0158
+                readNoise: 10.0
+                saturationLevel: 40000.0
+            }
+        }
+        Ccd: {
+            name: "0_33"
+            ptype: "default"
+            serial: 79
+            Amp: {
+                index: 0 0
+                gain: 4.0036
+                readNoise: 10.0
+                saturationLevel: 43500.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 4.1340
+                readNoise: 10.0
+                saturationLevel: 43500.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 4.2509
+                readNoise: 10.0
+                saturationLevel: 43500.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 4.1673
+                readNoise: 10.0
+                saturationLevel: 43500.0
+            }
+        }
+        Ccd: {
+            name: "0_32"
+            ptype: "default"
+            serial: 80
+            Amp: {
+                index: 0 0
+                gain: 3.4687
+                readNoise: 10.0
+                saturationLevel: 47500.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.6662
+                readNoise: 10.0
+                saturationLevel: 47500.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.6074
+                readNoise: 10.0
+                saturationLevel: 47500.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.6418
+                readNoise: 10.0
+                saturationLevel: 47500.0
+            }
+        }
+        Ccd: {
+            name: "1_28"
+            ptype: "default"
+            serial: 81
+            Amp: {
+                index: 0 0
+                gain: 3.6487
+                readNoise: 10.0
+                saturationLevel: 50000.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.3490
+                readNoise: 10.0
+                saturationLevel: 50000.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.4109
+                readNoise: 10.0
+                saturationLevel: 50000.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.3182
+                readNoise: 10.0
+                saturationLevel: 50000.0
+            }
+        }
+        Ccd: {
+            name: "1_29"
+            ptype: "default"
+            serial: 82
+            Amp: {
+                index: 0 0
+                gain: 3.5249
+                readNoise: 10.0
+                saturationLevel: 50000.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.5415
+                readNoise: 10.0
+                saturationLevel: 50000.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.4576
+                readNoise: 10.0
+                saturationLevel: 50000.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.5624
+                readNoise: 10.0
+                saturationLevel: 50000.0
+            }
+        }
+        Ccd: {
+            name: "1_30"
+            ptype: "default"
+            serial: 83
+            Amp: {
+                index: 0 0
+                gain: 3.4981
+                readNoise: 10.0
+                saturationLevel: 51000.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.4080
+                readNoise: 10.0
+                saturationLevel: 51000.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.4147
+                readNoise: 10.0
+                saturationLevel: 51000.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.3761
+                readNoise: 10.0
+                saturationLevel: 51000.0
+            }
+        }
+        Ccd: {
+            name: "0_41"
+            ptype: "default"
+            serial: 84
+            Amp: {
+                index: 0 0
+                gain: 3.4125
+                readNoise: 10.0
+                saturationLevel: 52000.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.5046
+                readNoise: 10.0
+                saturationLevel: 52000.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.5024
+                readNoise: 10.0
+                saturationLevel: 52000.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.4391
+                readNoise: 10.0
+                saturationLevel: 52000.0
+            }
+        }
+        Ccd: {
+            name: "0_40"
+            ptype: "default"
+            serial: 85
+            Amp: {
+                index: 0 0
+                gain: 4.1682
+                readNoise: 10.0
+                saturationLevel: 46500.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.9704
+                readNoise: 10.0
+                saturationLevel: 46500.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.8654
+                readNoise: 10.0
+                saturationLevel: 46500.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.9271
+                readNoise: 10.0
+                saturationLevel: 46500.0
+            }
+        }
+        Ccd: {
+            name: "0_39"
+            ptype: "default"
+            serial: 86
+            Amp: {
+                index: 0 0
+                gain: 3.5263
+                readNoise: 10.0
+                saturationLevel: 55000.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.4846
+                readNoise: 10.0
+                saturationLevel: 55000.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.3779
+                readNoise: 10.0
+                saturationLevel: 55000.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.3687
+                readNoise: 10.0
+                saturationLevel: 55000.0
+            }
+        }
+        Ccd: {
+            name: "0_38"
+            ptype: "default"
+            serial: 87
+            Amp: {
+                index: 0 0
+                gain: 3.6285
+                readNoise: 10.0
+                saturationLevel: 51000.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.4686
+                readNoise: 10.0
+                saturationLevel: 51000.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.4998
+                readNoise: 10.0
+                saturationLevel: 51000.0
+            }
+            Amp: {
+                index: 3 0
+                gain: 3.6743
+                readNoise: 10.0
+                saturationLevel: 51000.0
+            }
+        }
+        Ccd: {
+            name: "0_37"
+            ptype: "default"
+            serial: 88
+            Amp: {
+                index: 0 0
+                gain: 3.3134
+                readNoise: 10.0
+                saturationLevel: 49000.0
+            }
+            Amp: {
+                index: 1 0
+                gain: 3.3293
+                readNoise: 10.0
+                saturationLevel: 49000.0
+            }
+            Amp: {
+                index: 2 0
+                gain: 3.3244
                 readNoise: 10.0
                 saturationLevel: 49000.0
             }
@@ -1477,2263 +3710,30 @@ Electronic: {
             }
         }
         Ccd: {
-            name: "1_38"
-            ptype: "default"
-            serial: 12
-            Amp: {
-                index: 0 0
-                gain: 3.2918
-                readNoise: 10.0
-                saturationLevel: 52500.0
-            }
-            Amp: {
-                index: 1 0
-                gain: 3.2439
-                readNoise: 10.0
-                saturationLevel: 52500.0
-            }
-            Amp: {
-                index: 2 0
-                gain: 3.3145
-                readNoise: 10.0
-                saturationLevel: 52500.0
-            }
-            Amp: {
-                index: 3 0
-                gain: 3.1360
-                readNoise: 10.0
-                saturationLevel: 52500.0
-            }
-        }
-        Ccd: {
-            name: "1_39"
-            ptype: "default"
-            serial: 13
-            Amp: {
-                index: 0 0
-                gain: 3.3348
-                readNoise: 10.0
-                saturationLevel: 50000.0
-            }
-            Amp: {
-                index: 1 0
-                gain: 3.4061
-                readNoise: 10.0
-                saturationLevel: 50000.0
-            }
-            Amp: {
-                index: 2 0
-                gain: 3.4119
-                readNoise: 10.0
-                saturationLevel: 50000.0
-            }
-            Amp: {
-                index: 3 0
-                gain: 3.3873
-                readNoise: 10.0
-                saturationLevel: 50000.0
-            }
-        }
-        Ccd: {
-            name: "1_40"
-            ptype: "default"
-            serial: 14
-            Amp: {
-                index: 0 0
-                gain: 3.2541
-                readNoise: 10.0
-                saturationLevel: 53000.0
-            }
-            Amp: {
-                index: 1 0
-                gain: 3.3158
-                readNoise: 10.0
-                saturationLevel: 53000.0
-            }
-            Amp: {
-                index: 2 0
-                gain: 3.3027
-                readNoise: 10.0
-                saturationLevel: 53000.0
-            }
-            Amp: {
-                index: 3 0
-                gain: 3.3329
-                readNoise: 10.0
-                saturationLevel: 53000.0
-            }
-        }
-        Ccd: {
-            name: "1_41"
-            ptype: "default"
-            serial: 15
-            Amp: {
-                index: 0 0
-                gain: 3.2271
-                readNoise: 10.0
-                saturationLevel: 52000.0
-            }
-            Amp: {
-                index: 1 0
-                gain: 3.3288
-                readNoise: 10.0
-                saturationLevel: 52000.0
-            }
-            Amp: {
-                index: 2 0
-                gain: 3.3300
-                readNoise: 10.0
-                saturationLevel: 52000.0
-            }
-            Amp: {
-                index: 3 0
-                gain: 3.3574
-                readNoise: 10.0
-                saturationLevel: 52000.0
-            }
-        }
-        Ccd: {
-            name: "0_30"
-            ptype: "default"
-            serial: 16
-            Amp: {
-                index: 0 0
-                gain: 3.4598
-                readNoise: 10.0
-                saturationLevel: 48500.0
-            }
-            Amp: {
-                index: 1 0
-                gain: 3.3722
-                readNoise: 10.0
-                saturationLevel: 48500.0
-            }
-            Amp: {
-                index: 2 0
-                gain: 3.3173
-                readNoise: 10.0
-                saturationLevel: 48500.0
-            }
-            Amp: {
-                index: 3 0
-                gain: 3.2602
-                readNoise: 10.0
-                saturationLevel: 48500.0
-            }
-        }
-        Ccd: {
-            name: "0_29"
-            ptype: "default"
-            serial: 17
-            Amp: {
-                index: 0 0
-                gain: 3.1125
-                readNoise: 10.0
-                saturationLevel: 55000.0
-            }
-            Amp: {
-                index: 1 0
-                gain: 3.1384
-                readNoise: 10.0
-                saturationLevel: 55000.0
-            }
-            Amp: {
-                index: 2 0
-                gain: 3.1214
-                readNoise: 10.0
-                saturationLevel: 55000.0
-            }
-            Amp: {
-                index: 3 0
-                gain: 3.1716
-                readNoise: 10.0
-                saturationLevel: 55000.0
-            }
-        }
-        Ccd: {
-            name: "0_28"
-            ptype: "default"
-            serial: 18
-            Amp: {
-                index: 0 0
-                gain: 3.3794
-                readNoise: 10.0
-                saturationLevel: 49500.0
-            }
-            Amp: {
-                index: 1 0
-                gain: 3.3581
-                readNoise: 10.0
-                saturationLevel: 49500.0
-            }
-            Amp: {
-                index: 2 0
-                gain: 3.3782
-                readNoise: 10.0
-                saturationLevel: 49500.0
-            }
-            Amp: {
-                index: 3 0
-                gain: 4.3904
-                readNoise: 10.0
-                saturationLevel: 39500.0
-            }
-        }
-        Ccd: {
-            name: "1_32"
-            ptype: "default"
-            serial: 19
-            Amp: {
-                index: 0 0
-                gain: 3.9691
-                readNoise: 10.0
-                saturationLevel: 42000.0
-            }
-            Amp: {
-                index: 1 0
-                gain: 3.7875
-                readNoise: 10.0
-                saturationLevel: 42000.0
-            }
-            Amp: {
-                index: 2 0
-                gain: 3.7732
-                readNoise: 10.0
-                saturationLevel: 42000.0
-            }
-            Amp: {
-                index: 3 0
-                gain: 3.7254
-                readNoise: 10.0
-                saturationLevel: 42000.0
-            }
-        }
-        Ccd: {
-            name: "1_33"
-            ptype: "default"
-            serial: 20
-            Amp: {
-                index: 0 0
-                gain: 3.7828
-                readNoise: 10.0
-                saturationLevel: 45000.0
-            }
-            Amp: {
-                index: 1 0
-                gain: 3.9129
-                readNoise: 10.0
-                saturationLevel: 45000.0
-            }
-            Amp: {
-                index: 2 0
-                gain: 3.9022
-                readNoise: 10.0
-                saturationLevel: 45000.0
-            }
-            Amp: {
-                index: 3 0
-                gain: 3.8501
-                readNoise: 10.0
-                saturationLevel: 45000.0
-            }
-        }
-        Ccd: {
-            name: "1_34"
-            ptype: "default"
-            serial: 21
-            Amp: {
-                index: 0 0
-                gain: 3.2850
-                readNoise: 10.0
-                saturationLevel: 52000.0
-            }
-            Amp: {
-                index: 1 0
-                gain: 3.2216
-                readNoise: 10.0
-                saturationLevel: 52000.0
-            }
-            Amp: {
-                index: 2 0
-                gain: 3.1934
-                readNoise: 10.0
-                saturationLevel: 52000.0
-            }
-            Amp: {
-                index: 3 0
-                gain: 3.2849
-                readNoise: 10.0
-                saturationLevel: 52000.0
-            }
-        }
-        Ccd: {
-            name: "0_27"
-            ptype: "default"
-            serial: 22
-            Amp: {
-                index: 0 0
-                gain: 3.7442
-                readNoise: 10.0
-                saturationLevel: 43500.0
-            }
-            Amp: {
-                index: 1 0
-                gain: 3.9102
-                readNoise: 10.0
-                saturationLevel: 43500.0
-            }
-            Amp: {
-                index: 2 0
-                gain: 3.8986
-                readNoise: 10.0
-                saturationLevel: 43500.0
-            }
-            Amp: {
-                index: 3 0
-                gain: 3.8367
-                readNoise: 10.0
-                saturationLevel: 43500.0
-            }
-        }
-        Ccd: {
-            name: "0_26"
-            ptype: "default"
-            serial: 23
-            Amp: {
-                index: 0 0
-                gain: 3.1713
-                readNoise: 10.0
-                saturationLevel: 50000.0
-            }
-            Amp: {
-                index: 1 0
-                gain: 3.2315
-                readNoise: 10.0
-                saturationLevel: 50000.0
-            }
-            Amp: {
-                index: 2 0
-                gain: 3.3779
-                readNoise: 10.0
-                saturationLevel: 50000.0
-            }
-            Amp: {
-                index: 3 0
-                gain: 3.3400
-                readNoise: 10.0
-                saturationLevel: 50000.0
-            }
-        }
-        Ccd: {
-            name: "0_25"
-            ptype: "default"
-            serial: 24
-            Amp: {
-                index: 0 0
-                gain: 3.2530
-                readNoise: 10.0
-                saturationLevel: 52000.0
-            }
-            Amp: {
-                index: 1 0
-                gain: 3.1694
-                readNoise: 10.0
-                saturationLevel: 52000.0
-            }
-            Amp: {
-                index: 2 0
-                gain: 3.0961
-                readNoise: 10.0
-                saturationLevel: 52000.0
-            }
-            Amp: {
-                index: 3 0
-                gain: 3.1306
-                readNoise: 10.0
-                saturationLevel: 52000.0
-            }
-        }
-        Ccd: {
-            name: "0_24"
-            ptype: "default"
-            serial: 25
-            Amp: {
-                index: 0 0
-                gain: 3.3494
-                readNoise: 10.0
-                saturationLevel: 51000.0
-            }
-            Amp: {
-                index: 1 0
-                gain: 3.3190
-                readNoise: 10.0
-                saturationLevel: 51000.0
-            }
-            Amp: {
-                index: 2 0
-                gain: 3.2592
-                readNoise: 10.0
-                saturationLevel: 51000.0
-            }
-            Amp: {
-                index: 3 0
-                gain: 3.2539
-                readNoise: 10.0
-                saturationLevel: 51000.0
-            }
-        }
-        Ccd: {
-            name: "1_00"
-            ptype: "default"
-            serial: 26
-            Amp: {
-                index: 0 0
-                gain: 3.8557
-                readNoise: 10.0
-                saturationLevel: 44500.0
-            }
-            Amp: {
-                index: 1 0
-                gain: 3.7844
-                readNoise: 10.0
-                saturationLevel: 44500.0
-            }
-            Amp: {
-                index: 2 0
-                gain: 3.7504
-                readNoise: 10.0
-                saturationLevel: 44500.0
-            }
-            Amp: {
-                index: 3 0
-                gain: 3.7122
-                readNoise: 10.0
-                saturationLevel: 44500.0
-            }
-        }
-        Ccd: {
-            name: "1_01"
-            ptype: "default"
-            serial: 27
-            Amp: {
-                index: 0 0
-                gain: 3.1617
-                readNoise: 10.0
-                saturationLevel: 55000.0
-            }
-            Amp: {
-                index: 1 0
-                gain: 3.2045
-                readNoise: 10.0
-                saturationLevel: 55000.0
-            }
-            Amp: {
-                index: 2 0
-                gain: 3.1538
-                readNoise: 10.0
-                saturationLevel: 55000.0
-            }
-            Amp: {
-                index: 3 0
-                gain: 3.2430
-                readNoise: 10.0
-                saturationLevel: 55000.0
-            }
-        }
-        Ccd: {
-            name: "1_02"
-            ptype: "default"
-            serial: 28
-            Amp: {
-                index: 0 0
-                gain: 3.9450
-                readNoise: 10.0
-                saturationLevel: 45000.0
-            }
-            Amp: {
-                index: 1 0
-                gain: 3.6385
-                readNoise: 10.0
-                saturationLevel: 45000.0
-            }
-            Amp: {
-                index: 2 0
-                gain: 3.6492
-                readNoise: 10.0
-                saturationLevel: 45000.0
-            }
-            Amp: {
-                index: 3 0
-                gain: 3.6437
-                readNoise: 10.0
-                saturationLevel: 45000.0
-            }
-        }
-        Ccd: {
-            name: "1_03"
-            ptype: "default"
-            serial: 29
-            Amp: {
-                index: 0 0
-                gain: 3.4272
-                readNoise: 10.0
-                saturationLevel: 48000.0
-            }
-            Amp: {
-                index: 1 0
-                gain: 3.2532
-                readNoise: 10.0
-                saturationLevel: 48000.0
-            }
-            Amp: {
-                index: 2 0
-                gain: 3.2257
-                readNoise: 10.0
-                saturationLevel: 48000.0
-            }
-            Amp: {
-                index: 3 0
-                gain: 3.2476
-                readNoise: 10.0
-                saturationLevel: 48000.0
-            }
-        }
-        Ccd: {
-            name: "0_23"
-            ptype: "default"
-            serial: 30
-            Amp: {
-                index: 0 0
-                gain: 3.4196
-                readNoise: 10.0
-                saturationLevel: 51500.0
-            }
-            Amp: {
-                index: 1 0
-                gain: 3.2799
-                readNoise: 10.0
-                saturationLevel: 51500.0
-            }
-            Amp: {
-                index: 2 0
-                gain: 3.2592
-                readNoise: 10.0
-                saturationLevel: 51500.0
-            }
-            Amp: {
-                index: 3 0
-                gain: 3.3405
-                readNoise: 10.0
-                saturationLevel: 51500.0
-            }
-        }
-        Ccd: {
-            name: "0_22"
-            ptype: "default"
-            serial: 31
-            Amp: {
-                index: 0 0
-                gain: 3.2391
-                readNoise: 10.0
-                saturationLevel: 52000.0
-            }
-            Amp: {
-                index: 1 0
-                gain: 3.1649
-                readNoise: 10.0
-                saturationLevel: 52000.0
-            }
-            Amp: {
-                index: 2 0
-                gain: 3.1742
-                readNoise: 10.0
-                saturationLevel: 52000.0
-            }
-            Amp: {
-                index: 3 0
-                gain: 3.3154
-                readNoise: 10.0
-                saturationLevel: 52000.0
-            }
-        }
-        Ccd: {
-            name: "0_21"
-            ptype: "default"
-            serial: 32
-            Amp: {
-                index: 0 0
-                gain: 3.8375
-                readNoise: 10.0
-                saturationLevel: 45000.0
-            }
-            Amp: {
-                index: 1 0
-                gain: 3.6713
-                readNoise: 10.0
-                saturationLevel: 45000.0
-            }
-            Amp: {
-                index: 2 0
-                gain: 3.7120
-                readNoise: 10.0
-                saturationLevel: 45000.0
-            }
-            Amp: {
-                index: 3 0
-                gain: 3.6022
-                readNoise: 10.0
-                saturationLevel: 45000.0
-            }
-        }
-        Ccd: {
-            name: "0_20"
-            ptype: "default"
-            serial: 33
-            Amp: {
-                index: 0 0
-                gain: 3.2683
-                readNoise: 10.0
-                saturationLevel: 49000.0
-            }
-            Amp: {
-                index: 1 0
-                gain: 3.3863
-                readNoise: 10.0
-                saturationLevel: 49000.0
-            }
-            Amp: {
-                index: 2 0
-                gain: 3.2514
-                readNoise: 10.0
-                saturationLevel: 49000.0
-            }
-            Amp: {
-                index: 3 0
-                gain: 3.3370
-                readNoise: 10.0
-                saturationLevel: 49000.0
-            }
-        }
-        Ccd: {
-            name: "1_04"
-            ptype: "default"
-            serial: 34
-            Amp: {
-                index: 0 0
-                gain: 3.4444
-                readNoise: 10.0
-                saturationLevel: 48000.0
-            }
-            Amp: {
-                index: 1 0
-                gain: 3.5475
-                readNoise: 10.0
-                saturationLevel: 48000.0
-            }
-            Amp: {
-                index: 2 0
-                gain: 3.4761
-                readNoise: 10.0
-                saturationLevel: 48000.0
-            }
-            Amp: {
-                index: 3 0
-                gain: 3.4694
-                readNoise: 10.0
-                saturationLevel: 48000.0
-            }
-        }
-        Ccd: {
-            name: "1_05"
-            ptype: "default"
-            serial: 35
-            Amp: {
-                index: 0 0
-                gain: 3.3556
-                readNoise: 10.0
-                saturationLevel: 51000.0
-            }
-            Amp: {
-                index: 1 0
-                gain: 3.3531
-                readNoise: 10.0
-                saturationLevel: 51000.0
-            }
-            Amp: {
-                index: 2 0
-                gain: 3.3354
-                readNoise: 10.0
-                saturationLevel: 51000.0
-            }
-            Amp: {
-                index: 3 0
-                gain: 3.3463
-                readNoise: 10.0
-                saturationLevel: 51000.0
-            }
-        }
-        Ccd: {
-            name: "1_06"
-            ptype: "default"
-            serial: 36
-            Amp: {
-                index: 0 0
-                gain: 3.2922
-                readNoise: 10.0
-                saturationLevel: 50000.0
-            }
-            Amp: {
-                index: 1 0
-                gain: 3.4022
-                readNoise: 10.0
-                saturationLevel: 50000.0
-            }
-            Amp: {
-                index: 2 0
-                gain: 3.4059
-                readNoise: 10.0
-                saturationLevel: 50000.0
-            }
-            Amp: {
-                index: 3 0
-                gain: 3.3881
-                readNoise: 10.0
-                saturationLevel: 50000.0
-            }
-        }
-        Ccd: {
-            name: "1_07"
-            ptype: "default"
-            serial: 37
-            Amp: {
-                index: 0 0
-                gain: 3.4813
-                readNoise: 10.0
-                saturationLevel: 48000.0
-            }
-            Amp: {
-                index: 1 0
-                gain: 3.2443
-                readNoise: 10.0
-                saturationLevel: 48000.0
-            }
-            Amp: {
-                index: 2 0
-                gain: 3.1952
-                readNoise: 10.0
-                saturationLevel: 48000.0
-            }
-            Amp: {
-                index: 3 0
-                gain: 3.1425
-                readNoise: 10.0
-                saturationLevel: 48000.0
-            }
-        }
-        Ccd: {
-            name: "0_19"
-            ptype: "default"
-            serial: 38
-            Amp: {
-                index: 0 0
-                gain: 3.2776
-                readNoise: 10.0
-                saturationLevel: 52000.0
-            }
-            Amp: {
-                index: 1 0
-                gain: 3.3211
-                readNoise: 10.0
-                saturationLevel: 52000.0
-            }
-            Amp: {
-                index: 2 0
-                gain: 3.1873
-                readNoise: 10.0
-                saturationLevel: 52000.0
-            }
-            Amp: {
-                index: 3 0
-                gain: 3.3314
-                readNoise: 10.0
-                saturationLevel: 52000.0
-            }
-        }
-        Ccd: {
-            name: "0_18"
-            ptype: "default"
-            serial: 39
-            Amp: {
-                index: 0 0
-                gain: 3.0949
-                readNoise: 10.0
-                saturationLevel: 55000.0
-            }
-            Amp: {
-                index: 1 0
-                gain: 3.1301
-                readNoise: 10.0
-                saturationLevel: 55000.0
-            }
-            Amp: {
-                index: 2 0
-                gain: 3.0951
-                readNoise: 10.0
-                saturationLevel: 55000.0
-            }
-            Amp: {
-                index: 3 0
-                gain: 3.1753
-                readNoise: 10.0
-                saturationLevel: 55000.0
-            }
-        }
-        Ccd: {
-            name: "0_17"
-            ptype: "default"
-            serial: 40
-            Amp: {
-                index: 0 0
-                gain: 3.0872
-                readNoise: 10.0
-                saturationLevel: 55000.0
-            }
-            Amp: {
-                index: 1 0
-                gain: 3.1790
-                readNoise: 10.0
-                saturationLevel: 55000.0
-            }
-            Amp: {
-                index: 2 0
-                gain: 3.1221
-                readNoise: 10.0
-                saturationLevel: 55000.0
-            }
-            Amp: {
-                index: 3 0
-                gain: 3.1300
-                readNoise: 10.0
-                saturationLevel: 55000.0
-            }
-        }
-        Ccd: {
-            name: "0_16"
-            ptype: "default"
-            serial: 41
-            Amp: {
-                index: 0 0
-                gain: 3.3116
-                readNoise: 10.0
-                saturationLevel: 48000.0
-            }
-            Amp: {
-                index: 1 0
-                gain: 3.3531
-                readNoise: 10.0
-                saturationLevel: 48000.0
-            }
-            Amp: {
-                index: 2 0
-                gain: 3.3935
-                readNoise: 10.0
-                saturationLevel: 48000.0
-            }
-            Amp: {
-                index: 3 0
-                gain: 3.4423
-                readNoise: 10.0
-                saturationLevel: 48000.0
-            }
-        }
-        Ccd: {
-            name: "1_08"
-            ptype: "default"
-            serial: 42
-            Amp: {
-                index: 0 0
-                gain: 3.2881
-                readNoise: 10.0
-                saturationLevel: 49500.0
-            }
-            Amp: {
-                index: 1 0
-                gain: 3.3359
-                readNoise: 10.0
-                saturationLevel: 49500.0
-            }
-            Amp: {
-                index: 2 0
-                gain: 3.3587
-                readNoise: 10.0
-                saturationLevel: 49500.0
-            }
-            Amp: {
-                index: 3 0
-                gain: 3.2927
-                readNoise: 10.0
-                saturationLevel: 49500.0
-            }
-        }
-        Ccd: {
-            name: "1_09"
-            ptype: "default"
-            serial: 43
-            Amp: {
-                index: 0 0
-                gain: 3.2100
-                readNoise: 10.0
-                saturationLevel: 46000.0
-            }
-            Amp: {
-                index: 1 0
-                gain: 3.7485
-                readNoise: 10.0
-                saturationLevel: 46000.0
-            }
-            Amp: {
-                index: 2 0
-                gain: 3.2663
-                readNoise: 10.0
-                saturationLevel: 46000.0
-            }
-            Amp: {
-                index: 3 0
-                gain: 3.2322
-                readNoise: 10.0
-                saturationLevel: 46000.0
-            }
-        }
-        Ccd: {
-            name: "1_10"
-            ptype: "default"
-            serial: 44
-            Amp: {
-                index: 0 0
-                gain: 3.3489
-                readNoise: 10.0
-                saturationLevel: 50000.0
-            }
-            Amp: {
-                index: 1 0
-                gain: 3.1386
-                readNoise: 10.0
-                saturationLevel: 50000.0
-            }
-            Amp: {
-                index: 2 0
-                gain: 3.2266
-                readNoise: 10.0
-                saturationLevel: 50000.0
-            }
-            Amp: {
-                index: 3 0
-                gain: 3.3193
-                readNoise: 10.0
-                saturationLevel: 50000.0
-            }
-        }
-        Ccd: {
-            name: "1_11"
-            ptype: "default"
-            serial: 45
-            Amp: {
-                index: 0 0
-                gain: 3.1312
-                readNoise: 10.0
-                saturationLevel: 55000.0
-            }
-            Amp: {
-                index: 1 0
-                gain: 3.1202
-                readNoise: 10.0
-                saturationLevel: 55000.0
-            }
-            Amp: {
-                index: 2 0
-                gain: 3.1461
-                readNoise: 10.0
-                saturationLevel: 55000.0
-            }
-            Amp: {
-                index: 3 0
-                gain: 3.1400
-                readNoise: 10.0
-                saturationLevel: 55000.0
-            }
-        }
-        Ccd: {
-            name: "0_15"
-            ptype: "default"
-            serial: 46
-            Amp: {
-                index: 0 0
-                gain: 3.7071
-                readNoise: 10.0
-                saturationLevel: 45500.0
-            }
-            Amp: {
-                index: 1 0
-                gain: 3.7970
-                readNoise: 10.0
-                saturationLevel: 45500.0
-            }
-            Amp: {
-                index: 2 0
-                gain: 3.7320
-                readNoise: 10.0
-                saturationLevel: 45500.0
-            }
-            Amp: {
-                index: 3 0
-                gain: 3.9148
-                readNoise: 10.0
-                saturationLevel: 45500.0
-            }
-        }
-        Ccd: {
-            name: "0_14"
-            ptype: "default"
-            serial: 47
-            Amp: {
-                index: 0 0
-                gain: 3.1176
-                readNoise: 10.0
-                saturationLevel: 51000.0
-            }
-            Amp: {
-                index: 1 0
-                gain: 3.3288
-                readNoise: 10.0
-                saturationLevel: 51000.0
-            }
-            Amp: {
-                index: 2 0
-                gain: 3.3892
-                readNoise: 10.0
-                saturationLevel: 51000.0
-            }
-            Amp: {
-                index: 3 0
-                gain: 3.3250
-                readNoise: 10.0
-                saturationLevel: 51000.0
-            }
-        }
-        Ccd: {
-            name: "0_13"
-            ptype: "default"
-            serial: 48
-            Amp: {
-                index: 0 0
-                gain: 3.1750
-                readNoise: 10.0
-                saturationLevel: 55000.0
-            }
-            Amp: {
-                index: 1 0
-                gain: 3.1730
-                readNoise: 10.0
-                saturationLevel: 55000.0
-            }
-            Amp: {
-                index: 2 0
-                gain: 3.1498
-                readNoise: 10.0
-                saturationLevel: 55000.0
-            }
-            Amp: {
-                index: 3 0
-                gain: 3.1982
-                readNoise: 10.0
-                saturationLevel: 55000.0
-            }
-        }
-        Ccd: {
-            name: "0_12"
-            ptype: "default"
-            serial: 49
-            Amp: {
-                index: 0 0
-                gain: 3.3687
-                readNoise: 10.0
-                saturationLevel: 48500.0
-            }
-            Amp: {
-                index: 1 0
-                gain: 3.2915
-                readNoise: 10.0
-                saturationLevel: 48500.0
-            }
-            Amp: {
-                index: 2 0
-                gain: 3.2098
-                readNoise: 10.0
-                saturationLevel: 48500.0
-            }
-            Amp: {
-                index: 3 0
-                gain: 3.2201
-                readNoise: 10.0
-                saturationLevel: 48500.0
-            }
-        }
-        Ccd: {
-            name: "1_12"
-            ptype: "default"
-            serial: 50
-            Amp: {
-                index: 0 0
-                gain: 3.4631
-                readNoise: 10.0
-                saturationLevel: 46000.0
-            }
-            Amp: {
-                index: 1 0
-                gain: 3.5562
-                readNoise: 10.0
-                saturationLevel: 46000.0
-            }
-            Amp: {
-                index: 2 0
-                gain: 3.5596
-                readNoise: 10.0
-                saturationLevel: 46000.0
-            }
-            Amp: {
-                index: 3 0
-                gain: 3.5083
-                readNoise: 10.0
-                saturationLevel: 46000.0
-            }
-        }
-        Ccd: {
-            name: "1_13"
-            ptype: "default"
-            serial: 51
-            Amp: {
-                index: 0 0
-                gain: 3.2940
-                readNoise: 10.0
-                saturationLevel: 51000.0
-            }
-            Amp: {
-                index: 1 0
-                gain: 3.3613
-                readNoise: 10.0
-                saturationLevel: 51000.0
-            }
-            Amp: {
-                index: 2 0
-                gain: 3.3088
-                readNoise: 10.0
-                saturationLevel: 51000.0
-            }
-            Amp: {
-                index: 3 0
-                gain: 3.3403
-                readNoise: 10.0
-                saturationLevel: 51000.0
-            }
-        }
-        Ccd: {
-            name: "1_14"
-            ptype: "default"
-            serial: 52
-            Amp: {
-                index: 0 0
-                gain: 3.7733
-                readNoise: 10.0
-                saturationLevel: 42500.0
-            }
-            Amp: {
-                index: 1 0
-                gain: 3.9501
-                readNoise: 10.0
-                saturationLevel: 42500.0
-            }
-            Amp: {
-                index: 2 0
-                gain: 4.1028
-                readNoise: 10.0
-                saturationLevel: 42500.0
-            }
-            Amp: {
-                index: 3 0
-                gain: 3.8947
-                readNoise: 10.0
-                saturationLevel: 42500.0
-            }
-        }
-        Ccd: {
-            name: "1_15"
-            ptype: "default"
-            serial: 53
-            Amp: {
-                index: 0 0
-                gain: 3.4376
-                readNoise: 10.0
-                saturationLevel: 48500.0
-            }
-            Amp: {
-                index: 1 0
-                gain: 3.3981
-                readNoise: 10.0
-                saturationLevel: 48500.0
-            }
-            Amp: {
-                index: 2 0
-                gain: 3.3577
-                readNoise: 10.0
-                saturationLevel: 48500.0
-            }
-            Amp: {
-                index: 3 0
-                gain: 3.4498
-                readNoise: 10.0
-                saturationLevel: 48500.0
-            }
-        }
-        Ccd: {
-            name: "0_11"
-            ptype: "default"
-            serial: 54
-            Amp: {
-                index: 0 0
-                gain: 3.8117
-                readNoise: 10.0
-                saturationLevel: 46000.0
-            }
-            Amp: {
-                index: 1 0
-                gain: 3.7548
-                readNoise: 10.0
-                saturationLevel: 46000.0
-            }
-            Amp: {
-                index: 2 0
-                gain: 3.7094
-                readNoise: 10.0
-                saturationLevel: 46000.0
-            }
-            Amp: {
-                index: 3 0
-                gain: 3.5991
-                readNoise: 10.0
-                saturationLevel: 46000.0
-            }
-        }
-        Ccd: {
-            name: "0_10"
-            ptype: "default"
-            serial: 55
-            Amp: {
-                index: 0 0
-                gain: 3.1218
-                readNoise: 10.0
-                saturationLevel: 55000.0
-            }
-            Amp: {
-                index: 1 0
-                gain: 3.0588
-                readNoise: 10.0
-                saturationLevel: 55000.0
-            }
-            Amp: {
-                index: 2 0
-                gain: 3.1101
-                readNoise: 10.0
-                saturationLevel: 55000.0
-            }
-            Amp: {
-                index: 3 0
-                gain: 3.2069
-                readNoise: 10.0
-                saturationLevel: 55000.0
-            }
-        }
-        Ccd: {
-            name: "0_09"
-            ptype: "default"
-            serial: 56
-            Amp: {
-                index: 0 0
-                gain: 3.4309
-                readNoise: 10.0
-                saturationLevel: 50000.0
-            }
-            Amp: {
-                index: 1 0
-                gain: 3.3278
-                readNoise: 10.0
-                saturationLevel: 50000.0
-            }
-            Amp: {
-                index: 2 0
-                gain: 3.2803
-                readNoise: 10.0
-                saturationLevel: 50000.0
-            }
-            Amp: {
-                index: 3 0
-                gain: 3.1214
-                readNoise: 10.0
-                saturationLevel: 50000.0
-            }
-        }
-        Ccd: {
-            name: "0_08"
-            ptype: "default"
-            serial: 57
-            Amp: {
-                index: 0 0
-                gain: 3.2543
-                readNoise: 10.0
-                saturationLevel: 51000.0
-            }
-            Amp: {
-                index: 1 0
-                gain: 3.2957
-                readNoise: 10.0
-                saturationLevel: 51000.0
-            }
-            Amp: {
-                index: 2 0
-                gain: 3.2350
-                readNoise: 10.0
-                saturationLevel: 51000.0
-            }
-            Amp: {
-                index: 3 0
-                gain: 3.2562
-                readNoise: 10.0
-                saturationLevel: 51000.0
-            }
-        }
-        Ccd: {
-            name: "1_16"
-            ptype: "default"
-            serial: 58
-            Amp: {
-                index: 0 0
-                gain: 3.2609
-                readNoise: 10.0
-                saturationLevel: 51000.0
-            }
-            Amp: {
-                index: 1 0
-                gain: 3.4378
-                readNoise: 10.0
-                saturationLevel: 51000.0
-            }
-            Amp: {
-                index: 2 0
-                gain: 3.2655
-                readNoise: 10.0
-                saturationLevel: 51000.0
-            }
-            Amp: {
-                index: 3 0
-                gain: 3.3454
-                readNoise: 10.0
-                saturationLevel: 51000.0
-            }
-        }
-        Ccd: {
-            name: "1_17"
-            ptype: "default"
-            serial: 59
-            Amp: {
-                index: 0 0
-                gain: 3.1698
-                readNoise: 10.0
-                saturationLevel: 51500.0
-            }
-            Amp: {
-                index: 1 0
-                gain: 3.2331
-                readNoise: 10.0
-                saturationLevel: 51500.0
-            }
-            Amp: {
-                index: 2 0
-                gain: 3.2533
-                readNoise: 10.0
-                saturationLevel: 51500.0
-            }
-            Amp: {
-                index: 3 0
-                gain: 3.3123
-                readNoise: 10.0
-                saturationLevel: 51500.0
-            }
-        }
-        Ccd: {
-            name: "1_18"
-            ptype: "default"
-            serial: 60
-            Amp: {
-                index: 0 0
-                gain: 3.4039
-                readNoise: 10.0
-                saturationLevel: 52000.0
-            }
-            Amp: {
-                index: 1 0
-                gain: 3.2307
-                readNoise: 10.0
-                saturationLevel: 52000.0
-            }
-            Amp: {
-                index: 2 0
-                gain: 3.2722
-                readNoise: 10.0
-                saturationLevel: 52000.0
-            }
-            Amp: {
-                index: 3 0
-                gain: 3.1912
-                readNoise: 10.0
-                saturationLevel: 52000.0
-            }
-        }
-        Ccd: {
-            name: "1_19"
-            ptype: "default"
-            serial: 61
-            Amp: {
-                index: 0 0
-                gain: 3.1980
-                readNoise: 10.0
-                saturationLevel: 55000.0
-            }
-            Amp: {
-                index: 1 0
-                gain: 3.1432
-                readNoise: 10.0
-                saturationLevel: 55000.0
-            }
-            Amp: {
-                index: 2 0
-                gain: 3.1371
-                readNoise: 10.0
-                saturationLevel: 55000.0
-            }
-            Amp: {
-                index: 3 0
-                gain: 3.1481
-                readNoise: 10.0
-                saturationLevel: 55000.0
-            }
-        }
-        Ccd: {
-            name: "0_07"
-            ptype: "default"
-            serial: 62
-            Amp: {
-                index: 0 0
-                gain: 3.2975
-                readNoise: 10.0
-                saturationLevel: 50000.0
-            }
-            Amp: {
-                index: 1 0
-                gain: 3.1732
-                readNoise: 10.0
-                saturationLevel: 50000.0
-            }
-            Amp: {
-                index: 2 0
-                gain: 3.2744
-                readNoise: 10.0
-                saturationLevel: 50000.0
-            }
-            Amp: {
-                index: 3 0
-                gain: 3.3130
-                readNoise: 10.0
-                saturationLevel: 50000.0
-            }
-        }
-        Ccd: {
-            name: "0_06"
-            ptype: "default"
-            serial: 63
-            Amp: {
-                index: 0 0
-                gain: 3.6543
-                readNoise: 10.0
-                saturationLevel: 45000.0
-            }
-            Amp: {
-                index: 1 0
-                gain: 3.6924
-                readNoise: 10.0
-                saturationLevel: 45000.0
-            }
-            Amp: {
-                index: 2 0
-                gain: 3.7357
-                readNoise: 10.0
-                saturationLevel: 45000.0
-            }
-            Amp: {
-                index: 3 0
-                gain: 3.7438
-                readNoise: 10.0
-                saturationLevel: 45000.0
-            }
-        }
-        Ccd: {
-            name: "0_05"
-            ptype: "default"
-            serial: 64
-            Amp: {
-                index: 0 0
-                gain: 3.3083
-                readNoise: 10.0
-                saturationLevel: 49000.0
-            }
-            Amp: {
-                index: 1 0
-                gain: 3.3732
-                readNoise: 10.0
-                saturationLevel: 49000.0
-            }
-            Amp: {
-                index: 2 0
-                gain: 3.3212
-                readNoise: 10.0
-                saturationLevel: 49000.0
-            }
-            Amp: {
-                index: 3 0
-                gain: 3.3080
-                readNoise: 10.0
-                saturationLevel: 49000.0
-            }
-        }
-        Ccd: {
-            name: "0_04"
-            ptype: "default"
-            serial: 65
-            Amp: {
-                index: 0 0
-                gain: 3.8510
-                readNoise: 10.0
-                saturationLevel: 43000.0
-            }
-            Amp: {
-                index: 1 0
-                gain: 3.9569
-                readNoise: 10.0
-                saturationLevel: 43000.0
-            }
-            Amp: {
-                index: 2 0
-                gain: 3.9675
-                readNoise: 10.0
-                saturationLevel: 43000.0
-            }
-            Amp: {
-                index: 3 0
-                gain: 3.9164
-                readNoise: 10.0
-                saturationLevel: 43000.0
-            }
-        }
-        Ccd: {
-            name: "1_20"
-            ptype: "default"
-            serial: 66
-            Amp: {
-                index: 0 0
-                gain: 3.2815
-                readNoise: 10.0
-                saturationLevel: 46000.0
-            }
-            Amp: {
-                index: 1 0
-                gain: 3.3421
-                readNoise: 10.0
-                saturationLevel: 46000.0
-            }
-            Amp: {
-                index: 2 0
-                gain: 3.2782
-                readNoise: 10.0
-                saturationLevel: 46000.0
-            }
-            Amp: {
-                index: 3 0
-                gain: 3.4097
-                readNoise: 10.0
-                saturationLevel: 46000.0
-            }
-        }
-        Ccd: {
-            name: "1_21"
-            ptype: "default"
-            serial: 67
-            Amp: {
-                index: 0 0
-                gain: 3.4732
-                readNoise: 10.0
-                saturationLevel: 48000.0
-            }
-            Amp: {
-                index: 1 0
-                gain: 3.2143
-                readNoise: 10.0
-                saturationLevel: 48000.0
-            }
-            Amp: {
-                index: 2 0
-                gain: 3.1789
-                readNoise: 10.0
-                saturationLevel: 48000.0
-            }
-            Amp: {
-                index: 3 0
-                gain: 3.2370
-                readNoise: 10.0
-                saturationLevel: 48000.0
-            }
-        }
-        Ccd: {
-            name: "1_22"
-            ptype: "default"
-            serial: 68
-            Amp: {
-                index: 0 0
-                gain: 3.3159
-                readNoise: 10.0
-                saturationLevel: 51000.0
-            }
-            Amp: {
-                index: 1 0
-                gain: 3.2700
-                readNoise: 10.0
-                saturationLevel: 51000.0
-            }
-            Amp: {
-                index: 2 0
-                gain: 3.2501
-                readNoise: 10.0
-                saturationLevel: 51000.0
-            }
-            Amp: {
-                index: 3 0
-                gain: 3.2655
-                readNoise: 10.0
-                saturationLevel: 51000.0
-            }
-        }
-        Ccd: {
-            name: "1_23"
-            ptype: "default"
-            serial: 69
-            Amp: {
-                index: 0 0
-                gain: 3.9498
-                readNoise: 10.0
-                saturationLevel: 48000.0
-            }
-            Amp: {
-                index: 1 0
-                gain: 3.7519
-                readNoise: 10.0
-                saturationLevel: 48000.0
-            }
-            Amp: {
-                index: 2 0
-                gain: 3.7493
-                readNoise: 10.0
-                saturationLevel: 48000.0
-            }
-            Amp: {
-                index: 3 0
-                gain: 3.6464
-                readNoise: 10.0
-                saturationLevel: 48000.0
-            }
-        }
-        Ccd: {
-            name: "0_03"
-            ptype: "default"
-            serial: 70
-            Amp: {
-                index: 0 0
-                gain: 3.4738
-                readNoise: 10.0
-                saturationLevel: 55000.0
-            }
-            Amp: {
-                index: 1 0
-                gain: 3.3808
-                readNoise: 10.0
-                saturationLevel: 55000.0
-            }
-            Amp: {
-                index: 2 0
-                gain: 3.3866
-                readNoise: 10.0
-                saturationLevel: 55000.0
-            }
-            Amp: {
-                index: 3 0
-                gain: 3.3242
-                readNoise: 10.0
-                saturationLevel: 55000.0
-            }
-        }
-        Ccd: {
-            name: "0_02"
-            ptype: "default"
-            serial: 71
-            Amp: {
-                index: 0 0
-                gain: 3.3388
-                readNoise: 10.0
-                saturationLevel: 50500.0
-            }
-            Amp: {
-                index: 1 0
-                gain: 3.2052
-                readNoise: 10.0
-                saturationLevel: 50500.0
-            }
-            Amp: {
-                index: 2 0
-                gain: 3.1246
-                readNoise: 10.0
-                saturationLevel: 50500.0
-            }
-            Amp: {
-                index: 3 0
-                gain: 3.0717
-                readNoise: 10.0
-                saturationLevel: 50500.0
-            }
-        }
-        Ccd: {
-            name: "0_01"
-            ptype: "default"
-            serial: 72
-            Amp: {
-                index: 0 0
-                gain: 3.1427
-                readNoise: 10.0
-                saturationLevel: 51500.0
-            }
-            Amp: {
-                index: 1 0
-                gain: 3.0962
-                readNoise: 10.0
-                saturationLevel: 51500.0
-            }
-            Amp: {
-                index: 2 0
-                gain: 3.0331
-                readNoise: 10.0
-                saturationLevel: 51500.0
-            }
-            Amp: {
-                index: 3 0
-                gain: 3.3345
-                readNoise: 10.0
-                saturationLevel: 51500.0
-            }
-        }
-        Ccd: {
-            name: "0_00"
-            ptype: "default"
-            serial: 73
-            Amp: {
-                index: 0 0
-                gain: 3.8861
-                readNoise: 10.0
-                saturationLevel: 44000.0
-            }
-            Amp: {
-                index: 1 0
-                gain: 3.7492
-                readNoise: 10.0
-                saturationLevel: 44000.0
-            }
-            Amp: {
-                index: 2 0
-                gain: 3.6558
-                readNoise: 10.0
-                saturationLevel: 44000.0
-            }
-            Amp: {
-                index: 3 0
-                gain: 3.6773
-                readNoise: 10.0
-                saturationLevel: 44000.0
-            }
-        }
-        Ccd: {
-            name: "1_24"
-            ptype: "default"
-            serial: 74
-            Amp: {
-                index: 0 0
-                gain: 3.3769
-                readNoise: 10.0
-                saturationLevel: 49000.0
-            }
-            Amp: {
-                index: 1 0
-                gain: 3.2759
-                readNoise: 10.0
-                saturationLevel: 49000.0
-            }
-            Amp: {
-                index: 2 0
-                gain: 3.2365
-                readNoise: 10.0
-                saturationLevel: 49000.0
-            }
-            Amp: {
-                index: 3 0
-                gain: 3.1765
-                readNoise: 10.0
-                saturationLevel: 49000.0
-            }
-        }
-        Ccd: {
-            name: "1_25"
-            ptype: "default"
-            serial: 75
-            Amp: {
-                index: 0 0
-                gain: 4.1994
-                readNoise: 10.0
-                saturationLevel: 41500.0
-            }
-            Amp: {
-                index: 1 0
-                gain: 3.2719
-                readNoise: 10.0
-                saturationLevel: 51000.0
-            }
-            Amp: {
-                index: 2 0
-                gain: 3.2600
-                readNoise: 10.0
-                saturationLevel: 51000.0
-            }
-            Amp: {
-                index: 3 0
-                gain: 3.1649
-                readNoise: 10.0
-                saturationLevel: 51000.0
-            }
-        }
-        Ccd: {
-            name: "1_26"
-            ptype: "default"
-            serial: 76
-            Amp: {
-                index: 0 0
-                gain: 3.2948
-                readNoise: 10.0
-                saturationLevel: 55000.0
-            }
-            Amp: {
-                index: 1 0
-                gain: 3.2651
-                readNoise: 10.0
-                saturationLevel: 55000.0
-            }
-            Amp: {
-                index: 2 0
-                gain: 3.2573
-                readNoise: 10.0
-                saturationLevel: 55000.0
-            }
-            Amp: {
-                index: 3 0
-                gain: 3.1643
-                readNoise: 10.0
-                saturationLevel: 55000.0
-            }
-        }
-        Ccd: {
-            name: "1_27"
-            ptype: "default"
-            serial: 77
-            Amp: {
-                index: 0 0
-                gain: 3.2453
-                readNoise: 10.0
-                saturationLevel: 51000.0
-            }
-            Amp: {
-                index: 1 0
-                gain: 3.0717
-                readNoise: 10.0
-                saturationLevel: 51000.0
-            }
-            Amp: {
-                index: 2 0
-                gain: 3.0015
-                readNoise: 10.0
-                saturationLevel: 51000.0
-            }
-            Amp: {
-                index: 3 0
-                gain: 3.0841
-                readNoise: 10.0
-                saturationLevel: 51000.0
-            }
-        }
-        Ccd: {
-            name: "0_34"
-            ptype: "default"
-            serial: 78
-            Amp: {
-                index: 0 0
-                gain: 3.4166
-                readNoise: 10.0
-                saturationLevel: 40000.0
-            }
-            Amp: {
-                index: 1 0
-                gain: 3.8012
-                readNoise: 10.0
-                saturationLevel: 40000.0
-            }
-            Amp: {
-                index: 2 0
-                gain: 4.1453
-                readNoise: 10.0
-                saturationLevel: 40000.0
-            }
-            Amp: {
-                index: 3 0
-                gain: 3.7019
-                readNoise: 10.0
-                saturationLevel: 40000.0
-            }
-        }
-        Ccd: {
-            name: "0_33"
-            ptype: "default"
-            serial: 79
-            Amp: {
-                index: 0 0
-                gain: 3.7450
-                readNoise: 10.0
-                saturationLevel: 43500.0
-            }
-            Amp: {
-                index: 1 0
-                gain: 3.8279
-                readNoise: 10.0
-                saturationLevel: 43500.0
-            }
-            Amp: {
-                index: 2 0
-                gain: 3.9485
-                readNoise: 10.0
-                saturationLevel: 43500.0
-            }
-            Amp: {
-                index: 3 0
-                gain: 3.8568
-                readNoise: 10.0
-                saturationLevel: 43500.0
-            }
-        }
-        Ccd: {
-            name: "0_32"
-            ptype: "default"
-            serial: 80
-            Amp: {
-                index: 0 0
-                gain: 3.2333
-                readNoise: 10.0
-                saturationLevel: 47500.0
-            }
-            Amp: {
-                index: 1 0
-                gain: 3.4071
-                readNoise: 10.0
-                saturationLevel: 47500.0
-            }
-            Amp: {
-                index: 2 0
-                gain: 3.3464
-                readNoise: 10.0
-                saturationLevel: 47500.0
-            }
-            Amp: {
-                index: 3 0
-                gain: 3.3714
-                readNoise: 10.0
-                saturationLevel: 47500.0
-            }
-        }
-        Ccd: {
-            name: "1_28"
-            ptype: "default"
-            serial: 81
-            Amp: {
-                index: 0 0
-                gain: 3.3881
-                readNoise: 10.0
-                saturationLevel: 50000.0
-            }
-            Amp: {
-                index: 1 0
-                gain: 3.1073
-                readNoise: 10.0
-                saturationLevel: 50000.0
-            }
-            Amp: {
-                index: 2 0
-                gain: 3.1645
-                readNoise: 10.0
-                saturationLevel: 50000.0
-            }
-            Amp: {
-                index: 3 0
-                gain: 3.0759
-                readNoise: 10.0
-                saturationLevel: 50000.0
-            }
-        }
-        Ccd: {
-            name: "1_29"
-            ptype: "default"
-            serial: 82
-            Amp: {
-                index: 0 0
-                gain: 3.2698
-                readNoise: 10.0
-                saturationLevel: 50000.0
-            }
-            Amp: {
-                index: 1 0
-                gain: 3.2860
-                readNoise: 10.0
-                saturationLevel: 50000.0
-            }
-            Amp: {
-                index: 2 0
-                gain: 3.2207
-                readNoise: 10.0
-                saturationLevel: 50000.0
-            }
-            Amp: {
-                index: 3 0
-                gain: 3.3131
-                readNoise: 10.0
-                saturationLevel: 50000.0
-            }
-        }
-        Ccd: {
-            name: "1_30"
-            ptype: "default"
-            serial: 83
-            Amp: {
-                index: 0 0
-                gain: 3.2656
-                readNoise: 10.0
-                saturationLevel: 51000.0
-            }
-            Amp: {
-                index: 1 0
-                gain: 3.1790
-                readNoise: 10.0
-                saturationLevel: 51000.0
-            }
-            Amp: {
-                index: 2 0
-                gain: 3.1836
-                readNoise: 10.0
-                saturationLevel: 51000.0
-            }
-            Amp: {
-                index: 3 0
-                gain: 3.1466
-                readNoise: 10.0
-                saturationLevel: 51000.0
-            }
-        }
-        Ccd: {
-            name: "0_41"
-            ptype: "default"
-            serial: 84
-            Amp: {
-                index: 0 0
-                gain: 3.1842
-                readNoise: 10.0
-                saturationLevel: 52000.0
-            }
-            Amp: {
-                index: 1 0
-                gain: 3.2844
-                readNoise: 10.0
-                saturationLevel: 52000.0
-            }
-            Amp: {
-                index: 2 0
-                gain: 3.2701
-                readNoise: 10.0
-                saturationLevel: 52000.0
-            }
-            Amp: {
-                index: 3 0
-                gain: 3.1997
-                readNoise: 10.0
-                saturationLevel: 52000.0
-            }
-        }
-        Ccd: {
-            name: "0_40"
-            ptype: "default"
-            serial: 85
-            Amp: {
-                index: 0 0
-                gain: 3.8908
-                readNoise: 10.0
-                saturationLevel: 46500.0
-            }
-            Amp: {
-                index: 1 0
-                gain: 3.7015
-                readNoise: 10.0
-                saturationLevel: 46500.0
-            }
-            Amp: {
-                index: 2 0
-                gain: 3.6056
-                readNoise: 10.0
-                saturationLevel: 46500.0
-            }
-            Amp: {
-                index: 3 0
-                gain: 3.6644
-                readNoise: 10.0
-                saturationLevel: 46500.0
-            }
-        }
-        Ccd: {
-            name: "0_39"
-            ptype: "default"
-            serial: 86
-            Amp: {
-                index: 0 0
-                gain: 3.2770
-                readNoise: 10.0
-                saturationLevel: 55000.0
-            }
-            Amp: {
-                index: 1 0
-                gain: 3.2346
-                readNoise: 10.0
-                saturationLevel: 55000.0
-            }
-            Amp: {
-                index: 2 0
-                gain: 3.1437
-                readNoise: 10.0
-                saturationLevel: 55000.0
-            }
-            Amp: {
-                index: 3 0
-                gain: 3.1277
-                readNoise: 10.0
-                saturationLevel: 55000.0
-            }
-        }
-        Ccd: {
-            name: "0_38"
-            ptype: "default"
-            serial: 87
-            Amp: {
-                index: 0 0
-                gain: 3.3977
-                readNoise: 10.0
-                saturationLevel: 51000.0
-            }
-            Amp: {
-                index: 1 0
-                gain: 3.2396
-                readNoise: 10.0
-                saturationLevel: 51000.0
-            }
-            Amp: {
-                index: 2 0
-                gain: 3.2640
-                readNoise: 10.0
-                saturationLevel: 51000.0
-            }
-            Amp: {
-                index: 3 0
-                gain: 3.4249
-                readNoise: 10.0
-                saturationLevel: 51000.0
-            }
-        }
-        Ccd: {
-            name: "0_37"
-            ptype: "default"
-            serial: 88
-            Amp: {
-                index: 0 0
-                gain: 3.1013
-                readNoise: 10.0
-                saturationLevel: 49000.0
-            }
-            Amp: {
-                index: 1 0
-                gain: 3.1038
-                readNoise: 10.0
-                saturationLevel: 49000.0
-            }
-            Amp: {
-                index: 2 0
-                gain: 3.0916
-                readNoise: 10.0
-                saturationLevel: 49000.0
-            }
-            Amp: {
-                index: 3 0
-                gain: 3.1775
-                readNoise: 10.0
-                saturationLevel: 49000.0
-            }
-        }
-        Ccd: {
             name: "0_36"
             ptype: "default"
             serial: 89
             Amp: {
                 index: 0 0
-                gain: 3.3720
+                gain: 3.6075
                 readNoise: 10.0
                 saturationLevel: 49500.0
             }
             Amp: {
                 index: 1 0
-                gain: 3.3839
+                gain: 3.6268
                 readNoise: 10.0
                 saturationLevel: 49500.0
             }
             Amp: {
                 index: 2 0
-                gain: 3.3601
+                gain: 3.6013
                 readNoise: 10.0
                 saturationLevel: 49500.0
             }
             Amp: {
                 index: 3 0
-                gain: 3.3174
+                gain: 3.5537
                 readNoise: 10.0
                 saturationLevel: 49500.0
             }
@@ -3744,25 +3744,25 @@ Electronic: {
             serial: 90
             Amp: {
                 index: 0 0
-                gain: 3.4125
+                gain: 3.6091
                 readNoise: 10.0
                 saturationLevel: 46500.0
             }
             Amp: {
                 index: 1 0
-                gain: 3.4448
+                gain: 3.6579
                 readNoise: 10.0
                 saturationLevel: 46500.0
             }
             Amp: {
                 index: 2 0
-                gain: 3.4604
+                gain: 3.6938
                 readNoise: 10.0
                 saturationLevel: 46500.0
             }
             Amp: {
                 index: 3 0
-                gain: 3.4681
+                gain: 3.7052
                 readNoise: 10.0
                 saturationLevel: 46500.0
             }
@@ -3773,25 +3773,25 @@ Electronic: {
             serial: 91
             Amp: {
                 index: 0 0
-                gain: 3.2040
+                gain: 3.4250
                 readNoise: 10.0
                 saturationLevel: 53000.0
             }
             Amp: {
                 index: 1 0
-                gain: 3.1650
+                gain: 3.3902
                 readNoise: 10.0
                 saturationLevel: 53000.0
             }
             Amp: {
                 index: 2 0
-                gain: 3.0515
+                gain: 3.2615
                 readNoise: 10.0
                 saturationLevel: 53000.0
             }
             Amp: {
                 index: 3 0
-                gain: 2.9752
+                gain: 3.1804
                 readNoise: 10.0
                 saturationLevel: 53000.0
             }
@@ -3802,25 +3802,25 @@ Electronic: {
             serial: 92
             Amp: {
                 index: 0 0
-                gain: 3.4651
+                gain: 3.7141
                 readNoise: 10.0
                 saturationLevel: 48000.0
             }
             Amp: {
                 index: 1 0
-                gain: 3.4115
+                gain: 3.6591
                 readNoise: 10.0
                 saturationLevel: 48000.0
             }
             Amp: {
                 index: 2 0
-                gain: 3.3061
+                gain: 3.5420
                 readNoise: 10.0
                 saturationLevel: 48000.0
             }
             Amp: {
                 index: 3 0
-                gain: 3.3841
+                gain: 3.6293
                 readNoise: 10.0
                 saturationLevel: 48000.0
             }
@@ -3831,25 +3831,25 @@ Electronic: {
             serial: 93
             Amp: {
                 index: 0 0
-                gain: 3.1880
+                gain: 3.3960
                 readNoise: 10.0
                 saturationLevel: 50000.0
             }
             Amp: {
                 index: 1 0
-                gain: 3.3680
+                gain: 3.6077
                 readNoise: 10.0
                 saturationLevel: 50000.0
             }
             Amp: {
                 index: 2 0
-                gain: 3.2862
+                gain: 3.5174
                 readNoise: 10.0
                 saturationLevel: 50000.0
             }
             Amp: {
                 index: 3 0
-                gain: 3.3856
+                gain: 3.6305
                 readNoise: 10.0
                 saturationLevel: 50000.0
             }
@@ -3860,25 +3860,25 @@ Electronic: {
             serial: 94
             Amp: {
                 index: 0 0
-                gain: 3.2583
+                gain: 3.4800
                 readNoise: 10.0
                 saturationLevel: 55000.0
             }
             Amp: {
                 index: 1 0
-                gain: 3.1479
+                gain: 3.3571
                 readNoise: 10.0
                 saturationLevel: 55000.0
             }
             Amp: {
                 index: 2 0
-                gain: 3.2328
+                gain: 3.4854
                 readNoise: 10.0
                 saturationLevel: 55000.0
             }
             Amp: {
                 index: 3 0
-                gain: 3.0937
+                gain: 3.3186
                 readNoise: 10.0
                 saturationLevel: 55000.0
             }
@@ -3889,25 +3889,25 @@ Electronic: {
             serial: 95
             Amp: {
                 index: 0 0
-                gain: 3.7559
+                gain: 4.0050
                 readNoise: 10.0
                 saturationLevel: 45000.0
             }
             Amp: {
                 index: 1 0
-                gain: 3.8177
+                gain: 4.0688
                 readNoise: 10.0
                 saturationLevel: 45000.0
             }
             Amp: {
                 index: 2 0
-                gain: 3.7472
+                gain: 3.9911
                 readNoise: 10.0
                 saturationLevel: 45000.0
             }
             Amp: {
                 index: 3 0
-                gain: 3.7366
+                gain: 3.9804
                 readNoise: 10.0
                 saturationLevel: 45000.0
             }
@@ -3918,25 +3918,25 @@ Electronic: {
             serial: 96
             Amp: {
                 index: 0 0
-                gain: 3.2718
+                gain: 3.4931
                 readNoise: 10.0
                 saturationLevel: 50000.0
             }
             Amp: {
                 index: 1 0
-                gain: 3.3789
+                gain: 3.6141
                 readNoise: 10.0
                 saturationLevel: 50000.0
             }
             Amp: {
                 index: 2 0
-                gain: 3.3511
+                gain: 3.5797
                 readNoise: 10.0
                 saturationLevel: 50000.0
             }
             Amp: {
                 index: 3 0
-                gain: 3.3203
+                gain: 3.5656
                 readNoise: 10.0
                 saturationLevel: 50000.0
             }
@@ -3947,25 +3947,25 @@ Electronic: {
             serial: 97
             Amp: {
                 index: 0 0
-                gain: 3.3790
+                gain: 3.6161
                 readNoise: 10.0
                 saturationLevel: 51000.0
             }
             Amp: {
                 index: 1 0
-                gain: 3.3937
+                gain: 3.6126
                 readNoise: 10.0
                 saturationLevel: 51000.0
             }
             Amp: {
                 index: 2 0
-                gain: 3.2324
+                gain: 3.4366
                 readNoise: 10.0
                 saturationLevel: 51000.0
             }
             Amp: {
                 index: 3 0
-                gain: 3.0509
+                gain: 3.2555
                 readNoise: 10.0
                 saturationLevel: 51000.0
             }
@@ -3976,25 +3976,25 @@ Electronic: {
             serial: 98
             Amp: {
                 index: 0 0
-                gain: 3.2494
+                gain: 3.4641
                 readNoise: 10.0
                 saturationLevel: 55000.0
             }
             Amp: {
                 index: 1 0
-                gain: 3.1164
+                gain: 3.3127
                 readNoise: 10.0
                 saturationLevel: 55000.0
             }
             Amp: {
                 index: 2 0
-                gain: 3.0786
+                gain: 3.2820
                 readNoise: 10.0
                 saturationLevel: 55000.0
             }
             Amp: {
                 index: 3 0
-                gain: 3.0596
+                gain: 3.2724
                 readNoise: 10.0
                 saturationLevel: 55000.0
             }
@@ -4005,25 +4005,25 @@ Electronic: {
             serial: 99
             Amp: {
                 index: 0 0
-                gain: 4.1373
+                gain: 4.4115
                 readNoise: 10.0
                 saturationLevel: 40000.0
             }
             Amp: {
                 index: 1 0
-                gain: 3.3070
+                gain: 3.5293
                 readNoise: 10.0
                 saturationLevel: 40000.0
             }
             Amp: {
                 index: 2 0
-                gain: 3.3516
+                gain: 3.5722
                 readNoise: 10.0
                 saturationLevel: 40000.0
             }
             Amp: {
                 index: 3 0
-                gain: 3.3544
+                gain: 3.5893
                 readNoise: 10.0
                 saturationLevel: 40000.0
             }
@@ -4034,25 +4034,25 @@ Electronic: {
             serial: 100
             Amp: {
                 index: 0 0
-                gain: 3.4839
+                gain: 3.7434
                 readNoise: 10.0
                 saturationLevel: 47500.0
             }
             Amp: {
                 index: 1 0
-                gain: 3.3868
+                gain: 3.6152
                 readNoise: 10.0
                 saturationLevel: 47500.0
             }
             Amp: {
                 index: 2 0
-                gain: 3.3767
+                gain: 3.5929
                 readNoise: 10.0
                 saturationLevel: 47500.0
             }
             Amp: {
                 index: 3 0
-                gain: 3.4058
+                gain: 3.6272
                 readNoise: 10.0
                 saturationLevel: 47500.0
             }
@@ -4063,25 +4063,25 @@ Electronic: {
             serial: 101
             Amp: {
                 index: 0 0
-                gain: 3.3193
+                gain: 3.5469
                 readNoise: 10.0
                 saturationLevel: 55000.0
             }
             Amp: {
                 index: 1 0
-                gain: 3.2977
+                gain: 3.5384
                 readNoise: 10.0
                 saturationLevel: 55000.0
             }
             Amp: {
                 index: 2 0
-                gain: 3.3542
+                gain: 3.6006
                 readNoise: 10.0
                 saturationLevel: 55000.0
             }
             Amp: {
                 index: 3 0
-                gain: 3.3767
+                gain: 3.6291
                 readNoise: 10.0
                 saturationLevel: 55000.0
             }
@@ -4092,25 +4092,25 @@ Electronic: {
             serial: 102
             Amp: {
                 index: 0 0
-                gain: 3.6207
+                gain: 3.8229
                 readNoise: 10.0
                 saturationLevel: 44000.0
             }
             Amp: {
                 index: 1 0
-                gain: 3.7212
+                gain: 3.9344
                 readNoise: 10.0
                 saturationLevel: 44000.0
             }
             Amp: {
                 index: 2 0
-                gain: 3.6981
+                gain: 3.9308
                 readNoise: 10.0
                 saturationLevel: 44000.0
             }
             Amp: {
                 index: 3 0
-                gain: 3.9673
+                gain: 4.2350
                 readNoise: 10.0
                 saturationLevel: 44000.0
             }
@@ -4121,25 +4121,25 @@ Electronic: {
             serial: 103
             Amp: {
                 index: 0 0
-                gain: 3.3664
+                gain: 3.5869
                 readNoise: 10.0
                 saturationLevel: 48000.0
             }
             Amp: {
                 index: 1 0
-                gain: 3.3190
+                gain: 3.5360
                 readNoise: 10.0
                 saturationLevel: 48000.0
             }
             Amp: {
                 index: 2 0
-                gain: 3.4101
+                gain: 3.6423
                 readNoise: 10.0
                 saturationLevel: 48000.0
             }
             Amp: {
                 index: 3 0
-                gain: 3.3377
+                gain: 3.5520
                 readNoise: 10.0
                 saturationLevel: 48000.0
             }
@@ -4150,25 +4150,25 @@ Electronic: {
             serial: 104
             Amp: {
                 index: 0 0
-                gain: 3.0008
+                gain: 3.1296
                 readNoise: 10.0
                 saturationLevel: 55000.0
             }
             Amp: {
                 index: 1 0
-                gain: 3.1585
+                gain: 3.3026
                 readNoise: 10.0
                 saturationLevel: 55000.0
             }
             Amp: {
                 index: 2 0
-                gain: 3.2038
+                gain: 3.3817
                 readNoise: 10.0
                 saturationLevel: 55000.0
             }
             Amp: {
                 index: 3 0
-                gain: 3.3020
+                gain: 3.5192
                 readNoise: 10.0
                 saturationLevel: 55000.0
             }
@@ -4179,25 +4179,25 @@ Electronic: {
             serial: 105
             Amp: {
                 index: 0 0
-                gain: 3.1412
+                gain: 3.3609
                 readNoise: 10.0
                 saturationLevel: 55000.0
             }
             Amp: {
                 index: 1 0
-                gain: 3.2110
+                gain: 3.4082
                 readNoise: 10.0
                 saturationLevel: 55000.0
             }
             Amp: {
                 index: 2 0
-                gain: 3.2006
+                gain: 3.4134
                 readNoise: 10.0
                 saturationLevel: 55000.0
             }
             Amp: {
                 index: 3 0
-                gain: 3.2616
+                gain: 3.5023
                 readNoise: 10.0
                 saturationLevel: 55000.0
             }
@@ -4208,25 +4208,25 @@ Electronic: {
             serial: 106
             Amp: {
                 index: 0 0
-                gain: 3.2058
+                gain: 3.3195
                 readNoise: 10.0
                 saturationLevel: 55000.0
             }
             Amp: {
                 index: 1 0
-                gain: 3.3427
+                gain: 3.4867
                 readNoise: 10.0
                 saturationLevel: 55000.0
             }
             Amp: {
                 index: 2 0
-                gain: 3.2740
+                gain: 3.4577
                 readNoise: 10.0
                 saturationLevel: 55000.0
             }
             Amp: {
                 index: 3 0
-                gain: 3.2683
+                gain: 3.4673
                 readNoise: 10.0
                 saturationLevel: 55000.0
             }
@@ -4237,25 +4237,25 @@ Electronic: {
             serial: 107
             Amp: {
                 index: 0 0
-                gain: 3.1684
+                gain: 3.3170
                 readNoise: 10.0
                 saturationLevel: 55000.0
             }
             Amp: {
                 index: 1 0
-                gain: 3.0360
+                gain: 3.2255
                 readNoise: 10.0
                 saturationLevel: 55000.0
             }
             Amp: {
                 index: 2 0
-                gain: 3.0980
+                gain: 3.2903
                 readNoise: 10.0
                 saturationLevel: 55000.0
             }
             Amp: {
                 index: 3 0
-                gain: 3.1355
+                gain: 3.3406
                 readNoise: 10.0
                 saturationLevel: 55000.0
             }
@@ -4266,25 +4266,25 @@ Electronic: {
             serial: 108
             Amp: {
                 index: 0 0
-                gain: 3.2307
+                gain: 3.3508
                 readNoise: 10.0
                 saturationLevel: 55000.0
             }
             Amp: {
                 index: 1 0
-                gain: 3.2155
+                gain: 3.3597
                 readNoise: 10.0
                 saturationLevel: 55000.0
             }
             Amp: {
                 index: 2 0
-                gain: 3.1964
+                gain: 3.3779
                 readNoise: 10.0
                 saturationLevel: 55000.0
             }
             Amp: {
                 index: 3 0
-                gain: 3.3228
+                gain: 3.5293
                 readNoise: 10.0
                 saturationLevel: 55000.0
             }
@@ -4295,25 +4295,25 @@ Electronic: {
             serial: 109
             Amp: {
                 index: 0 0
-                gain: 3.2425
+                gain: 3.4689
                 readNoise: 10.0
                 saturationLevel: 55000.0
             }
             Amp: {
                 index: 1 0
-                gain: 3.1621
+                gain: 3.3610
                 readNoise: 10.0
                 saturationLevel: 55000.0
             }
             Amp: {
                 index: 2 0
-                gain: 3.2177
+                gain: 3.4321
                 readNoise: 10.0
                 saturationLevel: 55000.0
             }
             Amp: {
                 index: 3 0
-                gain: 3.2216
+                gain: 3.4181
                 readNoise: 10.0
                 saturationLevel: 55000.0
             }
@@ -4324,25 +4324,25 @@ Electronic: {
             serial: 110
             Amp: {
                 index: 0 0
-                gain: 3.1897
+                gain: 3.3427
                 readNoise: 10.0
                 saturationLevel: 55000.0
             }
             Amp: {
                 index: 1 0
-                gain: 3.3285
+                gain: 3.4856
                 readNoise: 10.0
                 saturationLevel: 55000.0
             }
             Amp: {
                 index: 2 0
-                gain: 3.2308
+                gain: 3.4176
                 readNoise: 10.0
                 saturationLevel: 55000.0
             }
             Amp: {
                 index: 3 0
-                gain: 3.2625
+                gain: 3.4788
                 readNoise: 10.0
                 saturationLevel: 55000.0
             }
@@ -4353,25 +4353,25 @@ Electronic: {
             serial: 111
             Amp: {
                 index: 0 0
-                gain: 3.2564
+                gain: 3.4619
                 readNoise: 10.0
                 saturationLevel: 55000.0
             }
             Amp: {
                 index: 1 0
-                gain: 3.2511
+                gain: 3.4463
                 readNoise: 10.0
                 saturationLevel: 55000.0
             }
             Amp: {
                 index: 2 0
-                gain: 3.3001
+                gain: 3.4954
                 readNoise: 10.0
                 saturationLevel: 55000.0
             }
             Amp: {
                 index: 3 0
-                gain: 3.3053
+                gain: 3.5139
                 readNoise: 10.0
                 saturationLevel: 55000.0
             }
