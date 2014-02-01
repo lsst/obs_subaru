@@ -934,16 +934,18 @@ def mosaicIo(mosaics, dirName, mode):
     if mode == "r":
         import glob
         for f in glob.glob(os.path.join(dirName, "*.fits")):
-            fileName = os.path.basename(f)
-            mat = re.search(r"^(\d+)\.fits", fileName)
-            v = int(mat.group(1))
+            v = os.path.splitext(os.path.basename(f))[0]
+            try:
+                v = int(v)
+            except:
+                pass
             mosaics[v] = afwImage.ImageF(f)
     elif mode == "w":
         if not os.path.isdir(dirName):
             os.makedirs(dirName)
 
         for k, v in mosaics.items():
-            v.writeFits(os.path.join(dirName, "%d.fits" % k))
+            v.writeFits(os.path.join(dirName, "%s.fits" % k))
     else:
         raise RuntimeError("Please use a mode of r or w")
 
@@ -1006,7 +1008,7 @@ def flattenBackground(im, nx=2, ny=2, scale=False):
 #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 def plotRadialProfile(mos, visits, butler=None, showMedians=True, title="", xlim=None, ylim=None,
-                      binning=1, tieIndex=None, normalize=True,
+                      binning=1, tieIndex=None, normalize=True, LaTeX=False, dirName=None, savePlot=False,
                       marker='-', labelVisit=False):
     """
 plotRadialProfile(mos, range(902686, 902702+1, 2) + range(902612, 902634+1, 2) + [904006, 904008, 904036, 904038, 902876], butler=butler, xlim=(-10, 850), tieIndex=40
@@ -1040,6 +1042,7 @@ plotRadialProfile(mos, range(902686, 902702+1, 2) + range(902612, 902634+1, 2) +
     domeflats += range(903036, 903044+1, 2) # g
     domeflats += range(903440, 903452+1, 2) # r
     domeflats += range(902686, 902704+1, 2) # i
+    domeflats += [904606, 904608, 904626, 904628] # i
     domeflats += range(904478, 904490+1, 2) # y
     domeflats += range(904742, 904766+1, 2) # NB921
 
@@ -1053,10 +1056,18 @@ plotRadialProfile(mos, range(902686, 902702+1, 2) + range(902612, 902634+1, 2) +
         filterName = visits.lower()
 
         if not title:
-            title = filterName
+            title = "%s (forced to agree at %dth point)" % (filterName, tieIndex)
 
         visits = []
         for v in mos.keys():
+            try:
+                int(v)                  # only int keys can really be visit numbers
+            except:
+                continue
+
+            if v in [902976]:           # too faint
+                continue
+            
             if v in darkDome:
                 continue
 
@@ -1078,6 +1089,11 @@ plotRadialProfile(mos, range(902686, 902702+1, 2) + range(902612, 902634+1, 2) +
                 
     if not visits:
         raise RuntimeError("Please provide at least on visit for me to plot")
+
+    if LaTeX:
+        print r"""\begin{longtable}{lllll}
+visit & median flux & exposure time & line type & line colour \\
+\hline"""
 
     pyplot.clf()
     for i, v in enumerate(sorted(visits)):
@@ -1150,7 +1166,11 @@ plotRadialProfile(mos, range(902686, 902702+1, 2) + range(902612, 902634+1, 2) +
               'blue'
         
         if True:
-            print "%s %s %6.0f %3.0f  %2s %s" % (filter.getName(), v, med, calib.getExptime(), marker, ctype)
+            columns = (v, med, calib.getExptime(), marker, ctype)
+            if LaTeX:
+                print r"%s & %6.0f & %3.0f & %2s & %s \\" % columns
+            else:
+                print filter.getName(), ("%s %6.0f %3.0f  %2s %s" % columns)
 
         plotRadial(binning*r.flatten(), ima.flatten(), theta.flatten(), title=title, alpha=1.0,
                    showMedians=showMedians, xlim=xlim, ylim=ylim,
@@ -1160,6 +1180,18 @@ plotRadialProfile(mos, range(902686, 902702+1, 2) + range(902612, 902634+1, 2) +
         if False and i == 3:
             break
 
+    if LaTeX:
+        print r"""\caption{\label{%sLegend} Index of lines in %s radial profiles}
+\end{longtable}""" % (filterName, filterName)
+
     legend = pyplot.legend(loc="best", ncol=3,
                            borderpad=0.1, labelspacing=0, handletextpad=0, handlelength=2, borderaxespad=0)
     legend.draggable(True)
+
+    if savePlot:
+        fileName = "%s-rings-%d.png" % (filterName, tieIndex)
+        if dirName:
+            fileName = os.path.join(os.path.expanduser(dirName), fileName)
+        pyplot.savefig(fileName)
+        print "Wrote %s" % fileName
+
