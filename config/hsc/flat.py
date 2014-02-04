@@ -7,4 +7,4 @@ root.combination.badAmpCcdList = [0]
 root.combination.badAmpList =    [2]
 root.combination.xCenter = -6.22
 root.combination.yCenter = -113.26
-root.combination.radius = 18250
+root.combination.radius = 18000
