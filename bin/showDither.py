@@ -117,6 +117,7 @@ def main(butler, visits, fields, fieldRadius, showCCDs=False, aitoff=False, alph
     plt.xlabel("ra")
     plt.ylabel("dec")
 
+    return plt
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="""Plot dither pattern from a set of visits;
@@ -131,9 +132,11 @@ E.g.
     parser.add_argument('dataDir', type=str, nargs="?", help='Directory to search for data')
     parser.add_argument('--visits', type=str, help='Desired visits (you may use .. and ^ as in pipe_base --id)')
     parser.add_argument('--field', type=str, help='Desired field (e.g. STRIPE82L)')
+    parser.add_argument('--filter', type=str, help='Desired filter (e.g. g or HSC-R)')
     parser.add_argument('--exclude', type=str, nargs="*",
                         help='Exclude these types of  field (e.g. BIAS DARK *FOCUS*)')
     parser.add_argument('--dateObs', type=str, nargs="*", help='Desired date[s] (e.g. 2013-06-15 2013-06-16)')
+    parser.add_argument('--fileName', type=str, help='File to save plot to')
     parser.add_argument('--alpha', type=float, help='Transparency of observed regions', default=0.2)
     parser.add_argument('--fieldRadius', type=float, help='Radius of usable field (degrees)', default=0.75)
     parser.add_argument('--showCCDs', action="store_true",
@@ -149,10 +152,14 @@ E.g.
             print >> sys.stderr, "Please specify a dataDir (maybe in an inputFile) or set $SUPRIME_DATA_DIR"
             sys.exit(1)
 
-    butler = dafPersist.Butler(args.dataDir)
+    try:
+        butler = dafPersist.Butler(args.dataDir)
+    except RuntimeError as e:
+        print >> sys.stderr, "I couldn't instantiate a butler with root %s: %s" % (args.dataDir, e)
+        sys.exit(1)
 
     if not (args.visits or args.field or args.dateObs):
-        print >> sys.stderr, "Please choose a visit, field, and/or dateObs"
+        print >> sys.stderr, "Please choose a visit, field, and/or dateObs (and maybe a filter)"
         sys.exit(1)
 
     visits = []
@@ -172,10 +179,16 @@ E.g.
         #
         visits = list(set(visits) & set(butler.queryMetadata("raw", "visit", ccd=0)))
  
-    if args.dateObs or args.field:
+    if args.dateObs or args.field or args.filter:
         query = {}
         if args.field:
             query["field"] = args.field
+
+        if args.filter:
+            if args.filter in "grizy":
+                args.filter = "HSC-%s" % args.filter.upper()
+                
+            query["filter"] = args.filter
 
         _visits = []
         if args.dateObs:
@@ -214,10 +227,14 @@ E.g.
         for v in visits:
             print v, fields[v]
 
-    main(butler, visits, fields, args.fieldRadius,
-         showCCDs=args.showCCDs, aitoff=args.aitoff, alpha=args.alpha, title="", verbose=args.verbose)
+    fig = main(butler, visits, fields, args.fieldRadius,
+               showCCDs=args.showCCDs, aitoff=args.aitoff, alpha=args.alpha, title="",
+               verbose=args.verbose)
 
     if args.verbose:
         print "                          \r",; sys.stdout.flush()
-        
+
+    if args.fileName:
+        plt.savefig(args.fileName)
+
     raw_input("Exit? ")
