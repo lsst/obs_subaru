@@ -5,6 +5,11 @@ import sys
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt;  pyplot = plt
 import numpy as np
+try:
+    import scipy
+    import scipy.interpolate
+except ImportError:
+    scipy = None
 
 import lsst.daf.base as dafBase
 import lsst.pex.config as pexConfig
@@ -317,7 +322,7 @@ Grow BAD regions in the flat field by nGrow pixels (useful for vignetted chips)
         if False:
             im = afwCGUtils.trimRawCallback(exp.getMaskedImage().convertF(), ccd, correctGain=False)
         else:
-            im = isrCallback(exp.getMaskedImage(), ccd, correctGain=False)
+            im = isrCallback(exp.getMaskedImage(), ccd, doFlatten=False, correctGain=False)
         im.getMask()[:] |= flatMask
         
         ampData[ccd] = []
@@ -367,7 +372,7 @@ Grow BAD regions in the flat field by nGrow pixels (useful for vignetted chips)
             exp = butler.get("raw", visit=v, ccd=ccdNo)
             
             ccd = afwCG.cast_Ccd(exp.getDetector())
-            im = isrCallback(exp.getMaskedImage(), ccd)
+            im = isrCallback(exp.getMaskedImage(), ccd, doFlatten=True)
             ima.append(im)
 
             ds9.mtv(im, frame=frame, title="%d %d" % (v, ccdNo))
@@ -1023,15 +1028,22 @@ def plotCcdZP(butler, visit, correctJacobian=False, zlim=(None, None), visit2=No
                 except TypeError:
                     pass
 
+                if v is None:
+                    zps.append(np.nan)
+                    continue
+
                 try:
                     calexp_md = butler.get("calexp_md", visit=v, ccd=ccdId, immediate=True)
                 except Exception, e:
-                    if v is not None:
-                        print e
+                    print e
                     zps.append(np.nan)
                     continue
+
                 calib = afwImage.Calib(calexp_md)
-                ZP = calib.getMagnitude(1.0) - 2.5*np.log10(calib.getExptime())
+                try:
+                    ZP = calib.getMagnitude(1.0) - 2.5*np.log10(calib.getExptime())
+                except:
+                    ZP = np.nan
 
             if correctJacobian:
                 dist = ccd.getDistortion()
@@ -1058,7 +1070,10 @@ def plotCcdZP(butler, visit, correctJacobian=False, zlim=(None, None), visit2=No
     try:
         zlim[0]
     except TypeError:
-        zlim = np.median(zp) + np.array([-zlim, zlim])
+        if zlim is None:
+            zlim = (None, None)
+        else:
+            zlim = np.median(zp) + np.array([-zlim, zlim])
         
     norm = pyplot.Normalize(*zlim)
 
@@ -1655,7 +1670,7 @@ CCDQe_filter = dict(
         18  : 1.0162,
         19  : 1.0105,
         20  : 1.0032,
-            21  : 1.0149,
+        21  : 1.0149,
         22  : 0.9934,
         23  : 1.0104,
         24  : 1.0330,
@@ -1976,6 +1991,7 @@ CCDQe_filter = dict(
         111 : 1.0000,
         },
     )
+CCDQe_filter['z'] = CCDQe_filter['i'] 
 
 CCDQe = CCDQe_filter
 
@@ -2004,9 +2020,9 @@ def getQE(serial, filter):
 #
 # They were calculated with e.g.
 #  for serial in range(112):
-#     correctQE(serial, filter='y', calculate=True, visit=904352, butler=butler)
+#     getLevel(serial, filter='y', calculate=True, visit=904352, butler=butler)
 #
-__edges = {
+edges = {
     'g' : {                             # visit 902986
         0   : {   5 : 44306, 104 : 37610,  },
         1   : { None:None,   6 : 46971,  },
@@ -2579,9 +2595,8 @@ __edges = {
         },
           }
 
-def correctQE(serial, filter='g', calculate=False, visit=0, butler=None, canonical=None):
-    levels = CCDQe.get(filter, 1.0)
-    fiddle = False
+def getLevel(serial, filter='g', fiddle=False, calculate=False, visit=0, butler=None, canonical=None):
+    levels = levels902986
 
     if not levels:
         avg = 1.0
@@ -2595,10 +2610,7 @@ def correctQE(serial, filter='g', calculate=False, visit=0, butler=None, canonic
     filter = filter.lower()
 
     lev = levels[serial] if levels else avg
-    if False:                           # levels
-        correction = avg/float(lev)
-    else:                               # QE
-        correction = float(lev)/avg
+    correction = avg/float(lev)
         
     if calculate:
         assert butler
@@ -2818,20 +2830,22 @@ def writeObsTable(butler, mos, LaTeX=False):
         903432 : "Twilight flat 15000 e$^-$",
         903440 : "Dome flat; 4x10W 6V 4.33A",
         903452 : "Dome flat; 4x10W 3V 3.19A",
-        904520 : "Dark dome",
-        904534 : "Dark dome",
-        904536 : "Dark dome",
-        904538 : "Dark dome",
-        904670 : "Dark dome",
-        904672 : "Dark dome",
-        904674 : "Dark dome",
-        904676 : "Dark dome",
-        904678 : "Dark dome",
-        904786 : "Dark dome",
-        904788 : "Dark dome",
-        904790 : "Dark dome",
-        904792 : "Dark dome",
-        904794 : "Dark dome",
+        904520 : "Dark dome EL=90",
+        904534 : "Dark dome EL=90",
+        904536 : "Dark dome El=90; vent shutters open",
+        904538 : "Dark dome EL=90; vent shutters closes; light leaks sealed",
+        904670 : "Dark dome EL=90",
+        904672 : "Dark dome EL=60",
+        904674 : "Dark dome EL=30",
+        904676 : "Dark dome EL=15",
+        904678 : "Dark dome EL=45",
+        904786 : "Dark dome El=90; Top screen at rear",
+        904788 : "Dark dome El=90; Usual screen position",
+        904790 : "Dark dome El=90; cal off",
+        904792 : "Dark dome El=90; cal off; tertiary cover closed",
+        904794 : "Dark dome El=90; cal off; tertiary cover closed; mirror cover power off",
+        905420 : "Dome flat",
+        905428 : "Dome flat",
         }
 
     summary = {}
@@ -2954,37 +2968,16 @@ def getPixelArea(camera, X, Y):
     return aim
 
 def correctVignettingCallback(im, ccd=None, butler=None, imageSource=None, filter=None,
-                              subtractDark=False, subtractBias=False,
-                              medianFilter=False, nx=11, ny=None):
-    """A callback function that subtracts the bias and trims a raw image"""
+                              correctQE=True, medianFilter=False, nx=11, ny=None):
+    """A callback function that subtracts the bias and trims a raw image and then
+corrects for vignetting/Jacobian"""
 
     if not ccd:        
         ccd = afwCG.cast_Ccd(im.getDetector())
     ccdSerial = ccd.getId().getSerial()
 
-    im = isrCallback(im, ccd, butler, imageSource=imageSource, correctGain=False)
-
-    if subtractDark or subtractBias:
-        assert butler
-
-        md = butler.get("raw_md", ccd=ccdSerial, **imageSource.kwargs)
-        if subtractDark:
-            exptime = afwImage.Calib(md).getExptime()
-            dark = butler.get("dark", ccd=ccdSerial, **imageSource.kwargs)
-            dark = dark.getMaskedImage().getImage()
-            dark *= exptime
-
-            im -= dark
-        if subtractBias:
-            bias = butler.get("bias", ccd=ccdSerial, **imageSource.kwargs)
-            bias = bias.getMaskedImage().getImage()
-
-            im -= bias
-    #
-    # Convert from DN to e
-    #
-    for a in ccd:
-        im[a.getAllPixels()] *= a.getElectronicParams().getGain()
+    isr = isrCallbackQE if correctQE else isrCallback
+    im = isr(im, ccd, butler, imageSource=imageSource, doFlatten=False, correctGain=True)
 
     parent = ccd.getParent()
     while parent:
@@ -3018,40 +3011,32 @@ def correctVignettingCallback(im, ccd=None, butler=None, imageSource=None, filte
     #
     # Estimate useful signal level even for very strongly vignetted chips
     #
-    ima = (im.getImage() if hasattr(im, "getImage") else im).getArray()
-    omedian = np.median(ima)
-    for i in range(20):
-        median = np.median(ima[np.where(ima > 0.75*omedian)])
-        if abs(median - omedian) < 1:
-            break
-        omedian = median
-    
-    correctQe = True
-    if correctQe:
-        if not filter:
-            if imageSource:
-                filter = imageSource.filter
-        if not filter:
-            correctQe = False
-
-    if correctQe:
-        correction = 1/getQE(ccdSerial, filter)
-        
-        im *= correction
-    
-    print "Correcting vignetting for %s %3d %.2f%s" %(
-        ccd.getId().getName(), ccdSerial, median, (" %.3f" % correction if correctQe else ""))
+    if imageSource and imageSource.verbose:
+        print "Correcting vignetting for %s %3d %.2f" %(ccd.getId().getName(), ccdSerial, median)
 
     if medianFilter:
         im = medianFilterImage(im, nx, ny)
 
     return im
 
-def makeVignettingImage(im, correctJacobian=True, correctQe=True, filter=None):
+def makeVignettingImage(im, modelJacobian=True, modelQE=True, filter=None):
     return makeFlatImage(im, filter=filter,
-                         modelVignetting=True, correctJacobian=correctJacobian, correctQe=correctQe)
+                         modelVignetting=True, modelJacobian=modelJacobian, modelQE=modelQE)
 
-def makeFlatImage(im, filter=None, modelVignetting=True, correctJacobian=True, correctQe=True,
+def makeEvenSplineInterpolator(x, y):
+    npt = len(x)
+
+    vecs = [x, y]
+    for i, v in enumerate(vecs):
+        v_o = np.empty(2*npt - 1)
+        vecs[i] = v_o
+
+        v_o[0:npt] = -v[::-1]
+        v_o[npt:] =   v[1:]
+
+    return scipy.interpolate.interp1d(vecs[0], vecs[1], kind='cubic')
+
+def makeFlatImage(im, filter=None, modelVignetting=True, modelJacobian=True, modelQE=True,
                   filterThroughput=None):
     ccd = afwCG.cast_Ccd(im.getDetector())
 
@@ -3073,20 +3058,48 @@ def makeFlatImage(im, filter=None, modelVignetting=True, correctJacobian=True, c
         filterR, filterThroughput = filterThroughput
         filterThroughput = filterThroughput/filterThroughput[0]
         filterR = filterR/15e-3         # convert to pixels
+        #
+        # Prepare a spline fit to filterThroughput, forced to be an even function
+        # and extended in radius by a factor of 2
+        #
+        if scipy:
+            filterR = filterR.append(2*filterR[-1])
+            filterThroughput = filterThroughput.append(filterThroughput[-1])
 
+            if False:
+                npt = len(filterR)
+                filterR_o = np.empty(2*npt - 1)
+                filterThroughput_o = np.empty_like(filterR_o)
+
+                filterR_o[0:npt] =         -filterR[::-1]
+                filterR_o[npt:] =           filterR[1:]
+
+                filterThroughput_o[0:npt] = filterThroughput[::-1]
+                filterThroughput_o[npt:] =  filterThroughput[1:]
+
+                interpolator = scipy.interpolate.interp1d(filterR_o, filterThroughput_o, kind='cubic')
+            else:
+                interpolator = makeEvenSplineInterpolator(filterR, filterThroughput)
+        
         fim = np.empty((height, width)) # n.b. numpy index order
-        fY = np.arange(height)/float(height - 1)
-        y = np.array([0, height - 1])
+        y0 = 0
+        for frac in (0.5, 1.0):
+            y1 = int(frac*height)
+            y = np.array([y0, y1 - 1])
 
-        for x in range(width):
-            r = [np.hypot(*ccd.getPositionFromPixel(afwGeom.PointD(x, _y)).getPixels(1.0)) for _y in y]
-            throughput = np.interp(r, filterR, filterThroughput) # linear interpolation
+            fY = np.arange(y1 - y0)/float(y1 - y0 - 1)
+            for x in range(width):
+                r = [np.hypot(*ccd.getPositionFromPixel(afwGeom.PointD(x, _y)).getPixels(1.0)) for _y in y]
+                throughput = interpolator(r) if scipy else \
+                    np.interp(r, filterR, filterThroughput) # linear interpolation
 
-            fim[:, x] = throughput[0] + fY*(throughput[1] - throughput[0])
+                fim[y0:y1, x] = throughput[0] + fY*(throughput[1] - throughput[0])
+
+            y0 = y1
 
         im.getMaskedImage().getImage().getArray()[:] *= fim
 
-    if correctJacobian:
+    if modelJacobian:
         dist = ccd.getDistortion()
 
         jim = np.empty((height, width)) # n.b. numpy index order
@@ -3102,27 +3115,139 @@ def makeFlatImage(im, filter=None, modelVignetting=True, correctJacobian=True, c
 
         im.getMaskedImage().getImage().getArray()[:] *= jim
 
-    if correctQe:
-        im.getMaskedImage()[:] /= getQE(ccd.getId().getSerial(), filter)
+    if modelQE:
+        im.getMaskedImage()[:] *= getQE(ccd.getId().getSerial(), filter)
 
 #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
-filterCurves = dict(
-    radii = np.array([ 0.00, 50.00, 100.00, 150.00, 200.00, 250.00, 270.00]), # mm
-    g =     dict(EW         = np.array([ 143.35,  143.00,  142.90,  142.73,  142.57,  142.33,  142.22]),
-                 lambda_bar = np.array([ 473.07,  473.04,  472.94,  472.78,  472.56,  472.10,  471.99])),
-    r =     dict(EW         = np.array([ 144.90,  138.90,  135.08,  134.15,  134.40,  135.38,  133.72]),
-                 lambda_bar = np.array([ 620.59,  623.80,  621.14,  622.74,  623.21,  621.77,  623.72])),
-    i =     dict(EW         = np.array([ 141.50,  142.01,  143.25,  144.59,  146.72,  148.23,  147.72]),
-                 lambda_bar = np.array([ 771.10,  771.81,  771.80,  770.18,  769.23,  773.33,  774.76])),
-    z =     dict(EW         = np.array([  80.01,   80.12,   80.14,   79.37,   78.82,   80.41,   80.26]),
-                 lambda_bar = np.array([ 892.63,  892.33,  892.18,  891.72,  891.99,  891.25,  891.45])),
-    y =     dict(EW =         np.array([ 141.37,  141.34,  139.06,  141.19,  139.50,  143.70,  144.91]),
-                 lambda_bar = np.array([1002.77, 1002.98, 1004.36, 1003.56, 1003.99, 1003.19, 1001.92])),
-                 )
+filterData = dict(
+    radii =                   np.array([    0.00,    50.00,   100.00,   150.00,   200.00,   250.00,   270.00]), # mm
+    g =    dict(EW          = np.array([  143.35,   143.00,   142.90,   142.73,   142.57,   142.33,   142.22]),
+                lambda_bar  = np.array([  473.07,   473.04,   472.94,   472.78,   472.56,   472.10,   471.99]),
+                peak        = np.array([   98.18,    97.95,    98.17,    98.09,    98.05,    98.00,    97.95]),
+                on50        = np.array([  399.65,   399.65,   399.63,   399.56,   399.40,   399.04,   398.96]),
+                off50       = np.array([  546.79,   546.76,   546.57,   546.34,   546.05,   545.51,   545.38]),
+                on10        = np.array([  397.02,   397.03,   397.03,   396.97,   396.76,   396.39,   396.30]),
+                off10       = np.array([  550.84,   550.81,   550.61,   550.30,   549.92,   549.29,   549.08]),
+                on80        = np.array([  401.02,   401.01,   400.98,   400.92,   400.79,   400.47,   400.38]),
+                off80       = np.array([  544.43,   544.42,   544.29,   544.15,   543.92,   543.42,   543.30]),
+                Tmin        = np.array([   95.98,    95.83,    95.78,    95.81,    95.78,    95.60,    95.65]),
+                Tmax        = np.array([   98.18,    97.95,    98.17,    98.09,    98.05,    98.00,    97.95]),
+                Tavg        = np.array([   97.14,    96.92,    96.97,    96.96,    96.94,    96.89,    96.85])),
+   r =     dict(EW          = np.array([  144.90,   138.90,   135.08,   134.15,   134.40,   135.38,   133.72]),
+                lambda_bar  = np.array([  620.59,   623.80,   621.14,   622.74,   623.21,   621.77,   623.72]),
+                peak        = np.array([   96.47,    94.66,    92.39,    91.74,    92.12,    93.19,    91.75]),
+                on50        = np.array([  542.38,   547.38,   545.37,   547.02,   547.74,   546.63,   548.32]),
+                off50       = np.array([  697.74,   699.44,   696.49,   697.87,   697.97,   695.92,   697.99]),
+                on10        = np.array([  537.35,   542.44,   540.43,   542.05,   542.79,   541.69,   543.26]),
+                off10       = np.array([  702.70,   704.74,   701.74,   703.18,   703.26,   701.16,   703.56]),
+                on80        = np.array([  546.61,   553.00,   550.31,   551.93,   552.58,   551.37,   553.48]),
+                off80       = np.array([  694.47,   695.88,   692.84,   694.26,   694.34,   692.39,   694.13]),
+                Tmin        = np.array([   88.35,    86.91,    84.96,    83.78,    84.31,    85.60,    85.00]),
+                Tmax        = np.array([   96.25,    94.41,    91.96,    91.74,    92.12,    93.19,    91.75]),
+                Tavg        = np.array([   93.79,    91.61,    89.39,    89.18,    89.57,    90.67,    89.28])),
+   i =     dict(EW          = np.array([  141.50,   142.01,   143.25,   144.59,   146.72,   148.23,   147.72]),
+                lambda_bar  = np.array([  771.10,   771.81,   771.80,   770.18,   769.23,   773.33,   774.76]),
+                peak        = np.array([   95.38,    95.09,    95.00,    94.81,    94.85,    94.61,    93.66]),
+                on50        = np.array([  696.47,   696.74,   696.01,   693.52,   691.35,   694.64,   696.20]),
+                off50       = np.array([  844.27,   845.38,   845.84,   845.46,   845.48,   850.22,   852.02]),
+                on10        = np.array([  688.47,   688.75,   688.03,   685.46,   683.38,   686.58,   688.15]),
+                off10       = np.array([  857.11,   857.91,   858.34,   857.77,   857.75,   864.25,   865.20]),
+                on80        = np.array([  701.04,   701.27,   700.50,   697.96,   695.72,   699.06,   700.65]),
+                off80       = np.array([  839.78,   840.75,   841.29,   840.85,   841.01,   844.89,   845.35]),
+                Tmin        = np.array([   92.99,    92.59,    92.41,    91.99,    91.93,    92.10,    91.07]),
+                Tmax        = np.array([   95.33,    94.91,    95.00,    94.56,    94.36,    94.57,    93.66]),
+                Tavg        = np.array([   94.25,    94.02,    93.93,    93.68,    93.62,    93.68,    92.69])),
+   z =     dict(EW          = np.array([   80.01,    80.12,    80.14,    79.37,    78.82,    80.41,    80.26]),
+                lambda_bar  = np.array([  892.63,   892.33,   892.18,   891.72,   891.99,   891.25,   891.45]),
+                peak        = np.array([   98.53,    98.82,    99.17,    99.05,    98.59,    99.26,    99.66]),
+                on50        = np.array([  852.97,   852.75,   852.75,   852.66,   852.77,   852.37,   852.36]),
+                off50       = np.array([  932.22,   931.92,   931.67,   930.89,   930.99,   930.86,   930.81]),
+                on10        = np.array([  844.28,   844.11,   844.25,   843.83,   844.40,   843.20,   843.54]),
+                off10       = np.array([  940.81,   940.58,   940.30,   939.53,   939.57,   939.62,   939.50]),
+                on80        = np.array([  858.27,   857.95,   858.00,   858.02,   858.10,   857.70,   857.58]),
+                off80       = np.array([  926.58,   926.29,   926.08,   925.21,   925.36,   925.12,   925.09]),
+                Tmin        = np.array([   97.07,    96.86,    96.91,    97.21,    97.00,    97.57,    97.78]),
+                Tmax        = np.array([   98.53,    98.82,    99.17,    99.05,    98.59,    99.26,    99.66]),
+                Tavg        = np.array([   97.97,    98.07,    98.32,    98.34,    98.03,    98.63,    98.98])),
+    y =     dict(EW         = np.array([  141.37,   141.34,   139.06,   141.19,   139.50,   143.70,   144.91]),
+                lambda_bar  = np.array([ 1002.77,  1002.98,  1004.36,  1003.56,  1003.99,  1003.19,  1001.92]),
+                peak        = np.array([   97.92,    98.21,    97.74,    98.36,    97.59,    98.18,    97.86]),
+                on50        = np.array([  933.55,   934.12,   935.81,   935.33,   934.85,   932.85,   930.31]),
+                off50       = np.array([ 1072.36,  1072.35,  1072.90,  1072.62,  1072.86,  1073.84,  1073.22]),
+                on10        = np.array([  923.65,   924.03,   926.13,   925.00,   925.35,   922.85,   920.70]),
+                off10       = np.array([ 1082.85,  1082.86,  1083.39,  1083.36,  1083.38,  1084.44,  1083.83]),
+                on80        = np.array([  939.26,   939.65,   941.54,   941.23,   941.02,   939.10,   936.69]),
+                off80       = np.array([ 1065.99,  1065.89,  1066.40,  1066.11,  1066.32,  1067.11,  1066.53]),
+                Tmin        = np.array([   96.25,    96.64,    96.20,    97.17,    96.06,    96.63,    96.31]),
+                Tmax        = np.array([   97.92,    98.21,    97.74,    98.36,    97.59,    98.18,    97.86]),
+                Tavg        = np.array([   97.13,    97.42,    97.03,    97.84,    96.85,    97.47,    97.25])),
+   )
 
-def makeNewFlats(butler, calibDir, filter, modelVignetting=True, correctJacobian=True, correctQe=True,
-                 correctFilter=True, visit=None, ccdList=None):
+def plotRadialFilterData(what, filters="grizy"):
+    filterR = filterData["radii"]
+    filterR = filterR/15e-3         # convert to pixels
+
+    options = ["EW", "lambda"]
+    if what not in options:
+        raise RuntimeError("Please choose one of %s" % " ".join(options))
+
+    filterColor = dict(
+        g = 'green',
+        r = 'red',
+        i = 'magenta',
+        z = 'black',
+        y = 'brown',
+        )
+
+    plt.clf()
+
+    ymin, ymax = None, None
+    for b in filters:
+        if what == "EW":
+            y = filterData[b]["EW"]
+            y = y/y[0]
+        elif what == "lambda":
+            y = filterData[b]["lambda_bar"]
+            n = len(y)
+            xvec = np.empty(2*n);  yvec = np.empty_like(xvec)
+            xvec[0:n] = filterR;  xvec[n:] = filterR[::-1]
+
+            if ymin is None:
+                ymin, ymax = 1e30, -1e30
+
+            for i in (10, 50, 80):
+                alpha = 0.1 + 5e-3*i
+
+                yvec[0:n] = filterData[b]["on%d" % i]
+                yvec[n:] =  filterData[b]["off%d" % i][::-1]
+
+                p = plt.Polygon(zip(xvec, yvec), color=filterColor[b], alpha=alpha)
+                plt.axes().add_artist(p)
+
+                ymin, ymax = (min(ymin, np.min(yvec)), max(ymax, np.max(yvec)))
+        else:
+            raiseRuntimeError("You can't get here")
+            
+        plt.plot(filterR, y, color=filterColor[b], label=b)
+
+    plt.xlabel("Radius (pixels)")
+    if what == "EW":
+        plt.ylabel("Equivalent Width (relative to R==0)")
+    elif what == "lambda":
+        plt.ylabel(r"$\lambda$ (nm)")
+        d = ymax - ymin
+        plt.ylim(ymin - 0.1*d, ymax + 0.1*d)
+    else:
+        raiseRuntimeError("You can't get here")
+
+    legend = plt.legend(loc="best")
+    if legend:
+        legend.draggable(True)
+    plt.show()
+
+def makeNewFlats(butler, calibDir, filter, modelVignetting=True, modelJacobian=True, modelQE=True,
+                 modelGain=True, modelFilter=True, visit=None, ccdList=None):
     camera = butler.get("camera")
 
     if not os.path.exists(calibDir):
@@ -3143,8 +3268,8 @@ def makeNewFlats(butler, calibDir, filter, modelVignetting=True, correctJacobian
     if not ccdList:
         ccdList = butler.queryMetadata('raw', 'visit', ['ccd',], visit=visit)
 
-    if correctFilter:
-        filterThroughput = (filterCurves["radii"], filterCurves[filter]["EW"])
+    if modelFilter:
+        filterThroughput = (filterData["radii"], filterData[filter]["EW"])
     else:
         filterThroughput = None
 
@@ -3155,15 +3280,29 @@ def makeNewFlats(butler, calibDir, filter, modelVignetting=True, correctJacobian
         ccd = afwCG.cast_Ccd(flat.getDetector())
 
         makeFlatImage(flat, filter=filter,
-                      modelVignetting=modelVignetting, correctJacobian=correctJacobian,
-                      correctQe=correctQe, filterThroughput=filterThroughput)
+                      modelVignetting=modelVignetting, modelJacobian=modelJacobian,
+                      modelQE=modelQE, filterThroughput=filterThroughput)
 
-        flatIm = flat.getMaskedImage().getImage()
-        for a in ccd:
-            flatIm[a.getDataSec(True)] /= a.getElectronicParams().getGain()
+        if modelGain:
+            flatIm = flat.getMaskedImage().getImage()
+            for a in ccd:
+                flatIm[a.getDataSec(True)] /= a.getElectronicParams().getGain()
 
         ofileName = os.path.join(calibDir, os.path.split(fileName)[1])
         print ofileName
+
+        md = flat.getMetadata()
+        md.add("COMMENT", "Artificial Flat")
+
+        md.set("FILTER", filter)
+        md.add("COMMENT", "Which effects were modelled:")
+
+        md.set("FILTER TRANSMISSION", modelFilter)
+        md.set("GAINS", modelGain)
+        md.set("JACOBIAN", modelJacobian)
+        md.set("QE", modelQE)
+        md.set("VIGNETTING", modelVignetting)
+
         flat.writeFits(ofileName)
 
 class DataRef(object):
@@ -3178,7 +3317,23 @@ class DataRef(object):
         else:
             return self._dict.get(what, what)
         
-def isrCallback(im, ccd=None, butler=None, imageSource=None, doFlatten=False, correctGain=True):
+def isrCallbackQE(im, ccd=None, butler=None, imageSource=None, **kwargs):
+    im = isrCallback(im, ccd=ccd, butler=butler, imageSource=imageSource, **kwargs)
+
+    filter = imageSource.filter
+
+    ccdSerial = ccd.getId().getSerial()
+    if True:                        # new way, using SDSS photometry to get QE
+        correction = 1/getQE(ccdSerial, filter)
+    else:                           # old way, using a g frame and assuming continuity in rizy
+        correction = getLevel(ccdSerial, filter, fiddle=True)
+        
+    im *= correction
+
+    return im
+
+def isrCallback(im, ccd=None, butler=None, imageSource=None, doFlatten=True, correctGain=False,
+                doBias=False, doDark=False, doSaturation=True):
     """Trim and linearize a raw CCD image, and maybe convert from DN to e^-, using ip_isr
     """
     from lsst.obs.subaru.isr import SubaruIsrTask as IsrTask
@@ -3190,36 +3345,54 @@ def isrCallback(im, ccd=None, butler=None, imageSource=None, doFlatten=False, co
         if re.search(r"^do", k):
             setattr(isrTask.config.qa, k, False)
 
-    doFlatten = True
-    correctGain = not doFlatten
+    if doFlatten:
+        correctGain = False
 
-    isrTask.config.doBias = False
-    isrTask.config.doDark = False
+    isrTask.config.doBias = doBias
+    isrTask.config.doDark = doDark
     isrTask.config.doFlat = doFlatten
     isrTask.config.doLinearize = True
     isrTask.config.doApplyGains = correctGain
+    isrTask.config.doSaturation = doSaturation
+    isrTask.config.doDefect = False
     isrTask.config.doGuider = False
+    isrTask.config.doMaskNaN = False
+    isrTask.config.doFringe = False
     isrTask.config.doWrite = False
     
     isMI = hasattr(im, 'getImage')
     if not isMI:
         im = afwImage.makeMaskedImage(im)
 
+    ccdId = ccd.getId().getSerial()
+    visit = imageSource.kwargs["visit"]
+    md = butler.get("raw_md", visit=visit, ccd=ccdId)
+
     raw = afwImage.makeExposure(im)
     raw.setDetector(ccd)
-    raw.setMetadata(dafBase.PropertySet())
-
-    ccd = ccd.getId().getSerial()
+    raw.setCalib(afwImage.Calib(md))
+    raw.setMetadata(md)
 
     filter = imageSource.filter
     if filter in "grizy":
         filter = "HSC-" + filter
     filter = filter.upper()
         
-    flat = butler.get("flat", ccd=ccd, filter=filter, taiObs="2013-11-02", visit=903002) \
+    taiObs = md.get("DATE-OBS")
+    bias = butler.get("bias", ccd=ccdId, taiObs=taiObs, visit=0) \
+        if isrTask.config.doBias else None
+    flat = butler.get("flat", ccd=ccdId, filter=filter, taiObs=taiObs, visit=0) \
         if isrTask.config.doFlat else None
+    dark = butler.get("dark", ccd=ccdId, taiObs=taiObs, visit=0) \
+        if isrTask.config.doDark else None
 
-    dataRef = DataRef(ccd, raw=raw, flat=flat)
+    if dark and dark.getCalib().getExptime() == 0:
+        dark.getCalib().setExptime(1.0)
+
+    dataRef = DataRef(ccdId, raw=raw, bias=bias, dark=dark, flat=flat)
+
+    if imageSource and imageSource.verbose:
+        print "Running ISR for visit %d CCD %3d" % (visit, ccdId)
 
     result = isrTask.run(dataRef)
 
@@ -3235,7 +3408,7 @@ def foo(data, visits=(902936, 903332, 902476), ccdIds=[], fig0=1, dfig=1, savefi
         **kwargs):
     fig = fig0
 
-    if True:
+    if False:
         for v in visits:
             if True:
                 figure = anUtils.plotCalibration(data, selectObjId=anUtils.makeSelectVisit(v,ccds=ccdIds), fig=fig,

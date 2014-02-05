@@ -403,7 +403,7 @@ def radialProfile(butler, visit, ccds=None, bin=128, nJob=None, plot=False):
 
     return r, lnGrad, theta
     
-def makeRadial(r, lnGrad, nBin=100, profile=False, rmax=None):
+def makeRadial(r, lnGrad, nBin=100, profile=False, rmax=None, median=True):
     """
 Return r and lnGrad binned into nBin bins.  If profile is True, integrate the lnGrad to get the radial profile
     """
@@ -417,7 +417,14 @@ Return r and lnGrad binned into nBin bins.  If profile is True, integrate the ln
     for i in range(len(bins)):
         inBin = np.where(np.abs(r - bins[i]) < 0.5*binWidth)
         rbar[i] = np.mean(r[inBin])
-        lng[i] = np.median(lnGrad[inBin]) if len(inBin[0]) else np.nan
+        if len(inBin[0]):
+            if median:
+                val = np.median(lnGrad[inBin])
+            else:
+                val = np.mean(lnGrad[inBin])
+        else:
+            val = np.nan
+        lng[i] = val
 
     if rmax:
         ok = np.where(rbar < rmax)
@@ -430,7 +437,8 @@ Return r and lnGrad binned into nBin bins.  If profile is True, integrate the ln
 
     return rbar, lng
 
-def plotRadial(r, lnGrad, theta=None, title=None, profile=False, showMedians=False, tieIndex=None,
+def plotRadial(r, lnGrad, theta=None, title=None, profile=False, showMedians=False, showMeans=False,
+               tieIndex=None,
                marker="o", nBin=100, binAngle=0, alpha=1.0, xmin=-100, ctype='black', overplot=False,
                label=None, xlabel=None, ylabel=None, xlim = (-100, 18000), ylim = None):
     """
@@ -444,7 +452,7 @@ def plotRadial(r, lnGrad, theta=None, title=None, profile=False, showMedians=Fal
     cmap = pyplot.cm.rainbow
     scalarMap = pyplot.cm.ScalarMappable(norm=norm, cmap=cmap)
     
-    if profile or showMedians:
+    if profile or showMedians or showMeans:
         bins = np.linspace(0, min(18000, np.max(r)), nBin)
         binWidth = bins[1] - bins[0]
 
@@ -455,7 +463,7 @@ def plotRadial(r, lnGrad, theta=None, title=None, profile=False, showMedians=Fal
         lng0 = None
         for a in [None] if binAngle <= 0 else reversed(angleBin):
             if a is None:
-                rbar, lng = makeRadial(r, lnGrad, nBin, profile=profile)
+                rbar, lng = makeRadial(r, lnGrad, nBin, profile=profile, median=not showMeans)
                 color, label = ctype, label if label else title
             else:
                 inBin = np.where(np.abs(theta - a) < 0.5*binAngle)
@@ -1007,11 +1015,14 @@ def flattenBackground(im, nx=2, ny=2, scale=False):
 
 #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
-def plotRadialProfile(mos, visits, butler=None, showMedians=True, title="", xlim=None, ylim=None,
+def plotRadialProfile(mos, visits, butler=None, showMedians=True, showMeans=False,
+                      title="", xlim=None, ylim=None,
                       binning=1, tieIndex=None, normalize=True, LaTeX=False, dirName=None, savePlot=False,
-                      marker='-', labelVisit=False):
+                      marker='-', labelVisit=False, showLegend=True):
     """
 plotRadialProfile(mos, range(902686, 902702+1, 2) + range(902612, 902634+1, 2) + [904006, 904008, 904036, 904038, 902876], butler=butler, xlim=(-10, 850), tieIndex=40
+
+visits may be a filter name
     """
     colors = ["red", "blue", "green", "cyan", "magenta", "yellow", "black", "brown", "orchid", "orange"]
 
@@ -1043,6 +1054,7 @@ plotRadialProfile(mos, range(902686, 902702+1, 2) + range(902612, 902634+1, 2) +
     domeflats += range(903440, 903452+1, 2) # r
     domeflats += range(902686, 902704+1, 2) # i
     domeflats += [904606, 904608, 904626, 904628] # i
+    domeflats += range(905420, 905428+1, 2) # i
     domeflats += range(904478, 904490+1, 2) # y
     domeflats += range(904742, 904766+1, 2) # NB921
 
@@ -1052,17 +1064,21 @@ plotRadialProfile(mos, range(902686, 902702+1, 2) + range(902612, 902634+1, 2) +
     skyflats += range(902612, 902634+1, 2)          # i
     skyflats = [v for v in skyflats if v != 902996] # remove failed exposures
 
+    filterName = None
     if isinstance(visits, str):         # get all visits taken with that title
         filterName = visits.lower()
 
         if not title:
-            title = "%s (forced to agree at %dth point)" % (filterName, tieIndex)
+            title = filterName
 
         visits = []
         for v in mos.keys():
             try:
                 int(v)                  # only int keys can really be visit numbers
             except:
+                continue
+
+            if v < 0:                   # a processed version of a visit
                 continue
 
             if v in [902976]:           # too faint
@@ -1087,7 +1103,17 @@ plotRadialProfile(mos, range(902686, 902702+1, 2) + range(902612, 902634+1, 2) +
             if rawFilterName == filterName.lower():
                 visits.append(v)
                 
-    if not visits:
+    if visits:
+        if not filterName:
+            if butler:
+                filterName = butler.get("raw_md", visit=v, ccd=10).get("FILTER01").lower()
+                if re.search(r"^hsc-", filterName):
+                    filterName = filterName[-1:]
+                if filterName == "z" and v in range(904672, 905068+1, 2): # z wasn't available
+                    filterName = "i"                                      # error in header
+            else:
+                filterName = "unknown"
+    else:
         raise RuntimeError("Please provide at least on visit for me to plot")
 
     if LaTeX:
@@ -1095,10 +1121,13 @@ plotRadialProfile(mos, range(902686, 902702+1, 2) + range(902612, 902634+1, 2) +
 visit & median flux & exposure time & line type & line colour \\
 \hline"""
 
+    title += " (forced to agree at %dth point)" % (tieIndex)
+
     pyplot.clf()
     for i, v in enumerate(sorted(visits)):
         label = [str(v)]
         im = mos[v].clone()
+        v = abs(v)                      # -v => processed version of v
 
         if v in domeflats:
             flattenBackground(im)
@@ -1111,7 +1140,9 @@ visit & median flux & exposure time & line type & line colour \\
         if normalize:
             ima /= med
 
-        if butler:
+        if not butler:
+            calib = None
+        else:
             raw = butler.get("raw", visit=v, ccd=10)
             filter = raw.getFilter()
             calib = raw.getCalib()
@@ -1149,7 +1180,7 @@ visit & median flux & exposure time & line type & line colour \\
         if xlim is None:
             xlim = (0, np.max(r))
         if ylim is None:
-            f = 0.10
+            f = 0.05                    # plot in += 100*f%
             m = np.median(ima)
             ylim = (m*(1 - f), m*(1 + f))
 
@@ -1166,14 +1197,14 @@ visit & median flux & exposure time & line type & line colour \\
               'blue'
         
         if True:
-            columns = (v, med, calib.getExptime(), marker, ctype)
+            columns = (v, med, calib.getExptime() if calib else np.nan, marker, ctype)
             if LaTeX:
                 print r"%s & %6.0f & %3.0f & %2s & %s \\" % columns
             else:
                 print filter.getName(), ("%s %6.0f %3.0f  %2s %s" % columns)
 
         plotRadial(binning*r.flatten(), ima.flatten(), theta.flatten(), title=title, alpha=1.0,
-                   showMedians=showMedians, xlim=xlim, ylim=ylim,
+                   showMedians=showMedians, showMeans=showMeans, xlim=xlim, ylim=ylim,
                    marker=marker, ctype=ctype, tieIndex=tieIndex,
                    label=label, xlabel="R (pixels)", ylabel="Relative Intensity", overplot=i > 0)
 
@@ -1184,9 +1215,12 @@ visit & median flux & exposure time & line type & line colour \\
         print r"""\caption{\label{%sLegend} Index of lines in %s radial profiles}
 \end{longtable}""" % (filterName, filterName)
 
-    legend = pyplot.legend(loc="best", ncol=3,
-                           borderpad=0.1, labelspacing=0, handletextpad=0, handlelength=2, borderaxespad=0)
-    legend.draggable(True)
+    if showLegend:
+        legend = pyplot.legend(loc="best", ncol=3,
+                               borderpad=0.1, labelspacing=0, handletextpad=0, handlelength=2,
+                               borderaxespad=0)
+        if legend:
+            legend.draggable(True)
 
     if savePlot:
         fileName = "%s-rings-%d.png" % (filterName, tieIndex)
