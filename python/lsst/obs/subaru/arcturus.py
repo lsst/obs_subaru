@@ -29,7 +29,7 @@ position = {                            # position of Arcturus on 16x16 binned "
     906190 : (8, 1038 + 5*108),
     }
 
-def showFrames(mos, frame0=1, R=23):
+def showFrames(mos, frame0=1, R=23, subtractSky=True):
     visits = sorted(position.keys())
 
     frame = frame0 - 1
@@ -40,7 +40,15 @@ def showFrames(mos, frame0=1, R=23):
         xc -= mos[v].getX0()
         yc -= mos[v].getY0()
 
-        ds9.mtv(mos[v], title=v, frame=frame)
+        im = mos[v]
+        if subtractSky:
+            im = im.clone()
+            im[2121:2230, 590:830] = np.nan # QE for this chip is bad
+
+            ima = im.getArray()
+            im[:] -= np.percentile(ima, 25)
+
+        ds9.mtv(im, title=v, frame=frame)
         ds9.dot("o", xc, yc, size=R, frame=frame,
                 ctype=ds9.GREEN if yc < mos[v].getHeight() else ds9.RED)
 
