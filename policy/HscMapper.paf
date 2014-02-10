@@ -218,6 +218,14 @@ exposures: {
         level:       "Skytile"
         tables:      raw_skytile
     }
+    deepCoadd_bg: {
+        template:      "deepCoadd/%(filter)s/%(tract)d/%(patch)s/bgModel-%(tract)d-%(patch)s-%(filter)s.fits"
+        python:        "lsst.afw.image.ImageF"
+        persistable:   "ImageF"
+        storage:       "FitsStorage"
+        level:         "Skytile"
+        tables:        raw_skytile
+    }
 
     diff: {
         template:      "diff/%(diff)05d/DIFF%(patch)08d.fits"
