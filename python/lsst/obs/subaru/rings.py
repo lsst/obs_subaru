@@ -938,11 +938,17 @@ def imagePca(mosaics, visits=None, nComponent=3, log=False, rng=30,
 
     return eImages
 
-def mosaicIo(mosaics, dirName, mode):
+def mosaicIo(dirName, mosaics=None, mode=None):
+    if not mode:
+        mode = "w" if mosaics else "r"
+    if mosaics is None:
+        mosaics = {}
+
     if mode == "r":
         import glob
-        for f in glob.glob(os.path.join(dirName, "*.fits")):
-            v = os.path.splitext(os.path.basename(f))[0]
+        for f in glob.glob(os.path.join(dirName, "*.fits")) + \
+                 glob.glob(os.path.join(dirName, "*.fits.gz")):
+            v = re.search(r"^([^.]+)", os.path.basename(f)).group(1)
             try:
                 v = int(v)
             except:
@@ -956,6 +962,8 @@ def mosaicIo(mosaics, dirName, mode):
             v.writeFits(os.path.join(dirName, "%s.fits" % k))
     else:
         raise RuntimeError("Please use a mode of r or w")
+
+    return mosaics
 
 def correctVignettingAndDistortion(camera, mosaics, bin=32):
     """Correct a dict of mosaics IN PLACE for vignetting and distortion"""
