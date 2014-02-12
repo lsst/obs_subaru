@@ -322,12 +322,12 @@ and a valid csv file is produced.
                 if glob:
                     w.append("%s%s glob ?" % ("NOT " if exclude else "", k))
                 else:
-                    w.append("NOT %s = ?" % (k))
+                    w.append("%s%s    = ?" % ("NOT " if exclude else "", k))
                     
             logical = " %s " % ("AND" if exclude else "OR")
             where.append("(%s)" % logical.join(w))
 
-    if False:
+    if args.verbose:
         print "where:", where
         print "vals:", vals
 
