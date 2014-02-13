@@ -245,6 +245,8 @@ and a valid csv file is produced.
                         help="desired object[s] (may be repeated; supports * and ?)", default=[])
     parser.add_argument('--rerun', action="append",
                         help="desired rerun[s] (may be repeated; supports * and ?)", default=[])
+    parser.add_argument('--visit', action="append",
+                        help="desired visit[s] (may be repeated; supports * and ?)", default=[])
     parser.add_argument('--reverse', action="store_true",
                         help="reverse sort order (newest at top)", default=False)
 
@@ -285,19 +287,8 @@ and a valid csv file is produced.
             
     vals = []
     where = []
-    if False:
-        for k in ["dateObs", "object", "rerun"]:
-            v = getattr(args, k)
-            if v:
-                if v[0] == "^":
-                    exclude = True
-                    v = v[1:]
-                else:
-                    exclude = False
-
-                vals.append(v)
-
-    for k, glob in [("filter", False), ("dateObs", True), ("object", True), ("rerun", True)]:
+    for k, glob in [("filter", False), ("dateObs", True), ("object", True), ("rerun", True),
+                    ("visit", True)]:
         v = getattr(args, k)
         if k == "object":
             k = "field"
