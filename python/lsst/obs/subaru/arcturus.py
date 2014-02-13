@@ -52,8 +52,6 @@ def showFrames(mos, frame0=1, R=23, subtractSky=True):
         ds9.dot("o", xc, yc, size=R, frame=frame,
                 ctype=ds9.GREEN if yc < mos[v].getHeight() else ds9.RED)
 
-        frame += 1
-
 #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 class MedianFilterImageWorker(object):
