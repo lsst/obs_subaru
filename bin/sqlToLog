@@ -230,11 +230,14 @@ and a valid csv file is produced.
     parser.add_argument('file', type=str, help="file to parse")
     parser.add_argument("--separator", help="Column separator", default=" | ")
     parser.add_argument('--addField', "-a", metavar="FIELD", action="append",
-                        help="include this field (may be repeated)", default=[])
+                        help="include this field (maybe be comma-separated list and/or repeated)",
+                        default=[])
     parser.add_argument('--excludeField', "-x", metavar="FIELD", action="append",
-                        help="exclude this field (may be repeated)", default=[])
+                        help="exclude this field (maybe be comma-separated list and/or repeated)",
+                        default=[])
     parser.add_argument('--fields', dest="fieldList", action="append",
-                        help="include this fields, clearing defaults. (may be repeated; see also -a, -x)",
+                        help="include this fields, clearing defaults." +
+                        "(maybe be comma-separated list and/or repeated; see also -a, -x)",
                         default=[])
 
     parser.add_argument('--dateObs', "-d", action="append",
@@ -255,23 +258,32 @@ and a valid csv file is produced.
     args = parser.parse_args()
 
     if args.fieldList:
-        fieldList = args.fieldList
+        fieldList = []
+        for f in args.fieldList:
+            for f in re.split(r",\s*", f):
+                fieldList.append(f)
     #
     # Remove fields from fieldList
     #
     bad = []
     for x in args.excludeField:
-        try:
-            fieldList.remove(x)
-        except ValueError:
-            bad.append(x)
+        for x in re.split(r",\s*", x):
+            try:
+                fieldList.remove(x)
+            except ValueError:
+                bad.append(x)
 
     if bad:
         print >> sys.stderr, "Failed to find field%s %s" % ("s" if len(bad) > 1 else "", ", ".join(bad))
     #
     # Add extra fields
     #
+    addField = []
     for f in args.addField:
+        for f in re.split(r",\s*", f):
+            addField.append(f)
+
+    for f in addField:
         fieldList.append(f)
         if not f in fmts:
             fmts[f] = "%10s"
@@ -322,4 +334,4 @@ and a valid csv file is produced.
         print "where:", where
         print "vals:", vals
 
-    readLog(args.file, args.separator, args.addField, (where, vals), args.reverse, verbose=args.verbose)
+    readLog(args.file, args.separator, addField, (where, vals), args.reverse, verbose=args.verbose)
