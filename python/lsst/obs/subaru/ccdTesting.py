@@ -3031,7 +3031,9 @@ def makeEvenSplineInterpolator(x, y):
         v_o = np.empty(2*npt - 1)
         vecs[i] = v_o
 
-        v_o[0:npt] = -v[::-1]
+        v_o[0:npt] = v[::-1]
+        if i == 0:                      # radius
+            v_o[0:npt] *= -1
         v_o[npt:] =   v[1:]
 
     return scipy.interpolate.interp1d(vecs[0], vecs[1], kind='cubic')
