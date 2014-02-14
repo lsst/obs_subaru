@@ -3065,23 +3065,15 @@ def makeFlatImage(im, filter=None, modelVignetting=True, modelJacobian=True, mod
         # and extended in radius by a factor of 2
         #
         if scipy:
-            filterR = filterR.append(2*filterR[-1])
-            filterThroughput = filterThroughput.append(filterThroughput[-1])
+            filterR = list(filterR)
+            filterR.append(2*filterR[-1])
+            filterR=np.array(filterR)
 
-            if False:
-                npt = len(filterR)
-                filterR_o = np.empty(2*npt - 1)
-                filterThroughput_o = np.empty_like(filterR_o)
-
-                filterR_o[0:npt] =         -filterR[::-1]
-                filterR_o[npt:] =           filterR[1:]
-
-                filterThroughput_o[0:npt] = filterThroughput[::-1]
-                filterThroughput_o[npt:] =  filterThroughput[1:]
-
-                interpolator = scipy.interpolate.interp1d(filterR_o, filterThroughput_o, kind='cubic')
-            else:
-                interpolator = makeEvenSplineInterpolator(filterR, filterThroughput)
+            filterThroughput = list(filterThroughput)
+            filterThroughput.append(filterThroughput[-1])
+            filterThroughput = np.array(filterThroughput)
+            
+            interpolator = makeEvenSplineInterpolator(filterR, filterThroughput)
         
         fim = np.empty((height, width)) # n.b. numpy index order
         y0 = 0
