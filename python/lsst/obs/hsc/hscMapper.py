@@ -93,6 +93,7 @@ class HscMapper(CameraMapper):
             "HSC-I"   : "i",
             "HSC-Z"   : "z",
             "HSC-Y"   : "y",
+            "ENG-R1"  : "r",
             "SH"   : "None",
             "PH"   : "None",
             "NONE"    : "None",
