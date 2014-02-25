@@ -145,11 +145,11 @@ def queryCalibRegistry(what, filterName=None, summary=False):
 
     query = """
 SELECT
-    max(validStart), max(validEnd), max(calibDate), filter, max(calibVersion), count(ccd)
+    validStart, validEnd, calibDate, filter, calibVersion, count(ccd)
 FROM %s
 %s
-GROUP BY filter
-ORDER BY filter
+GROUP BY filter, calibDate
+ORDER BY filter, calibDate
 """ % (what, where)
 
     n = {}; expTimes = {}; visits = {}
