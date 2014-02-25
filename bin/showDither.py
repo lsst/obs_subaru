@@ -17,7 +17,7 @@ except NameError:
     plt.interactive(1)
 
 def main(butler, visits, fields, fieldRadius, showCCDs=False, aitoff=False, alpha=0.2,
-         title="", verbose=False):
+         byFilter=False, title="", verbose=False):
     camera = butler.get("camera")
 
     ra, dec = [], []
@@ -51,12 +51,18 @@ def main(butler, visits, fields, fieldRadius, showCCDs=False, aitoff=False, alph
     ctypes = dict(BIAS="orange",
                   DARK="cyan",
                   )
-    ctypeFilters = dict(g="green",
-                        r="red",
-                        i="magenta",
-                        z="brown",
-                        y="black",
-                        )
+    if byFilter:
+        ctypeFilters = dict(g="green",
+                            r="red",
+                            r1 = "orange",
+                            i="magenta",
+                            z="brown",
+                            y="black",
+                            nb0921 = 'darkgray',
+                            )
+    else:
+        ctypeFields = {}
+        colors = list("rgbcmyk") + ["orange", "brown", "orchid"] # colours for ctypeFields
 
     if aitoff:
         fieldRadius = np.radians(fieldRadius)
@@ -71,7 +77,12 @@ def main(butler, visits, fields, fieldRadius, showCCDs=False, aitoff=False, alph
         if verbose:
             print "Drawing %s %s         \r" % (v, field),; sys.stdout.flush()
 
-        facecolor = ctypes.get(field, ctypeFilters.get(filters[v], "gray"))
+        if byFilter:
+            facecolor = ctypes.get(field, ctypeFilters.get(filters[v], "gray"))
+        else:
+            if not field in ctypeFields:
+                ctypeFields[field] = colors[len(ctypeFields)%len(colors)]
+            facecolor = ctypeFields[field]
         
         circ = Circle(xy=(r, d), radius=fieldRadius, fill=False if showCCDs else True,
                       facecolor=facecolor, alpha=alpha)
@@ -99,8 +110,13 @@ def main(butler, visits, fields, fieldRadius, showCCDs=False, aitoff=False, alph
 
                 axes.add_patch(PathPatch(Path(verts, pathCodes), alpha=alpha, facecolor=facecolor))
 
-        if not labels.count(field):
-            plots.append(Circle((0,0), facecolor=facecolor)); labels.append(field)
+        if byFilter:
+            key = filters[v]
+        else:
+            key = field
+
+        if not labels.count(key):
+            plots.append(Circle((0,0), facecolor=facecolor)); labels.append(key)
 
     plt.interactive(1)
     plt.legend(plots, labels,
@@ -141,6 +157,8 @@ E.g.
     parser.add_argument('--fieldRadius', type=float, help='Radius of usable field (degrees)', default=0.75)
     parser.add_argument('--showCCDs', action="store_true",
                         help="Show the individual CCDs (quite slow)", default=False)
+    parser.add_argument('--byFilter', action="store_true",
+                        help="Colour patches by their filter", default=False)
     parser.add_argument('--aitoff', action="store_true", help="Use an Aitoff projection", default=False)
     parser.add_argument('--verbose', action="store_true", help="Be chatty", default=False)
     
@@ -227,7 +245,7 @@ E.g.
         for v in visits:
             print v, fields[v]
 
-    fig = main(butler, visits, fields, args.fieldRadius,
+    fig = main(butler, visits, fields, args.fieldRadius, byFilter=args.byFilter,
                showCCDs=args.showCCDs, aitoff=args.aitoff, alpha=args.alpha, title="",
                verbose=args.verbose)
 
