@@ -1,0 +1,62 @@
+#!/usr/bin/env python
+"""
+Convert Kawanamoto-san's filter data files (with columns of radius, peak, on50, ...) to numpy array
+initialisations
+"""
+import numpy as np                      # for np.nan
+import os
+import re
+import sys
+
+def convertData(fileName, filterName, verbose):
+    with open(fileName, "r") as fd:
+        colVals = []
+        for i, line in enumerate(fd.readlines()):
+            line = line.rstrip()
+
+            if i == 0:
+                line = re.sub(r"^\s*#\s*", "", line)
+                assert re.search(r"^radius\s+", line)
+
+                fields = line.split()
+                continue
+
+            line = re.sub(r"\s*#.*", "", line)
+            if not line:
+                continue
+            colVals.append(dict(zip(fields, [float(f) for f in line.split()])))
+
+    class Data(object):
+        pass
+
+    data = Data()
+    arrays = ["radius", "peak", "on50", "off50", "on10", "off10", "on80", "off80", "Tmin", "Tmax", "Tavg"]
+    for k in (arrays):
+        setattr(data, k, np.array([v[k] for v in colVals])*(0.01 if k in ["Tmin", "Tmax", "Tavg"] else 1.0))
+
+    data.EW = data.Tavg*(data.off50 - data.on50)
+    data.lambda_bar = 0.5*(data.on80 + data.off80)
+    arrays += ["EW", "lambda_bar"]
+
+    prefix = "    %3s =   dict(" % (filterName if filterName else "XXX")
+    for k in arrays:
+        print "%s%-10s = np.array([%s])," % (prefix, k, ",".join(["%8.2f" % v for v in getattr(data, k)]))
+        prefix = " "*len(prefix)
+
+    print "                 ),"
+        
+if __name__ == "__main__":
+    import argparse
+    parser = argparse.ArgumentParser(description="""\
+Convert one of Kawanomoto's filter.dat files into a set of numpy initialisations
+in a format that can be used to set ccdTesting.filterData["filterName"]
+""")
+    
+    parser.add_argument('fileName', help="Input file")
+    parser.add_argument('--filterName', type=str, help="name of filter")
+    parser.add_argument('--verbose', action="store_true", help="How chatty should I be?", default=False)
+    
+    args = parser.parse_args()
+
+    convertData(args.fileName, args.filterName, args.verbose)
+    
