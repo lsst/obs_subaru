@@ -17,7 +17,7 @@ except NameError:
     plt.interactive(1)
 
 def main(butler, visits, fields, fieldRadius, showCCDs=False, aitoff=False, alpha=0.2,
-         byFilter=False, title="", verbose=False):
+         byFilter=False, byVisit=False, title="", verbose=False):
     camera = butler.get("camera")
 
     ra, dec = [], []
@@ -61,8 +61,8 @@ def main(butler, visits, fields, fieldRadius, showCCDs=False, aitoff=False, alph
                             nb0921 = 'darkgray',
                             )
     else:
-        ctypeFields = {}
-        colors = list("rgbcmyk") + ["orange", "brown", "orchid"] # colours for ctypeFields
+        ctypeKeys = {}
+        colors = list("rgbcmyk") + ["orange", "brown", "orchid"] # colours for ctypeKeys
 
     if aitoff:
         fieldRadius = np.radians(fieldRadius)
@@ -71,7 +71,6 @@ def main(butler, visits, fields, fieldRadius, showCCDs=False, aitoff=False, alph
         ra  = np.radians(np.where(ra > 180, ra - 360, ra))
 
     plots, labels = [], []
-    plt.interactive(0)
     for v, r, d in zip(visits, ra, dec):
         field = fields.get(v)
         if verbose:
@@ -80,9 +79,10 @@ def main(butler, visits, fields, fieldRadius, showCCDs=False, aitoff=False, alph
         if byFilter:
             facecolor = ctypes.get(field, ctypeFilters.get(filters[v], "gray"))
         else:
-            if not field in ctypeFields:
-                ctypeFields[field] = colors[len(ctypeFields)%len(colors)]
-            facecolor = ctypeFields[field]
+            key = v if byVisit else field
+            if not key in ctypeKeys:
+                ctypeKeys[key] = colors[len(ctypeKeys)%len(colors)]
+            facecolor = ctypeKeys[key]
         
         circ = Circle(xy=(r, d), radius=fieldRadius, fill=False if showCCDs else True,
                       facecolor=facecolor, alpha=alpha)
@@ -113,14 +113,13 @@ def main(butler, visits, fields, fieldRadius, showCCDs=False, aitoff=False, alph
         if byFilter:
             key = filters[v]
         else:
-            key = field
+            key = v if byVisit else field
 
         if not labels.count(key):
             plots.append(Circle((0,0), facecolor=facecolor)); labels.append(key)
 
-    plt.interactive(1)
     plt.legend(plots, labels,
-               loc='lower left', bbox_to_anchor=(0, 1.02, 1, 0.102)).draggable()
+               loc='best', bbox_to_anchor=(0, 1.02, 1, 0.102)).draggable()
 
     if not aitoff:
         raRange = np.max(ra)   - np.min(ra)  + 1.2*fieldRadius
@@ -158,7 +157,9 @@ E.g.
     parser.add_argument('--showCCDs', action="store_true",
                         help="Show the individual CCDs (quite slow)", default=False)
     parser.add_argument('--byFilter', action="store_true",
-                        help="Colour patches by their filter", default=False)
+                        help="Colour pointings by their filter", default=False)
+    parser.add_argument('--byVisit', action="store_true",
+                        help="Colour pointings by their visit", default=False)
     parser.add_argument('--aitoff', action="store_true", help="Use an Aitoff projection", default=False)
     parser.add_argument('--verbose', action="store_true", help="Be chatty", default=False)
     
@@ -245,7 +246,7 @@ E.g.
         for v in visits:
             print v, fields[v]
 
-    fig = main(butler, visits, fields, args.fieldRadius, byFilter=args.byFilter,
+    fig = main(butler, visits, fields, args.fieldRadius, byFilter=args.byFilter, byVisit=args.byVisit,
                showCCDs=args.showCCDs, aitoff=args.aitoff, alpha=args.alpha, title="",
                verbose=args.verbose)
 
@@ -254,5 +255,6 @@ E.g.
 
     if args.fileName:
         plt.savefig(args.fileName)
-
-    raw_input("Exit? ")
+    else:
+        plt.interactive(1)
+        raw_input("Exit? ")
