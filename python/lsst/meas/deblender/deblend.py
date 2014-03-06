@@ -306,3 +306,8 @@ class SourceDeblendTask(pipeBase.Task):
     def postSingleDeblendHook(self, exposure, srcs, i, npre, kids, fp, psf, psf_fwhm, sigma1, res):
         pass
 
+
+
+
+if __name__ == '__main__':
+    SourceDeblendTask.parseAndRun()

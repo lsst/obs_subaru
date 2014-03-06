@@ -266,6 +266,8 @@ def deblend(footprint, maskedImage, psf, psffwhm,
     peaks = fp.getPeaks()
     if maxNumberOfPeaks > 0:
         peaks = peaks[:maxNumberOfPeaks]
+    print 'maxNumberOfPeaks:', maxNumberOfPeaks
+    print 'Peaks:', len(peaks)
 
     # Pull out the image bounds of the parent Footprint
     imbb = img.getBBox(afwImage.PARENT)
@@ -299,7 +301,8 @@ def deblend(footprint, maskedImage, psf, psffwhm,
     # Create templates...
     log.logdebug(('Creating templates for footprint at x0,y0,W,H = ' +
                   '(%i,%i, %i,%i)') % (x0,y0,W,H))
-    for pkres in res.peaks:
+    for peaki,pkres in enumerate(res.peaks):
+        print 'Deblending peak', peaki, 'of', len(res.peaks)
         if pkres.skip or pkres.deblendedAsPsf:
             continue
         pk = pkres.peak
@@ -377,7 +380,8 @@ def deblend(footprint, maskedImage, psf, psffwhm,
     # indices of valid templates
     ibi = [] 
 
-    for pkres in res.peaks:
+    for peaki,pkres in enumerate(res.peaks):
+        print 'Preparing peak', peaki, 'for apportionFlux'
         if pkres.skip:
             continue
         tmimgs.append(pkres.templateMaskedImage)
@@ -390,6 +394,7 @@ def deblend(footprint, maskedImage, psf, psffwhm,
         ibi.append(pkres.pki)
 
     if weightTemplates:
+        print 'Computing weights for', len(tmimgs), 'templates'
         # Reweight the templates by doing a least-squares fit to the image
         A = np.zeros((W * H, len(tmimgs)))
         b = img.getArray()[y0:y1+1, x0:x1+1].ravel()
