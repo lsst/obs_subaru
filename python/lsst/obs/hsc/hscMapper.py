@@ -70,39 +70,37 @@ class HscMapper(CameraMapper):
         # SDSS z': http://www.naoj.org/Observing/Instruments/SCam/txt/z.txt
         # y-band: Shimasaku et al., 2005, PASJ, 57, 447
 
+        # The order of these defineFilter commands matters as their IDs are used to generate at least some
+        # object IDs (e.g. on coadds) and changing the order will invalidate old objIDs
+
         afwImageUtils.resetFilters()
+        afwImageUtils.defineFilter(name='None', lambdaEff=0, alias=['Unrecognised',])
         afwImageUtils.defineFilter(name='g', lambdaEff=477, alias=['W-S-G+', 'HSC-G'])
         afwImageUtils.defineFilter(name='r', lambdaEff=623, alias=['W-S-R+', 'HSC-R'])
+        afwImageUtils.defineFilter(name='r1', lambdaEff=623, alias=['109', 'ENG-R1'])
         afwImageUtils.defineFilter(name='i', lambdaEff=775, alias=['W-S-I+', 'HSC-I'])
         afwImageUtils.defineFilter(name='z', lambdaEff=925, alias=['W-S-Z+', 'HSC-Z'])
         afwImageUtils.defineFilter(name='y', lambdaEff=990, alias=['W-S-ZR', 'HSC-Y'])
         afwImageUtils.defineFilter(name='N921', lambdaEff=921, alias=['NB0921'])
         afwImageUtils.defineFilter(name='SH', lambdaEff=0, alias=['SH',])
         afwImageUtils.defineFilter(name='PH', lambdaEff=0, alias=['PH',])
-        afwImageUtils.defineFilter(name='None', lambdaEff=0)
-        afwImageUtils.defineFilter(name='Unrecognised', lambdaEff=0)
 
-        self.filters = {
-            "W-S-G+"  : "g",
-            "W-S-R+"  : "r",
-            "W-S-I+"  : "i",
-            "W-S-Z+"  : "z",
-            "W-S-ZR"  : "y",
-            "HSC-G"   : "g",
-            "HSC-R"   : "r",
-            "HSC-I"   : "i",
-            "HSC-Z"   : "z",
-            "HSC-Y"   : "y",
-            "ENG-R1"  : "r",
-            "SH"   : "None",
-            "PH"   : "None",
-            "NONE"    : "None",
-            "UNRECOGNISED": "i",
-            }
+        #
+        # The number of bits allocated for fields in object IDs
+        #
+        # FIXME: this bit allocation is for LSST's huge-tract skymaps, and needs
+        # to be updated to something more appropriate for Subaru
+        # (actually, it shouldn't be the mapper's job at all; see #2797).
 
-        # next line makes a dict that maps filter names to sequential integers (arbitrarily sorted),
-        # for use in generating unique IDs for sources.
-        self.filterIdMap = dict(zip(self.filters, range(len(self.filters))))
+        HscMapper._nbit_tract =   7
+        HscMapper._nbit_patch  = 13
+        HscMapper._nbit_filter =  5
+
+        HscMapper._nbit_id = 64 - (HscMapper._nbit_tract + 2*HscMapper._nbit_patch + HscMapper._nbit_filter)
+
+        if len(afwImage.Filter.getNames()) >= 2**HscMapper._nbit_filter:
+            raise RuntimeError("You have more filters defined than fit into the %d bits allocated" %
+                               HscMapper._nbit_filter)
 
     def map(self, datasetType, dataId, write=False):
         """Need to strip 'flags' argument from map
@@ -192,25 +190,25 @@ Most chips are flipped L/R, but the rotated ones (100..103) are flipped T/B
                                    filter coadd, in which case dataId
                                    must contain filter.
         """
-        # FIXME: this bit allocation is for LSST's huge-tract skymaps, and needs
-        # to be updated to something more appropriate for Subaru
-        # (actually, it shouldn't be the mapper's job at all; see #2797).
+
         tract = long(dataId['tract'])
-        if tract < 0 or tract >= 128:
-            raise RuntimeError('tract not in range [0,128)')
+        if tract < 0 or tract >= 2**HscMapper._nbit_tract:
+            raise RuntimeError('tract not in range [0,%d)' % (2**HscMapper._nbit_tract))
         patchX, patchY = map(int, dataId['patch'].split(','))
         for p in (patchX, patchY):
-            if p < 0 or p >= 2**13:
-                raise RuntimeError('patch component not in range [0, 8192)')
-        id = (tract * 2**13 + patchX) * 2**13 + patchY
+            if p < 0 or p >= 2**HscMapper._nbit_patch:
+                raise RuntimeError('patch component not in range [0, %d)' % 2**HscMapper._nbit_patch)
+        oid = (((tract << HscMapper._nbit_patch) + patchX) << HscMapper._nbit_patch) + patchY
         if singleFilter:
-            return id * 8 + self.filterIdMap[dataId['filter']]
-        return id
+            return (oid << HscMapper._nbit_filter) + afwImage.Filter(dataId['filter']).getId()
+        return oid
+
+    def bypass_deepCoaddId_bits(self, *args, **kwargs):
+        """The number of bits used up for patch ID bits"""
+        return 64 - HscMapper._nbit_id
 
     def bypass_deepCoaddId(self, datasetType, pythonType, location, dataId):
         return self._computeCoaddExposureId(dataId, True)
-    def bypass_deepCoaddId_bits(self, datasetType, pythonType, location, dataId):
-        return 1 + 7 + 13*2 + 3
 
     # The following allow grabbing a 'psf' from the butler directly, without having to get it from a calexp
     def map_psf(self, dataId, write=False):
