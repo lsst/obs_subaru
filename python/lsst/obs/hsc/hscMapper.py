@@ -84,32 +84,7 @@ class HscMapper(CameraMapper):
         afwImageUtils.defineFilter(name='N921', lambdaEff=921, alias=['NB0921'])
         afwImageUtils.defineFilter(name='SH', lambdaEff=0, alias=['SH',])
         afwImageUtils.defineFilter(name='PH', lambdaEff=0, alias=['PH',])
-        #
-        # self.filters is needed by the astrom code, but the astrom should use
-        #   afwImage.Filter('HSC-R').getName()
-        # itself
-        #
-        # It's a bit hard to initialise self.filters properly until #2113 is resolved,
-        # or a variant that makes it possible to get all aliases
-        #
-        self.filters = {}
-        for f in [
-            "W-S-G+",
-            "W-S-R+",
-            "W-S-I+",
-            "W-S-Z+",
-            "W-S-ZR",
-            "HSC-G",
-            "HSC-R",
-            "HSC-I",
-            "HSC-Z",
-            "HSC-Y",
-            "ENG-R1",
-            "SH",
-            "PH",
-            "NONE",
-            "UNRECOGNISED"]:
-            self.filters[f] = afwImage.Filter(f).getName()
+
         #
         # The number of bits allocated for fields in object IDs
         #
