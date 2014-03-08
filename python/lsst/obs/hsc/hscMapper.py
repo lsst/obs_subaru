@@ -74,7 +74,8 @@ class HscMapper(CameraMapper):
         # object IDs (e.g. on coadds) and changing the order will invalidate old objIDs
 
         afwImageUtils.resetFilters()
-        afwImageUtils.defineFilter(name='None', lambdaEff=0, alias=['Unrecognised',])
+        afwImageUtils.defineFilter(name='None', lambdaEff=0,
+                                   alias=["NONE", 'Unrecognised', 'UNRECOGNISED',])
         afwImageUtils.defineFilter(name='g', lambdaEff=477, alias=['W-S-G+', 'HSC-G'])
         afwImageUtils.defineFilter(name='r', lambdaEff=623, alias=['W-S-R+', 'HSC-R'])
         afwImageUtils.defineFilter(name='r1', lambdaEff=623, alias=['109', 'ENG-R1'])
@@ -84,7 +85,31 @@ class HscMapper(CameraMapper):
         afwImageUtils.defineFilter(name='N921', lambdaEff=921, alias=['NB0921'])
         afwImageUtils.defineFilter(name='SH', lambdaEff=0, alias=['SH',])
         afwImageUtils.defineFilter(name='PH', lambdaEff=0, alias=['PH',])
-
+        #
+        # self.filters is used elsewhere, and for now we'll set it
+        #
+        # It's a bit hard to initialise self.filters properly until #2113 is resolved,
+        # including the part that makes it possible to get all aliases
+        #
+        self.filters = {}
+        for f in [
+            "W-S-G+",
+            "W-S-R+",
+            "W-S-I+",
+            "W-S-Z+",
+            "W-S-ZR",
+            "HSC-G",
+            "HSC-R",
+            "HSC-I",
+            "HSC-Z",
+            "HSC-Y",
+            "ENG-R1",
+            "SH",
+            "PH",
+            "NONE",
+            "UNRECOGNISED"]:
+            # Get the canonical name -- see #2113
+            self.filters[f] = afwImage.Filter(afwImage.Filter(f).getId()).getName()
         #
         # The number of bits allocated for fields in object IDs
         #
