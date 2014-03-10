@@ -1236,8 +1236,8 @@ hasSignificantFluxAtEdge(ImagePtrT img,
                 // not edge
                 continue;
             }
-            log.debugf("Found significant template-edge pixel: %i,%i = %f",
-                       x, y, (float)*xiter);
+            log.debugf("Found significant template-edge pixel: %i,%i = %f > %f",
+                       x, y, (float)*xiter, (float)thresh);
             return true;
         }
     }

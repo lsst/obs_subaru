@@ -142,6 +142,8 @@ class PerPeak(object):
 
         if strayFlux:
             if self.strayFlux is not None:
+                heavy.normalize()
+                self.strayFlux.normalize()
                 heavy = afwDet.mergeHeavyFootprintsF(heavy, self.strayFlux)
 
         return heavy
@@ -284,6 +286,7 @@ def deblend(footprint, maskedImage, psf, psffwhm,
         # FIXME -- just within the bbox?
         stats = afwMath.makeStatistics(varimg, mask, afwMath.MEDIAN)
         sigma1 = math.sqrt(stats.getValue(afwMath.MEDIAN))
+        log.logdebug('Estimated sigma1 = %f' % sigma1)
 
     # Add the mask planes we will set.
     for nm in ['SYMM_1SIG', 'SYMM_3SIG', 'MONOTONIC_1SIG']:
@@ -333,6 +336,8 @@ def deblend(footprint, maskedImage, psf, psffwhm,
         # possibly save the original symmetric template
         pkres.setOrigTemplate(t1, tfoot)
 
+        if rampFluxAtEdge:
+            log.logdebug('Checking for significant flux at edge: sigma1=%g' % sigma1)
         if (rampFluxAtEdge and
             butils.hasSignificantFluxAtEdge(t1.getImage(), tfoot, 3*sigma1)):
             log.logdebug("Template %i has significant flux at edge: ramping" % pkres.pki)
@@ -379,6 +384,9 @@ def deblend(footprint, maskedImage, psf, psffwhm,
     pky = []
     # indices of valid templates
     ibi = [] 
+
+    print 'Parent footprint bounding-box:', fp.getBBox()
+    print 'Parent footprint N spans:', len(fp.getSpans())
 
     for peaki,pkres in enumerate(res.peaks):
         print 'Preparing peak', peaki, 'for apportionFlux'
@@ -439,15 +447,19 @@ def deblend(footprint, maskedImage, psf, psffwhm,
             strayopts |= butils.STRAYFLUX_TO_POINT_SOURCES_ALWAYS
     strayopts |= butils.STRAYFLUX_R_TO_FOOTPRINT
     
+    print 'apportionFlux...'
     portions = butils.apportionFlux(maskedImage, fp, tmimgs, tfoots, sumimg,
                                     dpsf, pkx, pky, strayflux, strayopts,
                                     clipStrayFluxFraction)
+    print 'done apportionFlux'
+    print 'getTemplateSum'
     if getTemplateSum:
         res.setTemplateSum(sumimg)
         
     # Save the apportioned fluxes
     ii = 0
     for j, (pk, pkres) in enumerate(zip(peaks, res.peaks)):
+        print 'Saving flux portion and stray flux for peak', j
         if pkres.skip:
             continue
         pkres.setFluxPortion(portions[ii])

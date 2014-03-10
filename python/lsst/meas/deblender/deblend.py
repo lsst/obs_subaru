@@ -77,6 +77,9 @@ class SourceDeblendConfig(pexConf.Config):
     maxFootprintArea = pexConf.Field(dtype=int, default=100000,
                                      doc=('Refuse to deblend parent footprints containing more than this number of pixels (due to speed concerns); 0 means no limit.'))
 
+    maxFootprintArea = pexConf.Field(dtype=int, default=1000000,
+                                     doc=('Refuse to deblend parent footprints containing more than this number of pixels (due to speed concerns); 0 means no limit.'))
+
     tinyFootprintSize = pexConf.Field(dtype=int, default=2,
                                       doc=('Footprints smaller in width or height than this value will be ignored; 0 to never ignore.'))
     
@@ -203,6 +206,7 @@ class SourceDeblendTask(pipeBase.Task):
         mi = exposure.getMaskedImage()
         stats = afwMath.makeStatistics(mi.getVariance(), mi.getMask(), afwMath.MEDIAN)
         sigma1 = math.sqrt(stats.getValue(afwMath.MEDIAN))
+        print 'sigma1:', sigma1
 
         schema = srcs.getSchema()
 
@@ -218,7 +222,10 @@ class SourceDeblendTask(pipeBase.Task):
                       (fp.getArea() > self.config.maxFootprintArea))
             src.set(self.tooBigKey, toobig)
             if toobig:
+<<<<<<< HEAD
                 src.set(self.deblendSkippedKey, True)
+=======
+>>>>>>> printf profiling; and add a max footprint area for deblending
                 self.log.logdebug('Parent %i: area %i > max %i; skipping' %
                                   (int(src.getId()), fp.getArea(), self.config.maxFootprintArea))
                 continue
@@ -259,6 +266,7 @@ class SourceDeblendTask(pipeBase.Task):
                 traceback.print_exc()
                 continue
 
+            print 'Unpacking results from baseline.deblend()'
             kids = []
             nchild = 0
             for j,peak in enumerate(res.peaks):
@@ -269,7 +277,9 @@ class SourceDeblendTask(pipeBase.Task):
                     src.set(self.deblendSkippedKey, True)
                     continue
 
+                print 'getFluxPortion...'
                 heavy = peak.getFluxPortion()
+                print '(got)'
                 if heavy is None:
                     # This can happen for children >= maxNumberOfPeaks
                     self.log.logdebug('Skipping peak at (%i,%i), child %i of %i: no flux portion'
@@ -307,7 +317,3 @@ class SourceDeblendTask(pipeBase.Task):
         pass
 
 
-
-
-if __name__ == '__main__':
-    SourceDeblendTask.parseAndRun()
