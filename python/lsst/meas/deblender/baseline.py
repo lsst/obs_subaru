@@ -230,7 +230,8 @@ def deblend(footprint, maskedImage, psf, psffwhm,
             patchEdges=False,
             tinyFootprintSize=2,
             getTemplateSum=False,
-            clipStrayFluxFraction=0.001
+            clipStrayFluxFraction=0.001,
+            clipFootprintToNonzero=True,
             ):
     '''
     Deblend a single ``footprint`` in a ``maskedImage``.
@@ -380,6 +381,9 @@ def deblend(footprint, maskedImage, psf, psffwhm,
         if monotonicTemplate:
             log.logdebug('Making template %i monotonic' % pkres.pki)
             butils.makeMonotonic(t1, pk)
+
+        if clipFootprintToNonzero:
+            tfoot.clipToNonzero(t1.getImage())
 
         pkres.setTemplate(t1, tfoot)
 
