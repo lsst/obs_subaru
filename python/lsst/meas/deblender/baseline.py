@@ -1,5 +1,6 @@
 import math
 import numpy as np
+import time
 
 import lsst.afw.image as afwImage
 import lsst.afw.detection as afwDet
@@ -142,9 +143,18 @@ class PerPeak(object):
 
         if strayFlux:
             if self.strayFlux is not None:
+                t0 = time.clock()
                 heavy.normalize()
+                print 'heavy.normalize():', time.clock()-t0
+                t0 = time.clock()
                 self.strayFlux.normalize()
+                print 'strayFlux.normalize():', time.clock()-t0
+                t0 = time.clock()
                 heavy = afwDet.mergeHeavyFootprintsF(heavy, self.strayFlux)
+                print 'mergeHeavyFootprints:', time.clock()-t0
+
+                print 'N peaks:', len(heavy.getPeaks())
+                
 
         return heavy
 
@@ -196,6 +206,7 @@ class PerPeak(object):
         self.skip = True
 
     def setTemplate(self, maskedImage, footprint):
+        print 'setTemplate: footprint has', len(footprint.getPeaks()), 'peaks'
         self.templateMaskedImage = maskedImage
         self.templateFootprint = footprint
         

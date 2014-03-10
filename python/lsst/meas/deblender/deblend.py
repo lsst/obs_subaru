@@ -222,10 +222,7 @@ class SourceDeblendTask(pipeBase.Task):
                       (fp.getArea() > self.config.maxFootprintArea))
             src.set(self.tooBigKey, toobig)
             if toobig:
-<<<<<<< HEAD
                 src.set(self.deblendSkippedKey, True)
-=======
->>>>>>> printf profiling; and add a max footprint area for deblending
                 self.log.logdebug('Parent %i: area %i > max %i; skipping' %
                                   (int(src.getId()), fp.getArea(), self.config.maxFootprintArea))
                 continue
@@ -286,6 +283,11 @@ class SourceDeblendTask(pipeBase.Task):
                                       % (pks[j].getIx(), pks[j].getIy(), j+1, len(res.peaks)))
                     src.set(self.deblendSkippedKey, True)
                     continue
+
+                print 'parent had', len(fp.getPeaks()), 'peaks'
+                print 'child has', len(heavy.getPeaks()), 'peak'
+                if peak.deblendedAsPsf:
+                    print '  deb-as-psf'
 
                 src.set(self.deblendSkippedKey, False)
 

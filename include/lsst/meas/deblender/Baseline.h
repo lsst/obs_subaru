@@ -95,6 +95,27 @@ namespace lsst {
                                          boost::shared_ptr<lsst::afw::detection::Footprint>,
                                          ImagePixelT threshold);
 
+
+                static
+                void
+                _sum_templates(std::vector<MaskedImagePtrT> timgs,
+                               ImagePtrT tsum);
+
+	        static
+                void
+	        _find_stray_flux(lsst::afw::detection::Footprint const& foot,
+				 ImagePtrT tsum,
+				 MaskedImageT const& img,		 
+				 int strayFluxOptions,
+				 std::vector<boost::shared_ptr<lsst::afw::detection::Footprint> > tfoots,
+				 std::vector<bool> const& ispsf,
+				 std::vector<int>  const& pkx,
+				 std::vector<int>  const& pky,
+				 double clipStrayFluxFraction,
+				 std::vector<boost::shared_ptr<typename lsst::afw::detection::HeavyFootprint<ImagePixelT,MaskPixelT,VariancePixelT> > > & strays);
+                           
+
+
             };
         }
     }
