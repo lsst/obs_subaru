@@ -177,7 +177,16 @@ Most chips are flipped L/R, but the rotated ones (100..103) are flipped T/B
         exp = super(HscMapper, self).std_raw(item, dataId)
 
         return self._flipChipsLR(exp, exp.getWcs(), dataId)
-    
+
+    def std_dark(self, item, dataId):
+        parent = super(HscMapper, self)
+        if hasattr(parent, "std_dark"):
+            exp = parent.std_dark(item, dataId)
+        else:
+            exp = self._standardizeExposure(self.calibrations["dark"], item, dataId)
+        exp.getCalib().setExptime(1.0)
+        return exp
+
     def _extractAmpId(self, dataId):
         return (self._extractDetectorName(dataId), 0, 0)
 
