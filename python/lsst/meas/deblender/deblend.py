@@ -59,7 +59,7 @@ class SourceDeblendConfig(pexConf.Config):
     assignStrayFlux = pexConf.Field(dtype=bool, default=True,
                                     doc='Assign stray flux to deblend children.  Implies findStrayFlux.')
 
-    clipStrayFluxFraction = pexConf.Field(dtype=float, default=0.001,
+    clipStrayFluxFraction = pexConf.Field(dtype=float, default=0.01,
                                           doc=('When splitting stray flux, clip fractions below this value to zero.'))
     
     psfChisq1 = pexConf.Field(dtype=float, default=1.5, optional=False,
@@ -74,6 +74,8 @@ class SourceDeblendConfig(pexConf.Config):
     maxNumberOfPeaks = pexConf.Field(dtype=int, default=0,
                                      doc=("Only deblend the brightest maxNumberOfPeaks peaks in the parent" +
                                           " (<= 0: unlimited)"))
+    maxFootprintArea = pexConf.Field(dtype=int, default=100000,
+                                     doc=('Refuse to deblend parent footprints containing more than this number of pixels (due to speed concerns); 0 means no limit.'))
 
     tinyFootprintSize = pexConf.Field(dtype=int, default=2,
                                       doc=('Footprints smaller in width or height than this value will be ignored; 0 to never ignore.'))
@@ -105,6 +107,8 @@ class SourceDeblendTask(pipeBase.Task):
         self.tooManyPeaksKey = schema.addField('deblend.too-many-peaks', type='Flag',
                                                doc='Source had too many peaks; ' +
                                                'only the brightest were included')
+        self.tooBigKey = schema.addField('deblend.parent-too-big', type='Flag',
+                                         doc='Parent footprint covered too many pixels')
         self.deblendFailedKey = schema.addField('deblend.failed', type='Flag',
                                                 doc="Deblending failed on source")
 
@@ -126,7 +130,8 @@ class SourceDeblendTask(pipeBase.Task):
             doc=('This source was assigned some stray flux'))
         
         self.log.logdebug('Added keys to schema: %s' % ", ".join(str(x) for x in (
-                    self.nChildKey, self.psfKey, self.psfCenterKey, self.psfFluxKey, self.tooManyPeaksKey)))
+                    self.nChildKey, self.psfKey, self.psfCenterKey, self.psfFluxKey,
+                    self.tooManyPeaksKey, self.tooBigKey)))
 
     @pipeBase.timeMethod
     def run(self, exposure, sources, psf):
@@ -174,6 +179,16 @@ class SourceDeblendTask(pipeBase.Task):
             pks = fp.getPeaks()
             if len(pks) < 2:
                 continue
+
+            toobig = ((self.config.maxFootprintArea > 0) and 
+                      (fp.getArea() > self.config.maxFootprintArea))
+            src.set(self.tooBigKey, toobig)
+            if toobig:
+                src.set(self.deblendSkippedKey, True)
+                self.log.logdebug('Parent %i: area %i > max %i; skipping' %
+                                  (int(src.getId()), fp.getArea(), self.config.maxFootprintArea))
+                continue
+
             nparents += 1
             bb = fp.getBBox()
             psf_fwhm = self._getPsfFwhm(psf, bb)
