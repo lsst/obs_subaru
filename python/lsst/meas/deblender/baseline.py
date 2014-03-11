@@ -288,7 +288,7 @@ def deblend(footprint, maskedImage, psf, psffwhm,
         bit = mask.addMaskPlane(nm)
 
     # get object that will hold our results
-    res = PerFootprint(fp)
+    res = PerFootprint(fp, peaks=peaks)
 
     if fitPsfs:
         # Find peaks that are well-fit by a PSF + background model.
