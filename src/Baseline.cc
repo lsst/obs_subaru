@@ -298,7 +298,7 @@ _find_stray_flux(det::Footprint const& foot,
 
     // Go through the (parent) Footprint looking for stray flux:
     // pixels that are not claimed by any template, and positive.
-    const SpanList spans = foot.getSpans();
+    const SpanList& spans = foot.getSpans();
     for (SpanList::const_iterator s = spans.begin(); s < spans.end(); s++) {
         int y = (*s)->getY();
         int x0 = (*s)->getX0();
@@ -344,6 +344,7 @@ _find_stray_flux(det::Footprint const& foot,
                         int dy = sp->getY() - y;
                         minr2 = std::min(minr2, (double)(mindx*mindx + dy*dy));
                     }
+                    printf("stray flux at (%i,%i): dist to t %i is %g\n", x, y, i, sqrt(minr2));
                     contrib[i] = 1. / (1. + minr2);
                 }
 
@@ -399,6 +400,12 @@ _find_stray_flux(det::Footprint const& foot,
                 }
                 csum += contrib[i];
             }
+
+            printf("stray flux at (%i,%i): contribs [", x, y);
+            for (size_t i=0; i<tfoots.size(); ++i) {
+                printf(" %g", contrib[i]/csum);
+            }
+            printf("]\n");
 
             for (size_t i=0; i<tfoots.size(); ++i) {
                 if (contrib[i] == 0.) {

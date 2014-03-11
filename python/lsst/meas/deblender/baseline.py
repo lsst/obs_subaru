@@ -108,7 +108,9 @@ class PerPeak(object):
         # debug -- a copy of the original symmetric template
         self.origTemplate = None
         self.origFootprint = None
+        # MaskedImage
         self.rampedTemplate = None
+        # MaskedImage
         self.medianFilteredTemplate = None
 
         # when least-squares fitting templates, the template weight.
@@ -139,8 +141,6 @@ class PerPeak(object):
             return None
         heavy = afwDet.makeHeavyFootprint(self.templateFootprint,
                                           self.fluxPortion)
-        heavy.getPeaks().push_back(self.peak)
-
         if strayFlux:
             if self.strayFlux is not None:
                 t0 = time.clock()
@@ -148,13 +148,10 @@ class PerPeak(object):
                 print 'heavy.normalize():', time.clock()-t0
                 t0 = time.clock()
                 self.strayFlux.normalize()
-                print 'strayFlux.normalize():', time.clock()-t0
+                print 'stray.normalize():', time.clock()-t0
                 t0 = time.clock()
                 heavy = afwDet.mergeHeavyFootprintsF(heavy, self.strayFlux)
                 print 'mergeHeavyFootprints:', time.clock()-t0
-
-                print 'N peaks:', len(heavy.getPeaks())
-                
 
         return heavy
 
@@ -179,6 +176,9 @@ class PerPeak(object):
         self.rampedTemplate = t.getImage().Factory(t.getImage(), True)
     def setMedianFilteredTemplate(self, t, tfoot):
         self.medianFilteredTemplate = t.getImage().Factory(t.getImage(), True)
+    def setPsfTemplate(self, tim, tfoot):
+        self.psfFootprint = afwDet.Footprint(tfoot)
+        self.psfTemplate = tim.Factory(tim, True)
         
     def setOutOfBounds(self):
         self.outOfBounds = True
@@ -206,7 +206,6 @@ class PerPeak(object):
         self.skip = True
 
     def setTemplate(self, maskedImage, footprint):
-        print 'setTemplate: footprint has', len(footprint.getPeaks()), 'peaks'
         self.templateMaskedImage = maskedImage
         self.templateFootprint = footprint
         
@@ -335,6 +334,7 @@ def deblend(footprint, maskedImage, psf, psffwhm,
         # (in this case, a nested pair)
         t1, tfoot = S[0], S[1]
         del S
+        print 'footprint has', len(tfoot.getPeaks()), 'peaks'
 
         if t1 is None:
             log.logdebug(('Peak %i at (%i,%i): failed to build symmetric ' +
@@ -383,7 +383,10 @@ def deblend(footprint, maskedImage, psf, psffwhm,
             butils.makeMonotonic(t1, pk)
 
         if clipFootprintToNonzero:
-            tfoot.clipToNonzero(t1.getImage())
+            print 'Before clipping to non-zero:', tfoot.getBBox()
+            tfoot.clipToNonzeroF(t1.getImage())
+            tfoot.normalize()
+            print 'After clipping to non-zero:', tfoot.getBBox()
 
         pkres.setTemplate(t1, tfoot)
 
@@ -488,7 +491,22 @@ def deblend(footprint, maskedImage, psf, psffwhm,
         else:
             stray = None
         pkres.setStrayFlux(stray)
-            
+
+    # Set child footprints to contain the right number of peaks.
+    for j, (pk, pkres) in enumerate(zip(peaks, res.peaks)):
+        if pkres.skip:
+            continue
+
+        for foot,add in [(pkres.templateFootprint, True),
+                         (pkres.origFootprint, True),
+                         (pkres.strayFlux, False)]:
+            if foot is None:
+                continue
+            pks = foot.getPeaks()
+            pks.clear()
+            if add:
+                pks.push_back(pk)
+
     return res
 
 class CachingPsf(object):
@@ -942,6 +960,14 @@ def _fitPsf(fp, fmask, pk, pkF, pkres, fbb, peaks, peaksF, log, psf,
         pkres.psfFitDebugPsfImg = psfmod
         pkres.psfFitDebugPsfDerivImg = psfderivmod
         pkres.psfFitDebugPsfModel = model
+        pkres.psfFitDebugStamp = img.Factory(img, stampbb, True)
+        pkres.psfFitDebugValidPix = valid  # numpy array
+        pkres.psfFitDebugVar = varimg.Factory(varimg, stampbb, True)
+        ww = np.zeros(valid.shape, np.float)
+        ww[valid] = w
+        pkres.psfFitDebugWeight = ww # numpy
+
+
 
     # Save things we learned about this peak for posterity...
     pkres.psfFitR0 = R0
@@ -969,19 +995,23 @@ def _fitPsf(fp, fmask, pk, pkF, pkres, fbb, peaks, peaksF, log, psf,
         # Clip the Footprint to the PSF model image bbox.
         fpcopy = afwDet.Footprint(fp)
         psfbb = psfimg.getBBox(afwImage.PARENT)
+        print 'Deblending as PSF.'
+        print 'Footprint bbox:', fpcopy.getBBox()
+        print 'PSF bbox:', psfbb
         fpcopy.clipTo(psfbb)
+        print 'Clipped footprint bbox:', fpcopy.getBBox()
         bb = fpcopy.getBBox()
         
         # Copy the part of the PSF model within the clipped footprint.
-        x0, x1 = bb.getMinX(), bb.getMaxX()
-        y0, y1 = bb.getMinY(), bb.getMaxY()
-        W, H = 1 + x1 - x0, 1 + y1 - y0
-        psfmod = afwImage.MaskedImageF(W, H)
-        psfmod.setXY0(x0, y0)
-
+        psfmod = afwImage.MaskedImageF(bb)
         afwDet.copyWithinFootprintImage(fpcopy, psfimg, psfmod.getImage())
         # Save it as our template.
+        fpcopy.clipToNonzeroF(psfmod.getImage())
+        fpcopy.normalize()
         pkres.setTemplate(psfmod, fpcopy)
+
+        # DEBUG
+        pkres.setPsfTemplate(psfmod, fpcopy)
 
 
 def _handle_flux_at_edge(log, psffwhm, t1, tfoot, fp, maskedImage,

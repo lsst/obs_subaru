@@ -206,7 +206,7 @@ class SourceDeblendTask(pipeBase.Task):
         mi = exposure.getMaskedImage()
         stats = afwMath.makeStatistics(mi.getVariance(), mi.getMask(), afwMath.MEDIAN)
         sigma1 = math.sqrt(stats.getValue(afwMath.MEDIAN))
-        print 'sigma1:', sigma1
+        self.log.logdebug('sigma1: %g' % sigma1)
 
         schema = srcs.getSchema()
 
@@ -263,7 +263,6 @@ class SourceDeblendTask(pipeBase.Task):
                 traceback.print_exc()
                 continue
 
-            print 'Unpacking results from baseline.deblend()'
             kids = []
             nchild = 0
             for j,peak in enumerate(res.peaks):
@@ -276,7 +275,6 @@ class SourceDeblendTask(pipeBase.Task):
 
                 print 'getFluxPortion...'
                 heavy = peak.getFluxPortion()
-                print '(got)'
                 if heavy is None:
                     # This can happen for children >= maxNumberOfPeaks
                     self.log.logdebug('Skipping peak at (%i,%i), child %i of %i: no flux portion'
@@ -285,7 +283,7 @@ class SourceDeblendTask(pipeBase.Task):
                     continue
 
                 print 'parent had', len(fp.getPeaks()), 'peaks'
-                print 'child has', len(heavy.getPeaks()), 'peak'
+                assert(len(heavy.getPeaks()) == 1)
                 if peak.deblendedAsPsf:
                     print '  deb-as-psf'
 
