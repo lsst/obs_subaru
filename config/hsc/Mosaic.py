@@ -7,3 +7,4 @@ root.fluxFitAbsolute = True
 root.internalFitting = True
 root.commonFluxCorr = False
 root.minNumMatch = 5
+root.fluxFitSolveCcd = True
