@@ -3,6 +3,7 @@
 import sys
 import os.path
 import re
+
 import numpy
 import pyfits
 import collections
@@ -24,8 +25,6 @@ def genDefectFits(cameraPolicy, source, targetDir):
         for ccd in afwCG.cast_Raft(raft):
             ccdNum = ccd.getId().getSerial()
             ccds[ccdNum] = ccd.getId().getName()
-
-    print "CCDs from camera policy: %s" % ccds
 
     defects = dict()
 

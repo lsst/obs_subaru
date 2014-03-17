@@ -40,6 +40,8 @@ parser.add_option("-f", "--frameID", action="store", dest="frameID",
                   default=False, help="set the frame number.")
 parser.add_option("-d", "--date", action="store", dest="expDate",
                   default=False, help="set the exposure time.")
+parser.add_option("--force", action="store_true", dest="force",
+                  default=False, help="Force refiling (by deleting existing)?")
 
 def datetime2mjd(date_time):
 
@@ -86,7 +88,8 @@ def getFrameInfo(filename):
     if not re.search('^HSC[A-Z]\d{8}', d['frameID']):
         raise SystemExit("frameID=%s for %s is invalid" % (d['frameID'], filename))
 
-    d['progID'] = h['OBJECT'].upper()
+    d['progID'] = re.sub(r'\W', '_', h['OBJECT']).upper()
+
     try:
         d['filterName'] = h['FILTER01'].upper()
     except:
@@ -157,9 +160,10 @@ def getFinalFile(rootDir, filename, info):
                         info['progID'], 
                         info['date'],
                         '%05d' % info['visitID'])
-    if info['progID'] not in ('BIAS', 'DARK'):
-        path = os.path.join(path, info['filterName'])
+    if info['progID'] in ('BIAS', 'DARK'):
+        info['filterName'] = "NONE"
 
+    path = os.path.join(path, info['filterName'])
     root_new = "HSC-%07d-%03d" % (int(info['visit']), int(info['ccd']))
     return path, root_new + '.fits'
 
@@ -188,6 +192,8 @@ def main():
 
         if opts.execute:
             # Actually do the moves. 
+            if opts.force and os.path.exists(outpath):
+                os.unlink(outpath)
             try:
                 if not os.path.isdir(outdir):
                     os.makedirs(outdir)
@@ -195,7 +201,7 @@ def main():
                     shutil.copyfile(infile, outpath)
                     print "copied %s to %s" % (infile, outpath)
                 elif opts.doLink:
-                    os.symlink(infile, outpath)
+                    os.symlink(os.path.abspath(infile), outpath)
                     print "linked %s to %s" % (infile, outpath)
                 else:
                     os.rename(infile, outpath)

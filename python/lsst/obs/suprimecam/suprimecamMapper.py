@@ -17,8 +17,51 @@ except ImportError:
     applyMosaicResults = None
 
 class SuprimecamMapperBase(CameraMapper):
+    def __init__(self, *args, **kwargs):
+        super(SuprimecamMapperBase, self).__init__(*args, **kwargs)
+
+        # Ensure each dataset type of interest knows about the full range of keys available from the registry
+        keys = {'field': str,
+                'visit': int,
+                'filter': str,
+                'ccd': int,
+                'dateObs': str,
+                'taiObs': str,
+                'expTime': float,
+                'pointing': int,
+                }
+        for name in ("raw",
+                     # processCcd outputs
+                     "postISRCCD", "calexp", "postISRCCD", "src", "icSrc", "icMatch", "icMatchFull",
+                     "srcMatch", "srcMatchFull",
+                     # processCcd QA
+                     "ossThumb", "flattenedThumb", "calexpThumb", "plotMagHist", "plotSeeingRough",
+                     "plotSeeingRobust", "plotSeeingMap", "plotEllipseMap", "plotEllipticityMap",
+                     "plotFwhmGrid", "plotEllipseGrid", "plotEllipticityGrid", "plotPsfSrcGrid",
+                     "plotPsfModelGrid", "fitsFwhmGrid", "fitsEllipticityGrid", "fitsEllPaGrid",
+                     "fitsPsfSrcGrid", "fitsPsfModelGrid", "tableSeeingMap", "tableSeeingGrid",
+                     # forcedPhot outputs
+                     "forced_src",
+                     # Warp
+                     "coaddTempExp",
+                     ):
+            self.mappings[name].keyDict.update(keys)
+
+    def map(self, datasetType, dataId, write=False):
+        """Need to strip 'flags' argument from map
+
+        We want the 'flags' argument passed to the butler to work (it's
+        used to change how the reading/writing is done), but want it
+        removed from the mapper (because it doesn't correspond to a
+        registry column).
+        """
+        copyId = dataId.copy()
+        copyId.pop("flags", None)
+        return super(SuprimecamMapperBase, self).map(datasetType, copyId, write=write)
 
     def defineFilters(self):
+        afwImageUtils.resetFilters()
+        
         afwImageUtils.defineFilter('NONE', lambdaEff=0)
 
         # Johnson filters
@@ -257,6 +300,16 @@ class SuprimecamMapperBase(CameraMapper):
             obsMidpoint = obsStart.nsecs() + long(expTime * 1000000000L / 2)
             calib.setMidTime(dafBase.DateTime(obsMidpoint))
 
+    # The following allow grabbing a 'psf' from the butler directly, without having to get it from a calexp
+    def map_psf(self, dataId, write=False):
+        if write:
+            raise RuntimeError("Writing a psf directly is no longer permitted: write as part of a calexp")
+        copyId = dataId.copy()
+        copyId['bbox'] = afwGeom.Box2I(afwGeom.Point2I(0,0), afwGeom.Extent2I(1,1))
+        return self.map_calexp_sub(copyId)
+    def std_psf(self, calexp, dataId):
+        return calexp.getPsf()
+
     @classmethod
     def getEupsProductName(cls):
         return "obs_subaru"
@@ -312,10 +365,7 @@ class SuprimecamMapperMit(SuprimecamMapperBase):
             except:
                 raise RuntimeError("Either $SUPRIME_DATA_DIR or root= must be specified")
         if not kwargs.get('calibRoot', None):
-            try:
-                kwargs['calibRoot'] = os.path.join(os.environ.get('SUPRIME_DATA_DIR'), 'SUPA', 'CALIB_MIT')
-            except:
-                raise RuntimeError("Either $SUPRIME_DATA_DIR or root= must be specified")
+            kwargs['calibRoot'] = os.path.join(kwargs['root'], 'CALIB_MIT')
         policy.set("camera", "../suprimecam/Full_Suprimecam_MIT_geom.paf")
         policy.set("defects", "../suprimecam/mit_defects")
         super(SuprimecamMapperMit, self).__init__(policy, policyFile.getRepositoryPath(), **kwargs)

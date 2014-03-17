@@ -126,6 +126,22 @@ exposures: {
         tables:        "raw"
         tables:        "raw_visit"
     }
+    calibrated_src: {
+        template:      "%(pointing)05d/%(filter)s/output/CALSRC%(visit)07d%(ccd)1d.fits"
+        python:        "lsst.afw.table.SourceCatalog"
+        persistable:   "SourceCatalog"
+        storage:       "FitsCatalogStorage"
+        tables:        "raw"
+        tables:        "raw_visit"
+    }
+    calibrated_exp:  {
+        template:      "%(pointing)05d/%(filter)s/corr/CALEXP-%(visit)07d%(ccd)1d.fits"
+        python:        "lsst.afw.image.ExposureF"
+        persistable:   "ExposureF"
+        storage:       "FitsStorage"
+        tables:        "raw"
+        tables:        "raw_visit"
+    }
 
     warp: {
         template:      "warp/v%(visit)07d-f%(filter)s/s%(patch)d.fits"
@@ -183,6 +199,14 @@ exposures: {
     }
     deepCoadd_tempExp: {
         template:    "deepCoadd/%(filter)s/%(tract)d/%(patch)s/warp-%(filter)s-%(tract)d-%(patch)s-%(visit)d.fits"
+        python:      "lsst.afw.image.ExposureF"
+        persistable: "ExposureF"
+        storage:     "FitsStorage"
+        level:       "Skytile"
+        tables:      raw_skytile
+    }
+    deepCoadd_bgRef: {
+        template:    "deepCoadd/%(filter)s/%(tract)d/%(patch)s/bgRef-%(tract)d-%(patch)s-%(filter)s.fits"
         python:      "lsst.afw.image.ExposureF"
         persistable: "ExposureF"
         storage:     "FitsStorage"
@@ -817,6 +841,14 @@ datasets: {
         tables:        "raw"
         tables:        "raw_visit"
     }
+    deepCoadd_srcMatchFull: {
+        template:      "deepCoadd-results/%(filter)s/%(tract)d/%(patch)s/srcMatchFull-%(filter)s-%(tract)d-%(patch)s.fits"
+        python:        "lsst.afw.table.BaseCatalog"
+        persistable:   "BaseCatalog"
+        storage:       "FitsCatalogStorage"
+        tables:        "raw"
+        tables:        "raw_visit"
+    }
     deepCoadd_icMatch: {
         template:      "deepCoadd-results/%(filter)s/%(tract)d/%(patch)s/icMatch-%(filter)s-%(tract)d-%(patch)s.fits"
         python:        "lsst.afw.table.BaseCatalog"
@@ -875,11 +907,109 @@ datasets: {
         tables:        raw
         tables:        raw_visit
     }
+    fringe_config: {
+        template:      "config/fringe.py"
+        python:        "hsc.pipe.tasks.detrends.FringeConfig"
+        persistable:   "Config"
+        storage:       "ConfigStorage"
+        tables:        raw
+        tables:        raw_visit
+    }
+    stack_config: {
+        template:      "config/stack.py"
+        python:        "hsc.meas.mosaic.stackTask.StackConfig"
+        persistable:   "Config"
+        storage:       "ConfigStorage"
+        tables:        raw
+        tables:        raw_visit
+    }
     solvetansip_config: {
         template:      "config/solvetansip.py"
         python:        "lsst.pex.config.Config"
         persistable:   "Config"
         storage:       "ConfigStorage"
+        tables:        raw
+        tables:        raw_visit
+    }
+    stacker_config: {
+        template:      "config/stacker.py"
+        python:        "hsc.pipe.tasks.stack.StackConfig"
+        persistable:   "Config"
+        storage:       "ConfigStorage"
+        tables:        raw
+        tables:        raw_visit
+    }
+
+    deepCoadd_forced_src: {
+        template:      "deepCoadd-results/%(filter)s/%(tract)d/%(patch)s/forced_src-%(filter)s-%(tract)d-%(patch)s.fits"
+        python:        "lsst.afw.table.SourceCatalog"
+        persistable:        "ignored"
+        storage:    "FitsCatalogStorage"
+        tables:        raw
+        tables:        raw_skyTile
+    }
+    deepCoadd_forced_src_schema: {
+        template:      "schema/deepCoadd_forced_src.fits"
+        python:        "lsst.afw.table.SourceCatalog"
+        persistable:        "ignored"
+        storage:    "FitsCatalogStorage"
+        tables:        raw
+        tables:        raw_skyTile
+    }
+    deep_forcedPhotCoadd_config: {
+        template:      "config/forcedPhotCoadd.py"
+        python:        "lsst.pipe.tasks.forcedPhotCoadd.ForcedPhotCoaddConfig"
+        persistable:      "Config"
+        storage:    "ConfigStorage"
+        tables:        raw
+        tables:        raw_visit
+    }
+    deep_forcedPhotCoadd_metadata: {
+        template:      "deepCoadd_forcedPhotCoadd_metadata/%(filter)s/%(tract)d/%(patch)s.boost"
+        python:        "lsst.daf.base.PropertySet"
+        persistable:        "PropertySet"
+        storage:    "BoostStorage"
+        tables:        raw
+        tables:        raw_visit
+    }
+    deepCoadd_extract: {
+        template:      "deepCoadd-results/%(filter)s/%(tract)d/%(patch)s/extract-%(tract)d-%(patch)s.fits"
+        python:        "lsst.afw.table.SourceCatalog"
+        persistable:   "ignored"
+        storage:       "FitsCatalogStorage"
+        tables:        raw
+        tables:        raw_skyTile
+    }
+
+    forced_src: {
+        template:      "%(pointing)05d/%(filter)s/tract%(tract)d/FORCEDSRC%(visit)07d%(ccd)1d.fits"
+        python:        "lsst.afw.table.SourceCatalog"
+        persistable:        "ignored"
+        storage:    "FitsCatalogStorage"
+        tables:        raw
+        tables:        raw_skyTile
+    }
+    forced_src_schema: {
+        template:      "schema/forced_src.fits"
+        python:        "lsst.afw.table.SourceCatalog"
+        persistable:        "ignored"
+        storage:    "FitsCatalogStorage"
+        tables:        raw
+        tables:        raw_skyTile
+    }
+    forcedPhotCcd_config: {
+        template:      "config/forcedPhotCcd.py"
+        python:        "lsst.pipe.tasks.forcedPhotCcd.ForcedPhotCcdConfig"
+        persistable:      "Config"
+        storage:    "ConfigStorage"
+        tables:        raw
+        tables:        raw_visit
+    }
+    forcedPhotCcd_metadata: {
+        template:      "%(pointing)05d/%(filter)s/tract%(tract)d/forcedPhotCcd_metadata/%(visit)07d%(ccd)1d.boost"
+        python:        "lsst.daf.base.PropertySet"
+        persistable:        "PropertySet"
+        storage:    "BoostStorage"
         tables:        raw
         tables:        raw_visit
     }

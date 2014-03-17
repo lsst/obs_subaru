@@ -93,7 +93,7 @@ def main(camera, sample=20, names=False, showDistortion=True, plot=True, outputF
     if fig:
         if camera.getId().getName() == "HSC":
             from matplotlib.patches import Circle
-            cen = (0, -300)
+            cen = (0, 0)
             ax.add_patch(Circle(cen, radius=18100, color='black', alpha=0.2))
             if showDistortion:
                 ax.add_patch(Circle(cen, radius=19000, color='red', alpha=0.2))

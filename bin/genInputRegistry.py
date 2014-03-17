@@ -56,15 +56,10 @@ parser.add_argument("-v", "--verbose", action="store_true", help="Be chattier")
 args = parser.parse_args()
 
 if args.camera.lower() in ("hsc",):
-    mapperPolicy = "HscSimMapper.paf"
+    mapperPolicy = "HscMapper.paf"
     reFilename = r'HSC-(\d{7})-(\d{3}).fits'
     globFilename = "HSC-%07d-???.fits"
-    mapperName = "lsst.obs.hscSim.HscSimMapper"
-elif args.camera.lower() in ("hscsim",):
-    mapperPolicy = "HscSimMapper.paf"
-    reFilename = r'HSCA(\d{5})(\d{3}).fits'
-    globFilename = "HSCA%05d???.fits"
-    mapperName = "lsst.obs.hscSim.HscSimMapper"
+    mapperName = "lsst.obs.hsc.HscMapper"
 elif args.camera.lower() in ("sc", "suprimecam", "suprime-cam", "sc-mit", "suprimecam-mit"):
     mapperPolicy = "SuprimecamMapper.paf"
     reFilename = r'SUPA(\d{7})(\d).fits'

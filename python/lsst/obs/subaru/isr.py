@@ -4,7 +4,7 @@ import os
 import numpy
 
 from lsst.pex.config import Field
-from lsst.pipe.base import Struct
+from lsst.pipe.base import Task, Struct
 from lsst.ip.isr import IsrTask
 from lsst.ip.isr import isr as lsstIsr
 import lsst.pex.config as pexConfig
@@ -13,7 +13,7 @@ import lsst.afw.detection as afwDetection
 import lsst.afw.image as afwImage
 import lsst.afw.geom as afwGeom
 import lsst.afw.math as afwMath
-from . import crosstalkYagi as crosstalk
+from lsst.obs.subaru.crosstalkYagi import YagiCrosstalkTask
 import lsst.meas.algorithms as measAlg
 
 try:
@@ -55,6 +55,11 @@ class QaConfig(pexConfig.Config):
     doWriteFlattened = pexConfig.Field(doc="Write flattened image?", dtype=bool, default=False)
     doThumbnailFlattened = pexConfig.Field(doc="Write flattened thumbnail?", dtype=bool, default=True)
 
+class NullCrosstalkTask(Task):
+    ConfigClass = pexConfig.Config
+    def run(self, exposure):
+        self.log.info("Not performing any crosstalk correction")
+
 class SubaruIsrConfig(IsrTask.ConfigClass):
     qa = pexConfig.ConfigField(doc="QA-related config options", dtype=QaConfig)
     doSaturation = pexConfig.Field(doc="Mask saturated pixels?", dtype=bool, default=True)
@@ -68,6 +73,7 @@ class SubaruIsrConfig(IsrTask.ConfigClass):
         doc = "Trim guider shadow",
         default = True,
     )
+    crosstalk = pexConfig.ConfigurableField(target=NullCrosstalkTask, doc="Crosstalk correction")
     doCrosstalk = pexConfig.Field(
         dtype = bool,
         doc = "Correct for crosstalk",
@@ -77,16 +83,6 @@ class SubaruIsrConfig(IsrTask.ConfigClass):
         dtype = bool,
         doc = "Correct for nonlinearity of the detector's response (ignored if coefficients are 0.0)",
         default = True,
-    )
-    linearizationThreshold = pexConfig.Field(
-        dtype = float,
-        doc = "Minimum pixel value (in electrons) to apply linearity corrections",
-        default = 0.0,
-    )
-    linearizationCoefficient = pexConfig.Field(
-        dtype = float,
-        doc = "Linearity correction coefficient",
-        default = 0.0,
     )
     doApplyGains = pexConfig.Field(
         dtype = bool,
@@ -111,15 +107,42 @@ after applying the nominal gain
         doc = "FWHM of PSF used when interpolating over bad columns (arcsec)",
         default = 1.0,
     )
-    def validate(self):
-        pexConfig.Config.validate(self)
+    doSetBadRegions = pexConfig.Field(
+        dtype = bool,
+        doc = "Should we set the level of all BAD patches of the chip to the chip's average value?",
+        default = True,
+        )
+    badStatistic = pexConfig.ChoiceField(
+        dtype = str,
+        doc = "How to estimate the average value for BAD regions.",
+        default = 'MEANCLIP',
+        allowed = {
+            "MEANCLIP": "Correct using the (clipped) mean of good data",
+            "MEDIAN": "Correct using the median of the good data",
+            },
+        )
+    doTweakFlat = pexConfig.Field(dtype=bool, doc="Tweak flats to match observed amplifier ratios?",
+                                  default=False)
+    overscanMaxDev = pexConfig.Field(dtype=float, doc="Maximum deviation from the median for overscan",
+                                     default=1000.0, check=lambda x: x > 0)
 
+    def validate(self):
+        super(SubaruIsrConfig, self).validate()
         if self.doFlat and self.doApplyGains:
             raise ValueError("You may not specify both self.doFlat and self.doApplyGains")
-        
+
+    def setDefaults(self):
+        super(SubaruIsrConfig, self).setDefaults()
+        # Relative gains in the camera should be taken out by the flat-field, not by "gain" values.
+        self.assembleCcd.doRenorm = False # Don't multiply by the gain
+
 class SubaruIsrTask(IsrTask):
 
     ConfigClass = SubaruIsrConfig
+
+    def __init__(self, *args, **kwargs):
+        super(SubaruIsrTask, self).__init__(*args, **kwargs)
+        self.makeSubtask("crosstalk")
 
     def run(self, sensorRef):
         self.log.log(self.log.INFO, "Performing ISR on sensor %s" % (sensorRef.dataId))
@@ -148,7 +171,24 @@ class SubaruIsrTask(IsrTask):
             if self.config.doSaturation:
                 self.saturationDetection(ccdExposure, amp)
             if self.config.doOverscan:
-                self.overscanCorrection(ccdExposure, amp)
+                ampImage = afwImage.MaskedImageF(ccdExposure.getMaskedImage(), amp.getDiskDataSec(),
+                                                 afwImage.PARENT)
+                overscan = afwImage.MaskedImageF(ccdExposure.getMaskedImage(), amp.getDiskBiasSec(),
+                                                 afwImage.PARENT)
+                overscanArray = overscan.getImage().getArray()
+                median = numpy.median(overscanArray)
+                bad = numpy.where(numpy.abs(overscanArray - median) > self.config.overscanMaxDev)
+                overscan.getMask().getArray()[bad] = overscan.getMask().getPlaneBitMask("SAT")
+
+                statControl = afwMath.StatisticsControl()
+                statControl.setAndMask(ccdExposure.getMaskedImage().getMask().getPlaneBitMask("SAT"))
+                lsstIsr.overscanCorrection(ampMaskedImage=ampImage, overscanImage=overscan,
+                                           fitType=self.config.overscanFitType,
+                                           polyOrder=self.config.overscanPolyOrder,
+                                           collapseRej=self.config.overscanRej,
+                                           statControl=statControl,
+                                   )
+
             if self.config.doVariance:
                 # Ideally, this should be done after bias subtraction,
                 # but CCD assembly demands a variance plane
@@ -158,16 +198,19 @@ class SubaruIsrTask(IsrTask):
         ccdExposure = self.assembleCcd.assembleCcd(ccdExposure)
         ccd = afwCG.cast_Ccd(ccdExposure.getDetector())
 
+        self.maskAndInterpDefect(ccdExposure)
+
         if self.config.qa.doWriteOss:
             sensorRef.put(ccdExposure, "ossImage")
         if self.config.qa.doThumbnailOss:
             self.writeThumbnail(sensorRef, "ossThumb", ccdExposure)
 
-        if self.config.doCrosstalk:
-            self.crosstalk(ccdExposure)
-
         if self.config.doBias:
             self.biasCorrection(ccdExposure, sensorRef)
+        if self.config.doLinearize:
+            self.linearize(ccdExposure)
+        if self.config.doCrosstalk:
+            self.crosstalk.run(ccdExposure)
         if self.config.doDark:
             self.darkCorrection(ccdExposure, sensorRef)
         if self.config.doFlat:
@@ -180,23 +223,13 @@ class SubaruIsrTask(IsrTask):
             self.saturationInterpolation(ccdExposure)
         if self.config.doDefect:
             self.maskDefect(ccdExposure, self.config.fwhmForBadColumnInterpolation)
-        #
-        # CCD 0, amp 1 is dead in HSC
-        #
-        # This is a hack.
-        #
-        if ccd.getParent().getParent().getId().getName() == "HSC" and ccd.getId().getSerial() == 0:
-            amp1 = list(ccd)[1] # 2nd amplifier
 
-            im = ccdExposure.getMaskedImage().getImage()
-            sim = im.Factory(im, amp1.getAllPixels())
-            sim.set(afwMath.makeStatistics(im, afwMath.MEDIAN).getValue())
-            del sim; del im
-            
-            msk = ccdExposure.getMaskedImage().getMask()
-            smsk = msk.Factory(msk, amp1.getAllPixels())
-            smsk |= msk.getPlaneBitMask("BAD")
-            del smsk; del msk
+        if self.config.doFringe:
+            self.fringe.run(ccdExposure, sensorRef)
+        if self.config.doSetBadRegions:
+            self.setBadRegions(ccdExposure)
+
+        self.maskAndInterpNan(ccdExposure)
 
         if self.config.qa.doWriteFlattened:
             sensorRef.put(ccdExposure, "flattenedImage")
@@ -205,8 +238,6 @@ class SubaruIsrTask(IsrTask):
 
         self.measureBackground(ccdExposure)
 
-        if self.config.doLinearize:
-            self.linearize(ccdExposure)
         if self.config.doGuider:
             self.guider(ccdExposure)
 
@@ -274,6 +305,32 @@ class SubaruIsrTask(IsrTask):
                     for x in range(x0, x1 + 1):
                         mask.set(x, y, saturatedBit)
 
+    def setBadRegions(self, exposure):
+        """Set all BAD areas of the chip to the average of the rest of the exposure
+
+        @param[in,out]  exposure    exposure to process; must include both DataSec and BiasSec pixels
+        """
+        if self.config.badStatistic == "MEDIAN":
+            statistic = afwMath.MEDIAN
+        elif self.config.badStatistic == "MEANCLIP":
+            statistic = afwMath.MEANCLIP
+        else:
+            raise RuntimeError("Impossible method %s of bad region correction" % self.config.badStatistic)
+
+        mi = exposure.getMaskedImage()
+        mask = mi.getMask()
+        BAD = mask.getPlaneBitMask("BAD")
+        fs = afwDetection.FootprintSet(mask, afwDetection.createThreshold(BAD, "bitmask"))
+
+        sctrl = afwMath.StatisticsControl()
+        sctrl.setAndMask(BAD)
+        value = afwMath.makeStatistics(mi, statistic, sctrl).getValue()
+
+        afwDetection.setImageFromFootprintList(mi.getImage(), fs.getFootprints(), value)
+
+        self.log.log(self.log.INFO, "Set %d BAD pixels to %.2f" %
+                     (sum([f.getNpix() for f in fs.getFootprints()]), value))
+
     def writeThumbnail(self, dataRef, dataset, exposure, format='png', width=500, height=0):
         """Write out exposure to a snapshot file named outfile in the given image format and size.
         """
@@ -312,6 +369,8 @@ class SubaruIsrTask(IsrTask):
     def measureBackground(self, exposure):
         statsControl = afwMath.StatisticsControl(self.config.qa.flatness.clipSigma,
                                                  self.config.qa.flatness.nIter)
+        maskVal = exposure.getMaskedImage().getMask().getPlaneBitMask(["BAD","SAT","DETECTED"])
+        statsControl.setAndMask(maskVal)
         maskedImage = exposure.getMaskedImage()
         stats = afwMath.makeStatistics(maskedImage, afwMath.MEDIAN | afwMath.STDEVCLIP, statsControl)
         skyLevel = stats.getValue(afwMath.MEDIAN)
@@ -344,8 +403,9 @@ class SubaruIsrTask(IsrTask):
 
                 skyLevels[i,j] = afwMath.makeStatistics(miMesh, stat, statsControl).getValue()
 
-        skyMedian = numpy.median(skyLevels)
-        flatness =  (skyLevels - skyMedian) / skyMedian
+        good = numpy.where(numpy.isfinite(skyLevels))
+        skyMedian = numpy.median(skyLevels[good])
+        flatness =  (skyLevels[good] - skyMedian) / skyMedian
         flatness_rms = numpy.std(flatness)
         flatness_min = flatness.min()
         flatness_max = flatness.max() 
@@ -354,15 +414,12 @@ class SubaruIsrTask(IsrTask):
         self.log.info("Measuring sky levels in %dx%d grids: %f" % (nX, nY, skyMedian))
         self.log.info("Sky flatness in %dx%d grids - pp: %f rms: %f" % (nX, nY, flatness_pp, flatness_rms))
 
-        metadata.set('FLATNESS_PP', flatness_pp)
-        metadata.set('FLATNESS_RMS', flatness_rms)
+        metadata.set('FLATNESS_PP', float(flatness_pp))
+        metadata.set('FLATNESS_RMS', float(flatness_rms))
         metadata.set('FLATNESS_NGRIDS', '%dx%d' % (nX, nY))
         metadata.set('FLATNESS_MESHX', self.config.qa.flatness.meshX)
         metadata.set('FLATNESS_MESHY', self.config.qa.flatness.meshY)
 
-
-    def crosstalk(self, exposure):
-        raise NotImplementedError("Crosstalk correction is enabled but no generic implementation is present")
 
     def guider(self, exposure):
         raise NotImplementedError(
@@ -376,42 +433,44 @@ class SubaruIsrTask(IsrTask):
         """
         assert exposure, "No exposure provided"
 
-        image = exposure.getMaskedImage().getImage()
+        image = exposure.getMaskedImage()
 
         ccd = afwCG.cast_Ccd(exposure.getDetector())
 
+        linearized = False              # did we apply linearity corrections?
         for amp in ccd:
-            if False:
-                linear_threshold = amp.getElectronicParams().getLinearizationThreshold()
-                linear_c = amp.getElectronicParams().getLinearizationCoefficient()
-            else:
-                linearizationCoefficient = self.config.linearizationCoefficient
-                linearizationThreshold = self.config.linearizationThreshold
+            linearity = amp.getElectronicParams().getLinearity()
 
-            if linearizationCoefficient == 0.0:     # nothing to do
-                continue
-
-            self.log.log(self.log.INFO,
-                         "Applying linearity corrections to Ccd %s Amp %s" % (ccd.getId(), amp.getId()))
-
-            if linearizationThreshold > 0:
-                log10_thresh = math.log10(linearizationThreshold)
-
-            ampImage = image.Factory(image, amp.getDataSec(), afwImage.LOCAL)
-
+            ampImage = image[amp.getDataSec()]
             width, height = ampImage.getDimensions()
 
-            if linearizationThreshold <= 0:
-                tmp = ampImage.Factory(ampImage, True)
-                tmp.scaledMultiplies(linearizationCoefficient, ampImage)
-                ampImage += tmp
+            imageTypeMax = 65535        # should be a method on the image
+            setSuspectPixels = linearity.maxCorrectable < imageTypeMax # there might be some
+
+            if not setSuspectPixels and linearity.coefficient == 0.0:
+                continue                # nothing to do
+
+            linearized = True
+            #
+            # We may have a max correctable level even if we make no attempt to correct
+            #
+            if setSuspectPixels:
+                afwDetection.FootprintSet(ampImage,
+                                          afwDetection.Threshold(linearity.maxCorrectable), "SUSPECT")
+
+            if linearity.type == afwCG.Linearity.PROPORTIONAL:
+                if linearity.threshold != 0.0:
+                    raise RuntimeError(
+                        ("The threshold for PROPORTIONAL linearity corrections must be 0; saw %g" +
+                         " for ccd %s amp %s") % (linearity.threshold, ccd.getId(), amp.getId()))
+                
+                ampArr = ampImage.getImage().getArray()
+                ampArr *= 1.0 + linearity.coefficient*ampArr
             else:
-                for y in range(height):
-                    for x in range(width):
-                        val = ampImage.get(x, y)
-                        if val > linearizationThreshold:
-                            val += val*linearizationCoefficient*(math.log10(val) - log10_thresh)
-                            ampImage.set(x, y, val)
+                raise NotImplementedError("Unimplemented linearity type: %d", linearity.type)
+
+        if linearized:
+            self.log.log(self.log.INFO, "Applying linearity corrections to Ccd %s" % (ccd.getId()))
 
     def maskDefect(self, ccdExposure, fwhm=1.0):
         """Mask defects using mask plane "BAD"
@@ -436,49 +495,54 @@ class SubaruIsrTask(IsrTask):
         if wcs:
             fwhm /= wcs.pixelScale().asArcseconds()
         lsstIsr.interpolateDefectList(maskedImage, defectList, fwhm)
-        
-class HamamatsuIsrTaskConfig(SubaruIsrTask.ConfigClass):
-    crosstalkCoeffs = pexConfig.ConfigField(
-        dtype = crosstalk.CrosstalkYagiCoeffsConfig,
-        doc = "Crosstalk coefficients by Yagi+ 2012",
-    )
-    crosstalkMaskPlane = pexConfig.Field(
-        dtype = str,
-        doc = "Name of Mask plane for crosstalk corrected pixels",
-        default = "CROSSTALK",
-    )
-    minPixelToMask = pexConfig.Field(
-        dtype = float,
-        doc = "Minimum pixel value (in electrons) to cause crosstalkMaskPlane bit to be set",
-        default = 45000,
-        )
 
-class SuprimeCamIsrTaskConfig(HamamatsuIsrTaskConfig):
-    pass
+    def flatCorrection(self, exposure, dataRef):
+        """Apply flat correction in-place
+
+        This version allows tweaking the flat-field to match the observed
+        ratios of background flux in the amplifiers.  This may be necessary
+        if the gains drift or the levels are slightly affected by non-linearity
+        or similar.  Note that this tweak may not work if there is significant
+        structure in the image, and especially if the structure varies over
+        the amplifiers.
+
+        @param[in,out]  exposure        exposure to process
+        @param[in]      dataRef         data reference at same level as exposure
+        """
+        flatfield = self.getDetrend(dataRef, "flat")
+
+        if self.config.doTweakFlat:
+            data = []
+            flatData = []
+            flatAmpList = []
+            bad = exposure.getMaskedImage().getMask().getPlaneBitMask(["BAD", "SAT"])
+            stats = afwMath.StatisticsControl()
+            stats.setAndMask(bad)
+            for amp in afwCG.cast_Ccd(exposure.getDetector()):
+                box = amp.getDataSec(True)
+                dataAmp = afwImage.MaskedImageF(exposure.getMaskedImage(), box, afwImage.LOCAL).clone()
+                flatAmp = afwImage.MaskedImageF(flatfield.getMaskedImage(), box, afwImage.LOCAL)
+                flatAmpList.append(flatAmp)
+                dataAmp /= flatAmp
+                data.append(afwMath.makeStatistics(dataAmp, afwMath.MEDIAN, stats).getValue())
+
+            data = numpy.array(data)
+            tweak = data/data.sum()*len(data)
+            self.log.warn("Tweaking flat-field to match observed amplifier ratios: %s" % tweak)
+            for i, flat in enumerate(flatAmpList):
+                flat *= tweak[i]
+
+        lsstIsr.flatCorrection(exposure.getMaskedImage(), flatfield.getMaskedImage(),
+                               scalingType="USER", userScale=1.0)
+
+
+class SuprimecamIsrConfig(SubaruIsrConfig):
+    def setDefaults(self):
+        super(SuprimecamIsrConfig, self).setDefaults()
+        self.crosstalk.retarget(YagiCrosstalkTask)
 
 class SuprimeCamIsrTask(SubaruIsrTask):
-    
-    ConfigClass = SuprimeCamIsrTaskConfig
-
-    def crosstalk(self, exposure):
-        coeffs1List = self.config.crosstalkCoeffs.getCoeffs1() # primary crosstalk
-        coeffs2List = self.config.crosstalkCoeffs.getCoeffs2() # secondary crosstalk
-        gainsPreampSig = self.config.crosstalkCoeffs.getGainsPreampSigboard()
-        if not numpy.any(coeffs1List):
-            self.log.info("No crosstalk info available. Skipping crosstalk corrections to CCD %s" %
-                          (exposure.getDetector().getId()))
-            return
-
-        self.log.info("Applying crosstalk corrections to CCD %s based on Yagi+2012" %
-                      (exposure.getDetector().getId()))
-
-        ccdId = int(exposure.getDetector().getId().getSerial())
-        gainsPreampSigCcd = gainsPreampSig[ccdId]
-
-        crosstalk.subtractCrosstalkYagi(exposure.getMaskedImage(), coeffs1List, coeffs2List,
-                                        gainsPreampSigCcd,
-                                        self.config.minPixelToMask, self.config.crosstalkMaskPlane)
-
+    ConfigClass = SuprimecamIsrConfig
 
     def guider(self, exposure):
         """Mask defects and trim guider shadow
@@ -530,12 +594,12 @@ class SuprimeCamIsrTask(SubaruIsrTask):
             good = mi.Factory(mi, bbox, afwImage.LOCAL)
             exposure.setMaskedImage(good)
 
-class SuprimeCamMitIsrTaskConfig(SubaruIsrTask.ConfigClass):
+class SuprimeCamMitIsrConfig(SubaruIsrTask.ConfigClass):
     pass
 
 class SuprimeCamMitIsrTask(SubaruIsrTask):
     
-    ConfigClass = SuprimeCamMitIsrTaskConfig
+    ConfigClass = SuprimeCamMitIsrConfig
 
     def guider(self, exposure):
         """Mask defects and trim guider shadow

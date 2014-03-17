@@ -506,3 +506,44 @@ Electronic: {
 
     } 
 } 
+
+#
+# Non linearity
+#
+Linearity: {
+    Ccd: {
+        serial: -1                      # i.e. the default
+        Amp: {
+            serial: 1
+            type: "PROPORTIONAL"
+            threshold: 0.0
+            maxCorrectable: 1.8e5
+            coefficient: 5.6e-8
+            intensityUnits: "ELECTRONS"
+        }
+        Amp: {
+            serial: 2
+            type: "PROPORTIONAL"
+            threshold: 0.0
+            maxCorrectable: 1.8e5
+            coefficient: 5.6e-8
+            intensityUnits: "ELECTRONS"
+        }
+        Amp: {
+            serial: 3
+            type: "PROPORTIONAL"
+            threshold: 0.0
+            maxCorrectable: 1.8e5
+            coefficient: 5.6e-8
+            intensityUnits: "ELECTRONS"
+        }
+        Amp: {
+            serial: 4
+            type: "PROPORTIONAL"
+            threshold: 0.0
+            maxCorrectable: 1.8e5
+            coefficient: 5.6e-8
+            intensityUnits: "ELECTRONS"
+        }
+    }
+}

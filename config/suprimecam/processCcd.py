@@ -4,9 +4,7 @@ SuprimeCam-specific overrides for ProcessCcdTask
 """
 import os
 root.load(os.path.join(os.environ['OBS_SUBARU_DIR'], 'config', 'suprimecam', 'isr.py'))
+root.load(os.path.join(os.environ['OBS_SUBARU_DIR'], 'config', 'suprimecam', 'colorterms.py'))
 
-# color terms
-from lsst.meas.photocal.colorterms import Colorterm
-from lsst.obs.suprimecam.colorterms import colortermsData
-Colorterm.setColorterms(colortermsData)
-Colorterm.setActiveDevice("Hamamatsu")
+root.measurement.algorithms["jacobian"].pixelScale = 0.2
+

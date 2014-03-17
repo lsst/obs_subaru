@@ -1,0 +1,6 @@
+# -*- python -*-
+from lsst.sconsUtils import env, targets
+
+# Not using lsst.sconsUtils.scripts.BasicSConscript because we have multiple swigs to do (?)
+targets["python"].extend(env.SwigLoadableModule("_hscLib", ["hscLib.i"],
+                                                LIBS=env.getLibs("main python")))
