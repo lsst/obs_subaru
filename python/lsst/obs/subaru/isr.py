@@ -308,7 +308,7 @@ class SubaruIsrTask(IsrTask):
                     if x1 >= width - 1: x1 = width - 1
 
                     for x in range(x0, x1 + 1):
-                        mask.set(x, y, saturatedBit)
+                        mask.set(x, y, mask.get(x, y) | saturatedBit)
 
     def setBadRegions(self, exposure):
         """Set all BAD areas of the chip to the average of the rest of the exposure
