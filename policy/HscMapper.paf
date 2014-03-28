@@ -909,6 +909,15 @@ datasets: {
         tables:        raw
         tables:        raw_visit
     }
+    fringe_config: {
+        template:      "config/fringe.py"
+        python:        "hsc.pipe.tasks.detrends.FringeConfig"
+        persistable:   "Config"
+        storage:       "ConfigStorage"
+        tables:        raw
+        tables:        raw_visit
+    }
+
     solvetansip_config: {
         template:      "config/solvetansip.py"
         python:        "lsst.pex.config.Config"
