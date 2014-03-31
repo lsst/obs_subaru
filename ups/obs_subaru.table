@@ -7,6 +7,7 @@ setupRequired(pyfits)
 
 setupOptional(psycopg2)
 setupOptional(meas_extensions_multiShapelet)
+setupOptional(meas_multifit)
 setupOptional(fitsthumb)
 setupOptional(distEst)
 setupOptional(meas_extensions_psfex)
