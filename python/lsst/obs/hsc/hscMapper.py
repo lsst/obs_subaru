@@ -10,11 +10,6 @@ import lsst.afw.math as afwMath
 import lsst.afw.geom as afwGeom
 import lsst.pex.policy as pexPolicy
 
-try: # just to let meas_mosaic be an optional dependency
-    from lsst.meas.mosaic import applyMosaicResults
-except ImportError:
-    applyMosaicResults = None
-
 class HscMapper(CameraMapper):
     """Provides abstract-physical mapping for HSC data"""
 
@@ -201,12 +196,6 @@ Most chips are flipped L/R, but the rotated ones (100..103) are flipped T/B
     def bypass_ccdExposureId_bits(self, datasetType, pythonType, location, dataId):
         """How many bits are required for the maximum exposure ID"""
         return 32 # just a guess, but this leaves plenty of space for sources
-
-    def build_ubercalexp(self, dataId, butler):
-        if applyMosaicResults is None:
-            raise RuntimeError("Cannot apply mosaic outputs to calexp: meas_mosaic could not be imported")
-        dataRef = butler.dataRef("calexp", **dataId)
-        return applyMosaicResults(dataRef)
 
     def _computeCoaddExposureId(self, dataId, singleFilter):
         """Compute the 64-bit (long) identifier for a coadd.
