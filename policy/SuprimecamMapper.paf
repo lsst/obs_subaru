@@ -57,15 +57,6 @@ exposures: {
         tables:        "raw"
         tables:        "raw_visit"
     }
-    ubercalexp: {
-        template:      "%(pointing)05d/%(filter)s/corr/CORR%(visit)07d%(ccd)1d.fits"
-        python:        "lsst.afw.image.ExposureF"
-        persistable:   "ExposureF"
-        storage:       "FitsStorage"
-        level:         "Ccd"
-        tables:        "raw"
-        tables:        "raw_visit"
-    }
 
     revexp: {
         template:      "%(pointing)05d/%(filter)s/corr/CORW%(visit)07d%(ccd)d.fits"
@@ -88,7 +79,7 @@ exposures: {
     }
 
     wcs: {
-        template: "%(pointing)05d/%(filter)s/corr/wcs%(visit)07d%(ccd)1d.fits"
+        template: "%(pointing)05d/%(filter)s/corr/%(tract)04d/wcs%(visit)07d%(ccd)1d.fits"
         python:        "lsst.afw.image.ExposureI"
         persistable:        "ExposureI"
         storage:    "FitsStorage"
@@ -99,7 +90,7 @@ exposures: {
     }
 
     fcr: {
-        template: "%(pointing)05d/%(filter)s/corr/fcr%(visit)07d%(ccd)1d.fits"
+        template: "%(pointing)05d/%(filter)s/corr/%(tract)04d/fcr%(visit)07d%(ccd)1d.fits"
         python:        "lsst.afw.image.ExposureI"
         persistable:        "ExposureI"
         storage:    "FitsStorage"
@@ -127,7 +118,7 @@ exposures: {
         tables:        "raw_visit"
     }
     calibrated_src: {
-        template:      "%(pointing)05d/%(filter)s/output/CALSRC%(visit)07d%(ccd)1d.fits"
+        template:      "%(pointing)05d/%(filter)s/output/%(tract)04d/CALSRC%(visit)07d%(ccd)1d.fits"
         python:        "lsst.afw.table.SourceCatalog"
         persistable:   "SourceCatalog"
         storage:       "FitsCatalogStorage"
@@ -135,7 +126,7 @@ exposures: {
         tables:        "raw_visit"
     }
     calibrated_exp:  {
-        template:      "%(pointing)05d/%(filter)s/corr/CALEXP-%(visit)07d%(ccd)1d.fits"
+        template:      "%(pointing)05d/%(filter)s/corr/%(tract)04d/CALEXP-%(visit)07d%(ccd)1d.fits"
         python:        "lsst.afw.image.ExposureF"
         persistable:   "ExposureF"
         storage:       "FitsStorage"

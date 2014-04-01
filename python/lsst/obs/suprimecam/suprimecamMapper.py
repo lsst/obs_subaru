@@ -11,11 +11,6 @@ import lsst.afw.image.utils as afwImageUtils
 from lsst.daf.butlerUtils import CameraMapper
 import lsst.pex.policy as pexPolicy
 
-try: # just to let meas_mosaic be an optional dependency
-    from lsst.meas.mosaic import applyMosaicResults
-except ImportError:
-    applyMosaicResults = None
-
 class SuprimecamMapperBase(CameraMapper):
     def __init__(self, *args, **kwargs):
         super(SuprimecamMapperBase, self).__init__(*args, **kwargs)
@@ -271,12 +266,6 @@ class SuprimecamMapperBase(CameraMapper):
         return self._computeCoaddExposureId(dataId, True)
     def bypass_deepCoaddId_bits(self, datasetType, pythonType, location, dataId):
         return 1 + 7 + 13*2 + 3
-
-    def build_ubercalexp(self, dataId, butler):
-        if applyMosaicResults is None:
-            raise RuntimeError("Cannot apply mosaic outputs to calexp: meas_mosaic could not be imported")
-        dataRef = butler.dataRef("calexp", **dataId)
-        return applyMosaicResults(dataRef)
 
     def _setTimes(self, mapping, item, dataId):
         """Set the exposure time and exposure midpoint in the calib object in
