@@ -215,6 +215,7 @@ class SubaruIsrTask(IsrTask):
             self.crosstalk.run(ccdExposure)
         if self.config.doDark:
             self.darkCorrection(ccdExposure, sensorRef)
+
         if self.config.doFlat:
             self.flatCorrection(ccdExposure, sensorRef)
 
@@ -321,16 +322,18 @@ class SubaruIsrTask(IsrTask):
         mi = exposure.getMaskedImage()
         mask = mi.getMask()
         BAD = mask.getPlaneBitMask("BAD")
-        fs = afwDetection.FootprintSet(mask, afwDetection.createThreshold(BAD, "bitmask"))
+        INTRP = mask.getPlaneBitMask("INTRP")
 
         sctrl = afwMath.StatisticsControl()
         sctrl.setAndMask(BAD)
         value = afwMath.makeStatistics(mi, statistic, sctrl).getValue()
 
-        afwDetection.setImageFromFootprintList(mi.getImage(), fs.getFootprints(), value)
+        maskArray = mask.getArray()
+        imageArray = mi.getImage().getArray()
+        badPixels = numpy.logical_and((maskArray & BAD) > 0, (maskArray & INTRP) == 0)
+        imageArray[:] = numpy.where(badPixels, value, imageArray)
 
-        self.log.log(self.log.INFO, "Set %d BAD pixels to %.2f" %
-                     (sum([f.getNpix() for f in fs.getFootprints()]), value))
+        self.log.info("Set %d BAD pixels to %.2f" % (badPixels.sum(), value))
 
     def writeThumbnail(self, dataRef, dataset, exposure, format='png', width=500, height=0):
         """Write out exposure to a snapshot file named outfile in the given image format and size.
