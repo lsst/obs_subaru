@@ -198,6 +198,9 @@ class SubaruIsrTask(IsrTask):
         ccdExposure = self.assembleCcd.assembleCcd(ccdExposure)
         ccd = ccdExposure.getDetector()
 
+        # Not a good mechanism for switching on transposition, but it gets the job done
+        self.transposeForInterpolation = True if ccd.getOrientation().getNQuarter() % 2 else False
+
         if self.config.doDefect:
             # LAM temporary fix: daf_butlerUtils raises a RuntimeError if given
             #                    ccd has no defects in registry
