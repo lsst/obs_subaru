@@ -81,7 +81,8 @@ def bb_to_xy(bb, margin=0):
     return [x0,x0,x1,x1,x0], [y0,y1,y1,y0,y0]
 
 
-def makeplots(butler, dataId, ps, sources=None):
+def makeplots(butler, dataId, ps, sources=None, pids=None, minsize=0,
+              maxpeaks=10):
     calexp = butler.get("calexp", **dataId)
     if sources is None:
         ss = butler.get('src', **dataId)
@@ -111,7 +112,6 @@ def makeplots(butler, dataId, ps, sources=None):
     print
     lsstimg = calexp.getMaskedImage().getImage()
     img = lsstimg.getArray()
-    print 'percentiles', np.percentile(img, 25), np.percentile(img, 95)
     schema = ss.getSchema()
     psfkey = schema.find("deblend.deblended-as-psf").key
     nchildkey = schema.find("deblend.nchild").key
@@ -127,21 +127,44 @@ def makeplots(butler, dataId, ps, sources=None):
                 ss.append(s)
         return ', '.join(ss)
     
+
+    plt.subplots_adjust(left=0.05, right=0.95, bottom=0.05, top=0.9,
+                        hspace=0.2, wspace=0.3)
+
+    sig1 = np.sqrt(np.median(calexp.getMaskedImage().getVariance().getArray().ravel()))
+    pp = (img / np.sqrt(calexp.getMaskedImage().getVariance().getArray())).ravel()
+    plt.clf()
+    lo,hi = -4,4
+    n,b,p = plt.hist(img.ravel() / sig1, 100, range=(lo,hi), histtype='step', color='b')
+    plt.hist(pp, 100, range=(lo,hi), histtype='step', color='g')
+    xx = np.linspace(lo,hi, 200)
+    yy = 1./(np.sqrt(2.*np.pi)) * np.exp(-0.5 * xx**2)
+    yy *= sum(n) * (b[1]-b[0])
+    plt.plot(xx, yy, 'k-', alpha=0.5)
+    plt.xlim(lo,hi)
+    plt.title('image-wide sig1: %.1f' % sig1)
+    ps.savefig()
     
     for ifam,(p,kids) in enumerate(families.items()):
-    
-        if len(kids) < 5:
-            print 'Skipping family with', len(kids)
-            continue
-
-        print 'ifam', ifam
-    
-        if ifam != 18:
-            print 'skipping'
-            continue
 
         parent = srcs[p]
+        pid = parent.getId() & 0xffff
+        if len(pids) and not pid in pids:
+            #print 'Skipping pid', pid
+            continue
+
+        if len(kids) < minsize:
+            print 'Skipping parent', pid, ': n kids', len(kids)
+            continue
     
+        # if len(kids) < 5:
+        #     print 'Skipping family with', len(kids)
+        #     continue
+        # print 'ifam', ifam
+        # if ifam != 18:
+        #     print 'skipping'
+        #     continue
+
         print 'Parent', parent
         print 'Kids', kids
     
@@ -155,7 +178,7 @@ def makeplots(butler, dataId, ps, sources=None):
         slc = slice(y0, y1+1), slice(x0, x1+1)
     
         ima = dict(interpolation='nearest', origin='lower', cmap='gray',
-                   vmin=-5, vmax=20.)
+                   vmin=-10, vmax=40)
         mn,mx = ima['vmin'], ima['vmax']
     
         if False:
@@ -245,7 +268,7 @@ def makeplots(butler, dataId, ps, sources=None):
         psf = calexp.getPsf()
         psf_fwhm = psf.computeShape().getDeterminantRadius() * 2.35
         deb = deblend(pfoot, calexp.getMaskedImage(), psf, psf_fwhm, verbose=True,
-                      maxNumberOfPeaks=10,
+                      maxNumberOfPeaks=maxpeaks,
                       rampFluxAtEdge=True,
                       clipStrayFluxFraction=0.01,
                       )
@@ -272,8 +295,8 @@ def makeplots(butler, dataId, ps, sources=None):
         for plotnum in range(4):
             plt.clf()
             for i,kid in enumerate(deb.peaks):
-                print 'child', kid
-                print '  flags:', getDebFlagString(kid)
+                # print 'child', kid
+                # print '  flags:', getDebFlagString(kid)
 
                 kfoot = None
                 if plotnum == 0:
@@ -292,10 +315,10 @@ def makeplots(butler, dataId, ps, sources=None):
                                                           kid.psfTemplate)
                         kfoot.normalize()
                         kfoot.clipToNonzeroF(kid.psfTemplate.getImage())
-                        print 'kfoot BB:', kfoot.getBBox()
-                        print 'Img bb:', kid.psfTemplate.getImage().getBBox(afwImage.PARENT)
-                        for sp in kfoot.getSpans():
-                            print '  span', sp
+                        # print 'kfoot BB:', kfoot.getBBox()
+                        # print 'Img bb:', kid.psfTemplate.getImage().getBBox(afwImage.PARENT)
+                        # for sp in kfoot.getSpans():
+                        #     print '  span', sp
                     else:
                         kfoot = afwDet.makeHeavyFootprint(kid.templateFootprint,
                                                           kid.templateMaskedImage)
@@ -330,32 +353,106 @@ def makeplots(butler, dataId, ps, sources=None):
             ima = dict(interpolation='nearest', origin='lower', cmap='gray')
             #vmin=0, vmax=kid.psfFitFlux)
 
-            plt.subplot(2,3,1)
+            plt.subplot(2,4,1)
             #plt.title('fit psf 0')
             #plt.imshow(kid.psfFitDebugPsf0Img.getArray(), **ima)
             #plt.colorbar()
-            plt.title('valid pixels')
-            plt.imshow(kid.psfFitDebugValidPix, vmin=0, vmax=1, **ima)
+            #plt.title('valid pixels')
+            #plt.imshow(kid.psfFitDebugValidPix, vmin=0, vmax=1, **ima)
+            plt.title('weights')
+            plt.imshow(kid.psfFitDebugWeight, vmin=0, **ima)
+            plt.xticks([]); plt.yticks([])
             plt.colorbar()
 
-            plt.subplot(2,3,2)
-            #plt.title('fit psf')
-            #plt.imshow(kid.psfFitDebugPsfImg.getArray(), **ima)
-            #plt.colorbar()
-            plt.title('variance')
-            plt.imshow(kid.psfFitDebugVar.getArray(), vmin=0, **ima)
+            plt.subplot(2,4,7)
+            plt.title('valid pixels')
+            plt.imshow(kid.psfFitDebugValidPix, vmin=0, vmax=1, **ima)
+            plt.xticks([]); plt.yticks([])
             plt.colorbar()
+
+
+            plt.subplot(2,4,2)
+            #plt.title('ramp weights')
+            #plt.imshow(kid.psfFitDebugRampWeight, vmin=0, vmax=1, **ima)
+            #plt.colorbar()
+            sig = np.sqrt(kid.psfFitDebugVar.getArray())
+            data = kid.psfFitDebugStamp.getArray()
+            model = kid.psfFitDebugPsfModel.getArray()
+            chi = ((data - model) / sig)
+            valid = kid.psfFitDebugValidPix           
+
+            plt.hist(np.clip((data/sig)[valid], -5, 5), 20, range=(-5,5),
+                     histtype='step', color='m')
+            plt.hist(np.clip((model/sig)[valid], -5, 5), 20, range=(-5,5),
+                     histtype='step', color='r')
+            plt.hist(np.clip(chi.ravel(), -5,5), 20, range=(-5,5),
+                     histtype='step', color='g')
+            n,b,p = plt.hist(np.clip(chi[valid], -5,5), 20, range=(-5,5),
+                             histtype='step', color='b')
+
+            xx = np.linspace(-5,5, 200)
+            yy = 1./(np.sqrt(2.*np.pi)) * np.exp(-0.5 * xx**2)
+            yy *= sum(n) * (b[1]-b[0])
+            plt.plot(xx, yy, 'k-', alpha=0.5)
+
+            plt.xlim(-5,5)
+
+            print 'Sum of ramp weights:', np.sum(kid.psfFitDebugRampWeight)
+            print 'Quadrature sum of ramp weights:', np.sqrt(np.sum(kid.psfFitDebugRampWeight**2))
+            print 'Number of valid pix:', np.sum(kid.psfFitDebugValidPix)
+            rw = kid.psfFitDebugRampWeight
+            valid = kid.psfFitDebugValidPix
+            # print 'valid values:', np.unique(valid)
+            print 'rw[valid]', np.sum(rw[valid])
+            print 'rw range', rw.min(), rw.max()
+            # print 'rw', rw.shape, rw.dtype
+            # print 'valid', valid.shape, valid.dtype
+            # print 'rw[valid]:', rw[valid]
+
+            myresid = np.sum(kid.psfFitDebugValidPix *
+                             kid.psfFitDebugRampWeight *
+                             ((kid.psfFitDebugStamp.getArray() -
+                               kid.psfFitDebugPsfModel.getArray()) /
+                              np.sqrt(kid.psfFitDebugVar.getArray()))**2)
+            print 'myresid:', myresid
+
+
+            plt.subplot(2,4,8)
+            N = 20000
+            rwv = rw[valid]
+            print 'rwv', rwv
+            x = np.random.normal(size=(N,len(rwv)))
+            ss = np.sum(rwv * x**2, axis=1)
+            plt.hist(ss, 25)
+            chi,dof = kid.psfFitBest
+            plt.axvline(chi, color='r')
 
             mx = kid.psfFitDebugPsfModel.getArray().max()
 
-            plt.subplot(2,3,3)
-            plt.title('fit psf model')
-            plt.imshow(kid.psfFitDebugPsfModel.getArray(), vmin=0, vmax=mx, **ima)
+            plt.subplot(2,4,3)
+            #plt.title('fit psf')
+            #plt.imshow(kid.psfFitDebugPsfImg.getArray(), **ima)
+            #plt.colorbar()
+            # plt.title('variance')
+            # plt.imshow(kid.psfFitDebugVar.getArray(), vmin=0, **ima)
+            # plt.colorbar()
+            plt.title('model+noise')
+            plt.imshow((kid.psfFitDebugPsfModel.getArray() +
+                        sig * np.random.normal(size=sig.shape))*valid,
+                       vmin=0, vmax=mx, **ima)
+            plt.xticks([]); plt.yticks([])
             plt.colorbar()
 
-            plt.subplot(2,3,4)
+            plt.subplot(2,4,4)
+            plt.title('fit psf model')
+            plt.imshow(kid.psfFitDebugPsfModel.getArray(), vmin=0, vmax=mx, **ima)
+            plt.xticks([]); plt.yticks([])
+            plt.colorbar()
+
+            plt.subplot(2,4,5)
             plt.title('fit psf image')
             plt.imshow(kid.psfFitDebugStamp.getArray(), vmin=0, vmax=mx, **ima)
+            plt.xticks([]); plt.yticks([])
             plt.colorbar()
 
             chi = (kid.psfFitDebugValidPix *
@@ -363,13 +460,22 @@ def makeplots(butler, dataId, ps, sources=None):
                     kid.psfFitDebugPsfModel.getArray()) /
                    np.sqrt(kid.psfFitDebugVar.getArray()))
 
-            plt.subplot(2,3,5)
+            plt.subplot(2,4,6)
             plt.title('fit psf chi')
             plt.imshow(-chi, vmin=-3, vmax=3, interpolation='nearest', origin='lower', cmap='RdBu')
+            plt.xticks([]); plt.yticks([])
             plt.colorbar()
 
+            params = kid.psfFitParams
+            (flux, sky, skyx, skyy) = params[:4]
+
+            print 'Model sum:', model.sum()
+            print '- sky', model.sum() - np.sum(valid)*sky
+
+            sig1 = np.median(sig)
+
             chi,dof = kid.psfFitBest
-            plt.suptitle('kid %i: chisq %g, dof %i' % (i, chi, dof))
+            plt.suptitle('PSF kid %i: flux %.1f, sky %.1f, sig1 %.1f' % (i, flux, sky, sig1)) #: chisq %g, dof %i' % (i, chi, dof))
 
             ps.savefig()
 
@@ -388,8 +494,13 @@ if __name__ == '__main__':
     parser.add_option('--visit', help='Visit number, default %default', default=905516, type=int)
     parser.add_option('--ccd', help='CCD number, default %default', default=22, type=int)
     parser.add_option('--sources', help='Read sources file', type=str)
-    parsre.add_option('--hdu', help='With --sources, HDU to read; default %default',
+    parser.add_option('--hdu', help='With --sources, HDU to read; default %default',
                       type=int, default=2)
+    parser.add_option('--pid', '-p', action='append', default=[], type=int,
+                      help='Deblend a specific parent ID')
+    parser.add_option('--big', dest='minsize', default=0, help='Only show results for deblend families larger than this', type=int)
+    parser.add_option('--maxpeaks', default=10, help='maxNumberOfPeaks', type=int)
+
     opt,args = parser.parse_args()
 
     if len(args):
@@ -400,6 +511,7 @@ if __name__ == '__main__':
         opt.data = os.path.join(os.environ['SUPRIME_DATA_DIR'],
                                 'rerun', opt.rerun)
 
+    print 'Data directory:', opt.data
     butler = dafPersist.Butler(opt.data)
     dataId = dict(visit=opt.visit, ccd=opt.ccd)
     ps = PlotSequence('deb')
@@ -407,7 +519,8 @@ if __name__ == '__main__':
     sources = None
     if opt.sources:
         flags = 0
-        srcs = afwTable.SourceCatalog.readFits(opt.sources, opt.hdu, flags)
-        print 'Read sources from', opt.sources, ':', srcs
+        sources = afwTable.SourceCatalog.readFits(opt.sources, opt.hdu, flags)
+        print 'Read sources from', opt.sources, ':', sources
 
-    makeplots(butler, dataId, ps, sources=sources)
+    makeplots(butler, dataId, ps, sources=sources, pids=opt.pid, minsize=opt.minsize,
+              maxpeaks=opt.maxpeaks)

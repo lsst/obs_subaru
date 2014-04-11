@@ -257,6 +257,36 @@ makeMonotonic(
     }
 }
 
+static double _get_contrib_r_to_footprint(int x, int y,
+                                          det::Footprint::Ptr tfoot) {
+    typedef typename det::Footprint::SpanList SpanList;
+    double minr2 = 1e12;
+    SpanList const& tspans = tfoot->getSpans();
+    for (SpanList::const_iterator ts = tspans.begin(); ts < tspans.end(); ++ts) {
+        geom::Span* sp = ts->get();
+        int mindx;
+        // span is to right of pixel?
+        int dx = sp->getX0() - x;
+        if (dx >= 0) {
+            mindx = dx;
+        } else {
+            // span is to left of pixel?
+            dx = x - sp->getX1();
+            if (dx >= 0) {
+                mindx = dx;
+            } else {
+                // span contains pixel (in x direction)
+                mindx = 0;
+            }
+        }
+        int dy = sp->getY() - y;
+        minr2 = std::min(minr2, (double)(mindx*mindx + dy*dy));
+    }
+    //printf("stray flux at (%i,%i): dist to t %i is %g\n", x, y, (int)i, sqrt(minr2));
+    return 1. / (1. + minr2);
+}
+
+
 template<typename ImagePixelT, typename MaskPixelT, typename VariancePixelT>
 void
 deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::
@@ -296,6 +326,37 @@ _find_stray_flux(det::Footprint const& foot,
         strayvar.push_back(std::vector<VariancePixelT>());
     }
 
+    bool always = (strayFluxOptions & STRAYFLUX_TO_POINT_SOURCES_ALWAYS);
+
+    typedef boost::uint16_t itype;
+    image::Image<itype>::Ptr nearest;
+
+    if (strayFluxOptions & STRAYFLUX_NEAREST_FOOTPRINT) {
+        // Compute the map of which footprint is closest to each
+        // pixel in the bbox.
+        typedef boost::uint16_t dtype;
+        image::Image<dtype>::Ptr dist(new image::Image<dtype>(sumbb));
+        nearest = image::Image<itype>::Ptr(new image::Image<itype>(sumbb));
+
+        std::vector<det::Footprint::Ptr> templist;
+        std::vector<det::Footprint::Ptr>* footlist = &tfoots;
+
+        if (!always && ispsf.size()) {
+            // create a temp list that has empty footprints in place
+            // of all the point sources.
+            det::Footprint::Ptr empty(new det::Footprint());
+            for (size_t i=0; i<tfoots.size(); ++i) {
+                if (ispsf[i]) {
+                    templist.push_back(empty);
+                } else {
+                    templist.push_back(tfoots[i]);
+                }
+            }
+            footlist = &templist;
+        }
+        nearestFootprint(*footlist, nearest, dist);
+    }
+
     // Go through the (parent) Footprint looking for stray flux:
     // pixels that are not claimed by any template, and positive.
     const SpanList& spans = foot.getSpans();
@@ -316,41 +377,22 @@ _find_stray_flux(det::Footprint const& foot,
             if ((*tsum_it > 0) || (*in_it).image() <= 0) {
                 continue;
             }
-            //printf("Pixel at (%i,%i) has stray flux: %g\n", x, y, (float)*in_it);
 
             if (strayFluxOptions & STRAYFLUX_R_TO_FOOTPRINT) {
-                // By 1/r^2 to nearest pixel within the footprint
+                // we'll compute these just-in-time
                 for (size_t i=0; i<tfoots.size(); ++i) {
-                    double minr2 = 1e12;
-                    const SpanList tspans = tfoots[i]->getSpans();
-                    for (SpanList::const_iterator ts = tspans.begin();
-                         ts < tspans.end(); ++ts) {
-                        geom::Span* sp = ts->get();
-                        int mindx;
-                        // span is to right of pixel?
-                        int dx = sp->getX0() - x;
-                        if (dx >= 0) {
-                            mindx = dx;
-                        } else {
-                            // span is to left of pixel?
-                            dx = x - sp->getX1();
-                            if (dx >= 0) {
-                                mindx = dx;
-                            } else {
-                                // span contains pixel (in x direction)
-                                mindx = 0;
-                            }
-                        }
-                        int dy = sp->getY() - y;
-                        minr2 = std::min(minr2, (double)(mindx*mindx + dy*dy));
-                    }
-                    printf("stray flux at (%i,%i): dist to t %i is %g\n", x, y, i, sqrt(minr2));
-                    contrib[i] = 1. / (1. + minr2);
+                    contrib[i] = -1.0;
                 }
-
-            } else {
-                // Split the stray flux by 1/r^2 ...
+            } else if (strayFluxOptions & STRAYFLUX_NEAREST_FOOTPRINT) {
                 for (size_t i=0; i<tfoots.size(); ++i) {
+                    contrib[i] = 0.0;
+                }
+                int i = nearest->get0(x, y);
+                contrib[i] = 1.0;
+            } else {
+                // R_TO_PEAK
+                for (size_t i=0; i<tfoots.size(); ++i) {
+                    // Split the stray flux by 1/(1+r^2) to peaks
                     int dx, dy;
                     dx = pkx[i] - x;
                     dy = pky[i] - y;
@@ -358,17 +400,17 @@ _find_stray_flux(det::Footprint const& foot,
                 }
             }
 
-            // Round 1:
-            bool always = (strayFluxOptions &
-                           STRAYFLUX_TO_POINT_SOURCES_ALWAYS);
+            // Round 1: skip point sources unless STRAYFLUX_TO_POINT_SOURCES_ALWAYS
             // are we going to assign stray flux to ptsrcs?
             bool ptsrcs = always;
-
             double csum = 0.;
             for (size_t i=0; i<tfoots.size(); ++i) {
-                // Skip deblended-as-PSF
-                if ((!always) && ispsf.size() && ispsf[i]) {
+                // if we're skipping point sources and this is a point source...
+                if ((!ptsrcs) && ispsf.size() && ispsf[i]) {
                     continue;
+                }
+                if (contrib[i] == -1.0) {
+                    contrib[i] = _get_contrib_r_to_footprint(x, y, tfoots[i]);
                 }
                 csum += contrib[i];
             }
@@ -379,6 +421,9 @@ _find_stray_flux(det::Footprint const& foot,
                 //log.debugf("necessary to assign stray flux to point sources");
                 ptsrcs = true;
                 for (size_t i=0; i<tfoots.size(); ++i) {
+                    if (contrib[i] == -1.0) {
+                        contrib[i] = _get_contrib_r_to_footprint(x, y, tfoots[i]);
+                    }
                     csum += contrib[i];
                 }
             }
@@ -394,18 +439,11 @@ _find_stray_flux(det::Footprint const& foot,
                 }
                 // skip small contributions
                 if (contrib[i] < strayclip) {
-                    //printf("clipping %g to zero\n", contrib[i]);
                     contrib[i] = 0.;
                     continue;
                 }
                 csum += contrib[i];
             }
-
-            printf("stray flux at (%i,%i): contribs [", x, y);
-            for (size_t i=0; i<tfoots.size(); ++i) {
-                printf(" %g", contrib[i]/csum);
-            }
-            printf("]\n");
 
             for (size_t i=0; i<tfoots.size(); ++i) {
                 if (contrib[i] == 0.) {
@@ -513,15 +551,21 @@ _sum_templates(std::vector<MaskedImagePtrT> timgs,
 
  If *strayFluxOptions* includes *STRAYFLUX_R_TO_FOOTPRINT*, the stray
  flux is distributed to the footprints based on 1/(1+r^2) of the
- minimum distance from the stray flux to footprint; otherwise, it's
- based on (1/(1+r^2) from the peaks.
+ minimum distance from the stray flux to footprint.
+
+ If *strayFluxOptions* includes "STRAYFLUX_NEAREST_FOOTPRINT*, the
+ stray flux is assigned to the footprint with lowest L-1 (Manhattan)
+ distance to the stray flux.
+
+ Otherwise, stray flux is assigned based on (1/(1+r^2) from the peaks.
 
  If *strayFluxOptions* includes *STRAYFLUX_TO_POINT_SOURCES_ALWAYS*,
  then point sources are always included in the 1/(1+r^2) splitting.
  Otherwise, if *STRAYFLUX_TO_POINT_SOURCES_WHEN_NECESSARY*, point
  sources are included only if there are no extended sources nearby.
 
- If any stray-flux portion is less than 0.1%, it is clipped to zero.
+ If any stray-flux portion is less than *clipStrayFluxFraction*, it is
+ clipped to zero.
 
  When doing stray flux, the "strays" arg is used as an extra return
  value, the stray flux assigned to each template.
@@ -1328,8 +1372,8 @@ getSignificantEdgePixels(ImagePtrT img,
                 // not edge
                 continue;
             }
-            log.debugf("Found significant edge pixel: %i,%i = %f",
-                       x, y, (float)*xiter);
+            log.debugf("Found significant edge pixel: %i,%i = %f > thresh %g",
+                       x, y, (float)*xiter, (float)thresh);
             edgepix->addSpanInSeries(y, x, x);
         }
     }

@@ -21,6 +21,7 @@
 #
 import math
 import numpy
+import time
 
 import lsst.pex.config as pexConf
 import lsst.afw.table as afwTable
@@ -59,6 +60,14 @@ class SourceDeblendConfig(pexConf.Config):
     assignStrayFlux = pexConf.Field(dtype=bool, default=True,
                                     doc='Assign stray flux to deblend children.  Implies findStrayFlux.')
 
+    strayFluxRule = pexConf.ChoiceField(
+        doc='How to split flux among peaks',
+        dtype=str, default='r-to-peak',
+        allowed = {
+            'r-to-peak': '~ 1/(1+R^2) to the peak',
+            'r-to-footprint': '~ 1/(1+R^2) to the closest pixel in the footprint.  CAUTION: this can be computationally expensive on large footprints!',
+            'nearest-footprint': 'Assign 100% to the nearest footprint (using L-1 norm aka Manhattan distance)' })
+
     clipStrayFluxFraction = pexConf.Field(dtype=float, default=0.01,
                                           doc=('When splitting stray flux, clip fractions below this value to zero.'))
     
@@ -77,7 +86,7 @@ class SourceDeblendConfig(pexConf.Config):
     maxFootprintArea = pexConf.Field(dtype=int, default=100000,
                                      doc=('Refuse to deblend parent footprints containing more than this number of pixels (due to speed concerns); 0 means no limit.'))
 
-    maxFootprintArea = pexConf.Field(dtype=int, default=1000000,
+    maxFootprintArea = pexConf.Field(dtype=int, default=100000,
                                      doc=('Refuse to deblend parent footprints containing more than this number of pixels (due to speed concerns); 0 means no limit.'))
 
     tinyFootprintSize = pexConf.Field(dtype=int, default=2,
@@ -98,7 +107,9 @@ class SourceDeblendTask(pipeBase.Task):
         @param         **kwds        Passed to Task.__init__.
         """
         pipeBase.Task.__init__(self, **kwargs)
+        self.addSchemaKeys(schema)
 
+    def addSchemaKeys(self, schema):
         if tableVersion == 0:
             self.nChildKey = schema.addField('deblend.nchild', type=int,
                                              doc='Number of children this object has (defaults to 0)')
@@ -213,6 +224,8 @@ class SourceDeblendTask(pipeBase.Task):
         n0 = len(srcs)
         nparents = 0
         for i,src in enumerate(srcs):
+            #t0 = time.clock()
+
             fp = src.getFootprint()
             pks = fp.getPeaks()
             if len(pks) < 2:
@@ -250,6 +263,7 @@ class SourceDeblendTask(pipeBase.Task):
                     assignStrayFlux=self.config.assignStrayFlux,
                     findStrayFlux=(self.config.assignStrayFlux or
                                    self.config.findStrayFlux),
+                    strayFluxAssignment=self.config.strayFluxRule,
                     rampFluxAtEdge=(self.config.edgeHandling == 'ramp'),
                     patchEdges=(self.config.edgeHandling == 'noclip'),
                     tinyFootprintSize=self.config.tinyFootprintSize,
@@ -273,7 +287,6 @@ class SourceDeblendTask(pipeBase.Task):
                     src.set(self.deblendSkippedKey, True)
                     continue
 
-                print 'getFluxPortion...'
                 heavy = peak.getFluxPortion()
                 if heavy is None:
                     # This can happen for children >= maxNumberOfPeaks
@@ -281,14 +294,9 @@ class SourceDeblendTask(pipeBase.Task):
                                       % (pks[j].getIx(), pks[j].getIy(), j+1, len(res.peaks)))
                     src.set(self.deblendSkippedKey, True)
                     continue
-
-                print 'parent had', len(fp.getPeaks()), 'peaks'
                 assert(len(heavy.getPeaks()) == 1)
-                if peak.deblendedAsPsf:
-                    print '  deb-as-psf'
 
                 src.set(self.deblendSkippedKey, False)
-
                 child = srcs.addNew(); nchild += 1
                 child.setParent(src.getId())
                 child.setFootprint(heavy)
@@ -305,6 +313,7 @@ class SourceDeblendTask(pipeBase.Task):
             src.set(self.nChildKey, nchild)
             
             self.postSingleDeblendHook(exposure, srcs, i, npre, kids, fp, psf, psf_fwhm, sigma1, res)
+            #print 'Deblending parent id', src.getId(), 'took', time.clock() - t0
 
         n1 = len(srcs)
         self.log.info('Deblended: of %i sources, %i were deblended, creating %i children, total %i sources' %
