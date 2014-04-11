@@ -31,7 +31,7 @@ class HscFlatCombineTask(FlatCombineTask):
         care, as it just dumps it out via the Butler.
         """
         combined = super(HscFlatCombineTask, self).run(sensorRefList, *args, **kwargs)
-        mi = afwImage.makeMaskedImage(combined)
+        mi = afwImage.makeMaskedImage(combined.getImage())
         mi.getMask().set(0)
 
         # Retrieve the detector
