@@ -41,6 +41,8 @@ try:
 except ImportError:
     print "hscAstrom is not setup; using LSST's meas_astrom instead"
 
+# Reference catalog may not have as good star/galaxy discrimination as our data
+root.calibrate.photocal.badFlags += ["classification.extendedness",]
 
 # Detection
 root.detection.isotropicGrow = True
