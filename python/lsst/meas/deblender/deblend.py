@@ -286,6 +286,9 @@ class SourceDeblendTask(pipeBase.Task):
                 child.set(self.deblendPatchedTemplateKey, peak.patched)
                 kids.append(child)
 
+            # update parent footprint in-place to ensure it contains all child footprints
+            src.getFootprint().include([child.getFootprint() for child in kids])
+
             src.set(self.nChildKey, nchild)
             
             self.postSingleDeblendHook(exposure, srcs, i, npre, kids, fp, psf, psf_fwhm, sigma1, res)
