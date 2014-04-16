@@ -91,7 +91,7 @@ exposures: {
         level:        "Ccd"
         tables:        "raw"
         tables:        "raw_visit"
-        tables:        "raw_skyTile"
+        columns:       "pointing" "filter" "visit" "ccd"
     }
 
     fcr: {
@@ -102,7 +102,7 @@ exposures: {
         level:        "Ccd"
         tables:        "raw"
         tables:        "raw_visit"
-        tables:        "raw_skyTile"
+        columns:       "pointing" "filter" "visit" "ccd"
     }
     detj: {
         template:      "%(pointing)05d/%(filter)s/corr/%(tract)04d/DETJ-%(visit)07d-%(ccd)03d.fits"
@@ -112,6 +112,7 @@ exposures: {
         level:        "Ccd"
         tables:        "raw"
         tables:        "raw_visit"
+        columns:       "pointing" "filter" "visit" "ccd"
     }
     dcor: {
         template:      "%(pointing)05d/%(filter)s/corr/%(tract)04d/DCOR-%(visit)07d-%(ccd)03d.fits"
@@ -121,6 +122,7 @@ exposures: {
         level:        "Ccd"
         tables:        "raw"
         tables:        "raw_visit"
+        columns:       "pointing" "filter" "visit" "ccd"
     }
     calibrated_src: {
         template:      "%(pointing)05d/%(filter)s/output/%(tract)04d/CALSRC-%(visit)07d-%(ccd)03d.fits"
@@ -129,6 +131,7 @@ exposures: {
         storage:       "FitsCatalogStorage"
         tables:        "raw"
         tables:        "raw_visit"
+        columns:       "pointing" "filter" "visit" "ccd"
     }
     calibrated_exp:  {
         template:      "%(pointing)05d/%(filter)s/corr/%(tract)04d/CALEXP-%(visit)07d-%(ccd)03d.fits"
@@ -137,6 +140,7 @@ exposures: {
         storage:       "FitsStorage"
         tables:        "raw"
         tables:        "raw_visit"
+        columns:       "pointing" "filter" "visit" "ccd"
     }
 
     warp: {
