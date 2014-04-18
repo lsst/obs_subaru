@@ -645,8 +645,14 @@ datasets: {
 
     eups_versions: {
         template:      "config/eups.versions"
-        python:        "str"
-        persistable:   "None"
+        python:        "lsst.daf.base.PropertySet"
+        persistable:   "ignored"
+        storage:       "EupsStorage"
+    }
+    eups_versions_tmp: {
+        template:      "config/eups.versions.tmp"
+        python:        "lsst.daf.base.PropertySet"
+        persistable:   "ignored"
         storage:       "EupsStorage"
     }
 
