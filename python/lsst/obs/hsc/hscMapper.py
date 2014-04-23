@@ -109,15 +109,14 @@ class HscMapper(CameraMapper):
             # Get the canonical name -- see #2113
             self.filters[f] = afwImage.Filter(afwImage.Filter(f).getId()).getName()
         #
-        # The number of bits allocated for fields in object IDs
+        # The number of bits allocated for fields in object IDs, appropriate for
+        # the default-configured Rings skymap.
         #
-        # FIXME: this bit allocation is for LSST's huge-tract skymaps, and needs
-        # to be updated to something more appropriate for Subaru
-        # (actually, it shouldn't be the mapper's job at all; see #2797).
+        # This shouldn't be the mapper's job at all; see #2797.
 
-        HscMapper._nbit_tract =   7
-        HscMapper._nbit_patch  = 13
-        HscMapper._nbit_filter =  5
+        HscMapper._nbit_tract = 16
+        HscMapper._nbit_patch  = 5
+        HscMapper._nbit_filter = 6
 
         HscMapper._nbit_id = 64 - (HscMapper._nbit_tract + 2*HscMapper._nbit_patch + HscMapper._nbit_filter)
 
