@@ -214,11 +214,6 @@ Most chips are flipped L/R, but the rotated ones (100..103) are flipped T/B
             return (oid << HscMapper._nbit_filter) + afwImage.Filter(dataId['filter']).getId()
         return oid
 
-    def bypass_eups_versions(self, *args, **kwargs):
-        return ""
-    def bypass_eups_versions_tmp(self, *args, **kwargs):
-        return ""
-
     def bypass_deepCoaddId_bits(self, *args, **kwargs):
         """The number of bits used up for patch ID bits"""
         return 64 - HscMapper._nbit_id
