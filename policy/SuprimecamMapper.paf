@@ -635,6 +635,13 @@ datasets: {
         tables:       "raw"
     }
 
+    eups_versions: {
+        template:      "config/eups.versions"
+        python:        "lsst.daf.persistence.EupsVersions"
+        persistable:   "ignored"
+        storage:       "EupsStorage"
+    }
+
     processCcd_config: {
         template:      "config/processCcd.py"
         python:        "lsst.pipe.tasks.processCcd.ProcessCcdConfig"
