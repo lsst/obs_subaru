@@ -955,16 +955,12 @@ datasets: {
         python:        "lsst.afw.table.SourceCatalog"
         persistable:        "ignored"
         storage:    "FitsCatalogStorage"
-        tables:        raw
-        tables:        raw_skyTile
     }
     deep_forcedPhotCoadd_config: {
         template:      "config/forcedPhotCoadd.py"
         python:        "lsst.pipe.tasks.forcedPhotCoadd.ForcedPhotCoaddConfig"
         persistable:      "Config"
         storage:    "ConfigStorage"
-        tables:        raw
-        tables:        raw_visit
     }
     deep_forcedPhotCoadd_metadata: {
         template:      "deepCoadd_forcedPhotCoadd_metadata/%(filter)s/%(tract)d/%(patch)s.boost"
@@ -989,23 +985,19 @@ datasets: {
         persistable:        "ignored"
         storage:    "FitsCatalogStorage"
         tables:        raw
-        tables:        raw_skyTile
+        tables:        raw_visit
     }
     forced_src_schema: {
         template:      "schema/forced_src.fits"
         python:        "lsst.afw.table.SourceCatalog"
         persistable:        "ignored"
         storage:    "FitsCatalogStorage"
-        tables:        raw
-        tables:        raw_skyTile
     }
     forcedPhotCcd_config: {
         template:      "config/forcedPhotCcd.py"
         python:        "lsst.pipe.tasks.forcedPhotCcd.ForcedPhotCcdConfig"
         persistable:      "Config"
         storage:    "ConfigStorage"
-        tables:        raw
-        tables:        raw_visit
     }
     forcedPhotCcd_metadata: {
         template:      "%(pointing)05d/%(filter)s/tract%(tract)d/forcedPhotCcd_metadata/%(visit)07d%(ccd)1d.boost"
