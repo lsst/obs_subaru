@@ -948,6 +948,14 @@ datasets: {
         tables:        raw
         tables:        raw_visit
     }
+    forcedCcd_config: {
+        template:      "config/forcedCcd.py"
+        python:        "hsc.pipe.tasks.forcedCcd.ForcedCcdConfig"
+        persistable:   "Config"
+        storage:       "ConfigStorage"
+        tables:        raw
+        tables:        raw_visit
+    }
 
     deepCoadd_forced_src: {
         template:      "deepCoadd-results/%(filter)s/%(tract)d/%(patch)s/forced_src-%(filter)s-%(tract)d-%(patch)s.fits"
