@@ -14,7 +14,7 @@ class HscFlatCombineConfig(FlatCombineConfig):
                    check=lambda x: x >= 0)
     badAmpCcdList = ListField(dtype=int, default=[], doc="List of CCD serial numbers for bad amplifiers")
     badAmpList = ListField(dtype=int, default=[], doc="List of amp serial numbers in CCD")
-    maskPlane = Field(dtype=str, default="BAD", doc="Mask plane to set")
+    maskPlane = Field(dtype=str, default="NO_DATA", doc="Mask plane to set")
 
     def validate(self):
         super(HscFlatCombineConfig, self).validate()
