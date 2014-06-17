@@ -319,17 +319,17 @@ apportionFlux(MaskedImageT const& img,
     typedef typename boost::shared_ptr< HeavyFootprint > HeavyFootprintPtrT;
 
     if (timgs.size() != tfoots.size()) {
-        throw LSST_EXCEPT(lsst::pex::exceptions::LengthErrorException,
+        throw LSST_EXCEPT(lsst::pex::exceptions::LengthError,
                           (boost::format("Template images must be the same length as template footprints (%d vs %d)") % timgs.size() % tfoots.size()).str());
     }
 
     for (size_t i=0; i<timgs.size(); ++i) {
         if (!timgs[i]->getBBox(image::PARENT).contains(tfoots[i]->getBBox())) {
-            throw LSST_EXCEPT(lsst::pex::exceptions::RuntimeErrorException,
+            throw LSST_EXCEPT(lsst::pex::exceptions::RuntimeError,
                               "Template image MUST contain template footprint");
         }
         if (!img.getBBox(image::PARENT).contains(foot.getBBox())) {
-            throw LSST_EXCEPT(lsst::pex::exceptions::RuntimeErrorException,
+            throw LSST_EXCEPT(lsst::pex::exceptions::RuntimeError,
                               "Image bbox MUST contain parent footprint");
         }
         // template bounding-boxes *can* extend outside the parent
@@ -360,7 +360,7 @@ apportionFlux(MaskedImageT const& img,
     }
 
     if (!tsum->getBBox(image::PARENT).contains(foot.getBBox())) {
-        throw LSST_EXCEPT(lsst::pex::exceptions::RuntimeErrorException,
+        throw LSST_EXCEPT(lsst::pex::exceptions::RuntimeError,
                           "Template sum image MUST contain parent footprint");
     }
 
@@ -440,11 +440,11 @@ apportionFlux(MaskedImageT const& img,
 
     if (findStrayFlux) {
         if ((ispsf.size() > 0) && (ispsf.size() != timgs.size())) {
-            throw LSST_EXCEPT(lsst::pex::exceptions::LengthErrorException,
+            throw LSST_EXCEPT(lsst::pex::exceptions::LengthError,
                               (boost::format("'ispsf' must be the same length as templates (%d vs %d)") % ispsf.size() % timgs.size()).str());
         }
         if ((pkx.size() != timgs.size()) || (pky.size() != timgs.size())) {
-            throw LSST_EXCEPT(lsst::pex::exceptions::LengthErrorException,
+            throw LSST_EXCEPT(lsst::pex::exceptions::LengthError,
                               (boost::format("'pkx' and 'pky' must be the same length as templates (%d,%d vs %d)") % pkx.size() % pky.size() % timgs.size()).str());
         }
 
