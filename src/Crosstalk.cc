@@ -50,7 +50,7 @@ template<typename T>
 void checkSize(std::vector<T> const& vector, std::size_t expected, std::string const& description)
 {
     if (vector.size() != expected) {
-        throw LSST_EXCEPT(lsst::pex::exceptions::LengthErrorException,
+        throw LSST_EXCEPT(lsst::pex::exceptions::LengthError,
                           (boost::format("%s size (%d) is not %d") %
                            description % vector.size() % expected).str());
     }
@@ -74,7 +74,7 @@ void lsst::obs::subaru::subtractCrosstalk(
     std::size_t nxAmp = nx / nAmp;
 
     if (nAmp != 4) {
-        throw LSST_EXCEPT(lsst::pex::exceptions::InvalidParameterException,
+        throw LSST_EXCEPT(lsst::pex::exceptions::InvalidParameterError,
                           (boost::format("nAmp (%d) is not 4") % nAmp).str());
     }
     checkSize(coeffs1List, nAmp, "coeffs1List");
