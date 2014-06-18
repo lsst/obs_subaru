@@ -1165,4 +1165,29 @@ datasets: {
         storage:     TextStorage
         tables:      raw
     }
+
+    focusPlot: {
+        template:    "%(pointing)05d/%(filter)s/qa/focus-%(visit)07d.png"
+        # Not really text: we only need the filename, and will write the output ourselves
+        python:      __builtin__.str
+        persistable: None
+        storage:     TextStorage
+        tables:      raw
+    }
+    processFocus_config: {
+        template:      "config/processFocus.py"
+        python:        "hsc.pipe.tasks.focusTask.ProcessFocusConfig"
+        persistable:   "Config"
+        storage:       "ConfigStorage"
+        tables:        raw
+        tables:        raw_visit
+    }
+    processFocus_metadata: {
+        template:      "%(pointing)05d/%(filter)s/processFocus_metadata/%(visit)07d.boost"
+        python:        "lsst.daf.base.PropertySet"
+        persistable:   "PropertySet"
+        storage:       "BoostStorage"
+        tables:        raw
+        tables:        raw_visit
+    }
 }
