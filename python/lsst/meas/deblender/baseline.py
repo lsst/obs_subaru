@@ -380,7 +380,7 @@ def deblend(footprint, maskedImage, psf, psffwhm,
             butils.makeMonotonic(t1, pk)
 
         if clipFootprintToNonzero:
-            tfoot.clipToNonzeroF(t1.getImage())
+            tfoot.clipToNonzero(t1.getImage())
             tfoot.normalize()
 
         pkres.setTemplate(t1, tfoot)
@@ -1008,7 +1008,7 @@ def _fitPsf(fp, fmask, pk, pkF, pkres, fbb, peaks, peaksF, log, psf,
         psfmod = afwImage.MaskedImageF(bb)
         afwDet.copyWithinFootprintImage(fpcopy, psfimg, psfmod.getImage())
         # Save it as our template.
-        fpcopy.clipToNonzeroF(psfmod.getImage())
+        fpcopy.clipToNonzero(psfmod.getImage())
         fpcopy.normalize()
         pkres.setTemplate(psfmod, fpcopy)
 

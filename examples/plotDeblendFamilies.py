@@ -314,7 +314,7 @@ def makeplots(butler, dataId, ps, sources=None, pids=None, minsize=0,
                         kfoot = afwDet.makeHeavyFootprint(kid.psfFootprint,
                                                           kid.psfTemplate)
                         kfoot.normalize()
-                        kfoot.clipToNonzeroF(kid.psfTemplate.getImage())
+                        kfoot.clipToNonzero(kid.psfTemplate.getImage())
                         # print 'kfoot BB:', kfoot.getBBox()
                         # print 'Img bb:', kid.psfTemplate.getImage().getBBox(afwImage.PARENT)
                         # for sp in kfoot.getSpans():
