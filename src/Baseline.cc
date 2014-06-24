@@ -303,16 +303,17 @@ template<typename ImagePixelT, typename MaskPixelT, typename VariancePixelT>
 std::vector<typename PTR(image::MaskedImage<ImagePixelT, MaskPixelT, VariancePixelT>)>
 deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::
 apportionFlux(MaskedImageT const& img,
-              det::Footprint const& foot,
-              std::vector<MaskedImagePtrT> timgs,
-              std::vector<det::Footprint::Ptr> tfoots,
-              ImagePtrT tsum,
-              std::vector<bool> const& ispsf,
-              std::vector<int>  const& pkx,
-              std::vector<int>  const& pky,
-              std::vector<boost::shared_ptr<typename det::HeavyFootprint<ImagePixelT,MaskPixelT,VariancePixelT> > > & strays,
-              int strayFluxOptions,
-              double clipStrayFluxFraction
+    det::Footprint const& foot,
+    std::vector<MaskedImagePtrT> timgs,
+    std::vector<det::Footprint::Ptr> tfoots,
+    ImagePtrT tsum,
+    std::vector<bool> const& ispsf,
+    std::vector<int>  const& pkx,
+    std::vector<int>  const& pky,
+    std::vector<boost::shared_ptr<typename det::HeavyFootprint<ImagePixelT,MaskPixelT,VariancePixelT> > >
+        & strays,
+    int strayFluxOptions,
+    double clipStrayFluxFraction
     ) {
     typedef typename det::Footprint::SpanList SpanList;
     typedef typename det::HeavyFootprint<ImagePixelT, MaskPixelT, VariancePixelT> HeavyFootprint;
@@ -320,7 +321,8 @@ apportionFlux(MaskedImageT const& img,
 
     if (timgs.size() != tfoots.size()) {
         throw LSST_EXCEPT(lsst::pex::exceptions::LengthError,
-                          (boost::format("Template images must be the same length as template footprints (%d vs %d)") % timgs.size() % tfoots.size()).str());
+            (boost::format("Template images must be the same length as template footprints (%d vs %d)")
+                % timgs.size() % tfoots.size()).str());
     }
 
     for (size_t i=0; i<timgs.size(); ++i) {
@@ -441,11 +443,13 @@ apportionFlux(MaskedImageT const& img,
     if (findStrayFlux) {
         if ((ispsf.size() > 0) && (ispsf.size() != timgs.size())) {
             throw LSST_EXCEPT(lsst::pex::exceptions::LengthError,
-                              (boost::format("'ispsf' must be the same length as templates (%d vs %d)") % ispsf.size() % timgs.size()).str());
+                (boost::format("'ispsf' must be the same length as templates (%d vs %d)")
+                     % ispsf.size() % timgs.size()).str());
         }
         if ((pkx.size() != timgs.size()) || (pky.size() != timgs.size())) {
             throw LSST_EXCEPT(lsst::pex::exceptions::LengthError,
-                              (boost::format("'pkx' and 'pky' must be the same length as templates (%d,%d vs %d)") % pkx.size() % pky.size() % timgs.size()).str());
+                (boost::format("'pkx' and 'pky' must be the same length as templates (%d,%d vs %d)")
+                    % pkx.size() % pky.size() % timgs.size()).str());
         }
 
         // Go through the (parent) Footprint looking for stray flux:
@@ -799,7 +803,8 @@ symmetrizeFootprint(
     if (peakspan == spans.begin()) {
         sp = *peakspan;
         if (!sp->contains(cx, cy)) {
-            log.warnf("Failed to find span containing (%i,%i): before the beginning of this footprint", cx, cy);
+            log.warnf(
+                "Failed to find span containing (%i,%i): before the beginning of this footprint", cx, cy);
             return PTR(det::Footprint)();
         }
     } else {
@@ -808,7 +813,8 @@ symmetrizeFootprint(
 
         if (!(sp->contains(cx,cy))) {
             geom::Box2I fbb = foot.getBBox();
-            log.warnf("Failed to find span containing (%i,%i): nearest is %i, [%i,%i].  Footprint bbox is [%i,%i],[%i,%i]",
+            log.warnf("Failed to find span containing (%i,%i): nearest is %i, [%i,%i].  "
+                "Footprint bbox is [%i,%i],[%i,%i]",
                       cx, cy, sp->getY(), sp->getX0(), sp->getX1(),
                       fbb.getMinX(), fbb.getMaxX(), fbb.getMinY(), fbb.getMaxY());
             return det::Footprint::Ptr();
