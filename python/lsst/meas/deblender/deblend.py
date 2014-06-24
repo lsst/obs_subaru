@@ -107,9 +107,9 @@ class SourceDeblendTask(pipeBase.Task):
         @param         **kwds        Passed to Task.__init__.
         """
         pipeBase.Task.__init__(self, **kwargs)
-        self.addSchemaKeys(schema)
+        self.addSchemaKeys(schema, tableVersion)
 
-    def addSchemaKeys(self, schema):
+    def addSchemaKeys(self, schema, tableVersion):
         if tableVersion == 0:
             self.nChildKey = schema.addField('deblend.nchild', type=int,
                                              doc='Number of children this object has (defaults to 0)')
