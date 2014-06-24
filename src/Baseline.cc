@@ -258,8 +258,8 @@ makeMonotonic(
 }
 
 static double _get_contrib_r_to_footprint(int x, int y,
-                                          det::Footprint::Ptr tfoot) {
-    typedef typename det::Footprint::SpanList SpanList;
+                                          PTR(det::Footprint) tfoot) {
+    typedef det::Footprint::SpanList SpanList;
     double minr2 = 1e12;
     SpanList const& tspans = tfoot->getSpans();
     for (SpanList::const_iterator ts = tspans.begin(); ts < tspans.end(); ++ts) {
@@ -294,7 +294,7 @@ _find_stray_flux(det::Footprint const& foot,
                  ImagePtrT tsum,
                  MaskedImageT const& img,
                  int strayFluxOptions,
-                 std::vector<det::Footprint::Ptr> tfoots,
+                 std::vector<PTR(det::Footprint)> tfoots,
                  std::vector<bool> const& ispsf,
                  std::vector<int>  const& pkx,
                  std::vector<int>  const& pky,
@@ -308,7 +308,7 @@ _find_stray_flux(det::Footprint const& foot,
 
     // when doing stray flux: the footprints and pixels, which we'll
     // combine into the return 'strays' HeavyFootprint at the end.
-    std::vector<det::Footprint::Ptr > strayfoot;
+    std::vector<PTR(det::Footprint) > strayfoot;
     std::vector<std::vector<ImagePixelT> > straypix;
     std::vector<std::vector<MaskPixelT> > straymask;
     std::vector<std::vector<VariancePixelT> > strayvar;
@@ -320,7 +320,7 @@ _find_stray_flux(det::Footprint const& foot,
     int sumy0 = sumbb.getMinY();
 
     for (size_t i=0; i<tfoots.size(); ++i) {
-        strayfoot.push_back(det::Footprint::Ptr());
+        strayfoot.push_back(PTR(det::Footprint)());
         straypix.push_back(std::vector<ImagePixelT>());
         straymask.push_back(std::vector<MaskPixelT>());
         strayvar.push_back(std::vector<VariancePixelT>());
@@ -329,22 +329,22 @@ _find_stray_flux(det::Footprint const& foot,
     bool always = (strayFluxOptions & STRAYFLUX_TO_POINT_SOURCES_ALWAYS);
 
     typedef boost::uint16_t itype;
-    image::Image<itype>::Ptr nearest;
+    PTR(image::Image<itype>) nearest;
 
     if (strayFluxOptions & STRAYFLUX_NEAREST_FOOTPRINT) {
         // Compute the map of which footprint is closest to each
         // pixel in the bbox.
         typedef boost::uint16_t dtype;
-        image::Image<dtype>::Ptr dist(new image::Image<dtype>(sumbb));
-        nearest = image::Image<itype>::Ptr(new image::Image<itype>(sumbb));
+        PTR(image::Image<dtype>) dist(new image::Image<dtype>(sumbb));
+        nearest = PTR(image::Image<itype>)(new image::Image<itype>(sumbb));
 
-        std::vector<det::Footprint::Ptr> templist;
-        std::vector<det::Footprint::Ptr>* footlist = &tfoots;
+        std::vector<PTR(det::Footprint)> templist;
+        std::vector<PTR(det::Footprint)>* footlist = &tfoots;
 
         if (!always && ispsf.size()) {
             // create a temp list that has empty footprints in place
             // of all the point sources.
-            det::Footprint::Ptr empty(new det::Footprint());
+            PTR(det::Footprint) empty(new det::Footprint());
             for (size_t i=0; i<tfoots.size(); ++i) {
                 if (ispsf[i]) {
                     templist.push_back(empty);
@@ -452,7 +452,7 @@ _find_stray_flux(det::Footprint const& foot,
                 // the stray flux to give to template i
                 double p = (contrib[i] / csum) * (*in_it).image();
                 if (!strayfoot[i]) {
-                    strayfoot[i] = det::Footprint::Ptr(new det::Footprint());
+                    strayfoot[i] = PTR(det::Footprint)(new det::Footprint());
                 }
                 strayfoot[i]->addSpanInSeries(y, x, x);
                 straypix[i].push_back(p);
@@ -588,7 +588,7 @@ deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::
 apportionFlux(MaskedImageT const& img,
               det::Footprint const& foot,
               std::vector<MaskedImagePtrT> timgs,
-              std::vector<det::Footprint::Ptr> tfoots,
+              std::vector<PTR(det::Footprint)> tfoots,
               ImagePtrT tsum,
               std::vector<bool> const& ispsf,
               std::vector<int>  const& pkx,
@@ -902,7 +902,7 @@ symmetrizeFootprint(
             log.warnf("Failed to find span containing (%i,%i): nearest is %i, [%i,%i].  Footprint bbox is [%i,%i],[%i,%i]",
                       cx, cy, sp->getY(), sp->getX0(), sp->getX1(),
                       fbb.getMinX(), fbb.getMaxX(), fbb.getMinY(), fbb.getMaxY());
-            return det::Footprint::Ptr();
+            return PTR(det::Footprint)();
         }
     }
     log.debugf("Span containing (%i,%i): (x=[%i,%i], y=%i)",
@@ -1285,7 +1285,7 @@ template<typename ImagePixelT, typename MaskPixelT, typename VariancePixelT>
 bool
 deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::
 hasSignificantFluxAtEdge(ImagePtrT img,
-                         det::Footprint::Ptr sfoot,
+                         PTR(det::Footprint) sfoot,
                          ImagePixelT thresh) {
     typedef typename det::Footprint::SpanList SpanList;
 
@@ -1343,7 +1343,7 @@ template<typename ImagePixelT, typename MaskPixelT, typename VariancePixelT>
 boost::shared_ptr<det::Footprint>
 deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::
 getSignificantEdgePixels(ImagePtrT img,
-                         det::Footprint::Ptr sfoot,
+                         PTR(det::Footprint) sfoot,
                          ImagePixelT thresh) {
     typedef typename det::Footprint::SpanList SpanList;
     pexLog::Log log(pexLog::Log::getDefaultLog(),
@@ -1351,7 +1351,7 @@ getSignificantEdgePixels(ImagePtrT img,
     sfoot->normalize();
     const SpanList spans = sfoot->getSpans();
     SpanList::const_iterator sp;
-    det::Footprint::Ptr edgepix(new det::Footprint());
+    PTR(det::Footprint) edgepix(new det::Footprint());
 
     for (sp = spans.begin(); sp != spans.end(); sp++) {
         int y  = (*sp)->getY();
