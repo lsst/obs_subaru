@@ -65,6 +65,7 @@ namespace lsst {
                 // split flux according to the closest distance to the template?
                 // (default is according to distance to the peak)
                 static const int STRAYFLUX_R_TO_FOOTPRINT                  = 0x8;
+                static const int STRAYFLUX_NEAREST_FOOTPRINT              = 0x10;
 
                 // swig doesn't seem to understand std::vector<MaskedImagePtrT>...
                 static
@@ -94,6 +95,25 @@ namespace lsst {
                 getSignificantEdgePixels(ImagePtrT,
                                          boost::shared_ptr<lsst::afw::detection::Footprint>,
                                          ImagePixelT threshold);
+
+
+                static
+                void
+                _sum_templates(std::vector<MaskedImagePtrT> timgs,
+                               ImagePtrT tsum);
+
+                static
+                void
+                _find_stray_flux(lsst::afw::detection::Footprint const& foot,
+                             ImagePtrT tsum,
+                             MaskedImageT const& img,
+                             int strayFluxOptions,
+                             std::vector<boost::shared_ptr<lsst::afw::detection::Footprint> > tfoots,
+                             std::vector<bool> const& ispsf,
+                             std::vector<int>  const& pkx,
+                             std::vector<int>  const& pky,
+                             double clipStrayFluxFraction,
+                             std::vector<boost::shared_ptr<typename lsst::afw::detection::HeavyFootprint<ImagePixelT,MaskPixelT,VariancePixelT> > > & strays);
 
             };
         }
