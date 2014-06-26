@@ -31,7 +31,7 @@ lsst::afw::geom::Point2D lsst::obs::hsc::HscDistortion::_transform(
     ) const
 {
     throw LSST_EXCEPT(
-        lsst::pex::exceptions::RuntimeErrorException,
+        lsst::pex::exceptions::RuntimeError,
         "HscDistortion was not compiled with access to the HSC distEst package"
         );
 }
