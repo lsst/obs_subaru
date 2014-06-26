@@ -586,6 +586,7 @@ template<typename ImagePixelT, typename MaskPixelT, typename VariancePixelT>
 std::vector<typename PTR(image::MaskedImage<ImagePixelT, MaskPixelT, VariancePixelT>)>
 deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::
 apportionFlux(MaskedImageT const& img,
+<<<<<<< HEAD
               det::Footprint const& foot,
               std::vector<MaskedImagePtrT> timgs,
               std::vector<PTR(det::Footprint)> tfoots,
@@ -596,6 +597,19 @@ apportionFlux(MaskedImageT const& img,
               std::vector<boost::shared_ptr<typename det::HeavyFootprint<ImagePixelT,MaskPixelT,VariancePixelT> > > & strays,
               int strayFluxOptions,
               double clipStrayFluxFraction
+=======
+    det::Footprint const& foot,
+    std::vector<MaskedImagePtrT> timgs,
+    std::vector<det::Footprint::Ptr> tfoots,
+    ImagePtrT tsum,
+    std::vector<bool> const& ispsf,
+    std::vector<int>  const& pkx,
+    std::vector<int>  const& pky,
+    std::vector<boost::shared_ptr<typename det::HeavyFootprint<ImagePixelT,MaskPixelT,VariancePixelT> > >
+        & strays,
+    int strayFluxOptions,
+    double clipStrayFluxFraction
+>>>>>>> tickets/DM-764
     ) {
     typedef typename det::Footprint::SpanList SpanList;
 
