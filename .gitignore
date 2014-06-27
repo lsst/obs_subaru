@@ -1,0 +1,8 @@
+.scon*
+*.os
+*.pyc
+tests/.tests
+python/hsc/meas/match/distest.py
+python/hsc/meas/match/distest_wrap.cc
+python/hsc/meas/match/version.py
+ups/distEst.cfgc
