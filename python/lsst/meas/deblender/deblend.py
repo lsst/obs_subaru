@@ -92,8 +92,18 @@ class SourceDeblendConfig(pexConf.Config):
     tinyFootprintSize = pexConf.Field(dtype=int, default=2,
                                       doc=('Footprints smaller in width or height than this value will be ignored; 0 to never ignore.'))
     
+## \addtogroup LSST_task_documentation
+## \{
+## \page SourceDeblendTask
+## \ref SourceDeblendTask_ "SourceDeblendTask"
+## \copybrief SourceDeblendTask
+## \}
+
 class SourceDeblendTask(pipeBase.Task):
-    """Split blended sources into individual sources.
+    """!
+\anchor SourceDeblendTask_
+
+\brief Split blended sources into individual sources.
 
     This task has no return value; it only modifies the SourceCatalog in-place.
     """
