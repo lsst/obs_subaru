@@ -1056,4 +1056,22 @@ datasets: {
         tables:        raw
         tables:        raw_visit
     }
+
+    focusSweepPlot: {
+        template:    "%(pointing)05d/%(filter)s/qa/focusSweep-%(visit)07d.png"
+        # Not really text: we only need the filename, and will write the output ourselves
+        python:      __builtin__.str
+        persistable: None
+        storage:     TextStorage
+        tables:      raw
+    }
+    processFocusSweep_config: {
+        template:      "config/processFocusSweep.py"
+        python:        "hsc.pipe.tasks.focusTask.ProcessFocusSweepConfig"
+        persistable:   "Config"
+        storage:       "ConfigStorage"
+        tables:        raw
+        tables:        raw_visit
+    }
+
 }
