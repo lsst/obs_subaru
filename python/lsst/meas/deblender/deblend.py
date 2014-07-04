@@ -154,18 +154,18 @@ class SourceDeblendTask(pipeBase.Task):
                 'deblend.has_stray_flux', type='Flag',
                 doc=('This source was assigned some stray flux'))
         else:     
-            self.nChildKey = schema.addField('deblend_nchild', type=int,
+            self.nChildKey = schema.addField('deblend_nChild', type=int,
                                              doc='Number of children this object has (defaults to 0)')
-            self.psfKey = schema.addField('deblend_deblended-as-psf', type='Flag',
+            self.psfKey = schema.addField('deblend_deblendedAsPsf', type='Flag',
                                           doc='Deblender thought this source looked like a PSF')
-            self.psfCenterKey = schema.addField('deblend_psf-center', type='PointD',
+            self.psfCenterKey = schema.addField('deblend_psfCenter', type='PointD',
                                              doc='If deblended-as-psf, the PSF centroid')
-            self.psfFluxKey = schema.addField('deblend_psf-flux', type='D',
+            self.psfFluxKey = schema.addField('deblend_psfFlux', type='D',
                                                doc='If deblended-as-psf, the PSF flux')
-            self.tooManyPeaksKey = schema.addField('deblend_too-many-peaks', type='Flag',
+            self.tooManyPeaksKey = schema.addField('deblend_tooManyPeaks', type='Flag',
                                                    doc='Source had too many peaks; ' +
                                                    'only the brightest were included')
-            self.tooBigKey = schema.addField('deblend_parent-too-big', type='Flag',
+            self.tooBigKey = schema.addField('deblend_parentTooBig', type='Flag',
                                              doc='Parent footprint covered too many pixels')
             self.deblendFailedKey = schema.addField('deblend_failed', type='Flag',
                                                     doc="Deblending failed on source")
@@ -174,17 +174,17 @@ class SourceDeblendTask(pipeBase.Task):
                                                     doc="Deblender skipped this source")
     
             self.deblendRampedTemplateKey = schema.addField(
-                'deblend_ramped_template', type='Flag',
+                'deblend_rampedTemplate', type='Flag',
                 doc=('This source was near an image edge and the deblender used ' +
                      '"ramp" edge-handling.'))
     
             self.deblendPatchedTemplateKey = schema.addField(
-                'deblend_patched_template', type='Flag',
+                'deblend_patchedTemplate', type='Flag',
                 doc=('This source was near an image edge and the deblender used ' +
                      '"patched" edge-handling.'))
     
             self.hasStrayFluxKey = schema.addField(
-                'deblend_has_stray_flux', type='Flag',
+                'deblend_hasStrayFlux', type='Flag',
                 doc=('This source was assigned some stray flux'))
 
         self.log.logdebug('Added keys to schema: %s' % ", ".join(str(x) for x in (
