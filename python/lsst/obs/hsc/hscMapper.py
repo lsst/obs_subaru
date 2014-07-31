@@ -3,6 +3,7 @@
 import os
 import pwd
 
+import lsst.daf.base as dafBase
 from lsst.daf.butlerUtils import CameraMapper
 import lsst.afw.image.utils as afwImageUtils
 import lsst.afw.image as afwImage
@@ -163,6 +164,14 @@ Most chips are flipped L/R, but the rotated ones (100..103) are flipped T/B
 
     def std_raw(self, item, dataId):
         exp = super(HscMapper, self).std_raw(item, dataId)
+
+        md = exp.getMetadata()
+        if md.exists("MJD-STR"):
+            calib = exp.getCalib()
+            expTime = calib.getExptime()
+            obsStart = dafBase.DateTime(md.get("MJD-STR"), dafBase.DateTime.MJD, dafBase.DateTime.UTC)
+            obsMidpoint = obsStart.nsecs() + long(expTime * 1000000000L / 2)
+            calib.setMidTime(dafBase.DateTime(obsMidpoint))
 
         return self._flipChipsLR(exp, exp.getWcs(), dataId)
 
