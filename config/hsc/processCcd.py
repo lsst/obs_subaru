@@ -13,3 +13,5 @@ root.calibrate.measurePsf.starSelector['objectSize'].widthMin=1.0
 root.calibrate.astrometry.solver.sipOrder = 3
 root.calibrate.astrometry.solver.catalogMatchDist = 2.0
 
+# Do not use NO_DATA pixels for fringe subtraction.
+root.isr.fringe.stats.badMaskPlanes=['SAT', 'NO_DATA']
