@@ -9,6 +9,7 @@ root.load(os.path.join(os.environ['OBS_SUBARU_DIR'], 'config', 'hsc', 'colorterm
 
 root.calibrate.measurePsf.starSelector.name='objectSize'
 root.calibrate.measurePsf.starSelector['objectSize'].widthMin=0.9
+root.calibrate.measurePsf.starSelector['objectSize'].fluxMin=4000
 
 root.calibrate.astrometry.solver.sipOrder = 3
 root.calibrate.astrometry.solver.catalogMatchDist = 2.0
