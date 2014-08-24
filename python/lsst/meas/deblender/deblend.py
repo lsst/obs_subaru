@@ -110,17 +110,17 @@ class SourceDeblendTask(pipeBase.Task):
     ConfigClass = SourceDeblendConfig
     _DefaultName = "sourceDeblend"
 
-    def __init__(self, schema, tableVersion=0, **kwargs):
+    def __init__(self, schema, **kwargs):
         """Create the task, adding necessary fields to the given schema.
 
         @param[in,out] schema        Schema object for measurement fields; will be modified in-place.
         @param         **kwds        Passed to Task.__init__.
         """
         pipeBase.Task.__init__(self, **kwargs)
-        self.addSchemaKeys(schema, tableVersion)
+        self.addSchemaKeys(schema)
 
-    def addSchemaKeys(self, schema, tableVersion):
-        if tableVersion == 0:
+    def addSchemaKeys(self, schema):
+        if schema.getVersion() == 0:
             self.nChildKey = schema.addField('deblend.nchild', type=int,
                                              doc='Number of children this object has (defaults to 0)')
             self.psfKey = schema.addField('deblend.deblended-as-psf', type='Flag',
