@@ -70,6 +70,7 @@ class DeblendTestCase(unittest.TestCase):
         exposure.setPsf(psf)
 
         schema = afwTable.SourceTable.makeMinimalSchema()
+        schema.setVersion(0)
 
         config = measDeb.SourceDeblendConfig()
         task = measDeb.SourceDeblendTask(schema, config=config)
