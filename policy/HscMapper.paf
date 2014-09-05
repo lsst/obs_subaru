@@ -193,6 +193,23 @@ exposures: {
         tables:        raw_skytile
     }
 
+    deepCoadd_diff: {
+        template:    "deepCoadd-diff/%(filter)s/%(tract)d/diff-%(filter)s-%(tract)d-%(patch)s.fits"
+        python:      "lsst.afw.image.ExposureF"
+        persistable: "ExposureF"
+        storage:     "FitsStorage"
+        level:       "Skytile"
+        tables:      raw_skytile
+    }
+    deepCoadd_tempExp_diff: {
+        template:    "deepCoadd-diff/%(filter)s/%(tract)d/%(patch)s/diff-%(filter)s-%(tract)d-%(patch)s-%(visit)d.fits"
+        python:      "lsst.afw.image.ExposureF"
+        persistable: "ExposureF"
+        storage:     "FitsStorage"
+        level:       "Skytile"
+        tables:      raw_skytile
+    }
+
     diff: {
         template:      "diff/%(diff)05d/DIFF%(patch)08d.fits"
         python:        "lsst.afw.image.ExposureF"
@@ -426,6 +443,21 @@ datasets: {
         python:        "str"
         persistable:   "None"
         storage:       "None"
+    }
+
+    deepCoadd_diffsrc: {
+        template:    "deepCoadd-diff/%(filter)s/%(tract)d/diffsrc-%(filter)s-%(tract)d-%(patch)s.fits"
+        python:      "lsst.afw.table.SourceCatalog"
+        persistable: "SourceCatalog"
+        storage:     "FitsCatalogStorage"
+	tables:      "raw_skytile"
+    }
+    deepCoadd_tempExp_diffsrc: {
+        template:    "deepCoadd-diff/%(filter)s/%(tract)d/%(patch)s/diffsrc-%(filter)s-%(tract)d-%(patch)s-%(visit)d.fits"
+        python:      "lsst.afw.table.SourceCatalog"
+        persistable: "SourceCatalog"
+        storage:     "FitsCatalogStorage"
+	tables:      "raw_skytile"
     }
 
     diffsources: {
