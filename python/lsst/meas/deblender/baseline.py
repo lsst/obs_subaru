@@ -281,7 +281,7 @@ def deblend(footprint, maskedImage, psf, psffwhm,
         peaks = peaks[:maxNumberOfPeaks]
 
     # Pull out the image bounds of the parent Footprint
-    imbb = img.getBBox(afwImage.PARENT)
+    imbb = img.getBBox()
     bb = fp.getBBox()
     if not imbb.contains(bb):
         raise ValueError(('Footprint bounding-box %s extends outside image '
@@ -299,7 +299,7 @@ def deblend(footprint, maskedImage, psf, psffwhm,
 
     # Add the mask planes we will set.
     for nm in ['SYMM_1SIG', 'SYMM_3SIG', 'MONOTONIC_1SIG']:
-        bit = mask.addMaskPlane(nm)
+        mask.addMaskPlane(nm)
 
     # get object that will hold our results
     res = PerFootprint(fp, peaks=peaks)
@@ -416,7 +416,7 @@ def deblend(footprint, maskedImage, psf, psffwhm,
         b = img.getArray()[y0:y1+1, x0:x1+1].ravel()
 
         for mim,i in zip(tmimgs, ibi):
-            ibb = mim.getBBox(afwImage.PARENT)
+            ibb = mim.getBBox()
             ix0,iy0 = ibb.getMinX(), ibb.getMinY()
             pkres = res.peaks[i]
             foot = pkres.templateFootprint
@@ -601,14 +601,13 @@ def _fitPsf(fp, fmask, pk, pkF, pkres, fbb, peaks, peaksF, log, psf,
     R0 = int(math.ceil(psffwhm * 1.))
     # ramp down to zero weight at this radius...
     R1 = int(math.ceil(psffwhm * 1.5))
-    S = 2 * R1
     cx,cy = pkF.getX(), pkF.getY()
     psfimg = psf.computeImage(cx, cy)
     # R2: distance to neighbouring peak in order to put it
     # into the model
     R2 = R1 + min(psfimg.getWidth(), psfimg.getHeight())/2.
 
-    pbb = psfimg.getBBox(afwImage.PARENT)
+    pbb = psfimg.getBBox()
     pbb.clip(fbb)
     px0,py0 = psfimg.getX0(), psfimg.getY0()
     
@@ -759,7 +758,7 @@ def _fitPsf(fp, fmask, pk, pkF, pkres, fbb, peaks, peaksF, log, psf,
 
     # other PSFs...
     for j,opsf in enumerate(otherpeaks):
-        obb = opsf.getBBox(afwImage.PARENT)
+        obb = opsf.getBBox()
         ino = np.outer((yy >= obb.getMinY()) * (yy <= obb.getMaxY()),
                        (xx >= obb.getMinX()) * (xx <= obb.getMaxX()))
         dpx0,dpy0 = obb.getMinX() - xlo, obb.getMinY() - ylo
@@ -874,7 +873,7 @@ def _fitPsf(fp, fmask, pk, pkF, pkres, fbb, peaks, peaksF, log, psf,
     if ispsf2:
         psfimg2 = psf.computeImage(cx + dx, cy + dy)
         # clip
-        pbb2 = psfimg2.getBBox(afwImage.PARENT)
+        pbb2 = psfimg2.getBBox()
         pbb2.clip(fbb)
         # clip image to bbox
         px0,py0 = psfimg2.getX0(), psfimg2.getY0()
@@ -944,7 +943,6 @@ def _fitPsf(fp, fmask, pk, pkF, pkres, fbb, peaks, peaksF, log, psf,
         model = afwImage.ImageF(SW,SH)
         model.setXY0(xlo,ylo)
         for i in range(len(Xpsf)):
-            V = A[:,i]*Xpsf[i]
             for (x,y),v in zip(ipixes, A[:,i]*Xpsf[i]):
                 ix,iy = int(x),int(y)
                 model.set(ix, iy, model.get(ix,iy) + float(v))
@@ -998,7 +996,7 @@ def _fitPsf(fp, fmask, pk, pkF, pkres, fbb, peaks, peaksF, log, psf,
 
         # Clip the Footprint to the PSF model image bbox.
         fpcopy = afwDet.Footprint(fp)
-        psfbb = psfimg.getBBox(afwImage.PARENT)
+        psfbb = psfimg.getBBox()
         fpcopy.clipTo(psfbb)
         bb = fpcopy.getBBox()
         
@@ -1050,18 +1048,18 @@ def _handle_flux_at_edge(log, psffwhm, t1, tfoot, fp, maskedImage,
     xc = int((x0 + x1)/2)
     yc = int((y0 + y1)/2)
     psfim = psf.computeImage(afwGeom.Point2D(xc, yc))
-    pbb = psfim.getBBox(afwImage.PARENT)
+    pbb = psfim.getBBox()
     # shift PSF image to by centered on zero
     lx,ly = pbb.getMinX(), pbb.getMinY()
     psfim.setXY0(lx - xc, ly - yc)
-    pbb = psfim.getBBox(afwImage.PARENT)
+    pbb = psfim.getBBox()
     # clip PSF to S, if necessary
     Sbox = afwGeom.Box2I(afwGeom.Point2I(-S, -S),
                          afwGeom.Extent2I(2*S+1, 2*S+1))
     if not Sbox.contains(pbb):
         # clip PSF image
         psfim = psfim.Factory(psfim, Sbox, afwImage.PARENT, True)
-        pbb = psfim.getBBox(afwImage.PARENT)
+        pbb = psfim.getBBox()
     px0 = pbb.getMinX()
     px1 = pbb.getMaxX()
     py0 = pbb.getMinY()
@@ -1100,7 +1098,7 @@ def _handle_flux_at_edge(log, psffwhm, t1, tfoot, fp, maskedImage,
     # This template footprint may extend outside the parent
     # footprint -- or the image.  Clip it.
     # NOTE that this may make it asymmetric, unlike normal templates.
-    imbb = maskedImage.getBBox(afwImage.PARENT)
+    imbb = maskedImage.getBBox()
     tfoot2.clipTo(imbb)
     tbb = tfoot2.getBBox()
     # clip template image to bbox

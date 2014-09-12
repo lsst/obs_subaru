@@ -315,7 +315,7 @@ _find_stray_flux(det::Footprint const& foot,
 
     int ix0 = img.getX0();
     int iy0 = img.getY0();
-    geom::Box2I sumbb = tsum->getBBox(image::PARENT);
+    geom::Box2I sumbb = tsum->getBBox();
     int sumx0 = sumbb.getMinX();
     int sumy0 = sumbb.getMinY();
 
@@ -503,14 +503,14 @@ void
 deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::
 _sum_templates(std::vector<MaskedImagePtrT> timgs,
                ImagePtrT tsum) {
-    geom::Box2I sumbb = tsum->getBBox(image::PARENT);
+    geom::Box2I sumbb = tsum->getBBox();
     int sumx0 = sumbb.getMinX();
     int sumy0 = sumbb.getMinY();
 
     // Compute  tsum = the sum of templates
     for (size_t i=0; i<timgs.size(); ++i) {
         MaskedImagePtrT timg = timgs[i];
-        geom::Box2I tbb = timg->getBBox(image::PARENT);
+        geom::Box2I tbb = timg->getBBox();
         int tx0 = tbb.getMinX();
         int ty0 = tbb.getMinY();
         // To handle "ramped" templates that can extend outside the
@@ -606,11 +606,11 @@ apportionFlux(MaskedImageT const& img,
     }
 
     for (size_t i=0; i<timgs.size(); ++i) {
-        if (!timgs[i]->getBBox(image::PARENT).contains(tfoots[i]->getBBox())) {
+        if (!timgs[i]->getBBox().contains(tfoots[i]->getBBox())) {
             throw LSST_EXCEPT(lsst::pex::exceptions::RuntimeError,
                               "Template image MUST contain template footprint");
         }
-        if (!img.getBBox(image::PARENT).contains(foot.getBBox())) {
+        if (!img.getBBox().contains(foot.getBBox())) {
             throw LSST_EXCEPT(lsst::pex::exceptions::RuntimeError,
                               "Image bbox MUST contain parent footprint");
         }
@@ -635,12 +635,12 @@ apportionFlux(MaskedImageT const& img,
         tsum->setXY0(fbb.getMinX(), fbb.getMinY());
     }
 
-    if (!tsum->getBBox(image::PARENT).contains(foot.getBBox())) {
+    if (!tsum->getBBox().contains(foot.getBBox())) {
         throw LSST_EXCEPT(lsst::pex::exceptions::RuntimeError,
                           "Template sum image MUST contain parent footprint");
     }
 
-    geom::Box2I sumbb = tsum->getBBox(image::PARENT);
+    geom::Box2I sumbb = tsum->getBBox();
     int sumx0 = sumbb.getMinX();
     int sumy0 = sumbb.getMinY();
 
@@ -655,7 +655,7 @@ apportionFlux(MaskedImageT const& img,
         portions.push_back(port);
 
         // Split flux = image * template / tsum
-        geom::Box2I tbb = timg->getBBox(image::PARENT);
+        geom::Box2I tbb = timg->getBBox();
         int tx0 = tbb.getMinX();
         int ty0 = tbb.getMinY();
         // As above
@@ -1203,7 +1203,7 @@ buildSymmetricTemplate(
 
         // Actually, it's not necessarily the IMAGE bounds that count
         //-- the footprint may not go right to the image edge.
-        //geom::Box2I imbb = img.getBBox(image::PARENT);
+        //geom::Box2I imbb = img.getBBox();
         geom::Box2I imbb = foot.getBBox();
 
         log.debugf("Footprint touches EDGE: start bbox [%i,%i],[%i,%i]",
@@ -1319,7 +1319,7 @@ hasSignificantFluxAtEdge(ImagePtrT img,
         for (xiter = img->x_at(x0 - img->getX0(), y - img->getY0()), x=x0; 
              x<=x1; ++x, ++xiter) {
 
-            assert(img->getBBox(image::PARENT).contains(geom::Point2I(x, y)));
+            assert(img->getBBox().contains(geom::Point2I(x, y)));
 
             if (*xiter < thresh)
                 // not significant

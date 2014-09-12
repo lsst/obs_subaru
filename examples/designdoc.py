@@ -1,23 +1,13 @@
 import matplotlib
 matplotlib.use('Agg')
-from matplotlib.patches import Ellipse
 import pylab as plt
 import numpy as np
-import math
-import lsst.pipe.base as pipeBase
-import lsst.pipe.tasks.processCcd as procCcd
 import lsst.pex.logging as pexLog
-import lsst.daf.base as dafBase
-import lsst.afw.table as afwTable
-import lsst.afw.math  as afwMath
 import lsst.afw.image as afwImage
 import lsst.afw.detection as afwDet
 
 from utils import *
 from suprime import *
-
-from lsst.afw.detection import Psf
-from lsst.meas.algorithms import * #pcaPsf
 
 def main():
     '''
@@ -203,12 +193,11 @@ def main():
         bb = fp.getBBox()
         pim = footprintToImage(parent.getFootprint(), mi).getArray()
         pext = getExtent(bb)
-        px0,py0 = pext[0],pext[2]
         imargs = dict(interpolation='nearest', origin='lower', vmax=pim.max() * 0.95, vmin=-3.*sigma1)
         pksty = dict(linestyle='None', marker='+', color='r', mew=3, ms=20, alpha=0.6)
 
         plt.clf()
-        myimshow(afwImage.ImageF(mi.getImage(), bb, afwImage.PARENT).getArray(), **imargs)
+        myimshow(afwImage.ImageF(mi.getImage(), bb).getArray(), **imargs)
         plt.gray()
         plt.xticks([])
         plt.yticks([])
@@ -310,7 +299,7 @@ def main():
         # Sum of templates from the deblender itself
         plt.clf()
         t = res.templateSum
-        myimshow(t.getArray(), extent=getExtent(t.getBBox(afwImage.PARENT)), **imargs)
+        myimshow(t.getArray(), extent=getExtent(t.getBBox()), **imargs)
         plt.gray()
         plt.xticks([])
         plt.yticks([])
@@ -424,7 +413,7 @@ def main():
                 # Ramped template
                 plt.clf()
                 t = pkres.ramped_template
-                myimshow(t.getArray(), extent=getExtent(t.getBBox(afwImage.PARENT)),
+                myimshow(t.getArray(), extent=getExtent(t.getBBox()),
                          **imargs)
                 plt.gray()
                 plt.xticks([])
@@ -436,7 +425,7 @@ def main():
                 # Median-filtered template
                 plt.clf()
                 t = pkres.median_filtered_template
-                myimshow(t.getArray(), extent=getExtent(t.getBBox(afwImage.PARENT)),
+                myimshow(t.getArray(), extent=getExtent(t.getBBox()),
                          **imargs)
                 plt.gray()
                 plt.xticks([])
@@ -448,7 +437,7 @@ def main():
                 # Assigned flux
                 plt.clf()
                 t = pkres.portion_mimg.getImage()
-                myimshow(t.getArray(), extent=getExtent(t.getBBox(afwImage.PARENT)),
+                myimshow(t.getArray(), extent=getExtent(t.getBBox()),
                          **imargs)
                 plt.gray()
                 plt.xticks([])
@@ -522,7 +511,7 @@ def main():
                 continue
 
             print 'Template footprint:', pkres.template_foot.getBBox()
-            print 'Template img:', pkres.template_mimg.getBBox(afwImage.PARENT)
+            print 'Template img:', pkres.template_mimg.getBBox()
             print 'Heavy footprint:', heavy.getBBox()
 
             cfp = pkres.template_foot

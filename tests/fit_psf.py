@@ -48,7 +48,7 @@ class FitPsfTestCase(unittest.TestCase):
         A = img.getArray()
         A += np.random.normal(0, sig1, size=(fbb.getHeight(), fbb.getWidth()))
         print 'img x0,y0', img.getX0(), img.getY0()
-        print 'BBox', img.getBBox(afwImage.PARENT)
+        print 'BBox', img.getBBox()
 
         pk1 = afwDet.Peak(20., 30.)
         pk2 = afwDet.Peak(23., 33.)
@@ -58,7 +58,7 @@ class FitPsfTestCase(unittest.TestCase):
         peaks.append(pk2)
         peaks.append(pk3)
 
-        ibb = img.getBBox(afwImage.PARENT)
+        ibb = img.getBBox()
         iext = [ibb.getMinX(), ibb.getMaxX(), ibb.getMinY(), ibb.getMaxY()]
         ix0,iy0 = iext[0], iext[2]
 
@@ -69,11 +69,11 @@ class FitPsfTestCase(unittest.TestCase):
         for pk,f in zip(peaks, fluxes):
             psfim = psf1.computeImage(afwGeom.Point2D(pk.getFx(), pk.getFy()))
             print 'psfim x0,y0', psfim.getX0(), psfim.getY0()
-            pbb = psfim.getBBox(afwImage.PARENT)
+            pbb = psfim.getBBox()
             print 'pbb', pbb.getMinX(), pbb.getMaxX(), pbb.getMinY(), pbb.getMaxY()
             pbb.clip(ibb)
             print 'clipped pbb', pbb.getMinX(), pbb.getMaxX(), pbb.getMinY(), pbb.getMaxY()
-            psfim = psfim.Factory(psfim, pbb, afwImage.PARENT)
+            psfim = psfim.Factory(psfim, pbb)
 
             psfa = psfim.getArray()
             psfa /= psfa.sum()

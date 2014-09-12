@@ -20,8 +20,7 @@ import lsst.afw.detection as afwDet
 import lsst.afw.geom as afwGeom
 import lsst.afw.image as afwImage
 import lsst.pex.logging as pexLogging
-from lsst.meas.deblender.baseline import *
-from lsst.meas.deblender import BaselineUtilsF as butils
+from lsst.meas.deblender.baseline import deblend
 
 import lsst.meas.algorithms as measAlg
 
@@ -39,7 +38,7 @@ pexLogging.Log(root, 'afw.Mask',
                pexLogging.Log.INFO)
 
 def imExt(img):
-    bbox = img.getBBox(afwImage.PARENT)
+    bbox = img.getBBox()
     return [bbox.getMinX(), bbox.getMaxX(),
             bbox.getMinY(), bbox.getMaxY()]
 
@@ -66,7 +65,7 @@ class StrayFluxTestCase(unittest.TestCase):
                              afwGeom.Point2I(W-1,H-1))
 
         afwimg = afwImage.MaskedImageF(fpbb)
-        imgbb = afwimg.getBBox(afwImage.PARENT)
+        imgbb = afwimg.getBBox()
         img = afwimg.getImage().getArray()
 
         var = afwimg.getVariance().getArray()
@@ -84,10 +83,10 @@ class StrayFluxTestCase(unittest.TestCase):
         flux = 1e6
         for x,y in XY:
             bim = blob_psf.computeImage(afwGeom.Point2D(x, y))
-            bbb = bim.getBBox(afwImage.PARENT)
+            bbb = bim.getBBox()
             bbb.clip(imgbb)
 
-            bim = bim.Factory(bim, bbb, afwImage.PARENT)
+            bim = bim.Factory(bim, bbb)
             bim2 = bim.getArray()
 
             blobimg = np.zeros_like(img)
@@ -254,7 +253,6 @@ class StrayFluxTestCase(unittest.TestCase):
         fpbb = afwGeom.Box2I(afwGeom.Point2I(0,0),
                              afwGeom.Point2I(W-1,H-1))
         afwimg = afwImage.MaskedImageF(fpbb)
-        imgbb = afwimg.getBBox(afwImage.PARENT)
         img = afwimg.getImage().getArray()
         
         var = afwimg.getVariance().getArray()
@@ -296,7 +294,7 @@ class StrayFluxTestCase(unittest.TestCase):
             for i,dpk in enumerate(deb.peaks):
                 print dpk
                 port = dpk.fluxPortion.getImage()
-                bb = port.getBBox(afwImage.PARENT)
+                bb = port.getBBox()
                 YY = np.zeros(XX.shape)
                 YY[bb.getMinX()*2 : (bb.getMaxX()+1)*2] = port.getArray()[0,:].repeat(2)
                 p2 = plt.plot(XX, YY, 'r-')
