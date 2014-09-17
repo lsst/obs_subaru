@@ -1046,7 +1046,9 @@ def _handle_flux_at_edge(log, psffwhm, t1, tfoot, fp, maskedImage,
     # (footprint+margin)-clipped image;
     # we need the pixels OUTSIDE the footprint to be 0.
     fpcopy = afwDet.Footprint(fp)
+    fpcopy = afwDet.growFootprint(fpcopy, S)
     fpcopy.clipTo(tbb)
+    fpcopy.normalize()
     padim = maskedImage.Factory(tbb)
     afwDet.copyWithinFootprintMaskedImage(fpcopy, maskedImage, padim)
 
@@ -1093,9 +1095,6 @@ def _handle_flux_at_edge(log, psffwhm, t1, tfoot, fp, maskedImage,
     # mask planes) with the ramped pixels, outside the footprint
     I = (padim.getImage().getArray() == 0)
     padim.getImage().getArray()[I] = ramped.getArray()[I]
-
-    fpcopy = afwDet.growFootprint(fpcopy, S)
-    fpcopy.normalize()
 
     rtn, patched = butils.buildSymmetricTemplate(padim, fpcopy, pk, sigma1, True, patchEdges)
     # silly SWIG can't unpack pairs as tuples
