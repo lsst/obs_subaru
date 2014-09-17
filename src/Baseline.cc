@@ -2,6 +2,7 @@
 
 #include "lsst/meas/deblender/Baseline.h"
 #include "lsst/pex/logging.h"
+#include "lsst/pex/exceptions.h"
 #include "lsst/afw/geom/Box.h"
 
 #include <boost/math/special_functions/round.hpp>
@@ -22,7 +23,7 @@ static bool span_ptr_compare(PTR(det::Span) sp1, PTR(det::Span) sp2) {
 /**
  Run a spatial median filter over the given input *img*, writing the
  results to *out*.  *halfsize* is half the box size of the filter; ie,
- a halfsize of 50 means that each output pixel will be the median of
+ a halfsize of 50 means that each output ixel will be the median of
  the pixels in a 101 x 101-pixel box in the input image.
 
  Margins are handled horribly: the median is computed only for pixels
@@ -1100,9 +1101,18 @@ buildSymmetricTemplate(
     pexLog::Log log(pexLog::Log::getDefaultLog(),
                     "lsst.meas.deblender.symmetricFootprint");
 
+    if (!img.getBBox(image::PARENT).contains(foot.getBBox())) {
+        throw LSST_EXCEPT(lsst::pex::exceptions::LengthError, "Image too small for footprint");
+    }
+
     FootprintPtrT sfoot = symmetrizeFootprint(foot, cx, cy);
     if (!sfoot) {
         return std::pair<ImagePtrT, FootprintPtrT>(ImagePtrT(), sfoot);
+    }
+
+    if (!img.getBBox(image::PARENT).contains(sfoot->getBBox())) {
+        throw LSST_EXCEPT(lsst::pex::exceptions::LengthError,
+                          "Image too small for symmetrized footprint");
     }
     const SpanList spans = sfoot->getSpans();
 
@@ -1153,6 +1163,10 @@ buildSymmetricTemplate(
             // include ORing the mask bits, or being clever about
             // ignoring some masked pixels, or copying the mask bits
             // of the min pixel
+
+            // We have already checked the bounding box, so this should always be satisfied
+            assert(theimg->getBBox(image::PARENT).contains(geom::Point2I(fx, fy)));
+            assert(theimg->getBBox(image::PARENT).contains(geom::Point2I(bx, by)));
 
             // FIXME -- we could do this with image iterators instead.
             // But first profile to show that it's necessary and an
