@@ -100,6 +100,8 @@ class HscMapper(CameraMapper):
             "UNRECOGNISED"]:
             # Get the canonical name -- see #2113
             self.filters[f] = afwImage.Filter(afwImage.Filter(f).getId()).getName()
+        self.defaultFilterName = "UNRECOGNISED"
+
         #
         # The number of bits allocated for fields in object IDs, appropriate for
         # the default-configured Rings skymap.
