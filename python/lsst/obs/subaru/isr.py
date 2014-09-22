@@ -171,10 +171,8 @@ class SubaruIsrTask(IsrTask):
             if self.config.doSaturation:
                 self.saturationDetection(ccdExposure, amp)
             if self.config.doOverscan:
-                ampImage = afwImage.MaskedImageF(ccdExposure.getMaskedImage(), amp.getDiskDataSec(),
-                                                 afwImage.PARENT)
-                overscan = afwImage.MaskedImageF(ccdExposure.getMaskedImage(), amp.getDiskBiasSec(),
-                                                 afwImage.PARENT)
+                ampImage = afwImage.MaskedImageF(ccdExposure.getMaskedImage(), amp.getDiskDataSec())
+                overscan = afwImage.MaskedImageF(ccdExposure.getMaskedImage(), amp.getDiskBiasSec())
                 overscanArray = overscan.getImage().getArray()
                 median = numpy.median(overscanArray)
                 bad = numpy.where(numpy.abs(overscanArray - median) > self.config.overscanMaxDev)
@@ -192,7 +190,7 @@ class SubaruIsrTask(IsrTask):
             if self.config.doVariance:
                 # Ideally, this should be done after bias subtraction,
                 # but CCD assembly demands a variance plane
-                ampExposure = ccdExposure.Factory(ccdExposure, amp.getDiskDataSec(), afwImage.PARENT)
+                ampExposure = ccdExposure.Factory(ccdExposure, amp.getDiskDataSec())
                 self.updateVariance(ampExposure, amp)
 
         ccdExposure = self.assembleCcd.assembleCcd(ccdExposure)
@@ -283,7 +281,7 @@ class SubaruIsrTask(IsrTask):
 
         saturatedBit = mask.getPlaneBitMask('SAT')
 
-        xmin, ymin = mask.getBBox(afwImage.PARENT).getMin()
+        xmin, ymin = mask.getBBox().getMin()
         width = mask.getWidth()
 
         thresh = afwDetection.Threshold(saturatedBit, afwDetection.Threshold.BITMASK)
@@ -513,7 +511,6 @@ class SubaruIsrTask(IsrTask):
 
         if self.config.doTweakFlat:
             data = []
-            flatData = []
             flatAmpList = []
             bad = exposure.getMaskedImage().getMask().getPlaneBitMask(["BAD", "SAT"])
             stats = afwMath.StatisticsControl()
