@@ -2,7 +2,6 @@ import math
 import os
 import re
 import sys
-from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt;  pyplot = plt
 import numpy as np
 try:
@@ -11,7 +10,6 @@ try:
 except ImportError:
     scipy = None
 
-import lsst.daf.base as dafBase
 import lsst.pex.config as pexConfig
 import lsst.afw.cameraGeom as afwCG
 import lsst.afw.cameraGeom.utils as afwCGUtils
@@ -2676,7 +2674,7 @@ def getLevel(serial, filter='g', fiddle=False, calculate=False, visit=0, butler=
                     pass
 
             if False:
-                ds9Utils.drawBBox(im.getBBox(afwImage.PARENT), borderWidth=0.4)
+                ds9Utils.drawBBox(im.getBBox(), borderWidth=0.4)
                 print serial, serial1, offset, val
 
             print "%3d : %5d," % (serial1, val),
