@@ -7,13 +7,10 @@ import numpy as np
 
 import lsst.daf.persistence as dafPersist
 import lsst.afw.detection as afwDet
-import lsst.afw.geom as afwGeom
 import lsst.afw.image as afwImage
 import lsst.afw.table as afwTable
 import lsst.pex.logging as pexLogging
 from lsst.meas.deblender.baseline import *
-from lsst.meas.deblender import BaselineUtilsF as butils
-import lsst.meas.algorithms as measAlg
 
 from astrometry.util.plotutils import *
 
@@ -46,9 +43,9 @@ def foot_to_img(foot, img=None):
         afwDet.copyWithinFootprintImage(foot, img, fimg)
         # ia = img.getArray()
         # fa = fimg.getArray()
-        # fbb = fimg.getBBox(afwImage.PARENT)
+        # fbb = fimg.getBBox()
         # fx0,fy0 = fbb.getMinX(), fbb.getMinY()
-        # ibb = img.getBBox(afwImage.PARENT)
+        # ibb = img.getBBox()
         # ix0,iy0 = ibb.getMinX(), ibb.getMinY()
         # for span in foot.getSpans():
         #     y,x0,x1 = span.getY(), span.getX0(), span.getX1()
@@ -316,7 +313,7 @@ def makeplots(butler, dataId, ps, sources=None, pids=None, minsize=0,
                         kfoot.normalize()
                         kfoot.clipToNonzero(kid.psfTemplate.getImage())
                         # print 'kfoot BB:', kfoot.getBBox()
-                        # print 'Img bb:', kid.psfTemplate.getImage().getBBox(afwImage.PARENT)
+                        # print 'Img bb:', kid.psfTemplate.getImage().getBBox()
                         # for sp in kfoot.getSpans():
                         #     print '  span', sp
                     else:

@@ -19,8 +19,7 @@ import lsst.afw.detection as afwDet
 import lsst.afw.geom as afwGeom
 import lsst.afw.image as afwImage
 import lsst.pex.logging as pexLogging
-from lsst.meas.deblender.baseline import *
-from lsst.meas.deblender import BaselineUtilsF as butils
+from lsst.meas.deblender.baseline import deblend
 
 import lsst.meas.algorithms as measAlg
 
@@ -36,7 +35,7 @@ pexLogging.Log(root, 'lsst.meas.deblender.getSignificantEdgePixels',
 pexLogging.Log(root, 'afw.Mask', pexLogging.Log.INFO)
                
 def imExt(img):
-    bbox = img.getBBox(afwImage.PARENT)
+    bbox = img.getBBox()
     return [bbox.getMinX(), bbox.getMaxX(),
             bbox.getMinY(), bbox.getMaxY()]
 
@@ -67,7 +66,7 @@ class RampEdgeTestCase(unittest.TestCase):
         fpbb = afwGeom.Box2I(afwGeom.Point2I(0,0),
                              afwGeom.Point2I(W-1,H-1))
         afwimg = afwImage.MaskedImageF(fpbb)
-        imgbb = afwimg.getBBox(afwImage.PARENT)
+        imgbb = afwimg.getBBox()
         img = afwimg.getImage().getArray()
 
         var = afwimg.getVariance().getArray()
@@ -86,10 +85,10 @@ class RampEdgeTestCase(unittest.TestCase):
         flux = 1e6
         for x,y in XY:
             bim = blob_psf.computeImage(afwGeom.Point2D(x, y))
-            bbb = bim.getBBox(afwImage.PARENT)
+            bbb = bim.getBBox()
             bbb.clip(imgbb)
     
-            bim = bim.Factory(bim, bbb, afwImage.PARENT)
+            bim = bim.Factory(bim, bbb)
             bim2 = bim.getArray()
     
             blobimg = np.zeros_like(img)
@@ -181,7 +180,7 @@ class RampEdgeTestCase(unittest.TestCase):
                 symm = dpk.origTemplate
                 symms.append(symm)
 
-                bbox = symm.getBBox(afwImage.PARENT)
+                bbox = symm.getBBox()
                 x0,y0 = bbox.getMinX(), bbox.getMinY()
                 im = symm.getArray()
                 h,w = im.shape
@@ -195,7 +194,7 @@ class RampEdgeTestCase(unittest.TestCase):
                 monos.append(mono)
 
                 im = mono.getArray()
-                bbox = mono.getBBox(afwImage.PARENT)
+                bbox = mono.getBBox()
                 x0,y0 = bbox.getMinX(), bbox.getMinY()
                 h,w = im.shape
                 oned = np.zeros(W)
