@@ -64,8 +64,8 @@ class HscMapper(CameraMapper):
         # object IDs (e.g. on coadds) and changing the order will invalidate old objIDs
 
         afwImageUtils.resetFilters()
-        afwImageUtils.defineFilter(name='None', lambdaEff=0,
-                                   alias=["NONE", 'Unrecognised', 'UNRECOGNISED',])
+        afwImageUtils.defineFilter(name='UNRECOGNISED', lambdaEff=0,
+                                   alias=["NONE", "None", 'Unrecognised',])
         afwImageUtils.defineFilter(name='g', lambdaEff=477, alias=['W-S-G+', 'HSC-G'])
         afwImageUtils.defineFilter(name='r', lambdaEff=623, alias=['W-S-R+', 'HSC-R'])
         afwImageUtils.defineFilter(name='r1', lambdaEff=623, alias=['109', 'ENG-R1'])
