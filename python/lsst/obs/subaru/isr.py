@@ -176,7 +176,7 @@ class SubaruIsrTask(IsrTask):
                 overscan = afwImage.MaskedImageF(ccdExposure.getMaskedImage(), amp.getRawHorizontalOverscanBBox(),
                                                  afwImage.PARENT)
                 overscanArray = overscan.getImage().getArray()
-                median = numpy.median(overscanArray)
+                median = numpy.ma.median(numpy.ma.masked_where(overscan.getMask().getArray(), overscanArray))
                 bad = numpy.where(numpy.abs(overscanArray - median) > self.config.overscanMaxDev)
                 overscan.getMask().getArray()[bad] = overscan.getMask().getPlaneBitMask("SAT")
 
