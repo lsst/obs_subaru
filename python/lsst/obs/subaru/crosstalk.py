@@ -248,6 +248,9 @@ The pixels affected by signal over minPixelToMask have the crosstalkStr bit set
                 ampJ = mi.Factory(mi, bbox, afwImage.LOCAL, True)
 
             msk = ampJ.getMask()
+            if np.all(msk.getArray() & msk.getPlaneBitMask("SAT")):
+                # Bad amplifier; ignore it completely --- its effect will come out in the bias
+                continue
             msk &= crosstalk
 
             ampJ -= bkgd
