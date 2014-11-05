@@ -9,7 +9,6 @@ import lsst.afw.image as afwImage
 import lsst.afw.math as afwMath
 import lsst.afw.geom as afwGeom
 import lsst.pex.policy as pexPolicy
-from .hscLib import HscDistortion
 
 try: # just to let meas_mosaic be an optional dependency
     from lsst.meas.mosaic import applyMosaicResults
@@ -59,11 +58,6 @@ class HscMapper(CameraMapper):
                      ):
             self.mappings[name].keyDict.update(keys)
 
-        # Distortion isn't pluggable, so we'll put in our own
-        elevation = 45 * afwGeom.degrees
-        distortion = HscDistortion(elevation)
-        self.camera.setDistortion(distortion)
-        
         # SDSS g': http://www.naoj.org/Observing/Instruments/SCam/txt/g.txt
         # SDSS r': http://www.naoj.org/Observing/Instruments/SCam/txt/r.txt
         # SDSS i': http://www.naoj.org/Observing/Instruments/SCam/txt/i.txt
