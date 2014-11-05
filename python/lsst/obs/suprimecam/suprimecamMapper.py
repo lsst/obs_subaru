@@ -366,7 +366,7 @@ class SuprimecamMapperMit(SuprimecamMapperBase):
                 raise RuntimeError("Either $SUPRIME_DATA_DIR or root= must be specified")
         if not kwargs.get('calibRoot', None):
             kwargs['calibRoot'] = os.path.join(kwargs['root'], 'CALIB_MIT')
-        policy.set("camera", "../suprimecam/Full_Suprimecam_MIT_geom.paf")
+        policy.set("camera", "../suprimecam/mit_camera")
         policy.set("defects", "../suprimecam/mit_defects")
         super(SuprimecamMapperMit, self).__init__(policy, policyFile.getRepositoryPath(), **kwargs)
         self.defineFilters()
