@@ -21,6 +21,8 @@ from lsst.afw.display.rgb import makeRGB
 from lsst.obs.subaru.crosstalkYagi import YagiCrosstalkTask
 import lsst.meas.algorithms as measAlg
 import lsst.afw.display.ds9 as ds9
+from lsst.obs.hsc.vignette import VignetteConfig
+from lsst.afw.geom.polygon import Polygon
 
 class QaFlatnessConfig(pexConfig.Config):
     meshX = pexConfig.Field(
@@ -126,6 +128,18 @@ after applying the nominal gain
                                   default=False)
     overscanMaxDev = pexConfig.Field(dtype=float, doc="Maximum deviation from the median for overscan",
                                      default=1000.0, check=lambda x: x > 0)
+    vignette = pexConfig.ConfigField(dtype=VignetteConfig,
+                                     doc="Vignetting parameters in focal plane coordinates")
+    numPolygonPoints = pexConfig.Field(
+        dtype = int,
+        doc = "Number of points to define the Vignette polygon",
+        default = 100,
+        )
+    doWriteVignettePolygon = pexConfig.Field(
+        dtype = bool,
+        doc = "Persist Polygon used to define vignetted region?",
+        default = True,
+        )
     fluxMag0T1 = pexConfig.DictField(
         keytype = str,
         itemtype = float,
@@ -168,6 +182,12 @@ class SubaruIsrTask(IsrTask):
     def __init__(self, *args, **kwargs):
         super(SubaruIsrTask, self).__init__(*args, **kwargs)
         self.makeSubtask("crosstalk")
+        if self.config.doWriteVignettePolygon:
+            theta = numpy.linspace(0, 2*numpy.pi, num=self.config.numPolygonPoints, endpoint=False)
+            x = self.config.vignette.radius*numpy.cos(theta) + self.config.vignette.xCenter
+            y = self.config.vignette.radius*numpy.sin(theta) + self.config.vignette.yCenter
+            points = numpy.array([x, y]).transpose()
+            self.vignettePolygon = Polygon([afwGeom.Point2D(x,y) for x, y in reversed(points)])
 
     def runDataRef(self, sensorRef):
         self.log.log(self.log.INFO, "Performing ISR on sensor %s" % (sensorRef.dataId))
@@ -288,6 +308,9 @@ class SubaruIsrTask(IsrTask):
             self.guider(ccdExposure)
 
         self.roughZeroPoint(ccdExposure)
+
+        if self.config.doWriteVignettePolygon:
+            self.setValidPolygonIntersect(ccdExposure, self.vignettePolygon)
 
         if self.config.doWrite:
             sensorRef.put(ccdExposure, "postISRCCD")

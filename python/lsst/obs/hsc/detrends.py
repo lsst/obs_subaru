@@ -3,15 +3,13 @@ import numpy as np
 
 from lsst.pex.config import Field, ListField
 from hsc.pipe.tasks.detrends import FlatCombineConfig, FlatCombineTask
+from lsst.obs.hsc.vignette import VignetteConfig
 import lsst.afw.image as afwImage
 import lsst.afw.geom as afwGeom
 import lsst.afw.cameraGeom as afwcg
 
 class HscFlatCombineConfig(FlatCombineConfig):
-    xCenter = Field(dtype=float, default=0,   doc="Center of vignetting pattern, in x (focal plane coords)")
-    yCenter = Field(dtype=float, default=0, doc="Center of vignetting pattern, in y (focal plane coords)")
-    radius = Field(dtype=float, default=18300, doc="Radius of vignetting pattern, in focal plane coords",
-                   check=lambda x: x >= 0)
+    vignette = ConfigField(dtype=VignetteConfig, doc="Vignetting parameters in focal plane coordinates")
     badAmpCcdList = ListField(dtype=int, default=[], doc="List of CCD serial numbers for bad amplifiers")
     badAmpList = ListField(dtype=int, default=[], doc="List of amp serial numbers in CCD")
     maskPlane = Field(dtype=str, default="NO_DATA", doc="Mask plane to set")
@@ -58,7 +56,7 @@ class HscFlatCombineTask(FlatCombineTask):
         numCorners = 0 # Number of corners outside radius
         for i, j in ((0, 0), (0, h-1), (w-1, 0), (w-1, h-1)):
             x,y = detector.getPositionFromPixel(afwGeom.PointD(i, j)).getMm()
-            if math.hypot(x - self.config.xCenter, y - self.config.yCenter) > self.config.radius:
+            if math.hypot(x - self.config.vignette.xCenter, y - self.config.vignette.yCenter) > self.config.radius:
                 numCorners += 1
         if numCorners == 0:
             # Nothing to be masked
@@ -76,8 +74,8 @@ class HscFlatCombineTask(FlatCombineTask):
         for j in range(mask.getHeight()):
             for i in range(mask.getWidth()):
                 x[j, i], y[j, i] = detector.getPositionFromPixel(afwGeom.PointD(i, j)).getMm()
-        R = np.hypot(x - self.config.xCenter, y - self.config.yCenter)
-        isBad = R > self.config.radius
+        R = np.hypot(x - self.config.vignette.xCenter, y - self.config.vignette.yCenter)
+        isBad = R > self.config.vignette.radius
         self.log.info("Detector %s has %f%% pixels vignetted" %
                       (detector.getId().getSerial(), isBad.sum()/float(isBad.size)*100.0))
         maskArray = mask.getArray()

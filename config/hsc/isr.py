@@ -1,4 +1,7 @@
 # Configuration for HSC ISR
+import os.path
+
+from lsst.utils import getPackageDir
 
 from lsst.obs.subaru.isr import SubaruIsrTask
 config.isr.retarget(SubaruIsrTask)
@@ -22,3 +25,5 @@ config.isr.crosstalk.coeffs.values = [
     -171.0e-6, -134.0e-6,    0.0e-6, -153.0e-6,
     -157.0e-6, -151.0e-6, -137.0e-6,    0.0e-6,
        ]
+
+config.isr.vignette.load(os.path.join(getPackageDir("obs_subaru"), "config", "hsc", "vignette.py"))
