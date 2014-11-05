@@ -1,1 +1,2 @@
-from hscMapper import *
+from .hscMapper import *
+import transformRegistry
