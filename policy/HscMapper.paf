@@ -2,7 +2,7 @@
 
 needCalibRegistry: true
 
-camera:        "../hsc/hsc_geom.paf"
+camera:        "../hsc/camera"
 defects:    "../hsc/defects"
 
 skytiles: {
