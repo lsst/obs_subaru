@@ -2,7 +2,7 @@
 
 needCalibRegistry: true
 
-camera:     "../suprimecam/Full_Suprimecam_geom.paf"
+camera:     "../suprimecam/camera"
 defects:    "../suprimecam/defects"
 
 levels: {
