@@ -13,6 +13,8 @@ Interface class for HSC distortion
 #include "lsst/base.h"
 #include "lsst/afw/geom/Point.h"
 #include "lsst/afw/geom/Extent.h"
+#include "lsst/afw/cameraGeom/Detector.h"
+#include "lsst/afw/table/AmpInfo.h"
 %}
 
 %include "lsst/p_lsstSwig.i"
