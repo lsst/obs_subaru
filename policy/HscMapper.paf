@@ -1106,4 +1106,124 @@ datasets: {
         tables:        raw_visit
     }
 
+    # Detections on coadds
+    deepCoadd_det: {
+        template:      "deepCoadd-results/%(filter)s/%(tract)d/%(patch)s/det-%(filter)s-%(tract)d-%(patch)s.fits"
+        python:        "lsst.afw.table.SourceCatalog"
+        persistable:   "ignored"
+        storage:       "FitsCatalogStorage"
+        tables:        raw
+        tables:        raw_skyTile
+    }
+    detect_config: {
+        template:      "config/detect.py"
+        python:        "lsst.pipe.tasks.multiBand.DetectCoaddSourcesConfig"
+        persistable:   "Config"
+        storage:       "ConfigStorage"
+    }
+    detect_metadata: {
+        template:      "deepCoadd-results/%(filter)s/%(tract)d/%(patch)s/detectMD-%(filter)s-%(tract)d-%(patch)s.boost"
+        python:        "lsst.daf.base.PropertySet"
+        persistable:   "PropertySet"
+        storage:       "BoostStorage"
+        tables:        raw
+        tables:        raw_skyTile
+    }
+    deepCoadd_det_schema: {
+        template:      "schema/deepCoadd_det.fits"
+        python:        "lsst.afw.table.SourceCatalog"
+        persistable:   "SourceCatalog"
+        storage:       "FitsCatalogStorage"
+    }
+
+    # Merged detections on coadds
+    deepCoadd_mergeDet: {
+        template:      "deepCoadd-results/merged/%(tract)d/%(patch)s/mergeDet-%(tract)d-%(patch)s.fits"
+        python:        "lsst.afw.table.SourceCatalog"
+        persistable:   "ignored"
+        storage:       "FitsCatalogStorage"
+        tables:        raw
+        tables:        raw_skyTile
+    }
+    mergeDet_config: {
+        template:      "config/mergeDetect.py"
+        python:        "lsst.pipe.tasks.multiBand.MergeSourcesConfig"
+        persistable:   "Config"
+        storage:       "ConfigStorage"
+    }
+    mergeDet_metadata: {
+        template:      "deepCoadd-results/merged/%(tract)d/%(patch)s/mergeDetMD-%(tract)d-%(patch)s.boost"
+        python:        "lsst.daf.base.PropertySet"
+        persistable:   "PropertySet"
+        storage:       "BoostStorage"
+        tables:        raw
+        tables:        raw_skyTile
+    }
+    deepCoadd_mergeDet_schema: {
+        template:      "schema/deepCoadd_mergeDet.fits"
+        python:        "lsst.afw.table.SourceCatalog"
+        persistable:   "SourceCatalog"
+        storage:       "FitsCatalogStorage"
+    }
+
+    # Measurements on coadds
+    deepCoadd_meas: {
+        template:      "deepCoadd-results/%(filter)s/%(tract)d/%(patch)s/meas-%(filter)s-%(tract)d-%(patch)s.fits"
+        python:        "lsst.afw.table.SourceCatalog"
+        persistable:   "ignored"
+        storage:       "FitsCatalogStorage"
+        tables:        raw
+        tables:        raw_skyTile
+    }
+    measure_config: {
+        template:      "config/measureMerged.py"
+        python:        "lsst.pipe.tasks.multiBand.MeasureMergedCoaddSourcesConfig"
+        persistable:   "Config"
+        storage:       "ConfigStorage"
+    }
+    measure_metadata: {
+        template:      "deepCoadd-results/%(filter)s/%(tract)d/%(patch)s/measMD-%(filter)s-%(tract)d-%(patch)s.boost"
+        python:        "lsst.daf.base.PropertySet"
+        persistable:   "PropertySet"
+        storage:       "BoostStorage"
+        tables:        raw
+        tables:        raw_skyTile
+    }
+    deepCoadd_meas_schema: {
+        template:      "schema/deepCoadd_meas.fits"
+        python:        "lsst.afw.table.SourceCatalog"
+        persistable:   "SourceCatalog"
+        storage:       "FitsCatalogStorage"
+    }
+
+    # Reference catalog for coadds
+    deepCoadd_ref: {
+        template:      "deepCoadd-results/merged/%(tract)d/%(patch)s/ref-%(tract)d-%(patch)s.fits"
+        python:        "lsst.afw.table.SourceCatalog"
+        persistable:   "ignored"
+        storage:       "FitsCatalogStorage"
+        tables:        raw
+        tables:        raw_skyTile
+    }
+    mergeMeas_config: {
+        template:      "config/mergeMeasure.py"
+        python:        "lsst.pipe.tasks.multiBand.MergeSourcesConfig"
+        persistable:   "Config"
+        storage:       "ConfigStorage"
+    }
+    mergeMeas_metadata: {
+        template:      "deepCoadd-results/merged/%(tract)d/%(patch)s/mergeMeasMD-%(tract)d-%(patch)s.boost"
+        python:        "lsst.daf.base.PropertySet"
+        persistable:   "PropertySet"
+        storage:       "BoostStorage"
+        tables:        raw
+        tables:        raw_skyTile
+    }
+    deepCoadd_ref_schema: {
+        template:      "schema/deepCoadd_ref.fits"
+        python:        "lsst.afw.table.SourceCatalog"
+        persistable:   "SourceCatalog"
+        storage:       "FitsCatalogStorage"
+    }
+
 }
