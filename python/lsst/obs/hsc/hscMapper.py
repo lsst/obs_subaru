@@ -25,7 +25,11 @@ class HscMapper(CameraMapper):
             try:
                 kwargs['root'] = os.path.join(os.environ.get('SUPRIME_DATA_DIR'), 'HSC')
             except:
-                raise RuntimeError("Either $SUPRIME_DATA_DIR or root= must be specified")
+                #I don't know where to get the suprime_data package.  This may just be cruft.
+                #You won't be able to reduce data without some data to reduce, though.
+                #raise RuntimeError("Either $SUPRIME_DATA_DIR or root= must be specified")
+                #This is a hack to get things going XXXX
+                kwargs['root'] = os.environ.get('OBS_SUBARU_DIR')
         if not kwargs.get('calibRoot', None):
             kwargs['calibRoot'] = os.path.join(kwargs['root'], 'CALIB')
 
@@ -132,11 +136,6 @@ class HscMapper(CameraMapper):
         copyId = dataId.copy()
         copyId.pop("flags", None)
         return super(HscMapper, self).map(datasetType, copyId, write=write)
-
-
-    def std_camera(self, item, dataId):
-        """Standardize a camera dataset by converting it to a camera object."""
-        return self.camera
 
     @staticmethod
     def _flipChipsLR(exp, wcs, dataId, dims=None):
