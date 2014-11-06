@@ -133,11 +133,6 @@ class HscMapper(CameraMapper):
         copyId.pop("flags", None)
         return super(HscMapper, self).map(datasetType, copyId, write=write)
 
-
-    def std_camera(self, item, dataId):
-        """Standardize a camera dataset by converting it to a camera object."""
-        return self.camera
-
     @staticmethod
     def _flipChipsLR(exp, wcs, dataId, dims=None):
         """Flip the chip left/right or top/bottom. Process either/and the pixels and wcs
