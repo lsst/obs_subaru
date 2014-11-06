@@ -17,7 +17,7 @@ except ImportError:
 
 class HscMapper(CameraMapper):
     """Provides abstract-physical mapping for HSC data"""
-    
+
     def __init__(self, **kwargs):
         policyFile = pexPolicy.DefaultPolicyFile("obs_subaru", "HscMapper.paf", "policy")
         policy = pexPolicy.Policy(policyFile)
@@ -34,7 +34,7 @@ class HscMapper(CameraMapper):
             kwargs['calibRoot'] = os.path.join(kwargs['root'], 'CALIB')
 
         super(HscMapper, self).__init__(policy, policyFile.getRepositoryPath(), **kwargs)
-        
+
         # Ensure each dataset type of interest knows about the full range of keys available from the registry
         keys = {'field': str,
                 'visit': int,
@@ -147,7 +147,7 @@ Most chips are flipped L/R, but the rotated ones (100..103) are flipped T/B
             exp.setMaskedImage(afwMath.flipImage(exp.getMaskedImage(), flipLR, flipTB))
         if wcs:
             wcs.flipImage(flipLR, flipTB, exp.getDimensions() if dims is None else dims)
-        
+
         return exp
 
     def std_raw_md(self, md, dataId):
@@ -165,7 +165,7 @@ Most chips are flipped L/R, but the rotated ones (100..103) are flipped T/B
             md.set(k, wcsMd.get(k))
 
         return md
-    
+
     def std_raw(self, item, dataId):
         exp = super(HscMapper, self).std_raw(item, dataId)
 
