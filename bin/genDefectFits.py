@@ -9,22 +9,22 @@ import pyfits
 import collections
 
 import lsst.pex.policy as pexPolicy
-import lsst.afw.cameraGeom as afwCG
+from lsst.obs.hsc import HscMapper
+from lsst.obs.suprimecam import SuprimecamMapper
+from lsst.obs.suprimecam import SuprimecamMapperMit
 import lsst.afw.cameraGeom.utils as afwCGU
 
 Defect = collections.namedtuple('Defect', ['x0', 'y0', 'width', 'height'])
+mapperMap = {'hsc':HscMapper, 'suprimecam':SuprimecamMapper, 'suprimecam_mit':SuprimecamMapperMit}
 
-def genDefectFits(cameraPolicy, source, targetDir):
-    if not isinstance(cameraPolicy, pexPolicy.Policy):
-        cameraPolicy = pexPolicy.Policy(cameraPolicy)
-    geomPolicy = afwCGU.getGeomPolicy(cameraPolicy)
-    camera = afwCGU.makeCamera(geomPolicy)
+def genDefectFits(cameraName, source, targetDir):
+    mapper = mapperMap[cameraName.lower()]()
+    camera = mapper.camera
 
     ccds = dict()
-    for raft in camera:
-        for ccd in afwCG.cast_Raft(raft):
-            ccdNum = ccd.getId().getSerial()
-            ccds[ccdNum] = ccd.getId().getName()
+    for ccd in camera:
+            ccdNum = ccd.getId()
+            ccds[ccdNum] = ccd.getName()
 
     defects = dict()
 
@@ -70,7 +70,7 @@ if __name__ == "__main__":
     import argparse
     
     parser = argparse.ArgumentParser()
-    parser.add_argument("cameraPolicyFile", type=str, help="Camera .paf file")
+    parser.add_argument("cameraName", type=str, help="Camera name: HSC, SuprimeCam, SuprimeCam_MIT")
     parser.add_argument("defectsFile", type=str, help="Text file containing list of defects")
     parser.add_argument("targetDir", type=str, nargs="?", help="Directory for generated fits files")
     parser.add_argument("-f", "--force", action="store_true", help="Force operations")
@@ -80,6 +80,6 @@ if __name__ == "__main__":
     if not args.targetDir:
         args.targetDir = os.path.split(args.defectsFile)[0]
 
-    genDefectFits(args.cameraPolicyFile, args.defectsFile, args.targetDir)
+    genDefectFits(args.cameraName, args.defectsFile, args.targetDir)
     
 
