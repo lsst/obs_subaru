@@ -53,6 +53,10 @@ menu = { "ps1*": {}, # Defaults are fine
         }
 setConfigFromEups(config.calibrate.photocal, config.calibrate.astrometry, menu)
 
+# Demand astrometry and photoCal succeed
+config.calibrate.requireAstrometry = True
+config.calibrate.requirePhotoCal = True
+
 # Detection
 config.detection.isotropicGrow = True
 config.detection.returnOriginalFootprints = False
