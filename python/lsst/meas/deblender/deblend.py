@@ -92,13 +92,15 @@ class SourceDeblendConfig(pexConf.Config):
     tinyFootprintSize = pexConf.Field(dtype=int, default=2,
                                       doc=('Footprints smaller in width or height than this value will be ignored; 0 to never ignore.'))
 
+    removeMaskPlanes = pexConf.Field(dtype=int, default=True,
+                                     doc=("Clear and remove diagnostic mask planes on exit "
+                                          "(disable for deblender debugging)"))
+
     propagateAllPeaks = pexConf.Field(dtype=bool, default=False,
                                       doc=('Guarantee that all peaks produce a child source.'))
-
     catchFailures = pexConf.Field(dtype=bool, default=False,
                                   doc=("If True, catch exceptions thrown by the deblender, log them, "
                                        "and set a flag on the parent, instead of letting them propagate up"))
-
     
 ## \addtogroup LSST_task_documentation
 ## \{
@@ -335,6 +337,11 @@ class SourceDeblendTask(pipeBase.Task):
             
             self.postSingleDeblendHook(exposure, srcs, i, npre, kids, fp, psf, psf_fwhm, sigma1, res)
             #print 'Deblending parent id', src.getId(), 'took', time.clock() - t0
+
+        if self.config.removeMaskPlanes:
+            mask = exposure.getMaskedImage().getMask()
+            for nm in ['SYMM_1SIG', 'SYMM_3SIG', 'MONOTONIC_1SIG']:
+                mask.removeAndClearMaskPlane(nm, True)
 
         n1 = len(srcs)
         self.log.info('Deblended: of %i sources, %i were deblended, creating %i children, total %i sources' %
