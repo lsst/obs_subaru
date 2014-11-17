@@ -211,10 +211,25 @@ class SubaruIsrTask(IsrTask):
         ccdExposure = self.convertIntToFloat(ccdExposure)
         ccd = ccdExposure.getDetector()
 
+        defectList = list()
+        for v in ccd.getDefects():
+            defectList.append(v.getBBox())
+
         for amp in ccd:
+            # Check if entire amp region is defined as defect
+            badAmp = False
+            for v in defectList:
+                if v.contains(amp.getDataSec(True)):
+                    badAmp = True
+
             self.measureOverscan(ccdExposure, amp)
             if self.config.doSaturation:
-                self.saturationDetection(ccdExposure, amp)
+                # In the case of bad amp, we will set mask to "BAD"
+                # instead of checking saturation
+                if badAmp:
+                    self.saturationDetection(ccdExposure, amp, "BAD")
+                else:
+                    self.saturationDetection(ccdExposure, amp)
             if self.config.doOverscan:
                 ampImage = afwImage.MaskedImageF(ccdExposure.getMaskedImage(), amp.getRawDataBBox(),
                                                  afwImage.PARENT)
@@ -613,6 +628,18 @@ class SubaruIsrTask(IsrTask):
         lsstIsr.flatCorrection(exposure.getMaskedImage(), flatExposure.getMaskedImage(),
                                scalingType="USER", userScale=1.0)
 
+    def saturationDetection(self, exposure, amp, maskName="SAT"):
+        """Detect saturated pixels and mask them using mask plane "SAT", in place
+
+        @param[in,out]  exposure    exposure to process; only the amp DataSec is processed
+        @param[in]      amp         amplifier device data
+        """
+        if not self.checkIsAmp(amp):
+            raise RuntimeError("This method must be executed on an amp.")
+        for box in (amp.getDiskDataSec(), amp.getDiskBiasSec()):
+            dataView = afwImage.MaskedImageF(exposure.getMaskedImage(), box, afwImage.PARENT)
+            bad = numpy.where(dataView.getImage().getArray() > amp.getElectronicParams().getSaturationLevel())
+            dataView.getMask().getArray()[bad] = dataView.getMask().getPlaneBitMask(maskName)
 
     def roughZeroPoint(self, exposure):
         """Set an approximate magnitude zero point for the exposure"""

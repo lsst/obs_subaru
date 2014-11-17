@@ -218,7 +218,7 @@ def subtractXTalk(mi, coeffs, minPixelToMask=45000, crosstalkStr="CROSSTALK"):
 The pixels affected by signal over minPixelToMask have the crosstalkStr bit set
     """
     sctrl = afwMath.StatisticsControl()
-    sctrl.setAndMask(mi.getMask().getPlaneBitMask("DETECTED"))
+    sctrl.setAndMask(mi.getMask().getPlaneBitMask("BAD"))
     bkgd = afwMath.makeStatistics(mi, afwMath.MEDIAN, sctrl).getValue()
     #
     # These are the pixels that are bright enough to cause crosstalk (more precisely,
@@ -250,7 +250,7 @@ The pixels affected by signal over minPixelToMask have the crosstalkStr bit set
                     ampJ = mi.Factory(mi, bbox, afwImage.LOCAL, True)
 
                 msk = ampJ.getMask()
-                if np.all(msk.getArray() & msk.getPlaneBitMask("SAT")):
+                if np.all(msk.getArray() & msk.getPlaneBitMask("BAD")):
                     # Bad amplifier; ignore it completely --- its effect will come out in the bias
                     continue
                 msk &= crosstalk
