@@ -211,25 +211,23 @@ class SubaruIsrTask(IsrTask):
         ccdExposure = self.convertIntToFloat(ccdExposure)
         ccd = ccdExposure.getDetector()
 
-        defectList = list()
-        for v in ccd.getDefects():
-            defectList.append(v.getBBox())
+        defectList = [v.getBBox() for v in ccd.getDefects()]
 
         for amp in ccd:
             # Check if entire amp region is defined as defect
-            badAmp = False
-            for v in defectList:
-                if v.contains(amp.getDataSec(True)):
-                    badAmp = True
+            badAmp = bool(sum([v.contains(amp.getDataSec(True)) for v in defectList]))
+
+            # In the case of bad amp, we will set mask to "BAD"
+            if badAmp:
+                for box in (amp.getDiskDataSec(), amp.getDiskBiasSec()):
+                    dataView = afwImage.MaskedImageF(ccdExposure.getMaskedImage(), box, afwImage.PARENT)
+                    maskView = dataView.getMask()
+                    maskView |= maskView.getPlaneBitMask('BAD')
+                    del maskView
 
             self.measureOverscan(ccdExposure, amp)
-            if self.config.doSaturation:
-                # In the case of bad amp, we will set mask to "BAD"
-                # instead of checking saturation
-                if badAmp:
-                    self.saturationDetection(ccdExposure, amp, "BAD")
-                else:
-                    self.saturationDetection(ccdExposure, amp)
+            if self.config.doSaturation and not badAmp:
+                self.saturationDetection(ccdExposure, amp)
             if self.config.doOverscan:
                 ampImage = afwImage.MaskedImageF(ccdExposure.getMaskedImage(), amp.getRawDataBBox(),
                                                  afwImage.PARENT)
