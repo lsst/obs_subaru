@@ -60,8 +60,8 @@ def trim(im, ccd=None):
     tim = im[ccd.getAllPixels(True)].clone()
 
     for ia, a in enumerate(ccd):
-        sim = im[a.getDiskDataSec()]
-        sim -= afwMath.makeStatistics(im[a.getDiskBiasSec()], afwMath.MEANCLIP).getValue()
+        sim = im[a.getRawDataBBox()]
+        sim -= afwMath.makeStatistics(im[a.getRawHorizontalOverscanBBox()], afwMath.MEANCLIP).getValue()
         a.setTrimmed(True)
         tim[a.getAllPixels(True)] <<= a.prepareAmpData(sim)
 
@@ -1150,7 +1150,7 @@ def subtractBiasNoTrim(exp):
     im = exp.getMaskedImage()
 
     for a in ccd:
-        im[a.getDiskAllPixels()] -= afwMath.makeStatistics(im[a.getDiskBiasSec()], afwMath.MEANCLIP).getValue()
+        im[a.getDiskAllPixels()] -= afwMath.makeStatistics(im[a.getRawHorizontalOverscanBBox()], afwMath.MEANCLIP).getValue()
 
     return exp
 
@@ -1160,7 +1160,7 @@ def grads(exp):
 
     plt.clf()
     for a in ccd:
-        ima = im[a.getDiskDataSec()].getArray()
+        ima = im[a.getRawDataBBox()].getArray()
         I = np.mean(ima, 1)/np.median(ima)
 
         size = 512//16
