@@ -40,14 +40,14 @@ def genDefectFits(cameraName, source, targetDir):
             defects[ccd] = list()
         defects[ccd].append(Defect(x0=int(x0), y0=int(y0), width=int(width), height=int(height)))
     f.close()
-    
+
     for ccd in defects.keys():
         columns = list()
         for colName in Defect._fields:
             colData = numpy.array([d._asdict()[colName] for d in defects[ccd]])
             col = pyfits.Column(name=colName, format="I", array=colData)
             columns.append(col)
-        
+
         cols = pyfits.ColDefs(columns)
         table = pyfits.new_table(cols)
 
@@ -62,12 +62,12 @@ def genDefectFits(cameraName, source, targetDir):
             else:
                 print >> sys.stderr, "File %s already exists; use --force to overwrite" % name
                 continue
-        
+
         table.writeto(name)
 
 if __name__ == "__main__":
     import argparse
-    
+
     parser = argparse.ArgumentParser()
     parser.add_argument("cameraName", type=str, choices=['HSC', 'SuprimeCam', 'SuprimeCam_MIT'],
                         help="Camera name: HSC, SuprimeCam, SuprimeCam_MIT")
@@ -81,5 +81,3 @@ if __name__ == "__main__":
         args.targetDir = os.path.split(args.defectsFile)[0]
 
     genDefectFits(args.cameraName, args.defectsFile, args.targetDir)
-    
-

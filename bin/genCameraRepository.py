@@ -195,13 +195,13 @@ def makeLparams(policy):
 
 def addAmp(ampCatalog, amp, eparams, lparams):
     """ Add an amplifier to an AmpInfoCatalog
-    
+
     @param ampCatalog: An instance of an AmpInfoCatalog object to fill with amp properties
     @param amp: Dictionary of amp geometric properties
     @param eparams: Dictionary of amp electronic properties for this amp
     """
     record = ampCatalog.addNew()
- 
+
     xtot = amp['ewidth']
     ytot = amp['eheight']
 
@@ -227,7 +227,7 @@ def addAmp(ampCatalog, amp, eparams, lparams):
         biasSec.flipLR(xtot)
         dataSec.flipLR(xtot)
         voscanSec.flipLR(xtot)
-        pscanSec.flipLR(xtot) 
+        pscanSec.flipLR(xtot)
 
     bbox = afwGeom.BoxI(afwGeom.PointI(0, 0), dataSec.getDimensions())
     bbox.shift(afwGeom.Extent2I(dataSec.getDimensions().getX()*eparams['index'][0], 0))
@@ -238,12 +238,12 @@ def addAmp(ampCatalog, amp, eparams, lparams):
     dataSec.shift(shiftp)
     voscanSec.shift(shiftp)
     pscanSec.shift(shiftp)
-   
+
 
     record.setBBox(bbox)
     record.setRawXYOffset(afwGeom.ExtentI(0,0))
     record.setName("%i,%i"%(eparams['index'][0], eparams['index'][1]))
-    record.setReadoutCorner(afwTable.LR if amp['flipX'] else afwTable.LL)    
+    record.setReadoutCorner(afwTable.LR if amp['flipX'] else afwTable.LL)
     record.setGain(eparams['gain'])
     record.setReadNoise(eparams['readNoise'])
     record.setSaturation(int(eparams['saturation']))
@@ -352,11 +352,11 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("LayoutPolicy", help="Policy file to parse for camera information")
     parser.add_argument("InstrumentName", help="Name of the instrument (hsc, suprimecam)")
-    parser.add_argument("OutputDir", help="Location for the persisted camerea") 
+    parser.add_argument("OutputDir", help="Location for the persisted camerea")
     parser.add_argument("--clobber", action="store_true", dest="clobber", default=False,
         help="remove and re-create the output directory if it exists")
     args = parser.parse_args()
-   
+
     if args.InstrumentName.lower() == 'hsc':
         from lsst.obs.hsc.hscMapper import HscMapper
         mapper = HscMapper

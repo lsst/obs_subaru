@@ -36,7 +36,7 @@ def fixSubaruHeader(md):
         for i in (1, 2,):
             k = "CDELT%d" % i
             cdelt[i] = md.get(k) if k in md.names() else 1.0
-                
+
             for j in (1, 2,):
                 md.set("CD%d_%d" % (i, j), cdelt[i]*md.get("PC%d_%d" % (i, j)))
 
@@ -99,7 +99,7 @@ if args.dryrun:
     conn = None
 else:
     conn = sqlite.connect(registryName)
-    
+
 if makeTables:
     cmd = "create table raw (id integer primary key autoincrement"
     cmd += ", field text, visit int, filter text, ccd int"
@@ -139,7 +139,7 @@ if conn:
     cursor = conn.cursor()
 else:
     cursor = None
-    
+
 nfile = len(files)
 for fileNo, fits in enumerate(files):
     m = re.search(regex, fits)
@@ -237,7 +237,7 @@ if conn:
     conn.close()
 else:
     print >> sys.stderr, cmd
-    
+
 
 mapperFile = os.path.join(args.root, "_mapper")
 if not os.path.exists(mapperFile):
