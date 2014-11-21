@@ -31,7 +31,7 @@ def main(butler, visits, fields, fieldRadius, showCCDs=False, aitoff=False, alph
                 print >> sys.stderr, e
             continue
 
-        ccd = afwCG.cast_Ccd(exp.getDetector())
+        ccd = exp.getDetector()
 
         xy = ccd.getPixelFromPosition(afwCG.FpPoint(0,0))
         sky = exp.getWcs().pixelToSky(xy)

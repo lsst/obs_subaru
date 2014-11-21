@@ -164,7 +164,7 @@ class SubaruIsrTask(IsrTask):
                 ccdExposure.setWcs(afwImage.makeWcs(raw_md))
 
         ccdExposure = self.convertIntToFloat(ccdExposure)
-        ccd = afwCG.cast_Ccd(ccdExposure.getDetector())
+        ccd = ccdExposure.getDetector()
 
         for amp in ccd:
             self.measureOverscan(ccdExposure, amp)
@@ -194,7 +194,7 @@ class SubaruIsrTask(IsrTask):
                 self.updateVariance(ampExposure, amp)
 
         ccdExposure = self.assembleCcd.assembleCcd(ccdExposure)
-        ccd = afwCG.cast_Ccd(ccdExposure.getDetector())
+        ccd = ccdExposure.getDetector()
 
         self.maskAndInterpDefect(ccdExposure)
 
@@ -247,7 +247,7 @@ class SubaruIsrTask(IsrTask):
         return Struct(exposure=ccdExposure)
 
     def applyGains(self, ccdExposure, normalizeGains):
-        ccd = afwCG.cast_Ccd(ccdExposure.getDetector())
+        ccd = ccdExposure.getDetector()
         ccdImage = ccdExposure.getMaskedImage()
 
         medians = []
@@ -433,7 +433,7 @@ class SubaruIsrTask(IsrTask):
 
         image = exposure.getMaskedImage()
 
-        ccd = afwCG.cast_Ccd(exposure.getDetector())
+        ccd = exposure.getDetector()
 
         linearized = False              # did we apply linearity corrections?
         for amp in ccd:
@@ -479,7 +479,7 @@ class SubaruIsrTask(IsrTask):
         @warning: call this after CCD assembly, since defects may cross amplifier boundaries
         """
         maskedImage = ccdExposure.getMaskedImage()
-        ccd = afwCG.cast_Ccd(ccdExposure.getDetector())
+        ccd = ccdExposure.getDetector()
         defectBaseList = ccd.getDefects()
         defectList = measAlg.DefectListT()
         # mask bad pixels in the camera class
@@ -515,7 +515,7 @@ class SubaruIsrTask(IsrTask):
             bad = exposure.getMaskedImage().getMask().getPlaneBitMask(["BAD", "SAT"])
             stats = afwMath.StatisticsControl()
             stats.setAndMask(bad)
-            for amp in afwCG.cast_Ccd(exposure.getDetector()):
+            for amp in exposure.getDetector():
                 box = amp.getDataSec(True)
                 dataAmp = afwImage.MaskedImageF(exposure.getMaskedImage(), box, afwImage.LOCAL).clone()
                 flatAmp = afwImage.MaskedImageF(flatfield.getMaskedImage(), box, afwImage.LOCAL)
@@ -548,7 +548,7 @@ class SuprimeCamIsrTask(SubaruIsrTask):
         """
         assert exposure, "No exposure provided"
 
-        ccd = afwCG.cast_Ccd(exposure.getDetector()) # This is Suprime-Cam so we know the Detector is a Ccd
+        ccd = exposure.getDetector() # This is Suprime-Cam so we know the Detector is a Ccd
         ccdNum = ccd.getId().getSerial()
         if ccdNum not in [0, 1, 2, 6, 7]:
             # No need to mask
@@ -605,7 +605,7 @@ class SuprimeCamMitIsrTask(SubaruIsrTask):
         """
         assert exposure, "No exposure provided"
 
-        ccd = afwCG.cast_Ccd(exposure.getDetector()) # This is Suprime-Cam so we know the Detector is a Ccd
+        ccd = exposure.getDetector() # This is Suprime-Cam so we know the Detector is a Ccd
         ccdNum = ccd.getId().getSerial()
         if ccdNum not in [0, 1, 4, 5, 9]:
             # No need to mask
