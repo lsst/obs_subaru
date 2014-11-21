@@ -53,7 +53,7 @@ def getNameOfSet(vals):
 
 def trim(im, ccd=None):
     if not ccd:
-        ccd = afwCG.cast_Ccd(im.getDetector())
+        ccd = im.getDetector()
 
     for attr in ["getMaskedImage", "convertF"]:
         if hasattr(im, attr):
@@ -123,7 +123,7 @@ def getImageLevels(butler, **kwargs):
     for visit, ccd in butler.queryMetadata('raw', 'visit', ['visit', 'ccd',], **kwargs):
         exp = butler.get('raw', visit=visit, ccd=ccd)
         try:
-            ccd = afwCG.cast_Ccd(exp.getDetector())
+            ccd = exp.getDetector()
             im = trim(exp.getMaskedImage().getImage(), ccd)
         except Exception, e:
             print >> sys.stderr, "Skipping %d %s: %s" % (visit, ccd.getId(), e)
@@ -138,7 +138,7 @@ def xcorr(im1, im2, n=5, border=10, frame=None):
     """
     ims = [im1, im2]
     for i, im in enumerate(ims):
-        ccd = afwCG.cast_Ccd(im.getDetector())
+        ccd = im.getDetector()
         try:
             frameId = int(re.sub(r"^SUPA0*", "", im.getMetadata().get("FRAMEID")))
         except:
@@ -262,7 +262,7 @@ def findBiasLevels(butler, **dataId):
         print did["visit"], calexp.get("RA2000"),  calexp.get("DEC2000")
         continue
 
-        ccd = afwCG.cast_Ccd(calexp.getDetector())
+        ccd = calexp.getDetector()
         ccdImage = calexp.getMaskedImage().getImage()
         for amp in ccd:
             bias = afwMath.makeStatistics(ccdImage[amp.getBiasSec()], afwMath.MEANCLIP).getValue()
@@ -274,7 +274,7 @@ def showElectronics(camera, maxCorr=1.8e5, showLinearity=False, fd=sys.stderr):
     print >> fd,  "%-12s" % (camera.getId())
     for raft in [afwCG.cast_Raft(det) for det in camera]:
         print >> fd,  "   %-12s" % (raft.getId())
-        for ccd in [afwCG.cast_Ccd(det) for det in raft]:
+        for ccd in [det for det in raft]:
             print >> fd,  "      %-12s" % (ccd.getId())
             for amp in ccd:
                 ep = amp.getElectronicParams()
@@ -318,7 +318,7 @@ Grow BAD regions in the flat field by nGrow pixels (useful for vignetted chips)
     for v in visits:
         exp = butler.get("raw", visit=v, ccd=ccdNo)
 
-        ccd = afwCG.cast_Ccd(exp.getDetector())
+        ccd = exp.getDetector()
         if False:
             im = afwCGUtils.trimRawCallback(exp.getMaskedImage().convertF(), ccd, correctGain=False)
         else:
@@ -371,7 +371,7 @@ Grow BAD regions in the flat field by nGrow pixels (useful for vignetted chips)
         for v in visits[0:2]:
             exp = butler.get("raw", visit=v, ccd=ccdNo)
 
-            ccd = afwCG.cast_Ccd(exp.getDetector())
+            ccd = exp.getDetector()
             im = isrCallback(exp.getMaskedImage(), ccd, doFlatten=True)
             ima.append(im)
 
@@ -396,7 +396,7 @@ def dumpRaftParams(raft, nIndent=0, dIndent=4, fd=sys.stdout, nCol=15, nRow=8):
     print >> fd, "%snRow: %d\t\t%s" % (indent + dindent, nRow, "# number of rows of CCDs")
 
     for ccd in raft:
-        dumpCcdParams(afwCG.cast_Ccd(ccd), nIndent + dIndent, dIndent, fd=fd)
+        dumpCcdParams(ccd, nIndent + dIndent, dIndent, fd=fd)
 
     print >> fd, "%s}" % (indent)
 
@@ -462,7 +462,7 @@ def dumpRaftElectronicParams(raft, nIndent=0, dIndent=4, fd=sys.stdout):
     print >> fd, "%sname: \"%s\"" % (indent + dindent, raft.getId().getName())
 
     for ccd in raft:
-        dumpCcdElectronicParams(afwCG.cast_Ccd(ccd), nIndent + dIndent, dIndent, fd=fd)
+        dumpCcdElectronicParams(ccd, nIndent + dIndent, dIndent, fd=fd)
 
     print >> fd, "%s}" % (indent)
 
@@ -867,7 +867,7 @@ def estimateDarkCurrent(butler, visits, nSkipRows=35, frame=None):
         darkValues = np.empty(len(visits))
         for i, visit in enumerate(visits):
             raw = butler.get("raw", visit=visit, ccd=ccdNo)
-            ccd = afwCG.cast_Ccd(raw.getDetector())
+            ccd = raw.getDetector()
             rim = raw.getMaskedImage().getImage().convertF()
 
             for a in ccd:
@@ -1144,7 +1144,7 @@ def makeBias(images):
 
 def subtractBiasNoTrim(exp):
     exp = exp.clone()
-    ccd = afwCG.cast_Ccd(exp.getDetector())
+    ccd = exp.getDetector()
 
     if hasattr(exp, "convertF"):
         exp = exp.convertF()
@@ -1157,7 +1157,7 @@ def subtractBiasNoTrim(exp):
     return exp
 
 def grads(exp):
-    ccd = afwCG.cast_Ccd(exp.getDetector())
+    ccd = exp.getDetector()
     im = exp.getMaskedImage().getImage()
 
     plt.clf()
@@ -2618,7 +2618,7 @@ def getLevel(serial, filter='g', fiddle=False, calculate=False, visit=0, butler=
         cam = butler.get("camera")
 
         raw = butler.get("raw", visit=visit, ccd=serial)
-        ccd = afwCG.cast_Ccd(raw.getDetector())
+        ccd = raw.getDetector()
         raw = afwCGUtils.trimRawCallback(raw, convertToFloat=True, correctGain=True)
         raw = raw.getImage()
         raw *= correction
@@ -2973,7 +2973,7 @@ def correctVignettingCallback(im, ccd=None, butler=None, imageSource=None, filte
 corrects for vignetting/Jacobian"""
 
     if not ccd:
-        ccd = afwCG.cast_Ccd(im.getDetector())
+        ccd = im.getDetector()
     ccdSerial = ccd.getId().getSerial()
 
     isr = isrCallbackQE if correctQE else isrCallback
@@ -3040,7 +3040,7 @@ def makeEvenSplineInterpolator(x, y):
 
 def makeFlatImage(im, filter=None, modelVignetting=True, modelJacobian=True, modelQE=True,
                   filterThroughput=None):
-    ccd = afwCG.cast_Ccd(im.getDetector())
+    ccd = im.getDetector()
 
     width, height = im.getDimensions()
 
@@ -3336,7 +3336,7 @@ def makeNewFlats(butler, calibDir, filter, modelVignetting=True, modelJacobian=T
         fileName = butler.get("flat_filename", visit=visit, ccd=ccd)[0]
         flat     = butler.get("flat",          visit=visit, ccd=ccd)
 
-        ccd = afwCG.cast_Ccd(flat.getDetector())
+        ccd = flat.getDetector()
 
         makeFlatImage(flat, filter=filter,
                       modelVignetting=modelVignetting, modelJacobian=modelJacobian,

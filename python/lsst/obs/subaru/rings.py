@@ -118,7 +118,7 @@ values of r, theta, and dlnI/dr from this image appended.
 
     if hasattr(exp, "getMaskedImage"):
         mi = exp.getMaskedImage()
-        ccd = afwCamGeom.cast_Ccd(exp.getDetector())
+        ccd = exp.getDetector()
     else:
         mi = exp
         ccd = None
