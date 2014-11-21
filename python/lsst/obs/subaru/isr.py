@@ -184,7 +184,7 @@ class SubaruIsrTask(IsrTask):
                 statControl.setAndMask(ccdExposure.getMaskedImage().getMask().getPlaneBitMask("SAT"))
                 lsstIsr.overscanCorrection(ampMaskedImage=ampImage, overscanImage=overscan,
                                            fitType=self.config.overscanFitType,
-                                           polyOrder=self.config.overscanOrder,
+                                           order=self.config.overscanOrder,
                                            collapseRej=self.config.overscanRej,
                                            statControl=statControl,
                                    )
