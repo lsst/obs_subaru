@@ -171,9 +171,9 @@ class SubaruIsrTask(IsrTask):
             if self.config.doSaturation:
                 self.saturationDetection(ccdExposure, amp)
             if self.config.doOverscan:
-                ampImage = afwImage.MaskedImageF(ccdExposure.getMaskedImage(), amp.getDiskDataSec(),
+                ampImage = afwImage.MaskedImageF(ccdExposure.getMaskedImage(), amp.getRawDataBBox(),
                                                  afwImage.PARENT)
-                overscan = afwImage.MaskedImageF(ccdExposure.getMaskedImage(), amp.getDiskBiasSec(),
+                overscan = afwImage.MaskedImageF(ccdExposure.getMaskedImage(), amp.getRawHorizontalOverscanBBox(),
                                                  afwImage.PARENT)
                 overscanArray = overscan.getImage().getArray()
                 median = numpy.median(overscanArray)
@@ -192,7 +192,7 @@ class SubaruIsrTask(IsrTask):
             if self.config.doVariance:
                 # Ideally, this should be done after bias subtraction,
                 # but CCD assembly demands a variance plane
-                ampExposure = ccdExposure.Factory(ccdExposure, amp.getDiskDataSec(), afwImage.PARENT)
+                ampExposure = ccdExposure.Factory(ccdExposure, amp.getRawDataBBox(), afwImage.PARENT)
                 self.updateVariance(ampExposure, amp)
 
         ccdExposure = self.assembleCcd.assembleCcd(ccdExposure)
@@ -358,7 +358,7 @@ class SubaruIsrTask(IsrTask):
 
         sctrl = afwMath.StatisticsControl(clipSigma, nIter)
         expImage = ccdExposure.getMaskedImage().getImage()
-        overscan = expImage.Factory(expImage, amp.getDiskBiasSec())
+        overscan = expImage.Factory(expImage, amp.getRawHorizontalOverscanBBox())
         stats = afwMath.makeStatistics(overscan, levelStat | sigmaStat, sctrl)
         ampNum = amp.getId().getSerial()
         metadata = ccdExposure.getMetadata()
