@@ -49,7 +49,7 @@ def ditherDES(camera, scale=4.5,  names=False):
         for ccd in raft:
             ccd = afwCG.cast_Ccd(ccd)
             ccd.setTrimmed(True)
-            
+
             width, height = ccd.getAllPixels(True).getDimensions()
 
             corners = ((0.0,0.0), (0.0, height), (width, height), (width, 0.0), (0.0, 0.0))

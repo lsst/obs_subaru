@@ -47,7 +47,7 @@ def printAmpDefaults(buff):
     buff.write('    preRows: 0 \n')
     buff.write('    overclockH: 32 \n')
     buff.write('    overclockV: 32 \n')
-    buff.write('} \n') 
+    buff.write('} \n')
 
 def printCcdAmpDefaults(buff):
     # Depending on how much we need to undo the imsplice operation
@@ -64,7 +64,7 @@ def printCcdAmpDefaults(buff):
     #     second = 'B'
     #     freadOut = 'LLC'
     #     sreadOut = 'LRC'
-    
+
     buff.write('Ccd: { \n')
     buff.write('    pixelSize: %.6f \n' % (cfhtPixelScale))
     buff.write('    nCol: 2 \n')
@@ -103,7 +103,7 @@ def printCcdDiskLayout(buff):
     buff.write('        hdu: 0 \n')
     buff.write('    } \n')
     buff.write('} \n')
-    
+
 
 def printRaftCcdGeom(buff, ccdId, ccdname, xidx, yidx, xpos, ypos):
     if (ccdId == 0):
@@ -114,7 +114,7 @@ def printRaftCcdGeom(buff, ccdId, ccdname, xidx, yidx, xpos, ypos):
         buff.write('    name: "R:0,0" \n')
         if hack:
             buff.write('    serial: -1 \n')
-    
+
     buff.write('    Ccd: { \n')
     #buff.write('        name: "R:0,0 S:%d,%d CFHTid:%d %s" \n' % (xidx, yidx, ccdId, ccdname))
     #buff.write('        serial: -1 \n')
@@ -142,7 +142,7 @@ def printElectronics(buff, ccdId, ccdname, xidx, yidx, infoA, infoB):
     #buff.write('            serial: -1 \n')
     buff.write('            name: "CFHT %d" \n' % (ccdId))
     buff.write('            serial: %s \n' % (re.sub('-', '', ccdname)))
-    
+
     buff.write('            Amp: { \n')
     if not hack:
         buff.write('                serial: 0 \n')
@@ -151,7 +151,7 @@ def printElectronics(buff, ccdId, ccdname, xidx, yidx, infoA, infoB):
     buff.write('                gain: %.3f \n' % (infoA[0]))
     buff.write('                readNoise: %.3f \n' % (infoA[1]))
     buff.write('                saturationLevel: %.3f \n' % (infoA[2]))
-    buff.write('            } \n')  
+    buff.write('            } \n')
     buff.write('            Amp: { \n')
     if not hack:
         buff.write('                serial: 1 \n')
@@ -160,8 +160,8 @@ def printElectronics(buff, ccdId, ccdname, xidx, yidx, infoA, infoB):
     buff.write('                gain: %.3f \n' % (infoB[0]))
     buff.write('                readNoise: %.3f \n' % (infoB[1]))
     buff.write('                saturationLevel: %.3f \n' % (infoB[2]))
-    buff.write('            } \n')  
-    buff.write('        } \n')  
+    buff.write('            } \n')
+    buff.write('        } \n')
 
 if __name__ == '__main__':
 
@@ -171,9 +171,9 @@ if __name__ == '__main__':
     #
     # and the information on each CCD as
     #
-    #  cal-53535-i-797722_1_img.fits: DETSIZE = '[4160:2113,19351:14740]' 
-    #  cal-53535-i-797722_2_img.fits: DETSIZE = '[6278:4231,19352:14741]' 
-    #  cal-53535-i-797722_5_img.fits: DETSIZE = '[12630:10583,19354:14743]' 
+    #  cal-53535-i-797722_1_img.fits: DETSIZE = '[4160:2113,19351:14740]'
+    #  cal-53535-i-797722_2_img.fits: DETSIZE = '[6278:4231,19352:14741]'
+    #  cal-53535-i-797722_5_img.fits: DETSIZE = '[12630:10583,19354:14743]'
     #
     # Note that the boundary of these CCDs differs by 4231-4160 = 71
     # pixels so we can infer the chip gaps this way.  There also is
@@ -194,7 +194,7 @@ if __name__ == '__main__':
 
     buffCamera  = open('Camera.paf', 'w')
     buffElectro = open('Electronics.paf', 'w')
-    
+
     infile = sys.argv[1]           # full MEF file; e.g. 871034p.fits
     ptr    = pyfits.open(infile)
 
@@ -202,7 +202,7 @@ if __name__ == '__main__':
     printAmpDefaults(buffCamera)
     printCcdAmpDefaults(buffCamera)
     printCcdDiskLayout(buffCamera)
-    
+
     # 0th layer is pure metadata
     for ccd in range(1, len(ptr)):
     #for ccd in [1, 28]:
@@ -215,13 +215,13 @@ if __name__ == '__main__':
         ccdxc, ccdyc = getSecCenter(ccdBoundary)
         xpos         = (ccdxc - detCenterX) * cfhtPixelScale
         ypos         = (ccdyc - detCenterY) * cfhtPixelScale
-        
+
         gain1        = ptr[ccd].header['GAINA']
         gain2        = ptr[ccd].header['GAINB']
-    
+
         rdnoise1     = ptr[ccd].header['RDNOISEA']
         rdnoise2     = ptr[ccd].header['RDNOISEB']
-    
+
         # assume non-linear = saturation since we have no non-linearity curves
         saturate1    = ptr[ccd].header['MAXLINA']
         saturate2    = ptr[ccd].header['MAXLINB']
@@ -239,7 +239,7 @@ if __name__ == '__main__':
 
     buffCamera.write('} \n')
     buffCamera.close()
-    
+
     buffElectro.write('    } \n')
     buffElectro.write('} \n')
     buffElectro.close()

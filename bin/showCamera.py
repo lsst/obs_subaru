@@ -44,7 +44,7 @@ def main(camera, sample=20, names=False, showDistortion=True, plot=True, outputF
         for ccd in raft:
             ccd = cameraGeom.cast_Ccd(ccd)
             ccd.setTrimmed(True)
-            
+
             width, height = ccd.getAllPixels(True).getDimensions()
 
             corners = ((0.0,0.0), (0.0, height), (width, height), (width, 0.0), (0.0, 0.0))
@@ -120,7 +120,7 @@ if __name__ == '__main__':
     parser.add_argument('--names', action="store_true", help="Use CCD's names, not serials")
 
     args = parser.parse_args()
-    
+
     if args.suprimeCam:
         from lsst.obs.suprimecam import SuprimecamMapper as mapper
     else:

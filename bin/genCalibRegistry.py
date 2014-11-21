@@ -30,7 +30,7 @@ from lsst.daf.butlerUtils import PgSqlConfig
 
 # Needs optparse w/ --create, etc. CPL
 parser = optparse.OptionParser()
-parser.add_option("--create", dest="create", default=False, action="store_true", 
+parser.add_option("--create", dest="create", default=False, action="store_true",
                   help="Create new registry (clobber old)?")
 parser.add_option("--root", dest="root", default=".", help="Root directory")
 parser.add_option("--camera", dest="camera", default="hsc", help="Camera name: HSC|SC")
@@ -59,7 +59,7 @@ if isSqlite:
 else:
     pgsqlConf = PgSqlConfig()
     pgsqlConf.load(os.path.join(opts.root, 'calibRegistry_pgsql.py'))
-    conn = pgsql.connect(host=pgsqlConf.host, port=pgsqlConf.port, 
+    conn = pgsql.connect(host=pgsqlConf.host, port=pgsqlConf.port,
                          user=pgsqlConf.user, password=pgsqlConf.password,
                          database=pgsqlConf.db)
     cur = conn.cursor()
