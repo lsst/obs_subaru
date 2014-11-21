@@ -92,7 +92,6 @@ class HscFlatCombineTask(FlatCombineTask):
         """
         mask.addMaskPlane(self.config.maskPlane)
         bitMask = mask.getPlaneBitMask(self.config.maskPlane)
-        detector = afwcg.cast_Ccd(detector)
         if detector is None:
             raise RuntimeError("Detector isn't a Ccd")
         ccdSerial = detector.getId().getSerial()

@@ -63,7 +63,7 @@ class GetRawTestCase(unittest.TestCase):
                 self.assertEqual(raw.getDetector().getId().getName(), self.names[mit][ccdNum])
 
                 if display:
-                    ccd = cameraGeom.cast_Ccd(raw.getDetector())
+                    ccd = raw.getDetector()
                     for amp in ccd:
                         amp = cameraGeom.cast_Amp(amp)
                         print ccd.getId(), amp.getId(), amp.getDataSec().toString(), \

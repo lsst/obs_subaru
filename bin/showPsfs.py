@@ -61,7 +61,6 @@ def main(dataDir, visit, title="", outputTxtFileName=None,
     for raft in camera:
         raft = cameraGeom.cast_Raft(raft)
         for ccd in raft:
-            ccd = cameraGeom.cast_Ccd(ccd)
             ccd.setTrimmed(True)
             ccds[ccd.getId().getSerial()] = ccd
     #

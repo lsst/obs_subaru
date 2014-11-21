@@ -63,7 +63,7 @@ class GetRawTestCase(unittest.TestCase):
         for ccdNum, rotated in zip(self.ccdList, self.rotated):
             butler = getButler(self.datadir)
             raw = butler.get("raw", visit=self.expId, ccd=ccdNum)
-            ccd = cameraGeom.cast_Ccd(raw.getDetector())
+            ccd = raw.getDetector()
 
             print "Visit: ", self.expId
             print "width: ",              raw.getWidth()
