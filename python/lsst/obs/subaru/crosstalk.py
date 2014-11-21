@@ -129,9 +129,9 @@ def getAmplitudeRatios(mi, threshold=45000, bkgd=None, rats=None):
     if bkgd is None:
         sctrl = afwMath.StatisticsControl()
         sctrl.setAndMask(msk.getPlaneBitMask("DETECTED"))
-        
+
         bkgd = afwMath.makeStatistics(mi, afwMath.MEDIAN, sctrl).getValue()
-    
+
     badMask = msk.getPlaneBitMask(["BAD", "EDGE", "SAT", "INTRP"])
 
     for foot in fs.getFootprints():
@@ -184,7 +184,7 @@ def calculateCoeffs(rats, nsigma, plot=False, fig=None, title=None):
                 tmp = tmp[w]
 
             coeffs[ain][aout] = tmp[len(tmp)//2]
-            
+
             err = 0.741*(tmp[3*len(tmp)//4] - tmp[len(tmp)//4]) # estimate s.d. from IQR
             err /= math.sqrt(len(tmp))                          # standard error of mean
             err *= math.sqrt(math.pi/2)                         # standard error of median
@@ -209,7 +209,7 @@ def calculateCoeffs(rats, nsigma, plot=False, fig=None, title=None):
         if title:
             fig.suptitle(title)
         fig.show()
-                    
+
     return coeffs, coeffsErr
 
 def subtractXTalk(mi, coeffs, minPixelToMask=45000, crosstalkStr="CROSSTALK"):
@@ -227,12 +227,12 @@ The pixels affected by signal over minPixelToMask have the crosstalkStr bit set
     tempStr = "TEMP"                    # mask plane used to record the bright pixels that we need to mask
     mi.getMask().addMaskPlane(tempStr)
     fs = afwDetect.FootprintSet(mi, afwDetect.Threshold(minPixelToMask), tempStr)
-    
+
     mi.getMask().addMaskPlane(crosstalkStr)
     ds9.setMaskPlaneColor(crosstalkStr, ds9.MAGENTA)
     fs.setMask(mi.getMask(), crosstalkStr) # the crosstalkStr bit will now be set whenever we subtract crosstalk
     crosstalk = mi.getMask().getPlaneBitMask(crosstalkStr)
-    
+
     width, height = mi.getDimensions()
     for i in range(nAmp):
         bbox = afwGeom.BoxI(afwGeom.PointI(i*(width//nAmp), 0), afwGeom.ExtentI(width//nAmp, height))
@@ -249,7 +249,7 @@ The pixels affected by signal over minPixelToMask have the crosstalkStr bit set
 
             msk = ampJ.getMask()
             msk &= crosstalk
-                
+
             ampJ -= bkgd
             ampJ *= coeffs[j][i]
 
@@ -267,7 +267,7 @@ The pixels affected by signal over minPixelToMask have the crosstalkStr bit set
         msk.removeAndClearMaskPlane(tempStr, True) # added in afw #1853
     except AttributeError:
         ds9.setMaskPlaneVisibility(tempStr, False)
-            
+
 def printCoeffs(coeffs, coeffsErr=None, LaTeX=False, ppm=False):
     """Print cross-talk coefficients"""
 
@@ -294,7 +294,7 @@ ampIn    &    \multicolumn{4}{c}{ampOut} \\
         print r"\end{tabular}"
 
         return
-    
+
     print "ampIn                   ",
     if coeffsErr is not None:
         print "                         ",
@@ -327,7 +327,7 @@ xTalkAmplitudes = np.array([(      0, -1.0e-4,  -2.0e-4, -3.0e-4), # cross talk 
 def addTrail(mi, val, x0, y0, pix, addCrosstalk=True):
     width = mi.getWidth()
     hwidth = width//2
-    
+
     if addCrosstalk:
         xtalk = mi.Factory(mi.getDimensions())
 
@@ -368,7 +368,7 @@ def makeImage(width=500, height=1000):
 
     ralg, rseed = "MT19937", int(time.time()) if True else 1234
 
-    noise = afwImage.ImageF(width, height)    
+    noise = afwImage.ImageF(width, height)
     afwMath.randomGaussianImage(noise, afwMath.Random(ralg, rseed))
     noise *= math.sqrt(var)
     mi += noise
@@ -380,7 +380,7 @@ def readImage(butler, **kwargs):
         return butler.get("calexp", **kwargs).getMaskedImage()
     except Exception, e:
         print e
-        import pdb; pdb.set_trace() 
+        import pdb; pdb.set_trace()
 
 def makeList(x):
     try:
@@ -401,7 +401,7 @@ def estimateCoeffs(butler, visitList, ccdList, threshold=45000, nSample=1, plot=
             rats = getAmplitudeRatios(mi, threshold, rats=rats)
 
     return calculateCoeffs(rats, nsigma=2, plot=plot, title=title, fig=fig)
-        
+
 def main(butler, visit=131634, ccd=None, threshold=45000, nSample=1, showCoeffs=True, fixXTalk=True,
                        plot=False, title=None):
     if ccd is None:
@@ -412,14 +412,14 @@ def main(butler, visit=131634, ccd=None, threshold=45000, nSample=1, showCoeffs=
         visitList = makeList(visit)
 
     coeffs, coeffsErr = estimateCoeffs(butler, visitList, ccdList, threshold=45000, plot=plot, title=title)
-    
+
     if showCoeffs:
         printCoeffs(coeffs, coeffsErr)
 
     mi = readImage(butler, visit=visitList[0], ccd=ccdList[0])
     if fixXTalk:
         subtractXTalk(mi, coeffs, threshold)
-        
+
     return mi, coeffs
 
 try:
@@ -434,7 +434,7 @@ except NameError:
 
 def makeSubplots(figure, nx=2, ny=2):
     """Return a generator of a set of subplots"""
-    for window in range(nx*ny):  
+    for window in range(nx*ny):
         yield figure.add_subplot(nx, ny, window + 1) # 1-indexed
 
 def getMpFigure(fig=None, clear=True):
@@ -473,7 +473,7 @@ def getMpFigure(fig=None, clear=True):
         if not mpFigures.has_key(i):
             for j in range(1, i):
                 getMpFigure(j)
-                
+
             mpFigures[i] = pyplot.figure()
             #
             # Modify pyplot.figure().show() to make it raise the plot too

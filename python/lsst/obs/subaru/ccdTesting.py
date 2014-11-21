@@ -106,7 +106,7 @@ def xcorrFromVisit(butler, v1, v2, ccds=[2], n=5, border=10, plot=False, zmax=0.
             ds9.mtv(trim(ims[i]), frame=i, title=v)
 
     mean = np.mean(means)
-    
+
     xcorrImg = xcorr(*ims, n=n, border=border, frame=len(ims) if display else None)
     xcorrImg /= float(xcorrImg[0, 0])
 
@@ -162,7 +162,7 @@ def xcorr(im1, im2, n=5, border=10, frame=None):
             gain = a.getElectronicParams().getGain()
             smi *= gain
             smi -= mean*gain
-        
+
     im1, im2 = ims
     #
     # Actually diff the images
@@ -267,7 +267,7 @@ def findBiasLevels(butler, **dataId):
             data = afwMath.makeStatistics(ccdImage[amp.getDataSec()], afwMath.MEANCLIP).getValue()
             print did, amp.getId().getSerial(), "%7.2f, %7.2f" % (bias, data)
 
-        
+
 def showElectronics(camera, maxCorr=1.8e5, showLinearity=False, fd=sys.stderr):
     print >> fd,  "%-12s" % (camera.getId())
     for raft in [afwCG.cast_Raft(det) for det in camera]:
@@ -322,7 +322,7 @@ Grow BAD regions in the flat field by nGrow pixels (useful for vignetted chips)
         else:
             im = isrCallback(exp.getMaskedImage(), ccd, doFlatten=False, correctGain=False)
         im.getMask()[:] |= flatMask
-        
+
         ampData[ccd] = []
         for a in ccd:
             aim = im[a.getAllPixels()]
@@ -350,7 +350,7 @@ Grow BAD regions in the flat field by nGrow pixels (useful for vignetted chips)
         # Here we specialise to just two input images
         #
         diff = ampData[ccd1][ai].ampImage
-            
+
         amp = ampData[ccd0][ai].amp
 
         ima = [ampData[c][ai].ampImage.getImage().getArray() for c in [ccd0, ccd1]]
@@ -368,7 +368,7 @@ Grow BAD regions in the flat field by nGrow pixels (useful for vignetted chips)
         ima = []
         for v in visits[0:2]:
             exp = butler.get("raw", visit=v, ccd=ccdNo)
-            
+
             ccd = afwCG.cast_Ccd(exp.getDetector())
             im = isrCallback(exp.getMaskedImage(), ccd, doFlatten=True)
             ima.append(im)
@@ -392,7 +392,7 @@ def dumpRaftParams(raft, nIndent=0, dIndent=4, fd=sys.stdout, nCol=15, nRow=8):
     print >> fd, "%sRaft: {" % (indent)
     print >> fd, "%snCol: %d\t\t%s" % (indent + dindent, nCol, "# number of columns of CCDs")
     print >> fd, "%snRow: %d\t\t%s" % (indent + dindent, nRow, "# number of rows of CCDs")
-    
+
     for ccd in raft:
         dumpCcdParams(afwCG.cast_Ccd(ccd), nIndent + dIndent, dIndent, fd=fd)
 
@@ -426,7 +426,7 @@ def dumpCcdParams(ccd, nIndent=0, dIndent=4, fd=sys.stdout, iC=0, iR=0):
                                                     math.degrees(orient.getYaw()),
                                                     "# pitch, roll, yaw; degrees")
     print >> fd, "%s}" % (indent)
-            
+
 
 def dumpCcdElectronicParams(ccd, nIndent=0, dIndent=4, fd=sys.stdout):
     """Write a Ccd's ElectronicParams to the Electronics section of a camera.paf file"""
@@ -448,7 +448,7 @@ def dumpCcdElectronicParams(ccd, nIndent=0, dIndent=4, fd=sys.stdout):
         print >> fd, "%s}" % (indent + dindent)
 
     print >> fd, "%s}" % (indent)
-        
+
 def dumpRaftElectronicParams(raft, nIndent=0, dIndent=4, fd=sys.stdout):
     """Write a Raft's ElectronicParams to the Electronics section of a camera.paf file
     nIndent is the initial indent, dIndent the indent offset for each extra level of nesting
@@ -470,7 +470,7 @@ def dumpCameraElectronicParams(camera, nIndent=0, dIndent=4, outFile=None):
         fd = open(outFile, "w")
     else:
         fd = sys.stdout
-    
+
     dindent = "%*s" % (dIndent, "")
 
     print >> fd, """\
@@ -501,7 +501,7 @@ def plotVignetting(r2=1.05, D=None, phi=None, relative=False, showCamera=False, 
         if relative:
             title += "extra "
         title += "vignetting" if D is None else "vignetting due to occulting edge at %.2f R_prim. " % D
-    
+
     title += " R_lens/R_prim = %.2f" % r2
 
     if showCamera:
@@ -514,7 +514,7 @@ def plotVignetting(r2=1.05, D=None, phi=None, relative=False, showCamera=False, 
             X = X[d < xmax]
             Y = Y[d < xmax]
             d = d[d < xmax]
-            
+
         vig = calculateVignetting(d, r1, r2, analytic=False, D=D, phi=np.arctan2(Y, X), pupilImage=pupilImage)
 
         if relative:
@@ -528,11 +528,11 @@ def plotVignetting(r2=1.05, D=None, phi=None, relative=False, showCamera=False, 
         else:
             sc = axes.pcolor(X, Y, vig, norm=anUtils.pyplot.Normalize(ymin, ymax))
             fig.colorbar(sc)
-            
+
             import matplotlib.patches as patches
             patch = patches.Circle((0, 0), radius=xmax, transform=sc.axes.transData, facecolor='red')
             sc.set_clip_path(patch)
-        
+
         axes.set_xlim(-xmax, xmax)
         axes.set_ylim(-xmax, xmax)
 
@@ -581,8 +581,8 @@ def plotVignetting(r2=1.05, D=None, phi=None, relative=False, showCamera=False, 
     axes.set_xlabel(xlabel)
     axes.set_ylabel(ylabel)
     axes.set_title(title)
-    fig.show()    
-    
+    fig.show()
+
 
 def calculateVignetting(d, r1=1, r2=1, D=None, phi=0, analytic=True, pupilImage=None):
     """Calculate the vignetting based on a simple 2-circle overlap model
@@ -598,7 +598,7 @@ def calculateVignetting(d, r1=1, r2=1, D=None, phi=0, analytic=True, pupilImage=
     if analytic:
         theta1 = np.arccos((r1**2 + d**2 - r2**2)/(2*r1*d)) # 1/2 angle subtended by chord where
         theta2 = np.arccos((r2**2 + d**2 - r1**2)/(2*r2*d)) #    pupil and vignetting disk cross
-        
+
         missing = 0.5*(r1**2*(2*theta1 - np.sin(2*theta1)) + r2**2*(2*theta2 - np.sin(2*theta2)))
         return np.where(d <= r2 - r1, 1.0, missing/(np.pi*r1**2))
     #
@@ -669,11 +669,11 @@ def calculateVignetting(d, r1=1, r2=1, D=None, phi=0, analytic=True, pupilImage=
            x, y = _r*np.cos(thetas), _r*np.sin(thetas)
            x = ((w - 1)*(r1 + x)/(2*r1)).astype(int)
            y = ((h - 1)*(r1 + y)/(2*r1)).astype(int)
-       
+
            pupilFlux += sum(pupilImage[y, x])
 
        vig /= pupilFlux
-   
+
     return vig
 
 #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -716,7 +716,7 @@ def estimatePupilIllumination(mi, centers=(( -34,   93), ( 131, -192), (-195, -1
                     Npupil += 1
 
         stamp.getImage()[:] /= Ipupil/Npupil # normalise to constant surface brightness.  Ignore Jacobian
-        
+
         stamp.getMask().getArray()[:] ^= BAD
         imgList.push_back(stamp)
 
@@ -728,7 +728,7 @@ def estimatePupilIllumination(mi, centers=(( -34,   93), ( 131, -192), (-195, -1
     nim[np.where(np.logical_not(np.isfinite(nim)))] = 0.0
     out.getMask()[:] &= ~(BAD | EDGE)
     del imgList
-    
+
     ds9.mtv(out, frame=8)
     ds9.dot('+', -out.getX0(), -out.getY0(), frame=8)
     ds9.dot('o', -out.getX0(), -out.getY0(), size=R, ctype=ds9.RED, frame=8)
@@ -790,11 +790,11 @@ def XXXremoveCRs(mi, background, maskBit=None, crThreshold=8, crNpixMax=100, crN
         if maskBit is not None:
             if hasattr(mi, "getMask"):
                 mi.getMask().getArray()[yv, xv] |= maskBit
-                
+
     return mi
 
 def estimateScattering(mi, threshold=2000, nGrow=2, npixMin=35, frame=None, invertDetected=False):
-    """Estimate the fraction of scattered light from pinhole images 
+    """Estimate the fraction of scattered light from pinhole images
     """
     mi = mi.clone()
     x0, y0 = mi.getXY0()
@@ -810,7 +810,7 @@ def estimateScattering(mi, threshold=2000, nGrow=2, npixMin=35, frame=None, inve
         mi.getImage()[1332:1460, 845:1106] = np.nan
         mi.getImage()[1332:1341, 1110:1146] = np.nan
         mi.getImage()[1282:1327, 1094:1106] = np.nan
-        
+
     if True:                            # remove some bad columns
         mi.getImage()[1217, 1950:2210] = background
         mi.getImage()[1599:1773, 249] = background
@@ -819,7 +819,7 @@ def estimateScattering(mi, threshold=2000, nGrow=2, npixMin=35, frame=None, inve
 
         mi.getImage()[1923, 968] = background # cut CRs from pupils
         mi.getImage()[1451,  99] = background
-        
+
     removeCRs(mi, background)
     #
     # Now find the pupil images
@@ -1072,7 +1072,7 @@ def plotCcdZP(butler, visit, correctJacobian=False, zlim=(None, None), visit2=No
             zlim = (None, None)
         else:
             zlim = np.median(zp) + np.array([-zlim, zlim])
-        
+
     norm = pyplot.Normalize(*zlim)
 
     sc = axes.scatter(xmm, ymm, c=zp, norm=norm,
@@ -1115,7 +1115,7 @@ def plotCcdTemperatures(butler, visit):
 
         xmm[i], ymm[i] = ccd.getPositionFromPixel(ccdCen).getMm()
         temp[i] = md.get("T_CCDTV")
-    
+
 
     pyplot.clf()
 
@@ -1128,7 +1128,7 @@ def plotCcdTemperatures(butler, visit):
     pyplot.xlabel("X/pixels")
     pyplot.ylabel("Y/pixels")
     pyplot.title("CCD Temperatures ($^\circ$C), visit %d" % (visit))
-    
+
 #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 def makeBias(images):
@@ -1172,7 +1172,7 @@ def grads(exp):
         else:
             w = np.hamming(size)
             out = np.convolve(w/w.sum(), I, mode='same')
-            
+
         dout = out[10:] - out[:-10]
         dout /= out[10:]
         out = dout[0:-1:size//2]
@@ -1989,7 +1989,7 @@ CCDQe_filter = dict(
         111 : 1.0000,
         },
     )
-CCDQe_filter['z'] = CCDQe_filter['i'] 
+CCDQe_filter['z'] = CCDQe_filter['i']
 
 CCDQe = CCDQe_filter
 
@@ -2609,7 +2609,7 @@ def getLevel(serial, filter='g', fiddle=False, calculate=False, visit=0, butler=
 
     lev = levels[serial] if levels else avg
     correction = avg/float(lev)
-        
+
     if calculate:
         assert butler
 
@@ -2630,7 +2630,7 @@ def getLevel(serial, filter='g', fiddle=False, calculate=False, visit=0, butler=
 
         if not edges.has_key(filter):
             edges[filter] = edges['r'].copy()
-            
+
         neighbors = sorted(edges[filter][serial].keys())
 
         print "        %-3d : {" % serial,
@@ -2642,7 +2642,7 @@ def getLevel(serial, filter='g', fiddle=False, calculate=False, visit=0, butler=
             ccd = afwCGUtils.findCcd(cam, serial1)
             nQuarter = ccd.getOrientation().getNQuarter()
             w1, h1 = ccd.getAllPixels().getDimensions()
-                
+
             cenMM = afwCGUtils.findCcd(cam,
                                        serial1).getPositionFromPixel(afwGeom.PointD(0.5*w1, 0.5*h1)).getMm()
             offset = cenMM - cenMM0
@@ -2691,12 +2691,12 @@ def getLevel(serial, filter='g', fiddle=False, calculate=False, visit=0, butler=
             correction /= scale
 
     return correction
-    
+
 def findCanonical(serial, edges, seen=None, scale=1.0, canonical=50, verbose=False):
     """Find a path to the "canonical" CCD via the pairs of adjacent CCD edges defined in edges[]"""
     if seen == None:
         seen = []
-        
+
     if serial == canonical:
         return 1.0
 
@@ -2773,7 +2773,7 @@ def writeQETable(butler, filters="ugrizy", LaTeX=False, nCol=3, canonical=50):
     filters = []
     for f in _filters:
         if f in ['g'] + edges.keys():
-            filters.append(f)    
+            filters.append(f)
 
     ccds = sorted(butler.queryMetadata("raw", "visit", ["ccd"]))
     QE = {}
@@ -2802,7 +2802,7 @@ def writeQETable(butler, filters="ugrizy", LaTeX=False, nCol=3, canonical=50):
     for i, ccd in enumerate(ccds):
         if not QE.has_key(ccd):
             continue
-        
+
         line.append("%3d " % (ccd))
         for f in filters:
             line.append("%4.2f" % (QE[ccd][f]))
@@ -2887,15 +2887,15 @@ def writeObsTable(butler, mos, LaTeX=False):
 
         comment = re.sub(r"([[_&#]])", r"\\\1", comments.get(v, ""))
         line.append(comment)
-                    
+
         line = printLine(line, LaTeX)
-            
+
     if LaTeX:
         print r"\end{longtable}"
 
 def stackMosaics(mos, visits):
     im = mos[visits[0]]
-    
+
     sctrl = afwMath.StatisticsControl()
     #sctrl.setAndMask(BAD)
 
@@ -2912,7 +2912,7 @@ def stackMosaics(mos, visits):
     out.setXY0(im.getXY0())
 
     return out
-    
+
 #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 def getVignetting(X, Y):
@@ -2929,7 +2929,7 @@ def getVignetting(X, Y):
         vim = afwImage.ImageF(vignet.shape[1], vignet.shape[0])
     else:
         vim = afwImage.ImageF(vignet.shape[0], 1)
-        
+
     vim.getArray()[:] = vignet
 
     return vim
@@ -2945,7 +2945,7 @@ def getPixelArea(camera, X, Y):
         aim[0,0] = dist.computeQuadrupoleTransform(afwGeom.PointD(0, r[0]), False).computeDeterminant()
 
         return aim
-    
+
     br = np.linspace(0, np.max(r), 100) # enough points to allow linear interpolation in numpy
     det = np.empty_like(br)
     for i in range(len(br)):
@@ -2970,7 +2970,7 @@ def correctVignettingCallback(im, ccd=None, butler=None, imageSource=None, filte
     """A callback function that subtracts the bias and trims a raw image and then
 corrects for vignetting/Jacobian"""
 
-    if not ccd:        
+    if not ccd:
         ccd = afwCG.cast_Ccd(im.getDetector())
     ccdSerial = ccd.getId().getSerial()
 
@@ -2987,7 +2987,7 @@ corrects for vignetting/Jacobian"""
     fxy = []
     if False:                           # too slow and memory wasting
         for xy in [(0,         0),
-                   (width - 1, height - 1), 
+                   (width - 1, height - 1),
                    ]:
             fxy.append(ccd.getPositionFromPixel(afwGeom.PointD(*xy)).getPixels(1.0))
 
@@ -3070,9 +3070,9 @@ def makeFlatImage(im, filter=None, modelVignetting=True, modelJacobian=True, mod
             filterThroughput = list(filterThroughput)
             filterThroughput.append(filterThroughput[-1])
             filterThroughput = np.array(filterThroughput)
-            
+
             interpolator = makeEvenSplineInterpolator(filterR, filterThroughput)
-        
+
         fim = np.empty((height, width)) # n.b. numpy index order
         y0 = 0
         for frac in (0.5, 1.0):
@@ -3113,7 +3113,7 @@ def makeFlatImage(im, filter=None, modelVignetting=True, modelJacobian=True, mod
 #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 filterData = dict(
-                
+
     g =    dict(radius      = np.array([    0.00,    50.00,   100.00,   150.00,   200.00,   250.00,   270.00]), # mm
                 EW          = np.array([  143.35,   143.00,   142.90,   142.73,   142.57,   142.33,   142.22]),
                 lambda_bar  = np.array([  473.07,   473.04,   472.94,   472.78,   472.56,   472.10,   471.99]),
@@ -3279,7 +3279,7 @@ def plotRadialFilterData(what, filters="grizy", doSpline=False):
                 ymin, ymax = (min(ymin, np.min(yvec)), max(ymax, np.max(yvec)))
         else:
             raiseRuntimeError("You can't get here")
-            
+
         plt.plot(filterR, y, color=filterColor[b], label=b)
         plt.plot(filterR, y, "o", color=filterColor[b])
         if scipy and doSpline:
@@ -3373,7 +3373,7 @@ class DataRef(object):
             return self._dict.get("raw").getMetadata()
         else:
             return self._dict.get(what, what)
-        
+
 def isrCallbackQE(im, ccd=None, butler=None, imageSource=None, **kwargs):
     im = isrCallback(im, ccd=ccd, butler=butler, imageSource=imageSource, **kwargs)
 
@@ -3384,7 +3384,7 @@ def isrCallbackQE(im, ccd=None, butler=None, imageSource=None, **kwargs):
         correction = 1/getQE(ccdSerial, filter)
     else:                           # old way, using a g frame and assuming continuity in rizy
         correction = getLevel(ccdSerial, filter, fiddle=True)
-        
+
     im *= correction
 
     return im
@@ -3416,7 +3416,7 @@ def isrCallback(im, ccd=None, butler=None, imageSource=None, doFlatten=True, cor
     isrTask.config.doMaskNaN = False
     isrTask.config.doFringe = False
     isrTask.config.doWrite = False
-    
+
     isMI = hasattr(im, 'getImage')
     if not isMI:
         im = afwImage.makeMaskedImage(im)
@@ -3434,7 +3434,7 @@ def isrCallback(im, ccd=None, butler=None, imageSource=None, doFlatten=True, cor
     if filter in "grizy":
         filter = "HSC-" + filter
     filter = filter.upper()
-        
+
     taiObs = md.get("DATE-OBS")
     bias = butler.get("bias", ccd=ccdId, taiObs=taiObs, visit=0) \
         if isrTask.config.doBias else None

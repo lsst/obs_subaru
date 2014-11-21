@@ -70,9 +70,9 @@ def parseCamera(policy):
     # Assuming a 15m focal length
     # camConfig.plateScale = 13.751 #arcsec/mm
     camConfig.plateScale = 11. #arcsec/mm
-    
+
     tConfig = afwGeom.TransformConfig()
-    #Need to invert because this is stored with FOCAL_PLANE to PUPIL as the 
+    #Need to invert because this is stored with FOCAL_PLANE to PUPIL as the
     #forward transform
     tConfig.transform.name = 'distEst'
     tConfig.transform.active.plateScale = camConfig.plateScale
@@ -133,7 +133,7 @@ def makeCcdParams(policy, ampParms):
         retParams[ptype] = tdict
     return retParams
 
-def makeEparams(policy): 
+def makeEparams(policy):
     rafts = policy.getArray('Electronic.Raft')
     if len(rafts) > 1:
         raise ValueError("These cameras should only have one raft")
@@ -151,13 +151,13 @@ def makeEparams(policy):
 
 def addAmp(ampCatalog, amp, eparams):
     """ Add an amplifier to an AmpInfoCatalog
-    
+
     @param ampCatalog: An instance of an AmpInfoCatalog object to fill with amp properties
     @param amp: Dictionary of amp geometric properties
     @param eparams: Dictionary of amp electronic properties for this amp
     """
     record = ampCatalog.addNew()
- 
+
     xtot = amp['ewidth']
     ytot = amp['eheight']
 
@@ -183,7 +183,7 @@ def addAmp(ampCatalog, amp, eparams):
         biasSec.flipLR(xtot)
         dataSec.flipLR(xtot)
         voscanSec.flipLR(xtot)
-        pscanSec.flipLR(xtot) 
+        pscanSec.flipLR(xtot)
 
     bbox = afwGeom.BoxI(afwGeom.PointI(0, 0), dataSec.getDimensions())
     bbox.shift(afwGeom.Extent2I(dataSec.getDimensions().getX()*eparams['index'][0], 0))
@@ -194,12 +194,12 @@ def addAmp(ampCatalog, amp, eparams):
     dataSec.shift(shiftp)
     voscanSec.shift(shiftp)
     pscanSec.shift(shiftp)
-   
+
 
     record.setBBox(bbox)
     record.setRawXYOffset(afwGeom.ExtentI(0,0))
     record.setName("%i,%i"%(eparams['index'][0], eparams['index'][1]))
-    record.setReadoutCorner(afwTable.LR if amp['flipX'] else afwTable.LL)    
+    record.setReadoutCorner(afwTable.LR if amp['flipX'] else afwTable.LL)
     record.setGain(eparams['gain'])
     record.setReadNoise(eparams['readNoise'])
     record.setSaturation(int(eparams['saturation']))
@@ -278,10 +278,10 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("LayoutPolicy", help="Policy file to parse for camera information")
     parser.add_argument("InstrumentName", help="Name of the instrument (hsc, suprimecam)")
-    parser.add_argument("OutputDir", help="Location for the persisted camerea") 
+    parser.add_argument("OutputDir", help="Location for the persisted camerea")
     parser.add_argument("--clobber", action="store_true", dest="clobber", default=False,
         help="remove and re-create the output directory if it exists")
     args = parser.parse_args()
-   
-    camera = makeCameraFromPolicy(args.LayoutPolicy, writeRepo=True, outputDir=args.OutputDir, doClobber=args.clobber, 
+
+    camera = makeCameraFromPolicy(args.LayoutPolicy, writeRepo=True, outputDir=args.OutputDir, doClobber=args.clobber,
         shortNameMethod=mapperDict[args.InstrumentName].getShortCcdName)

@@ -241,7 +241,7 @@ class SubaruIsrTask(IsrTask):
 
         if self.config.doWrite:
             sensorRef.put(ccdExposure, "postISRCCD")
-        
+
         self.display("postISRCCD", ccdExposure)
 
         return Struct(exposure=ccdExposure)
@@ -353,7 +353,7 @@ class SubaruIsrTask(IsrTask):
         nIter = 3
         levelStat = afwMath.MEDIAN
         sigmaStat = afwMath.STDEVCLIP
-        
+
         sctrl = afwMath.StatisticsControl(clipSigma, nIter)
         expImage = ccdExposure.getMaskedImage().getImage()
         overscan = expImage.Factory(expImage, amp.getDiskBiasSec())
@@ -378,7 +378,7 @@ class SubaruIsrTask(IsrTask):
         metadata.set('SKYLEVEL', skyLevel)
         metadata.set('SKYSIGMA', skySigma)
 
-        # calcluating flatlevel over the subgrids 
+        # calcluating flatlevel over the subgrids
         stat = afwMath.MEANCLIP if self.config.qa.flatness.doClip else afwMath.MEAN
         meshXHalf = int(self.config.qa.flatness.meshX/2.)
         meshYHalf = int(self.config.qa.flatness.meshY/2.)
@@ -406,7 +406,7 @@ class SubaruIsrTask(IsrTask):
         flatness =  (skyLevels[good] - skyMedian) / skyMedian
         flatness_rms = numpy.std(flatness)
         flatness_min = flatness.min()
-        flatness_max = flatness.max() 
+        flatness_max = flatness.max()
         flatness_pp = flatness_max - flatness_min
 
         self.log.info("Measuring sky levels in %dx%d grids: %f" % (nX, nY, skyMedian))
@@ -461,7 +461,7 @@ class SubaruIsrTask(IsrTask):
                     raise RuntimeError(
                         ("The threshold for PROPORTIONAL linearity corrections must be 0; saw %g" +
                          " for ccd %s amp %s") % (linearity.threshold, ccd.getId(), amp.getId()))
-                
+
                 ampArr = ampImage.getImage().getArray()
                 ampArr *= 1.0 + linearity.coefficient*ampArr
             else:
@@ -547,7 +547,7 @@ class SuprimeCamIsrTask(SubaruIsrTask):
         @param exposure Exposure to process
         """
         assert exposure, "No exposure provided"
-        
+
         ccd = afwCG.cast_Ccd(exposure.getDetector()) # This is Suprime-Cam so we know the Detector is a Ccd
         ccdNum = ccd.getId().getSerial()
         if ccdNum not in [0, 1, 2, 6, 7]:
@@ -565,7 +565,7 @@ class SuprimeCamIsrTask(SubaruIsrTask):
         elif ccdNum in [0, 6]:
             maskLimit = int(60.0 * xGuider - 2000.0) # From SDFRED
 
-        
+
         mi = exposure.getMaskedImage()
         height = mi.getHeight()
         if height < maskLimit:
@@ -579,10 +579,10 @@ class SuprimeCamIsrTask(SubaruIsrTask):
             bbox = afwGeom.Box2I(afwGeom.Point2I(0, maskLimit - 1),
                                  afwGeom.Point2I(mask.getWidth() - 1, height - 1))
             badMask = mask.Factory(mask, bbox, afwImage.LOCAL)
-            
+
             mask.addMaskPlane("GUIDER")
             badBitmask = mask.getPlaneBitMask("GUIDER")
-            
+
             badMask |= badBitmask
         else:
             # XXX Temporary solution until a mask plane is respected by downstream processes
@@ -595,7 +595,7 @@ class SuprimeCamMitIsrConfig(SubaruIsrTask.ConfigClass):
     pass
 
 class SuprimeCamMitIsrTask(SubaruIsrTask):
-    
+
     ConfigClass = SuprimeCamMitIsrConfig
 
     def guider(self, exposure):
@@ -604,7 +604,7 @@ class SuprimeCamMitIsrTask(SubaruIsrTask):
         @param exposure Exposure to process
         """
         assert exposure, "No exposure provided"
-        
+
         ccd = afwCG.cast_Ccd(exposure.getDetector()) # This is Suprime-Cam so we know the Detector is a Ccd
         ccdNum = ccd.getId().getSerial()
         if ccdNum not in [0, 1, 4, 5, 9]:
@@ -622,7 +622,7 @@ class SuprimeCamMitIsrTask(SubaruIsrTask):
         elif ccdNum in [0, 9]:
             maskLimit = int(60.0 * xGuider - 2000.0) # From SDFRED
 
-        
+
         mi = exposure.getMaskedImage()
         height = mi.getHeight()
         if height < maskLimit:
@@ -636,10 +636,10 @@ class SuprimeCamMitIsrTask(SubaruIsrTask):
             bbox = afwGeom.Box2I(afwGeom.Point2I(0, maskLimit - 1),
                                  afwGeom.Point2I(mask.getWidth() - 1, height - 1))
             badMask = mask.Factory(mask, bbox, afwImage.LOCAL)
-            
+
             mask.addMaskPlane("GUIDER")
             badBitmask = mask.getPlaneBitMask("GUIDER")
-            
+
             badMask |= badBitmask
         else:
             # XXX Temporary solution until a mask plane is respected by downstream processes
