@@ -231,6 +231,13 @@ Most chips are flipped L/R, but the rotated ones (100..103) are flipped T/B
     def bypass_deepCoaddId(self, datasetType, pythonType, location, dataId):
         return self._computeCoaddExposureId(dataId, True)
 
+    def bypass_mergedCoaddId_bits(self, *args, **kwargs):
+        """The number of bits used up for patch ID bits"""
+        return 64 - HscMapper._nbit_id
+
+    def bypass_mergedCoaddId(self, datasetType, pythonType, location, dataId):
+        return self._computeCoaddExposureId(dataId, False)
+
     # The following allow grabbing a 'psf' from the butler directly, without having to get it from a calexp
     def map_psf(self, dataId, write=False):
         if write:
