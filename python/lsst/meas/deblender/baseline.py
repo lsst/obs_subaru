@@ -500,7 +500,7 @@ def deblend(footprint, maskedImage, psf, psffwhm,
             pks = foot.getPeaks()
             pks.clear()
             if add:
-                pks.push_back(pk)
+                pks.append(pk)
 
     return res
 

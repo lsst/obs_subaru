@@ -85,9 +85,8 @@ class DeblendTestCase(unittest.TestCase):
             """
             src = catalog.addNew()
             foot = afwDetection.Footprint(afwGeom.Point2I(x, y), size)
-            peakList = foot.getPeaks()
-            peakList.push_back(afwDetection.Peak(x, y, flux))
-            peakList.push_back(afwDetection.Peak(x + offset, y + offset, flux))
+            foot.addPeak(x, y, flux)
+            foot.addPeak(x + offset, y + offset, flux)
             src.setFootprint(foot)
             return src
 

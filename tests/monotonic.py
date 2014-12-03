@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 try:
     import matplotlib
     matplotlib.use('Agg')
@@ -11,13 +12,23 @@ import lsst.afw.detection as afwDet
 import lsst.afw.image as afwImg
 import lsst.meas.deblender as measDeblend
 
+def makePeak(x, y):
+    peakTable = afwDet.PeakTable.make(afwDet.PeakTable.makeMinimalSchema())
+    peak = peakTable.makeRecord()
+    peak.setFx(x)
+    peak.setFy(y)
+    peak.setIx(x)
+    peak.setIy(y)
+    return peak
+
 def main000():
     butils = measDeblend.BaselineUtilsF
     S = 20
     mim = afwImg.MaskedImageF(S,S)
     x0,y0 = S/2, S/2
     im = mim.getImage().getArray()
-    peak = afwDet.Peak(x0, y0)
+    peakTable = afwDet.PeakTable.make(afwDet.PeakTable.makeMinimalSchema)
+    peak = makePeak(x0, y0)
 
     mask = mim.getMask()
     for nm in ['SYMM_1SIG', 'SYMM_3SIG', 'MONOTONIC_1SIG']:
@@ -45,7 +56,7 @@ def randoms(S=10, N=1, GA=10, GS=10):
     for nm in ['SYMM_1SIG', 'SYMM_3SIG', 'MONOTONIC_1SIG']:
         bit = mask.addMaskPlane(nm)
         val = mask.getPlaneBitMask(nm)
-    peak = afwDet.Peak(x0, y0)
+    peak = makePeak(x0, y0)
     im = mim.getImage().getArray()
 
     for i in range(N):
@@ -76,7 +87,7 @@ def cardinal():
     x0,y0 = S/2, S/2
 
     im = mim.getImage().getArray()
-    peak = afwDet.Peak(x0, y0)
+    peak = makePeak(x0, y0)
     
     mask = mim.getMask()
     for nm in ['SYMM_1SIG', 'SYMM_3SIG', 'MONOTONIC_1SIG']:

@@ -50,13 +50,17 @@ class FitPsfTestCase(unittest.TestCase):
         print 'img x0,y0', img.getX0(), img.getY0()
         print 'BBox', img.getBBox()
 
-        pk1 = afwDet.Peak(20., 30.)
-        pk2 = afwDet.Peak(23., 33.)
-        pk3 = afwDet.Peak(92., 50.)
-        peaks = []
-        peaks.append(pk1)
-        peaks.append(pk2)
-        peaks.append(pk3)
+        peaks = afwDet.PeakCatalog(afwDet.PeakTable.makeMinimalSchema())
+	def makePeak(x, y):
+            p = peaks.addNew()
+            p.setFx(x)
+            p.setFy(y)
+            p.setIx(int(x))
+            p.setIy(int(y))
+            return p
+        pk1 = makePeak(20., 30.)
+        pk2 = makePeak(23., 33.)
+        pk3 = makePeak(92., 50.)
 
         ibb = img.getBBox()
         iext = [ibb.getMinX(), ibb.getMaxX(), ibb.getMinY(), ibb.getMaxY()]
