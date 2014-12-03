@@ -26,7 +26,7 @@ conn = sqlite.connect(registryName)
 
 if makeTables:
     cmd = "create table defect (id integer primary key autoincrement"
-    cmd += ", path text, version text, ccdSerial int"
+    cmd += ", path text, version text, ccd int"
     cmd += ", validStart text, validEnd text)"
     conn.execute(cmd)
     conn.commit()
