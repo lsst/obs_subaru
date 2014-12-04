@@ -52,8 +52,7 @@ def genDefectFits(cameraName, source, targetDir):
         cols = pyfits.ColDefs(columns)
         table = pyfits.new_table(cols)
 
-        table.header.update('SERIAL', ccd)
-        table.header.update('NAME', ccds[ccd])
+        table.header.update('NAME', ccd)
 
         name = os.path.join(targetDir, "defects_%d.fits" % ccd)
         print "Writing %d defects from CCD %d (%s) to %s" % (table.header['NAXIS2'], ccd, ccds[ccd], name)
