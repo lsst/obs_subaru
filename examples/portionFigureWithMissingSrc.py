@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 import sys, os, re
-import argparse
 
 import numpy
 import matplotlib.figure as figure
@@ -195,6 +194,4 @@ def main():
 
     
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    args = parser.parse_args()
     main()
