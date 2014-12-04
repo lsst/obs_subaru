@@ -281,7 +281,11 @@ class SourceDeblendTask(pipeBase.Task):
                     if self.config.propagateAllPeaks:
                         # make sure we have enough info to create a minimal child src
                         if heavy is None:
-                            foot = src.getFootprint()
+                            # copy the full footprint and strip out extra peaks
+                            foot = afwDet.Footprint(src.getFootprint())
+                            peakList = foot.getPeaks()
+                            del peakList[0:len(peakList)]
+                            peakList.push_back(peak.peak)
                             zeroMimg = afwImage.MaskedImageF(foot.getBBox())
                             heavy = afwDet.makeHeavyFootprint(foot, zeroMimg)
                         peak.deblendedAsPsf = True
@@ -294,8 +298,7 @@ class SourceDeblendTask(pipeBase.Task):
                     else:
                         continue
 
-                else:
-                    assert(len(heavy.getPeaks()) == 1)
+                assert(len(heavy.getPeaks()) == 1)
 
                 src.set(self.deblendSkippedKey, False)
                 child = srcs.addNew(); nchild += 1
