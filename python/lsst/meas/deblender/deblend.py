@@ -288,12 +288,11 @@ class SourceDeblendTask(pipeBase.Task):
                             peakList.push_back(peak.peak)
                             zeroMimg = afwImage.MaskedImageF(foot.getBBox())
                             heavy = afwDet.makeHeavyFootprint(foot, zeroMimg)
-                        peak.deblendedAsPsf = True
-                        peak.strayFlux = None
-                        peak.psfFitCenter = (peak.peak.getIx(), peak.peak.getIy())
-                        peak.psfFitFlux = 0.0
-                        peak.hasRampedTemplate = False
-                        peak.patched = False
+                        if peak.deblendedAsPsf:
+                            if peak.psfFitFlux is None:
+                                peak.psfFitFlux = 0.0
+                            if peak.psfFitCenter is None:
+                                peak.psfFitCenter = (peak.peak.getIx(), peak.peak.getIy())
                         self.log.warn("Peak failed.  Using minimal default info for child.")
                     else:
                         continue
