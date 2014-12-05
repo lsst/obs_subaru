@@ -54,10 +54,10 @@ for f in glob.glob(os.path.join(args.root, "*", "defects*.fits")):
 
     startDate = m.group(1).split('/')[-1]
     version = m.group(1)
-    ccdSerial = m.group(2)
-    if not ccdSerial in rowsPerCcd:
-        rowsPerCcd[ccdSerial] = []
-    rowsPerCcd[ccdSerial].append(Row(f, version, startDate))
+    ccd = m.group(2)
+    if not ccd in rowsPerCcd:
+        rowsPerCcd[ccd] = []
+    rowsPerCcd[ccd].append(Row(f, version, startDate))
 
 # Fix up end dates so there are no collisions.
 # Defects files for a CCD are valid from the date they are registered until the next date.
