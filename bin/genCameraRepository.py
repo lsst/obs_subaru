@@ -149,12 +149,33 @@ def makeEparams(policy):
             eparms[ccd.get('name')].append(eparm)
     return eparms
 
-def addAmp(ampCatalog, amp, eparams):
+def makeLparams(policy):
+    """Return a dictionary of amp linearity properties for this amp
+
+    @param[in] policy: policy file for amp
+    """
+    linearitypars = policy.getArray('Linearity')
+    lparms = {}
+    for ccd in linearitypars[0].getArray('Ccd'):
+        lparms[ccd.get('serial')] = []
+        for amp in ccd.getArray('Amp'):
+            lparm = {}
+            lparm['index'] = amp.get('serial')  # amp index is given name serial in hsc_geom.paf
+            lparm['coefficient'] = amp.get('coefficient')
+            lparm['type'] = amp.get('type')
+            lparm['threshold'] = amp.get('threshold')
+            lparm['maxCorrectable'] = amp.get('maxCorrectable')
+            lparm['intensityUnits'] = amp.get('intensityUnits')
+            lparms[ccd.get('serial')].append(lparm)
+    return lparms
+
+def addAmp(ampCatalog, amp, eparams, lparams):
     """ Add an amplifier to an AmpInfoCatalog
 
     @param ampCatalog: An instance of an AmpInfoCatalog object to fill with amp properties
     @param amp: Dictionary of amp geometric properties
     @param eparams: Dictionary of amp electronic properties for this amp
+    @param lparams: Dictionary of amp linearity properties for this amp
     """
     record = ampCatalog.addNew()
 
@@ -203,9 +224,10 @@ def addAmp(ampCatalog, amp, eparams):
     record.setGain(eparams['gain'])
     record.setReadNoise(eparams['readNoise'])
     record.setSaturation(int(eparams['saturation']))
-    #The files do not have any linearity information
-    record.setLinearityType('Proportional')
-    record.setLinearityCoeffs([1.,])
+    # Using available slots in linearityCoeffs to store linearity information given in
+    # hsc_geom.paf: 0: cofficient, 1: threshold, 2: maxCorrectable
+    record.setLinearityType(lparams['type'])
+    record.setLinearityCoeffs([lparams['coefficient'],lparams['threshold'],lparams['maxCorrectable'],])
     record.setHasRawInfo(True)
     record.setRawFlipX(False)
     record.setRawFlipY(False)
@@ -221,6 +243,7 @@ def parseCcds(policy, ccdParams, ccdToUse=None):
                       'hsc107':cameraGeom.FOCUS, 'hsc105':cameraGeom.FOCUS, 'hsc104':cameraGeom.FOCUS,
                       'hsc109':cameraGeom.FOCUS, 'hsc106':cameraGeom.FOCUS}
     eParams = makeEparams(policy)
+    lParams = makeLparams(policy)
     ampInfoDict ={}
     ccdInfoList = []
     rafts = policy.getArray('Raft')
@@ -266,7 +289,30 @@ def parseCcds(policy, ccdParams, ccdToUse=None):
                     eparms = ep
             if eparms is None:
                 raise ValueError("Could not find electronic params.")
-            addAmp(ampCatalog, amp, eparms)
+
+            lparms = None
+            # Only science ccds (serial 0 through 103) have linearity params defined in hsc_geom.paf
+            if detConfig.detectorType is cameraGeom.SCIENCE:
+                if lParams.has_key(ccd.get('serial')) :
+                    for ep in lParams[ccd.get('serial')]:
+                        if amp['id'] == ep['index']:
+                            lparms = ep
+                if lparms is None:
+                    if lParams.has_key(-1): # defaults in suprimecam/Full_Suprimecam*_geom.paf
+                        for ep in lParams[-1]:
+                            if amp['id'] == ep['index']:
+                                lparms = ep
+                if lparms is None:
+                    raise ValueError("Could not find linearity params.")
+            if lparms is None:
+                lparms = {}
+                lparms['index'] = amp['id']
+                lparms['coefficient'] = 0.0
+                lparms['type'] = 'NONE'
+                lparms['threshold'] = 0.0
+                lparms['maxCorrectable'] = 0.0
+                lparms['intensityUnits'] = 'UNKNOWN'
+            addAmp(ampCatalog, amp, eparms, lparms)
         ampInfoDict[ccd.get('name')] = ampCatalog
         ccdInfoList.append(detConfig)
     return {"ccdInfo":ccdInfoList, "ampInfo":ampInfoDict}
