@@ -199,6 +199,7 @@ def addAmp(ampCatalog, amp, eparams, lparams):
     @param ampCatalog: An instance of an AmpInfoCatalog object to fill with amp properties
     @param amp: Dictionary of amp geometric properties
     @param eparams: Dictionary of amp electronic properties for this amp
+    @param lparams: Dictionary of amp linearity properties for this amp
     """
     record = ampCatalog.addNew()
 
@@ -247,9 +248,10 @@ def addAmp(ampCatalog, amp, eparams, lparams):
     record.setGain(eparams['gain'])
     record.setReadNoise(eparams['readNoise'])
     record.setSaturation(int(eparams['saturation']))
-    #The files do not have any linearity information
-    record.setLinearityType('Proportional')
-    record.setLinearityCoeffs([1.,])
+    # Using available slots in linearityCoeffs to store linearity information given in
+    # hsc_geom.paf: 0: cofficient, 1: threshold, 2: maxCorrectable
+    record.setLinearityType(lparams['type'])
+    record.setLinearityCoeffs([lparams['coefficient'],lparams['threshold'],lparams['maxCorrectable'],])
     record.setHasRawInfo(True)
     record.setRawFlipX(False)
     record.setRawFlipY(False)
@@ -272,6 +274,7 @@ def parseCcds(policy, ccdParams, ccdToUse=None):
                       'hsc107':cameraGeom.FOCUS, 'hsc105':cameraGeom.FOCUS, 'hsc104':cameraGeom.FOCUS,
                       'hsc109':cameraGeom.FOCUS, 'hsc106':cameraGeom.FOCUS}
     eParams = makeEparams(policy)
+    lParams = makeLparams(policy)
     ampInfoDict ={}
     ccdInfoList = []
     rafts = policy.getArray('Raft')
@@ -317,7 +320,6 @@ def parseCcds(policy, ccdParams, ccdToUse=None):
                     eparms = ep
             if eparms is None:
                 raise ValueError("Could not find electronic params.")
-            addAmp(ampCatalog, amp, eparms)
 
             lparms = None
             # Only science ccds (serial 0 through 103) have linearity params defined in hsc_geom.paf
