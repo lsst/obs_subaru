@@ -216,7 +216,6 @@ def addAmp(ampCatalog, amp, eparams, lparams):
     voscanSec.shift(shiftp)
     pscanSec.shift(shiftp)
 
-
     record.setBBox(bbox)
     record.setRawXYOffset(afwGeom.ExtentI(0,0))
     record.setName("%i,%i"%(eparams['index'][0], eparams['index'][1]))
@@ -239,9 +238,9 @@ def addAmp(ampCatalog, amp, eparams, lparams):
 
 def parseCcds(policy, ccdParams, ccdToUse=None):
     # The pafs I have now in the hsc dir include the focus sensors (but not the guiders)
-    specialChipMap = {'hsc108':cameraGeom.FOCUS, 'hsc110':cameraGeom.FOCUS, 'hsc111':cameraGeom.FOCUS,
-                      'hsc107':cameraGeom.FOCUS, 'hsc105':cameraGeom.FOCUS, 'hsc104':cameraGeom.FOCUS,
-                      'hsc109':cameraGeom.FOCUS, 'hsc106':cameraGeom.FOCUS}
+    specialChipMap = {'108':cameraGeom.FOCUS, '110':cameraGeom.FOCUS, '111':cameraGeom.FOCUS,
+                      '107':cameraGeom.FOCUS, '105':cameraGeom.FOCUS, '104':cameraGeom.FOCUS,
+                      '109':cameraGeom.FOCUS, '106':cameraGeom.FOCUS}
     eParams = makeEparams(policy)
     lParams = makeLparams(policy)
     ampInfoDict ={}
@@ -267,8 +266,8 @@ def parseCcds(policy, ccdParams, ccdToUse=None):
             offset[1] *= ccdParam['pixelSize']
         detConfig.offset_x = offset[0]
         detConfig.offset_y = offset[1]
-        if detConfig.name in specialChipMap:
-            detConfig.detectorType = specialChipMap[detConfig.name]
+        if detConfig.serial in specialChipMap:
+            detConfig.detectorType = specialChipMap[detConfig.serial]
         else:
             detConfig.detectorType = cameraGeom.SCIENCE
         detConfig.pixelSize_x = ccdParam['pixelSize']
