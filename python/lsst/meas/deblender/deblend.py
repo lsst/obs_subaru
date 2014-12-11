@@ -94,6 +94,11 @@ class SourceDeblendConfig(pexConf.Config):
 
     propagateAllPeaks = pexConf.Field(dtype=bool, default=False,
                                       doc=('Guarantee that all peaks produce a child source.'))
+
+    catchFailures = pexConf.Field(dtype=bool, default=False,
+                                  doc=("If True, catch exceptions thrown by the deblender, log them, "
+                                       "and set a flag on the parent, instead of letting them propagate up"))
+
     
 ## \addtogroup LSST_task_documentation
 ## \{
@@ -136,8 +141,10 @@ class SourceDeblendTask(pipeBase.Task):
                                                'only the brightest were included')
         self.tooBigKey = schema.addField('deblend_parentTooBig', type='Flag',
                                          doc='Parent footprint covered too many pixels')
-        self.deblendFailedKey = schema.addField('deblend_failed', type='Flag',
-                                                doc="Deblending failed on source")
+
+        if self.config.catchFailures:
+            self.deblendFailedKey = schema.addField('deblend_failed', type='Flag',
+                                                    doc="Deblending failed on source")
 
         self.deblendSkippedKey = schema.addField('deblend_skipped', type='Flag',
                                                 doc="Deblender skipped this source")
@@ -248,13 +255,17 @@ class SourceDeblendTask(pipeBase.Task):
                     tinyFootprintSize=self.config.tinyFootprintSize,
                     clipStrayFluxFraction=self.config.clipStrayFluxFraction,
                     )
-                src.set(self.deblendFailedKey, False)
+                if self.config.catchFailures:
+                    src.set(self.deblendFailedKey, False)
             except Exception as e:
-                self.log.warn("Error deblending source %d: %s" % (src.getId(), e))
-                src.set(self.deblendFailedKey, True)
-                import traceback
-                traceback.print_exc()
-                continue
+                if self.config.catchFailures:
+                    self.log.warn("Unable to deblend source %d: %s" % (src.getId(), e))
+                    src.set(self.deblendFailedKey, True)
+                    import traceback
+                    traceback.print_exc()
+                    continue
+                else:
+                    raise
 
             kids = []
             nchild = 0

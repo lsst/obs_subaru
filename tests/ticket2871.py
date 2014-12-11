@@ -72,6 +72,7 @@ class DeblendTestCase(unittest.TestCase):
         schema = afwTable.SourceTable.makeMinimalSchema()
 
         config = measDeb.SourceDeblendConfig()
+        config.catchFailures = True
         task = measDeb.SourceDeblendTask(schema, config=config)
 
         catalog = afwTable.SourceCatalog(schema)
