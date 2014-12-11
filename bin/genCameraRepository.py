@@ -10,6 +10,7 @@ import argparse
 import eups
 import os
 import copy
+import shutil
 
 FOCAL_PLANE_PIXELS = cameraGeom.CameraSys('Focal_Plane_Pixels')
 
