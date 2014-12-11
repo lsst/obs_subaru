@@ -523,7 +523,7 @@ datasets: {
         storage:      "ignored"
         tables:       "raw"
     }
-    mergedCoaddId: {
+    deepMergedCoaddId: {
         template:     "ignored"
         # Provide something to import, although we actually return a Long
         python:       "lsst.daf.base.PropertySet"
@@ -531,7 +531,7 @@ datasets: {
         storage:      "ignored"
         tables:       "raw"
     }
-    mergedCoaddId_bits: {
+    deepMergedCoaddId_bits: {
         template:     "ignored"
         # Provide something to import, although we actually return an int
         python:       "lsst.daf.base.PropertySet"
