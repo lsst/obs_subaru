@@ -1131,13 +1131,13 @@ datasets: {
         tables:        raw
         tables:        raw_skyTile
     }
-    detect_config: {
+    detectCoaddSources_config: {
         template:      "config/detect.py"
         python:        "lsst.pipe.tasks.multiBand.DetectCoaddSourcesConfig"
         persistable:   "Config"
         storage:       "ConfigStorage"
     }
-    detect_metadata: {
+    detectCoaddSources_metadata: {
         template:      "deepCoadd-results/%(filter)s/%(tract)d/%(patch)s/detectMD-%(filter)s-%(tract)d-%(patch)s.boost"
         python:        "lsst.daf.base.PropertySet"
         persistable:   "PropertySet"
@@ -1161,13 +1161,13 @@ datasets: {
         tables:        raw
         tables:        raw_skyTile
     }
-    mergeDet_config: {
+    mergeCoaddDetections_config: {
         template:      "config/mergeDetect.py"
         python:        "lsst.pipe.tasks.multiBand.MergeSourcesConfig"
         persistable:   "Config"
         storage:       "ConfigStorage"
     }
-    mergeDet_metadata: {
+    mergeCoaddDetections_metadata: {
         template:      "deepCoadd-results/merged/%(tract)d/%(patch)s/mergeDetMD-%(tract)d-%(patch)s.boost"
         python:        "lsst.daf.base.PropertySet"
         persistable:   "PropertySet"
@@ -1191,13 +1191,13 @@ datasets: {
         tables:        raw
         tables:        raw_skyTile
     }
-    measure_config: {
+    measureCoaddSources_config: {
         template:      "config/measureMerged.py"
         python:        "lsst.pipe.tasks.multiBand.MeasureMergedCoaddSourcesConfig"
         persistable:   "Config"
         storage:       "ConfigStorage"
     }
-    measure_metadata: {
+    measureCoaddSources_metadata: {
         template:      "deepCoadd-results/%(filter)s/%(tract)d/%(patch)s/measMD-%(filter)s-%(tract)d-%(patch)s.boost"
         python:        "lsst.daf.base.PropertySet"
         persistable:   "PropertySet"
@@ -1221,13 +1221,13 @@ datasets: {
         tables:        raw
         tables:        raw_skyTile
     }
-    mergeMeas_config: {
+    mergeCoaddMeasurements_config: {
         template:      "config/mergeMeasure.py"
         python:        "lsst.pipe.tasks.multiBand.MergeSourcesConfig"
         persistable:   "Config"
         storage:       "ConfigStorage"
     }
-    mergeMeas_metadata: {
+    mergeCoaddMeasurements_metadata: {
         template:      "deepCoadd-results/merged/%(tract)d/%(patch)s/mergeMeasMD-%(tract)d-%(patch)s.boost"
         python:        "lsst.daf.base.PropertySet"
         persistable:   "PropertySet"
