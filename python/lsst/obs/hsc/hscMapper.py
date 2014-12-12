@@ -23,7 +23,11 @@ class HscMapper(CameraMapper):
         policy = pexPolicy.Policy(policyFile)
         if not kwargs.get('root', None):
             try:
-                kwargs['root'] = os.path.join(os.environ.get('SUPRIME_DATA_DIR'), 'HSC')
+                tdir = os.environ.get('SUPRIME_DATA_DIR')
+                if tdir.endswith('HSC/HSC') :  # LAM temporary fix to environment variable confusion
+                    kwargs['root'] = os.environ.get('SUPRIME_DATA_DIR')
+                else :
+                    kwargs['root'] = os.path.join(os.environ.get('SUPRIME_DATA_DIR'), 'HSC')
             except:
                 #I don't know where to get the suprime_data package.  This may just be cruft.
                 #You won't be able to reduce data without some data to reduce, though.
