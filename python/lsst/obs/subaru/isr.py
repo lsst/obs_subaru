@@ -198,7 +198,8 @@ class SubaruIsrTask(IsrTask):
         ccdExposure = self.assembleCcd.assembleCcd(ccdExposure)
         ccd = ccdExposure.getDetector()
 
-        self.maskAndInterpDefect(ccdExposure)
+        defects = sensorRef.get('defects')
+        self.maskAndInterpDefect(ccdExposure,defects)
 
         if self.config.qa.doWriteOss:
             sensorRef.put(ccdExposure, "ossImage")
