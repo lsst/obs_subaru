@@ -45,11 +45,11 @@ namespace subaru {
 class DistEstXYTransform : public afw::geom::XYTransform
 {
 public:
-    DistEstXYTransform(afw::geom::Angle const &elevation, double const plateScale);    
+    DistEstXYTransform(afw::geom::Angle const &elevation, double const plateScale);
     virtual PTR(afw::geom::XYTransform) clone() const;
-    virtual Point2D forwardTransform(afw::geom::Point2D const &point) const;
-    virtual Point2D reverseTransformIterative(afw::geom::Point2D const &point) const;
-    virtual Point2D reverseTransform(afw::geom::Point2D const &point) const;
+    virtual afw::geom::Point2D forwardTransform(afw::geom::Point2D const &point) const;
+    virtual afw::geom::Point2D reverseTransformIterative(afw::geom::Point2D const &point) const;
+    virtual afw::geom::Point2D reverseTransform(afw::geom::Point2D const &point) const;
 
 private:
     afw::geom::Angle _elevation;
