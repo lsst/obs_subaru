@@ -437,21 +437,22 @@ class SubaruIsrTask(IsrTask):
         """
         assert exposure, "No exposure provided"
 
-        image = exposure.getMaskedImage()
-
         ccd = exposure.getDetector()
 
         linearized = False              # did we apply linearity corrections?
         for amp in ccd:
-            linearity = amp.getElectronicParams().getLinearity()
+            linearityCoefficient = amp.getLinearityCoeffs()[0]
+            linearityThreshold = amp.getLinearityCoeffs()[1]
+            linearityMaxCorrectable = amp.getLinearityCoeffs()[2]
+            linearityType = amp.getLinearityType()
 
-            ampImage = image[amp.getDataSec()]
-            width, height = ampImage.getDimensions()
+            ampImage = afwImage.MaskedImageF(exposure.getMaskedImage(), amp.getBBox(),
+                                                 afwImage.PARENT)
 
             imageTypeMax = 65535        # should be a method on the image
-            setSuspectPixels = linearity.maxCorrectable < imageTypeMax # there might be some
+            setSuspectPixels = linearityMaxCorrectable < imageTypeMax # there might be some
 
-            if not setSuspectPixels and linearity.coefficient == 0.0:
+            if not setSuspectPixels and linearityCoefficient == 0.0:
                 continue                # nothing to do
 
             linearized = True
@@ -460,21 +461,22 @@ class SubaruIsrTask(IsrTask):
             #
             if setSuspectPixels:
                 afwDetection.FootprintSet(ampImage,
-                                          afwDetection.Threshold(linearity.maxCorrectable), "SUSPECT")
+                                          afwDetection.Threshold(linearityMaxCorrectable), "SUSPECT")
 
-            if linearity.type == afwCG.Linearity.PROPORTIONAL:
-                if linearity.threshold != 0.0:
+            if linearityType == 'PROPORTIONAL':
+                if linearityThreshold != 0.0:
                     raise RuntimeError(
                         ("The threshold for PROPORTIONAL linearity corrections must be 0; saw %g" +
-                         " for ccd %s amp %s") % (linearity.threshold, ccd.getId(), amp.getId()))
+                         " for ccd %s amp %s") % (linearityThreshold, ccd.getId(), amp.getName()))
 
                 ampArr = ampImage.getImage().getArray()
-                ampArr *= 1.0 + linearity.coefficient*ampArr
+                ampArr *= 1.0 + linearityCoefficient*ampArr
             else:
-                raise NotImplementedError("Unimplemented linearity type: %d", linearity.type)
+                raise NotImplementedError("Unimplemented linearity type: %d", linearityType)
 
         if linearized:
             self.log.log(self.log.INFO, "Applying linearity corrections to Ccd %s" % (ccd.getId()))
+
 
     def maskDefect(self, ccdExposure, fwhm=1.0):
         """Mask defects using mask plane "BAD"
