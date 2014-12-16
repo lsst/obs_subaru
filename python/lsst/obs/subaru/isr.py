@@ -437,19 +437,17 @@ class SubaruIsrTask(IsrTask):
         """
         assert exposure, "No exposure provided"
 
-        image = exposure.getMaskedImage()
-
         ccd = exposure.getDetector()
 
         linearized = False              # did we apply linearity corrections?
         for amp in ccd:
-            linearityCoeff = amp.getLinearityCoeffs()[0]
+            linearityCoefficient = amp.getLinearityCoeffs()[0]
             linearityThreshold = amp.getLinearityCoeffs()[1]
             linearityMaxCorrectable = amp.getLinearityCoeffs()[2]
             linearityType = amp.getLinearityType()
 
-            ampImage = image[amp.getDataSec()]
-            width, height = ampImage.getDimensions()
+            ampImage = afwImage.MaskedImageF(exposure.getMaskedImage(), amp.getBBox(),
+                                                 afwImage.PARENT)
 
             imageTypeMax = 65535        # should be a method on the image
             setSuspectPixels = linearityMaxCorrectable < imageTypeMax # there might be some
@@ -465,11 +463,11 @@ class SubaruIsrTask(IsrTask):
                 afwDetection.FootprintSet(ampImage,
                                           afwDetection.Threshold(linearityMaxCorrectable), "SUSPECT")
 
-            if linearityType == afwCG.Linearity.PROPORTIONAL:
+            if linearityType == 'PROPORTIONAL':
                 if linearityThreshold != 0.0:
                     raise RuntimeError(
                         ("The threshold for PROPORTIONAL linearity corrections must be 0; saw %g" +
-                         " for ccd %s amp %s") % (linearityThreshold, ccd.getId(), amp.getId()))
+                         " for ccd %s amp %s") % (linearityThreshold, ccd.getId(), amp.getName()))
 
                 ampArr = ampImage.getImage().getArray()
                 ampArr *= 1.0 + linearityCoefficient*ampArr
@@ -478,6 +476,7 @@ class SubaruIsrTask(IsrTask):
 
         if linearized:
             self.log.log(self.log.INFO, "Applying linearity corrections to Ccd %s" % (ccd.getId()))
+
 
     def maskDefect(self, ccdExposure, fwhm=1.0):
         """Mask defects using mask plane "BAD"
