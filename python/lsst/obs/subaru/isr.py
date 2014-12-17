@@ -67,7 +67,7 @@ class SubaruIsrConfig(IsrTask.ConfigClass):
                                               dtype=bool, default=True)
     doOverscan = pexConfig.Field(doc="Do overscan subtraction?", dtype=bool, default=True)
     doVariance = pexConfig.Field(doc="Calculate variance?", dtype=bool, default=True)
-    doDefect = pexConfig.Field(doc="Mask defect pixels?", dtype=bool, default=False)
+    doDefect = pexConfig.Field(doc="Mask defect pixels?", dtype=bool, default=True)
     doGuider = pexConfig.Field(
         dtype = bool,
         doc = "Trim guider shadow",
@@ -198,8 +198,9 @@ class SubaruIsrTask(IsrTask):
         ccdExposure = self.assembleCcd.assembleCcd(ccdExposure)
         ccd = ccdExposure.getDetector()
 
-        defects = sensorRef.get('defects')
-        self.maskAndInterpDefect(ccdExposure,defects)
+        if self.config.doDefect:
+            defects = sensorRef.get('defects', immediate=True)
+            self.maskAndInterpDefect(ccdExposure, defects)
 
         if self.config.qa.doWriteOss:
             sensorRef.put(ccdExposure, "ossImage")
@@ -216,14 +217,13 @@ class SubaruIsrTask(IsrTask):
             self.darkCorrection(ccdExposure, sensorRef)
         if self.config.doFlat:
             self.flatCorrection(ccdExposure, sensorRef)
+
         if self.config.doApplyGains:
             self.applyGains(ccdExposure, self.config.normalizeGains)
         if self.config.doWidenSaturationTrails:
             self.widenSaturationTrails(ccdExposure.getMaskedImage().getMask())
         if self.config.doSaturation:
             self.saturationInterpolation(ccdExposure)
-        if self.config.doDefect:
-            self.maskDefect(ccdExposure, self.config.fwhmForBadColumnInterpolation)
 
         if self.config.doFringe:
             self.fringe.run(ccdExposure, sensorRef)
@@ -477,30 +477,6 @@ class SubaruIsrTask(IsrTask):
         if linearized:
             self.log.log(self.log.INFO, "Applying linearity corrections to Ccd %s" % (ccd.getId()))
 
-
-    def maskDefect(self, ccdExposure, fwhm=1.0):
-        """Mask defects using mask plane "BAD"
-
-        @param[in,out]  ccdExposure     exposure to process
-        @param          fwhm            fwhm to use when interpolating (arcsec)
-
-        @warning: call this after CCD assembly, since defects may cross amplifier boundaries
-        """
-        maskedImage = ccdExposure.getMaskedImage()
-        ccd = ccdExposure.getDetector()
-        defectBaseList = ccd.getDefects()
-        defectList = measAlg.DefectListT()
-        # mask bad pixels in the camera class
-        # create master list of defects and add those from the camera class
-        for d in defectBaseList:
-            bbox = d.getBBox()
-            nd = measAlg.Defect(bbox)
-            defectList.append(nd)
-        lsstIsr.maskPixelsFromDefectList(maskedImage, defectList, maskName='BAD')
-        wcs = ccdExposure.getWcs()
-        if wcs:
-            fwhm /= wcs.pixelScale().asArcseconds()
-        lsstIsr.interpolateDefectList(maskedImage, defectList, fwhm)
 
     def flatCorrection(self, exposure, dataRef):
         """Apply flat correction in-place
