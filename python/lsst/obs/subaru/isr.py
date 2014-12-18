@@ -199,9 +199,14 @@ class SubaruIsrTask(IsrTask):
         ccd = ccdExposure.getDetector()
 
         if self.config.doDefect:
-            defects = sensorRef.get('defects')
-            self.maskAndInterpDefect(ccdExposure,defects)
-
+            # LAM temporary fix: daf_butlerUtils raises a RuntimeError if given
+            #                    ccd has no defects in registry
+            try:
+                defects = sensorRef.get('defects')
+                self.maskAndInterpDefect(ccdExposure,defects)
+            except RuntimeError:
+                print 'isr.py: WARNING: no defects found for ccd: ', \
+                    sensorRef.dataId['ccd'], ' taiObs: ', sensorRef.dataId['taiObs']
         if self.config.qa.doWriteOss:
             sensorRef.put(ccdExposure, "ossImage")
         if self.config.qa.doThumbnailOss:
