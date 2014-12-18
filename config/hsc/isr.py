@@ -7,8 +7,9 @@ root.isr.crosstalk.retarget(CrosstalkTask)
 
 root.isr.overscanFitType = "AKIMA_SPLINE"
 root.isr.overscanOrder = 30
-root.isr.doBias = False # Overscan is fairly efficient at removing bias level
-root.isr.doDark = False
+# root.isr.doBias = False # Overscan is fairly efficient at removing bias level
+root.isr.doBias = True
+root.isr.doDark = True
 root.isr.doWrite = False
 root.isr.doCrosstalk = True
 root.isr.doGuider = False
