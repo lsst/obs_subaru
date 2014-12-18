@@ -28,6 +28,7 @@ import lsst.afw.math as afwMath
 import lsst.afw.geom as afwGeom
 import lsst.afw.image as afwImage
 import lsst.afw.detection as afwDet
+import lsst.afw.table as afwTable
 
 __all__ = 'SourceDeblendConfig', 'SourceDeblendTask'
 
@@ -127,14 +128,34 @@ class SourceDeblendTask(pipeBase.Task):
     ConfigClass = SourceDeblendConfig
     _DefaultName = "sourceDeblend"
 
-    def __init__(self, schema, **kwargs):
+    def __init__(self, schema, peakSchema=None, **kwargs):
         """!
         Create the task, adding necessary fields to the given schema.
 
         @param[in,out] schema        Schema object for measurement fields; will be modified in-place.
-        @param [in]    **kwargs      Passed to Task.__init__.
+        @param[in]     peakSchema    Schema of Footprint Peaks that will be passed to the deblender.
+                                     Any fields beyond the PeakTable minimal schema will be transferred
+                                     to the main source Schema.  If None, no fields will be transferred
+                                     from the Peaks.
+        @param[in]     **kwargs      Passed to Task.__init__.
         """
         pipeBase.Task.__init__(self, **kwargs)
+        peakMinimalSchema = afwDet.PeakTable.makeMinimalSchema()
+        if peakSchema is None:
+            # In this case, the peakSchemaMapper will transfer nothing, but we'll still have one
+            # to simplify downstream code
+            self.peakSchemaMapper = afwTable.SchemaMapper(peakMinimalSchema, schema)
+        else:
+            self.peakSchemaMapper = afwTable.SchemaMapper(peakSchema, schema)
+            for item in peakSchema:
+                if item.key not in peakMinimalSchema:
+                    self.peakSchemaMapper.addMapping(item.key, item.field)
+                    # Because SchemaMapper makes a copy of the output schema you give its ctor, it isn't
+                    # updating this Schema in place.  That's probably a design flaw, but in the meantime,
+                    # we'll keep that schema in sync with the peakSchemaMapper.getOutputSchema() manually,
+                    # by adding the same fields to both.
+                    schema.addField(item.field)
+            assert schema == self.peakSchemaMapper.getOutputSchema(), "Logic bug mapping schemas"
         self.addSchemaKeys(schema)
 
     def addSchemaKeys(self, schema):
@@ -323,6 +344,7 @@ class SourceDeblendTask(pipeBase.Task):
 
                 src.set(self.deblendSkippedKey, False)
                 child = srcs.addNew(); nchild += 1
+                child.assign(heavy.getPeaks()[0], self.peakSchemaMapper)
                 child.setParent(src.getId())
                 child.setFootprint(heavy)
                 child.set(self.psfKey, peak.deblendedAsPsf)
