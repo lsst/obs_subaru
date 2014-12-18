@@ -205,8 +205,8 @@ class SubaruIsrTask(IsrTask):
                 defects = sensorRef.get('defects')
                 self.maskAndInterpDefect(ccdExposure,defects)
             except RuntimeError:
-                print 'isr.py: WARNING: no defects found for ccd: ', \
-                    sensorRef.dataId['ccd'], ' taiObs: ', sensorRef.dataId['taiObs']
+                self.log.log(self.log.WARN, "No defects found for ccd: %s taiObs: %s"
+                             % (sensorRef.dataId['ccd'], sensorRef.dataId['taiObs']))
         if self.config.qa.doWriteOss:
             sensorRef.put(ccdExposure, "ossImage")
         if self.config.qa.doThumbnailOss:
