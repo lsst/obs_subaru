@@ -306,8 +306,8 @@ class SourceDeblendTask(pipeBase.Task):
                             # copy the full footprint and strip out extra peaks
                             foot = afwDet.Footprint(src.getFootprint())
                             peakList = foot.getPeaks()
-                            del peakList[0:len(peakList)]
-                            peakList.push_back(peak.peak)
+                            peakList.clear()
+                            peakList.append(peak.peak)
                             zeroMimg = afwImage.MaskedImageF(foot.getBBox())
                             heavy = afwDet.makeHeavyFootprint(foot, zeroMimg)
                         if peak.deblendedAsPsf:
