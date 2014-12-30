@@ -473,14 +473,14 @@ def deblend(footprint, maskedImage, psf, psffwhm,
         if pkres.skip:
             continue
         pkres.setFluxPortion(portions[ii])
-        ii += 1
 
         if findStrayFlux:
             # NOTE that due to a swig bug (https://github.com/swig/swig/issues/59)
             # we CANNOT iterate over "strayflux", but must index into it.
-            stray = strayflux[j]
+            stray = strayflux[ii]
         else:
             stray = None
+        ii += 1
 
         pkres.setStrayFlux(stray)
 
