@@ -600,6 +600,12 @@ def _fitPsf(fp, fmask, pk, pkF, pkres, fbb, peaks, peaksF, log, psf, psffwhm,
     pbb.clip(fbb)
     px0, py0 = psfimg.getX0(), psfimg.getY0()
 
+    # Make sure we haven't been given a substitute PSF that's nowhere near where we want, as may occur if
+    # "Cannot compute CoaddPsf at point (xx,yy); no input images at that point."
+    if not pbb.contains(afwGeom.Point2I(int(cx), int(cy))):
+        pkres.setOutOfBounds()
+        return
+
     # The bounding-box of the local region we are going to fit ("stamp")
     xlo = int(math.floor(cx - R1))
     ylo = int(math.floor(cy - R1))
