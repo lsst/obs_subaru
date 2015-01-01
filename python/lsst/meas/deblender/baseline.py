@@ -874,41 +874,46 @@ def _fitPsf(fp, fmask, pk, pkF, pkres, fbb, peaks, peaksF, log, psf, psffwhm,
         # clip
         pbb2 = psfimg2.getBBox()
         pbb2.clip(fbb)
-        # clip image to bbox
-        px0, py0 = psfimg2.getX0(), psfimg2.getY0()
-        psfarr = psfimg2.getArray()[pbb2.getMinY()-py0: 1+pbb2.getMaxY()-py0,
-                                    pbb2.getMinX()-px0: 1+pbb2.getMaxX()-px0]
-        px0, py0 = pbb2.getMinX(), pbb2.getMinY()
-        px1, py1 = pbb2.getMaxX(), pbb2.getMaxY()
 
-        # yuck!  Update the PSF terms in the least-squares fit matrix.
-        Ab = A[:, :NT1]
-
-        sx1, sx2, sx3, sx4 = _overlap(xlo, xhi, px0, px1)
-        sy1, sy2, sy3, sy4 = _overlap(ylo, yhi, py0, py1)
-        dpx0, dpy0 = px0 - xlo, py0 - ylo
-        psfsub = psfarr[sy3 - dpy0 : sy4 - dpy0, sx3 - dpx0: sx4 - dpx0]
-        vsub = valid[sy1-ylo: sy2-ylo, sx1-xlo: sx2-xlo]
-        xx, yy = np.arange(xlo, xhi+1), np.arange(ylo, yhi+1)
-        inpsf = np.outer((yy >= py0)*(yy <= py1), (xx >= px0)*(xx <= px1))
-        Ab[inpsf[valid], I_psf] = psfsub[vsub]
-
-        Aw  = Ab*w[:, np.newaxis]
-        # re-solve...
-        Xb, rb, rankb, sb = np.linalg.lstsq(Aw, bw)
-        if len(rb) > 0:
-            chisqb = rb[0]
+        # Make sure we haven't been given a substitute PSF that's nowhere near where we want, as may occur if
+        # "Cannot compute CoaddPsf at point (xx,yy); no input images at that point."
+        if not pbb2.contains(afwGeom.Point2I(int(cx + dx), int(cy + dy))):
+            ispsf2 = False
         else:
-            chisqb = 1e30
-        dofb = sumr - len(Xb)
-        log.log(-9, 'rb, dofb %g %g' %(rb, dofb))
-        qb = chisqb/dofb
-        ispsf2 = (qb < psfChisqCut2b)
-        q2 = qb
-        X2 = Xb
-        log.logdebug('shifted PSF: new chisq/dof = %g; good? %s' %
-                     (qb, ispsf2))
-        pkres.psfFit3 = (chisqb, dofb)
+            # clip image to bbox
+            px0, py0 = psfimg2.getX0(), psfimg2.getY0()
+            psfarr = psfimg2.getArray()[pbb2.getMinY()-py0:1+pbb2.getMaxY()-py0,
+                                        pbb2.getMinX()-px0:1+pbb2.getMaxX()-px0]
+            px0, py0 = pbb2.getMinX(), pbb2.getMinY()
+            px1, py1 = pbb2.getMaxX(), pbb2.getMaxY()
+
+            # yuck!  Update the PSF terms in the least-squares fit matrix.
+            Ab = A[:, :NT1]
+
+            sx1, sx2, sx3, sx4 = _overlap(xlo, xhi, px0, px1)
+            sy1, sy2, sy3, sy4 = _overlap(ylo, yhi, py0, py1)
+            dpx0, dpy0 = px0 - xlo, py0 - ylo
+            psfsub = psfarr[sy3-dpy0:sy4-dpy0, sx3-dpx0:sx4-dpx0]
+            vsub = valid[sy1-ylo:sy2-ylo, sx1-xlo:sx2-xlo]
+            xx, yy = np.arange(xlo, xhi+1), np.arange(ylo, yhi+1)
+            inpsf = np.outer((yy >= py0)*(yy <= py1), (xx >= px0)*(xx <= px1))
+            Ab[inpsf[valid], I_psf] = psfsub[vsub]
+
+            Aw  = Ab*w[:, np.newaxis]
+            # re-solve...
+            Xb, rb, rankb, sb = np.linalg.lstsq(Aw, bw)
+            if len(rb) > 0:
+                chisqb = rb[0]
+            else:
+                chisqb = 1e30
+            dofb = sumr - len(Xb)
+            qb = chisqb/dofb
+            ispsf2 = (qb < psfChisqCut2b)
+            q2 = qb
+            X2 = Xb
+            log.logdebug('shifted PSF: new chisq/dof = %g; good? %s' %
+                         (qb, ispsf2))
+            pkres.psfFit3 = (chisqb, dofb)
 
     # Which one do we keep?
     if (((ispsf1 and ispsf2) and (q2 < q1)) or
