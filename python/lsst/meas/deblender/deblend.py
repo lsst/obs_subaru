@@ -349,8 +349,10 @@ class SourceDeblendTask(pipeBase.Task):
 
         if self.config.removeMaskPlanes:
             mask = exposure.getMaskedImage().getMask()
+            definedMasks = set(mask.getMaskPlaneDict().keys())
             for nm in ['SYMM_1SIG', 'SYMM_3SIG', 'MONOTONIC_1SIG']:
-                mask.removeAndClearMaskPlane(nm, True)
+                if nm in definedMasks:
+                    mask.removeAndClearMaskPlane(nm, True)
 
         n1 = len(srcs)
         self.log.info('Deblended: of %i sources, %i were deblended, creating %i children, total %i sources'
