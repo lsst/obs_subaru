@@ -351,9 +351,16 @@ def deblend(footprint, maskedImage, psf, psffwhm,
         if (rampFluxAtEdge and
             butils.hasSignificantFluxAtEdge(t1.getImage(), tfoot, 3*sigma1)):
             log.logdebug("Template %i has significant flux at edge: ramping" % pkres.pki)
-            (t2, tfoot2, patched) = _handle_flux_at_edge(log, psffwhm, t1, tfoot, fp,
-                                                         maskedImage, x0, x1, y0, y1,
-                                                         psf, pk, sigma1, patchEdges)
+            try:
+                (t2, tfoot2, patched) = _handle_flux_at_edge(log, psffwhm, t1, tfoot, fp,
+                                                             maskedImage, x0, x1, y0, y1,
+                                                             psf, pk, sigma1, patchEdges)
+            except lsst.pex.exceptions.LsstCppException as exc:
+                if (isinstance(exc.message, lsst.pex.exceptions.InvalidParameterException) and
+                    "CoaddPsf" in str(exc)):
+                    pkres.setOutOfBounds()
+                    continue
+                raise
             pkres.setRampedTemplate(t2, tfoot2)
             if patched:
                 pkres.setPatched()
