@@ -123,7 +123,7 @@ if __name__ == '__main__':
     if args.suprimeCam:
         from lsst.obs.suprimecam import SuprimecamMapper as mapper
     else:
-        from lsst.obs.hscSim import HscSimMapper as mapper
+        from lsst.obs.hsc import HscMapper as mapper
 
     camera = mapper().camera
 
