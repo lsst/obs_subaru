@@ -23,7 +23,7 @@
  */
 
 #include "lsst/obs/subaru/DistEstXYTransform.h"
-#include "hsc/meas/match/distest.h"
+#include "lsst/obs/hsc/distest.h"
 #include "boost/make_shared.hpp"
 
 namespace lsst {
@@ -42,21 +42,21 @@ PTR(afw::geom::XYTransform) DistEstXYTransform::clone() const
 afw::geom::Point2D DistEstXYTransform::forwardTransform(afw::geom::Point2D const &point) const
 {
     float x, y;
-    hsc::meas::match::getUndistortedPosition(point.getX(), point.getY(), &x, &y, _elevation.asDegrees());
+    lsst::obs::hsc::getUndistortedPosition(point.getX(), point.getY(), &x, &y, _elevation.asDegrees());
     return afw::geom::Point2D(x*_plateScale,y*_plateScale);
 }
 
 afw::geom::Point2D DistEstXYTransform::reverseTransformIterative(afw::geom::Point2D const &point) const
 {
     float x, y;
-    hsc::meas::match::getDistortedPositionIterative(point.getX(), point.getY(), &x, &y, _elevation.asDegrees());
+    lsst::obs::hsc::getDistortedPositionIterative(point.getX(), point.getY(), &x, &y, _elevation.asDegrees());
     return afw::geom::Point2D(x/_plateScale,y/_plateScale);
 }
 
 afw::geom::Point2D DistEstXYTransform::reverseTransform(afw::geom::Point2D const &point) const
 { 
     float x, y;
-    hsc::meas::match::getDistortedPosition(point.getX(), point.getY(), &x, &y, _elevation.asDegrees());
+    lsst::obs::hsc::getDistortedPosition(point.getX(), point.getY(), &x, &y, _elevation.asDegrees());
     return afw::geom::Point2D(x/_plateScale,y/_plateScale);
 }
 
