@@ -33,6 +33,7 @@
 #include "lsst/afw/geom/AffineTransform.h"
 #include "lsst/afw/geom/Angle.h"
 #include "lsst/afw/geom/XYTransform.h"
+#include "lsst/afw/geom/Point.h"
 
 namespace lsst {
 namespace obs {
