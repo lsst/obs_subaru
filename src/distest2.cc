@@ -6,14 +6,25 @@
 #include<iostream>
 #include<vector>
 #include<cmath>
+#include "lsst/obs/hsc/distest2.h"
 
 using namespace std;
+
+namespace {
+
 std::vector< double > InvPROJECTION(std::vector< double >CRVAL,std::vector< double >POS);
 std::vector< double >    PROJECTION(std::vector< double >CRVAL,std::vector< double >POS);
 std::vector< double > CALC_IMPIX(std::vector< double >POS);
 std::vector< double > CALC_IMWLD(std::vector< double >POS);
 std::vector< double > CALC_IMPIX_SIM(std::vector< double >POS);
 std::vector< double > CALC_IMWLD_SIM(std::vector< double >POS);
+
+} // anonymous namespace
+
+namespace lsst {
+namespace obs {
+namespace hsc {
+
 std::vector< double > MAKE_Vdouble(){
 	std::vector< double > A(2);
 	return A;
@@ -22,6 +33,7 @@ std::vector< std::vector< double > > MAKE_VVdouble(){
 	std::vector< std::vector< double > > A;
 	return A;
 }
+
 std::vector< std::vector< double >  > CALC_RADEC(std::vector< double > CRVAL,std::vector< double > CRPIX,std::vector< std::vector< double >  > POSITION){
 	std::vector< std::vector< double >  > DIST_RADEC;
 	std::vector< double > RADEC(2);

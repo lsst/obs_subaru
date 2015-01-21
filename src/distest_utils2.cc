@@ -13,8 +13,8 @@
 
 #include "boost/format.hpp"
 #include "lsst/pex/exceptions.h"
-#include "hsc/meas/match/distest_utils2.h"
-#include "hsc/meas/match/LeastSquares.h"
+#include "lsst/obs/hsc/distest_utils2.h"
+#include "lsst/obs/hsc/LeastSquares.h"
 
 //extern double ***Coef;
 namespace {
@@ -30,6 +30,10 @@ namespace {
         }
     }
 }
+
+namespace lsst {
+namespace obs {
+namespace hsc {
 
 #if 1
 // interface function for getting "Distorted pos (pix)" from input:"Undistorted pos (pix)"
@@ -156,82 +160,6 @@ void convUndist2DistPosIterative(float x_undist, float y_undist, float *x_dist, 
                           % x_undist % y_undist % nIterMax % x_dist_tmp % y_dist_tmp));
 }
 
-
-#if 0
-double	F_CCDtoSKY_X(int ELOrder, double EL,double ***Coef, double X, double Y)
-{
-    int CS=0;
-    return F_CS(CS,ELOrder,EL,Coef,X,Y);
-}
-
-double	F_CCDtoSKY_Y(int ELOrder, double EL,double ***Coef, double X, double Y)
-{
-    int CS=1;
-    return F_CS(CS,ELOrder,EL,Coef,X,Y);
-}
-
-double	F_SKYtoCCD_X(int ELOrder, double EL,double ***Coef, double X, double Y)
-{
-    int CS=2;
-    return F_CS(CS,ELOrder,EL,Coef,X,Y);
-}
-
-double	F_SKYtoCCD_Y(int ELOrder, double EL,double ***Coef, double X, double Y)
-{
-    int CS=3;
-    return F_CS(CS,ELOrder,EL,Coef,X,Y);
-}
-
-double F_CS(int CS,int ELOrder, double EL,double ***Coef, double X, double Y)
-{
-    int i,ix,iy,ELi;
-    double ZCoef[13]={0},Z,**ELZ,XEL,*PX,*PY;
-    double *a = NULL;
-//    char fCoef[100];
-
-    PX = malloc(sizeof(double)*(XYOrder+1));
-    PY = malloc(sizeof(double)*(XYOrder+1));
-    ELZ = malloc(sizeof(double *)*12);
-    for(i=0;i<12;i++){
-        ELZ[i] = malloc(sizeof(double)*2);
-        ELZ[i][0]=ELZ[i][1]=0;
-        ZCoef[i]=0;
-    }
-
-    PX[0]=1;
-    PY[0]=1;
-    for(i=0;i<XYOrder;i++){
-        PX[i+1]=PX[i]*X;
-        PY[i+1]=PY[i]*Y;
-    }
-
-    for(i=0, ELi=30; ELi<90; i++, ELi+=5){
-        Z=0.0;
-//        ixy = 0;
-        a = Coef[CS][i];
-        for(ix=0;ix<XYOrder+1;ix++) {
-            for(iy=0;iy<XYOrder+1-ix;iy++) {
-                Z+=(*a)*PX[ix]*PY[iy];
-                a++;
-            }
-        }
-        ELZ[i][0]=ELi;
-        ELZ[i][1]=Z;
-    }
-    F_LS1(12,ELOrder,ELZ,ZCoef);
-    XEL=0;
-    for(i=0;i<(ELOrder+1);i++)
-        XEL+=ZCoef[i]*pow(EL,i);
-
-    for(i=0;i<12;i++)
-        free(ELZ[i]);
-    free(ELZ);
-    free(PX);
-    free(PY);
-
-    return XEL;
-}
-#endif
 
 void F_CS_CCD2SKY_XY(int ELOrder, double EL,double ***Coef, double X, double Y, double *X_out, double *Y_out)
 {
@@ -3271,3 +3199,6 @@ void F_SETCOEF_HSCSIM(double ***Coef)
 
     return;
 }
+
+
+}}} // namespace lsst::obs::hsc
