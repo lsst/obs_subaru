@@ -1119,3 +1119,5 @@ std::vector< double > CALC_IMWLD_SIM(std::vector< double >POS){
 	return POS2;
 }
 
+
+}}} // namespace lsst::obs::hsc
