@@ -7,6 +7,11 @@
 //--------------------------------------------------
 
 #include<cmath>
+
+namespace lsst {
+namespace obs {
+namespace hsc {
+
 void    F_InvM(int MNUM,double **Min,double **Mout){
     int i,j,k;
     double Mdi,**Mtemp,**Mtemp2,**I,**Itemp;
@@ -286,3 +291,6 @@ void    F_LS2NN(int dataNUM,int Order,double data[][3],double Coef[]){
     free( Z); 
 
 }    */
+
+
+}}} // namespace lsst::obs::hsc

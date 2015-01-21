@@ -1,12 +1,12 @@
 #include<cstdio>
 #include<cstdlib>
 #include<cmath>
-#include "hsc/meas/match/distest.h"
-#include "hsc/meas/match/distest_utils2.h"
+#include "lsst/obs/hsc/distest.h"
+#include "lsst/obs/hsc/distest_utils2.h"
 
 
 /*------------------------------------------------------------------------------*/
-void hsc::meas::match::getDistortedPosition(float x_undist, float y_undist, float* x_dist, float* y_dist, float elevation)
+void lsst::obs::hsc::getDistortedPosition(float x_undist, float y_undist, float* x_dist, float* y_dist, float elevation)
 /*------------------------------------------------------------------------------*/
 {
     /* global variables for distortion coefficients by Okura-kun */
@@ -59,7 +59,7 @@ void hsc::meas::match::getDistortedPosition(float x_undist, float y_undist, floa
 
 
 /*------------------------------------------------------------------------------*/
-void hsc::meas::match::getDistortedPositionIterative(float x_undist, float y_undist, float* x_dist, float* y_dist, float elevation)
+void lsst::obs::hsc::getDistortedPositionIterative(float x_undist, float y_undist, float* x_dist, float* y_dist, float elevation)
 /*------------------------------------------------------------------------------*/
 {
     /* global variables for distortion coefficients by Okura-kun */
@@ -111,7 +111,7 @@ void hsc::meas::match::getDistortedPositionIterative(float x_undist, float y_und
 
 
 /*------------------------------------------------------------------------------*/
-void hsc::meas::match::getUndistortedPosition(float x_dist, float y_dist, float* x_undist, float* y_undist, float elevation)
+void lsst::obs::hsc::getUndistortedPosition(float x_dist, float y_dist, float* x_undist, float* y_undist, float elevation)
 /*------------------------------------------------------------------------------*/
 {
 

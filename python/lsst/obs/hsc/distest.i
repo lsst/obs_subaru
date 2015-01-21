@@ -13,10 +13,10 @@
 #include<cstdio>
 #include<cstdlib>
 #include<cmath>
-#include "hsc/meas/match/distest.h"
-#include "hsc/meas/match/distest_utils2.h"
-#include "hsc/meas/match/LeastSquares.h"
-#include "hsc/meas/match/distest2.h"
+#include "lsst/obs/hsc/distest.h"
+#include "lsst/obs/hsc/distest_utils2.h"
+#include "lsst/obs/hsc/LeastSquares.h"
+#include "lsst/obs/hsc/distest2.h"
 %}
 %{
 // This part should include definitions of newly defined
@@ -24,11 +24,11 @@
 // Typically, used to define a larger function combining
 // smaller functions in the original C++ code.
 %}
-%include "hsc/meas/match/distest2.h"
+%include "lsst/obs/hsc/distest2.h"
 
+namespace lsst {
+namespace obs { 
 namespace hsc {
-namespace meas { 
-namespace match {
         void getDistortedPosition(float x_undist, float y_undist, float *OUTPUT, float *OUTPUT, float elevation);
         void getDistortedPositionIterative(float x_undist, float y_undist, float *OUTPUT, float *OUTPUT, float elevation);
         void getUndistortedPosition(float x_dist, float y_dist, float *OUTPUT, float *OUTPUT, float elevation);
