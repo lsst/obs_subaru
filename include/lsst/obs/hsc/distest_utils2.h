@@ -1,9 +1,13 @@
-#ifndef DISTEST_UTILS2_H
-#define DISTEST_UTILS2_H
+#ifndef LSST_OBS_HSC_DISTEST_UTILS2_H
+#define LSST_OBS_HSC_DISTEST_UTILS2_H
 #include<iostream>
 #include<cstdlib>
 #include<fstream>
 #include<cmath>
+
+namespace lsst {
+namespace obs {
+namespace hsc {
 
 const int XYOrder = 9;
 
@@ -28,5 +32,7 @@ void   F_SETCOEF_HSCSIM(double ***Coef);
 void F_CS_CCD2SKY_XY(int ELOrder, double EL, double ***Coef, double X, double Y, double *X_out, double *Y_out);
 void F_CS_SKY2CCD_XY(int ELOrder, double EL, double ***Coef, double X, double Y, double *X_out, double *Y_out);
 ///void   F_LS1(int ,int ,double **,double *);
+
+}}} // namespace lsst::obs::hsc
 
 #endif
