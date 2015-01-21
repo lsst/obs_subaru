@@ -24,7 +24,7 @@ namespace {
         float const elevationMin = 30;
         float const elevationMax = 85;
         if (elevation < elevationMin || elevation > elevationMax) {
-            throw LSST_EXCEPT(lsst::pex::exceptions::InvalidParameterException,
+            throw LSST_EXCEPT(lsst::pex::exceptions::InvalidParameterError,
                               str(boost::format("Elevation=%g is invalid (must be between %g and %g)")
                                   % elevation % elevationMin % elevationMax));
         }
@@ -154,7 +154,7 @@ void convUndist2DistPosIterative(float x_undist, float y_undist, float *x_dist, 
 
     }
 
-    throw LSST_EXCEPT(lsst::pex::exceptions::OutOfRangeException,
+    throw LSST_EXCEPT(lsst::pex::exceptions::OutOfRangeError,
                       str(boost::format("Too many iterations undistorting (%.3f, %.3f); "
                                         "giving up after %d at (%.3f, %.3f)")
                           % x_undist % y_undist % nIterMax % x_dist_tmp % y_dist_tmp));
