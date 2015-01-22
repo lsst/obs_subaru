@@ -41,7 +41,11 @@ def genDefectFits(cameraName, source, targetDir):
         defects[ccd].append(Defect(x0=int(x0), y0=int(y0), width=int(width), height=int(height)))
     f.close()
 
-    for ccd in defects.keys():
+    for ccd in ccds:
+        # Make empty defect FITS file for CCDs with no defects
+        if not defects.has_key(ccd):
+            defects[ccd] = list()
+
         columns = list()
         for colName in Defect._fields:
             colData = numpy.array([d._asdict()[colName] for d in defects[ccd]])
