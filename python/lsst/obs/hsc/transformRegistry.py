@@ -15,8 +15,7 @@ class DistEstXYTransformConfig(Config):
        dtype = float,
     )
 def makeDistEstTransform(config):
-    angle = afwGeom.Angle(config.elevation, afwGeom.degrees)
-    return DistEstXYTransform(angle, config.plateScale)
+    elevation = afwGeom.Angle(config.elevation, afwGeom.degrees)
+    return DistEstXYTransform(elevation, config.plateScale)
 makeDistEstTransform.ConfigClass = DistEstXYTransformConfig
 xyTransformRegistry.register("distEst", makeDistEstTransform)
-    
