@@ -15,6 +15,10 @@ class DistEstXYTransformConfig(Config):
        dtype = float,
     )
 def makeDistEstTransform(config):
+    """ Make a DistEst XYTransform object
+    @param[in] config: pexConfig.Config object containing the elevation and plateScale needed to construct the
+    transform
+    """
     elevation = afwGeom.Angle(config.elevation, afwGeom.degrees)
     return DistEstXYTransform(elevation, config.plateScale)
 makeDistEstTransform.ConfigClass = DistEstXYTransformConfig
