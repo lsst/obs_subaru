@@ -3,9 +3,8 @@ import lsst.pex.policy as pexPolicy
 import lsst.afw.table as afwTable
 import lsst.afw.geom as afwGeom
 import lsst.afw.cameraGeom as cameraGeom
-from lsst.afw.cameraGeom import SCIENCE, FOCAL_PLANE, PUPIL, PIXELS, CameraConfig, DetectorConfig,\
+from lsst.afw.cameraGeom import SCIENCE, FOCAL_PLANE, PUPIL, CameraConfig, DetectorConfig,\
                                 makeCameraFromCatalogs
-from lsst.obs.hsc.transformRegistry import xyTransformRegistry
 from lsst.obs.hsc.hscMapper import HscMapper
 from lsst.obs.suprimecam import SuprimecamMapper
 
@@ -270,7 +269,7 @@ def parseCcds(policy, ccdParams, ccdToUse=None):
         if detConfig.serial in specialChipMap:
             detConfig.detectorType = specialChipMap[detConfig.serial]
         else:
-            detConfig.detectorType = cameraGeom.SCIENCE
+            detConfig.detectorType = SCIENCE
         detConfig.pixelSize_x = ccdParam['pixelSize']
         detConfig.pixelSize_y = ccdParam['pixelSize']
         detConfig.refpos_x = (ccdParam['xsize'] - 1)/2.
@@ -292,7 +291,7 @@ def parseCcds(policy, ccdParams, ccdToUse=None):
 
             lparms = None
             # Only science ccds (serial 0 through 103) have linearity params defined in hsc_geom.paf
-            if detConfig.detectorType is cameraGeom.SCIENCE:
+            if detConfig.detectorType is SCIENCE:
                 if lParams.has_key(ccd.get('serial')) :
                     for ep in lParams[ccd.get('serial')]:
                         if amp['id'] == ep['index']:
