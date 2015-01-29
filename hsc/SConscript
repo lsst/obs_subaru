@@ -14,7 +14,7 @@ python = "PYTHONPATH=%s " % environ["PYTHONPATH"]
 
 defectsDatList = glob.glob("defects/*/defects.dat")
 for defectsDat in defectsDatList:
-    command = "%s bin/genDefectFits.py hsc %s --force" % (python, os.path.join("hsc", defectsDat))
+    command = "%s bin/genDefectFits.py HSC %s --force" % (python, os.path.join("hsc", defectsDat))
     env.AlwaysBuild(env.Command(defectsDat + "-fits", defectsDat, command))
 
 command = "%s bin/genDefectRegistry.py --root hsc/defects" % (python)
