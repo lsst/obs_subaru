@@ -34,6 +34,15 @@ def makeDir(dirPath, doClobber=False):
     os.makedirs(dirPath)
 
 def makeCameraFromPolicy(filename, cameraname, writeRepo=False, outputDir=None, doClobber=False, shortNameMethod=lambda x: x):
+    """Make a camera repository suitable for reading by the butler using a policy file
+    @param[in] filename  Name of the policy file to open.
+    @param[in] cameraname  Name of the camera being used
+    @param[in] writeRepo  Write the repository to disk?  Default is False
+    @param[in] outputDir Directory to write to.
+    @param[in] doClobber Clobber existing repository?
+    @param[in] shortNameMethod Method to generate short, filename-like names for sensors
+    @return a Camera object.
+    """
     policyFile = pexPolicy.DefaultPolicyFile("afw", "CameraGeomDictionary.paf", "policy")
     defPolicy = pexPolicy.Policy.createPolicy(policyFile, policyFile.getRepositoryPath(), True)
 
@@ -63,6 +72,11 @@ def makeCameraFromPolicy(filename, cameraname, writeRepo=False, outputDir=None, 
     return makeCameraFromCatalogs(camConfig, ccdInfoDict['ampInfo'])
 
 def parseCamera(policy, cameraname):
+    """ Parse a policy file for a Camera object
+    @param[in] policy  pexPolicy.Policy object to parse
+    @param[in] cameraname  name of camerea being used
+    @return afw.CameraGeom.CameraConfig object
+    """
     camPolicy = policy.get('Camera')
     camConfig = CameraConfig()
     camConfig.name = camPolicy.get('name')
@@ -94,6 +108,10 @@ def parseCamera(policy, cameraname):
     return camConfig
 
 def makeAmpParams(policy):
+    """ Parse amplifier parameters from a Policy object
+    @param[in] policy  pexPolicy.Policy object to parse
+    @return dictionary of dictionaries describing the various amp types
+    """
     retParams = {}
     for amp in policy.getArray('Amp'):
         retParams[amp.get('ptype')] = {}
@@ -104,6 +122,11 @@ def makeAmpParams(policy):
     return retParams
 
 def makeCcdParams(policy, ampParms):
+    """ Make a dictionary of CCD parameters from a pexPolicy.Policy
+    @param[in] policy  pexPolicy.Policy object to parse
+    @param[in] ampParms  dictionary of dictionaries describing the amps in the camera
+    @returns a dictionary of dictionaries describing the CCDs in the camera
+    """
     retParams = {}
     for ccd in policy.getArray('Ccd'):
         ptype = ccd.get('ptype')
@@ -131,6 +154,11 @@ def makeCcdParams(policy, ampParms):
     return retParams
 
 def makeEparams(policy):
+    """ Make a dictionary of parameters describing the amps
+    @param[in] policy  pexPolicy.Policy object to parse
+    @return dictionary of dictionars containing the electronic parameters
+    for each amp.
+    """
     rafts = policy.getArray('Electronic.Raft')
     if len(rafts) > 1:
         raise ValueError("These cameras should only have one raft")
@@ -150,6 +178,7 @@ def makeLparams(policy):
     """Return a dictionary of amp linearity properties for this amp
 
     @param[in] policy: policy file for amp
+    @return a dictionary describing the linearity parameters for each amp
     """
     linearitypars = policy.getArray('Linearity')
     lparms = {}
@@ -234,6 +263,13 @@ def addAmp(ampCatalog, amp, eparams, lparams):
     record.setRawPrescanBBox(pscanSec)
 
 def parseCcds(policy, ccdParams, ccdToUse=None):
+    """ parse a policy into a set of ampInfo and detectorConfig objects
+    @param[in] policy  Policy to parse
+    @param[in] ccdParams  dictionary of dictionaries describing the ccds in the camera
+    @param[in] ccdToUse  Override the type of ccd to use given in the policy
+    @return a dictionary of lists with detectorConfigs with the 'ccdInfo' key and AmpInfoCatalogs
+    with the 'ampInfo' key
+    """
     # The pafs I have now in the hsc dir include the focus sensors (but not the guiders)
     specialChipMap = {'108':cameraGeom.FOCUS, '110':cameraGeom.FOCUS, '111':cameraGeom.FOCUS,
                       '107':cameraGeom.FOCUS, '105':cameraGeom.FOCUS, '104':cameraGeom.FOCUS,
