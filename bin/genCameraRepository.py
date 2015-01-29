@@ -5,8 +5,6 @@ import lsst.afw.geom as afwGeom
 import lsst.afw.cameraGeom as cameraGeom
 from lsst.afw.cameraGeom import SCIENCE, FOCAL_PLANE, PUPIL, CameraConfig, DetectorConfig,\
                                 makeCameraFromCatalogs
-from lsst.obs.hsc.hscMapper import HscMapper
-from lsst.obs.suprimecam import SuprimecamMapper
 
 import argparse
 import eups
@@ -17,7 +15,7 @@ import shutil
 FOCAL_PLANE_PIXELS = cameraGeom.CameraSys('Focal_Plane_Pixels')
 
 PIXELSIZE = 0.015 #mm/pix
-def makeCameraFromPolicy(filename, writeRepo=False, outputDir=None, doClobber=False, shortNameMethod=lambda x: x):
+def makeCameraFromPolicy(filename, cameraname, writeRepo=False, outputDir=None, doClobber=False, shortNameMethod=lambda x: x):
     policyFile = pexPolicy.DefaultPolicyFile("afw", "CameraGeomDictionary.paf", "policy")
     defPolicy = pexPolicy.Policy.createPolicy(policyFile, policyFile.getRepositoryPath(), True)
 
@@ -28,7 +26,7 @@ def makeCameraFromPolicy(filename, writeRepo=False, outputDir=None, doClobber=Fa
     ccdParams = makeCcdParams(geomPolicy, ampParams)
     ccdToUse = None
     ccdInfoDict = parseCcds(geomPolicy, ccdParams, ccdToUse)
-    camConfig = parseCamera(geomPolicy)
+    camConfig = parseCamera(geomPolicy, cameraname)
     camConfig.detectorList = dict([(i, ccdInfo) for i, ccdInfo in enumerate(ccdInfoDict['ccdInfo'])])
     if writeRepo:
         if outputDir is None:
@@ -63,7 +61,7 @@ def makeCameraFromPolicy(filename, writeRepo=False, outputDir=None, doClobber=Fa
 
     return makeCameraFromCatalogs(camConfig, ccdInfoDict['ampInfo'])
 
-def parseCamera(policy):
+def parseCamera(policy, cameraname):
     camPolicy = policy.get('Camera')
     camConfig = CameraConfig()
     camConfig.name = camPolicy.get('name')
@@ -71,21 +69,19 @@ def parseCamera(policy):
     # camConfig.plateScale = 13.751 #arcsec/mm
     camConfig.plateScale = 11. #arcsec/mm
 
-    tConfig = afwGeom.TransformConfig()
+
     #Need to invert because this is stored with FOCAL_PLANE to PUPIL as the
-    #forward transform
-    tConfig.transform.name = 'distEst'
-    tConfig.transform.active.plateScale = camConfig.plateScale
-    #This defaults to 45. anyway, but to show how it is set
-    tConfig.transform.active.elevation = 45.
-    """
-    radialClass = afwGeom.xyTransformRegistry['radial']
-    tConfig.transform.active.transform.retarget(radialClass)
-    #The distorition is in pixels (I think), convert to radians
-    conv = 1./afwGeom.arcsecToRad(camConfig.plateScale)
-    coeffs = [conv*coeff for coeff in camPolicy.getArray('Distortion.RadialPolyDistortion.coeffs')]
-    tConfig.transform.active.transform.coeffs = coeffs
-    """
+    #forward transform: only for HSC
+    if cameraname.lower() == 'hsc':
+        tConfig = afwGeom.TransformConfig()
+        tConfig.transform.name = 'distEst'
+        tConfig.transform.active.plateScale = camConfig.plateScale
+        #This defaults to 45. anyway, but to show how it is set
+        tConfig.transform.active.elevation = 45.
+    else:
+        #I don't know what the PUPIL transform is for non-HSC cameras is
+        tConfig = afwGeom.TransformConfig()
+        tConfig.transform.name = 'identity'
     tpConfig = afwGeom.TransformConfig()
     tpConfig.transform.name = 'affine'
     tpConfig.transform.active.linear = [1/PIXELSIZE, 0, 0, 1/PIXELSIZE]
@@ -317,7 +313,6 @@ def parseCcds(policy, ccdParams, ccdToUse=None):
     return {"ccdInfo":ccdInfoList, "ampInfo":ampInfoDict}
 
 if __name__ == "__main__":
-    mapperDict = {'hsc':HscMapper, 'suprimecam':SuprimecamMapper}
     baseDir = eups.productDir("obs_subaru")
 
     parser = argparse.ArgumentParser()
@@ -328,5 +323,12 @@ if __name__ == "__main__":
         help="remove and re-create the output directory if it exists")
     args = parser.parse_args()
 
-    camera = makeCameraFromPolicy(args.LayoutPolicy, writeRepo=True, outputDir=args.OutputDir, doClobber=args.clobber,
-        shortNameMethod=mapperDict[args.InstrumentName].getShortCcdName)
+    if args.InstrumentName.lower() == 'hsc':
+        from lsst.obs.hsc.hscMapper import HscMapper
+        mapper = HscMapper
+    else:
+        from lsst.obs.suprimecam import SuprimecamMapper
+        mapper = SuprimecamMapper
+
+    camera = makeCameraFromPolicy(args.LayoutPolicy, args.InstrumentName, writeRepo=True, outputDir=args.OutputDir, doClobber=args.clobber,
+        shortNameMethod=mapper.getShortCcdName)
