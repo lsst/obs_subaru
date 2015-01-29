@@ -15,6 +15,24 @@ import shutil
 FOCAL_PLANE_PIXELS = cameraGeom.CameraSys('Focal_Plane_Pixels')
 
 PIXELSIZE = 0.015 #mm/pix
+
+def makeDir(dirPath, doClobber=False):
+    """Make a directory; if it exists then clobber or fail, depending on doClobber
+
+    @param[in] dirPath: path of directory to create
+    @param[in] doClobber: what to do if dirPath already exists:
+        if True and dirPath is a dir, then delete it and recreate it, else raise an exception
+    @throw RuntimeError if dirPath exists and doClobber False
+    """
+    if os.path.exists(dirPath):
+        if doClobber and os.path.isdir(dirPath):
+            print "Clobbering directory %r" % (dirPath,)
+            shutil.rmtree(dirPath)
+        else:
+            raise RuntimeError("Directory %r exists" % (dirPath,))
+    print "Creating directory %r" % (dirPath,)
+    os.makedirs(dirPath)
+
 def makeCameraFromPolicy(filename, cameraname, writeRepo=False, outputDir=None, doClobber=False, shortNameMethod=lambda x: x):
     policyFile = pexPolicy.DefaultPolicyFile("afw", "CameraGeomDictionary.paf", "policy")
     defPolicy = pexPolicy.Policy.createPolicy(policyFile, policyFile.getRepositoryPath(), True)
@@ -31,23 +49,6 @@ def makeCameraFromPolicy(filename, cameraname, writeRepo=False, outputDir=None, 
     if writeRepo:
         if outputDir is None:
             raise ValueError("Need output directory for writting")
-        def makeDir(dirPath, doClobber=False):
-            """Make a directory; if it exists then clobber or fail, depending on doClobber
-
-            @param[in] dirPath: path of directory to create
-            @param[in] doClobber: what to do if dirPath already exists:
-                if True and dirPath is a dir, then delete it and recreate it, else raise an exception
-            @throw RuntimeError if dirPath exists and doClobber False
-            """
-            if os.path.exists(dirPath):
-                if doClobber and os.path.isdir(dirPath):
-                    print "Clobbering directory %r" % (dirPath,)
-                    shutil.rmtree(dirPath)
-                else:
-                    raise RuntimeError("Directory %r exists" % (dirPath,))
-            print "Creating directory %r" % (dirPath,)
-            os.makedirs(dirPath)
-
         # write data products
         makeDir(dirPath=outputDir, doClobber=doClobber)
 
