@@ -15,6 +15,7 @@ import lsst.afw.geom as afwGeom
 import lsst.afw.math as afwMath
 from lsst.obs.subaru.crosstalkYagi import YagiCrosstalkTask
 import lsst.meas.algorithms as measAlg
+import lsst.afw.display.ds9 as ds9
 
 try:
     import hsc.fitsthumb as fitsthumb
@@ -246,7 +247,11 @@ class SubaruIsrTask(IsrTask):
         if self.config.doWrite:
             sensorRef.put(ccdExposure, "postISRCCD")
 
-        self.display("postISRCCD", ccdExposure)
+        if self._display:
+            im = ccdExposure.getMaskedImage().getImage()
+            im_median = float(numpy.median(im.getArray()))
+            ds9.mtv(im)
+            ds9.scale(min=im_median*0.95, max=im_median*1.15)
 
         return Struct(exposure=ccdExposure)
 
