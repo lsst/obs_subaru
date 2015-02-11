@@ -20,9 +20,7 @@ Python interface to lsst::meas::deblender classes
 #include "lsst/afw/cameraGeom.h"
 #include "lsst/afw/math.h"
 
-#include "lsst/afw/image/Calib.h"
-#include "lsst/afw/image/ImageSlice.h"
-#include "lsst/afw/image/TanWcs.h"
+#include "lsst/afw/image.h"
 %}
 
 %inline %{
