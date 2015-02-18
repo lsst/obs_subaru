@@ -3,6 +3,8 @@
 import os
 import numpy
 
+from contextlib import contextmanager
+
 from lsst.pex.config import Field
 from lsst.pipe.base import Task, Struct
 from lsst.ip.isr import IsrTask
@@ -199,6 +201,11 @@ class SubaruIsrTask(IsrTask):
         ccdExposure = self.assembleCcd.assembleCcd(ccdExposure)
         ccd = ccdExposure.getDetector()
 
+        doRotateCalib = False   # Rotate calib images for bias/dark/flat correction?
+        nQuarter = ccd.getOrientation().getNQuarter()
+        if nQuarter != 0:
+            doRotateCalib = True
+
         if self.config.doDefect:
             defects = sensorRef.get('defects', immediate=True)
             self.maskAndInterpDefect(ccdExposure, defects)
@@ -209,16 +216,27 @@ class SubaruIsrTask(IsrTask):
             self.writeThumbnail(sensorRef, "ossThumb", ccdExposure)
 
         if self.config.doBias:
-            self.biasCorrection(ccdExposure, sensorRef)
+            if not doRotateCalib:
+                self.biasCorrection(ccdExposure, sensorRef)
+            else:
+                with self.rotated(ccdExposure) as exp:
+                    self.biasCorrection(exp, sensorRef)
         if self.config.doLinearize:
             self.linearize(ccdExposure)
         if self.config.doCrosstalk:
             self.crosstalk.run(ccdExposure)
         if self.config.doDark:
-            self.darkCorrection(ccdExposure, sensorRef)
-
+            if not doRotateCalib:
+                self.darkCorrection(ccdExposure, sensorRef)
+            else:
+                with self.rotated(ccdExposure) as exp:
+                    self.darkCorrection(exp, sensorRef)
         if self.config.doFlat:
-            self.flatCorrection(ccdExposure, sensorRef)
+            if not doRotateCalib:
+                self.flatCorrection(ccdExposure, sensorRef)
+            else:
+                with self.rotated(ccdExposure) as exp:
+                    self.flatCorrection(exp, sensorRef)
 
         if self.config.doApplyGains:
             self.applyGains(ccdExposure, self.config.normalizeGains)
@@ -254,6 +272,15 @@ class SubaruIsrTask(IsrTask):
             ds9.scale(min=im_median*0.95, max=im_median*1.15)
 
         return Struct(exposure=ccdExposure)
+
+    @contextmanager
+    def rotated(self, exp):
+        nQuarter = exp.getDetector().getOrientation().getNQuarter()
+        exp.setMaskedImage(afwMath.rotateImageBy90(exp.getMaskedImage(), 4 - nQuarter))
+        try:
+            yield exp
+        finally:
+            exp.setMaskedImage(afwMath.rotateImageBy90(exp.getMaskedImage(), nQuarter))
 
     def applyGains(self, ccdExposure, normalizeGains):
         ccd = ccdExposure.getDetector()
