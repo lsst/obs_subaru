@@ -12,7 +12,7 @@ import lsst.afw.cameraGeom.utils as cameraGeomUtils
 
 def trimCcd(ccd, ccdImage=""):
     """Trim a Ccd and maybe the image of the untrimmed Ccd"""
-    
+
     if ccdImage == "":
         ccdImage = cameraGeomUtils.makeImageFromCcd(ccd)
 
@@ -36,7 +36,7 @@ def trimCcd(ccd, ccdImage=""):
 
 class SuprimecamGeomTestCase(unittest.TestCase):
     """A test case for Suprime Cam camera geometry"""
-    
+
     def setUp(self):
         SuprimecamGeomTestCase.ampSerial = [0] # an array so we pass the value by reference
 

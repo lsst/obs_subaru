@@ -7,12 +7,13 @@ import re
 import sqlite3 as sqlite
 import sys
 
+pixelScale = 0.168                      # arcsec/pixel
 #
 # Possible output fields, in order (not all need be present)
 #
 fieldList = [
     "visit",
-    "frameid",
+    #"frameid",
     "object",
     "dateObs",
     "utc",
@@ -22,6 +23,7 @@ fieldList = [
     "exptime",
     "altitude",
     "instRot",
+    "fwhm",
     "memo",
     ]
 #
@@ -42,7 +44,7 @@ fmts = {
     "dec2000" : "%13s",
     "memo" : "%-30s",
     # other available fields
-    "fwhm" : "%4.1f",
+    "fwhm" : "%5.2f",
     "nCcd" : "%3d",
     "rerun" : "20s",
     }
@@ -111,6 +113,8 @@ ORDER BY visit %s
     for line in ret:
         visit, rerun, pointing, dateObs, object, filter, header_str, header, \
             updated_at, fwhm, nCcd, memo = line
+        if fwhm:
+            fwhm *= pixelScale          # convert to arcsec
 
         header = json.loads(header)
         if not header:

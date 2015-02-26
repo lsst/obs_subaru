@@ -87,7 +87,7 @@ def fitPlane(mi, niter=3, tol=1e-5, nsigma=5, returnResidualImage=False):
             break
 
         z, dzdx, dzdy = b
-        
+
     if returnResidualImage:             # need to update with latest values
         plane = z + dzdx*X + dzdy*Y
         resim.getArray()[:] = im.getArray() - plane.reshape(height, width)
@@ -118,7 +118,7 @@ values of r, theta, and dlnI/dr from this image appended.
 
     if hasattr(exp, "getMaskedImage"):
         mi = exp.getMaskedImage()
-        ccd = afwCamGeom.cast_Ccd(exp.getDetector())
+        ccd = exp.getDetector()
     else:
         mi = exp
         ccd = None
@@ -126,7 +126,7 @@ values of r, theta, and dlnI/dr from this image appended.
     try:
         mi = mi.convertF()
     except AttributeError:
-        pass        
+        pass
 
     if r is not None or lnGrad is not None:
         assert ccd is not None, "I need a CCD to set r and the logarithmic gradient"
@@ -153,7 +153,7 @@ values of r, theta, and dlnI/dr from this image appended.
                     ds9Utils.drawBBox(bbox, frame=frame0)
 
                 b, res = fitPlane(mi[bbox].getImage(), returnResidualImage=returnResidualImage, niter=5)
-                
+
                 b[1:] /= b[0]
                 za[iy, ix], dlnzdxa[iy, ix], dlnzdya[iy, ix] = b
 
@@ -172,7 +172,7 @@ values of r, theta, and dlnI/dr from this image appended.
                             lnGrad.append(dlnzdra[iy, ix])
                             if theta is not None:
                                 theta.append(t)
-                    
+
     if frame is not None:
         if False:
             ds9.mtv(z,    title="z",     frame=frame); frame += 1
@@ -183,7 +183,7 @@ values of r, theta, and dlnI/dr from this image appended.
 
     return dlnzdx, dlnzdy, dlnzdr, residualImage
 
-class FitPatchesWork(object): 
+class FitPatchesWork(object):
     """Given a bin factor and dataId, return r, theta, and lnGrad arrays"""
     def __init__(self, butler, bin, verbose=False):
         self.butler = butler
@@ -258,7 +258,7 @@ def fitRadialParabola(mi, niter=3, tol=1e-5, nsigma=5, returnResidualImage=False
             break
 
         c0, c1, c2 = b
-        
+
     if returnResidualImage:             # need to update with latest values
         fit = (c0 - c00) + c1*R + c2*R**2 # n.b. not c0
         resim.getArray()[:] = im.getArray() - fit.reshape(height, width)
@@ -266,7 +266,7 @@ def fitRadialParabola(mi, niter=3, tol=1e-5, nsigma=5, returnResidualImage=False
         return b, res
     else:
         return b, None
-    
+
 #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 class LnGradImage(cgUtils.GetCcdImage):
@@ -277,7 +277,7 @@ class LnGradImage(cgUtils.GetCcdImage):
     camera = butler.get("camera")
     cgUtils.showCamera(camera, LnGradImage(butler, bin=bin, visit=903442), frame=0, bin=bin)
     """
-    
+
     def __init__(self, butler, bin=256, background=np.nan, verbose=False, *args, **kwargs):
         """Initialise
         gravity  If the image returned by the butler is trimmed (e.g. some of the SuprimeCam CCDs)
@@ -292,7 +292,7 @@ class LnGradImage(cgUtils.GetCcdImage):
         self.imageIsBinned = True       # i.e. images returned by getImage are already binned
 
         self.isRaw = False
-        
+
         self.gravity = None
         self.background = background
 
@@ -372,7 +372,7 @@ def radialProfile(butler, visit, ccds=None, bin=128, nJob=None, plot=False):
     verbose = True
     if nJob:
         pool = multiprocessing.Pool(nJob)
-        
+
     fitPatchesWorkArgs = []
     for ccdNum in ccds:
         dataId = dict(visit=visit, ccd=ccdNum)
@@ -392,7 +392,7 @@ def radialProfile(butler, visit, ccds=None, bin=128, nJob=None, plot=False):
 
         pool.close()
         pool.join()
-        
+
         pool.close()
         pool.join()
 
@@ -402,7 +402,7 @@ def radialProfile(butler, visit, ccds=None, bin=128, nJob=None, plot=False):
         plotRadial(r, lnGrad, theta)
 
     return r, lnGrad, theta
-    
+
 def makeRadial(r, lnGrad, nBin=100, profile=False, rmax=None, median=True):
     """
 Return r and lnGrad binned into nBin bins.  If profile is True, integrate the lnGrad to get the radial profile
@@ -451,7 +451,7 @@ def plotRadial(r, lnGrad, theta=None, title=None, profile=False, showMedians=Fal
     norm = pyplot.Normalize(-180, 180)
     cmap = pyplot.cm.rainbow
     scalarMap = pyplot.cm.ScalarMappable(norm=norm, cmap=cmap)
-    
+
     if profile or showMedians or showMeans:
         bins = np.linspace(0, min(18000, np.max(r)), nBin)
         binWidth = bins[1] - bins[0]
@@ -487,7 +487,7 @@ def plotRadial(r, lnGrad, theta=None, title=None, profile=False, showMedians=Fal
             kwargs = dict(markersize=5.0, markeredgewidth=0, alpha=alpha, label=label)
             if color:
                 kwargs["color"] = color
-            
+
             pyplot.plot(rbar, lng, marker, **kwargs)
         if binAngle > 0:
             pyplot.legend(loc="lower left")
@@ -507,7 +507,7 @@ def plotRadial(r, lnGrad, theta=None, title=None, profile=False, showMedians=Fal
     pyplot.ylabel(ylabel if ylabel else "I" if profile else "d lnI/d r")
     if title:
         pyplot.title(title)
-        
+
     pyplot.show()
 
 def profilePca(butler, visits=None, ccds=None, bin=64, nBin=30, nPca=2, grad={},
@@ -636,7 +636,7 @@ def profilePca(butler, visits=None, ccds=None, bin=64, nBin=30, nPca=2, grad={},
             pyplot.legend(loc="best", ncol=2, numpoints=1, columnspacing=0)
         xlabel = "$C_1/C_0$"
         ylabel = "flux" if plotFlux else "$C_2/C_0$"
-        
+
     if plotFit or plotResidual:
         plotInit()
         pyplot.title(("Const + " if subtractMean else "") + ("%d PCA components" % nPca))
@@ -700,7 +700,7 @@ def medianFilterImage(img, nx, ny=None):
 try:
     labels
 except NameError:
-    labels = {904670 : "El=90", 904672 : "El=60", 904678 : "El=45", 904674 : "El=30", 904676 : "El=15", 
+    labels = {904670 : "El=90", 904672 : "El=60", 904678 : "El=45", 904674 : "El=30", 904676 : "El=15",
               904524 : "domeflat", 904526 : "domeflat", 904528 : "domeflat", 904530 : "domeflat",
               904532 : "domeflat",
               904778 : "skyflat", 904780 : "skyflat", 904782 : "skyflat",
@@ -712,7 +712,7 @@ except NameError:
 def diffs(mosaics, visits, refVisit=None, scale=True, raw=None,
           rng=20, IRatioMax=1.0, frame0=0, verbose=False):
     """Display a series of differences and/or scaled differences
-    (scale = True, False, (True, False), ...)    
+    (scale = True, False, (True, False), ...)
     """
 
     visits = list(visits)               # in case it's an iterator, and to get a copy
@@ -795,7 +795,7 @@ def imagePca(mosaics, visits=None, nComponent=3, log=False, rng=30,
 
     if showOriginal and showRecon:
         raise RuntimeError("You may not specify both showOriginal and showRecon")
-    
+
     try:
         rng[0]
     except TypeError:
@@ -818,7 +818,7 @@ def imagePca(mosaics, visits=None, nComponent=3, log=False, rng=30,
             X, Y = np.meshgrid(np.arange(mask.getWidth()), np.arange(mask.getHeight()))
             maska[np.where(np.hypot(X - 571, Y - 552) > 531)] = np.nan
             del maska
-            
+
             mask[ 168: 184, 701:838] = np.nan
             mask[ 667: 733, 420:556] = np.nan
             mask[ 653: 677, 548:570] = np.nan
@@ -890,7 +890,7 @@ def imagePca(mosaics, visits=None, nComponent=3, log=False, rng=30,
             im = mosaics[v]
             if scale:
                 im /= afwMath.makeStatistics(im, afwMath.MEANCLIP).getValue()
-                
+
             for i in range(nComponent):
                 b[i] = np.dot(eImages[i].getArray()[good], im.getArray()[good])
 
@@ -971,7 +971,7 @@ def correctVignettingAndDistortion(camera, mosaics, bin=32):
 
     X, Y = bin*np.meshgrid(np.arange(im.getWidth()), np.arange(im.getHeight()))
     X -= 18208.0; Y -= 17472.0
-    
+
     vig = utils.getVignetting(X, Y);           # Vignetting correction
     correction = utils.getPixelArea(camera, X, Y) # Jacobian correction
     correction *= vig
@@ -1052,7 +1052,7 @@ visits may be a filter name
     stripe82l +=  range(904350, 904400+1, 2)           # y
 
     science = abell2163 + dth_a + dth_16h + stripe82l
-    
+
     darkDome = []
     darkDome += range(904326, 904330+1, 2) # g
     darkDome += [904520] + range(904534, 904538+1, 2) + range(904670, 904678+1, 2) + range(904786, 904794+1,2) # i
@@ -1091,7 +1091,7 @@ visits may be a filter name
 
             if v in [902976]:           # too faint
                 continue
-            
+
             if v in darkDome:
                 continue
 
@@ -1110,7 +1110,7 @@ visits may be a filter name
 
             if rawFilterName == filterName.lower():
                 visits.append(v)
-                
+
     if visits:
         if not filterName:
             if butler:
@@ -1203,7 +1203,7 @@ visit & median flux & exposure time & line type & line colour \\
               'black' if v in science else \
               'red'   if v in skyflats else \
               'blue'
-        
+
         if True:
             columns = (v, med, calib.getExptime() if calib else np.nan, marker, ctype)
             if LaTeX:

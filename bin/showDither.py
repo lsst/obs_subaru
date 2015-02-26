@@ -31,7 +31,7 @@ def main(butler, visits, fields, fieldRadius, showCCDs=False, aitoff=False, alph
                 print >> sys.stderr, e
             continue
 
-        ccd = afwCG.cast_Ccd(exp.getDetector())
+        ccd = exp.getDetector()
 
         xy = ccd.getPixelFromPosition(afwCG.FpPoint(0,0))
         sky = exp.getWcs().pixelToSky(xy)
@@ -46,7 +46,7 @@ def main(butler, visits, fields, fieldRadius, showCCDs=False, aitoff=False, alph
         axes.grid(1)
     else:
         axes = plt.gca()
-        axes.set_aspect('equal') 
+        axes.set_aspect('equal')
 
     ctypes = dict(BIAS="orange",
                   DARK="cyan",
@@ -83,14 +83,14 @@ def main(butler, visits, fields, fieldRadius, showCCDs=False, aitoff=False, alph
             if not key in ctypeKeys:
                 ctypeKeys[key] = colors[len(ctypeKeys)%len(colors)]
             facecolor = ctypeKeys[key]
-        
+
         circ = Circle(xy=(r, d), radius=fieldRadius, fill=False if showCCDs else True,
                       facecolor=facecolor, alpha=alpha)
         axes.add_artist(circ)
 
         if showCCDs:
             pathCodes = [Path.MOVETO, Path.LINETO, Path.LINETO, Path.LINETO, Path.CLOSEPOLY,]
-            
+
             for ccd in butler.queryMetadata("raw", "visit", ["ccd"], visit=v):
                 try:
                     md = butler.get("raw_md", visit=v, ccd=ccd)
@@ -125,7 +125,7 @@ def main(butler, visits, fields, fieldRadius, showCCDs=False, aitoff=False, alph
         raRange = np.max(ra)   - np.min(ra)  + 1.2*fieldRadius
         decRange = np.max(dec) - np.min(dec) + 1.2*fieldRadius
         raRange *= np.cos(np.radians(np.mean(dec)))
-        
+
         plt.xlim(0.5*(np.max(ra)  + np.min(ra))  +  raRange*np.array((1, -1)))
         plt.ylim(0.5*(np.max(dec) + np.min(dec)) + decRange*np.array((-1, 1)))
 
@@ -162,7 +162,7 @@ E.g.
                         help="Colour pointings by their visit", default=False)
     parser.add_argument('--aitoff', action="store_true", help="Use an Aitoff projection", default=False)
     parser.add_argument('--verbose', action="store_true", help="Be chatty", default=False)
-    
+
     args = parser.parse_args()
 
     if not args.dataDir:
@@ -197,7 +197,7 @@ E.g.
         # check that they really exist
         #
         visits = list(set(visits) & set(butler.queryMetadata("raw", "visit", ccd=0)))
- 
+
     if args.dateObs or args.field or args.filter:
         query = {}
         if args.field:
@@ -206,7 +206,7 @@ E.g.
         if args.filter:
             if args.filter in "grizy":
                 args.filter = "HSC-%s" % args.filter.upper()
-                
+
             query["filter"] = args.filter
 
         _visits = []

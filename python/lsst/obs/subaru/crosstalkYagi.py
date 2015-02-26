@@ -271,14 +271,14 @@ def main(visit=131634, ccd=None, threshold=45000, nSample=1, showCoeffs=True, fi
         visitList = makeList(visit)
 
     coeffs = estimateCoeffs(visitList, ccdList, threshold=45000, plot=plot, title=title)
-    
+
     if showCoeffs:
         printCoeffs(coeffs)
 
     mi = readImage(visitList[0], ccdList[0])
     if fixXTalk:
         subtractXTalk(mi, coeffs, threshold)
-        
+
     return mi, coeffs
 
 

@@ -2,7 +2,7 @@
 
 needCalibRegistry: true
 
-camera:     "../suprimecam/Full_Suprimecam_geom.paf"
+camera:     "../suprimecam/camera"
 defects:    "../suprimecam/defects"
 
 levels: {
@@ -57,15 +57,6 @@ exposures: {
         tables:        "raw"
         tables:        "raw_visit"
     }
-    ubercalexp: {
-        template:      "%(pointing)05d/%(filter)s/corr/CORR%(visit)07d%(ccd)1d.fits"
-        python:        "lsst.afw.image.ExposureF"
-        persistable:   "ExposureF"
-        storage:       "FitsStorage"
-        level:         "Ccd"
-        tables:        "raw"
-        tables:        "raw_visit"
-    }
 
     revexp: {
         template:      "%(pointing)05d/%(filter)s/corr/CORW%(visit)07d%(ccd)d.fits"
@@ -88,25 +79,25 @@ exposures: {
     }
 
     wcs: {
-        template: "%(pointing)05d/%(filter)s/corr/wcs%(visit)07d%(ccd)1d.fits"
+        template: "%(pointing)05d/%(filter)s/corr/%(tract)04d/wcs%(visit)07d%(ccd)1d.fits"
         python:        "lsst.afw.image.ExposureI"
         persistable:        "ExposureI"
         storage:    "FitsStorage"
         level:        "Ccd"
         tables:        "raw"
         tables:        "raw_visit"
-        tables:        "raw_skyTile"
+        columns:       "pointing" "filter" "visit" "ccd"
     }
 
     fcr: {
-        template: "%(pointing)05d/%(filter)s/corr/fcr%(visit)07d%(ccd)1d.fits"
+        template: "%(pointing)05d/%(filter)s/corr/%(tract)04d/fcr%(visit)07d%(ccd)1d.fits"
         python:        "lsst.afw.image.ExposureI"
         persistable:        "ExposureI"
         storage:    "FitsStorage"
         level:        "Ccd"
         tables:        "raw"
         tables:        "raw_visit"
-        tables:        "raw_skyTile"
+        columns:       "pointing" "filter" "visit" "ccd"
     }
     detj: {
         template:      "%(pointing)05d/%(filter)s/corr/DETJ%(visit)07d%(ccd)1d.fits"
@@ -116,6 +107,7 @@ exposures: {
         level:        "Ccd"
         tables:        "raw"
         tables:        "raw_visit"
+        columns:       "pointing" "filter" "visit" "ccd"
     }
     dcor: {
         template:      "%(pointing)05d/%(filter)s/corr/DCOR%(visit)07d%(ccd)1d.fits"
@@ -125,51 +117,25 @@ exposures: {
         level:        "Ccd"
         tables:        "raw"
         tables:        "raw_visit"
+        columns:       "pointing" "filter" "visit" "ccd"
     }
     calibrated_src: {
-        template:      "%(pointing)05d/%(filter)s/output/CALSRC%(visit)07d%(ccd)1d.fits"
+        template:      "%(pointing)05d/%(filter)s/output/%(tract)04d/CALSRC%(visit)07d%(ccd)1d.fits"
         python:        "lsst.afw.table.SourceCatalog"
         persistable:   "SourceCatalog"
         storage:       "FitsCatalogStorage"
         tables:        "raw"
         tables:        "raw_visit"
+        columns:       "pointing" "filter" "visit" "ccd"
     }
     calibrated_exp:  {
-        template:      "%(pointing)05d/%(filter)s/corr/CALEXP-%(visit)07d%(ccd)1d.fits"
+        template:      "%(pointing)05d/%(filter)s/corr/%(tract)04d/CALEXP-%(visit)07d%(ccd)1d.fits"
         python:        "lsst.afw.image.ExposureF"
         persistable:   "ExposureF"
         storage:       "FitsStorage"
         tables:        "raw"
         tables:        "raw_visit"
-    }
-
-    warp: {
-        template:      "warp/v%(visit)07d-f%(filter)s/s%(patch)d.fits"
-        python:        "lsst.afw.image.ExposureF"
-        persistable:        "ExposureF"
-        storage:    "FitsStorage"
-        level:        "Skytile"
-        tables:        "raw"
-        tables:        "raw_visit"
-        columns:       "visit"
-        columns:       "filter"
-    }
-
-    stack: {
-        template:      "stack/%(stack)05d/STK%(patch)08d%(filter)s.fits"
-        python:        "lsst.afw.image.ExposureF"
-        persistable:        "ExposureF"
-        storage:    "FitsStorage"
-        level:        "Skytile"
-        tables:        "raw_skytile"
-    }
-    stack_calexp: {
-        template:      "stack/%(stack)05d/STKCORR%(patch)08d%(filter)s.fits"
-        python:        "lsst.afw.image.ExposureF"
-        persistable:        "ExposureF"
-        storage:    "FitsStorage"
-        level:        "Skytile"
-        tables:        "raw_skytile"
+        columns:       "pointing" "filter" "visit" "ccd"
     }
 
     deepCoadd: {
@@ -216,15 +182,6 @@ exposures: {
 
     diff: {
         template:      "diff/%(diff)05d/DIFF%(patch)08d.fits"
-        python:        "lsst.afw.image.ExposureF"
-        persistable:        "ExposureF"
-        storage:    "FitsStorage"
-        level:        "Skytile"
-        tables:        "raw_skytile"
-    }
-
-    chisquared: {
-        template:      "stack/%(stack)05d/CHI%(patch)08d.fits"
         python:        "lsst.afw.image.ExposureF"
         persistable:        "ExposureF"
         storage:    "FitsStorage"
@@ -448,94 +405,6 @@ datasets: {
     }
 
 
-    stack_initPsf: {
-        template:    "stack/%(stack)05d/INITPSF%(patch)08d%(filter)s.boost"
-	python:      "lsst.afw.detection.Psf"
-        persistable: "Psf"
-        storage:     "BoostStorage"
-        tables:      raw
-    }
-
-    stack_psf: {       
-        template:      "stack/%(stack)05d/PSF%(patch)08d%(filter)s.boost"
-        python:        "lsst.afw.detection.Psf"
-        persistable:        "Psf"
-        storage:    "BoostStorage"
-        tables:        "raw"
-        tables:        "raw_visit"
-    }
-    stack_apCorr: {
-        template:      "stack/%(stack)05d/APC%(patch)08d%(filter)s.fits"
-        python:        "lsst.meas.algorithms.ApertureCorrection"
-        persistable:        "ApertureCorrection"
-        storage:    "PickleStorage"
-        tables:        raw
-        tables:        raw_visit
-    }
-    stack_src: {
-        template:      "stack/%(stack)05d/SRC%(patch)08d%(filter)s.fits"
-        python:        "lsst.afw.table.SourceCatalog"
-        persistable:        "SourceCatalog"
-        storage:    "FitsCatalogStorage"
-        tables:        "raw"
-        tables:        "raw_visit"
-    }
-    stack_src_schema: {
-        template:      "schema/stack_src.fits"
-        python:        "lsst.afw.table.SourceCatalog"
-        persistable:   "SourceCatalog"
-        storage:       "FitsCatalogStorage"
-        tables:        "raw"
-        tables:        "raw_visit"
-    }
-    stack_icMatch: {
-        template:      "stack/%(stack)05d/MATCH%(patch)08d%(filter)s.fits"
-        python:        "lsst.afw.table.BaseCatalog"
-        persistable:        "BaseCatalog"
-        storage:    "FitsCatalogStorage"
-        tables:        "raw"
-        tables:        "raw_visit"
-    }
-    stack_icMatchFull: {
-        template:      "stack/%(stack)05d/ML%(patch)08d%(filter)s.fits"
-        python:        "lsst.afw.table.BaseCatalog"
-        persistable:   "BaseCatalog"
-        storage:       "FitsCatalogStorage"
-        tables:        "raw"
-        tables:        "raw_visit"
-    }
-    stack_srcMatch: {
-        template:      "stack/%(stack)05d/SRCMATCH%(patch)08d%(filter)s.fits"
-        python:        "lsst.afw.table.BaseCatalog"
-        persistable:   "BaseCatalog"
-        storage:       "FitsCatalogStorage"
-        tables:        "raw"
-        tables:        "raw_visit"
-    }
-    stack_srcMatchFull: {
-        template:      "stack/%(stack)05d/SRCML%(patch)08d%(filter)s.fits"
-        python:        "lsst.afw.table.BaseCatalog"
-        persistable:   "BaseCatalog"
-        storage:       "FitsCatalogStorage"
-        tables:        "raw"
-        tables:        "raw_visit"
-    }
-    stack_icSrc: {
-        template:      "stack/%(stack)05d/ICSRC%(patch)08d%(filter)s.fits"
-        python:        "lsst.afw.table.SourceCatalog"
-        persistable:   "SourceCatalog"
-        storage:       "FitsCatalogStorage"
-        tables:        "raw"
-        tables:        "raw_visit"
-    }
-    stack_icSrc_schema: {
-        template:      "schema/stack_icSrc.fits"
-        python:        "lsst.afw.table.SourceCatalog"
-        persistable:   "SourceCatalog"
-        storage:       "FitsCatalogStorage"
-        tables:        "raw"
-        tables:        "raw_visit"
-    }
 
     log: {
         template:      "%(pointing)05d/%(filter)s/logs/run.log"
@@ -548,15 +417,6 @@ datasets: {
         python:        "str"
         persistable:   "None"
         storage:       "None"
-    }
-
-    stackrgb: {
-        # Will be read/written directly by the user; here for _filename only
-        template:      "stack/%(stack)05d/SRC%(patch)08d.tiff"
-        python:        "lsst.afw.extensions.rgb.RgbImageF"
-        persistable:   "RgbImageF"
-        storage:       "SelfStorage"
-        tables:        "None"
     }
 
     diffsources: {
@@ -638,6 +498,13 @@ datasets: {
         persistable:  "ignored"
         storage:      "ignored"
         tables:       "raw"
+    }
+
+    eups_versions: {
+        template:      "config/eups.versions"
+        python:        "lsst.daf.persistence.EupsVersions"
+        persistable:   "ignored"
+        storage:       "EupsStorage"
     }
 
     processCcd_config: {
@@ -953,16 +820,12 @@ datasets: {
         python:        "lsst.afw.table.SourceCatalog"
         persistable:        "ignored"
         storage:    "FitsCatalogStorage"
-        tables:        raw
-        tables:        raw_skyTile
     }
     deep_forcedPhotCoadd_config: {
         template:      "config/forcedPhotCoadd.py"
         python:        "lsst.pipe.tasks.forcedPhotCoadd.ForcedPhotCoaddConfig"
         persistable:      "Config"
         storage:    "ConfigStorage"
-        tables:        raw
-        tables:        raw_visit
     }
     deep_forcedPhotCoadd_metadata: {
         template:      "deepCoadd_forcedPhotCoadd_metadata/%(filter)s/%(tract)d/%(patch)s.boost"
@@ -987,23 +850,19 @@ datasets: {
         persistable:        "ignored"
         storage:    "FitsCatalogStorage"
         tables:        raw
-        tables:        raw_skyTile
+        tables:        raw_visit
     }
     forced_src_schema: {
         template:      "schema/forced_src.fits"
         python:        "lsst.afw.table.SourceCatalog"
         persistable:        "ignored"
         storage:    "FitsCatalogStorage"
-        tables:        raw
-        tables:        raw_skyTile
     }
     forcedPhotCcd_config: {
         template:      "config/forcedPhotCcd.py"
         python:        "lsst.pipe.tasks.forcedPhotCcd.ForcedPhotCcdConfig"
         persistable:      "Config"
         storage:    "ConfigStorage"
-        tables:        raw
-        tables:        raw_visit
     }
     forcedPhotCcd_metadata: {
         template:      "%(pointing)05d/%(filter)s/tract%(tract)d/forcedPhotCcd_metadata/%(visit)07d%(ccd)1d.boost"

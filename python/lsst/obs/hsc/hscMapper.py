@@ -3,22 +3,17 @@
 import os
 import pwd
 
+import lsst.daf.base as dafBase
 from lsst.daf.butlerUtils import CameraMapper
 import lsst.afw.image.utils as afwImageUtils
 import lsst.afw.image as afwImage
 import lsst.afw.math as afwMath
 import lsst.afw.geom as afwGeom
 import lsst.pex.policy as pexPolicy
-from .hscLib import HscDistortion
-
-try: # just to let meas_mosaic be an optional dependency
-    from lsst.meas.mosaic import applyMosaicResults
-except ImportError:
-    applyMosaicResults = None
 
 class HscMapper(CameraMapper):
     """Provides abstract-physical mapping for HSC data"""
-    
+
     def __init__(self, **kwargs):
         policyFile = pexPolicy.DefaultPolicyFile("obs_subaru", "HscMapper.paf", "policy")
         policy = pexPolicy.Policy(policyFile)
@@ -31,7 +26,7 @@ class HscMapper(CameraMapper):
             kwargs['calibRoot'] = os.path.join(kwargs['root'], 'CALIB')
 
         super(HscMapper, self).__init__(policy, policyFile.getRepositoryPath(), **kwargs)
-        
+
         # Ensure each dataset type of interest knows about the full range of keys available from the registry
         keys = {'field': str,
                 'visit': int,
@@ -59,11 +54,6 @@ class HscMapper(CameraMapper):
                      ):
             self.mappings[name].keyDict.update(keys)
 
-        # Distortion isn't pluggable, so we'll put in our own
-        elevation = 45 * afwGeom.degrees
-        distortion = HscDistortion(elevation)
-        self.camera.setDistortion(distortion)
-        
         # SDSS g': http://www.naoj.org/Observing/Instruments/SCam/txt/g.txt
         # SDSS r': http://www.naoj.org/Observing/Instruments/SCam/txt/r.txt
         # SDSS i': http://www.naoj.org/Observing/Instruments/SCam/txt/i.txt
@@ -82,6 +72,7 @@ class HscMapper(CameraMapper):
         afwImageUtils.defineFilter(name='i', lambdaEff=775, alias=['W-S-I+', 'HSC-I'])
         afwImageUtils.defineFilter(name='z', lambdaEff=925, alias=['W-S-Z+', 'HSC-Z'])
         afwImageUtils.defineFilter(name='y', lambdaEff=990, alias=['W-S-ZR', 'HSC-Y'])
+        afwImageUtils.defineFilter(name='N656', lambdaEff=921, alias=['NB0656'])
         afwImageUtils.defineFilter(name='N921', lambdaEff=921, alias=['NB0921'])
         afwImageUtils.defineFilter(name='SH', lambdaEff=0, alias=['SH',])
         afwImageUtils.defineFilter(name='PH', lambdaEff=0, alias=['PH',])
@@ -111,15 +102,14 @@ class HscMapper(CameraMapper):
             # Get the canonical name -- see #2113
             self.filters[f] = afwImage.Filter(afwImage.Filter(f).getId()).getName()
         #
-        # The number of bits allocated for fields in object IDs
+        # The number of bits allocated for fields in object IDs, appropriate for
+        # the default-configured Rings skymap.
         #
-        # FIXME: this bit allocation is for LSST's huge-tract skymaps, and needs
-        # to be updated to something more appropriate for Subaru
-        # (actually, it shouldn't be the mapper's job at all; see #2797).
+        # This shouldn't be the mapper's job at all; see #2797.
 
-        HscMapper._nbit_tract =   7
-        HscMapper._nbit_patch  = 13
-        HscMapper._nbit_filter =  5
+        HscMapper._nbit_tract = 16
+        HscMapper._nbit_patch  = 5
+        HscMapper._nbit_filter = 6
 
         HscMapper._nbit_id = 64 - (HscMapper._nbit_tract + 2*HscMapper._nbit_patch + HscMapper._nbit_filter)
 
@@ -139,11 +129,6 @@ class HscMapper(CameraMapper):
         copyId.pop("flags", None)
         return super(HscMapper, self).map(datasetType, copyId, write=write)
 
-
-    def std_camera(self, item, dataId):
-        """Standardize a camera dataset by converting it to a camera object."""
-        return self.camera
-
     @staticmethod
     def _flipChipsLR(exp, wcs, dataId, dims=None):
         """Flip the chip left/right or top/bottom. Process either/and the pixels and wcs
@@ -154,7 +139,7 @@ Most chips are flipped L/R, but the rotated ones (100..103) are flipped T/B
             exp.setMaskedImage(afwMath.flipImage(exp.getMaskedImage(), flipLR, flipTB))
         if wcs:
             wcs.flipImage(flipLR, flipTB, exp.getDimensions() if dims is None else dims)
-        
+
         return exp
 
     def std_raw_md(self, md, dataId):
@@ -172,9 +157,17 @@ Most chips are flipped L/R, but the rotated ones (100..103) are flipped T/B
             md.set(k, wcsMd.get(k))
 
         return md
-    
+
     def std_raw(self, item, dataId):
         exp = super(HscMapper, self).std_raw(item, dataId)
+
+        md = exp.getMetadata()
+        if md.exists("MJD-STR"):
+            calib = exp.getCalib()
+            expTime = calib.getExptime()
+            obsStart = dafBase.DateTime(md.get("MJD-STR"), dafBase.DateTime.MJD, dafBase.DateTime.UTC)
+            obsMidpoint = obsStart.nsecs() + long(expTime * 1000000000L / 2)
+            calib.setMidTime(dafBase.DateTime(obsMidpoint))
 
         return self._flipChipsLR(exp, exp.getWcs(), dataId)
 
@@ -209,12 +202,6 @@ Most chips are flipped L/R, but the rotated ones (100..103) are flipped T/B
     def bypass_ccdExposureId_bits(self, datasetType, pythonType, location, dataId):
         """How many bits are required for the maximum exposure ID"""
         return 32 # just a guess, but this leaves plenty of space for sources
-
-    def build_ubercalexp(self, dataId, butler):
-        if applyMosaicResults is None:
-            raise RuntimeError("Cannot apply mosaic outputs to calexp: meas_mosaic could not be imported")
-        dataRef = butler.dataRef("calexp", **dataId)
-        return applyMosaicResults(dataRef)
 
     def _computeCoaddExposureId(self, dataId, singleFilter):
         """Compute the 64-bit (long) identifier for a coadd.

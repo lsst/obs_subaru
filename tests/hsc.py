@@ -63,7 +63,7 @@ class GetRawTestCase(unittest.TestCase):
         for ccdNum, rotated in zip(self.ccdList, self.rotated):
             butler = getButler(self.datadir)
             raw = butler.get("raw", visit=self.expId, ccd=ccdNum)
-            ccd = cameraGeom.cast_Ccd(raw.getDetector())
+            ccd = raw.getDetector()
 
             print "Visit: ", self.expId
             print "width: ",              raw.getWidth()
@@ -96,7 +96,7 @@ class GetRawTestCase(unittest.TestCase):
                 self.assertEqual(datasec.getMinY(), 0 if not rotated else i*self.ampSize[0])
 
                 # Amplifier on disk
-                datasec = amp.getDiskDataSec()
+                datasec = amp.getRawDataBBox()
                 self.assertEqual(datasec.getWidth(), self.ampSize[0])
                 self.assertEqual(datasec.getHeight(), self.ampSize[1])
 

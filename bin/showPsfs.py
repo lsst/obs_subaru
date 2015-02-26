@@ -61,7 +61,6 @@ def main(dataDir, visit, title="", outputTxtFileName=None,
     for raft in camera:
         raft = cameraGeom.cast_Raft(raft)
         for ccd in raft:
-            ccd = cameraGeom.cast_Ccd(ccd)
             ccd.setTrimmed(True)
             ccds[ccd.getId().getSerial()] = ccd
     #
@@ -69,7 +68,7 @@ def main(dataDir, visit, title="", outputTxtFileName=None,
     #
     xArr = []; yArr = []; ellArr = []; fwhmArr = []
     paArr = []; aArr = []; bArr = [];
-    e1Arr=[]; e2Arr=[]; elle1e2Arr =[]; 
+    e1Arr=[]; e2Arr=[]; elle1e2Arr =[];
     for tab in butler.subset("tableSeeingMap", visit=visit):
         # we could use tab.datasetExists() but it prints a rude message
         fileName = butler.get("tableSeeingMap_filename", **tab.dataId)[0]
@@ -173,7 +172,7 @@ def main(dataDir, visit, title="", outputTxtFileName=None,
     elif showEllipticity:
         title.append("Ellipticity")
         scale = 4
-        
+
         if ellipticityDirection:        # we don't care about the magnitude
             ellArr = 0.1
 
@@ -265,7 +264,7 @@ switches to that dataDir (the one on the command line is used previously)
     parser.add_argument('--showEllipticity', action="store_true", help="Show the stars' ellipticity",
                         default=False)
     parser.add_argument('--showNdataFwhm', action="store_true", help="Show the num of sources used to make Fwhm grids", default=False)
-    parser.add_argument('--showNdataEll', action="store_true", help="Show the num of sources used to make ellipticity grids", default=False)        
+    parser.add_argument('--showNdataEll', action="store_true", help="Show the num of sources used to make ellipticity grids", default=False)
     parser.add_argument('--minNdata', type=int, help="Minimum N sources to plot", default=None)
     parser.add_argument('--maxNdata', type=int, help="Maximum N sources to plot", default=None)
 
@@ -276,7 +275,7 @@ switches to that dataDir (the one on the command line is used previously)
     parser.add_argument('--verbose', action="store_true", help="Be chatty", default=False)
     parser.add_argument('--outputPlotFile', help="File to save output to", default=None)
     parser.add_argument('--outputTxtFile', help="File to save output to", default=None)
-    
+
     args = parser.parse_args()
 
     if not (args.dataDir or args.inputFile):
@@ -305,7 +304,7 @@ switches to that dataDir (the one on the command line is used previously)
                     if mat:
                         dd = mat.group(1)
                     continue
-                
+
                 v, t = re.split(r"\s+", line, 1)
                 t = t.replace("\t", " ")
                 desires.append([dd, v, t])
@@ -325,7 +324,7 @@ switches to that dataDir (the one on the command line is used previously)
                     visits.append(v)
             else:
                 visits.append(int(v))
-            
+
         desires = [[args.dataDir, v, args.rerun if args.rerun else ""] for v in visits]
 
     for dataDir, visit, title in desires:
@@ -343,9 +342,9 @@ switches to that dataDir (the one on the command line is used previously)
                    correctDistortion=args.correctDistortion,
                    showEllipticity=args.showEllipticity, ellipticityDirection=args.ellipticityDirection,
                    showNdataFwhm = args.showNdataFwhm, showNdataEll = args.showNdataEll,
-                   minNdata=args.minNdata, maxNdata=args.maxNdata, 
+                   minNdata=args.minNdata, maxNdata=args.maxNdata,
                    verbose=args.verbose)
-                        
+
         if pp:
             try:
                 pp.savefig()

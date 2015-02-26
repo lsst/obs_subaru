@@ -9,16 +9,16 @@ root.isr.assembleCcd.doRenorm = False
 # Cosmic rays and background estimation
 root.calibrate.repair.cosmicray.nCrPixelMax = 1000000
 root.calibrate.repair.cosmicray.cond3_fac2 = 0.4
-root.calibrate.background.binSize = 256
+root.calibrate.background.binSize = 128
 root.calibrate.background.undersampleStyle = 'REDUCE_INTERP_ORDER'
-root.calibrate.detection.background.binSize = 256
+root.calibrate.detection.background.binSize = 128
 root.calibrate.detection.background.undersampleStyle='REDUCE_INTERP_ORDER'
-root.detection.background.binSize = 256
+root.detection.background.binSize = 128
 root.detection.background.undersampleStyle = 'REDUCE_INTERP_ORDER'
 
 # PSF determination
-root.calibrate.measurePsf.starSelector.name = "objectSize"
-root.calibrate.measurePsf.starSelector["objectSize"].sourceFluxField = "initial.flux.psf"
+root.calibrate.measurePsf.starSelector.name = 'objectSize'
+root.calibrate.measurePsf.starSelector['objectSize'].sourceFluxField = 'base_PsfFlux_flux'
 try:
     import lsst.meas.extensions.psfex.psfexPsfDeterminer
     root.calibrate.measurePsf.psfDeterminer["psfex"].spatialOrder = 2
@@ -41,6 +41,11 @@ try:
 except ImportError:
     print "hscAstrom is not setup; using LSST's meas_astrom instead"
 
+# Reference catalog may not have as good star/galaxy discrimination as our data
+root.calibrate.photocal.badFlags += ['base_ClassificationExtendedness_value',]
+root.measurement.algorithms['base_ClassificationExtendedness'].fluxRatio = 0.95
+# LAM the following had to be set to affect the fluxRatio used in photocal in meas_astrom
+root.calibrate.measurement.plugins['base_ClassificationExtendedness'].fluxRatio = 0.95
 
 # Detection
 root.detection.isotropicGrow = True
@@ -48,11 +53,10 @@ root.detection.returnOriginalFootprints = False
 
 # Measurement
 root.doWriteSourceMatches = True
-root.measurement.algorithms.names |= ["jacobian", "focalplane"]
 
-root.measurement.algorithms.names |= ["flux.aperture"]
+root.measurement.algorithms.names |= ['base_CircularApertureFlux']
 # Roughly (1.0, 1.4, 2.0, 2.8, 4.0, 5.7, 8.0, 11.3, 16.0, 22.6 arcsec) in diameter: 2**(0.5*i)
-root.measurement.algorithms["flux.aperture"].radii = [3.0, 4.5, 6.0, 9.0, 12.0, 17.0, 25.0, 35.0, 50.0, 70.0]
+root.measurement.algorithms['base_CircularApertureFlux'].radii = [3.0, 4.5, 6.0, 9.0, 12.0, 17.0, 25.0, 35.0, 50.0, 70.0]
 
 try:
     import lsst.meas.extensions.photometryKron
@@ -60,7 +64,6 @@ try:
 except ImportError:
     print "Cannot import lsst.meas.extensions.photometryKron: disabling Kron measurements"
 
-root.measurement.algorithms['classification.extendedness'].fluxRatio = 0.95
 
 # Enable deblender for processCcd
 root.measurement.doReplaceWithNoise = True

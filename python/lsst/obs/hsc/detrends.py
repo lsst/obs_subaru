@@ -31,7 +31,7 @@ class HscFlatCombineTask(FlatCombineTask):
         care, as it just dumps it out via the Butler.
         """
         combined = super(HscFlatCombineTask, self).run(sensorRefList, *args, **kwargs)
-        mi = afwImage.makeMaskedImage(combined)
+        mi = afwImage.makeMaskedImage(combined.getImage())
         mi.getMask().set(0)
 
         # Retrieve the detector
@@ -92,7 +92,6 @@ class HscFlatCombineTask(FlatCombineTask):
         """
         mask.addMaskPlane(self.config.maskPlane)
         bitMask = mask.getPlaneBitMask(self.config.maskPlane)
-        detector = afwcg.cast_Ccd(detector)
         if detector is None:
             raise RuntimeError("Detector isn't a Ccd")
         ccdSerial = detector.getId().getSerial()

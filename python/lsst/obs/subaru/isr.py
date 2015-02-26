@@ -3,6 +3,8 @@
 import os
 import numpy
 
+from contextlib import contextmanager
+
 from lsst.pex.config import Field
 from lsst.pipe.base import Task, Struct
 from lsst.ip.isr import IsrTask
@@ -15,6 +17,7 @@ import lsst.afw.geom as afwGeom
 import lsst.afw.math as afwMath
 from lsst.obs.subaru.crosstalkYagi import YagiCrosstalkTask
 import lsst.meas.algorithms as measAlg
+import lsst.afw.display.ds9 as ds9
 
 try:
     import hsc.fitsthumb as fitsthumb
@@ -67,7 +70,7 @@ class SubaruIsrConfig(IsrTask.ConfigClass):
                                               dtype=bool, default=True)
     doOverscan = pexConfig.Field(doc="Do overscan subtraction?", dtype=bool, default=True)
     doVariance = pexConfig.Field(doc="Calculate variance?", dtype=bool, default=True)
-    doDefect = pexConfig.Field(doc="Mask defect pixels?", dtype=bool, default=False)
+    doDefect = pexConfig.Field(doc="Mask defect pixels?", dtype=bool, default=True)
     doGuider = pexConfig.Field(
         dtype = bool,
         doc = "Trim guider shadow",
@@ -164,17 +167,19 @@ class SubaruIsrTask(IsrTask):
                 ccdExposure.setWcs(afwImage.makeWcs(raw_md))
 
         ccdExposure = self.convertIntToFloat(ccdExposure)
-        ccd = afwCG.cast_Ccd(ccdExposure.getDetector())
+        ccd = ccdExposure.getDetector()
 
         for amp in ccd:
             self.measureOverscan(ccdExposure, amp)
             if self.config.doSaturation:
                 self.saturationDetection(ccdExposure, amp)
             if self.config.doOverscan:
-                ampImage = afwImage.MaskedImageF(ccdExposure.getMaskedImage(), amp.getDiskDataSec())
-                overscan = afwImage.MaskedImageF(ccdExposure.getMaskedImage(), amp.getDiskBiasSec())
+                ampImage = afwImage.MaskedImageF(ccdExposure.getMaskedImage(), amp.getRawDataBBox(),
+                                                 afwImage.PARENT)
+                overscan = afwImage.MaskedImageF(ccdExposure.getMaskedImage(), amp.getRawHorizontalOverscanBBox(),
+                                                 afwImage.PARENT)
                 overscanArray = overscan.getImage().getArray()
-                median = numpy.median(overscanArray)
+                median = numpy.ma.median(numpy.ma.masked_where(overscan.getMask().getArray(), overscanArray))
                 bad = numpy.where(numpy.abs(overscanArray - median) > self.config.overscanMaxDev)
                 overscan.getMask().getArray()[bad] = overscan.getMask().getPlaneBitMask("SAT")
 
@@ -182,7 +187,7 @@ class SubaruIsrTask(IsrTask):
                 statControl.setAndMask(ccdExposure.getMaskedImage().getMask().getPlaneBitMask("SAT"))
                 lsstIsr.overscanCorrection(ampMaskedImage=ampImage, overscanImage=overscan,
                                            fitType=self.config.overscanFitType,
-                                           polyOrder=self.config.overscanPolyOrder,
+                                           order=self.config.overscanOrder,
                                            collapseRej=self.config.overscanRej,
                                            statControl=statControl,
                                    )
@@ -190,13 +195,20 @@ class SubaruIsrTask(IsrTask):
             if self.config.doVariance:
                 # Ideally, this should be done after bias subtraction,
                 # but CCD assembly demands a variance plane
-                ampExposure = ccdExposure.Factory(ccdExposure, amp.getDiskDataSec())
+                ampExposure = ccdExposure.Factory(ccdExposure, amp.getRawDataBBox(), afwImage.PARENT)
                 self.updateVariance(ampExposure, amp)
 
         ccdExposure = self.assembleCcd.assembleCcd(ccdExposure)
-        ccd = afwCG.cast_Ccd(ccdExposure.getDetector())
+        ccd = ccdExposure.getDetector()
 
-        self.maskAndInterpDefect(ccdExposure)
+        doRotateCalib = False   # Rotate calib images for bias/dark/flat correction?
+        nQuarter = ccd.getOrientation().getNQuarter()
+        if nQuarter != 0:
+            doRotateCalib = True
+
+        if self.config.doDefect:
+            defects = sensorRef.get('defects', immediate=True)
+            self.maskAndInterpDefect(ccdExposure, defects)
 
         if self.config.qa.doWriteOss:
             sensorRef.put(ccdExposure, "ossImage")
@@ -204,23 +216,34 @@ class SubaruIsrTask(IsrTask):
             self.writeThumbnail(sensorRef, "ossThumb", ccdExposure)
 
         if self.config.doBias:
-            self.biasCorrection(ccdExposure, sensorRef)
+            if not doRotateCalib:
+                self.biasCorrection(ccdExposure, sensorRef)
+            else:
+                with self.rotated(ccdExposure) as exp:
+                    self.biasCorrection(exp, sensorRef)
         if self.config.doLinearize:
             self.linearize(ccdExposure)
         if self.config.doCrosstalk:
             self.crosstalk.run(ccdExposure)
         if self.config.doDark:
-            self.darkCorrection(ccdExposure, sensorRef)
+            if not doRotateCalib:
+                self.darkCorrection(ccdExposure, sensorRef)
+            else:
+                with self.rotated(ccdExposure) as exp:
+                    self.darkCorrection(exp, sensorRef)
         if self.config.doFlat:
-            self.flatCorrection(ccdExposure, sensorRef)
+            if not doRotateCalib:
+                self.flatCorrection(ccdExposure, sensorRef)
+            else:
+                with self.rotated(ccdExposure) as exp:
+                    self.flatCorrection(exp, sensorRef)
+
         if self.config.doApplyGains:
             self.applyGains(ccdExposure, self.config.normalizeGains)
         if self.config.doWidenSaturationTrails:
             self.widenSaturationTrails(ccdExposure.getMaskedImage().getMask())
         if self.config.doSaturation:
             self.saturationInterpolation(ccdExposure)
-        if self.config.doDefect:
-            self.maskDefect(ccdExposure, self.config.fwhmForBadColumnInterpolation)
 
         if self.config.doFringe:
             self.fringe.run(ccdExposure, sensorRef)
@@ -241,13 +264,26 @@ class SubaruIsrTask(IsrTask):
 
         if self.config.doWrite:
             sensorRef.put(ccdExposure, "postISRCCD")
-        
-        self.display("postISRCCD", ccdExposure)
+
+        if self._display:
+            im = ccdExposure.getMaskedImage().getImage()
+            im_median = float(numpy.median(im.getArray()))
+            ds9.mtv(im)
+            ds9.scale(min=im_median*0.95, max=im_median*1.15)
 
         return Struct(exposure=ccdExposure)
 
+    @contextmanager
+    def rotated(self, exp):
+        nQuarter = exp.getDetector().getOrientation().getNQuarter()
+        exp.setMaskedImage(afwMath.rotateImageBy90(exp.getMaskedImage(), 4 - nQuarter))
+        try:
+            yield exp
+        finally:
+            exp.setMaskedImage(afwMath.rotateImageBy90(exp.getMaskedImage(), nQuarter))
+
     def applyGains(self, ccdExposure, normalizeGains):
-        ccd = afwCG.cast_Ccd(ccdExposure.getDetector())
+        ccd = ccdExposure.getDetector()
         ccdImage = ccdExposure.getMaskedImage()
 
         medians = []
@@ -301,7 +337,7 @@ class SubaruIsrTask(IsrTask):
                     if x1 >= width - 1: x1 = width - 1
 
                     for x in range(x0, x1 + 1):
-                        mask.set(x, y, saturatedBit)
+                        mask.set(x, y, mask.get(x, y) | saturatedBit)
 
     def setBadRegions(self, exposure):
         """Set all BAD areas of the chip to the average of the rest of the exposure
@@ -318,19 +354,21 @@ class SubaruIsrTask(IsrTask):
         mi = exposure.getMaskedImage()
         mask = mi.getMask()
         BAD = mask.getPlaneBitMask("BAD")
-        fs = afwDetection.FootprintSet(mask, afwDetection.createThreshold(BAD, "bitmask"))
+        INTRP = mask.getPlaneBitMask("INTRP")
 
         sctrl = afwMath.StatisticsControl()
         sctrl.setAndMask(BAD)
         value = afwMath.makeStatistics(mi, statistic, sctrl).getValue()
 
-        afwDetection.setImageFromFootprintList(mi.getImage(), fs.getFootprints(), value)
+        maskArray = mask.getArray()
+        imageArray = mi.getImage().getArray()
+        badPixels = numpy.logical_and((maskArray & BAD) > 0, (maskArray & INTRP) == 0)
+        imageArray[:] = numpy.where(badPixels, value, imageArray)
 
-        self.log.log(self.log.INFO, "Set %d BAD pixels to %.2f" %
-                     (sum([f.getNpix() for f in fs.getFootprints()]), value))
+        self.log.info("Set %d BAD pixels to %.2f" % (badPixels.sum(), value))
 
-    def writeThumbnail(self, dataRef, dataset, exposure, format='png', width=500, height=0):
-        """Write out exposure to a snapshot file named outfile in the given image format and size.
+    def writeThumbnail(self, dataRef, dataset, exposure, width=500, height=0):
+        """Write out exposure to a snapshot file named outfile in the given size.
         """
         if fitsthumb is None:
             self.log.log(self.log.WARN,
@@ -346,19 +384,22 @@ class SubaruIsrTask(IsrTask):
                 if e.errno != 17:
                     raise e
         image = exposure.getMaskedImage().getImage()
-        fitsthumb.createFitsThumb(image, filename, format, width, height, True)
+        fitsthumb.createFitsThumb(image.getArray(), filename, width, height, True)
 
     def measureOverscan(self, ccdExposure, amp):
         clipSigma = 3.0
         nIter = 3
         levelStat = afwMath.MEDIAN
         sigmaStat = afwMath.STDEVCLIP
-        
+
         sctrl = afwMath.StatisticsControl(clipSigma, nIter)
         expImage = ccdExposure.getMaskedImage().getImage()
-        overscan = expImage.Factory(expImage, amp.getDiskBiasSec())
+        overscan = expImage.Factory(expImage, amp.getRawHorizontalOverscanBBox())
         stats = afwMath.makeStatistics(overscan, levelStat | sigmaStat, sctrl)
-        ampNum = amp.getId().getSerial()
+        name = amp.getName()
+        ampNum, _, zero = name.partition(",")
+        assert(zero == "0")
+        ampNum = int(ampNum)
         metadata = ccdExposure.getMetadata()
         metadata.set("OSLEVEL%d" % ampNum, stats.getValue(levelStat))
         metadata.set("OSSIGMA%d" % ampNum, stats.getValue(sigmaStat))
@@ -378,7 +419,7 @@ class SubaruIsrTask(IsrTask):
         metadata.set('SKYLEVEL', skyLevel)
         metadata.set('SKYSIGMA', skySigma)
 
-        # calcluating flatlevel over the subgrids 
+        # calcluating flatlevel over the subgrids
         stat = afwMath.MEANCLIP if self.config.qa.flatness.doClip else afwMath.MEAN
         meshXHalf = int(self.config.qa.flatness.meshX/2.)
         meshYHalf = int(self.config.qa.flatness.meshY/2.)
@@ -406,7 +447,7 @@ class SubaruIsrTask(IsrTask):
         flatness =  (skyLevels[good] - skyMedian) / skyMedian
         flatness_rms = numpy.std(flatness)
         flatness_min = flatness.min()
-        flatness_max = flatness.max() 
+        flatness_max = flatness.max()
         flatness_pp = flatness_max - flatness_min
 
         self.log.info("Measuring sky levels in %dx%d grids: %f" % (nX, nY, skyMedian))
@@ -431,21 +472,22 @@ class SubaruIsrTask(IsrTask):
         """
         assert exposure, "No exposure provided"
 
-        image = exposure.getMaskedImage()
-
-        ccd = afwCG.cast_Ccd(exposure.getDetector())
+        ccd = exposure.getDetector()
 
         linearized = False              # did we apply linearity corrections?
         for amp in ccd:
-            linearity = amp.getElectronicParams().getLinearity()
+            linearityCoefficient = amp.getLinearityCoeffs()[0]
+            linearityThreshold = amp.getLinearityCoeffs()[1]
+            linearityMaxCorrectable = amp.getLinearityCoeffs()[2]
+            linearityType = amp.getLinearityType()
 
-            ampImage = image[amp.getDataSec()]
-            width, height = ampImage.getDimensions()
+            ampImage = afwImage.MaskedImageF(exposure.getMaskedImage(), amp.getBBox(),
+                                                 afwImage.PARENT)
 
             imageTypeMax = 65535        # should be a method on the image
-            setSuspectPixels = linearity.maxCorrectable < imageTypeMax # there might be some
+            setSuspectPixels = linearityMaxCorrectable < imageTypeMax # there might be some
 
-            if not setSuspectPixels and linearity.coefficient == 0.0:
+            if not setSuspectPixels and linearityCoefficient == 0.0:
                 continue                # nothing to do
 
             linearized = True
@@ -454,45 +496,22 @@ class SubaruIsrTask(IsrTask):
             #
             if setSuspectPixels:
                 afwDetection.FootprintSet(ampImage,
-                                          afwDetection.Threshold(linearity.maxCorrectable), "SUSPECT")
+                                          afwDetection.Threshold(linearityMaxCorrectable), "SUSPECT")
 
-            if linearity.type == afwCG.Linearity.PROPORTIONAL:
-                if linearity.threshold != 0.0:
+            if linearityType == 'PROPORTIONAL':
+                if linearityThreshold != 0.0:
                     raise RuntimeError(
                         ("The threshold for PROPORTIONAL linearity corrections must be 0; saw %g" +
-                         " for ccd %s amp %s") % (linearity.threshold, ccd.getId(), amp.getId()))
-                
+                         " for ccd %s amp %s") % (linearityThreshold, ccd.getId(), amp.getName()))
+
                 ampArr = ampImage.getImage().getArray()
-                ampArr *= 1.0 + linearity.coefficient*ampArr
+                ampArr *= 1.0 + linearityCoefficient*ampArr
             else:
-                raise NotImplementedError("Unimplemented linearity type: %d", linearity.type)
+                raise NotImplementedError("Unimplemented linearity type: %d", linearityType)
 
         if linearized:
             self.log.log(self.log.INFO, "Applying linearity corrections to Ccd %s" % (ccd.getId()))
 
-    def maskDefect(self, ccdExposure, fwhm=1.0):
-        """Mask defects using mask plane "BAD"
-
-        @param[in,out]  ccdExposure     exposure to process
-        @param          fwhm            fwhm to use when interpolating (arcsec)
-
-        @warning: call this after CCD assembly, since defects may cross amplifier boundaries
-        """
-        maskedImage = ccdExposure.getMaskedImage()
-        ccd = afwCG.cast_Ccd(ccdExposure.getDetector())
-        defectBaseList = ccd.getDefects()
-        defectList = measAlg.DefectListT()
-        # mask bad pixels in the camera class
-        # create master list of defects and add those from the camera class
-        for d in defectBaseList:
-            bbox = d.getBBox()
-            nd = measAlg.Defect(bbox)
-            defectList.append(nd)
-        lsstIsr.maskPixelsFromDefectList(maskedImage, defectList, maskName='BAD')
-        wcs = ccdExposure.getWcs()
-        if wcs:
-            fwhm /= wcs.pixelScale().asArcseconds()
-        lsstIsr.interpolateDefectList(maskedImage, defectList, fwhm)
 
     def flatCorrection(self, exposure, dataRef):
         """Apply flat correction in-place
@@ -515,7 +534,7 @@ class SubaruIsrTask(IsrTask):
             bad = exposure.getMaskedImage().getMask().getPlaneBitMask(["BAD", "SAT"])
             stats = afwMath.StatisticsControl()
             stats.setAndMask(bad)
-            for amp in afwCG.cast_Ccd(exposure.getDetector()):
+            for amp in exposure.getDetector():
                 box = amp.getDataSec(True)
                 dataAmp = afwImage.MaskedImageF(exposure.getMaskedImage(), box, afwImage.LOCAL).clone()
                 flatAmp = afwImage.MaskedImageF(flatfield.getMaskedImage(), box, afwImage.LOCAL)
@@ -547,8 +566,8 @@ class SuprimeCamIsrTask(SubaruIsrTask):
         @param exposure Exposure to process
         """
         assert exposure, "No exposure provided"
-        
-        ccd = afwCG.cast_Ccd(exposure.getDetector()) # This is Suprime-Cam so we know the Detector is a Ccd
+
+        ccd = exposure.getDetector() # This is Suprime-Cam so we know the Detector is a Ccd
         ccdNum = ccd.getId().getSerial()
         if ccdNum not in [0, 1, 2, 6, 7]:
             # No need to mask
@@ -565,7 +584,7 @@ class SuprimeCamIsrTask(SubaruIsrTask):
         elif ccdNum in [0, 6]:
             maskLimit = int(60.0 * xGuider - 2000.0) # From SDFRED
 
-        
+
         mi = exposure.getMaskedImage()
         height = mi.getHeight()
         if height < maskLimit:
@@ -579,10 +598,10 @@ class SuprimeCamIsrTask(SubaruIsrTask):
             bbox = afwGeom.Box2I(afwGeom.Point2I(0, maskLimit - 1),
                                  afwGeom.Point2I(mask.getWidth() - 1, height - 1))
             badMask = mask.Factory(mask, bbox, afwImage.LOCAL)
-            
+
             mask.addMaskPlane("GUIDER")
             badBitmask = mask.getPlaneBitMask("GUIDER")
-            
+
             badMask |= badBitmask
         else:
             # XXX Temporary solution until a mask plane is respected by downstream processes
@@ -595,7 +614,7 @@ class SuprimeCamMitIsrConfig(SubaruIsrTask.ConfigClass):
     pass
 
 class SuprimeCamMitIsrTask(SubaruIsrTask):
-    
+
     ConfigClass = SuprimeCamMitIsrConfig
 
     def guider(self, exposure):
@@ -604,8 +623,8 @@ class SuprimeCamMitIsrTask(SubaruIsrTask):
         @param exposure Exposure to process
         """
         assert exposure, "No exposure provided"
-        
-        ccd = afwCG.cast_Ccd(exposure.getDetector()) # This is Suprime-Cam so we know the Detector is a Ccd
+
+        ccd = exposure.getDetector() # This is Suprime-Cam so we know the Detector is a Ccd
         ccdNum = ccd.getId().getSerial()
         if ccdNum not in [0, 1, 4, 5, 9]:
             # No need to mask
@@ -622,7 +641,7 @@ class SuprimeCamMitIsrTask(SubaruIsrTask):
         elif ccdNum in [0, 9]:
             maskLimit = int(60.0 * xGuider - 2000.0) # From SDFRED
 
-        
+
         mi = exposure.getMaskedImage()
         height = mi.getHeight()
         if height < maskLimit:
@@ -636,10 +655,10 @@ class SuprimeCamMitIsrTask(SubaruIsrTask):
             bbox = afwGeom.Box2I(afwGeom.Point2I(0, maskLimit - 1),
                                  afwGeom.Point2I(mask.getWidth() - 1, height - 1))
             badMask = mask.Factory(mask, bbox, afwImage.LOCAL)
-            
+
             mask.addMaskPlane("GUIDER")
             badBitmask = mask.getPlaneBitMask("GUIDER")
-            
+
             badMask |= badBitmask
         else:
             # XXX Temporary solution until a mask plane is respected by downstream processes

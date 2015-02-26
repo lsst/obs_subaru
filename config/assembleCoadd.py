@@ -1,1 +1,1 @@
-root.badMaskPlanes = ("BAD", "EDGE", "SAT")
+root.badMaskPlanes = ("BAD", "EDGE", "SAT", "INTRP", )
