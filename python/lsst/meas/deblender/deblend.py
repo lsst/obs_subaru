@@ -26,6 +26,7 @@ import lsst.pex.config as pexConf
 import lsst.pipe.base as pipeBase
 import lsst.afw.math as afwMath
 import lsst.afw.geom as afwGeom
+import lsst.afw.geom.ellipses as afwEll
 import lsst.afw.image as afwImage
 import lsst.afw.detection as afwDet
 import lsst.afw.table as afwTable
@@ -88,13 +89,15 @@ class SourceDeblendConfig(pexConf.Config):
     maxNumberOfPeaks = pexConf.Field(dtype=int, default=0,
                                      doc=("Only deblend the brightest maxNumberOfPeaks peaks in the parent"
                                           " (<= 0: unlimited)"))
-    maxFootprintArea = pexConf.Field(dtype=int, default=100000,
-                                     doc=('Refuse to deblend parent footprints containing more than this '
-                                          'number of pixels (due to speed concerns); 0 means no limit.'))
-
-    maxFootprintArea = pexConf.Field(dtype=int, default=100000,
-                                     doc=('Refuse to deblend parent footprints containing more than this '
-                                          'number of pixels (due to speed concerns); 0 means no limit.'))
+    maxFootprintArea = pexConf.Field(dtype=int, default=10000,
+                                     doc=("Maximum area for footprints before they are ignored as large; "
+                                          "non-positive means no threshold applied"))
+    maxFootprintSize = pexConf.Field(dtype=int, default=300,
+                                    doc=("Maximum linear dimension for footprints before they are ignored "
+                                         "as large; non-positive means no threshold applied"))
+    minFootprintAxisRatio = pexConf.Field(dtype=float, default=1.0e-2,
+                                          doc=("Minimum axis ratio for footprints before they are ignored "
+                                               "as large; non-positive means no threshold applied"))
 
     tinyFootprintSize = pexConf.Field(dtype=int, default=2,
                                       doc=('Footprints smaller in width or height than this value will '
@@ -254,13 +257,10 @@ class SourceDeblendTask(pipeBase.Task):
             if len(pks) < 2:
                 continue
 
-            toobig = ((self.config.maxFootprintArea > 0) and
-                      (fp.getArea() > self.config.maxFootprintArea))
-            src.set(self.tooBigKey, toobig)
-            if toobig:
+            if self.isLargeFootprint(fp):
+                src.set(self.tooBigKey, True)
                 src.set(self.deblendSkippedKey, True)
-                self.log.logdebug('Parent %i: area %i > max %i; skipping' %
-                                  (int(src.getId()), fp.getArea(), self.config.maxFootprintArea))
+                self.log.logdebug('Parent %i: skipping large footprint' % (int(src.getId()),))
                 continue
 
             nparents += 1
@@ -390,4 +390,24 @@ class SourceDeblendTask(pipeBase.Task):
     def postSingleDeblendHook(self, exposure, srcs, i, npre, kids, fp, psf, psf_fwhm, sigma1, res):
         pass
 
+    def isLargeFootprint(self, footprint):
+        """Returns whether a Footprint is large
 
+        'Large' is defined by thresholds on the area, size and axis ratio.
+        These may be disabled independently by configuring them to be non-positive.
+
+        This is principally intended to get rid of satellite streaks, which the
+        deblender or other downstream processing can have trouble dealing with
+        (e.g., multiple large HeavyFootprints can chew up memory).
+        """
+        if self.config.maxFootprintArea > 0 and footprint.getArea() > self.config.maxFootprintArea:
+            return True
+        if self.config.maxFootprintSize > 0:
+            bbox = footprint.getBBox()
+            if max(bbox.getWidth(), bbox.getHeight()) > self.config.maxFootprintSize:
+                return True
+        if self.config.minFootprintAxisRatio > 0:
+            axes = afwEll.Axes(footprint.getShape())
+            if axes.getB() < self.config.minFootprintAxisRatio*axes.getA():
+                return True
+        return False
