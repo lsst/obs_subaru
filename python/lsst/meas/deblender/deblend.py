@@ -120,72 +120,38 @@ class SourceDeblendTask(pipeBase.Task):
         self.addSchemaKeys(schema)
 
     def addSchemaKeys(self, schema):
-        if schema.getVersion() == 0:
-            self.nChildKey = schema.addField('deblend.nchild', type=int,
-                                             doc='Number of children this object has (defaults to 0)')
-            self.psfKey = schema.addField('deblend.deblended-as-psf', type='Flag',
-                                          doc='Deblender thought this source looked like a PSF')
-            self.psfCenterKey = schema.addField('deblend.psf-center', type='PointD',
-                                             doc='If deblended-as-psf, the PSF centroid')
-            self.psfFluxKey = schema.addField('deblend.psf-flux', type='D',
-                                               doc='If deblended-as-psf, the PSF flux')
-            self.tooManyPeaksKey = schema.addField('deblend.too-many-peaks', type='Flag',
-                                                   doc='Source had too many peaks; ' +
-                                                   'only the brightest were included')
-            self.tooBigKey = schema.addField('deblend.parent-too-big', type='Flag',
-                                             doc='Parent footprint covered too many pixels')
-            self.deblendFailedKey = schema.addField('deblend.failed', type='Flag',
-                                                    doc="Deblending failed on source")
-    
-            self.deblendSkippedKey = schema.addField('deblend.skipped', type='Flag',
-                                                    doc="Deblender skipped this source")
-    
-            self.deblendRampedTemplateKey = schema.addField(
-                'deblend.ramped_template', type='Flag',
-                doc=('This source was near an image edge and the deblender used ' +
-                     '"ramp" edge-handling.'))
-    
-            self.deblendPatchedTemplateKey = schema.addField(
-                'deblend.patched_template', type='Flag',
-                doc=('This source was near an image edge and the deblender used ' +
-                     '"patched" edge-handling.'))
-    
-            self.hasStrayFluxKey = schema.addField(
-                'deblend.has_stray_flux', type='Flag',
-                doc=('This source was assigned some stray flux'))
-        else:     
-            self.nChildKey = schema.addField('deblend_nChild', type=int,
-                                             doc='Number of children this object has (defaults to 0)')
-            self.psfKey = schema.addField('deblend_deblendedAsPsf', type='Flag',
-                                          doc='Deblender thought this source looked like a PSF')
-            self.psfCenterKey = schema.addField('deblend_psfCenter', type='PointD',
-                                             doc='If deblended-as-psf, the PSF centroid')
-            self.psfFluxKey = schema.addField('deblend_psfFlux', type='D',
-                                               doc='If deblended-as-psf, the PSF flux')
-            self.tooManyPeaksKey = schema.addField('deblend_tooManyPeaks', type='Flag',
-                                                   doc='Source had too many peaks; ' +
-                                                   'only the brightest were included')
-            self.tooBigKey = schema.addField('deblend_parentTooBig', type='Flag',
-                                             doc='Parent footprint covered too many pixels')
-            self.deblendFailedKey = schema.addField('deblend_failed', type='Flag',
-                                                    doc="Deblending failed on source")
-    
-            self.deblendSkippedKey = schema.addField('deblend_skipped', type='Flag',
-                                                    doc="Deblender skipped this source")
-    
-            self.deblendRampedTemplateKey = schema.addField(
-                'deblend_rampedTemplate', type='Flag',
-                doc=('This source was near an image edge and the deblender used ' +
-                     '"ramp" edge-handling.'))
-    
-            self.deblendPatchedTemplateKey = schema.addField(
-                'deblend_patchedTemplate', type='Flag',
-                doc=('This source was near an image edge and the deblender used ' +
-                     '"patched" edge-handling.'))
-    
-            self.hasStrayFluxKey = schema.addField(
-                'deblend_hasStrayFlux', type='Flag',
-                doc=('This source was assigned some stray flux'))
+        self.nChildKey = schema.addField('deblend_nChild', type=int,
+                                         doc='Number of children this object has (defaults to 0)')
+        self.psfKey = schema.addField('deblend_deblendedAsPsf', type='Flag',
+                                      doc='Deblender thought this source looked like a PSF')
+        self.psfCenterKey = schema.addField('deblend_psfCenter', type='PointD',
+                                         doc='If deblended-as-psf, the PSF centroid')
+        self.psfFluxKey = schema.addField('deblend_psfFlux', type='D',
+                                           doc='If deblended-as-psf, the PSF flux')
+        self.tooManyPeaksKey = schema.addField('deblend_tooManyPeaks', type='Flag',
+                                               doc='Source had too many peaks; ' +
+                                               'only the brightest were included')
+        self.tooBigKey = schema.addField('deblend_parentTooBig', type='Flag',
+                                         doc='Parent footprint covered too many pixels')
+        self.deblendFailedKey = schema.addField('deblend_failed', type='Flag',
+                                                doc="Deblending failed on source")
+
+        self.deblendSkippedKey = schema.addField('deblend_skipped', type='Flag',
+                                                doc="Deblender skipped this source")
+
+        self.deblendRampedTemplateKey = schema.addField(
+            'deblend_rampedTemplate', type='Flag',
+            doc=('This source was near an image edge and the deblender used ' +
+                 '"ramp" edge-handling.'))
+
+        self.deblendPatchedTemplateKey = schema.addField(
+            'deblend_patchedTemplate', type='Flag',
+            doc=('This source was near an image edge and the deblender used ' +
+                 '"patched" edge-handling.'))
+
+        self.hasStrayFluxKey = schema.addField(
+            'deblend_hasStrayFlux', type='Flag',
+            doc=('This source was assigned some stray flux'))
 
         self.log.logdebug('Added keys to schema: %s' % ", ".join(str(x) for x in (
                     self.nChildKey, self.psfKey, self.psfCenterKey, self.psfFluxKey,
