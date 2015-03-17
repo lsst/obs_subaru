@@ -286,6 +286,13 @@ class SourceDeblendTask(pipeBase.Task):
                 child.set(self.deblendPatchedTemplateKey, peak.patched)
                 kids.append(child)
 
+            # Child footprints may extend beyond the full extent of their parent's which
+            # results in a failure of the replace-by-noise code to reinstate these pixels
+            # to their original values.  The following updates the parent footprint
+            # in-place to ensure it contains the full union of itself and all of its
+            # children's footprints.
+            src.getFootprint().include([child.getFootprint() for child in kids])
+
             src.set(self.nChildKey, nchild)
             
             self.postSingleDeblendHook(exposure, srcs, i, npre, kids, fp, psf, psf_fwhm, sigma1, res)
