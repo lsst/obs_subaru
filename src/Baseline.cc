@@ -3,7 +3,6 @@
 #include "lsst/meas/deblender/Baseline.h"
 #include "lsst/pex/logging.h"
 #include "lsst/afw/geom/Box.h"
-#include "lsst/meas/algorithms/detail/SdssShape.h"
 
 #include <boost/math/special_functions/round.hpp>
 
@@ -13,7 +12,6 @@ namespace image = lsst::afw::image;
 namespace det = lsst::afw::detection;
 namespace deblend = lsst::meas::deblender;
 namespace geom = lsst::afw::geom;
-namespace malg = lsst::meas::algorithms;
 namespace pexLog = lsst::pex::logging;
 
 

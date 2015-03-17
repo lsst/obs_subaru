@@ -70,7 +70,6 @@ class DeblendTestCase(unittest.TestCase):
         exposure.setPsf(psf)
 
         schema = afwTable.SourceTable.makeMinimalSchema()
-        schema.setVersion(0)
 
         config = measDeb.SourceDeblendConfig()
         task = measDeb.SourceDeblendTask(schema, config=config)
@@ -97,8 +96,8 @@ class DeblendTestCase(unittest.TestCase):
 
         task.run(exposure, catalog, psf)
 
-        self.assertFalse(good.get('deblend.failed'))
-        self.assertTrue(bad.get('deblend.failed'))
+        self.assertFalse(good.get('deblend_failed'))
+        self.assertTrue(bad.get('deblend_failed'))
 
 #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
