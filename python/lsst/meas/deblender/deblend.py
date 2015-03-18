@@ -102,9 +102,9 @@ class SourceDeblendConfig(pexConf.Config):
     notDeblendedMask = pexConf.Field(dtype=str, default="NOT_DEBLENDED", optional=True,
                                      doc="Mask name for footprints not deblended, or None")
 
-    tinyFootprintSize = pexConf.Field(dtype=int, default=2,
+    tinyFootprintSize = pexConf.RangeField(dtype=int, default=2, min=2, inclusiveMin=True,
                                       doc=('Footprints smaller in width or height than this value will '
-                                           'be ignored; 0 to never ignore.'))
+                                           'be ignored; minimum of 2 due to PSF gradient calculation.'))
 
     propagateAllPeaks = pexConf.Field(dtype=bool, default=False,
                                       doc=('Guarantee that all peaks produce a child source.'))
