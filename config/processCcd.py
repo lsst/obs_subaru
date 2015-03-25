@@ -60,19 +60,15 @@ root.doWriteSourceMatches = True
 root.calibrate.measurement.load(os.path.join(os.environ['OBS_SUBARU_DIR'], 'config', 'apertures.py'))
 root.calibrate.measurement.load(os.path.join(os.environ['OBS_SUBARU_DIR'], 'config', 'cmodel.py'))
 root.calibrate.measurement.load(os.path.join(os.environ['OBS_SUBARU_DIR'], 'config', 'kron.py'))
+root.calibrate.measurement.load(os.path.join(os.environ['OBS_SUBARU_DIR'], 'config', 'hsm.py'))
+if "shape.hsm.regauss" in root.calibrate.measurement.algorithms:
+    root.calibrate.measurement.algorithms["shape.hsm.regauss"].deblendNChild = "" # no deblending has been done
 
 # Activate deep measurements
 root.measurement.load(os.path.join(os.environ['OBS_SUBARU_DIR'], 'config', 'apertures.py'))
 root.measurement.load(os.path.join(os.environ['OBS_SUBARU_DIR'], 'config', 'kron.py'))
+root.measurement.load(os.path.join(os.environ['OBS_SUBARU_DIR'], 'config', 'hsm.py'))
 # Note no CModel: it's slow.
-
-# Enable HSM shapes (unsetup meas_extensions_shapeHSM to disable)
-try:
-    import lsst.meas.extensions.shapeHSM
-    root.measurement.algorithms.names |= ["shape_hsm_" + alg for alg in
-                                          ("bj", "linear", "ksb", "regauss", "shapelet")]
-except ImportError:
-    print "Cannot import lsst.meas.extensions.shapeHSM: disabling HSM shape measurements"
 
 # Enable deblender for processCcd
 root.measurement.doReplaceWithNoise = True
