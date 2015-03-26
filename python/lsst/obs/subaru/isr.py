@@ -3,6 +3,7 @@
 import os
 import math
 import numpy
+import errno
 
 from contextlib import contextmanager
 
@@ -405,7 +406,7 @@ class SubaruIsrTask(IsrTask):
                 os.makedirs(directory)
             except OSError, e:
                 # Don't fail if directory exists due to race
-                if e.errno != 17:
+                if e.errno != errno.EEXIST:
                     raise e
         image = exposure.getMaskedImage().getImage()
         fitsthumb.createFitsThumb(image.getArray(), filename, width, height, True)
