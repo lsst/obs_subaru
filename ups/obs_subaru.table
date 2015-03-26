@@ -8,7 +8,6 @@ setupRequired(pyfits)
 setupOptional(psycopg2)
 setupOptional(meas_extensions_multiShapelet)
 setupOptional(meas_multifit)
-setupOptional(fitsthumb)
 setupOptional(meas_extensions_psfex)
 
 setupOptional(suprime_data)

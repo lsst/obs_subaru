@@ -17,14 +17,10 @@ import lsst.afw.detection as afwDetection
 import lsst.afw.image as afwImage
 import lsst.afw.geom as afwGeom
 import lsst.afw.math as afwMath
+from lsst.afw.display.rgb import makeRGB
 from lsst.obs.subaru.crosstalkYagi import YagiCrosstalkTask
 import lsst.meas.algorithms as measAlg
 import lsst.afw.display.ds9 as ds9
-
-try:
-    import hsc.fitsthumb as fitsthumb
-except ImportError:
-    fitsthumb = None
 
 class QaFlatnessConfig(pexConfig.Config):
     meshX = pexConfig.Field(
@@ -148,6 +144,12 @@ after applying the nominal gain
     )
     defaultFluxMag0T1 = pexConfig.Field(dtype=float, default=pow(10.0, 0.4*28.0),
                                         doc="Default value for fluxMag0T1 (for an unrecognised filter)")
+    thumbnailBinning = Field(dtype=int, default=4, doc="Binning factor for thumbnail")
+    thumbnailStdev = Field(dtype=float, default=3.0,
+                           doc="Number of stdev below the background to set thumbnail minimum")
+    thumbnailRange = Field(dtype=float, default=5.0, doc="Range for thumbnail mapping")
+    thumbnailQ = Field(dtype=float, default=20.0, doc="Softening parameter for thumbnail mapping")
+    thumbnailSatBorder = Field(dtype=int, default=2, doc="Border around saturated pixels for thumbnail")
 
     def validate(self):
         super(SubaruIsrConfig, self).validate()
@@ -392,13 +394,9 @@ class SubaruIsrTask(IsrTask):
 
         self.log.info("Set %d BAD pixels to %.2f" % (badPixels.sum(), value))
 
-    def writeThumbnail(self, dataRef, dataset, exposure, relativeSize=0.25):
+    def writeThumbnail(self, dataRef, dataset, exposure):
         """Write out exposure to a snapshot file named outfile in the given size.
         """
-        if fitsthumb is None:
-            self.log.log(self.log.WARN,
-                         "Cannot write thumbnail image; hsc.fitsthumb could not be imported.")
-            return
         filename = dataRef.get(dataset + "_filename")[0]
         directory = os.path.dirname(filename)
         if not os.path.exists(directory):
@@ -408,9 +406,17 @@ class SubaruIsrTask(IsrTask):
                 # Don't fail if directory exists due to race
                 if e.errno != errno.EEXIST:
                     raise e
-        image = exposure.getMaskedImage().getImage()
-        fitsthumb.createThumbnail(image.getArray(), filename,
-                                  fitsthumb.RelativeSize(relativeSize), fitsthumb.LinearScale(), True)
+        binning = self.config.thumbnailBinning
+        binnedImage = afwMath.binImage(exposure.getMaskedImage(), binning, binning, afwMath.MEAN)
+        statsCtrl = afwMath.StatisticsControl()
+        statsCtrl.setAndMask(binnedImage.getMask().getPlaneBitMask(["SAT", "BAD", "INTRP"]))
+        stats = afwMath.makeStatistics(binnedImage,
+                                       afwMath.MEDIAN | afwMath.STDEVCLIP | afwMath.MAX, statsCtrl)
+        low = stats.getValue(afwMath.MEDIAN) - self.config.thumbnailStdev*stats.getValue(afwMath.STDEVCLIP)
+        makeRGB(binnedImage, binnedImage, binnedImage, min=low, range=self.config.thumbnailRange,
+                Q=self.config.thumbnailQ, fileName=filename,
+                saturatedBorderWidth=self.config.thumbnailSatBorder,
+                saturatedPixelValue=stats.getValue(afwMath.MAX))
 
     def measureOverscan(self, ccdExposure, amp):
         clipSigma = 3.0
