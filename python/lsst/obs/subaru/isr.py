@@ -578,6 +578,9 @@ class SubaruIsrTask(IsrTask):
             self.log.warn("No rough magnitude zero point set for filter %s" % filterName)
             fluxMag0 = self.config.defaultFluxMag0T1
         expTime = exposure.getCalib().getExptime()
+        if expTime <= 0:
+            self.log.warn("Non-positive exposure time; skipping rough zero point")
+            return
         self.log.info("Setting rough magnitude zero point: %f" % (2.5*math.log10(fluxMag0*expTime),))
         exposure.getCalib().setFluxMag0(fluxMag0*expTime)
 
