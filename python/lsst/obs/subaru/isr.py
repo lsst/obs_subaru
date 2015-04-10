@@ -147,7 +147,7 @@ class SubaruIsrTask(IsrTask):
         super(SubaruIsrTask, self).__init__(*args, **kwargs)
         self.makeSubtask("crosstalk")
 
-    def run(self, sensorRef):
+    def applyToSensorRef(self, sensorRef):
         self.log.log(self.log.INFO, "Performing ISR on sensor %s" % (sensorRef.dataId))
         ccdExposure = sensorRef.get('raw')
 
@@ -246,7 +246,7 @@ class SubaruIsrTask(IsrTask):
             self.saturationInterpolation(ccdExposure)
 
         if self.config.doFringe:
-            self.fringe.run(ccdExposure, sensorRef)
+            self.fringe.removeFringesWithSensorRef(ccdExposure, sensorRef)
         if self.config.doSetBadRegions:
             self.setBadRegions(ccdExposure)
 
