@@ -34,6 +34,8 @@ using namespace lsst::afw::detection;
 %}
 
 %include "lsst/p_lsstSwig.i"
+%initializeNumPy(meas_deblender)
+
 %include "lsst/base.h"                  // PTR(); should be in p_lsstSwig.i
 
 %lsst_exceptions();
