@@ -140,6 +140,9 @@ after applying the nominal gain
                                                          ("i", 28.6),
                                                          ("z", 27.7),
                                                          ("y", 27.4),
+                                                         ("N515", 25.8),
+                                                         ("N816", 25.5),
+                                                         ("N921", 25.7),
                                                          ))
     )
     defaultFluxMag0T1 = pexConfig.Field(dtype=float, default=pow(10.0, 0.4*28.0),
