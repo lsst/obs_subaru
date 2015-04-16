@@ -824,7 +824,7 @@ def _fitPsf(fp, fmask, pk, pkF, pkres, fbb, peaks, peaksF, log, psf,
         pkres.setPsfFitFailed()
         return
 
-    log.log(-9, 'r1 r2 %g %g' % (r1, r2))
+    log.log(-9, 'r1 r2 %s %s' % (r1, r2))
 
     # r is weighted chi-squared = sum over pixels: ramp * (model -
     # data)**2/sigma**2
