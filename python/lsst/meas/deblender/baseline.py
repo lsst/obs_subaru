@@ -356,7 +356,7 @@ def deblend(footprint, maskedImage, psf, psffwhm,
                 (t2, tfoot2, patched) = _handle_flux_at_edge(log, psffwhm, t1, tfoot, fp,
                                                              maskedImage, x0, x1, y0, y1,
                                                              psf, pk, sigma1, patchEdges)
-            except lsst.pex.exceptions.LsstCppException as exc:
+            except lsst.pex.exceptions.Exception as exc:
                 if (isinstance(exc.message, lsst.pex.exceptions.InvalidParameterException) and
                     "CoaddPsf" in str(exc)):
                     pkres.setOutOfBounds()
@@ -524,7 +524,7 @@ class CachingPsf(object):
             return im
         try:
             im = self.psf.computeImage(afwGeom.Point2D(cx, cy))
-        except lsst.pex.exceptions.LsstCppException:
+        except lsst.pex.exceptions.Exception:
             im = self.psf.computeImage()
         self.cache[(cx, cy)] = im
         return im
