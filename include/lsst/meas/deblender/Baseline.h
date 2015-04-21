@@ -44,7 +44,7 @@ namespace lsst {
                 std::pair<MaskedImagePtrT, FootprintPtrT>
                 buildSymmetricTemplate(MaskedImageT const& img,
                                        lsst::afw::detection::Footprint const& foot,
-                                       lsst::afw::detection::Peak const& pk,
+                                       lsst::afw::detection::PeakRecord const& pk,
                                        double sigma1,
                                        bool minZero,
                                        bool patchEdges,
@@ -57,7 +57,7 @@ namespace lsst {
 
                 static void
                 makeMonotonic(MaskedImageT & img,
-                              lsst::afw::detection::Peak const& pk);
+                              lsst::afw::detection::PeakRecord const& pk);
 
                 static const int ASSIGN_STRAYFLUX                          = 0x1;
                 static const int STRAYFLUX_TO_POINT_SOURCES_WHEN_NECESSARY = 0x2;

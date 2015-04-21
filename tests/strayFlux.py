@@ -277,7 +277,7 @@ class StrayFluxTestCase(unittest.TestCase):
         # WORKAROUND: the detection alg produces ONE peak, at (1,0),
         # rather than two.
         self.assertEqual(len(fp.getPeaks()), 1)
-        fp.getPeaks().append(afwDet.Peak(W-2, y))
+        fp.addPeak(W-2, y, float("NaN"))
         #print 'Added peak; peaks:', len(fp.getPeaks())
         #for pk in fp.getPeaks():
         #    print '  ', pk.getFx(), pk.getFy()
