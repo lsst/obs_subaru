@@ -1,6 +1,6 @@
 #
 # LSST Data Management System
-# Copyright 2008-2013 LSST Corporation.
+# Copyright 2008-2015 AURA/LSST.
 #
 # This product includes software developed by the
 # LSST Project (http://www.lsst.org/).
@@ -20,16 +20,15 @@
 # see <http://www.lsstcorp.org/LegalNotices/>.
 #
 import math
-import numpy
 import time
 
 import lsst.pex.config as pexConf
-import lsst.afw.table as afwTable
 import lsst.pipe.base as pipeBase
 import lsst.afw.math as afwMath
 import lsst.afw.geom as afwGeom
 import lsst.afw.image as afwImage
 import lsst.afw.detection as afwDet
+import lsst.afw.table as afwTable
 
 __all__ = 'SourceDeblendConfig', 'SourceDeblendTask'
 
@@ -38,21 +37,23 @@ class SourceDeblendConfig(pexConf.Config):
     edgeHandling = pexConf.ChoiceField(
         doc='What to do when a peak to be deblended is close to the edge of the image',
         dtype=str, default='ramp',
-        allowed = {
+        allowed={
             'clip': 'Clip the template at the edge AND the mirror of the edge.',
             'ramp': 'Ramp down flux at the image edge by the PSF',
             'noclip': 'Ignore the edge when building the symmetric template.',
-            })
-    
+            }
+        )
+
     strayFluxToPointSources = pexConf.ChoiceField(
         doc='When the deblender should attribute stray flux to point sources',
         dtype=str, default='necessary',
-        allowed = {
+        allowed={
             'necessary': 'When there is not an extended object in the footprint',
             'always': 'Always',
-            'never': 'Never; stray flux will not be attributed to any deblended child if the deblender thinks all peaks look like point sources',
+            'never': ('Never; stray flux will not be attributed to any deblended child '
+                      'if the deblender thinks all peaks look like point sources'),
             }
-            )
+        )
 
     findStrayFlux = pexConf.Field(dtype=bool, default=True,
                                   doc='Find stray flux---flux not claimed by any child in the deblender.')
@@ -63,35 +64,52 @@ class SourceDeblendConfig(pexConf.Config):
     strayFluxRule = pexConf.ChoiceField(
         doc='How to split flux among peaks',
         dtype=str, default='r-to-peak',
-        allowed = {
+        allowed={
             'r-to-peak': '~ 1/(1+R^2) to the peak',
-            'r-to-footprint': '~ 1/(1+R^2) to the closest pixel in the footprint.  CAUTION: this can be computationally expensive on large footprints!',
-            'nearest-footprint': 'Assign 100% to the nearest footprint (using L-1 norm aka Manhattan distance)' })
+            'r-to-footprint': ('~ 1/(1+R^2) to the closest pixel in the footprint.  '
+                               'CAUTION: this can be computationally expensive on large footprints!'),
+            'nearest-footprint': ('Assign 100% to the nearest footprint (using L-1 norm aka '
+                                  'Manhattan distance)')
+            }
+        )
 
     clipStrayFluxFraction = pexConf.Field(dtype=float, default=0.01,
-                                          doc=('When splitting stray flux, clip fractions below this value to zero.'))
-    
+                                          doc=('When splitting stray flux, clip fractions below '
+                                               'this value to zero.'))
     psfChisq1 = pexConf.Field(dtype=float, default=1.5, optional=False,
-                                doc=('Chi-squared per DOF cut for deciding a source is '+
-                                     'a PSF during deblending (un-shifted PSF model)'))
+                              doc=('Chi-squared per DOF cut for deciding a source is '
+                                   'a PSF during deblending (un-shifted PSF model)'))
     psfChisq2 = pexConf.Field(dtype=float, default=1.5, optional=False,
-                                doc=('Chi-squared per DOF cut for deciding a source is '+
-                                     'PSF during deblending (shifted PSF model)'))
+                              doc=('Chi-squared per DOF cut for deciding a source is '
+                                   'PSF during deblending (shifted PSF model)'))
     psfChisq2b = pexConf.Field(dtype=float, default=1.5, optional=False,
-                                doc=('Chi-squared per DOF cut for deciding a source is '+
-                                     'a PSF during deblending (shifted PSF model #2)'))
+                               doc=('Chi-squared per DOF cut for deciding a source is '
+                                    'a PSF during deblending (shifted PSF model #2)'))
     maxNumberOfPeaks = pexConf.Field(dtype=int, default=0,
-                                     doc=("Only deblend the brightest maxNumberOfPeaks peaks in the parent" +
+                                     doc=("Only deblend the brightest maxNumberOfPeaks peaks in the parent"
                                           " (<= 0: unlimited)"))
     maxFootprintArea = pexConf.Field(dtype=int, default=100000,
-                                     doc=('Refuse to deblend parent footprints containing more than this number of pixels (due to speed concerns); 0 means no limit.'))
+                                     doc=('Refuse to deblend parent footprints containing more than this '
+                                          'number of pixels (due to speed concerns); 0 means no limit.'))
 
     maxFootprintArea = pexConf.Field(dtype=int, default=100000,
-                                     doc=('Refuse to deblend parent footprints containing more than this number of pixels (due to speed concerns); 0 means no limit.'))
+                                     doc=('Refuse to deblend parent footprints containing more than this '
+                                          'number of pixels (due to speed concerns); 0 means no limit.'))
 
     tinyFootprintSize = pexConf.Field(dtype=int, default=2,
-                                      doc=('Footprints smaller in width or height than this value will be ignored; 0 to never ignore.'))
-    
+                                      doc=('Footprints smaller in width or height than this value will '
+                                           'be ignored; 0 to never ignore.'))
+
+    removeMaskPlanes = pexConf.Field(dtype=int, default=True,
+                                     doc=("Clear and remove diagnostic mask planes on exit "
+                                          "(disable for deblender debugging)"))
+
+    propagateAllPeaks = pexConf.Field(dtype=bool, default=False,
+                                      doc=('Guarantee that all peaks produce a child source.'))
+    catchFailures = pexConf.Field(dtype=bool, default=False,
+                                  doc=("If True, catch exceptions thrown by the deblender, log them, "
+                                       "and set a flag on the parent, instead of letting them propagate up"))
+
 ## \addtogroup LSST_task_documentation
 ## \{
 ## \page SourceDeblendTask
@@ -101,22 +119,43 @@ class SourceDeblendConfig(pexConf.Config):
 
 class SourceDeblendTask(pipeBase.Task):
     """!
-\anchor SourceDeblendTask_
+    \anchor SourceDeblendTask_
 
-\brief Split blended sources into individual sources.
+    \brief Split blended sources into individual sources.
 
     This task has no return value; it only modifies the SourceCatalog in-place.
     """
     ConfigClass = SourceDeblendConfig
     _DefaultName = "sourceDeblend"
 
-    def __init__(self, schema, **kwargs):
-        """Create the task, adding necessary fields to the given schema.
+    def __init__(self, schema, peakSchema=None, **kwargs):
+        """!
+        Create the task, adding necessary fields to the given schema.
 
         @param[in,out] schema        Schema object for measurement fields; will be modified in-place.
-        @param         **kwds        Passed to Task.__init__.
+        @param[in]     peakSchema    Schema of Footprint Peaks that will be passed to the deblender.
+                                     Any fields beyond the PeakTable minimal schema will be transferred
+                                     to the main source Schema.  If None, no fields will be transferred
+                                     from the Peaks.
+        @param[in]     **kwargs      Passed to Task.__init__.
         """
         pipeBase.Task.__init__(self, **kwargs)
+        peakMinimalSchema = afwDet.PeakTable.makeMinimalSchema()
+        if peakSchema is None:
+            # In this case, the peakSchemaMapper will transfer nothing, but we'll still have one
+            # to simplify downstream code
+            self.peakSchemaMapper = afwTable.SchemaMapper(peakMinimalSchema, schema)
+        else:
+            self.peakSchemaMapper = afwTable.SchemaMapper(peakSchema, schema)
+            for item in peakSchema:
+                if item.key not in peakMinimalSchema:
+                    self.peakSchemaMapper.addMapping(item.key, item.field)
+                    # Because SchemaMapper makes a copy of the output schema you give its ctor, it isn't
+                    # updating this Schema in place.  That's probably a design flaw, but in the meantime,
+                    # we'll keep that schema in sync with the peakSchemaMapper.getOutputSchema() manually,
+                    # by adding the same fields to both.
+                    schema.addField(item.field)
+            assert schema == self.peakSchemaMapper.getOutputSchema(), "Logic bug mapping schemas"
         self.addSchemaKeys(schema)
 
     def addSchemaKeys(self, schema):
@@ -129,24 +168,26 @@ class SourceDeblendTask(pipeBase.Task):
         self.psfFluxKey = schema.addField('deblend_psfFlux', type='D',
                                            doc='If deblended-as-psf, the PSF flux')
         self.tooManyPeaksKey = schema.addField('deblend_tooManyPeaks', type='Flag',
-                                               doc='Source had too many peaks; ' +
+                                               doc='Source had too many peaks; '
                                                'only the brightest were included')
         self.tooBigKey = schema.addField('deblend_parentTooBig', type='Flag',
                                          doc='Parent footprint covered too many pixels')
-        self.deblendFailedKey = schema.addField('deblend_failed', type='Flag',
-                                                doc="Deblending failed on source")
+
+        if self.config.catchFailures:
+            self.deblendFailedKey = schema.addField('deblend_failed', type='Flag',
+                                                    doc="Deblending failed on source")
 
         self.deblendSkippedKey = schema.addField('deblend_skipped', type='Flag',
                                                 doc="Deblender skipped this source")
 
         self.deblendRampedTemplateKey = schema.addField(
             'deblend_rampedTemplate', type='Flag',
-            doc=('This source was near an image edge and the deblender used ' +
+            doc=('This source was near an image edge and the deblender used '
                  '"ramp" edge-handling.'))
 
         self.deblendPatchedTemplateKey = schema.addField(
             'deblend_patchedTemplate', type='Flag',
-            doc=('This source was near an image edge and the deblender used ' +
+            doc=('This source was near an image edge and the deblender used '
                  '"patched" edge-handling.'))
 
         self.hasStrayFluxKey = schema.addField(
@@ -159,7 +200,8 @@ class SourceDeblendTask(pipeBase.Task):
 
     @pipeBase.timeMethod
     def run(self, exposure, sources, psf):
-        """Run deblend().
+        """!
+        Run deblend().
 
         @param[in]     exposure Exposure to process
         @param[in,out] sources  SourceCatalog containing sources detected on this exposure.
@@ -173,15 +215,16 @@ class SourceDeblendTask(pipeBase.Task):
         # It should be easier to get a PSF's fwhm;
         # https://dev.lsstcorp.org/trac/ticket/3030
         return psf.computeShape().getDeterminantRadius() * 2.35
-        
+
     @pipeBase.timeMethod
     def deblend(self, exposure, srcs, psf):
-        """Deblend.
-        
+        """!
+        Deblend.
+
         @param[in]     exposure Exposure to process
         @param[in,out] srcs     SourceCatalog containing sources detected on this exposure.
         @param[in]     psf      PSF
-                       
+
         @return None
         """
         self.log.info("Deblending %d sources" % len(srcs))
@@ -207,7 +250,7 @@ class SourceDeblendTask(pipeBase.Task):
             if len(pks) < 2:
                 continue
 
-            toobig = ((self.config.maxFootprintArea > 0) and 
+            toobig = ((self.config.maxFootprintArea > 0) and
                       (fp.getArea() > self.config.maxFootprintArea))
             src.set(self.tooBigKey, toobig)
             if toobig:
@@ -237,43 +280,71 @@ class SourceDeblendTask(pipeBase.Task):
                     maxNumberOfPeaks=self.config.maxNumberOfPeaks,
                     strayFluxToPointSources=self.config.strayFluxToPointSources,
                     assignStrayFlux=self.config.assignStrayFlux,
-                    findStrayFlux=(self.config.assignStrayFlux or
-                                   self.config.findStrayFlux),
+                    findStrayFlux=(self.config.assignStrayFlux or self.config.findStrayFlux),
                     strayFluxAssignment=self.config.strayFluxRule,
                     rampFluxAtEdge=(self.config.edgeHandling == 'ramp'),
                     patchEdges=(self.config.edgeHandling == 'noclip'),
                     tinyFootprintSize=self.config.tinyFootprintSize,
                     clipStrayFluxFraction=self.config.clipStrayFluxFraction,
                     )
-                src.set(self.deblendFailedKey, False)
+                if self.config.catchFailures:
+                    src.set(self.deblendFailedKey, False)
             except Exception as e:
-                self.log.warn("Error deblending source %d: %s" % (src.getId(), e))
-                src.set(self.deblendFailedKey, True)
-                import traceback
-                traceback.print_exc()
-                continue
+                if self.config.catchFailures:
+                    self.log.warn("Unable to deblend source %d: %s" % (src.getId(), e))
+                    src.set(self.deblendFailedKey, True)
+                    import traceback
+                    traceback.print_exc()
+                    continue
+                else:
+                    raise
 
             kids = []
             nchild = 0
-            for j,peak in enumerate(res.peaks):
+            for j, peak in enumerate(res.peaks):
+
+                failed = False
                 if peak.skip:
                     # skip this source?
-                    self.log.logdebug('Skipping out-of-bounds peak at (%i,%i)' %
-                                      (pks[j].getIx(), pks[j].getIy()))
+                    msg = 'Skipping out-of-bounds peak at (%i,%i)' % (pks[j].getIx(), pks[j].getIy())
+                    self.log.warn(msg)
                     src.set(self.deblendSkippedKey, True)
-                    continue
+                    failed = True
 
                 heavy = peak.getFluxPortion()
                 if heavy is None:
                     # This can happen for children >= maxNumberOfPeaks
-                    self.log.logdebug('Skipping peak at (%i,%i), child %i of %i: no flux portion'
-                                      % (pks[j].getIx(), pks[j].getIy(), j+1, len(res.peaks)))
+                    msg = 'Skipping peak at (%i,%i), child %i of %i: no flux portion' \
+                          % (pks[j].getIx(), pks[j].getIy(), j+1, len(res.peaks))
+                    self.log.warn(msg)
                     src.set(self.deblendSkippedKey, True)
-                    continue
+                    failed = True
+
+                if failed:
+                    if self.config.propagateAllPeaks:
+                        # make sure we have enough info to create a minimal child src
+                        if heavy is None:
+                            # copy the full footprint and strip out extra peaks
+                            foot = afwDet.Footprint(src.getFootprint())
+                            peakList = foot.getPeaks()
+                            peakList.clear()
+                            peakList.append(peak.peak)
+                            zeroMimg = afwImage.MaskedImageF(foot.getBBox())
+                            heavy = afwDet.makeHeavyFootprint(foot, zeroMimg)
+                        if peak.deblendedAsPsf:
+                            if peak.psfFitFlux is None:
+                                peak.psfFitFlux = 0.0
+                            if peak.psfFitCenter is None:
+                                peak.psfFitCenter = (peak.peak.getIx(), peak.peak.getIy())
+                        self.log.warn("Peak failed.  Using minimal default info for child.")
+                    else:
+                        continue
+
                 assert(len(heavy.getPeaks()) == 1)
 
                 src.set(self.deblendSkippedKey, False)
                 child = srcs.addNew(); nchild += 1
+                child.assign(heavy.getPeaks()[0], self.peakSchemaMapper)
                 child.setParent(src.getId())
                 child.setFootprint(heavy)
                 child.set(self.psfKey, peak.deblendedAsPsf)
@@ -294,17 +365,24 @@ class SourceDeblendTask(pipeBase.Task):
             src.getFootprint().include([child.getFootprint() for child in kids])
 
             src.set(self.nChildKey, nchild)
-            
+
             self.postSingleDeblendHook(exposure, srcs, i, npre, kids, fp, psf, psf_fwhm, sigma1, res)
             #print 'Deblending parent id', src.getId(), 'took', time.clock() - t0
 
+        if self.config.removeMaskPlanes:
+            mask = exposure.getMaskedImage().getMask()
+            definedMasks = set(mask.getMaskPlaneDict().keys())
+            for nm in ['SYMM_1SIG', 'SYMM_3SIG', 'MONOTONIC_1SIG']:
+                if nm in definedMasks:
+                    mask.removeAndClearMaskPlane(nm, True)
+
         n1 = len(srcs)
-        self.log.info('Deblended: of %i sources, %i were deblended, creating %i children, total %i sources' %
-                      (n0, nparents, n1-n0, n1))
+        self.log.info('Deblended: of %i sources, %i were deblended, creating %i children, total %i sources'
+                      % (n0, nparents, n1-n0, n1))
 
     def preSingleDeblendHook(self, exposure, srcs, i, fp, psf, psf_fwhm, sigma1):
         pass
-    
+
     def postSingleDeblendHook(self, exposure, srcs, i, npre, kids, fp, psf, psf_fwhm, sigma1, res):
         pass
 

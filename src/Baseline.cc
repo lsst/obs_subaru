@@ -883,10 +883,11 @@ symmetrizeFootprint(
     // Find the Span containing the peak.
     PTR(det::Span) target(new det::Span(cy, cx, cx));
     SpanList::const_iterator peakspan =
-        std::lower_bound(spans.begin(), spans.end(), target, span_ptr_compare);
-    // lower_bound returns the first position where "target" could be inserted;
+        std::upper_bound(spans.begin(), spans.end(), target, span_ptr_compare);
+    // upper_bound returns the last position where "target" could be inserted;
     // ie, the first Span larger than "target".  The Span containing "target"
-    // should be peakspan-1.
+    // should be peakspan-1 or (if the peak is on the first pixel in the span,
+    // peakspan.
     PTR(det::Span) sp;
     if (peakspan == spans.begin()) {
         sp = *peakspan;
@@ -896,16 +897,20 @@ symmetrizeFootprint(
             return PTR(det::Footprint)();
         }
     } else {
-        peakspan--;
+        --peakspan;
         sp = *peakspan;
 
-        if (!(sp->contains(cx,cy))) {
-            geom::Box2I fbb = foot.getBBox();
-            log.warnf("Failed to find span containing (%i,%i): nearest is %i, [%i,%i].  "
-                "Footprint bbox is [%i,%i],[%i,%i]",
-                      cx, cy, sp->getY(), sp->getX0(), sp->getX1(),
-                      fbb.getMinX(), fbb.getMaxX(), fbb.getMinY(), fbb.getMaxY());
-            return PTR(det::Footprint)();
+        if (!sp->contains(cx, cy)) {
+            ++peakspan;
+            sp = *peakspan;
+            if (!sp->contains(cx, cy)) {
+                geom::Box2I fbb = foot.getBBox();
+                log.warnf("Failed to find span containing (%i,%i): nearest is %i, [%i,%i].  "
+                          "Footprint bbox is [%i,%i],[%i,%i]",
+                          cx, cy, sp->getY(), sp->getX0(), sp->getX1(),
+                          fbb.getMinX(), fbb.getMaxX(), fbb.getMinY(), fbb.getMaxY());
+                return PTR(det::Footprint)();
+            }
         }
     }
     log.debugf("Span containing (%i,%i): (x=[%i,%i], y=%i)",

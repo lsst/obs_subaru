@@ -24,6 +24,7 @@
 import math
 import numpy as np
 
+import lsst.pex.exceptions
 import lsst.afw.image as afwImage
 import lsst.afw.detection as afwDet
 import lsst.afw.geom  as afwGeom
@@ -351,9 +352,16 @@ def deblend(footprint, maskedImage, psf, psffwhm,
         if (rampFluxAtEdge and
             butils.hasSignificantFluxAtEdge(t1.getImage(), tfoot, 3*sigma1)):
             log.logdebug("Template %i has significant flux at edge: ramping" % pkres.pki)
-            (t2, tfoot2, patched) = _handle_flux_at_edge(log, psffwhm, t1, tfoot, fp,
-                                                         maskedImage, x0, x1, y0, y1,
-                                                         psf, pk, sigma1, patchEdges)
+            try:
+                (t2, tfoot2, patched) = _handle_flux_at_edge(log, psffwhm, t1, tfoot, fp,
+                                                             maskedImage, x0, x1, y0, y1,
+                                                             psf, pk, sigma1, patchEdges)
+            except lsst.pex.exceptions.Exception as exc:
+                if (isinstance(exc.message, lsst.pex.exceptions.InvalidParameterException) and
+                    "CoaddPsf" in str(exc)):
+                    pkres.setOutOfBounds()
+                    continue
+                raise
             pkres.setRampedTemplate(t2, tfoot2)
             if patched:
                 pkres.setPatched()
@@ -473,14 +481,14 @@ def deblend(footprint, maskedImage, psf, psffwhm,
         if pkres.skip:
             continue
         pkres.setFluxPortion(portions[ii])
-        ii += 1
 
         if findStrayFlux:
             # NOTE that due to a swig bug (https://github.com/swig/swig/issues/59)
             # we CANNOT iterate over "strayflux", but must index into it.
-            stray = strayflux[j]
+            stray = strayflux[ii]
         else:
             stray = None
+        ii += 1
 
         pkres.setStrayFlux(stray)
 
@@ -514,7 +522,10 @@ class CachingPsf(object):
         im = self.cache.get((cx, cy), None)
         if im is not None:
             return im
-        im = self.psf.computeImage(afwGeom.Point2D(cx, cy))
+        try:
+            im = self.psf.computeImage(afwGeom.Point2D(cx, cy))
+        except lsst.pex.exceptions.Exception:
+            im = self.psf.computeImage()
         self.cache[(cx, cy)] = im
         return im
 
@@ -599,6 +610,12 @@ def _fitPsf(fp, fmask, pk, pkF, pkres, fbb, peaks, peaksF, log, psf, psffwhm,
     pbb = psfimg.getBBox()
     pbb.clip(fbb)
     px0, py0 = psfimg.getX0(), psfimg.getY0()
+
+    # Make sure we haven't been given a substitute PSF that's nowhere near where we want, as may occur if
+    # "Cannot compute CoaddPsf at point (xx,yy); no input images at that point."
+    if not pbb.contains(afwGeom.Point2I(int(cx), int(cy))):
+        pkres.setOutOfBounds()
+        return
 
     # The bounding-box of the local region we are going to fit ("stamp")
     xlo = int(math.floor(cx - R1))
@@ -861,41 +878,46 @@ def _fitPsf(fp, fmask, pk, pkF, pkres, fbb, peaks, peaksF, log, psf, psffwhm,
         # clip
         pbb2 = psfimg2.getBBox()
         pbb2.clip(fbb)
-        # clip image to bbox
-        px0, py0 = psfimg2.getX0(), psfimg2.getY0()
-        psfarr = psfimg2.getArray()[pbb2.getMinY()-py0: 1+pbb2.getMaxY()-py0,
-                                    pbb2.getMinX()-px0: 1+pbb2.getMaxX()-px0]
-        px0, py0 = pbb2.getMinX(), pbb2.getMinY()
-        px1, py1 = pbb2.getMaxX(), pbb2.getMaxY()
 
-        # yuck!  Update the PSF terms in the least-squares fit matrix.
-        Ab = A[:, :NT1]
-
-        sx1, sx2, sx3, sx4 = _overlap(xlo, xhi, px0, px1)
-        sy1, sy2, sy3, sy4 = _overlap(ylo, yhi, py0, py1)
-        dpx0, dpy0 = px0 - xlo, py0 - ylo
-        psfsub = psfarr[sy3 - dpy0 : sy4 - dpy0, sx3 - dpx0: sx4 - dpx0]
-        vsub = valid[sy1-ylo: sy2-ylo, sx1-xlo: sx2-xlo]
-        xx, yy = np.arange(xlo, xhi+1), np.arange(ylo, yhi+1)
-        inpsf = np.outer((yy >= py0)*(yy <= py1), (xx >= px0)*(xx <= px1))
-        Ab[inpsf[valid], I_psf] = psfsub[vsub]
-
-        Aw  = Ab*w[:, np.newaxis]
-        # re-solve...
-        Xb, rb, rankb, sb = np.linalg.lstsq(Aw, bw)
-        if len(rb) > 0:
-            chisqb = rb[0]
+        # Make sure we haven't been given a substitute PSF that's nowhere near where we want, as may occur if
+        # "Cannot compute CoaddPsf at point (xx,yy); no input images at that point."
+        if not pbb2.contains(afwGeom.Point2I(int(cx + dx), int(cy + dy))):
+            ispsf2 = False
         else:
-            chisqb = 1e30
-        dofb = sumr - len(Xb)
-        log.log(-9, 'rb, dofb %g %g' %(rb, dofb))
-        qb = chisqb/dofb
-        ispsf2 = (qb < psfChisqCut2b)
-        q2 = qb
-        X2 = Xb
-        log.logdebug('shifted PSF: new chisq/dof = %g; good? %s' %
-                     (qb, ispsf2))
-        pkres.psfFit3 = (chisqb, dofb)
+            # clip image to bbox
+            px0, py0 = psfimg2.getX0(), psfimg2.getY0()
+            psfarr = psfimg2.getArray()[pbb2.getMinY()-py0:1+pbb2.getMaxY()-py0,
+                                        pbb2.getMinX()-px0:1+pbb2.getMaxX()-px0]
+            px0, py0 = pbb2.getMinX(), pbb2.getMinY()
+            px1, py1 = pbb2.getMaxX(), pbb2.getMaxY()
+
+            # yuck!  Update the PSF terms in the least-squares fit matrix.
+            Ab = A[:, :NT1]
+
+            sx1, sx2, sx3, sx4 = _overlap(xlo, xhi, px0, px1)
+            sy1, sy2, sy3, sy4 = _overlap(ylo, yhi, py0, py1)
+            dpx0, dpy0 = px0 - xlo, py0 - ylo
+            psfsub = psfarr[sy3-dpy0:sy4-dpy0, sx3-dpx0:sx4-dpx0]
+            vsub = valid[sy1-ylo:sy2-ylo, sx1-xlo:sx2-xlo]
+            xx, yy = np.arange(xlo, xhi+1), np.arange(ylo, yhi+1)
+            inpsf = np.outer((yy >= py0)*(yy <= py1), (xx >= px0)*(xx <= px1))
+            Ab[inpsf[valid], I_psf] = psfsub[vsub]
+
+            Aw  = Ab*w[:, np.newaxis]
+            # re-solve...
+            Xb, rb, rankb, sb = np.linalg.lstsq(Aw, bw)
+            if len(rb) > 0:
+                chisqb = rb[0]
+            else:
+                chisqb = 1e30
+            dofb = sumr - len(Xb)
+            qb = chisqb/dofb
+            ispsf2 = (qb < psfChisqCut2b)
+            q2 = qb
+            X2 = Xb
+            log.logdebug('shifted PSF: new chisq/dof = %g; good? %s' %
+                         (qb, ispsf2))
+            pkres.psfFit3 = (chisqb, dofb)
 
     # Which one do we keep?
     if (((ispsf1 and ispsf2) and (q2 < q1)) or
