@@ -3449,7 +3449,7 @@ def isrCallback(im, ccd=None, butler=None, imageSource=None, doFlatten=True, cor
     if imageSource and imageSource.verbose:
         print "Running ISR for visit %d CCD %3d" % (visit, ccdId)
 
-    result = isrTask.apply(raw, biasExposure=bias, darkExposure=dark, flatExposre=flat)
+    result = isrTask.run(raw, bias=bias, dark=dark, flat=flat)
 
     mi = result.exposure.getMaskedImage()
     return mi if isMI else mi.getImage()
