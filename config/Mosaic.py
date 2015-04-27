@@ -1,6 +1,3 @@
-config.astrom.filterMap = { 'B': 'g',
-                          'V': 'r',
-                          'R': 'r',
-                          'I': 'i',
-                          'y': 'z',
-                          }
+import os
+from lsst.utils import getPackageDir
+config.astrom.load(os.path.join(getPackageDir("obs_subaru"), "config", "filterMap.py"))

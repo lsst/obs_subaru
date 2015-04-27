@@ -11,3 +11,5 @@ config.measurement.load(os.path.join(getPackageDir("obs_subaru"), "config", "kro
 config.measurement.load(os.path.join(getPackageDir("obs_subaru"), "config", "hsm.py"))
 
 config.deblend.load(os.path.join(getPackageDir("obs_subaru"), "config", "deblend.py"))
+config.astrometry.refObjLoader.load(getPackageDir("obs_subaru"), "config", "filterMap.py"))
+

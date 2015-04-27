@@ -25,13 +25,9 @@ except ImportError as e:
     config.charImage.measurePsf.psfDeterminer.name = "pca"
 
 # Astrometry
-config.calibrate.astrometry.refObjLoader.filterMap = {
-    'B': 'g',
-    'V': 'r',
-    'R': 'r',
-    'I': 'i',
-    'y': 'z',
-}
+config.calibrate.astrometry.refObjLoader.load(os.path.join(getPackageDir("obs_subaru"), "config",
+                                                           "filterMap.py"))
+
 
 config.calibrate.detectAndMeasure.measurement.algorithms['base_ClassificationExtendedness'].fluxRatio = 0.95
 # LAM the following had to be set to affect the fluxRatio used in photoCal in meas_astrom
