@@ -467,9 +467,7 @@ class SubaruIsrTask(IsrTask):
         skyMedian = numpy.median(skyLevels[good])
         flatness =  (skyLevels[good] - skyMedian) / skyMedian
         flatness_rms = numpy.std(flatness)
-        flatness_min = flatness.min()
-        flatness_max = flatness.max()
-        flatness_pp = flatness_max - flatness_min
+        flatness_pp = flatness.max() - flatness.min() if len(flatness) > 0 else numpy.nan
 
         self.log.info("Measuring sky levels in %dx%d grids: %f" % (nX, nY, skyMedian))
         self.log.info("Sky flatness in %dx%d grids - pp: %f rms: %f" % (nX, nY, flatness_pp, flatness_rms))
