@@ -216,27 +216,30 @@ class SubaruIsrTask(IsrTask):
             self.writeThumbnail(sensorRef, "ossThumb", ccdExposure)
 
         if self.config.doBias:
+            biasExposure = self.getIsrExposure(sensorRef, "bias")
             if not doRotateCalib:
-                self.biasCorrection(ccdExposure, sensorRef)
+                self.biasCorrection(ccdExposure, biasExposure)
             else:
                 with self.rotated(ccdExposure) as exp:
-                    self.biasCorrection(exp, sensorRef)
+                    self.biasCorrection(exp, biasExposure)
         if self.config.doLinearize:
             self.linearize(ccdExposure)
         if self.config.doCrosstalk:
             self.crosstalk.run(ccdExposure)
         if self.config.doDark:
+            darkExposure = self.getIsrExposure(sensorRef, "dark")
             if not doRotateCalib:
-                self.darkCorrection(ccdExposure, sensorRef)
+                self.darkCorrection(ccdExposure, darkExposure)
             else:
                 with self.rotated(ccdExposure) as exp:
-                    self.darkCorrection(exp, sensorRef)
+                    self.darkCorrection(exp, darkExposure)
         if self.config.doFlat:
+            flatExposure = self.getIsrExposure(sensorRef, "flat")
             if not doRotateCalib:
-                self.flatCorrection(ccdExposure, sensorRef)
+                self.flatCorrection(ccdExposure, flatExposure)
             else:
                 with self.rotated(ccdExposure) as exp:
-                    self.flatCorrection(exp, sensorRef)
+                    self.flatCorrection(exp, flatExposure)
 
         if self.config.doApplyGains:
             self.applyGains(ccdExposure, self.config.normalizeGains)
@@ -513,7 +516,7 @@ class SubaruIsrTask(IsrTask):
             self.log.log(self.log.INFO, "Applying linearity corrections to Ccd %s" % (ccd.getId()))
 
 
-    def flatCorrection(self, exposure, dataRef):
+    def flatCorrection(self, exposure, flatExposure):
         """Apply flat correction in-place
 
         This version allows tweaking the flat-field to match the observed
@@ -524,9 +527,8 @@ class SubaruIsrTask(IsrTask):
         the amplifiers.
 
         @param[in,out]  exposure        exposure to process
-        @param[in]      dataRef         data reference at same level as exposure
+        @param[in]      flatExposure    flatfield exposure of same size as exposure
         """
-        flatfield = self.getDetrend(dataRef, "flat")
 
         if self.config.doTweakFlat:
             data = []
@@ -537,7 +539,7 @@ class SubaruIsrTask(IsrTask):
             for amp in exposure.getDetector():
                 box = amp.getDataSec(True)
                 dataAmp = afwImage.MaskedImageF(exposure.getMaskedImage(), box, afwImage.LOCAL).clone()
-                flatAmp = afwImage.MaskedImageF(flatfield.getMaskedImage(), box, afwImage.LOCAL)
+                flatAmp = afwImage.MaskedImageF(flatExposure.getMaskedImage(), box, afwImage.LOCAL)
                 flatAmpList.append(flatAmp)
                 dataAmp /= flatAmp
                 data.append(afwMath.makeStatistics(dataAmp, afwMath.MEDIAN, stats).getValue())
@@ -548,7 +550,7 @@ class SubaruIsrTask(IsrTask):
             for i, flat in enumerate(flatAmpList):
                 flat *= tweak[i]
 
-        lsstIsr.flatCorrection(exposure.getMaskedImage(), flatfield.getMaskedImage(),
+        lsstIsr.flatCorrection(exposure.getMaskedImage(), flatExposure.getMaskedImage(),
                                scalingType="USER", userScale=1.0)
 
 
