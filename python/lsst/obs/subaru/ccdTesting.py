@@ -3446,12 +3446,10 @@ def isrCallback(im, ccd=None, butler=None, imageSource=None, doFlatten=True, cor
     if dark and dark.getCalib().getExptime() == 0:
         dark.getCalib().setExptime(1.0)
 
-    dataRef = DataRef(ccdId, raw=raw, bias=bias, dark=dark, flat=flat)
-
     if imageSource and imageSource.verbose:
         print "Running ISR for visit %d CCD %3d" % (visit, ccdId)
 
-    result = isrTask.run(dataRef)
+    result = isrTask.run(raw, bias=bias, dark=dark, flat=flat)
 
     mi = result.exposure.getMaskedImage()
     return mi if isMI else mi.getImage()
