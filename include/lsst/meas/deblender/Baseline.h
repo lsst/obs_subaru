@@ -66,6 +66,7 @@ namespace lsst {
                 // (default is according to distance to the peak)
                 static const int STRAYFLUX_R_TO_FOOTPRINT                  = 0x8;
                 static const int STRAYFLUX_NEAREST_FOOTPRINT              = 0x10;
+                static const int STRAYFLUX_TRIM                           = 0x20;
 
                 // swig doesn't seem to understand std::vector<MaskedImagePtrT>...
                 static

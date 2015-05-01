@@ -256,7 +256,7 @@ def deblend(footprint, maskedImage, psf, psffwhm,
     butils = deb.BaselineUtilsF
 
     validStrayPtSrc = ['never', 'necessary', 'always']
-    validStrayAssign = ['r-to-peak', 'r-to-footprint', 'nearest-footprint']
+    validStrayAssign = ['r-to-peak', 'r-to-footprint', 'nearest-footprint', 'trim']
     if not strayFluxToPointSources in validStrayPtSrc:
         raise ValueError((('strayFluxToPointSources: value \"%s\" not in the '
                            + 'set of allowed values: ')
@@ -454,6 +454,9 @@ def deblend(footprint, maskedImage, psf, psffwhm,
     strayflux = afwDet.HeavyFootprintPtrListF()
 
     strayopts = 0
+    if strayFluxAssignment == 'trim':
+        findStrayFlux = False
+        strayopts |= butils.STRAYFLUX_TRIM
     if findStrayFlux:
         strayopts |= butils.ASSIGN_STRAYFLUX
         if strayFluxToPointSources == 'necessary':
@@ -471,6 +474,11 @@ def deblend(footprint, maskedImage, psf, psffwhm,
 
     portions = butils.apportionFlux(maskedImage, fp, tmimgs, tfoots, sumimg, dpsf,
                                     pkx, pky, strayflux, strayopts, clipStrayFluxFraction)
+
+    # Shrink parent to union of children
+    if strayFluxAssignment == 'trim':
+        fp.include(tfoots, True)
+
     if getTemplateSum:
         res.setTemplateSum(sumimg)
 

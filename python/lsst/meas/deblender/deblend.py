@@ -70,7 +70,8 @@ class SourceDeblendConfig(pexConf.Config):
             'r-to-footprint': ('~ 1/(1+R^2) to the closest pixel in the footprint.  '
                                'CAUTION: this can be computationally expensive on large footprints!'),
             'nearest-footprint': ('Assign 100% to the nearest footprint (using L-1 norm aka '
-                                  'Manhattan distance)')
+                                  'Manhattan distance)'),
+            'trim': ('Shrink the parent footprint to pixels that are not assigned to children')
             }
         )
 
