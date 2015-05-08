@@ -64,8 +64,8 @@ class SourceDeblendConfig(pexConf.Config):
 
     strayFluxRule = pexConf.ChoiceField(
         doc='How to split flux among peaks',
-        dtype=str, default='r-to-peak',
-        allowed={
+        dtype=str, default='trim',
+        allowed = {
             'r-to-peak': '~ 1/(1+R^2) to the peak',
             'r-to-footprint': ('~ 1/(1+R^2) to the closest pixel in the footprint.  '
                                'CAUTION: this can be computationally expensive on large footprints!'),
