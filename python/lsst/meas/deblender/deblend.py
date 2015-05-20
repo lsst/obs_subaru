@@ -114,6 +114,13 @@ class SourceDeblendConfig(pexConf.Config):
                                        "and set a flag on the parent, instead of letting them propagate up"))
     maskPlanes = pexConf.ListField(dtype=str, default=["SAT", "INTRP", "NO_DATA"],
                                    doc="Mask planes to ignore when performing statistics")
+    maskLimits = pexConf.DictField(
+        keytype = str,
+        itemtype = float,
+        default = {},
+        doc = ("Mask planes with the corresponding limit on the fraction of masked pixels. "
+               "Sources violating this limit will not be deblended."),
+        )
 
 ## \addtogroup LSST_task_documentation
 ## \{
@@ -177,6 +184,8 @@ class SourceDeblendTask(pipeBase.Task):
                                                'only the brightest were included')
         self.tooBigKey = schema.addField('deblend_parentTooBig', type='Flag',
                                          doc='Parent footprint covered too many pixels')
+        self.maskedKey = schema.addField('deblend.masked', type='Flag',
+                                         doc='Parent footprint was predominantly masked')
 
         if self.config.catchFailures:
             self.deblendFailedKey = schema.addField('deblend_failed', type='Flag',
@@ -261,6 +270,11 @@ class SourceDeblendTask(pipeBase.Task):
                 src.set(self.tooBigKey, True)
                 src.set(self.deblendSkippedKey, True)
                 self.log.logdebug('Parent %i: skipping large footprint' % (int(src.getId()),))
+                continue
+            if self.isMasked(fp, exposure.getMaskedImage().getMask()):
+                src.set(self.maskedKey, True)
+                src.set(self.deblendSkippedKey, True)
+                self.log.logdebug('Parent %i: skipping masked footprint' % (int(src.getId()),))
                 continue
 
             nparents += 1
@@ -409,5 +423,16 @@ class SourceDeblendTask(pipeBase.Task):
         if self.config.minFootprintAxisRatio > 0:
             axes = afwEll.Axes(footprint.getShape())
             if axes.getB() < self.config.minFootprintAxisRatio*axes.getA():
+                return True
+        return False
+
+    def isMasked(self, footprint, mask):
+        """Returns whether the footprint violates the mask limits"""
+        size = float(footprint.getArea())
+        for maskName, limit in self.config.maskLimits.iteritems():
+            maskVal = mask.getPlaneBitMask(maskName)
+            unmasked = afwDet.Footprint(footprint)
+            unmasked.intersectMask(mask, maskVal) # footprint of unmasked pixels
+            if (size - unmasked.getArea())/size > limit:
                 return True
         return False
