@@ -1,4 +1,4 @@
-from lsst.meas.photocal.colorterms import Colorterm
+from lsst.pipe.tasks.colorterms import Colorterm
 
 # From the last page of http://www.naoj.org/staff/nakata/suprime/illustration/colorterm_report_ver3.pdf
 # Transformation for griz band between SDSS and SC (estimated with GS83 SEDs)
