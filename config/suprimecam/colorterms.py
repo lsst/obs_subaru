@@ -1,9 +1,9 @@
 """Set color terms for Suprime-Cam with Hamamatsu detectors"""
 
-from lsst.pipe.tasks.colorterms import Colorterm, ColortermDictConfig
+from lsst.pipe.tasks.colorterms import Colorterm, ColortermDict
 
-root.library = {
-    "sdss-*": ColortermDictConfig(dict={
+root.data = {
+    "sdss-*": ColortermDict(data={
         'g': Colorterm(primary="g", secondary="r", c0=-0.00928,    c1=-0.0824),
         'r': Colorterm(primary="r", secondary="i", c0=-0.00282,    c1=-0.0498,     c2=-0.0149),
         'i': Colorterm(primary="i", secondary="z", c0= 0.00186,    c1=-0.140,      c2=-0.0196),

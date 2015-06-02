@@ -1,16 +1,16 @@
 """Set color terms for HSC"""
 
-from lsst.pipe.tasks.colorterms import Colorterm, ColortermDictConfig
+from lsst.pipe.tasks.colorterms import Colorterm, ColortermDict
 
-root.library = {
-    "hsc*": ColortermDictConfig(dict={
+root.data = {
+    "hsc*": ColortermDict(data={
         'g': Colorterm(primary="g", secondary="g"),
         'r': Colorterm(primary="r", secondary="r"),
         'i': Colorterm(primary="i", secondary="i"),
         'z': Colorterm(primary="z", secondary="z"),
         'y': Colorterm(primary="y", secondary="y"),
     }),
-    "sdss*": ColortermDictConfig(dict={
+    "sdss*": ColortermDict(data={
         'g':    Colorterm(primary="g", secondary="r", c0=-0.00816446, c1=-0.08366937, c2=-0.00726883),
         'r':    Colorterm(primary="r", secondary="i", c0= 0.00231810, c1= 0.01284177, c2=-0.03068248),
         'i':    Colorterm(primary="i", secondary="z", c0= 0.00130204, c1=-0.16922042, c2=-0.01374245),
@@ -19,7 +19,7 @@ root.library = {
         'N816': Colorterm(primary="i", secondary="z", c0= 0.00927133, c1=-0.63558358, c2=-0.05474862),
         'N921': Colorterm(primary="z", secondary="i", c0= 0.00752972, c1= 0.09863530, c2=-0.05451118),
     }),
-    "ps1*": ColortermDictConfig(dict={
+    "ps1*": ColortermDict(data={
         'g':    Colorterm(primary="g", secondary="r", c0= 0.00730066, c1= 0.06508481, c2=-0.01510570),
         'r':    Colorterm(primary="r", secondary="i", c0= 0.00279757, c1= 0.02093734, c2=-0.01877566),
         'i':    Colorterm(primary="i", secondary="z", c0= 0.00166891, c1=-0.13944659, c2=-0.03034094),
