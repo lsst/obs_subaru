@@ -41,7 +41,7 @@ namespace lsst {
                                     int cx, int cy);
 
                 static
-                std::pair<MaskedImagePtrT, FootprintPtrT>
+                std::pair<ImagePtrT, FootprintPtrT>
                 buildSymmetricTemplate(MaskedImageT const& img,
                                        lsst::afw::detection::Footprint const& foot,
                                        lsst::afw::detection::PeakRecord const& pk,
@@ -51,12 +51,12 @@ namespace lsst {
                                        bool* patchedEdges);
 
                 static void
-                medianFilter(MaskedImageT const& img,
-                             MaskedImageT & outimg,
+                medianFilter(ImageT const& img,
+                             ImageT & outimg,
                              int halfsize);
 
                 static void
-                makeMonotonic(MaskedImageT & img,
+                makeMonotonic(ImageT & img,
                               lsst::afw::detection::PeakRecord const& pk);
 
                 static const int ASSIGN_STRAYFLUX                          = 0x1;
@@ -73,7 +73,7 @@ namespace lsst {
                 std::vector<typename PTR(lsst::afw::image::MaskedImage<ImagePixelT, MaskPixelT, VariancePixelT>)>
                 apportionFlux(MaskedImageT const& img,
                               lsst::afw::detection::Footprint const& foot,
-                              std::vector<typename PTR(lsst::afw::image::MaskedImage<ImagePixelT, MaskPixelT, VariancePixelT>)> templates,
+                              std::vector<typename PTR(lsst::afw::image::Image<ImagePixelT>)> templates,
                               std::vector<boost::shared_ptr<lsst::afw::detection::Footprint> > templ_footprints,
                               //
                               ImagePtrT templ_sum,
@@ -100,7 +100,7 @@ namespace lsst {
 
                 static
                 void
-                _sum_templates(std::vector<MaskedImagePtrT> timgs,
+                _sum_templates(std::vector<ImagePtrT> timgs,
                                ImagePtrT tsum);
 
                 static

@@ -50,7 +50,7 @@ using namespace lsst::afw::detection;
 
 %template(BaselineUtilsF) lsst::meas::deblender::BaselineUtils<float>;
 
-%template(pairMaskedImageFPtrAndFootprintPtr) std::pair<lsst::meas::deblender::BaselineUtils<float>::MaskedImagePtrT, lsst::meas::deblender::BaselineUtils<float>::FootprintPtrT>;
+%template(pairImageFPtrAndFootprintPtr) std::pair<lsst::meas::deblender::BaselineUtils<float>::ImagePtrT, lsst::meas::deblender::BaselineUtils<float>::FootprintPtrT>;
 
 /******************************************************************************/
 // Local Variables: ***

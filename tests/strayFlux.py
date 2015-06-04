@@ -171,7 +171,7 @@ class StrayFluxTestCase(unittest.TestCase):
             for i,dpk in enumerate(deb.peaks):
                 plt.subplot(R, C, i*C + 1)
                 plt.title('ch%i symm' % i)
-                symm = dpk.templateMaskedImage.getImage()
+                symm = dpk.templateImage
                 myimshow(symm.getArray(), extent=imExt(symm), **ima)
     
                 plt.subplot(R, C, i*C + 2)

@@ -110,8 +110,8 @@ class PerPeak(object):
 
         self.failedSymmetricTemplate = False
 
-        # The actual template MaskedImage and Footprint
-        self.templateMaskedImage = None
+        # The actual template Image and Footprint
+        self.templateImage = None
         self.templateFootprint = None
 
         # The flux assigned to this template -- a MaskedImage
@@ -180,13 +180,13 @@ class PerPeak(object):
 
     # DEBUG
     def setOrigTemplate(self, t, tfoot):
-        self.origTemplate = t.getImage().Factory(t.getImage(), True)
+        self.origTemplate = t.Factory(t, True)
         self.origFootprint = tfoot
     def setRampedTemplate(self, t, tfoot):
         self.hasRampedTemplate = True
-        self.rampedTemplate = t.getImage().Factory(t.getImage(), True)
+        self.rampedTemplate = t.Factory(t, True)
     def setMedianFilteredTemplate(self, t, tfoot):
-        self.medianFilteredTemplate = t.getImage().Factory(t.getImage(), True)
+        self.medianFilteredTemplate = t.Factory(t, True)
     def setPsfTemplate(self, tim, tfoot):
         self.psfFootprint = afwDet.Footprint(tfoot)
         self.psfTemplate = tim.Factory(tim, True)
@@ -216,8 +216,8 @@ class PerPeak(object):
         self.failedSymmetricTemplate = True
         self.skip = True
 
-    def setTemplate(self, maskedImage, footprint):
-        self.templateMaskedImage = maskedImage
+    def setTemplate(self, image, footprint):
+        self.templateImage = image
         self.templateFootprint = footprint
 
 def deblend(footprint, maskedImage, psf, psffwhm,
@@ -346,7 +346,7 @@ def deblend(footprint, maskedImage, psf, psffwhm,
         if rampFluxAtEdge:
             log.logdebug('Checking for significant flux at edge: sigma1=%g' % sigma1)
         if (rampFluxAtEdge and
-            butils.hasSignificantFluxAtEdge(t1.getImage(), tfoot, 3*sigma1)):
+            butils.hasSignificantFluxAtEdge(t1, tfoot, 3*sigma1)):
             log.logdebug("Template %i has significant flux at edge: ramping" % pkres.pki)
             try:
                 (t2, tfoot2, patched) = _handle_flux_at_edge(log, psffwhm, t1, tfoot, fp,
@@ -383,7 +383,7 @@ def deblend(footprint, maskedImage, psf, psffwhm,
             butils.makeMonotonic(t1, pk)
 
         if clipFootprintToNonzero:
-            tfoot.clipToNonzero(t1.getImage())
+            tfoot.clipToNonzero(t1)
             tfoot.normalize()
 
         pkres.setTemplate(t1, tfoot)
@@ -404,7 +404,7 @@ def deblend(footprint, maskedImage, psf, psffwhm,
     for peaki, pkres in enumerate(res.peaks):
         if pkres.skip:
             continue
-        tmimgs.append(pkres.templateMaskedImage)
+        tmimgs.append(pkres.templateImage)
         tfoots.append(pkres.templateFootprint)
         # for stray flux...
         dpsf.append(pkres.deblendedAsPsf)
@@ -1011,10 +1011,10 @@ def _fitPsf(fp, fmask, pk, pkF, pkres, fbb, peaks, peaksF, log, psf, psffwhm,
         bb = fpcopy.getBBox()
 
         # Copy the part of the PSF model within the clipped footprint.
-        psfmod = afwImage.MaskedImageF(bb)
-        afwDet.copyWithinFootprintImage(fpcopy, psfimg, psfmod.getImage())
+        psfmod = afwImage.ImageF(bb)
+        afwDet.copyWithinFootprintImage(fpcopy, psfimg, psfmod)
         # Save it as our template.
-        fpcopy.clipToNonzero(psfmod.getImage())
+        fpcopy.clipToNonzero(psfmod)
         fpcopy.normalize()
         pkres.setTemplate(psfmod, fpcopy)
 
@@ -1047,11 +1047,11 @@ def _handle_flux_at_edge(log, psffwhm, t1, tfoot, fp, maskedImage,
     # we need the pixels OUTSIDE the footprint to be 0.
     fpcopy = afwDet.Footprint(fp)
     fpcopy.clipTo(tbb)
-    padim = t1.Factory(tbb)
+    padim = maskedImage.Factory(tbb)
     afwDet.copyWithinFootprintMaskedImage(fpcopy, maskedImage, padim)
 
     # find pixels on the edge of the template
-    edgepix = butils.getSignificantEdgePixels(t1.getImage(), tfoot, -1e6)
+    edgepix = butils.getSignificantEdgePixels(t1, tfoot, -1e6)
 
     # instantiate PSF image
     xc = int((x0 + x1)/2)
@@ -1074,9 +1074,9 @@ def _handle_flux_at_edge(log, psffwhm, t1, tfoot, fp, maskedImage,
     py1 = pbb.getMaxY()
 
     # Compute the ramped-down edge pixels
-    ramped = t1.getImage().Factory(tbb)
+    ramped = t1.Factory(tbb)
     Tout = ramped.getArray()
-    Tin  = t1.getImage().getArray()
+    Tin  = t1.getArray()
     tx0, ty0 = t1.getX0(), t1.getY0()
     ox0, oy0 = ramped.getX0(), ramped.getY0()
     P = psfim.getArray()
