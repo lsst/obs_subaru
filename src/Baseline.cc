@@ -678,7 +678,7 @@ apportionFlux(MaskedImageT const& img,
                 // treat mask planes differently?
                 // }
                 out_it.mask()     = (*in_it).mask();
-                out_it.variance() = (*in_it).variance();
+                out_it.variance() = (*in_it).variance()*frac;
                 out_it.image()    = (*in_it).image() * frac;
             }
         }
