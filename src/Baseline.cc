@@ -1075,9 +1075,6 @@ symmetrizeFootprint(
    output pixels (cx + dx, cy + dy) and (cx - dx, cy - dy)
    = min(input pixels (cx + dx, cy + dy) and (cx - dx, cy - dy))
 
- For pixels that are pulled down by more than 1 sigma, the SYMM_1SIG
- bit is set; for pixels pulled down by more than 3 sigma, SYMM_3SIG.
-
  If *patchEdge* is true and if the footprint touches pixels with the
  EDGE bit set, then for spans whose symmetric mirror are outside the
  image, the symmetric footprint is grown to include them and their
@@ -1143,9 +1140,7 @@ buildSymmetricTemplate(
 
     // The result image:
     MaskedImagePtrT timg(new MaskedImageT(sfoot->getBBox()));
-
-    MaskPixelT symm1sig = img.getMask()->getPlaneBitMask("SYMM_1SIG");
-    MaskPixelT symm3sig = img.getMask()->getPlaneBitMask("SYMM_3SIG");
+    ImagePtrT targetimg(new ImageT(sfoot->getBBox()));
 
     SpanList::const_iterator fwd  = spans.begin();
     SpanList::const_iterator back = spans.end()-1;
@@ -1178,22 +1173,6 @@ buildSymmetricTemplate(
             targetimg->set0(fx, fy, pix);
             targetimg->set0(bx, by, pix);
 
-            // Set the "symm1sig" mask bit for pixels that have been
-            // pulled down at least 1 sigma by the symmetry
-            // constraint, and the "symm3sig" mask bit for pixels
-            // pulled down by 3 sigma or more.
-            if (pixf >= pix + 1.*sigma1) {
-                targetmask->set0(fx, fy, targetmask->get0(fx, fy) | symm1sig);
-                if (pixf >= pix + 3.*sigma1) {
-                    targetmask->set0(fx, fy, targetmask->get0(fx, fy) | symm3sig);
-                }
-            }
-            if (pixb >= pix + 1.*sigma1) {
-                targetmask->set0(bx, by, targetmask->get0(bx, by) | symm1sig);
-                if (pixb >= pix + 3.*sigma1) {
-                    targetmask->set0(bx, by, targetmask->get0(bx, by) | symm3sig);
-                }
-            }
         }
     }
 

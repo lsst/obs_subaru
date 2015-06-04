@@ -106,10 +106,6 @@ class SourceDeblendConfig(pexConf.Config):
                                       doc=('Footprints smaller in width or height than this value will '
                                            'be ignored; 0 to never ignore.'))
 
-    removeMaskPlanes = pexConf.Field(dtype=int, default=True,
-                                     doc=("Clear and remove diagnostic mask planes on exit "
-                                          "(disable for deblender debugging)"))
-
     propagateAllPeaks = pexConf.Field(dtype=bool, default=False,
                                       doc=('Guarantee that all peaks produce a child source.'))
     catchFailures = pexConf.Field(dtype=bool, default=False,
@@ -390,12 +386,6 @@ class SourceDeblendTask(pipeBase.Task):
             self.postSingleDeblendHook(exposure, srcs, i, npre, kids, fp, psf, psf_fwhm, sigma1, res)
             #print 'Deblending parent id', src.getId(), 'took', time.clock() - t0
 
-        if self.config.removeMaskPlanes:
-            mask = exposure.getMaskedImage().getMask()
-            definedMasks = set(mask.getMaskPlaneDict().keys())
-            for nm in ['SYMM_1SIG', 'SYMM_3SIG', 'MONOTONIC_1SIG']:
-                if nm in definedMasks:
-                    mask.removeAndClearMaskPlane(nm, True)
 
         n1 = len(srcs)
         self.log.info('Deblended: of %i sources, %i were deblended, creating %i children, total %i sources'

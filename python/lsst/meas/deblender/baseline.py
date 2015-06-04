@@ -302,10 +302,6 @@ def deblend(footprint, maskedImage, psf, psffwhm,
         sigma1 = math.sqrt(stats.getValue(afwMath.MEDIAN))
         log.logdebug('Estimated sigma1 = %f' % sigma1)
 
-    # Add the mask planes we will set.
-    for nm in ['SYMM_1SIG', 'SYMM_3SIG', 'MONOTONIC_1SIG']:
-        mask.addMaskPlane(nm)
-
     # get object that will hold our results
     res = PerFootprint(fp, peaks=peaks)
 
