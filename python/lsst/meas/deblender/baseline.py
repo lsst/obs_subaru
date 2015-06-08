@@ -385,6 +385,8 @@ def deblend(footprint, maskedImage, psf, psffwhm,
         if clipFootprintToNonzero:
             tfoot.clipToNonzero(t1)
             tfoot.normalize()
+            if not tfoot.getBBox().isEmpty() and tfoot.getBBox() != t1.getBBox(afwImage.PARENT):
+                t1 = t1.Factory(t1, tfoot.getBBox(), afwImage.PARENT, True)
 
         pkres.setTemplate(t1, tfoot)
 
