@@ -1,11 +1,9 @@
 #!/usr/bin/env python
 
-import os, os.path
-import pwd
+import os
 
 import lsst.daf.base as dafBase
 import lsst.afw.geom as afwGeom
-import lsst.afw.image as afwImage
 import lsst.afw.image.utils as afwImageUtils
 
 from lsst.daf.butlerUtils import CameraMapper

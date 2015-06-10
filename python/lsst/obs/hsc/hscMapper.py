@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 import os
-import pwd
 
 import lsst.daf.base as dafBase
 from lsst.daf.butlerUtils import CameraMapper
