@@ -37,6 +37,9 @@ class GetFlatTestCase(unittest.TestCase):
         self.assertEqual(raw.getFilter().getFilterProperty().getName(), "i")
         self.assertEqual(raw.getDetector().getId().getName(), "Fio")
 
+    def testPackageName(self):
+        self.assertEqual(self.butler.mapper.packageName, "obs_subaru")
+
 #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 def suite():

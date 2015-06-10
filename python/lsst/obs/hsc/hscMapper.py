@@ -13,6 +13,7 @@ import lsst.pex.policy as pexPolicy
 
 class HscMapper(CameraMapper):
     """Provides abstract-physical mapping for HSC data"""
+    packageName = "obs_subaru"
 
     def __init__(self, **kwargs):
         policyFile = pexPolicy.DefaultPolicyFile("obs_subaru", "HscMapper.paf", "policy")
@@ -240,10 +241,6 @@ Most chips are flipped L/R, but the rotated ones (100..103) are flipped T/B
         return self.map_calexp_sub(copyId)
     def std_psf(self, calexp, dataId):
         return calexp.getPsf()
-
-    @classmethod
-    def getEupsProductName(cls):
-        return "obs_subaru"
 
     @classmethod
     def getCameraName(cls):
