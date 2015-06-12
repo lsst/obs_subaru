@@ -99,6 +99,8 @@ class SourceDeblendConfig(pexConf.Config):
     minFootprintAxisRatio = pexConf.Field(dtype=float, default=1.0e-2,
                                           doc=("Minimum axis ratio for footprints before they are ignored "
                                                "as large; non-positive means no threshold applied"))
+    notDeblendedMask = pexConf.Field(dtype=str, default="NOT_DEBLENDED", optional=True,
+                                     doc="Mask name for footprints not deblended, or None")
 
     tinyFootprintSize = pexConf.Field(dtype=int, default=2,
                                       doc=('Footprints smaller in width or height than this value will '
@@ -269,12 +271,12 @@ class SourceDeblendTask(pipeBase.Task):
 
             if self.isLargeFootprint(fp):
                 src.set(self.tooBigKey, True)
-                src.set(self.deblendSkippedKey, True)
+                self.skipParent(src, mi.getMask())
                 self.log.logdebug('Parent %i: skipping large footprint' % (int(src.getId()),))
                 continue
             if self.isMasked(fp, exposure.getMaskedImage().getMask()):
                 src.set(self.maskedKey, True)
-                src.set(self.deblendSkippedKey, True)
+                self.skipParent(src, mi.getMask())
                 self.log.logdebug('Parent %i: skipping masked footprint' % (int(src.getId()),))
                 continue
 
@@ -437,3 +439,18 @@ class SourceDeblendTask(pipeBase.Task):
             if (size - unmasked.getArea())/size > limit:
                 return True
         return False
+
+    def skipParent(self, source, mask):
+        """Indicate that the parent source is not being deblended
+
+        We set the appropriate flags and mask.
+
+        @param source  The source to flag as skipped
+        @param mask  The mask to update
+        """
+        fp = source.getFootprint()
+        source.set(self.deblendSkippedKey, True)
+        source.set(self.nChildKey, len(fp.getPeaks())) # It would have this many if we deblended them all
+        if self.config.notDeblendedMask:
+            mask.addMaskPlane(self.config.notDeblendedMask)
+            afwDet.setMaskFromFootprint(mask, fp, mask.getPlaneBitMask(self.config.notDeblendedMask))
