@@ -71,6 +71,9 @@ class GetRawTestCase(unittest.TestCase):
                     cameraGeomUtils.showCcd(ccd, ccdImage=raw, frame=frame)
                     frame += 1
 
+    def testPackageName(self):
+        self.assertEqual(self.butler.mapper.packageName, "obs_subaru")
+
 
 #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
