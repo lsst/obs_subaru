@@ -467,29 +467,25 @@ class SourceDeblendTask(pipeBase.Task):
             parent.set(self.blendednessKey, 0.0)
             return
 
-        def makeImage(src):
-            """Create an image for the source using its HeavyFootprint"""
+        def getHeavyFootprint(src):
+            """Provide the HeavyFootprint for a source"""
             fp = src.getFootprint()
-            if fp.isHeavy():
-                fp = afwDet.HeavyFootprintF.cast(fp)
-            else:
-                fp = afwDet.makeHeavyFootprint(fp, maskedImage)
-            image = afwImage.ImageF(bbox)
-            image.set(0)
-            fp.insert(image)
-            return image
+            return (afwDet.HeavyFootprintF.cast(fp) if fp.isHeavy() else
+                    afwDet.makeHeavyFootprint(fp, maskedImage))
 
-        parentImage = makeImage(parent)
-        kidImages = [makeImage(k) for k in kids]
+        parentFoot = getHeavyFootprint(parent)
+        kidFeet = [getHeavyFootprint(src) for src in kids]
 
-        def setBlendedness(src, image):
+        def setBlendedness(src, foot):
             """Calculate and set the blendedness value for a source, given its image"""
+            if foot.getBBox().isEmpty() or numpy.all(foot.getImageArray() == 0.0):
+                src.set(self.blendednessKey, 0.0)
+                return
             srcId = src.getId()
-            numerator = sum((numpy.vdot(image.getArray(), i.getArray()) for k, i in zip(kids, kidImages) if
-                             k.getId() != srcId))
-            denominator = numpy.vdot(image.getArray(), image.getArray())
+            numerator = sum(foot.dot(f) for k, f in zip(kids, kidFeet) if k.getId() != srcId)
+            denominator = foot.dot(foot)
             src.set(self.blendednessKey, numerator/denominator)
 
-        setBlendedness(parent, parentImage)
-        for k, i in zip(kids, kidImages):
-            setBlendedness(k, i)
+        setBlendedness(parent, parentFoot)
+        for k, f in zip(kids, kidFeet):
+            setBlendedness(k, f)
