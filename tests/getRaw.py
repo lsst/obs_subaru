@@ -5,12 +5,8 @@ import os
 import unittest
 import lsst.utils.tests as utilsTests
 
-from lsst.pex.policy import Policy
 import lsst.daf.persistence as dafPersist
 from lsst.obs.suprimecam import SuprimecamMapper
-
-import lsst.afw.display.ds9 as ds9
-import lsst.afw.display.utils as displayUtils
 
 import lsst.afw.cameraGeom as cameraGeom
 import lsst.afw.cameraGeom.utils as cameraGeomUtils
