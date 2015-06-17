@@ -1,17 +1,17 @@
 #!/usr/bin/env python
 
-import os, os.path
-import pwd
+import os
 
 import lsst.daf.base as dafBase
 import lsst.afw.geom as afwGeom
-import lsst.afw.image as afwImage
 import lsst.afw.image.utils as afwImageUtils
 
 from lsst.daf.butlerUtils import CameraMapper
 import lsst.pex.policy as pexPolicy
 
 class SuprimecamMapperBase(CameraMapper):
+    packageName = "obs_subaru"
+
     def __init__(self, *args, **kwargs):
         super(SuprimecamMapperBase, self).__init__(*args, **kwargs)
 
@@ -195,10 +195,6 @@ class SuprimecamMapperBase(CameraMapper):
         # next line makes a dict that maps filter names to sequential integers (arbitrarily sorted),
         # for use in generating unique IDs for sources.
         self.filterIdMap = dict(zip(self.filters, range(len(self.filters))))
-
-    @staticmethod
-    def getEupsProductName():
-        return "obs_subaru"
 
 ###############################################################################
 

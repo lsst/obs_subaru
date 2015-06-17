@@ -3,9 +3,13 @@ HSC-specific overrides for ProcessCcdTask
 (applied after Subaru overrides in ../processCcd.py).
 """
 
-import os
-root.load(os.path.join(os.environ['OBS_SUBARU_DIR'], 'config', 'hsc', 'isr.py'))
-root.load(os.path.join(os.environ['OBS_SUBARU_DIR'], 'config', 'hsc', 'colorterms.py'))
+import os.path
+
+from lsst.utils import getPackageDir
+
+hscConfigDir = os.path.join(getPackageDir("obs_subaru"), "config", "hsc")
+root.load(os.path.join(hscConfigDir, 'isr.py'))
+root.calibrate.photocal.colorterms.load(os.path.join(hscConfigDir, 'colorterms.py'))
 
 root.calibrate.measurePsf.starSelector.name='objectSize'
 root.calibrate.measurePsf.starSelector['objectSize'].widthMin=0.9
