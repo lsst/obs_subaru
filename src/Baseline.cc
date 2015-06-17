@@ -1289,41 +1289,19 @@ hasSignificantFluxAtEdge(ImagePtrT img,
     // Find edge template pixels with significant flux -- perhaps
     // because their symmetric pixels were outside the footprint?
     // (clipped by an image edge, etc)
+    PTR(det::Footprint) edge = sfoot->findEdgePixels();
 
-    const SpanList spans = sfoot->getSpans();
-    for (SpanList::const_iterator sp = spans.begin();
-         sp != spans.end(); ++sp) {
-        // We first search for significant pixels, and then check
-        // whether they are on the edge of the footprint.
-        // We have to check above and below all pixels and left and
-        // right of the end pixels.  Faster to do this in image space?
-        // (Inserting footprint into image, operating on image,
-        // re-grabbing footprint, like growFootprint) Or cache the
-        // span starts and ends of a sliding window of rows?
-        int y  = (*sp)->getY();
-        int x0 = (*sp)->getX0();
-        int x1 = (*sp)->getX1();
+    const SpanList spans = edge->getSpans();
+    for (SpanList::const_iterator sp = spans.begin(); sp != spans.end(); ++sp) {
+        int const y  = (*sp)->getY();
+        int const x0 = (*sp)->getX0();
+        int const x1 = (*sp)->getX1();
         int x;
         typename ImageT::const_x_iterator xiter;
-        for (xiter = img->x_at(x0 - img->getX0(), y - img->getY0()), x=x0; 
-             x<=x1; ++x, ++xiter) {
-
-            assert(img->getBBox().contains(geom::Point2I(x, y)));
-
-            if (*xiter < thresh)
-                // not significant
-                continue;
-            // Since the footprint is normalized, all span endpoints
-            // are on the boundary.
-            if ((x != x0) && (x != x1) &&
-                sfoot->contains(geom::Point2I(x, y-1)) &&
-                sfoot->contains(geom::Point2I(x, y+1))) {
-                // not edge
-                continue;
+        for (xiter = img->x_at(x0 - img->getX0(), y - img->getY0()), x=x0; x<=x1; ++x, ++xiter) {
+            if (*xiter >= thresh) {
+                return true;
             }
-            log.debugf("Found significant template-edge pixel: %i,%i = %f > %f",
-                       x, y, (float)*xiter, (float)thresh);
-            return true;
         }
     }
     return false;
@@ -1339,40 +1317,40 @@ deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::
 getSignificantEdgePixels(ImagePtrT img,
                          PTR(det::Footprint) sfoot,
                          ImagePixelT thresh) {
-    typedef typename det::Footprint::SpanList SpanList;
     pexLog::Log log(pexLog::Log::getDefaultLog(),
                     "lsst.meas.deblender.getSignificantEdgePixels");
-    sfoot->normalize();
-    const SpanList spans = sfoot->getSpans();
-    SpanList::const_iterator sp;
-    PTR(det::Footprint) edgepix(new det::Footprint(sfoot->getPeaks().getSchema()));
 
-    for (sp = spans.begin(); sp != spans.end(); sp++) {
-        int y  = (*sp)->getY();
-        int x0 = (*sp)->getX0();
-        int x1 = (*sp)->getX1();
-        int x;
-        typename ImageT::const_x_iterator xiter;
-        for (xiter = img->x_at(x0 - img->getX0(), y - img->getY0()), x=x0;
-             x<=x1; ++x, ++xiter) {
-            if (*xiter < thresh)
-                // not significant
-                continue;
-            // Since the footprint is normalized, all span endpoints
-            // are on the boundary.
-            if ((x != x0) && (x != x1) &&
-                sfoot->contains(geom::Point2I(x, y-1)) &&
-                sfoot->contains(geom::Point2I(x, y+1))) {
-                // not edge
-                continue;
+    sfoot->normalize();                 // Algorithms require spans sorted by y
+
+    PTR(det::Footprint) significant(new det::Footprint(sfoot->getPeaks().getSchema()));
+
+    int const x0 = img->getX0(), y0 = img->getY0();
+    CONST_PTR(det::Footprint) const edges = sfoot->findEdgePixels();
+    for (det::Footprint::SpanList::const_iterator ss = edges->getSpans().begin();
+         ss != edges->getSpans().end(); ++ss) {
+        geom::Span const& span = **ss;
+        int const y = span.getY();
+        int x = span.getX0();
+        typename ImageT::const_x_iterator iter = img->x_at(x - x0, y - y0);
+        bool onSpan = false;            // Are we in a span of interest
+        int xSpan;                      // Starting x of span
+        for (; x <= span.getX1(); ++x, ++iter) {
+            if (*iter >= thresh) {
+                onSpan = true;
+                xSpan = x;
+            } else if (onSpan) {
+                onSpan = false;
+                significant->addSpanInSeries(y, xSpan, x - 1);
             }
-            log.debugf("Found significant edge pixel: %i,%i = %f > thresh %g",
-                       x, y, (float)*xiter, (float)thresh);
-            edgepix->addSpanInSeries(y, x, x);
+        }
+        if (onSpan) {
+            significant->addSpanInSeries(y, xSpan, span.getX1());
         }
     }
-    return edgepix;
+
+    return significant;
 }
+
 
 // Instantiate
 template class deblend::BaselineUtils<float>;
