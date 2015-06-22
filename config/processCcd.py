@@ -8,14 +8,20 @@ import os
 # should determine the relative normalisations of the CCDs!
 root.isr.assembleCcd.doRenorm = False
 
+useApprox = True
+bgSize = 128
 # Cosmic rays and background estimation
 root.calibrate.repair.cosmicray.nCrPixelMax = 1000000
 root.calibrate.repair.cosmicray.cond3_fac2 = 0.4
-root.calibrate.background.binSize = 128
+root.calibrate.background.useApprox = useApprox
+root.calibrate.background.binSize = bgSize
 root.calibrate.background.undersampleStyle = 'REDUCE_INTERP_ORDER'
-root.calibrate.detection.background.binSize = 128
+root.calibrate.detection.background.useApprox = useApprox
+root.calibrate.detection.background.binSize = bgSize
 root.calibrate.detection.background.undersampleStyle='REDUCE_INTERP_ORDER'
-root.detection.background.binSize = 128
+root.calibrate.detection.background.useApprox = useApprox
+root.detection.background.useApprox = useApprox
+root.detection.background.binSize = bgSize
 root.detection.background.undersampleStyle = 'REDUCE_INTERP_ORDER'
 
 # PSF determination
