@@ -160,6 +160,15 @@ exposures: {
         tables:        raw
         tables:        raw_skyTile
     }
+    deepCoadd_calexp_det: {
+        template:      "deepCoadd-results/%(filter)s/%(tract)d/%(patch)s/calexp_det-%(filter)s-%(tract)d-%(patch)s.fits"
+        python:        "lsst.afw.image.ExposureF"
+        persistable:   "ExposureF"
+        storage:       "FitsStorage"
+        level:         "None"
+        tables:        raw
+        tables:        raw_skyTile
+    }
     deepCoadd_depth: {
         template:    "deepCoadd/%(filter)s/%(tract)d/%(patch)s.depth.fits"
         python:      "lsst.afw.image.ImageF"
@@ -523,6 +532,22 @@ datasets: {
         storage:      "ignored"
         tables:       "raw"
     }
+    deepMergedCoaddId: {
+        template:     "ignored"
+        # Provide something to import, although we actually return a Long
+        python:       "lsst.daf.base.PropertySet"
+        persistable:  "ignored"
+        storage:      "ignored"
+        tables:       "raw"
+    }
+    deepMergedCoaddId_bits: {
+        template:     "ignored"
+        # Provide something to import, although we actually return an int
+        python:       "lsst.daf.base.PropertySet"
+        persistable:  "ignored"
+        storage:      "ignored"
+        tables:       "raw"
+    }
 
     stackExposureId: {
         template:     "ignored"
@@ -767,6 +792,15 @@ datasets: {
     }
     deepCoadd_calexpBackground: {
         template:      "deepCoadd-results/%(filter)s/%(tract)d/%(patch)s/bkgd-%(filter)s-%(tract)d-%(patch)s.fits"
+        python:        "lsst.afw.math.BackgroundList"
+        persistable:   "PurePythonClass"
+        storage:       "FitsCatalogStorage"
+        tables:        raw
+        tables:        raw_skyTile
+    }
+
+    deepCoadd_calexp_detBackground: {
+        template:      "deepCoadd-results/%(filter)s/%(tract)d/%(patch)s/det_bkgd-%(filter)s-%(tract)d-%(patch)s.fits"
         python:        "lsst.afw.math.BackgroundList"
         persistable:   "PurePythonClass"
         storage:       "FitsCatalogStorage"
@@ -1115,13 +1149,13 @@ datasets: {
         tables:        raw
         tables:        raw_skyTile
     }
-    detect_config: {
+    detectCoaddSources_config: {
         template:      "config/detect.py"
         python:        "lsst.pipe.tasks.multiBand.DetectCoaddSourcesConfig"
         persistable:   "Config"
         storage:       "ConfigStorage"
     }
-    detect_metadata: {
+    detectCoaddSources_metadata: {
         template:      "deepCoadd-results/%(filter)s/%(tract)d/%(patch)s/detectMD-%(filter)s-%(tract)d-%(patch)s.boost"
         python:        "lsst.daf.base.PropertySet"
         persistable:   "PropertySet"
@@ -1145,13 +1179,13 @@ datasets: {
         tables:        raw
         tables:        raw_skyTile
     }
-    mergeDet_config: {
+    mergeCoaddDetections_config: {
         template:      "config/mergeDetect.py"
-        python:        "lsst.pipe.tasks.multiBand.MergeSourcesConfig"
+        python:        "lsst.pipe.tasks.multiBand.MergeDetectionsConfig"
         persistable:   "Config"
         storage:       "ConfigStorage"
     }
-    mergeDet_metadata: {
+    mergeCoaddDetections_metadata: {
         template:      "deepCoadd-results/merged/%(tract)d/%(patch)s/mergeDetMD-%(tract)d-%(patch)s.boost"
         python:        "lsst.daf.base.PropertySet"
         persistable:   "PropertySet"
@@ -1165,6 +1199,12 @@ datasets: {
         persistable:   "SourceCatalog"
         storage:       "FitsCatalogStorage"
     }
+    deepCoadd_peak_schema: {
+        template:      "schema/deepCoadd_peak.fits"
+        python:        "lsst.afw.detection.PeakCatalog"
+        persistable:   "PeakCatalog"
+        storage:       "FitsCatalogStorage"
+    }
 
     # Measurements on coadds
     deepCoadd_meas: {
@@ -1175,13 +1215,13 @@ datasets: {
         tables:        raw
         tables:        raw_skyTile
     }
-    measure_config: {
+    measureCoaddSources_config: {
         template:      "config/measureMerged.py"
         python:        "lsst.pipe.tasks.multiBand.MeasureMergedCoaddSourcesConfig"
         persistable:   "Config"
         storage:       "ConfigStorage"
     }
-    measure_metadata: {
+    measureCoaddSources_metadata: {
         template:      "deepCoadd-results/%(filter)s/%(tract)d/%(patch)s/measMD-%(filter)s-%(tract)d-%(patch)s.boost"
         python:        "lsst.daf.base.PropertySet"
         persistable:   "PropertySet"
@@ -1205,13 +1245,13 @@ datasets: {
         tables:        raw
         tables:        raw_skyTile
     }
-    mergeMeas_config: {
+    mergeCoaddMeasurements_config: {
         template:      "config/mergeMeasure.py"
         python:        "lsst.pipe.tasks.multiBand.MergeSourcesConfig"
         persistable:   "Config"
         storage:       "ConfigStorage"
     }
-    mergeMeas_metadata: {
+    mergeCoaddMeasurements_metadata: {
         template:      "deepCoadd-results/merged/%(tract)d/%(patch)s/mergeMeasMD-%(tract)d-%(patch)s.boost"
         python:        "lsst.daf.base.PropertySet"
         persistable:   "PropertySet"
@@ -1224,6 +1264,13 @@ datasets: {
         python:        "lsst.afw.table.SourceCatalog"
         persistable:   "SourceCatalog"
         storage:       "FitsCatalogStorage"
+    }
+
+    multiband_config: {
+        template:      "config/multiband.py"
+        python:        "lsst.pipe.tasks.multiBand.MultiBandConfig"
+        persistable:   "Config"
+        storage:       "ConfigStorage"
     }
 
 }
