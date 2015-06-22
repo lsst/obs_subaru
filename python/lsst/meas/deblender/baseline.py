@@ -959,7 +959,7 @@ def _fitPsf(fp, fmask, pk, pkF, pkres, fbb, peaks, peaksF, log, psf, psffwhm,
         for ii in range(NP):
             x, y = ipixes[ii, :]
             psfmod.set(int(x), int(y), float(A[ii, I_psf]*Xpsf[I_psf]))
-        modelfp = afwDet.Footprint()
+        modelfp = afwDet.Footprint(fp.getPeaks().getSchema())
         for (x, y) in ipixes:
             modelfp.addSpan(int(y+ylo), int(x+xlo), int(x+xlo))
         modelfp.normalize()
