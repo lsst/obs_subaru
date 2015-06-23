@@ -163,8 +163,8 @@ class SourceDeblendTask(pipeBase.Task):
                                          doc='Number of children this object has (defaults to 0)')
         self.psfKey = schema.addField('deblend_deblendedAsPsf', type='Flag',
                                       doc='Deblender thought this source looked like a PSF')
-        self.psfCenterKey = schema.addField('deblend_psfCenter', type='PointD',
-                                         doc='If deblended-as-psf, the PSF centroid')
+        self.psfCenterKey = afwTable.Point2DKey.addFields(schema, 'deblend_psfCenter',
+                                         'If deblended-as-psf, the PSF centroid', "pixels")
         self.psfFluxKey = schema.addField('deblend_psfFlux', type='D',
                                            doc='If deblended-as-psf, the PSF flux')
         self.tooManyPeaksKey = schema.addField('deblend_tooManyPeaks', type='Flag',
