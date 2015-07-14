@@ -351,14 +351,6 @@ datasets: {
         tables:        raw
         tables:        raw_visit
     }
-    deepCoadd_calexpBackground: {
-        template:    "deepCoadd-results/%(filter)s/%(tract)d/%(patch)s/bkgd-%(filter)s-%(tract)d-%(patch)s.fits"
-        python:        "lsst.afw.math.BackgroundList"
-        persistable:   "PurePythonClass"
-        storage:       "FitsCatalogStorage"
-        tables:        raw
-        tables:        raw_skyTile
-    }
     psf: {
         template:      "%(pointing)05d/%(filter)s/output/PSF-%(visit)07d-%(ccd)03d.boost"
         python:        "lsst.afw.detection.Psf"
@@ -726,14 +718,6 @@ datasets: {
         tables:        raw_skyTile
     }
 
-    deepCoadd_icMatch: {
-        template:      "deepCoadd-results/%(filter)s/%(tract)d/%(patch)s/icMatch-%(filter)s-%(tract)d-%(patch)s.fits"
-        python:        "lsst.afw.table.SourceCatalog"
-        persistable:        "ignored"
-        storage:    "FitsCatalogStorage"
-        tables:        raw
-        tables:        raw_skyTile
-    }
     deepCoadd_psf: {
         template:      "deepCoadd-results/%(filter)s/%(tract)d/%(patch)s/psf-%(filter)s-%(tract)d-%(patch)s.boost"
         python:        "lsst.afw.detection.Psf"
