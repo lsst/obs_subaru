@@ -131,7 +131,12 @@ class HscMapper(CameraMapper):
         """
         copyId = dataId.copy()
         copyId.pop("flags", None)
-        return super(HscMapper, self).map(datasetType, copyId, write=write)
+        location = super(HscMapper, self).map(datasetType, copyId, write=write)
+
+        if 'flags' in dataId:
+            location.getAdditionalData().set('flags', dataId['flags'])
+
+        return location
 
     @staticmethod
     def _flipChipsLR(exp, wcs, dataId, dims=None):
