@@ -12,6 +12,8 @@ env.Append(**environ)
 # scons also hacks sys.path, so we need to set PYTHONPATH very explicitly at the start of each command.
 python = "PYTHONPATH=%s " % environ["PYTHONPATH"]
 
+dep = "#python/lsst/obs/subaru/_subaruLib.so" # Dependency required for running the python scripts
+
 defectsDatList = glob.glob("defects/*/defects.dat")
 for defectsDat in defectsDatList:
     command = "%s bin/genDefectFits.py HSC %s --force" % (python, os.path.join("hsc", defectsDat))
@@ -19,4 +21,4 @@ for defectsDat in defectsDatList:
 
 command = "%s bin/genDefectRegistry.py --root hsc/defects" % (python)
 registry = env.AlwaysBuild(env.Command("defects/defectRegistry.sqlite3",
-                                       [d + "-fits" for d in defectsDatList], command))
+                                       [d + "-fits" for d in defectsDatList] + [dep], command))
