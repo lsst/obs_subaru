@@ -16,7 +16,8 @@ except ImportError:
         havePgSql = True
     except ImportError:
         havePgSql = False
-from lsst.daf.butlerUtils import PgSqlConfig
+if havePgSql:
+    from lsst.daf.butlerUtils import PgSqlConfig
 
 def formatVisits(visits):
     """Format a set of visits into the format used for an --id argument"""
