@@ -21,7 +21,7 @@ Interface class for subaru crosstalk correction
 #include "lsst/afw/image.h"
 #include "lsst/afw/image/MaskedImage.h"
 #include "lsst/obs/subaru/Crosstalk.h"
-#include "lsst/obs/subaru/DistEstXYTransform.h"
+#include "lsst/obs/subaru/HscDistortion.h"
 %}
 
 %include "lsst/p_lsstSwig.i"
@@ -40,9 +40,9 @@ namespace std {
 %import "lsst/afw/cameraGeom/cameraGeomLib.i"
 %import "lsst/afw/image/imageLib.i"
 
-%shared_ptr(lsst::obs::subaru::DistEstXYTransform);
+%shared_ptr(lsst::obs::subaru::HscDistortion);
 
-%include "lsst/obs/subaru/DistEstXYTransform.h"
+%include "lsst/obs/subaru/HscDistortion.h"
 
 %include "lsst/obs/subaru/Crosstalk.h"
 //%template(vectorCalib) std::vector<boost::shared_ptr<const lsst::afw::image::Calib> >;
