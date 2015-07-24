@@ -14,7 +14,7 @@ import shutil
 
 FOCAL_PLANE_PIXELS = cameraGeom.CameraSys('Focal_Plane_Pixels')
 
-PIXELSIZE = 0.015 #mm/pix
+PIXELSIZE = 1.0 # LSST likes to use mm/pix, but Subaru works in pixels
 
 def makeDir(dirPath, doClobber=False):
     """Make a directory; if it exists then clobber or fail, depending on doClobber
@@ -80,9 +80,7 @@ def parseCamera(policy, cameraname):
     camPolicy = policy.get('Camera')
     camConfig = CameraConfig()
     camConfig.name = camPolicy.get('name')
-    # Assuming a 15m focal length
-    # camConfig.plateScale = 13.751 #arcsec/mm
-    camConfig.plateScale = 11. #arcsec/mm
+    camConfig.plateScale = 1.0 # LSST uses mm/pixel, but Subaru works in pixels
 
     #Need to invert because this is stored with FOCAL_PLANE to PUPIL as the
     #forward transform: only for HSC
