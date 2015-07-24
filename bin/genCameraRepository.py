@@ -241,7 +241,7 @@ def addAmp(ampCatalog, amp, eparams, lparams):
 
     record.setBBox(bbox)
     record.setRawXYOffset(afwGeom.ExtentI(0,0))
-    record.setName("%i,%i"%(eparams['index'][0], eparams['index'][1]))
+    record.setName("%i"%(eparams['index'][0],))
     record.setReadoutCorner(afwTable.LR if amp['flipX'] else afwTable.LL)
     record.setGain(eparams['gain'])
     record.setReadNoise(eparams['readNoise'])
