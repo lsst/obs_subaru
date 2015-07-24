@@ -86,10 +86,7 @@ def parseCamera(policy, cameraname):
     #forward transform: only for HSC
     if cameraname.lower() == 'hsc':
         tConfig = afwGeom.TransformConfig()
-        tConfig.transform.name = 'distEst'
-        tConfig.transform.active.plateScale = camConfig.plateScale
-        #This defaults to 45. anyway, but to show how it is set
-        tConfig.transform.active.elevation = 45.
+        tConfig.transform.name = 'hsc'
     else:
         #I don't know what the PUPIL transform is for non-HSC cameras is
         tConfig = afwGeom.TransformConfig()
