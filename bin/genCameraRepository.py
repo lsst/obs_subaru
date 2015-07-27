@@ -14,7 +14,7 @@ import shutil
 
 FOCAL_PLANE_PIXELS = cameraGeom.CameraSys('Focal_Plane_Pixels')
 
-PIXELSIZE = 0.015 #mm/pix
+PIXELSIZE = 1.0 # LSST likes to use mm/pix, but Subaru works in pixels
 
 def makeDir(dirPath, doClobber=False):
     """Make a directory; if it exists then clobber or fail, depending on doClobber
@@ -80,18 +80,13 @@ def parseCamera(policy, cameraname):
     camPolicy = policy.get('Camera')
     camConfig = CameraConfig()
     camConfig.name = camPolicy.get('name')
-    # Assuming a 15m focal length
-    # camConfig.plateScale = 13.751 #arcsec/mm
-    camConfig.plateScale = 11. #arcsec/mm
+    camConfig.plateScale = 1.0 # LSST uses mm/pixel, but Subaru works in pixels
 
     #Need to invert because this is stored with FOCAL_PLANE to PUPIL as the
     #forward transform: only for HSC
     if cameraname.lower() == 'hsc':
         tConfig = afwGeom.TransformConfig()
-        tConfig.transform.name = 'distEst'
-        tConfig.transform.active.plateScale = camConfig.plateScale
-        #This defaults to 45. anyway, but to show how it is set
-        tConfig.transform.active.elevation = 45.
+        tConfig.transform.name = 'hsc'
     else:
         #I don't know what the PUPIL transform is for non-HSC cameras is
         tConfig = afwGeom.TransformConfig()
@@ -243,7 +238,7 @@ def addAmp(ampCatalog, amp, eparams, lparams):
 
     record.setBBox(bbox)
     record.setRawXYOffset(afwGeom.ExtentI(0,0))
-    record.setName("%i,%i"%(eparams['index'][0], eparams['index'][1]))
+    record.setName("%i"%(eparams['index'][0],))
     record.setReadoutCorner(afwTable.LR if amp['flipX'] else afwTable.LL)
     record.setGain(eparams['gain'])
     record.setReadNoise(eparams['readNoise'])
