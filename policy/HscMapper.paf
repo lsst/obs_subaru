@@ -889,13 +889,13 @@ datasets: {
         persistable:        "ignored"
         storage:    "FitsCatalogStorage"
     }
-    deep_forcedPhotCoadd_config: {
+    deepCoadd_forced_config: {
         template:      "config/forcedPhotCoadd.py"
-        python:        "lsst.pipe.tasks.forcedPhotCoadd.ForcedPhotCoaddConfig"
+        python:        "lsst.meas.base.forcedPhotCoadd.ForcedPhotCoaddConfig"
         persistable:      "Config"
         storage:    "ConfigStorage"
     }
-    deep_forcedPhotCoadd_metadata: {
+    deepCoadd_forced_metadata: {
         template:      "deepCoadd_forcedPhotCoadd_metadata/%(filter)s/%(tract)d/%(patch)s.boost"
         python:        "lsst.daf.base.PropertySet"
         persistable:        "PropertySet"
@@ -920,7 +920,7 @@ datasets: {
     }
     forcedPhotCcd_config: {
         template:      "config/forcedPhotCcd.py"
-        python:        "lsst.pipe.tasks.forcedPhotCcd.ForcedPhotCcdConfig"
+        python:        "lsst.meas.base.forcedPhotCcd.ForcedPhotCcdConfig"
         persistable:      "Config"
         storage:    "ConfigStorage"
     }
