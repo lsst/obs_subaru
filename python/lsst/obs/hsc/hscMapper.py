@@ -79,6 +79,10 @@ class HscMapper(CameraMapper):
         afwImageUtils.defineFilter(name='N921', lambdaEff=921, alias=['NB0921'])
         afwImageUtils.defineFilter(name='SH', lambdaEff=0, alias=['SH',])
         afwImageUtils.defineFilter(name='PH', lambdaEff=0, alias=['PH',])
+        afwImageUtils.defineFilter(name='N527', lambdaEff=527, alias=['NB0527'])
+        afwImageUtils.defineFilter(name='N718', lambdaEff=718, alias=['NB0718'])
+        afwImageUtils.defineFilter(name='I945', lambdaEff=945, alias=['IB0945'])
+        afwImageUtils.defineFilter(name='N973', lambdaEff=973, alias=['NB0973'])
         #
         # self.filters is used elsewhere, and for now we'll set it
         #
@@ -94,9 +98,13 @@ class HscMapper(CameraMapper):
             "HSC-Y",
             "ENG-R1",
             "NB0515",
+            "NB0527",
             "NB0656",
+            "NB0718",
             "NB0816",
             "NB0921",
+            "IB0945",
+            "NB0973",
             "SH",
             "PH",
             "NONE",
