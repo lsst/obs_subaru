@@ -17,7 +17,7 @@ dep = "#python/lsst/obs/subaru/_subaruLib.so" # Dependency required for running 
 defectsDatList = glob.glob("defects/*/defects.dat")
 for defectsDat in defectsDatList:
     command = "%s bin/genDefectFits.py HSC %s --force" % (python, os.path.join("hsc", defectsDat))
-    env.AlwaysBuild(env.Command(defectsDat + "-fits", defectsDat, command))
+    env.AlwaysBuild(env.Command(defectsDat + "-fits", [defectsDat, dep], command))
 
 command = "%s bin/genDefectRegistry.py --root hsc/defects" % (python)
 registry = env.AlwaysBuild(env.Command("defects/defectRegistry.sqlite3",
