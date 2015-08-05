@@ -357,8 +357,7 @@ def deblend(footprint, maskedImage, psf, psffwhm,
                                                              maskedImage, x0, x1, y0, y1,
                                                              psf, pk, sigma1, patchEdges)
             except lsst.pex.exceptions.Exception as exc:
-                if (isinstance(exc.message, lsst.pex.exceptions.InvalidParameterException) and
-                    "CoaddPsf" in str(exc)):
+                if (isinstance(exc, lsst.pex.exceptions.InvalidParameterError) and "CoaddPsf" in str(exc)):
                     pkres.setOutOfBounds()
                     continue
                 raise
