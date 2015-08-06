@@ -55,7 +55,8 @@ root.doWriteSourceMatches = True
 
 # Activate calibration of measurements: required for aperture corrections
 root.calibrate.measurement.load(os.path.join(os.environ['OBS_SUBARU_DIR'], 'config', 'apertures.py'))
-root.calibrate.measurement.load(os.path.join(os.environ['OBS_SUBARU_DIR'], 'config', 'cmodel.py'))
+# Turn off cmodel until latest fixes (large blends, footprint merging, etc.) are in
+# root.calibrate.measurement.load(os.path.join(os.environ['OBS_SUBARU_DIR'], 'config', 'cmodel.py'))
 root.calibrate.measurement.load(os.path.join(os.environ['OBS_SUBARU_DIR'], 'config', 'kron.py'))
 root.calibrate.measurement.load(os.path.join(os.environ['OBS_SUBARU_DIR'], 'config', 'hsm.py'))
 if "shape.hsm.regauss" in root.calibrate.measurement.algorithms:
