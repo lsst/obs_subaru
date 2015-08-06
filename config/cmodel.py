@@ -2,7 +2,8 @@
 # 'root' is a SourceMeasurementConfig.
 import os
 try:
-    root.load(os.path.join(os.environ['MEAS_MULTIFIT_DIR'], 'config', 'enable.py'))
-    root.algorithms['classification.extendedness'].fluxRatio = 0.985
+    import lsst.meas.modelfit
+    root.algorithms.names |= ["modelfit_ShapeletPsfApprox", "modelfit_CModel"]
+    root.algorithms['base_ClassificationExtendedness'].fluxRatio = 0.985
 except KeyError, ImportError:
-    print "Cannot import lsst.meas.multifit: disabling CModel measurements"
+    print "Cannot import lsst.meas.modelfit: disabling CModel measurements"
