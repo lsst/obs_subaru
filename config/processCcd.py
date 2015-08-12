@@ -49,6 +49,8 @@ root.measurement.algorithms['base_ClassificationExtendedness'].fluxRatio = 0.95
 # LAM the following had to be set to affect the fluxRatio used in photocal in meas_astrom
 root.calibrate.measurement.plugins['base_ClassificationExtendedness'].fluxRatio = 0.95
 
+root.calibrate.photocal.applyColorTerms = True
+
 # Detection
 root.detection.isotropicGrow = True
 root.detection.returnOriginalFootprints = False
