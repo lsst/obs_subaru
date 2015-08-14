@@ -30,18 +30,15 @@ except ImportError as e:
     root.calibrate.measurePsf.psfDeterminer.name = "pca"
 
 # Astrometry
-try:
-    # the next line will fail if hscAstrom is not setup; in that case we just use lsst.meas.astrm
-    from lsst.obs.subaru.astrometry import SubaruAstrometryTask
-    root.calibrate.astrometry.retarget(SubaruAstrometryTask)
-    root.calibrate.astrometry.solver.filterMap = { 'B': 'g',
-                                                   'V': 'r',
-                                                   'R': 'r',
-                                                   'I': 'i',
-                                                   'y': 'z',
-                                                   }
-except ImportError:
-    print "hscAstrom is not setup; using LSST's meas_astrom instead"
+from lsst.meas.astrom import AstrometryTask
+root.calibrate.astrometry.retarget(AstrometryTask)
+root.calibrate.astrometry.refObjLoader.filterMap = {
+    'B': 'g',
+    'V': 'r',
+    'R': 'r',
+    'I': 'i',
+    'y': 'z',
+}
 
 # Reference catalog may not have as good star/galaxy discrimination as our data
 root.calibrate.photocal.badFlags += ['base_ClassificationExtendedness_value',]

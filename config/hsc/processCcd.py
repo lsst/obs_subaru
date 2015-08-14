@@ -16,8 +16,8 @@ root.calibrate.measurePsf.starSelector.name='objectSize'
 root.calibrate.measurePsf.starSelector['objectSize'].widthMin=0.9
 root.calibrate.measurePsf.starSelector['objectSize'].fluxMin=4000
 
-root.calibrate.astrometry.solver.sipOrder = 3
-root.calibrate.astrometry.solver.catalogMatchDist = 2.0
+root.calibrate.astrometry.wcsFitter.order = 3
+root.calibrate.astrometry.matcher.maxMatchDistArcSec = 2.0
 
 # Do not use NO_DATA pixels for fringe subtraction.
 root.isr.fringe.stats.badMaskPlanes=['SAT', 'NO_DATA']
