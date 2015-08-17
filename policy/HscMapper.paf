@@ -383,6 +383,22 @@ datasets: {
         tables:        "raw"
         tables:        "raw_visit"
     }
+    transformed_src: {
+        template:      "%(pointing)05d/%(filter)s/output/TRSRC-%(visit)07d-%(ccd)03d.fits"
+        python:        "lsst.afw.table.SourceCatalog"
+        persistable:   "SourceCatalog"
+        storage:       "FitsCatalogStorage"
+        tables:        "raw"
+        tables:        "raw_visit"
+    }
+    transformed_src_schema: {
+        template:      "schema/transformed_src.fits"
+        python:        "lsst.afw.table.BaseCatalog"
+        persistable:   "SourceCatalog"
+        storage:       "FitsCatalogStorage"
+        tables:        "raw"
+        tables:        "raw_visit"
+    }
     icMatch: {
         template:      "%(pointing)05d/%(filter)s/output/MATCH-%(visit)07d-%(ccd)03d.fits"
         python:        "lsst.afw.table.BaseCatalog"
@@ -578,6 +594,23 @@ datasets: {
         python:        "lsst.daf.base.PropertySet"
         persistable:        "PropertySet"
         storage:    "BoostStorage"
+        tables:        raw
+        tables:        raw_visit
+    }
+
+    transformSrcMeasurement_config: {
+        template:      "config/transformSrcMeasurement.py"
+        python:        "lsst.pipe.tasks.transformMeasurement.RunTransformConfig"
+        persistable:   "Config"
+        storage:       "ConfigStorage"
+        tables:        raw
+        tables:        raw_visit
+    }
+    transformSrcMeasurement_metadata: {
+        template:      "%(pointing)05d/%(filter)s/transformSrcMeasurement_metadata/%(visit)07d-%(ccd)03d.boost"
+        python:        "lsst.daf.base.PropertySet"
+        persistable:   "PropertySet"
+        storage:       "BoostStorage"
         tables:        raw
         tables:        raw_visit
     }
