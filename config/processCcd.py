@@ -46,6 +46,15 @@ root.measurement.algorithms['base_ClassificationExtendedness'].fluxRatio = 0.95
 # LAM the following had to be set to affect the fluxRatio used in photocal in meas_astrom
 root.calibrate.measurement.plugins['base_ClassificationExtendedness'].fluxRatio = 0.95
 
+root.calibrate.photocal.applyColorTerms = True
+
+from lsst.pipe.tasks.setConfigFromEups import setConfigFromEups
+menu = { "ps1*": {}, # Defaults are fine
+         "sdss*": {"solver.filterMap": {"y": "z"}}, # No y-band, use z instead
+         "2mass*": {"solver.filterMap": {ff: "J" for ff in "grizy"}}, # No optical bands, use J instead
+        }
+setConfigFromEups(root.calibrate.photocal, root.calibrate.astrometry, menu)
+
 # Detection
 root.detection.isotropicGrow = True
 root.detection.returnOriginalFootprints = False
