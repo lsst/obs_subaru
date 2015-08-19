@@ -39,9 +39,9 @@ import lsst.afw.detection as afwDetect
 import lsst.afw.geom as afwGeom
 import lsst.afw.image as afwImage
 import lsst.afw.math  as afwMath
-import lsst.afw.display.ds9 as ds9
 import lsst.pipe.base as pipeBase
 import lsst.pex.config as pexConfig
+import lsst.afw.display as afwDisplay
 
 class CrosstalkCoeffsConfig(pexConfig.Config):
     """Specify crosstalk coefficients for a CCD"""
@@ -229,7 +229,7 @@ The pixels affected by signal over minPixelToMask have the crosstalkStr bit set
     fs = afwDetect.FootprintSet(mi, afwDetect.Threshold(minPixelToMask), tempStr)
 
     mi.getMask().addMaskPlane(crosstalkStr)
-    ds9.setMaskPlaneColor(crosstalkStr, ds9.MAGENTA)
+    afwDisplay.getDisplay().setMaskPlaneColor(crosstalkStr, afwDisplay.MAGENTA)
     fs.setMask(mi.getMask(), crosstalkStr) # the crosstalkStr bit will now be set whenever we subtract crosstalk
     crosstalk = mi.getMask().getPlaneBitMask(crosstalkStr)
 
@@ -266,10 +266,8 @@ The pixels affected by signal over minPixelToMask have the crosstalkStr bit set
     np_msk = msk.getArray()
     np_msk[np.where(np.bitwise_and(np_msk, xtalk_temp) == xtalk_temp)] &= ~crosstalk
 
-    try:
-        msk.removeAndClearMaskPlane(tempStr, True) # added in afw #1853
-    except AttributeError:
-        ds9.setMaskPlaneVisibility(tempStr, False)
+    msk.removeAndClearMaskPlane(tempStr, True) # added in afw #1853
+
 
 def printCoeffs(coeffs, coeffsErr=None, LaTeX=False, ppm=False):
     """Print cross-talk coefficients"""
@@ -511,16 +509,12 @@ def fixCcd(butler, visit, ccd, coeffs, display=True):
     """Apply cross-talk correction to a CCD, given the cross-talk coefficients"""
     mi = readImage(butler, visit=visit, ccd=ccd)
     if display:
-        ds9.mtv(mi.getImage(), frame=0, title="CCD %d" % ccd)
+        afwDisplay.getDisplay(frame=1).mtv(mi.getImage(), title="CCD %d" % ccd)
 
     subtractXTalk(mi, coeffs)
 
     if display:
-        title = "corrected %d" % ccd
-        ds9.setMaskPlaneVisibility("DETECTED", False)
-        ds9.mtv(mi, frame=1, title=title)
-        ds9.setMaskPlaneVisibility("DETECTED", True)
-        ds9.mtv(mi.getImage(), frame=2, title=title)
+        afwDisplay.getDisplay(frame=2).mtv(mi, title="corrected %d" % ccd)
 
 if __name__ == "__main__":
     main()
