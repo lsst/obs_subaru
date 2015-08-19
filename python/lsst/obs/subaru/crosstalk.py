@@ -226,47 +226,50 @@ The pixels affected by signal over minPixelToMask have the crosstalkStr bit set
     #
     tempStr = "TEMP"                    # mask plane used to record the bright pixels that we need to mask
     mi.getMask().addMaskPlane(tempStr)
-    fs = afwDetect.FootprintSet(mi, afwDetect.Threshold(minPixelToMask), tempStr)
+    try:
+        fs = afwDetect.FootprintSet(mi, afwDetect.Threshold(minPixelToMask), tempStr)
 
-    mi.getMask().addMaskPlane(crosstalkStr)
-    afwDisplay.getDisplay().setMaskPlaneColor(crosstalkStr, afwDisplay.MAGENTA)
-    fs.setMask(mi.getMask(), crosstalkStr) # the crosstalkStr bit will now be set whenever we subtract crosstalk
-    crosstalk = mi.getMask().getPlaneBitMask(crosstalkStr)
+        mi.getMask().addMaskPlane(crosstalkStr)
+        afwDisplay.getDisplay().setMaskPlaneColor(crosstalkStr, afwDisplay.MAGENTA)
+        fs.setMask(mi.getMask(), crosstalkStr) # the crosstalkStr bit will now be set whenever
+                                               # we subtract crosstalk
+        crosstalk = mi.getMask().getPlaneBitMask(crosstalkStr)
 
-    width, height = mi.getDimensions()
-    for i in range(nAmp):
-        bbox = afwGeom.BoxI(afwGeom.PointI(i*(width//nAmp), 0), afwGeom.ExtentI(width//nAmp, height))
-        ampI = mi.Factory(mi, bbox)
-        for j in range(nAmp):
-            if i == j:
-                continue
+        width, height = mi.getDimensions()
+        for i in range(nAmp):
+            bbox = afwGeom.BoxI(afwGeom.PointI(i*(width//nAmp), 0), afwGeom.ExtentI(width//nAmp, height))
+            ampI = mi.Factory(mi, bbox)
+            for j in range(nAmp):
+                if i == j:
+                    continue
 
-            bbox = afwGeom.BoxI(afwGeom.PointI(j*(width//nAmp), 0), afwGeom.ExtentI(width//nAmp, height))
-            if (i + j)%2 == 1:
-                ampJ = afwMath.flipImage(mi.Factory(mi, bbox), True, False) # no need for a deep copy
-            else:
-                ampJ = mi.Factory(mi, bbox, afwImage.LOCAL, True)
+                bbox = afwGeom.BoxI(afwGeom.PointI(j*(width//nAmp), 0), afwGeom.ExtentI(width//nAmp, height))
+                if (i + j)%2 == 1:
+                    ampJ = afwMath.flipImage(mi.Factory(mi, bbox), True, False) # no need for a deep copy
+                else:
+                    ampJ = mi.Factory(mi, bbox, afwImage.LOCAL, True)
 
-            msk = ampJ.getMask()
-            if np.all(msk.getArray() & msk.getPlaneBitMask("SAT")):
-                # Bad amplifier; ignore it completely --- its effect will come out in the bias
-                continue
-            msk &= crosstalk
+                msk = ampJ.getMask()
+                if np.all(msk.getArray() & msk.getPlaneBitMask("SAT")):
+                    # Bad amplifier; ignore it completely --- its effect will come out in the bias
+                    continue
+                msk &= crosstalk
 
-            ampJ -= bkgd
-            ampJ *= coeffs[j][i]
+                ampJ -= bkgd
+                ampJ *= coeffs[j][i]
 
-            ampI -= ampJ
-    #
-    # Clear the crosstalkStr bit in the original bright pixels, where tempStr is set
-    #
-    msk = mi.getMask()
-    temp = msk.getPlaneBitMask(tempStr)
-    xtalk_temp = crosstalk | temp
-    np_msk = msk.getArray()
-    np_msk[np.where(np.bitwise_and(np_msk, xtalk_temp) == xtalk_temp)] &= ~crosstalk
+                ampI -= ampJ
+        #
+        # Clear the crosstalkStr bit in the original bright pixels, where tempStr is set
+        #
+        msk = mi.getMask()
+        temp = msk.getPlaneBitMask(tempStr)
+        xtalk_temp = crosstalk | temp
+        np_msk = msk.getArray()
+        np_msk[np.where(np.bitwise_and(np_msk, xtalk_temp) == xtalk_temp)] &= ~crosstalk
 
-    msk.removeAndClearMaskPlane(tempStr, True) # added in afw #1853
+    finally:
+        msk.removeAndClearMaskPlane(tempStr, True) # added in afw #1853
 
 
 def printCoeffs(coeffs, coeffsErr=None, LaTeX=False, ppm=False):
