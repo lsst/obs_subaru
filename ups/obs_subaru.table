@@ -7,8 +7,7 @@ setupRequired(pyfits)
 setupRequired(sconsUtils)
 
 setupOptional(psycopg2)
-setupOptional(meas_extensions_multiShapelet)
-setupOptional(meas_multifit)
+setupOptional(meas_modelfit)
 setupOptional(meas_extensions_psfex)
 
 setupOptional(suprime_data)
