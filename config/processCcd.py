@@ -50,8 +50,8 @@ root.calibrate.photocal.applyColorTerms = True
 
 from lsst.pipe.tasks.setConfigFromEups import setConfigFromEups
 menu = { "ps1*": {}, # Defaults are fine
-         "sdss*": {"solver.filterMap": {"y": "z"}}, # No y-band, use z instead
-         "2mass*": {"solver.filterMap": {ff: "J" for ff in "grizy"}}, # No optical bands, use J instead
+         "sdss*": {"refObjLoader.filterMap": {"y": "z"}}, # No y-band, use z instead
+         "2mass*": {"refObjLoader.filterMap": {ff: "J" for ff in "grizy"}}, # No optical bands, use J instead
         }
 setConfigFromEups(root.calibrate.photocal, root.calibrate.astrometry, menu)
 
