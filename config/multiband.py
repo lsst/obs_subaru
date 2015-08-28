@@ -8,4 +8,4 @@ for sub in ("detectCoaddSources", "mergeCoaddDetections", "measureCoaddSources",
             "forcedPhotCoadd"):
     path = os.path.join(getPackageDir("obs_subaru"), "config", sub + ".py")
     if os.path.exists(path):
-        getattr(root, sub).load(path)
+        getattr(config, sub).load(path)

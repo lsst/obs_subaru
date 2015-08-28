@@ -1,7 +1,7 @@
 from lsst.obs.subaru.ingest import HscParseTask
-root.parse.retarget(HscParseTask)
+config.parse.retarget(HscParseTask)
 
-root.parse.translation = {'proposal': 'PROP-ID',
+config.parse.translation = {'proposal': 'PROP-ID',
                           'dataType': 'DATA-TYP',
                           'expTime': 'EXPTIME',
                           'ccd': 'DET-ID',
@@ -14,15 +14,15 @@ root.parse.translation = {'proposal': 'PROP-ID',
                           'dateObs': 'DATE-OBS',
                           'taiObs': 'DATE-OBS',
 }
-root.parse.defaults = {'ccdTemp': "0", # Added in commissioning run 3
+config.parse.defaults = {'ccdTemp': "0", # Added in commissioning run 3
                        }
-root.parse.translators = {'field': 'translate_field',
+config.parse.translators = {'field': 'translate_field',
                           'visit': 'translate_visit',
                           'pointing': 'translate_pointing',
                           'filter': 'translate_filter',
 }
 
-root.register.columns = {'field': 'text',
+config.register.columns = {'field': 'text',
                          'visit': 'int',
                          'ccd': 'int',
                          'pointing': 'int',
@@ -39,5 +39,5 @@ root.register.columns = {'field': 'text',
                          'expId': 'text',
                          'dataType': 'text',
                          }
-root.register.unique = ['visit', 'ccd',]
-root.register.visit = ['visit', 'field', 'filter', 'dateObs', 'taiObs']
+config.register.unique = ['visit', 'ccd',]
+config.register.visit = ['visit', 'field', 'filter', 'dateObs', 'taiObs']

@@ -3,4 +3,4 @@ import os
 for sub in ("makeCoaddTempExp", "backgroundReference", "assembleCoadd", "processCoadd"):
     path = os.path.join(os.environ["OBS_SUBARU_DIR"], "config", "suprimecam", sub + ".py")
     if os.path.exists(path):
-        getattr(root, sub).load(path)
+        getattr(config, sub).load(path)

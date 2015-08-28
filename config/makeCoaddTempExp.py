@@ -1,3 +1,3 @@
-root.warpAndPsfMatch.warp.warpingKernelName = "lanczos3"
-root.warpAndPsfMatch.warp.cacheSize = 1000000
-root.bgSubtracted = True
+config.warpAndPsfMatch.warp.warpingKernelName = "lanczos3"
+config.warpAndPsfMatch.warp.cacheSize = 1000000
+config.bgSubtracted = True

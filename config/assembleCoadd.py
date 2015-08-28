@@ -1,2 +1,2 @@
-root.badMaskPlanes = ("BAD", "EDGE", "SAT", "INTRP", "NO_DATA",)
-root.doMatchBackgrounds = False
+config.badMaskPlanes = ("BAD", "EDGE", "SAT", "INTRP", "NO_DATA",)
+config.doMatchBackgrounds = False

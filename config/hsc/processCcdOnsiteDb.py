@@ -1,6 +1,6 @@
 from hsc.pipe.tasks.onsiteDb import HscOnsiteDbTask
-root.onsiteDb.retarget(HscOnsiteDbTask)
+config.onsiteDb.retarget(HscOnsiteDbTask)
 
 # Load regular processCcd configuration
 import os
-root.load(os.path.join(os.environ['OBS_SUBARU_DIR'], 'config', 'hsc', 'processCcd.py'))
+config.load(os.path.join(os.environ['OBS_SUBARU_DIR'], 'config', 'hsc', 'processCcd.py'))

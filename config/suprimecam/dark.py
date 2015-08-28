@@ -1,7 +1,7 @@
 import os
-root.load(os.path.join(os.environ['OBS_SUBARU_DIR'], 'config', 'suprimecam', 'isr.py'))
-root.darkTime = "EXP1TIME"
-root.isr.doGuider = False
+config.load(os.path.join(os.environ['OBS_SUBARU_DIR'], 'config', 'suprimecam', 'isr.py'))
+config.darkTime = "EXP1TIME"
+config.isr.doGuider = False
 
-root.combination.clip = 2.5
+config.combination.clip = 2.5
 

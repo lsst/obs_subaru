@@ -1,1 +1,1 @@
-root.skyMap.pixelScale = 0.2
+config.skyMap.pixelScale = 0.2
