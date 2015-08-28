@@ -26,7 +26,8 @@ except ImportError:
         havePgSql = True
     except ImportError:
         havePgSql = False
-from lsst.daf.butlerUtils import PgSqlConfig
+if havePgSql:
+    from lsst.daf.butlerUtils import PgSqlConfig
 
 # Needs optparse w/ --create, etc. CPL
 parser = optparse.OptionParser()
