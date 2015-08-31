@@ -6,3 +6,5 @@ root.measurement.load(os.path.join(os.environ['OBS_SUBARU_DIR'], 'config', 'kron
 # root.measurement.load(os.path.join(os.environ['OBS_SUBARU_DIR'], 'config', 'cmodel.py'))
 
 root.measurement.slots.instFlux = None
+
+root.deblend.load(os.path.join(os.environ["OBS_SUBARU_DIR"], "config", "deblend.py"))

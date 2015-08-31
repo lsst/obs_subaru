@@ -10,4 +10,4 @@ root.measurement.load(os.path.join(getPackageDir("obs_subaru"), "config", "kron.
 # root.measurement.load(os.path.join(getPackageDir("obs_subaru"), "config", "cmodel.py"))
 root.measurement.load(os.path.join(getPackageDir("obs_subaru"), "config", "hsm.py"))
 
-root.deblend.maxNumberOfPeaks = 20
+root.deblend.load(os.path.join(os.environ["OBS_SUBARU_DIR"], "config", "deblend.py"))
