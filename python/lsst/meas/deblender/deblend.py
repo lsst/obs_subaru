@@ -20,12 +20,14 @@
 # see <http://www.lsstcorp.org/LegalNotices/>.
 #
 import math
+import numpy
 import time
 
 import lsst.pex.config as pexConf
 import lsst.pipe.base as pipeBase
 import lsst.afw.math as afwMath
 import lsst.afw.geom as afwGeom
+import lsst.afw.geom.ellipses as afwEll
 import lsst.afw.image as afwImage
 import lsst.afw.detection as afwDet
 import lsst.afw.table as afwTable
@@ -69,7 +71,8 @@ class SourceDeblendConfig(pexConf.Config):
             'r-to-footprint': ('~ 1/(1+R^2) to the closest pixel in the footprint.  '
                                'CAUTION: this can be computationally expensive on large footprints!'),
             'nearest-footprint': ('Assign 100% to the nearest footprint (using L-1 norm aka '
-                                  'Manhattan distance)')
+                                  'Manhattan distance)'),
+            'trim': ('Shrink the parent footprint to pixels that are not assigned to children')
             }
         )
 
@@ -88,27 +91,36 @@ class SourceDeblendConfig(pexConf.Config):
     maxNumberOfPeaks = pexConf.Field(dtype=int, default=0,
                                      doc=("Only deblend the brightest maxNumberOfPeaks peaks in the parent"
                                           " (<= 0: unlimited)"))
-    maxFootprintArea = pexConf.Field(dtype=int, default=100000,
-                                     doc=('Refuse to deblend parent footprints containing more than this '
-                                          'number of pixels (due to speed concerns); 0 means no limit.'))
-
-    maxFootprintArea = pexConf.Field(dtype=int, default=100000,
-                                     doc=('Refuse to deblend parent footprints containing more than this '
-                                          'number of pixels (due to speed concerns); 0 means no limit.'))
+    maxFootprintArea = pexConf.Field(dtype=int, default=1000000,
+                                     doc=("Maximum area for footprints before they are ignored as large; "
+                                          "non-positive means no threshold applied"))
+    maxFootprintSize = pexConf.Field(dtype=int, default=0,
+                                    doc=("Maximum linear dimension for footprints before they are ignored "
+                                         "as large; non-positive means no threshold applied"))
+    minFootprintAxisRatio = pexConf.Field(dtype=float, default=0.0,
+                                          doc=("Minimum axis ratio for footprints before they are ignored "
+                                               "as large; non-positive means no threshold applied"))
+    notDeblendedMask = pexConf.Field(dtype=str, default="NOT_DEBLENDED", optional=True,
+                                     doc="Mask name for footprints not deblended, or None")
 
     tinyFootprintSize = pexConf.Field(dtype=int, default=2,
                                       doc=('Footprints smaller in width or height than this value will '
                                            'be ignored; 0 to never ignore.'))
-
-    removeMaskPlanes = pexConf.Field(dtype=int, default=True,
-                                     doc=("Clear and remove diagnostic mask planes on exit "
-                                          "(disable for deblender debugging)"))
 
     propagateAllPeaks = pexConf.Field(dtype=bool, default=False,
                                       doc=('Guarantee that all peaks produce a child source.'))
     catchFailures = pexConf.Field(dtype=bool, default=False,
                                   doc=("If True, catch exceptions thrown by the deblender, log them, "
                                        "and set a flag on the parent, instead of letting them propagate up"))
+    maskPlanes = pexConf.ListField(dtype=str, default=["SAT", "INTRP", "NO_DATA"],
+                                   doc="Mask planes to ignore when performing statistics")
+    maskLimits = pexConf.DictField(
+        keytype = str,
+        itemtype = float,
+        default = {},
+        doc = ("Mask planes with the corresponding limit on the fraction of masked pixels. "
+               "Sources violating this limit will not be deblended."),
+        )
 
 ## \addtogroup LSST_task_documentation
 ## \{
@@ -172,6 +184,8 @@ class SourceDeblendTask(pipeBase.Task):
                                                'only the brightest were included')
         self.tooBigKey = schema.addField('deblend_parentTooBig', type='Flag',
                                          doc='Parent footprint covered too many pixels')
+        self.maskedKey = schema.addField('deblend.masked', type='Flag',
+                                         doc='Parent footprint was predominantly masked')
 
         if self.config.catchFailures:
             self.deblendFailedKey = schema.addField('deblend_failed', type='Flag',
@@ -194,6 +208,12 @@ class SourceDeblendTask(pipeBase.Task):
             'deblend_hasStrayFlux', type='Flag',
             doc=('This source was assigned some stray flux'))
 
+        self.blendednessKey = schema.addField(
+            'deblend.blendedness', type=float,
+            doc=("A measure of how blended the source is. This is the sum of dot products between the source "
+                 "and all of its deblended siblings, divided by the dot product of the deblended source with "
+                 "itself"))
+        
         self.log.logdebug('Added keys to schema: %s' % ", ".join(str(x) for x in (
                     self.nChildKey, self.psfKey, self.psfCenterKey, self.psfFluxKey,
                     self.tooManyPeaksKey, self.tooBigKey)))
@@ -234,7 +254,9 @@ class SourceDeblendTask(pipeBase.Task):
 
         # find the median stdev in the image...
         mi = exposure.getMaskedImage()
-        stats = afwMath.makeStatistics(mi.getVariance(), mi.getMask(), afwMath.MEDIAN)
+        statsCtrl = afwMath.StatisticsControl()
+        statsCtrl.setAndMask(mi.getMask().getPlaneBitMask(self.config.maskPlanes))
+        stats = afwMath.makeStatistics(mi.getVariance(), mi.getMask(), afwMath.MEDIAN, statsCtrl)
         sigma1 = math.sqrt(stats.getValue(afwMath.MEDIAN))
         self.log.logdebug('sigma1: %g' % sigma1)
 
@@ -250,13 +272,15 @@ class SourceDeblendTask(pipeBase.Task):
             if len(pks) < 2:
                 continue
 
-            toobig = ((self.config.maxFootprintArea > 0) and
-                      (fp.getArea() > self.config.maxFootprintArea))
-            src.set(self.tooBigKey, toobig)
-            if toobig:
-                src.set(self.deblendSkippedKey, True)
-                self.log.logdebug('Parent %i: area %i > max %i; skipping' %
-                                  (int(src.getId()), fp.getArea(), self.config.maxFootprintArea))
+            if self.isLargeFootprint(fp):
+                src.set(self.tooBigKey, True)
+                self.skipParent(src, mi.getMask())
+                self.log.logdebug('Parent %i: skipping large footprint' % (int(src.getId()),))
+                continue
+            if self.isMasked(fp, exposure.getMaskedImage().getMask()):
+                src.set(self.maskedKey, True)
+                self.skipParent(src, mi.getMask())
+                self.log.logdebug('Parent %i: skipping masked footprint' % (int(src.getId()),))
                 continue
 
             nparents += 1
@@ -365,16 +389,11 @@ class SourceDeblendTask(pipeBase.Task):
             src.getFootprint().include([child.getFootprint() for child in kids])
 
             src.set(self.nChildKey, nchild)
-
+            self.calculateBlendedness(exposure.getMaskedImage(), src, kids)
+            
             self.postSingleDeblendHook(exposure, srcs, i, npre, kids, fp, psf, psf_fwhm, sigma1, res)
             #print 'Deblending parent id', src.getId(), 'took', time.clock() - t0
 
-        if self.config.removeMaskPlanes:
-            mask = exposure.getMaskedImage().getMask()
-            definedMasks = set(mask.getMaskPlaneDict().keys())
-            for nm in ['SYMM_1SIG', 'SYMM_3SIG', 'MONOTONIC_1SIG']:
-                if nm in definedMasks:
-                    mask.removeAndClearMaskPlane(nm, True)
 
         n1 = len(srcs)
         self.log.info('Deblended: of %i sources, %i were deblended, creating %i children, total %i sources'
@@ -386,4 +405,87 @@ class SourceDeblendTask(pipeBase.Task):
     def postSingleDeblendHook(self, exposure, srcs, i, npre, kids, fp, psf, psf_fwhm, sigma1, res):
         pass
 
+    def isLargeFootprint(self, footprint):
+        """Returns whether a Footprint is large
 
+        'Large' is defined by thresholds on the area, size and axis ratio.
+        These may be disabled independently by configuring them to be non-positive.
+
+        This is principally intended to get rid of satellite streaks, which the
+        deblender or other downstream processing can have trouble dealing with
+        (e.g., multiple large HeavyFootprints can chew up memory).
+        """
+        if self.config.maxFootprintArea > 0 and footprint.getArea() > self.config.maxFootprintArea:
+            return True
+        if self.config.maxFootprintSize > 0:
+            bbox = footprint.getBBox()
+            if max(bbox.getWidth(), bbox.getHeight()) > self.config.maxFootprintSize:
+                return True
+        if self.config.minFootprintAxisRatio > 0:
+            axes = afwEll.Axes(footprint.getShape())
+            if axes.getB() < self.config.minFootprintAxisRatio*axes.getA():
+                return True
+        return False
+
+    def isMasked(self, footprint, mask):
+        """Returns whether the footprint violates the mask limits"""
+        size = float(footprint.getArea())
+        for maskName, limit in self.config.maskLimits.iteritems():
+            maskVal = mask.getPlaneBitMask(maskName)
+            unmasked = afwDet.Footprint(footprint)
+            unmasked.intersectMask(mask, maskVal) # footprint of unmasked pixels
+            if (size - unmasked.getArea())/size > limit:
+                return True
+        return False
+
+    def skipParent(self, source, mask):
+        """Indicate that the parent source is not being deblended
+
+        We set the appropriate flags and mask.
+
+        @param source  The source to flag as skipped
+        @param mask  The mask to update
+        """
+        fp = source.getFootprint()
+        source.set(self.deblendSkippedKey, True)
+        source.set(self.nChildKey, len(fp.getPeaks())) # It would have this many if we deblended them all
+        if self.config.notDeblendedMask:
+            mask.addMaskPlane(self.config.notDeblendedMask)
+            afwDet.setMaskFromFootprint(mask, fp, mask.getPlaneBitMask(self.config.notDeblendedMask))
+
+    def calculateBlendedness(self, maskedImage, parent, kids):
+        """Calculate the blendedness values for a blend family
+
+        The blendedness is defined as:
+
+            [heavy[i].dot(heavy[j]) for j in neighbors].sum() / heavy[i].dot(heavy[i])
+
+        where 'heavy' is the heavy footprint representation of the flux.
+        """
+        bbox = parent.getFootprint().getBBox()
+        if not kids or bbox.isEmpty():
+            parent.set(self.blendednessKey, 0.0)
+            return
+
+        def getHeavyFootprint(src):
+            """Provide the HeavyFootprint for a source"""
+            fp = src.getFootprint()
+            return (afwDet.HeavyFootprintF.cast(fp) if fp.isHeavy() else
+                    afwDet.makeHeavyFootprint(fp, maskedImage))
+
+        parentFoot = getHeavyFootprint(parent)
+        kidFeet = [getHeavyFootprint(src) for src in kids]
+
+        def setBlendedness(src, foot):
+            """Calculate and set the blendedness value for a source, given its image"""
+            if foot.getBBox().isEmpty() or numpy.all(foot.getImageArray() == 0.0):
+                src.set(self.blendednessKey, 0.0)
+                return
+            srcId = src.getId()
+            numerator = sum(foot.dot(f) for k, f in zip(kids, kidFeet) if k.getId() != srcId)
+            denominator = foot.dot(foot)
+            src.set(self.blendednessKey, numerator/denominator)
+
+        setBlendedness(parent, parentFoot)
+        for k, f in zip(kids, kidFeet):
+            setBlendedness(k, f)

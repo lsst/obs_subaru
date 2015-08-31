@@ -30,11 +30,6 @@ def main000():
     peakTable = afwDet.PeakTable.make(afwDet.PeakTable.makeMinimalSchema)
     peak = makePeak(x0, y0)
 
-    mask = mim.getMask()
-    for nm in ['SYMM_1SIG', 'SYMM_3SIG', 'MONOTONIC_1SIG']:
-        bit = mask.addMaskPlane(nm)
-        val = mask.getPlaneBitMask(nm)
-
     im[:,:] = 5.
     im[y0,x0] = 10.
     im[y0, x0 + 2] = 1.
@@ -52,10 +47,6 @@ def randoms(S=10, N=1, GA=10, GS=10):
     butils = measDeblend.BaselineUtilsF
     mim = afwImg.MaskedImageF(S, S)
     x0,y0 = S/2, S/2
-    mask = mim.getMask()
-    for nm in ['SYMM_1SIG', 'SYMM_3SIG', 'MONOTONIC_1SIG']:
-        bit = mask.addMaskPlane(nm)
-        val = mask.getPlaneBitMask(nm)
     peak = makePeak(x0, y0)
     im = mim.getImage().getArray()
 
@@ -72,7 +63,7 @@ def randoms(S=10, N=1, GA=10, GS=10):
             plt.imshow(im, **ima)
             plt.gray()
             plt.savefig('Rim%i.png' % i)
-            butils.makeMonotonic(mim, peak)
+            butils.makeMonotonic(mim.getImage(), peak)
             plt.clf()
             plt.imshow(mim.getImage().getArray(), **ima)
             plt.gray()
@@ -89,11 +80,6 @@ def cardinal():
     im = mim.getImage().getArray()
     peak = makePeak(x0, y0)
     
-    mask = mim.getMask()
-    for nm in ['SYMM_1SIG', 'SYMM_3SIG', 'MONOTONIC_1SIG']:
-        bit = mask.addMaskPlane(nm)
-        val = mask.getPlaneBitMask(nm)
-
     R = 2
     xx,yy = [],[]
     x,y = R,-R
@@ -114,7 +100,7 @@ def cardinal():
             plt.clf()
             plt.imshow(im, **plota)
             plt.savefig('im%i.png' % i)
-            butils.makeMonotonic(mim, peak)
+            butils.makeMonotonic(mim.getImage(), peak)
             plt.clf()
             plt.imshow(mim.getImage().getArray(), **plota)
             plt.savefig('im%im.png' % i)

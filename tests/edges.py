@@ -190,7 +190,7 @@ class RampEdgeTestCase(unittest.TestCase):
     
                 mono = afwImage.ImageF(fpbb)
                 afwDet.copyWithinFootprintImage(dpk.templateFootprint,
-                                                dpk.templateMaskedImage.getImage(), mono)
+                                                dpk.templateImage, mono)
                 monos.append(mono)
 
                 im = mono.getArray()
@@ -291,7 +291,7 @@ class RampEdgeTestCase(unittest.TestCase):
                 # monotonic template
                 mimg = afwImage.ImageF(fpbb)
                 afwDet.copyWithinFootprintImage(dpk.templateFootprint,
-                                                dpk.templateMaskedImage.getImage(), mimg)
+                                                dpk.templateImage, mimg)
     
                 plt.subplot(R, C, i*C + 3)
                 myimshow(mimg.getArray(), extent=imExt(mimg), **ima)
