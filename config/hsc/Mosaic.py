@@ -1,10 +1,10 @@
 import os
-root.load(os.path.join(os.environ['OBS_SUBARU_DIR'], 'config', 'hsc', 'colorterms.py'))
+config.load(os.path.join(os.environ['OBS_SUBARU_DIR'], 'config', 'hsc', 'colorterms.py'))
 
-root.fittingOrder = 9
-root.fluxFitOrder = 7
-root.fluxFitAbsolute = True
-root.internalFitting = True
-root.commonFluxCorr = False
-root.minNumMatch = 5
-root.fluxFitSolveCcd = True
+config.fittingOrder = 9
+config.fluxFitOrder = 7
+config.fluxFitAbsolute = True
+config.internalFitting = True
+config.commonFluxCorr = False
+config.minNumMatch = 5
+config.fluxFitSolveCcd = True

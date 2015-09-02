@@ -1,4 +1,4 @@
-root.astrom.filterMap = { 'B': 'g',
+config.astrom.filterMap = { 'B': 'g',
                           'V': 'r',
                           'R': 'r',
                           'I': 'i',

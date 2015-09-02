@@ -3,4 +3,4 @@ Subaru-specific overrides for ProcessExposureTask (applied before SuprimeCam- an
 """
 
 import os
-root.processCcd.load(os.path.join(os.environ["OBS_SUBARU_DIR"], "config", "processCcd.py"))
+config.processCcd.load(os.path.join(os.environ["OBS_SUBARU_DIR"], "config", "processCcd.py"))

@@ -2,7 +2,7 @@
 
 from lsst.pipe.tasks.colorterms import Colorterm, ColortermDict
 
-root.data = {
+config.data = {
     "hsc*": ColortermDict(data={
         'g': Colorterm(primary="g", secondary="g"),
         'r': Colorterm(primary="r", secondary="r"),

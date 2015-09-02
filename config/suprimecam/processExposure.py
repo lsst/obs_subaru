@@ -1,5 +1,5 @@
 import os
-root.processCcd.load(os.path.join(os.environ["OBS_SUBARU_DIR"], "config", "suprimecam", "processCcd.py"))
+config.processCcd.load(os.path.join(os.environ["OBS_SUBARU_DIR"], "config", "suprimecam", "processCcd.py"))
 
-root.instrument = "suprimecam"
+config.instrument = "suprimecam"
 
