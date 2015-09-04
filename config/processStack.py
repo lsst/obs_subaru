@@ -20,7 +20,6 @@ config.calibrate.measurePsf.psfDeterminer["pca"].kernelScaling = 10.0
 
 # Astrometry (just use meas_astrom since we just need to match, not solve)
 config.calibrate.astrometry.forceKnownWcs = True
-config.calibrate.astrometry.solver.calculateSip = False
 
 # Enable deblender
 config.measurement.doReplaceWithNoise = True
