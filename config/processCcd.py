@@ -30,8 +30,6 @@ except ImportError as e:
     config.calibrate.measurePsf.psfDeterminer.name = "pca"
 
 # Astrometry
-from lsst.meas.astrom import AstrometryTask
-config.calibrate.astrometry.retarget(AstrometryTask)
 config.calibrate.astrometry.refObjLoader.filterMap = {
     'B': 'g',
     'V': 'r',
