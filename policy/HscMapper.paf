@@ -720,7 +720,7 @@ datasets: {
     }
     deep_safeClipAssembleCoadd_config: {
         template:      "config/deep_assembleCoadd.py"
-        python:        "lsst.pipe.tasks.assembleCoadd.AssembleCoaddConfig"
+        python:        "lsst.pipe.tasks.assembleCoadd.SafeClipAssembleCoaddConfig"
         persistable:      "Config"
         storage:    "ConfigStorage"
         tables:        raw
