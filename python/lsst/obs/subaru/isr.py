@@ -142,7 +142,7 @@ after applying the nominal gain
                                                          ("y", 27.4),
                                                          ))
     )
-    defaultFluxMag0T1 = pexConfig.Field(dtype=float, default=28.0,
+    defaultFluxMag0T1 = pexConfig.Field(dtype=float, default=pow(10.0, 0.4*28.0),
                                         doc="Default value for fluxMag0T1 (for an unrecognised filter)")
 
     def validate(self):
