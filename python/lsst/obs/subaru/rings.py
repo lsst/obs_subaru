@@ -158,7 +158,7 @@ values of r, theta, and dlnI/dr from this image appended.
                 za[iy, ix], dlnzdxa[iy, ix], dlnzdya[iy, ix] = b
 
                 if returnResidualImage:
-                    residualImage[bbox] <<= res
+                    residualImage[bbox][:] = res
 
                 if ccd:
                     cen = afwGeom.PointD(bbox.getBegin() + bbox.getDimensions()/2)

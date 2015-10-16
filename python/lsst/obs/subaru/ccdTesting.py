@@ -63,7 +63,7 @@ def trim(im, ccd=None):
         sim = im[a.getRawDataBBox()]
         sim -= afwMath.makeStatistics(im[a.getRawHorizontalOverscanBBox()], afwMath.MEANCLIP).getValue()
         a.setTrimmed(True)
-        tim[a.getAllPixels(True)] <<= a.prepareAmpData(sim)
+        tim[a.getAllPixels(True)][:] = a.prepareAmpData(sim)
 
     return tim
 
