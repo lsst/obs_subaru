@@ -92,8 +92,8 @@ void lsst::obs::subaru::subtractCrosstalk(
 
         for (std::size_t i = 2; i < nxAmp; ++i) {
 
-            PixelVector const& ctx1List = getCrosstalkX1(i, nxAmp=nxAmp);
-            PixelVector const& ctx2List = getCrosstalkX2(i, nxAmp=nxAmp);
+            PixelVector const& ctx1List = getCrosstalkX1(i, nxAmp);
+            PixelVector const& ctx2List = getCrosstalkX2(i, nxAmp);
             assert(ctx1List.size() == nAmp);
             assert(ctx2List.size() == nAmp);
             CoeffVector crosstalkOffsets(nAmp, 0.0);
