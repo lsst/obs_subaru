@@ -29,7 +29,6 @@ import multiprocessing
 import os, re, sys
 import numpy as np
 
-import lsst.afw.cameraGeom as afwCamGeom
 import lsst.afw.cameraGeom.utils as cgUtils
 import lsst.afw.geom        as afwGeom
 import lsst.afw.image       as afwImage
@@ -43,7 +42,6 @@ try:
 except NameError:
     import matplotlib.pyplot as pyplot
     pyplot.interactive(1)
-import numpy.linalg
 
 def fitPlane(mi, niter=3, tol=1e-5, nsigma=5, returnResidualImage=False):
     """Fit a plane to the image im using a linear fit with an nsigma clip"""
@@ -75,8 +73,8 @@ def fitPlane(mi, niter=3, tol=1e-5, nsigma=5, returnResidualImage=False):
         resim.getArray()[:] = im.getArray() - plane.reshape(height, width)
 
         if isMaskedImage:
-            stats = afwMath.makeStatistics(res, afwMath.MEANCLIP | afwMath.STDEVCLIP, sctrl)
-            mean, stdev = stats.getValue(afwMath.MEANCLIP), stats.getValue(afwMath.STDEVCLIP)
+            stats = afwMath.makeStatistics(res, afwMath.STDEVCLIP, sctrl)
+            stdev = stats.getValue(afwMath.STDEVCLIP)
             good = np.where(np.logical_and(np.abs(res.getImage().getArray().flatten()) < nsigma*stdev,
                                            np.bitwise_and(res.getMask().getArray().flatten(), BAD) == 0))[0]
             b, residuals = np.linalg.lstsq(A[good], ima[good])[:2]
@@ -158,7 +156,7 @@ values of r, theta, and dlnI/dr from this image appended.
                 za[iy, ix], dlnzdxa[iy, ix], dlnzdya[iy, ix] = b
 
                 if returnResidualImage:
-                    residualImage[bbox] <<= res
+                    residualImage[bbox][:] = res
 
                 if ccd:
                     cen = afwGeom.PointD(bbox.getBegin() + bbox.getDimensions()/2)
@@ -242,8 +240,8 @@ def fitRadialParabola(mi, niter=3, tol=1e-5, nsigma=5, returnResidualImage=False
 
         resim.getArray()[:] = im.getArray() - fit.reshape(height, width)
 
-        stats = afwMath.makeStatistics(res, afwMath.MEANCLIP | afwMath.STDEVCLIP, sctrl)
-        mean, stdev = stats.getValue(afwMath.MEANCLIP), stats.getValue(afwMath.STDEVCLIP)
+        stats = afwMath.makeStatistics(res, afwMath.STDEVCLIP, sctrl)
+        stdev = stats.getValue(afwMath.STDEVCLIP)
         good = np.abs(resim.getArray().flatten()) < nsigma*stdev
 
         if isMaskedImage:
@@ -453,9 +451,6 @@ def plotRadial(r, lnGrad, theta=None, title=None, profile=False, showMedians=Fal
     scalarMap = pyplot.cm.ScalarMappable(norm=norm, cmap=cmap)
 
     if profile or showMedians or showMeans:
-        bins = np.linspace(0, min(18000, np.max(r)), nBin)
-        binWidth = bins[1] - bins[0]
-
         if binAngle > 0:
             angleBin = np.pi/180*(np.linspace(-180, 180 - binAngle, 360.0/binAngle, binAngle))
             binAngle *= np.pi/180

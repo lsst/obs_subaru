@@ -26,7 +26,7 @@ def trimCcd(ccd, ccdImage=""):
         for a in ccd:
             data =      ccdImage.Factory(ccdImage, a.getDataSec(False))
             tdata = trimmedImage.Factory(trimmedImage, a.getDataSec())
-            tdata <<= data
+            tdata[:] = data
     else:
         trimmedImage = None
 
