@@ -207,12 +207,6 @@ class SourceDeblendTask(pipeBase.Task):
             'deblend_hasStrayFlux', type='Flag',
             doc=('This source was assigned some stray flux'))
 
-        self.blendednessKey = schema.addField(
-            'deblend_blendedness', type=float,
-            doc=("A measure of how blended the source is. This is the sum of dot products between the source "
-                 "and all of its deblended siblings, divided by the dot product of the deblended source with "
-                 "itself"))
-
         self.log.logdebug('Added keys to schema: %s' % ", ".join(str(x) for x in (
                     self.nChildKey, self.psfKey, self.psfCenterKey, self.psfFluxKey,
                     self.tooManyPeaksKey, self.tooBigKey)))
@@ -390,7 +384,6 @@ class SourceDeblendTask(pipeBase.Task):
             src.getFootprint().include([child.getFootprint() for child in kids])
 
             src.set(self.nChildKey, nchild)
-            self.calculateBlendedness(exposure.getMaskedImage(), src, kids)
 
             self.postSingleDeblendHook(exposure, srcs, i, npre, kids, fp, psf, psf_fwhm, sigma1, res)
             #print 'Deblending parent id', src.getId(), 'took', time.clock() - t0
@@ -453,40 +446,3 @@ class SourceDeblendTask(pipeBase.Task):
         if self.config.notDeblendedMask:
             mask.addMaskPlane(self.config.notDeblendedMask)
             afwDet.setMaskFromFootprint(mask, fp, mask.getPlaneBitMask(self.config.notDeblendedMask))
-
-    def calculateBlendedness(self, maskedImage, parent, kids):
-        """Calculate the blendedness values for a blend family
-
-        The blendedness is defined as:
-
-            [heavy[i].dot(heavy[j]) for j in neighbors].sum() / heavy[i].dot(heavy[i])
-
-        where 'heavy' is the heavy footprint representation of the flux.
-        """
-        bbox = parent.getFootprint().getBBox()
-        if not kids or bbox.isEmpty():
-            parent.set(self.blendednessKey, 0.0)
-            return
-
-        def getHeavyFootprint(src):
-            """Provide the HeavyFootprint for a source"""
-            fp = src.getFootprint()
-            return (afwDet.HeavyFootprintF.cast(fp) if fp.isHeavy() else
-                    afwDet.makeHeavyFootprint(fp, maskedImage))
-
-        parentFoot = getHeavyFootprint(parent)
-        kidFeet = [getHeavyFootprint(src) for src in kids]
-
-        def setBlendedness(src, foot):
-            """Calculate and set the blendedness value for a source, given its image"""
-            if foot.getBBox().isEmpty() or numpy.all(foot.getImageArray() == 0.0):
-                src.set(self.blendednessKey, 0.0)
-                return
-            srcId = src.getId()
-            numerator = sum(foot.dot(f) for k, f in zip(kids, kidFeet) if k.getId() != srcId)
-            denominator = foot.dot(foot)
-            src.set(self.blendednessKey, numerator/denominator)
-
-        setBlendedness(parent, parentFoot)
-        for k, f in zip(kids, kidFeet):
-            setBlendedness(k, f)
