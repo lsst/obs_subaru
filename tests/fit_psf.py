@@ -1,16 +1,15 @@
 #!/usr/bin/env python
-
-try:
+doPlot = False
+if doPlot:
     import matplotlib
     matplotlib.use('Agg')
     import pylab as plt
-    doPlot = True
-except:
-    doPlot = False
-
+    print "doPlot is set -- saving plots to current directory."
+else:
+    print "doPlot is not set -- not saving plots.  To enable plots, edit", __file__
 
 import unittest
-import lsst.utils.tests         as utilsTests
+import lsst.utils.tests  as utilsTests
 
 import numpy as np
 
