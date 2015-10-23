@@ -184,7 +184,7 @@ class SourceDeblendTask(pipeBase.Task):
                                                'only the brightest were included')
         self.tooBigKey = schema.addField('deblend_parentTooBig', type='Flag',
                                          doc='Parent footprint covered too many pixels')
-        self.maskedKey = schema.addField('deblend.masked', type='Flag',
+        self.maskedKey = schema.addField('deblend_masked', type='Flag',
                                          doc='Parent footprint was predominantly masked')
 
         if self.config.catchFailures:
@@ -209,7 +209,7 @@ class SourceDeblendTask(pipeBase.Task):
             doc=('This source was assigned some stray flux'))
 
         self.blendednessKey = schema.addField(
-            'deblend.blendedness', type=float,
+            'deblend_blendedness', type=float,
             doc=("A measure of how blended the source is. This is the sum of dot products between the source "
                  "and all of its deblended siblings, divided by the dot product of the deblended source with "
                  "itself"))
