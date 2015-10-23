@@ -21,7 +21,6 @@
 #
 import math
 import numpy
-import time
 
 import lsst.pex.config as pexConf
 import lsst.pipe.base as pipeBase
@@ -213,7 +212,7 @@ class SourceDeblendTask(pipeBase.Task):
             doc=("A measure of how blended the source is. This is the sum of dot products between the source "
                  "and all of its deblended siblings, divided by the dot product of the deblended source with "
                  "itself"))
-        
+
         self.log.logdebug('Added keys to schema: %s' % ", ".join(str(x) for x in (
                     self.nChildKey, self.psfKey, self.psfCenterKey, self.psfFluxKey,
                     self.tooManyPeaksKey, self.tooBigKey)))
@@ -250,7 +249,6 @@ class SourceDeblendTask(pipeBase.Task):
         self.log.info("Deblending %d sources" % len(srcs))
 
         from lsst.meas.deblender.baseline import deblend
-        import lsst.meas.algorithms as measAlg
 
         # find the median stdev in the image...
         mi = exposure.getMaskedImage()
@@ -259,8 +257,6 @@ class SourceDeblendTask(pipeBase.Task):
         stats = afwMath.makeStatistics(mi.getVariance(), mi.getMask(), afwMath.MEDIAN, statsCtrl)
         sigma1 = math.sqrt(stats.getValue(afwMath.MEDIAN))
         self.log.logdebug('sigma1: %g' % sigma1)
-
-        schema = srcs.getSchema()
 
         n0 = len(srcs)
         nparents = 0
@@ -390,7 +386,7 @@ class SourceDeblendTask(pipeBase.Task):
 
             src.set(self.nChildKey, nchild)
             self.calculateBlendedness(exposure.getMaskedImage(), src, kids)
-            
+
             self.postSingleDeblendHook(exposure, srcs, i, npre, kids, fp, psf, psf_fwhm, sigma1, res)
             #print 'Deblending parent id', src.getId(), 'took', time.clock() - t0
 
