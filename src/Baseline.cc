@@ -248,8 +248,7 @@ makeMonotonic(
                 }
             }
         }
-        //*shadowingImg <<= *img;
-        shadowingImg->operator<<=(img);
+        shadowingImg->assign(img);
     }
 }
 
