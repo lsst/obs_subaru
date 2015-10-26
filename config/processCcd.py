@@ -1,8 +1,9 @@
 """
 Subaru-specific overrides for ProcessCcdTask (applied before SuprimeCam- and HSC-specific overrides).
 """
+import os.path
 
-import os
+from lsst.utils import getPackageDir
 
 # This was a horrible choice of defaults: only the scaling of the flats
 # should determine the relative normalisations of the CCDs!
@@ -63,24 +64,24 @@ config.detection.returnOriginalFootprints = False
 config.doWriteSourceMatches = True
 
 # Activate calibration of measurements: required for aperture corrections
-config.calibrate.measurement.load(os.path.join(os.environ['OBS_SUBARU_DIR'], 'config', 'apertures.py'))
+config.calibrate.measurement.load(os.path.join(getPackageDir("obs_subaru"), "config", "apertures.py"))
 # Turn off cmodel until latest fixes (large blends, footprint merging, etc.) are in
-# config.calibrate.measurement.load(os.path.join(os.environ['OBS_SUBARU_DIR'], 'config', 'cmodel.py'))
-config.calibrate.measurement.load(os.path.join(os.environ['OBS_SUBARU_DIR'], 'config', 'kron.py'))
-config.calibrate.measurement.load(os.path.join(os.environ['OBS_SUBARU_DIR'], 'config', 'hsm.py'))
-if "shape.hsm.regauss" in config.calibrate.measurement.algorithms:
-    config.calibrate.measurement.algorithms["shape.hsm.regauss"].deblendNChild = "" # no deblending has been done
+# config.calibrate.measurement.load(os.path.join(getPackageDir("obs_subaru"), "config", "cmodel.py"))
+config.calibrate.measurement.load(os.path.join(getPackageDir("obs_subaru"), "config", "kron.py"))
+config.calibrate.measurement.load(os.path.join(getPackageDir("obs_subaru"), "config", "hsm.py"))
+if "ext_shapeHSM_HsmShapeRegauss" in config.calibrate.measurement.algorithms:
+    # no deblending has been done
+    config.calibrate.measurement.algorithms["ext_shapeHSM_HsmShapeRegauss"].deblendNChild = ""
 
 # Activate deep measurements
-config.measurement.load(os.path.join(os.environ['OBS_SUBARU_DIR'], 'config', 'apertures.py'))
-config.measurement.load(os.path.join(os.environ['OBS_SUBARU_DIR'], 'config', 'kron.py'))
-config.measurement.load(os.path.join(os.environ['OBS_SUBARU_DIR'], 'config', 'hsm.py'))
+config.measurement.load(os.path.join(getPackageDir("obs_subaru"), "config", "apertures.py"))
+config.measurement.load(os.path.join(getPackageDir("obs_subaru"), "config", "kron.py"))
+config.measurement.load(os.path.join(getPackageDir("obs_subaru"), "config", "hsm.py"))
 # Note no CModel: it's slow.
 
 # Enable deblender for processCcd
 config.measurement.doReplaceWithNoise = True
 config.doDeblend = True
-config.deblend.load(os.path.join(os.environ['OBS_SUBARU_DIR'], 'config', 'deblend.py'))
+config.deblend.load(os.path.join(getPackageDir("obs_subaru"), "config", "deblend.py"))
 config.deblend.maskLimits["NO_DATA"] = 0.25 # Ignore sources that are in the vignetted region
 config.deblend.maxFootprintArea = 10000
-

@@ -28,10 +28,10 @@ config.deblend.maxNumberOfPeaks = 20
 config.doWriteHeavyFootprintsInSources = True
 
 # Measurement
-config.measurement.algorithms["flux.gaussian"].shiftmax = 10.0
+config.measurement.algorithms["base_GaussianFlux"].shiftmax = 10.0
 try:
     import lsst.meas.extensions.multiShapelet
     config.measurement.algorithms.names |= lsst.meas.extensions.multiShapelet.algorithms
-    config.measurement.slots.modelFlux = "multishapelet.combo.flux"
+    config.measurement.slots.modelFlux = "ext_multiShapelet_ComboFlux"
 except ImportError:
     print "meas_extensions_multiShapelet is not setup; disabling model mags"

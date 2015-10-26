@@ -1,9 +1,11 @@
 # Enable HSM shapes (unsetup meas_extensions_shapeHSM to disable)
 # 'config' is a SourceMeasurementConfig.
-import os
+import os.path
+
+from lsst.utils import getPackageDir
 try:
-    config.load(os.path.join(os.environ['MEAS_EXTENSIONS_SHAPEHSM_DIR'], 'config', 'enable.py'))
-    config.algorithms["shape.hsm.regauss"].deblendNChild = "deblend.nchild"
-    config.slots.shape = "shape.hsm.moments"
+    config.load(os.path.join(getPackageDir("meas_extensions_shapeHSM"), "config", "enable.py"))
+    config.algorithms["ext_shapeHSM_HsmShapeRegauss"].deblendNChild = "deblend_nChild"
+    config.slots.shape = "ext_shapeHSM_HsmMoments"
 except Exception as e:
     print "Cannot enable shapeHSM (%s): disabling HSM shape measurements" % (e,)
