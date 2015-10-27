@@ -38,8 +38,6 @@ config.calibrate.astrometry.refObjLoader.filterMap = {
     'y': 'z',
 }
 
-# Reference catalog may not have as good star/galaxy discrimination as our data
-config.calibrate.photocal.badFlags += ['base_ClassificationExtendedness_value',]
 config.measurement.algorithms['base_ClassificationExtendedness'].fluxRatio = 0.95
 # LAM the following had to be set to affect the fluxRatio used in photocal in meas_astrom
 config.calibrate.measurement.plugins['base_ClassificationExtendedness'].fluxRatio = 0.95
@@ -52,6 +50,10 @@ menu = { "ps1*": {}, # Defaults are fine
          "2mass*": {"refObjLoader.filterMap": {ff: "J" for ff in "grizy"}}, # No optical bands, use J instead
         }
 setConfigFromEups(config.calibrate.photocal, config.calibrate.astrometry, menu)
+
+# Demand astrometry and photoCal succeed
+config.calibrate.requireAstrometry = True
+config.calibrate.requirePhotoCal = True
 
 # Detection
 config.detection.isotropicGrow = True
