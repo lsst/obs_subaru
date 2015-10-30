@@ -140,6 +140,9 @@ after applying the nominal gain
                                                          ("i", 28.6),
                                                          ("z", 27.7),
                                                          ("y", 27.4),
+                                                         ("N515", 25.8),
+                                                         ("N816", 25.5),
+                                                         ("N921", 25.7),
                                                          ))
     )
     defaultFluxMag0T1 = pexConfig.Field(dtype=float, default=pow(10.0, 0.4*28.0),
@@ -464,9 +467,7 @@ class SubaruIsrTask(IsrTask):
         skyMedian = numpy.median(skyLevels[good])
         flatness =  (skyLevels[good] - skyMedian) / skyMedian
         flatness_rms = numpy.std(flatness)
-        flatness_min = flatness.min()
-        flatness_max = flatness.max()
-        flatness_pp = flatness_max - flatness_min
+        flatness_pp = flatness.max() - flatness.min() if len(flatness) > 0 else numpy.nan
 
         self.log.info("Measuring sky levels in %dx%d grids: %f" % (nX, nY, skyMedian))
         self.log.info("Sky flatness in %dx%d grids - pp: %f rms: %f" % (nX, nY, flatness_pp, flatness_rms))
@@ -578,6 +579,9 @@ class SubaruIsrTask(IsrTask):
             self.log.warn("No rough magnitude zero point set for filter %s" % filterName)
             fluxMag0 = self.config.defaultFluxMag0T1
         expTime = exposure.getCalib().getExptime()
+        if expTime <= 0:
+            self.log.warn("Non-positive exposure time; skipping rough zero point")
+            return
         self.log.info("Setting rough magnitude zero point: %f" % (2.5*math.log10(fluxMag0*expTime),))
         exposure.getCalib().setFluxMag0(fluxMag0*expTime)
 

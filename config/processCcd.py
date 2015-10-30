@@ -80,7 +80,7 @@ config.measurement.load(os.path.join(os.environ['OBS_SUBARU_DIR'], 'config', 'hs
 # Enable deblender for processCcd
 config.measurement.doReplaceWithNoise = True
 config.doDeblend = True
-config.deblend.maxNumberOfPeaks = 20
 config.deblend.load(os.path.join(os.environ['OBS_SUBARU_DIR'], 'config', 'deblend.py'))
 config.deblend.maskLimits["NO_DATA"] = 0.25 # Ignore sources that are in the vignetted region
+config.deblend.maxFootprintArea = 10000
 
