@@ -266,7 +266,8 @@ The pixels affected by signal over minPixelToMask have the crosstalkStr bit set
         temp = msk.getPlaneBitMask(tempStr)
         xtalk_temp = crosstalk | temp
         np_msk = msk.getArray()
-        np_msk[np.where(np.bitwise_and(np_msk, xtalk_temp) == xtalk_temp)] &= ~crosstalk
+        mask_indicies = np.where(np.bitwise_and(np_msk, xtalk_temp) == xtalk_temp)
+        np_msk[mask_indicies] &= getattr(np, np_msk.dtype.name)(~crosstalk)
 
     finally:
         msk.removeAndClearMaskPlane(tempStr, True) # added in afw #1853
