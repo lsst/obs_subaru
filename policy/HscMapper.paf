@@ -1320,6 +1320,12 @@ datasets: {
         persistable:   None
         storage:       TextStorage
     }
+    plotSky: {
+        template:      "plots/%(filter)s/sky/plot-%(filter)s-%(description)s-%(style)s.png"
+        python:        __builtin__.str
+        persistable:   None
+        storage:       TextStorage
+    }
     plotColor: {
         template:      "plots/color/tract-%(tract)d/plot-t%(tract)d-%(description)s-%(style)s.png"
         python:        __builtin__.str
