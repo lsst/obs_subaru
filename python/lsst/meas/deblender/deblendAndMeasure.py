@@ -30,7 +30,6 @@ import lsst.afw.math as afwMath
 import lsst.afw.table as afwTable
 from lsst.meas.algorithms import SourceMeasurementTask
 from lsst.meas.deblender import SourceDeblendTask
-from lsst.pipe.tasks.calibrate import CalibrateTask
 
 
 class DeblendAndMeasureConfig(pexConfig.Config):
