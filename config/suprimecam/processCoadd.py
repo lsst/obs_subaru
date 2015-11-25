@@ -2,9 +2,11 @@
 SuprimeCam-specific overrides for ProcessCoaddTask
 (applied after Subaru overrides in ../processCoadd.py).
 """
-import os.path
+try:
+    detection = config.detectCoaddSources.detection
+except:
+    detection = config.detection
 
-from lsst.utils import getPackageDir
-
-suprimecamMitConfigDir = os.path.join(getPackageDir("obs_subaru"), "config", "suprimecam-mit")
-config.calibrate.photocal.colorterms.load(os.path.join(suprimecamMitConfigDir, 'colorterms.py'))
+detection.background.useApprox = False
+detection.background.binSize = 4096
+detection.background.undersampleStyle = 'REDUCE_INTERP_ORDER'
