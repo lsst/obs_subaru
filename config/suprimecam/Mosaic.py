@@ -1,2 +1,5 @@
-import os
-config.load(os.path.join(os.environ['OBS_SUBARU_DIR'], 'config', 'suprimecam', 'colorterms.py'))
+import os.path
+
+from lsst.utils import getPackageDir
+
+config.load(os.path.join(getPackageDir("obs_subaru"), "config", "suprimecam", "colorterms.py"))

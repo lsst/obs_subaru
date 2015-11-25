@@ -1,8 +1,10 @@
-import os
+import os.path
 
-config.measurement.load(os.path.join(os.environ['OBS_SUBARU_DIR'], 'config', 'apertures.py'))
-config.measurement.load(os.path.join(os.environ['OBS_SUBARU_DIR'], 'config', 'kron.py'))
+from lsst.utils import getPackageDir
+
+config.measurement.load(os.path.join(getPackageDir("obs_subaru"), "config", "apertures.py"))
+config.measurement.load(os.path.join(getPackageDir("obs_subaru"), "config", "kron.py"))
 # Turn off cmodel until latest fixes (large blends, footprint merging, etc.) are in
-# config.measurement.load(os.path.join(os.environ['OBS_SUBARU_DIR'], 'config', 'cmodel.py'))
+# config.measurement.load(os.path.join(getPackageDir("obs_subaru"), "config", "cmodel.py"))
 
 config.measurement.slots.instFlux = None

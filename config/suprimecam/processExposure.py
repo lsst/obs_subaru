@@ -1,5 +1,8 @@
-import os
-config.processCcd.load(os.path.join(os.environ["OBS_SUBARU_DIR"], "config", "suprimecam", "processCcd.py"))
+import os.path
+
+from lsst.utils import getPackageDir
+
+config.processCcd.load(os.path.join(getPackageDir("obs_subaru"), "config", "suprimecam", "processCcd.py"))
 
 config.instrument = "suprimecam"
 

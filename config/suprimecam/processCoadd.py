@@ -2,7 +2,6 @@
 SuprimeCam-specific overrides for ProcessCoaddTask
 (applied after Subaru overrides in ../processCoadd.py).
 """
-
 import os.path
 
 from lsst.utils import getPackageDir

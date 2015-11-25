@@ -1,5 +1,8 @@
-import os
-config.load(os.path.join(os.environ['OBS_SUBARU_DIR'], 'config', 'hsc', 'colorterms.py'))
+import os.path
+
+from lsst.utils import getPackageDir
+
+config.load(os.path.join(getPackageDir("obs_subaru"), "config", "hsc", "colorterms.py"))
 
 config.fittingOrder = 9
 config.fluxFitOrder = 7

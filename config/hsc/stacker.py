@@ -1,6 +1,9 @@
 # Load from sub-configurations
-import os
+import os.path
+
+from lsst.utils import getPackageDir
+
 for sub in ("makeCoaddTempExp", "backgroundReference", "assembleCoadd", "processCoadd"):
-    path = os.path.join(os.environ["OBS_SUBARU_DIR"], "config", "hsc", sub + ".py")
+    path = os.path.join(getPackageDir("obs_subaru"), "config", "hsc", sub + ".py")
     if os.path.exists(path):
         getattr(config, sub).load(path)

@@ -1,4 +1,7 @@
-import os
-config.processCcd.load(os.path.join(os.environ["OBS_SUBARU_DIR"], "config", "hsc", "processCcd.py"))
+import os.path
+
+from lsst.utils import getPackageDir
+
+config.processCcd.load(os.path.join(getPackageDir("obs_subaru"), "config", "hsc", "processCcd.py"))
 
 config.instrument = "hsc"

@@ -2,5 +2,7 @@ from hsc.pipe.tasks.onsiteDb import SuprimecamOnsiteDbTask
 config.onsiteDb.retarget(SuprimecamOnsiteDbTask)
 
 # Load regular processCcd configuration
-import os
-config.load(os.path.join(os.path.abspath(__file__), 'processCcd.py'))
+import os.path
+
+from lsst.utils import getPackageDir
+config.load(os.path.join(getPackageDir("obs_subaru"), "config", "suprimecam", "processCcd.py"))

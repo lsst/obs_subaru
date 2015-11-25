@@ -1,3 +1,6 @@
-import os
-config.load(os.path.join(os.environ['OBS_SUBARU_DIR'], 'config', 'suprimecam-mit', 'isr.py'))
+import os.path
+
+from lsst.utils import getPackageDir
+
+config.load(os.path.join(getPackageDir("obs_subaru"), "config", "suprimecam-mit", "isr.py"))
 config.isr.doGuider = False
