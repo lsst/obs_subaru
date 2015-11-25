@@ -110,10 +110,10 @@ def makeplots(butler, dataId, ps, sources=None, pids=None, minsize=0,
     lsstimg = calexp.getMaskedImage().getImage()
     img = lsstimg.getArray()
     schema = ss.getSchema()
-    psfkey = schema.find("deblend.deblended-as-psf").key
-    nchildkey = schema.find("deblend.nchild").key
-    toomanykey = schema.find("deblend.too-many-peaks").key
-    failedkey = schema.find("deblend.failed").key
+    psfkey = schema.find("deblend_deblendedAsPsf").key
+    nchildkey = schema.find("deblend_nChild").key
+    toomanykey = schema.find("deblend_tooManyPeaks").key
+    failedkey = schema.find("deblend_failed").key
     
     def getFlagString(src):
         ss = ['Nchild: %i' % src.get(nchildkey)]

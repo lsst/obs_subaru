@@ -207,16 +207,16 @@ def plotDeblendFamily(*args, **kwargs):
 # Preprocessing: returns _mockSources for the parent and kids
 def plotDeblendFamilyPre(mi, parent, kids, dkids, srcs, sigma1, ellipses=True, maskbit=None, **kwargs):
     schema = srcs.getSchema()
-    psfkey = schema.find("deblend.deblended-as-psf").key
-    fluxkey = schema.find('deblend.psf-flux').key
-    xkey = schema.find('centroid.naive.x').key
-    ykey = schema.find('centroid.naive.y').key
+    psfkey = schema.find("deblend_deblendedAsPsf").key
+    fluxkey = schema.find('deblend_psfFlux').key
+    xkey = schema.find('base_NaiveCentroid_x').key
+    ykey = schema.find('base_Naivecentroid_y').key
     flagKeys = [(schema.find(keynm).key, nm)
-                for nm,keynm in [('EDGE', 'flags.pixel.edge'),
-                                 ('INTERP', 'flags.pixel.interpolated.any'),
-                                 ('INT-C', 'flags.pixel.interpolated.center'),
-                                 ('SAT', 'flags.pixel.saturated.any'),
-                                 ('SAT-C', 'flags.pixel.saturated.center'),
+                for nm,keynm in [('EDGE', 'base_PixelFlags_flag_edge'),
+                                 ('INTERP', 'base_PixelFlags_flag_interpolated'),
+                                 ('INT-C', 'base_PixelFlags_flag_interpolatedCenter'),
+                                 ('SAT', 'base_PixelFlags_flag_saturated'),
+                                 ('SAT-C', 'base_PixelFlags_flag_saturatedCenter'),
                                  ]]
     p = _mockSource(parent, mi, psfkey, fluxkey, xkey, ykey, flagKeys, ellipses=ellipses, maskbit=maskbit)
     ch = [_mockSource(kid,  mi, psfkey, fluxkey, xkey, ykey, flagKeys, ellipses=ellipses, maskbit=maskbit) for kid in kids]
@@ -435,7 +435,7 @@ def readCatalog(sourcefn, heavypat, ndeblends=0, dataref=None,
         cat = afwTable.SourceCatalog.readFits(sourcefn)
         print len(cat), 'sources'
     cat.sort()
-    cat.defineCentroid('centroid.sdss')
+    cat.defineCentroid('base_SdssCentroid')
 
     if ndeblends or keepids or keepxys:
         cat = cutCatalog(cat, ndeblends, keepids, keepxys)
