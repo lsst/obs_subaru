@@ -1,3 +1,6 @@
-import os
-root.colorterms.load(os.path.join(os.environ["OBS_SUBARU_DIR"], "config", "hsc", "colorterms.py"))
-root.astrometry.load(os.path.join(os.environ["OBS_SUBARU_DIR"], "config", "hsc", "filterMap.py"))
+import os.path
+
+from lsst.utils import getPackageDir
+
+config.colorterms.load(os.path.join(getPackageDir("obs_subaru"), "config", "hsc", "colorterms.py"))
+config.astrometry.load(os.path.join(getPackageDir("obs_subaru"), "config", "hsc", "filterMap.py"))
