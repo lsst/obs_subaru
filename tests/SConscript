@@ -1,8 +1,3 @@
 # -*- python -*-
-from lsst.sconsUtils import scripts, env
-
-dataDir = env.ProductDir("testdata_subaru")
-if not dataDir:
-    print "Warning: testdata_subaru is not set up; not running the tests!"
-else:
-    scripts.BasicSConscript.tests()
+from lsst.sconsUtils import scripts
+scripts.BasicSConscript.tests()
