@@ -610,5 +610,11 @@ datasets: {
         persistable:   None
         storage:       TextStorage
     }
+    plotCompareVisit: {
+        template:      "plots/%(filter)s/visit-%(visit)d/compareVisit-v%(visit)d-%(description)s-%(style)s.png"
+        python:        __builtin__.str
+        persistable:   None
+        storage:       TextStorage
+    }
 
 }
