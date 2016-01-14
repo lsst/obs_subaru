@@ -265,6 +265,11 @@ class SourceDeblendTask(pipeBase.Task):
 
             fp = src.getFootprint()
             pks = fp.getPeaks()
+
+            # Since we use the first peak for the parent object, we should propagate its flags
+            # to the parent source.
+            src.assign(pks[0], self.peakSchemaMapper)
+
             if len(pks) < 2:
                 continue
 
