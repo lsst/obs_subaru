@@ -111,8 +111,7 @@ class HscMapper(CameraMapper):
             "PH",
             "NONE",
             "UNRECOGNISED"]:
-            # Get the canonical name -- see #2113
-            self.filters[f] = afwImage.Filter(afwImage.Filter(f).getId()).getName()
+            self.filters[f] = afwImage.Filter(f).getCanonicalName()
         self.defaultFilterName = "UNRECOGNISED"
 
         #

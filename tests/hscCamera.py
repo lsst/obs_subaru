@@ -23,15 +23,20 @@
 #
 
 import unittest
+from collections import namedtuple
+
 import lsst.utils.tests as utilsTests
+from lsst.afw.image import Filter
 from lsst.obs.hsc import HscMapper
 
 class CameraTestCase(utilsTests.TestCase):
     def setUp(self):
-        self.camera = HscMapper(root=".").camera
+        self.mapper = HscMapper(root=".")
+        self.camera = self.mapper.camera
 
     def tearDown(self):
         del self.camera
+        del self.mapper
 
     def testName(self):
         self.assertEqual(self.camera.getName(), "HSC")
@@ -43,6 +48,24 @@ class CameraTestCase(utilsTests.TestCase):
         for ccd in self.camera:
             self.assertEqual(ccd.getBBox().getWidth(), 2048)
             self.assertEqual(ccd.getBBox().getHeight(), 4176)
+
+    def testFilters(self):
+        # Check that the mapper has defined some standard filters.
+        # Note that this list is not intended to be comprehensive -- we
+        # anticipate that more filters can be added without causing the test
+        # to break -- but captures the standard HSC broad-band filters.
+        FilterName = namedtuple("FilterName", ["alias", "canonical"])
+        filterNames = (
+            FilterName(alias="HSC-G", canonical="g"),
+            FilterName(alias="HSC-R", canonical="r"),
+            FilterName(alias="HSC-I", canonical="i"),
+            FilterName(alias="HSC-Z", canonical="z"),
+            FilterName(alias="HSC-Y", canonical="y"),
+            FilterName(alias="NONE", canonical="UNRECOGNISED")
+        )
+        for filterName in filterNames:
+            self.assertTrue(filterName.alias in self.mapper.filters)
+            self.assertEqual(Filter(filterName.alias).getCanonicalName(), filterName.canonical)
 
 
 def suite():
