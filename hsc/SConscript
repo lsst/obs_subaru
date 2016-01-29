@@ -17,7 +17,7 @@ libpathstr = lsst.sconsUtils.utils.libraryLoaderEnvironment()
 # We always run these commands with an explicit python rather than relying on the shebang
 python = "{} python".format(libpathstr)
 
-dep = "#python/lsst/obs/subaru/_subaruLib.so" # Dependency required for running the python scripts
+dep = "#python/lsst/obs/subaru/_subaruLib.so"  # Dependency required for running the python scripts
 
 defectsDatList = glob.glob("defects/*/defects.dat")
 for defectsDat in defectsDatList:
