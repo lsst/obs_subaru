@@ -719,7 +719,7 @@ datasets: {
         tables:        raw_skyTile
     }
     deep_safeClipAssembleCoadd_config: {
-        template:      "config/deep_assembleCoadd.py"
+        template:      "config/deep_safeClipAssembleCoadd.py"
         python:        "lsst.pipe.tasks.assembleCoadd.SafeClipAssembleCoaddConfig"
         persistable:      "Config"
         storage:    "ConfigStorage"
