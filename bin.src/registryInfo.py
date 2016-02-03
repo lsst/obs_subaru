@@ -1,4 +1,26 @@
 #!/usr/bin/env python
+#
+# LSST Data Management System
+#
+# Copyright 2008-2016 AURA/LSST.
+#
+# This product includes software developed by the
+# LSST Project (http://www.lsst.org/).
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the LSST License Statement and
+# the GNU General Public License along with this program.  If not,
+# see <https://www.lsstcorp.org/LegalNotices/>.
+#
 import argparse
 import os
 import sys
@@ -7,17 +29,6 @@ try:
     import sqlite3 as sqlite
 except ImportError:
     import sqlite
-try:
-    import psycopg2 as pgsql
-    havePgSql = True
-except ImportError:
-    try:
-        from pg8000 import DBAPI as pgsql
-        havePgSql = True
-    except ImportError:
-        havePgSql = False
-if havePgSql:
-    from lsst.daf.butlerUtils import PgSqlConfig
 
 def formatVisits(visits):
     """Format a set of visits into the format used for an --id argument"""
@@ -82,16 +93,7 @@ ORDER BY max(filter), visit
 
     n = {}; expTimes = {}; visits = {}
 
-    if registryFile.endswith('sqlite3'):
-        conn = sqlite.connect(registryFile)
-        isSqlite = True
-    else:
-        pgsqlConf = PgSqlConfig()
-        pgsqlConf.load(registryFile)
-        conn = pgsql.connect(host=pgsqlConf.host, port=pgsqlConf.port, 
-                             user=pgsqlConf.user, password=pgsqlConf.password,
-                             database=pgsqlConf.db)
-        isSqlite = False
+    conn = sqlite.connect(registryFile)
         
     cursor = conn.cursor()
 
@@ -101,14 +103,7 @@ ORDER BY max(filter), visit
         print "%-7s %-20s %10s %7s %8s %6s %4s" % ("filter", "field", "dataObs", "expTime",
                                                    "pointing", "visit", "nCCD")
 
-    if not isSqlite:
-        query = query.replace("?", "%s")
-
-    if isSqlite:
-        ret = cursor.execute(query, vals)
-    else:
-        cursor.execute(query, vals)
-        ret = cursor.fetchall()
+    ret = cursor.execute(query, vals)
 
     for line in ret:
         field, visit, filter, expTime, dateObs, pointing, nCCD = line
@@ -155,21 +150,9 @@ ORDER BY filter, calibDate
 
     n = {}; expTimes = {}; visits = {}
 
-    if registryFile.endswith('sqlite3'):
-        conn = sqlite.connect(registryFile)
-        isSqlite = True
-    else:
-        pgsqlConf = PgSqlConfig()
-        pgsqlConf.load(registryFile)
-        conn = pgsql.connect(host=pgsqlConf.host, port=pgsqlConf.port, 
-                           user=pgsqlConf.user, password=pgsqlConf.password,
-                           database=pgsqlConf.db)
-        isSqlite = False
+    conn = sqlite.connect(registryFile)
 
     cursor = conn.cursor()
-
-    if not isSqlite:
-        query = query.replace("?", "%s")
 
     if summary:
         print >> sys.stderr, "No summary is available for calib data"
@@ -178,11 +161,7 @@ ORDER BY filter, calibDate
         print "%-10s--%-10s  %-10s  %-7s %-24s %4s" % (
             "validStart", "validEnd", "calibDate", "filter", "calibVersion", "nCCD")
 
-    if isSqlite:
-        ret = cursor.execute(query, vals)
-    else:
-        cursor.execute(query, vals)
-        ret = cursor.fetchall()
+    ret = cursor.execute(query, vals)
 
     for line in ret:
         validStart, validEnd, calibDate, filter, calibVersion, nCCD = line
@@ -221,10 +200,7 @@ If no registry is provided, try $SUPRIME_DATA_DIR
         registryFile = args.registryFile
     else:
         registryFile = os.path.join(args.registryFile,
-                                    "calibRegistry_pgsql.py" if args.calib else "registry_pgsql.py")
-        if not os.path.exists(registryFile):
-            registryFile = os.path.join(args.registryFile,
-                                        "calibRegistry.sqlite3" if args.calib else "registry.sqlite3")
+                                    "calibRegistry.sqlite3" if args.calib else "registry.sqlite3")
         if not os.path.exists(registryFile):
             print >> sys.stderr, "Unable to open %s" % registryFile
             sys.exit(1)

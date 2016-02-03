@@ -1,5 +1,26 @@
 #!/usr/bin/env python
-
+#
+# LSST Data Management System
+#
+# Copyright 2008-2016 AURA/LSST.
+#
+# This product includes software developed by the
+# LSST Project (http://www.lsst.org/).
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the LSST License Statement and
+# the GNU General Public License along with this program.  If not,
+# see <https://www.lsstcorp.org/LegalNotices/>.
+#
 import glob
 import os
 import re
@@ -17,17 +38,6 @@ import lsst.afw.image  as afwImage
 
 import optparse
 
-try:
-    import psycopg2 as pgsql
-    havePgSql = True
-except ImportError:
-    try:
-        from pg8000 import DBAPI as pgsql
-        havePgSql = True
-    except ImportError:
-        havePgSql = False
-if havePgSql:
-    from lsst.daf.butlerUtils import PgSqlConfig
 
 # Needs optparse w/ --create, etc. CPL
 parser = optparse.OptionParser()
@@ -46,42 +56,20 @@ if len(args) > 0 or len(sys.argv) == 1:
 if opts.camera.lower() not in ("suprime-cam", "suprimecam", "sc", "hsc", "hscsim"):
     raise RuntimeError("Camera not recognised: %s" % camera)
 
-if os.path.exists(os.path.join(opts.root, 'calibRegistry_pgsql.py')) and havePgSql:
-    isSqlite = False
-else:
-    isSqlite = True
+registry = os.path.join(opts.root, "calibRegistry.sqlite3")
 
-if isSqlite:
-    registry = os.path.join(opts.root, "calibRegistry.sqlite3")
-
-    if os.path.exists(registry):
-        os.unlink(registry)
-    conn = sqlite.connect(registry)
-else:
-    pgsqlConf = PgSqlConfig()
-    pgsqlConf.load(os.path.join(opts.root, 'calibRegistry_pgsql.py'))
-    conn = pgsql.connect(host=pgsqlConf.host, port=pgsqlConf.port,
-                         user=pgsqlConf.user, password=pgsqlConf.password,
-                         database=pgsqlConf.db)
-    cur = conn.cursor()
+if os.path.exists(registry):
+    os.unlink(registry)
+conn = sqlite.connect(registry)
 
 Row = collections.namedtuple("Row", ["calibDate", "calibVersion", "ccd"])
 
 for calib in ('bias', 'dark', 'flat', 'fringe'):
-    if isSqlite:
-        cmd = "create table " + calib.lower() + " (id integer primary key autoincrement"
-        cmd += ", validStart text, validEnd text"
-        cmd += ", calibDate text, filter text, calibVersion text, ccd int"
-        cmd += ")"
-        conn.execute(cmd)
-    else:
-        cmd = "DROP TABLE IF EXISTS " + calib.lower()
-        cur.execute(cmd)
-        cmd = "create table " + calib.lower() + " (id SERIAL NOT NULL PRIMARY KEY"
-        cmd += ", validStart VARCHAR(10), validEnd VARCHAR(10)"
-        cmd += ", calibDate VARCHAR(10), filter VARCHAR(16), calibVersion VARCHAR(16), ccd INT"
-        cmd += ")"
-        cur.execute(cmd)
+    cmd = "create table " + calib.lower() + " (id integer primary key autoincrement"
+    cmd += ", validStart text, validEnd text"
+    cmd += ", calibDate text, filter text, calibVersion text, ccd int"
+    cmd += ")"
+    conn.execute(cmd)
     conn.commit()
 
     rowsPerFilter = dict()
@@ -135,15 +123,9 @@ for calib in ('bias', 'dark', 'flat', 'fringe'):
 
             # print "%f --> %f %f" % (calibDate, validStart, validEnd)
 
-            if isSqlite:
-                conn.execute("INSERT INTO " + calib.lower() + " VALUES (NULL, ?, ?, ?, ?, ?, ?)",
-                             (validStart, validEnd, calibDate, filterName, row.calibVersion, row.ccd))
-            else:
-                cur.execute("INSERT INTO " + calib.lower() + " (validStart, validEnd, calibDate, filter, calibVersion, ccd) VALUES (%s, %s, %s, %s, %s, %s)",
-                            (validStart, validEnd, calibDate, filterName, row.calibVersion, row.ccd))
+            conn.execute("INSERT INTO " + calib.lower() + " VALUES (NULL, ?, ?, ?, ?, ?, ?)",
+                         (validStart, validEnd, calibDate, filterName, row.calibVersion, row.ccd))
 
 
 conn.commit()
-if not isSqlite:
-    cur.close()
 conn.close()

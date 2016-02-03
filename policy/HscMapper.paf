@@ -385,8 +385,8 @@ datasets: {
     }
     transformed_src: {
         template:      "%(pointing)05d/%(filter)s/output/TRSRC-%(visit)07d-%(ccd)03d.fits"
-        python:        "lsst.afw.table.SourceCatalog"
-        persistable:   "SourceCatalog"
+        python:        "lsst.afw.table.BaseCatalog"
+        persistable:   "BaseCatalog"
         storage:       "FitsCatalogStorage"
         tables:        "raw"
         tables:        "raw_visit"
@@ -394,7 +394,7 @@ datasets: {
     transformed_src_schema: {
         template:      "schema/transformed_src.fits"
         python:        "lsst.afw.table.BaseCatalog"
-        persistable:   "SourceCatalog"
+        persistable:   "BaseCatalog"
         storage:       "FitsCatalogStorage"
         tables:        "raw"
         tables:        "raw_visit"
