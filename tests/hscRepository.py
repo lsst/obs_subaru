@@ -78,8 +78,8 @@ class IngestRawTestCase(utilsTests.TestCase):
         self.assertTrue(os.path.exists(os.path.join(self.repoPath, "registry.sqlite3")))
 
     def testMapperName(self):
-        butler = dafPersist.Butler(root=self.repoPath)
-        self.assertEqual(butler.mapper.packageName, "obs_subaru")
+        name = dafPersist.Butler.getMapperClass(root=self.repoPath).packageName
+        self.assertEqual(name, "obs_subaru")
 
 
 class GetDataTestCase(utilsTests.TestCase):
