@@ -219,6 +219,13 @@ class SubaruIsrTask(IsrTask):
         ccdExposure = self.convertIntToFloat(ccdExposure)
         ccd = ccdExposure.getDetector()
 
+        doWriteDebug = False
+        outDir = "/tigress/HSC/users/lauren/testing/LSST/"+str(ccd.getId())
+        try:
+            os.mkdir(outDir)
+        except:
+            print outDir+" already exists...in isr.py..."
+        if doWriteDebug: ccdExposure.writeFits(outDir+"/isr0.fits")
         # Read in defects to check for any dead amplifiers (entire amp is within defect region)
         defects = sensorRef.get("defects", immediate=True)
 
@@ -266,6 +273,7 @@ class SubaruIsrTask(IsrTask):
                 self.updateVariance(ampExposure, amp)
 
         ccdExposure = self.assembleCcd.assembleCcd(ccdExposure)
+        if doWriteDebug: ccdExposure.writeFits(outDir+"/isr1.fits")
         ccd = ccdExposure.getDetector()
 
         if self.config.qa.doWriteOss:
@@ -276,12 +284,17 @@ class SubaruIsrTask(IsrTask):
         if self.config.doBias:
             biasExposure = self.getIsrExposure(sensorRef, "bias")
             self.biasCorrection(ccdExposure, biasExposure)
+        if doWriteDebug: ccdExposure.writeFits(outDir+"/isr2.fits")
+
         if self.doLinearize(ccd):
             # immediate=True required for functors and linearizers are functors; see ticket DM-6515
             linearizer = sensorRef.get("linearizer", immediate=True)
             linearizer(image=ccdExposure.getMaskedImage().getImage(), detector=ccd, log=self.log)
+        if doWriteDebug: ccdExposure.writeFits(outDir+"/isr3.fits")
+
         if self.config.doCrosstalk:
             self.crosstalk.run(ccdExposure)
+        if doWriteDebug: ccdExposure.writeFits(outDir+"/isr4.fits")
 
         if self.config.doBrighterFatter:
             brighterFatterKernel = sensorRef.get('bfKernel')
@@ -290,29 +303,43 @@ class SubaruIsrTask(IsrTask):
                                           self.config.brighterFatterThreshold,
                                           self.config.brighterFatterApplyGain,
                                           )
+
         if self.config.doDark:
             darkExposure = self.getIsrExposure(sensorRef, "dark")
             self.darkCorrection(ccdExposure, darkExposure)
         if self.config.doFlat:
             flatExposure = self.getIsrExposure(sensorRef, "flat")
             self.flatCorrection(ccdExposure, flatExposure)
+        if doWriteDebug: ccdExposure.writeFits(outDir+"/isr5.fits")
 
         if self.config.doDefect:
             self.maskAndInterpDefect(ccdExposure, defects)
 
         if self.config.doApplyGains:
             self.applyGains(ccdExposure, self.config.normalizeGains)
+        if doWriteDebug: ccdExposure.writeFits(outDir+"/isr8.fits")
         if self.config.doWidenSaturationTrails:
             self.widenSaturationTrails(ccdExposure.getMaskedImage().getMask())
+        if doWriteDebug: ccdExposure.writeFits(outDir+"/isr9.fits")
+
         if self.config.doSaturation:
-            self.saturationInterpolation(ccdExposure)
+            if not doRotateCalib:
+                self.saturationInterpolation(ccdExposure)
+            else:
+                with self.rotated(ccdExposure) as exp:
+                    self.saturationInterpolation(exp)
+        if doWriteDebug: ccdExposure.writeFits(outDir+"/isr10.fits")
 
         if self.config.doFringe:
             self.fringe.runDataRef(ccdExposure, sensorRef)
+        if doWriteDebug: ccdExposure.writeFits(outDir+"/isr11.fits")
+
         if self.config.doSetBadRegions:
             self.setBadRegions(ccdExposure)
+        if doWriteDebug: ccdExposure.writeFits(outDir+"/isr12.fits")
 
         self.maskAndInterpNan(ccdExposure)
+        if doWriteDebug: ccdExposure.writeFits(outDir+"/isr13.fits")
 
         if self.config.qa.doWriteFlattened:
             sensorRef.put(ccdExposure, "flattenedImage")
@@ -320,14 +347,17 @@ class SubaruIsrTask(IsrTask):
             self.writeThumbnail(sensorRef, "flattenedThumb", ccdExposure)
 
         self.measureBackground(ccdExposure)
+        if doWriteDebug: ccdExposure.writeFits(outDir+"/isr14.fits")
 
         if self.config.doGuider:
             self.guider(ccdExposure)
+        if doWriteDebug: ccdExposure.writeFits(outDir+"/isr15.fits")
 
         self.roughZeroPoint(ccdExposure)
 
         if self.config.doWriteVignettePolygon:
             self.setValidPolygonIntersect(ccdExposure, self.vignettePolygon)
+        if doWriteDebug: ccdExposure.writeFits(outDir+"/isr16.fits")
 
         if self.config.doWrite:
             sensorRef.put(ccdExposure, "postISRCCD")
