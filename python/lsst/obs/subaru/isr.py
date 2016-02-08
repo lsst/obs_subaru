@@ -1,5 +1,25 @@
-#!/usr/bin/env python
-
+# 
+# LSST Data Management System
+#
+# Copyright 2008-2016 AURA/LSST.
+# 
+# This product includes software developed by the
+# LSST Project (http://www.lsst.org/).
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the LSST License Statement and 
+# the GNU General Public License along with this program.  If not, 
+# see <https://www.lsstcorp.org/LegalNotices/>.
+#
 import os
 import math
 import numpy
@@ -187,7 +207,7 @@ class SubaruIsrTask(IsrTask):
             x = self.config.vignette.radius*numpy.cos(theta) + self.config.vignette.xCenter
             y = self.config.vignette.radius*numpy.sin(theta) + self.config.vignette.yCenter
             points = numpy.array([x, y]).transpose()
-            self.vignettePolygon = Polygon([afwGeom.Point2D(x,y) for x, y in reversed(points)])
+            self.vignettePolygon = Polygon([afwGeom.Point2D(x, y) for x, y in reversed(points)])
 
     def runDataRef(self, sensorRef):
         self.log.log(self.log.INFO, "Performing ISR on sensor %s" % (sensorRef.dataId))
@@ -259,8 +279,8 @@ class SubaruIsrTask(IsrTask):
             if self.config.doOverscan and not badAmp:
                 ampImage = afwImage.MaskedImageF(ccdExposure.getMaskedImage(), amp.getRawDataBBox(),
                                                  afwImage.PARENT)
-                overscan = afwImage.MaskedImageF(ccdExposure.getMaskedImage(), amp.getRawHorizontalOverscanBBox(),
-                                                 afwImage.PARENT)
+                overscan = afwImage.MaskedImageF(ccdExposure.getMaskedImage(),
+                                                 amp.getRawHorizontalOverscanBBox(), afwImage.PARENT)
                 overscanArray = overscan.getImage().getArray()
                 median = numpy.ma.median(numpy.ma.masked_where(overscan.getMask().getArray(), overscanArray))
                 bad = numpy.where(numpy.abs(overscanArray - median) > self.config.overscanMaxDev)
@@ -412,7 +432,7 @@ class SubaruIsrTask(IsrTask):
         if extraGrowMax <= 0:
             return
 
-        saturatedBit = mask.getPlaneBitMask('SAT')
+        saturatedBit = mask.getPlaneBitMask("SAT")
 
         xmin, ymin = mask.getBBox().getMin()
         width = mask.getWidth()
@@ -507,7 +527,7 @@ class SubaruIsrTask(IsrTask):
     def measureBackground(self, exposure):
         statsControl = afwMath.StatisticsControl(self.config.qa.flatness.clipSigma,
                                                  self.config.qa.flatness.nIter)
-        maskVal = exposure.getMaskedImage().getMask().getPlaneBitMask(["BAD","SAT","DETECTED"])
+        maskVal = exposure.getMaskedImage().getMask().getPlaneBitMask(["BAD", "SAT", "DETECTED"])
         statsControl.setAndMask(maskVal)
         maskedImage = exposure.getMaskedImage()
         stats = afwMath.makeStatistics(maskedImage, afwMath.MEDIAN | afwMath.STDEVCLIP, statsControl)

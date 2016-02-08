@@ -1,6 +1,6 @@
 # 
 # LSST Data Management System
-# Copyright 2008, 2009, 2010, 2011 LSST Corporation.
+# Copyright 2008-2016 AURA/LSST.
 # 
 # This product includes software developed by the
 # LSST Project (http://www.lsst.org/).
@@ -17,7 +17,7 @@
 # 
 # You should have received a copy of the LSST License Statement and 
 # the GNU General Public License along with this program.  If not, 
-# see <http://www.lsstcorp.org/LegalNotices/>.
+# see <https://www.lsstcorp.org/LegalNotices/>.
 #
 """
 Determine and apply crosstalk corrections
@@ -169,7 +169,7 @@ def calculateCoeffs(rats, nsigma, plot=False, fig=None, title=None):
         rMin=2e-3
         bins = np.arange(-rMin, rMin, 0.05*rMin)
 
-        xMajorLocator   = ticker.MaxNLocator(nbins=3) # steps=(-rMin/2, 0, rMin/2))
+        xMajorLocator = ticker.MaxNLocator(nbins=3) # steps=(-rMin/2, 0, rMin/2))
 
     for ain in range(nAmp):
         for aout in range(nAmp):
@@ -215,7 +215,7 @@ def calculateCoeffs(rats, nsigma, plot=False, fig=None, title=None):
 def subtractXTalk(mi, coeffs, minPixelToMask=45000, crosstalkStr="CROSSTALK"):
     """Subtract the crosstalk from MaskedImage mi given a set of coefficients
 
-The pixels affected by signal over minPixelToMask have the crosstalkStr bit set
+    The pixels affected by signal over minPixelToMask have the crosstalkStr bit set
     """
     sctrl = afwMath.StatisticsControl()
     sctrl.setAndMask(mi.getMask().getPlaneBitMask("BAD"))
