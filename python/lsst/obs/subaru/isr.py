@@ -326,11 +326,11 @@ class SubaruIsrTask(IsrTask):
     @contextmanager
     def rotated(self, exp):
         nQuarter = exp.getDetector().getOrientation().getNQuarter()
-        exp.setMaskedImage(afwMath.rotateImageBy90(exp.getMaskedImage(), 4 - nQuarter))
+        exp.setMaskedImage(afwMath.rotateImageBy90(exp.getMaskedImage(), nQuarter))
         try:
             yield exp
         finally:
-            exp.setMaskedImage(afwMath.rotateImageBy90(exp.getMaskedImage(), nQuarter))
+            exp.setMaskedImage(afwMath.rotateImageBy90(exp.getMaskedImage(), 4 - nQuarter))
 
     def applyGains(self, ccdExposure, normalizeGains):
         ccd = ccdExposure.getDetector()
