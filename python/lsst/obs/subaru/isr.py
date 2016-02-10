@@ -249,7 +249,12 @@ class SubaruIsrTask(IsrTask):
             doRotateCalib = True
 
         if self.config.doDefect:
-            defects = sensorRef.get('defects', immediate=True)
+            defectsRaw = sensorRef.get('defects', immediate=True)
+            # Need to rotate defects bbox if we are dealing with a rotated ccd as they are defined assuming
+            # that (0, 0) is the lower-left corner.
+            defects = [afwImage.imageLib.DefectBase(
+                        afwCG.rotateBBoxBy90(v.getBBox(), nQuarter, ccdExposure.getDimensions()))
+                           for v in defectsRaw]
             self.maskAndInterpDefect(ccdExposure, defects)
 
         if self.config.qa.doWriteOss:
