@@ -340,6 +340,13 @@ calibrations: {
         validStartName: validStart
         validEndName: validEnd
     }
+    bfKernel: {
+        template:    "BFKERNEL/brighter_fatter_kernel.pkl"
+        python:      "numpy.ndarray"
+        persistable: "ignored"
+        storage:     "PickleStorage"
+        level:       "None"
+    }
 }
 
 datasets: {

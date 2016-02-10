@@ -268,6 +268,14 @@ class SubaruIsrTask(IsrTask):
             self.linearize(ccdExposure)
         if self.config.doCrosstalk:
             self.crosstalk.run(ccdExposure)
+
+        if self.config.doBrighterFatter:
+            brighterFatterKernel = sensorRef.get('bfKernel')
+            self.brighterFatterCorrection(ccdExposure, brighterFatterKernel,
+                                          self.config.brighterFatterMaxIter,
+                                          self.config.brighterFatterThreshold,
+                                          self.config.brighterFatterApplyGain,
+                                          )
         if self.config.doDark:
             darkExposure = self.getIsrExposure(sensorRef, "dark")
             if not doRotateCalib:
