@@ -868,7 +868,7 @@ datasets: {
 
     bias_config: {
         template:      "config/bias.py"
-        python:        "hsc.pipe.tasks.detrends.BiasConfig"
+        python:        "lsst.pipe.drivers.constructCalibs.BiasConfig"
         persistable:      "Config"
         storage:    "ConfigStorage"
         tables:        raw
@@ -876,7 +876,7 @@ datasets: {
     }
     dark_config: {
         template:      "config/dark.py"
-        python:        "hsc.pipe.tasks.detrends.DarkConfig"
+        python:        "lsst.pipe.drivers.constructCalibs.DarkConfig"
         persistable:   "Config"
         storage:       "ConfigStorage"
         tables:        raw
@@ -884,7 +884,7 @@ datasets: {
     }
     flat_config: {
         template:      "config/flat.py"
-        python:        "hsc.pipe.tasks.detrends.FlatConfig"
+        python:        "lsst.pipe.drivers.constructCalibs.FlatConfig"
         persistable:   "Config"
         storage:       "ConfigStorage"
         tables:        raw
@@ -892,7 +892,7 @@ datasets: {
     }
     fringe_config: {
         template:      "config/fringe.py"
-        python:        "hsc.pipe.tasks.detrends.FringeConfig"
+        python:        "lsst.pipe.drivers.constructCalibs.FringeConfig"
         persistable:   "Config"
         storage:       "ConfigStorage"
         tables:        raw
