@@ -591,6 +591,11 @@ class SubaruIsrTask(IsrTask):
 
         ccd = exposure.getDetector()
 
+        if ccd.getSerial() in map(str, range(104, 112)):
+            self.log.warn("Skipping linearity correction for focus CCD %s: no coefficients available" %
+                          (ccd.getSerial(),))
+            return
+
         linearized = False              # did we apply linearity corrections?
         for amp in ccd:
             linearityCoefficient = amp.getLinearityCoeffs()[0]
