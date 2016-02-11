@@ -211,19 +211,47 @@ class SubaruIsrTask(IsrTask):
         ccdExposure = self.convertIntToFloat(ccdExposure)
         ccd = ccdExposure.getDetector()
 
-        defectList = [v.getBBox() for v in ccd.getDefects()]
+        # Read in defects to check for any dead amplifiers (entire amp is within defect region)
+        defectsRaw = sensorRef.get("defects", immediate=True)
+        # Need to rotate defects bbox if we are dealing with a rotated ccd as they are defined assuming
+        # that (0, 0) is the lower-left corner (LLC).  Rotation needs to be done in trimmed/assembled image
+        # dimensions as that is the frame for which the defects are defined.  This is computed here as
+        # bboxTrimmed.  Also need to accommodate even and odd number of 90deg rotations.
+        bboxTrimmed = afwGeom.Box2I()
+        for amp in ccd:
+            bboxTrimmed.include(amp.getBBox())
+        nQuarter = ccd.getOrientation().getNQuarter()
+        defects = []
+        if nQuarter != 0:
+            for v in defectsRaw:
+                rotBox = afwImage.imageLib.DefectBase(
+                    afwCG.rotateBBoxBy90(v.getBBox(), 4 - nQuarter,
+                                         afwGeom.Extent2I(bboxTrimmed.getHeight(), bboxTrimmed.getHeight())))
+                # We have rotated about the center of a square with ccd height dimension on a side.
+                # rotateBBoxBy90 rotates CCW, so using 4 - nQuarter we are effectively rotating
+                # CW nQuarter turns.  So, for nQuarter = 2 or 3, the rotated LLC will be shifted
+                # in x by width - height pixels wrt the LLC of the rotation square.  Thus defects
+                # for all nQuarter > 1 ccds need to be shifted back in x by this amount.
+                if nQuarter > 1:
+                    shiftBoxX0 = bboxTrimmed.getWidth() - bboxTrimmed.getHeight()
+                    shiftBoxY0 = 0
+                    rotBox.shift(afwGeom.Extent2I(shiftBoxX0, shiftBoxY0))
+                defects.append(rotBox)
+        else:
+            defects = defectsRaw
 
         for amp in ccd:
-            # Check if entire amp region is defined as defect
-            badAmp = bool(sum([v.contains(amp.getDataSec(True)) for v in defectList]))
-
-            # In the case of bad amp, we will set mask to "BAD"
+            # Check if entire amp region is defined as defect (need to use amp.getBBox() for correct
+            # comparison with current defects definition.
+            badAmp = bool(sum([v.getBBox().contains(amp.getBBox()) for v in defects]))
+            # In the case of bad amp, we will set mask to "BAD" (here use amp.getRawBBox() for correct
+            # association with pixels in current ccdExposure).
             if badAmp:
-                for box in (amp.getDiskDataSec(), amp.getDiskBiasSec()):
-                    dataView = afwImage.MaskedImageF(ccdExposure.getMaskedImage(), box, afwImage.PARENT)
-                    maskView = dataView.getMask()
-                    maskView |= maskView.getPlaneBitMask('BAD')
-                    del maskView
+                dataView = afwImage.MaskedImageF(ccdExposure.getMaskedImage(), amp.getRawBBox(),
+                                                 afwImage.PARENT)
+                maskView = dataView.getMask()
+                maskView |= maskView.getPlaneBitMask("BAD")
+                del maskView
 
             self.measureOverscan(ccdExposure, amp)
             if self.config.doSaturation and not badAmp:
@@ -257,17 +285,10 @@ class SubaruIsrTask(IsrTask):
         ccd = ccdExposure.getDetector()
 
         doRotateCalib = False   # Rotate calib images for bias/dark/flat correction?
-        nQuarter = ccd.getOrientation().getNQuarter()
         if nQuarter != 0:
             doRotateCalib = True
 
         if self.config.doDefect:
-            defectsRaw = sensorRef.get('defects', immediate=True)
-            # Need to rotate defects bbox if we are dealing with a rotated ccd as they are defined assuming
-            # that (0, 0) is the lower-left corner.
-            defects = [afwImage.imageLib.DefectBase(
-                        afwCG.rotateBBoxBy90(v.getBBox(), nQuarter, ccdExposure.getDimensions()))
-                           for v in defectsRaw]
             self.maskAndInterpDefect(ccdExposure, defects)
 
         if self.config.qa.doWriteOss:
@@ -625,19 +646,6 @@ class SubaruIsrTask(IsrTask):
 
         lsstIsr.flatCorrection(exposure.getMaskedImage(), flatExposure.getMaskedImage(),
                                scalingType="USER", userScale=1.0)
-
-    def saturationDetection(self, exposure, amp, maskName="SAT"):
-        """Detect saturated pixels and mask them using mask plane "SAT", in place
-
-        @param[in,out]  exposure    exposure to process; only the amp DataSec is processed
-        @param[in]      amp         amplifier device data
-        """
-        if not self.checkIsAmp(amp):
-            raise RuntimeError("This method must be executed on an amp.")
-        for box in (amp.getDiskDataSec(), amp.getDiskBiasSec()):
-            dataView = afwImage.MaskedImageF(exposure.getMaskedImage(), box, afwImage.PARENT)
-            bad = numpy.where(dataView.getImage().getArray() > amp.getElectronicParams().getSaturationLevel())
-            dataView.getMask().getArray()[bad] = dataView.getMask().getPlaneBitMask(maskName)
 
     def roughZeroPoint(self, exposure):
         """Set an approximate magnitude zero point for the exposure"""
