@@ -1,6 +1,8 @@
-setupRequired(utils)
 setupRequired(afw)
 setupRequired(meas_algorithms)
+setupRequired(numpy)
+setupRequired(utils)
+
 
 setupOptional(matplotlib)
 
