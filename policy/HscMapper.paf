@@ -1294,7 +1294,7 @@ datasets: {
     }
     mergeCoaddMeasurements_config: {
         template:      "config/mergeMeasure.py"
-        python:        "lsst.pipe.tasks.multiBand.MergeSourcesConfig"
+        python:        "lsst.pipe.tasks.multiBand.MergeMeasurementsConfig"
         persistable:   "Config"
         storage:       "ConfigStorage"
     }
