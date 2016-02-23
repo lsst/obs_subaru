@@ -1,8 +1,9 @@
 setupRequired(afw)
 setupRequired(meas_algorithms)
 setupRequired(numpy)
+setupRequired(scons)
+setupRequired(sconsUtils)
 setupRequired(utils)
-
 
 setupOptional(matplotlib)
 
