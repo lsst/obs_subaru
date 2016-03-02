@@ -263,6 +263,13 @@ class SuprimecamMapperBase(CameraMapper):
     def bypass_deepCoaddId_bits(self, datasetType, pythonType, location, dataId):
         return 1 + 7 + 13*2 + 3
 
+    def bypass_deepMergedCoaddId_bits(self, *args, **kwargs):
+        """The number of bits used up for patch ID bits"""
+        return 1 + 7 + 13*2 + 3
+
+    def bypass_deepMergedCoaddId(self, datasetType, pythonType, location, dataId):
+        return self._computeCoaddExposureId(dataId, False)
+
     def _setTimes(self, mapping, item, dataId):
         """Set the exposure time and exposure midpoint in the calib object in
         an Exposure.  Use the EXPTIME and MJD keywords (and strip out
