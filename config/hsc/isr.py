@@ -17,6 +17,7 @@ config.isr.fringe.filters = ['y', 'N921']
 config.isr.doWrite = False
 config.isr.doCrosstalk = True
 config.isr.doGuider = False
+config.isr.doBrighterFatter = True
 
 # These values from RHL's report on "HSC July Commissioning Data" (2013-08-23)
 config.isr.crosstalk.coeffs.values = [
