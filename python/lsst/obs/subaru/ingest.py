@@ -2,6 +2,7 @@ import re
 import datetime
 
 from lsst.pipe.tasks.ingest import IngestTask, ParseTask, IngestArgumentParser
+from lsst.pipe.tasks.ingestCalibs import CalibsParseTask
 
 class HscIngestArgumentParser(IngestArgumentParser):
     def _parseDirectories(self, namespace):
@@ -134,3 +135,21 @@ class HscParseTask(ParseTask):
             return md.get('FILTER01').strip().upper()
         except:
             return "Unrecognized"
+
+class HscCalibsParseTask(CalibsParseTask):
+    def _translateFromCalibId(self, field, md):
+        data = md.get("CALIB_ID")
+        match = re.search(".*%s=(\S+)" % field, data)
+        return match.groups()[0]
+
+    def translate_ccd(self, md):
+        return self._translateFromCalibId("ccd", md)
+
+    def translate_filter(self, md):
+        return self._translateFromCalibId("filter", md)
+
+    def translate_calibDate(self, md):
+        return self._translateFromCalibId("calibDate", md)
+
+    def translate_calibVersion(self, md):
+        return self._translateFromCalibId("calibVersion", md)

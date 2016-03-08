@@ -2,7 +2,7 @@ import math
 import numpy as np
 
 from lsst.pex.config import Field, ListField
-from hsc.pipe.tasks.detrends import FlatCombineConfig, FlatCombineTask
+from lsst.pipe.drivers.constructCalibs import FlatCombineConfig, FlatCombineTask
 from lsst.obs.hsc.vignette import VignetteConfig
 import lsst.afw.image as afwImage
 import lsst.afw.geom as afwGeom
