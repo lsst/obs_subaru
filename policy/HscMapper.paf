@@ -53,6 +53,15 @@ exposures: {
         tables:        "raw"
         tables:        "raw_visit"
     }
+    icExp: {
+        template:      "%(pointing)05d/%(filter)s/corr/ICEXP-%(visit)07d-%(ccd)03d.fits"
+        python:        "lsst.afw.image.ExposureF"
+        persistable:        "ExposureF"
+        storage:    "FitsStorage"
+        level:        "Ccd"
+        tables:        "raw"
+        tables:        "raw_visit"
+    }
     calexp: {
         template:      "%(pointing)05d/%(filter)s/corr/CORR-%(visit)07d-%(ccd)03d.fits"
         python:        "lsst.afw.image.ExposureF"
@@ -350,6 +359,14 @@ calibrations: {
 }
 
 datasets: {
+    icExpBackground: {
+        template:      "%(pointing)05d/%(filter)s/corr/ICEXPBKGD-%(visit)07d-%(ccd)03d.fits"
+        python:        "lsst.afw.math.BackgroundList"
+        persistable:   "PurePythonClass"
+        storage:       "FitsCatalogStorage"
+        tables:        raw
+        tables:        raw_visit
+    }
     calexpBackground: {
         template:      "%(pointing)05d/%(filter)s/corr/BKGD-%(visit)07d-%(ccd)03d.fits"
         python:        "lsst.afw.math.BackgroundList"
