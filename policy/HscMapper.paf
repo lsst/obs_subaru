@@ -907,9 +907,9 @@ datasets: {
         tables:        raw
         tables:        raw_visit
     }
-    stacker_config: {
-        template:      "config/stacker.py"
-        python:        "hsc.pipe.tasks.stack.StackConfig"
+    CoaddDriverTask_config: {
+        template:      "config/CoaddDriver.py"
+        python:        "lsst.pipe.drivers.coaddDriver.CoaddDriverConfig"
         persistable:   "Config"
         storage:       "ConfigStorage"
         tables:        raw
@@ -1313,9 +1313,9 @@ datasets: {
         storage:       "FitsCatalogStorage"
     }
 
-    multiband_config: {
-        template:      "config/multiband.py"
-        python:        "lsst.pipe.tasks.multiBand.MultiBandConfig"
+    multiBandDriver_config: {
+        template:      "config/multiBandDriver.py"
+        python:        "lsst.pipe.drivers.multiBandDriver.MultiBandDriverConfig"
         persistable:   "Config"
         storage:       "ConfigStorage"
     }
