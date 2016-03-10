@@ -7,9 +7,6 @@ from lsst.utils import getPackageDir
 
 configDir = os.path.join(getPackageDir("obs_subaru"), "config")
 
-# This may be removed once DM-5104 is implemented
-config.isr.assembleCcd.doRenorm = False
-
 # Cosmic rays and background estimation
 config.charImage.repair.cosmicray.nCrPixelMax = 1000000
 config.charImage.repair.cosmicray.cond3_fac2 = 0.4
