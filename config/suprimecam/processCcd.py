@@ -10,5 +10,6 @@ suprimecamConfigDir = os.path.join(getPackageDir("obs_subaru"), "config", "supri
 config.load(os.path.join(suprimecamConfigDir, 'isr.py'))
 config.calibrate.photocal.colorterms.load(os.path.join(suprimecamConfigDir, 'colorterms.py'))
 
-config.calibrate.detectAndMeasure.measurement.algorithms["jacobian"].pixelScale = 0.2
+config.charImage.detectAndMeasure.measurement.algorithms["base_Jacobian"].pixelScale = 0.2
+config.calibrate.detectAndMeasure.measurement.algorithms["base_Jacobian"].pixelScale = 0.2
 

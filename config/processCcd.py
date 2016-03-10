@@ -65,3 +65,6 @@ config.charImage.detectAndMeasure.deblend.maskLimits["NO_DATA"] = 0.25 # Ignore 
 config.charImage.detectAndMeasure.deblend.maxFootprintArea = 10000
 config.calibrate.detectAndMeasure.deblend.maskLimits["NO_DATA"] = 0.25 # Ignore sources that are in the vignetted region
 config.calibrate.detectAndMeasure.deblend.maxFootprintArea = 10000
+
+config.charImage.detectAndMeasure.measurement.algorithms.names |= ["base_Jacobian"]
+config.calibrate.detectAndMeasure.measurement.algorithms.names |= ["base_Jacobian"]

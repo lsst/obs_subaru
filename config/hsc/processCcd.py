@@ -20,3 +20,6 @@ config.calibrate.astrometry.matcher.maxOffsetPix = 750
 
 # Do not use NO_DATA pixels for fringe subtraction.
 config.isr.fringe.stats.badMaskPlanes=['SAT', 'NO_DATA']
+
+config.charImage.detectAndMeasure.measurement.algorithms["base_Jacobian"].pixelScale = 0.168
+config.calibrate.detectAndMeasure.measurement.algorithms["base_Jacobian"].pixelScale = 0.168
