@@ -924,8 +924,8 @@ datasets: {
         tables:        raw
         tables:        raw_visit
     }
-    CoaddDriverTask_config: {
-        template:      "config/CoaddDriver.py"
+    coaddDriver_config: {
+        template:      "config/coaddDriver.py"
         python:        "lsst.pipe.drivers.coaddDriver.CoaddDriverConfig"
         persistable:   "Config"
         storage:       "ConfigStorage"
