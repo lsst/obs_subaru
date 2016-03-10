@@ -75,7 +75,7 @@ class SourceDeblendConfig(pexConf.Config):
             }
         )
 
-    clipStrayFluxFraction = pexConf.Field(dtype=float, default=0.01,
+    clipStrayFluxFraction = pexConf.Field(dtype=float, default=0.001,
                                           doc=('When splitting stray flux, clip fractions below '
                                                'this value to zero.'))
     psfChisq1 = pexConf.Field(dtype=float, default=1.5, optional=False,
