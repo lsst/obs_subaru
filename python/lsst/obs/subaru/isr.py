@@ -190,11 +190,6 @@ after applying the nominal gain
         if self.doFlat and self.doApplyGains:
             raise ValueError("You may not specify both self.doFlat and self.doApplyGains")
 
-    def setDefaults(self):
-        super(SubaruIsrConfig, self).setDefaults()
-        # Relative gains in the camera should be taken out by the flat-field, not by "gain" values.
-        self.assembleCcd.doRenorm = False # Don't multiply by the gain
-
 class SubaruIsrTask(IsrTask):
 
     ConfigClass = SubaruIsrConfig
