@@ -637,8 +637,9 @@ def _fitPsf(fp, fmask, pk, pkF, pkres, fbb, peaks, peaksF, log, psf, psffwhm,
         return
 
     # drop tiny footprints too?
-    if tinyFootprintSize>0 and (((xhi - xlo) < tinyFootprintSize) or
-                                ((yhi - ylo) < tinyFootprintSize)):
+    if min(stampbb.getWidth(), stampbb.getHeight()) <= max(tinyFootprintSize, 2):
+        # Minimum size limit of 2 comes from the "PSF dx" calculation, which involves shifting the PSF
+        # by one pixel to the left and right.
         log.logdebug('Skipping this peak: tiny footprint / close to edge')
         pkres.setTinyFootprint()
         return
