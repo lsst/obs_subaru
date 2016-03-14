@@ -831,9 +831,9 @@ datasets: {
         tables:        raw
         tables:        raw_visit
     }
-    stacker_config: {
-        template:      "config/stacker.py"
-        python:        "hsc.pipe.tasks.stack.StackConfig"
+    coaddDriver_config: {
+        template:      "config/coaddDriver.py"
+        python:        "lsst.pipe.drivers.coaddDriver.CoaddDriverConfig"
         persistable:   "Config"
         storage:       "ConfigStorage"
         tables:        raw

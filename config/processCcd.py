@@ -25,15 +25,11 @@ except ImportError as e:
     config.charImage.measurePsf.psfDeterminer.name = "pca"
 
 # Astrometry
-config.calibrate.astrometry.refObjLoader.filterMap = {
-    'B': 'g',
-    'V': 'r',
-    'R': 'r',
-    'I': 'i',
-    'y': 'z',
-}
+config.calibrate.astrometry.refObjLoader.load(os.path.join(getPackageDir("obs_subaru"), "config",
+                                                           "filterMap.py"))
 
-config.calibrate.detectAndMeasure.measurement.algorithms['base_ClassificationExtendedness'].fluxRatio = 0.95
+
+config.calibrate.detectAndMeasure.measurement.plugins['base_ClassificationExtendedness'].fluxRatio = 0.95
 # LAM the following had to be set to affect the fluxRatio used in photoCal in meas_astrom
 config.calibrate.detectAndMeasure.measurement.plugins['base_ClassificationExtendedness'].fluxRatio = 0.95
 
@@ -60,12 +56,15 @@ config.calibrate.detectAndMeasure.measurement.load(os.path.join(configDir, "aper
 # config.calibrate.detectAndMeasure.measurement.load(os.path.join(configDir, "cmodel.py"))
 config.calibrate.detectAndMeasure.measurement.load(os.path.join(configDir, "kron.py"))
 config.calibrate.detectAndMeasure.measurement.load(os.path.join(configDir, "hsm.py"))
-if "ext_shapeHSM_HsmShapeRegauss" in config.calibrate.detectAndMeasure.measurement.algorithms:
+if "ext_shapeHSM_HsmShapeRegauss" in config.calibrate.detectAndMeasure.measurement.plugins:
     # no deblending has been done
-    config.calibrate.detectAndMeasure.measurement.algorithms["ext_shapeHSM_HsmShapeRegauss"].deblendNChild = ""
+    config.calibrate.detectAndMeasure.measurement.plugins["ext_shapeHSM_HsmShapeRegauss"].deblendNChild = ""
 
 # Deblender
 config.charImage.detectAndMeasure.deblend.maskLimits["NO_DATA"] = 0.25 # Ignore sources that are in the vignetted region
 config.charImage.detectAndMeasure.deblend.maxFootprintArea = 10000
 config.calibrate.detectAndMeasure.deblend.maskLimits["NO_DATA"] = 0.25 # Ignore sources that are in the vignetted region
 config.calibrate.detectAndMeasure.deblend.maxFootprintArea = 10000
+
+config.charImage.detectAndMeasure.measurement.plugins.names |= ["base_Jacobian"]
+config.calibrate.detectAndMeasure.measurement.plugins.names |= ["base_Jacobian"]

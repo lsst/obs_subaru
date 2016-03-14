@@ -3,6 +3,6 @@
 
 try:
     import lsst.meas.extensions.photometryKron
-    config.algorithms.names |= ["ext_photometryKron_KronFlux"]
+    config.plugins.names |= ["ext_photometryKron_KronFlux"]
 except ImportError:
     print "Cannot import lsst.meas.extensions.photometryKron: disabling Kron measurements"

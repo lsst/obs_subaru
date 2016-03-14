@@ -3,7 +3,7 @@
 import os
 try:
     import lsst.meas.modelfit
-    config.algorithms.names |= ["modelfit_ShapeletPsfApprox", "modelfit_CModel"]
-    config.algorithms['base_ClassificationExtendedness'].fluxRatio = 0.985
+    config.plugins.names |= ["modelfit_ShapeletPsfApprox", "modelfit_CModel"]
+    config.plugins['base_ClassificationExtendedness'].fluxRatio = 0.985
 except KeyError, ImportError:
     print "Cannot import lsst.meas.modelfit: disabling CModel measurements"

@@ -1,7 +1,7 @@
 import math
 import numpy as np
 
-from lsst.pex.config import Field, ListField
+from lsst.pex.config import Field, ListField, ConfigField
 from lsst.pipe.drivers.constructCalibs import FlatCombineConfig, FlatCombineTask
 from lsst.obs.hsc.vignette import VignetteConfig
 import lsst.afw.image as afwImage
@@ -56,7 +56,7 @@ class HscFlatCombineTask(FlatCombineTask):
         numCorners = 0 # Number of corners outside radius
         for i, j in ((0, 0), (0, h-1), (w-1, 0), (w-1, h-1)):
             x,y = detector.getPositionFromPixel(afwGeom.PointD(i, j)).getMm()
-            if math.hypot(x - self.config.vignette.xCenter, y - self.config.vignette.yCenter) > self.config.radius:
+            if math.hypot(x - self.config.vignette.xCenter, y - self.config.vignette.yCenter) > self.config.vignette.radius:
                 numCorners += 1
         if numCorners == 0:
             # Nothing to be masked
