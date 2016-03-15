@@ -1337,4 +1337,10 @@ datasets: {
         storage:       "ConfigStorage"
     }
 
+    brightObjectMask: {
+        template:      "deepCoadd/BrightObjectMasks/%(tract)d/BrightObjectMask-%(tract)d-%(patch)s-%(filter)s.reg"
+        python:        "lsst.pipe.tasks.objectMasks.ObjectMaskCatalog"
+        persistable:   "PurePythonClass"
+        storage:       "FitsCatalogStorage"
+    }
 }
