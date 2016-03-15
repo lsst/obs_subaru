@@ -498,7 +498,7 @@ class SubaruIsrTask(IsrTask):
         stats = afwMath.makeStatistics(binnedImage,
                                        afwMath.MEDIAN | afwMath.STDEVCLIP | afwMath.MAX, statsCtrl)
         low = stats.getValue(afwMath.MEDIAN) - self.config.thumbnailStdev*stats.getValue(afwMath.STDEVCLIP)
-        makeRGB(binnedImage, binnedImage, binnedImage, min=low, range=self.config.thumbnailRange,
+        makeRGB(binnedImage, binnedImage, binnedImage, minimum=low, dataRange=self.config.thumbnailRange,
                 Q=self.config.thumbnailQ, fileName=filename,
                 saturatedBorderWidth=self.config.thumbnailSatBorder,
                 saturatedPixelValue=stats.getValue(afwMath.MAX))
