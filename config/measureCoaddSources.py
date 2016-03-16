@@ -19,7 +19,6 @@ except AttributeError:
     # solver subtask can load the filter map.
     config.astrometry.solver.load(os.path.join(getPackageDir("obs_subaru"), "config", "filterMap.py"))
 
-config.measurement.plugins["base_PixelFlags"].masksFpAnywhere.append("CLIPPED")
 #
 # This isn't good!  There appears to be no way to configure the base_PixelFlags measurement
 # algorithm based on a configuration parameter; see DM-4159 for a discussion.  The name
