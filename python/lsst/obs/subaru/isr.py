@@ -227,33 +227,7 @@ class SubaruIsrTask(IsrTask):
         ccd = ccdExposure.getDetector()
 
         # Read in defects to check for any dead amplifiers (entire amp is within defect region)
-        defectsRaw = sensorRef.get("defects", immediate=True)
-        # Need to rotate defects bbox if we are dealing with a rotated ccd as they are defined assuming
-        # that (0, 0) is the lower-left corner (LLC).  Rotation needs to be done in trimmed/assembled image
-        # dimensions as that is the frame for which the defects are defined.  This is computed here as
-        # bboxTrimmed.  Also need to accommodate even and odd number of 90deg rotations.
-        bboxTrimmed = afwGeom.Box2I()
-        for amp in ccd:
-            bboxTrimmed.include(amp.getBBox())
-        nQuarter = ccd.getOrientation().getNQuarter()
-        defects = []
-        if nQuarter != 0:
-            for v in defectsRaw:
-                rotBox = afwImage.imageLib.DefectBase(
-                    afwCG.rotateBBoxBy90(v.getBBox(), 4 - nQuarter,
-                                         afwGeom.Extent2I(bboxTrimmed.getHeight(), bboxTrimmed.getHeight())))
-                # We have rotated about the center of a square with ccd height dimension on a side.
-                # rotateBBoxBy90 rotates CCW, so using 4 - nQuarter we are effectively rotating
-                # CW nQuarter turns.  So, for nQuarter = 2 or 3, the rotated LLC will be shifted
-                # in x by width - height pixels wrt the LLC of the rotation square.  Thus defects
-                # for all nQuarter > 1 ccds need to be shifted back in x by this amount.
-                if nQuarter > 1:
-                    shiftBoxX0 = bboxTrimmed.getWidth() - bboxTrimmed.getHeight()
-                    shiftBoxY0 = 0
-                    rotBox.shift(afwGeom.Extent2I(shiftBoxX0, shiftBoxY0))
-                defects.append(rotBox)
-        else:
-            defects = defectsRaw
+        defects = sensorRef.get("defects", immediate=True)
 
         for amp in ccd:
             # Check if entire amp region is defined as defect (need to use amp.getBBox() for correct
