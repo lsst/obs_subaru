@@ -14,7 +14,7 @@ class HscMapper(CameraMapper):
     """Provides abstract-physical mapping for HSC data"""
     packageName = "obs_subaru"
 
-    def __init__(self, **kwargs):
+    def __init__(self, root=None, **kwargs):
         policyFile = pexPolicy.DefaultPolicyFile("obs_subaru", "HscMapper.paf", "policy")
         policy = pexPolicy.Policy(policyFile)
         if not kwargs.get('root', None):
@@ -25,7 +25,7 @@ class HscMapper(CameraMapper):
         if not kwargs.get('calibRoot', None):
             kwargs['calibRoot'] = os.path.join(kwargs['root'], 'CALIB')
 
-        super(HscMapper, self).__init__(policy, policyFile.getRepositoryPath(), **kwargs)
+        super(HscMapper, self).__init__(policy, policyFile.getRepositoryPath(), root=root, **kwargs)
 
         # Ensure each dataset type of interest knows about the full range of keys available from the registry
         keys = {'field': str,
@@ -259,7 +259,7 @@ Most chips are flipped L/R, but the rotated ones (100..103) are flipped T/B
         """Compute the 64-bit (long) identifier for a coadd.
 
         @param dataId (dict)       Data identifier with tract and patch.
-        @param singleFilter (bool) True means the desired ID is for a single- 
+        @param singleFilter (bool) True means the desired ID is for a single-
                                    filter coadd, in which case dataId
                                    must contain filter.
         """

@@ -12,8 +12,8 @@ import lsst.pex.policy as pexPolicy
 class SuprimecamMapperBase(CameraMapper):
     packageName = "obs_subaru"
 
-    def __init__(self, *args, **kwargs):
-        super(SuprimecamMapperBase, self).__init__(*args, **kwargs)
+    def __init__(self, root=None, *args, **kwargs):
+        super(SuprimecamMapperBase, self).__init__(*args, root=root, **kwargs)
 
         # Ensure each dataset type of interest knows about the full range of keys available from the registry
         keys = {'field': str,
@@ -56,7 +56,7 @@ class SuprimecamMapperBase(CameraMapper):
 
     def defineFilters(self):
         afwImageUtils.resetFilters()
-        
+
         afwImageUtils.defineFilter('NONE', lambdaEff=0)
 
         # Johnson filters
@@ -239,7 +239,7 @@ class SuprimecamMapperBase(CameraMapper):
         """Compute the 64-bit (long) identifier for a coadd.
 
         @param dataId (dict)       Data identifier with tract and patch.
-        @param singleFilter (bool) True means the desired ID is for a single- 
+        @param singleFilter (bool) True means the desired ID is for a single-
                                    filter coadd, in which case dataId
                                    must contain filter.
         """
