@@ -6,13 +6,11 @@ config.register.columns = {'filter': 'text',
                            'calibDate': 'text',
                            'validStart': 'text',
                            'validEnd': 'text',
-                           'calibVersion': 'text',
                            }
 
 config.parse.translators = {'ccd': 'translate_ccd',
                             'filter': 'translate_filter',
                             'calibDate': 'translate_calibDate',
-                            'calibVersion': 'translate_calibVersion',
                             }
 
 config.register.unique = ['filter', 'ccd', 'calibDate']
