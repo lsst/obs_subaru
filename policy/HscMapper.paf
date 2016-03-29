@@ -169,15 +169,6 @@ exposures: {
         tables:        raw
         tables:        raw_skyTile
     }
-    deepCoadd_calexp_det: {
-        template:      "deepCoadd-results/%(filter)s/%(tract)d/%(patch)s/calexp_det-%(filter)s-%(tract)d-%(patch)s.fits"
-        python:        "lsst.afw.image.ExposureF"
-        persistable:   "ExposureF"
-        storage:       "FitsStorage"
-        level:         "None"
-        tables:        raw
-        tables:        raw_skyTile
-    }
     deepCoadd_depth: {
         template:    "deepCoadd/%(filter)s/%(tract)d/%(patch)s.depth.fits"
         python:      "lsst.afw.image.ImageF"
@@ -848,16 +839,7 @@ datasets: {
         tables:        "raw"
         tables:        "raw_visit"
     }
-    deepCoadd_calexpBackground: {
-        template:      "deepCoadd-results/%(filter)s/%(tract)d/%(patch)s/bkgd-%(filter)s-%(tract)d-%(patch)s.fits"
-        python:        "lsst.afw.math.BackgroundList"
-        persistable:   "PurePythonClass"
-        storage:       "FitsCatalogStorage"
-        tables:        raw
-        tables:        raw_skyTile
-    }
-
-    deepCoadd_calexp_detBackground: {
+    deepCoadd_calexp_background: {
         template:      "deepCoadd-results/%(filter)s/%(tract)d/%(patch)s/det_bkgd-%(filter)s-%(tract)d-%(patch)s.fits"
         python:        "lsst.afw.math.BackgroundList"
         persistable:   "PurePythonClass"
