@@ -2,24 +2,24 @@ import math
 import numpy as np
 
 from lsst.pex.config import Field, ListField, ConfigField
-from lsst.pipe.drivers.constructCalibs import FlatCombineConfig, FlatCombineTask
+from lsst.pipe.drivers.constructCalibs import CalibCombineConfig, CalibCombineTask
 from lsst.obs.hsc.vignette import VignetteConfig
 import lsst.afw.image as afwImage
 import lsst.afw.geom as afwGeom
 import lsst.afw.cameraGeom as afwcg
 
-class HscFlatCombineConfig(FlatCombineConfig):
+class HscFlatCombineConfig(CalibCombineConfig):
     vignette = ConfigField(dtype=VignetteConfig, doc="Vignetting parameters in focal plane coordinates")
     badAmpCcdList = ListField(dtype=int, default=[], doc="List of CCD serial numbers for bad amplifiers")
     badAmpList = ListField(dtype=int, default=[], doc="List of amp serial numbers in CCD")
     maskPlane = Field(dtype=str, default="NO_DATA", doc="Mask plane to set")
 
     def validate(self):
-        super(HscFlatCombineConfig, self).validate()
+        CalibCombineConfig.validate(self)
         if len(self.badAmpCcdList) != len(self.badAmpList):
             raise RuntimeError("Length of badAmpCcdList and badAmpList don't match")
 
-class HscFlatCombineTask(FlatCombineTask):
+class HscFlatCombineTask(CalibCombineTask):
     """Mask the vignetted area"""
     ConfigClass = HscFlatCombineConfig
     def run(self, sensorRefList, *args, **kwargs):
