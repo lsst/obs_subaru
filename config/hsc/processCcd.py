@@ -9,9 +9,8 @@ from lsst.utils import getPackageDir
 hscConfigDir = os.path.join(getPackageDir("obs_subaru"), "config", "hsc")
 config.load(os.path.join(hscConfigDir, 'isr.py'))
 config.calibrate.photoCal.colorterms.load(os.path.join(hscConfigDir, 'colorterms.py'))
-config.charImage.measurePsf.starSelector.name='objectSize'
-config.charImage.measurePsf.starSelector['objectSize'].widthMin=0.9
-config.charImage.measurePsf.starSelector['objectSize'].fluxMin=4000
+config.charImage.measurePsf.starSelector.widthMin=0.9
+config.charImage.measurePsf.starSelector.fluxMin=4000
 config.calibrate.astrometry.refObjLoader.load(os.path.join(hscConfigDir, "filterMap.py"))
 
 config.calibrate.astrometry.wcsFitter.order = 3
