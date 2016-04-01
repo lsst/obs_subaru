@@ -6,6 +6,9 @@
 #
 #CCD x0    y0    width height
 
+# Bad amplifier
+0    512   0     512   4176
+
 14   733   695   1     3481
 14   731   691   4     4
 
