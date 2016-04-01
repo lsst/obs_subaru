@@ -15,6 +15,7 @@ config.charImage.detectAndMeasure.detection.background.binSize = 128
 config.calibrate.detectAndMeasure.detection.background.binSize = 128
 
 # PSF determination
+config.charImage.measurePsf.reserveFraction = 0.2
 config.charImage.measurePsf.starSelector.sourceFluxField = 'base_PsfFlux_flux'
 try:
     import lsst.meas.extensions.psfex.psfexPsfDeterminer
