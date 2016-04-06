@@ -6,13 +6,14 @@ import os.path
 from lsst.utils import getPackageDir
 
 configDir = os.path.join(getPackageDir("obs_subaru"), "config")
+bgFile = os.path.join(configDir, "background.py")
 
 # Cosmic rays and background estimation
 config.charImage.repair.cosmicray.nCrPixelMax = 1000000
 config.charImage.repair.cosmicray.cond3_fac2 = 0.4
-config.charImage.background.binSize = 128
-config.charImage.detectAndMeasure.detection.background.binSize = 128
-config.calibrate.detectAndMeasure.detection.background.binSize = 128
+config.charImage.background.load(bgFile)
+config.charImage.detectAndMeasure.detection.background.load(bgFile)
+config.calibrate.detectAndMeasure.detection.background.load(bgFile)
 
 # PSF determination
 config.charImage.measurePsf.reserveFraction = 0.2
