@@ -630,16 +630,16 @@ datasets: {
         tables:        raw_visit
     }
 
-    processExposure_config: {
-        template:      "config/processExposure.py"
-        python:        "hsc.pipe.tasks.processExposure.ProcessExposureConfig"
+    singleFrameDriver_config: {
+        template:      "config/singleFrameDriver.py"
+        python:        "lsst.pipe.drivers.singleFrameDriver.SingleFrameDriverConfig"
         persistable:      "Config"
         storage:    "ConfigStorage"
         tables:        raw
         tables:        raw_visit
     }
-    processExposure_metadata: {
-        template:      "%(pointing)05d/%(filter)s/processExposure_metadata/%(visit)07d.boost"
+    singleFrameDriver_metadata: {
+        template:      "%(pointing)05d/%(filter)s/singleFrameDriver_metadata/%(visit)07d.boost"
         python:        "lsst.daf.base.PropertySet"
         persistable:        "PropertySet"
         storage:    "BoostStorage"
