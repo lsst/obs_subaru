@@ -43,7 +43,7 @@ cmd = "INSERT INTO defect VALUES (NULL, ?, ?, ?, ?, ?)"
 
 rowsPerCcd = {}
 for f in glob.glob(os.path.join(args.root, "*", "defects*.fits")):
-    m = re.search(r'(\S+)/defects_(\d+)\.fits', f)
+    m = re.search(r'(\S+)/defects_(\S+)\.fits', f)
     if not m:
         print >>sys.stderr, "Unrecognized file: %s" % (f,)
         continue
