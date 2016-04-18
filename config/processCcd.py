@@ -53,10 +53,11 @@ config.charImage.detection.isotropicGrow = True
 config.calibrate.detection.isotropicGrow = True
 
 # Activate calibration of measurements: required for aperture corrections
+config.charImage.load(os.path.join(configDir, "cmodel.py"))
+config.charImage.measurement.load(os.path.join(configDir, "apertures.py"))
+config.charImage.measurement.load(os.path.join(configDir, "kron.py"))
+
 config.calibrate.measurement.load(os.path.join(configDir, "apertures.py"))
-# Turn off cmodel until latest fixes (large blends, footprint merging, etc.) are in
-# config.calibrate.detectAndMeasure.measurement.load(os.path.join(configDir, "cmodel.py"))
-config.calibrate.measurement.load(os.path.join(configDir, "kron.py"))
 config.calibrate.measurement.load(os.path.join(configDir, "hsm.py"))
 if "ext_shapeHSM_HsmShapeRegauss" in config.calibrate.measurement.plugins:
     # no deblending has been done
