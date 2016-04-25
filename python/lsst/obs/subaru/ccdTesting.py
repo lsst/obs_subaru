@@ -22,6 +22,7 @@ import lsst.afw.display.utils as ds9Utils
 import lsst.meas.algorithms as measAlg
 import lsst.analysis.utils as anUtils
 
+
 def getNameOfSet(vals):
     """Convert a list of numbers into a string, merging consecutive values"""
     if not vals:
@@ -36,13 +37,15 @@ def getNameOfSet(vals):
         valName.append("%s-%s" % (val0, sval1) if val1 != val0 else str(val0))
 
     valName = []
-    val0 = vals[0]; val1 = val0
+    val0 = vals[0]
+    val1 = val0
     for val in vals[1:]:
         if isinstance(val, int) and val == val1 + 1:
             val1 = val
         else:
             addPairToName(valName, val0, val1)
-            val0 = val; val1 = val0
+            val0 = val
+            val1 = val0
 
     addPairToName(valName, val0, val1)
 
@@ -67,6 +70,7 @@ def trim(im, ccd=None):
 
     return tim
 
+
 def xcorrFromVisit(butler, v1, v2, ccds=[2], n=5, border=10, plot=False, zmax=0.05, fig=None, display=False):
     """Return an xcorr from a given pair of visits (and ccds)"""
 
@@ -86,7 +90,7 @@ def xcorrFromVisit(butler, v1, v2, ccds=[2], n=5, border=10, plot=False, zmax=0.
 
     ims = [None, None]
     means = [None, None]
-    for i, vs in enumerate([v1, v2,]):
+    for i, vs in enumerate([v1, v2, ]):
         for v in vs:
             for ccd in ccds:
                 tmp = butler.get("raw", visit=v, ccd=ccd).convertF()
@@ -117,8 +121,9 @@ def xcorrFromVisit(butler, v1, v2, ccds=[2], n=5, border=10, plot=False, zmax=0.
 
     return xcorrImg
 
+
 def getImageLevels(butler, **kwargs):
-    for visit, ccd in butler.queryMetadata('raw', 'visit', ['visit', 'ccd',], **kwargs):
+    for visit, ccd in butler.queryMetadata('raw', 'visit', ['visit', 'ccd', ], **kwargs):
         exp = butler.get('raw', visit=visit, ccd=ccd)
         try:
             ccd = exp.getDetector()
@@ -129,6 +134,7 @@ def getImageLevels(butler, **kwargs):
 
         print "%d %3d %.1f" % (visit, ccd.getId().getSerial(),
                                afwMath.makeStatistics(im, afwMath.MEANCLIP).getValue())
+
 
 def xcorr(im1, im2, n=5, border=10, frame=None):
     """Calculate the cross-correlation of two images im1 and im2 (using robust measures of the covariance)
@@ -149,7 +155,7 @@ def xcorr(im1, im2, n=5, border=10, frame=None):
                 im = getattr(im, attr)()
 
         try:
-            im  = im.convertF()
+            im = im.convertF()
         except AttributeError:
             pass
 
@@ -167,7 +173,8 @@ def xcorr(im1, im2, n=5, border=10, frame=None):
     #
     # Actually diff the images
     #
-    diff = im1.clone(); diff -= im2
+    diff = im1.clone()
+    diff -= im2
     diff = diff[border:-border, border:-border]
 
     sctrl = afwMath.StatisticsControl()
@@ -208,6 +215,7 @@ def xcorr(im1, im2, n=5, border=10, frame=None):
 
     return xcorr
 
+
 def plotXcorr(xcorr, zmax=0.05, title=None, fig=None):
     if fig is None:
         fig = plt.figure()
@@ -243,12 +251,13 @@ def plotXcorr(xcorr, zmax=0.05, title=None, fig=None):
 
     return fig
 
+
 def findBiasLevels(butler, **dataId):
     keys = ["visit", "ccd"]
     dataType = "raw_md"
     for did in butler.queryMetadata(dataType, "visit", keys, **dataId):
         did = dict(zip(keys, did))
-        if did["visit"] not in range(902030,902076+1):
+        if did["visit"] not in range(902030, 902076+1):
             continue
 
         try:
@@ -282,10 +291,11 @@ def showElectronics(camera, maxCorr=1.8e5, showLinearity=False, fd=sys.stderr):
                         amp.getId(),
                         ("PROPORTIONAL" if linearity.type == afwCG.Linearity.PROPORTIONAL else "Unknown"),
                         linearity.coefficient,
-                        (linearity.maxCorrectable if linearity.maxCorrectable < 1e30  else np.nan))
+                        (linearity.maxCorrectable if linearity.maxCorrectable < 1e30 else np.nan))
                 else:
                     print >> fd,  "         %s %.2f %.1f %.1f" % (
                         amp.getId(), ep.getGain(), ep.getSaturationLevel(), maxCorr/ep.getGain())
+
 
 def estimateGains(butler, ccdNo, visits, nGrow=0, frame=None):
     """Estimate the gain for ccd ccdNo using flat fields called visits[0] and visits[1]
@@ -383,6 +393,7 @@ Grow BAD regions in the flat field by nGrow pixels (useful for vignetted chips)
 
 #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
+
 def dumpRaftParams(raft, nIndent=0, dIndent=4, fd=sys.stdout, nCol=15, nRow=8):
     """Write a Raft's parameters a camera.paf file"""
 
@@ -398,6 +409,7 @@ def dumpRaftParams(raft, nIndent=0, dIndent=4, fd=sys.stdout, nCol=15, nRow=8):
 
     print >> fd, "%s}" % (indent)
 
+
 def dumpCcdParams(ccd, nIndent=0, dIndent=4, fd=sys.stdout, iC=0, iR=0):
     """Write a Ccd's parameters a camera.paf file"""
     indent = "%*s" % (nIndent, "")
@@ -411,7 +423,7 @@ def dumpCcdParams(ccd, nIndent=0, dIndent=4, fd=sys.stdout, iC=0, iR=0):
     orient = ccd.getOrientation()
 
     width, height = ccd.getAllPixels(True).getWidth(), ccd.getAllPixels(True).getHeight()
-    xc, yc = 0.5*(width - 1), 0.5*(height - 1) # center of CCD
+    xc, yc = 0.5*(width - 1), 0.5*(height - 1)  # center of CCD
 
     x, y = ccd.getPositionFromPixel(afwGeom.PointD(xc, yc)).getMm()
 
@@ -449,6 +461,7 @@ def dumpCcdElectronicParams(ccd, nIndent=0, dIndent=4, fd=sys.stdout):
 
     print >> fd, "%s}" % (indent)
 
+
 def dumpRaftElectronicParams(raft, nIndent=0, dIndent=4, fd=sys.stdout):
     """Write a Raft's ElectronicParams to the Electronics section of a camera.paf file
     nIndent is the initial indent, dIndent the indent offset for each extra level of nesting
@@ -463,6 +476,7 @@ def dumpRaftElectronicParams(raft, nIndent=0, dIndent=4, fd=sys.stdout):
         dumpCcdElectronicParams(ccd, nIndent + dIndent, dIndent, fd=fd)
 
     print >> fd, "%s}" % (indent)
+
 
 def dumpCameraElectronicParams(camera, nIndent=0, dIndent=4, outFile=None):
     """Write the camera's ElectronicParams to the Electronics section of a camera.paf file"""
@@ -492,7 +506,7 @@ def plotVignetting(r2=1.05, D=None, phi=None, relative=False, showCamera=False, 
     r1 = 1
 
     fig = anUtils.getMpFigure(fig)
-    axes = fig.add_axes((0.1, 0.1, 0.85, 0.80));
+    axes = fig.add_axes((0.1, 0.1, 0.85, 0.80))
 
     xlabel = "Offset of vignetting disk (in units of primary radius)"
 
@@ -596,8 +610,8 @@ def calculateVignetting(d, r1=1, r2=1, D=None, phi=0, analytic=True, pupilImage=
     phi with the line joining the primary and the centre of the occulting disk
     """
     if analytic:
-        theta1 = np.arccos((r1**2 + d**2 - r2**2)/(2*r1*d)) # 1/2 angle subtended by chord where
-        theta2 = np.arccos((r2**2 + d**2 - r1**2)/(2*r2*d)) #    pupil and vignetting disk cross
+        theta1 = np.arccos((r1**2 + d**2 - r2**2)/(2*r1*d))  # 1/2 angle subtended by chord where
+        theta2 = np.arccos((r2**2 + d**2 - r1**2)/(2*r2*d))  #    pupil and vignetting disk cross
 
         missing = 0.5*(r1**2*(2*theta1 - np.sin(2*theta1)) + r2**2*(2*theta2 - np.sin(2*theta2)))
         return np.where(d <= r2 - r1, 1.0, missing/(np.pi*r1**2))
@@ -633,7 +647,7 @@ def calculateVignetting(d, r1=1, r2=1, D=None, phi=0, analytic=True, pupilImage=
     except TypeError:
         d = [d]
 
-    if len(phi) == 1 and pupilImage is None and len(r) > len(d): # faster to vectorize r than d
+    if len(phi) == 1 and pupilImage is None and len(r) > len(d):  # faster to vectorize r than d
         for i, _d in enumerate(d):
             ngood = 0
             for theta in thetas:
@@ -3457,7 +3471,8 @@ def isrCallback(im, ccd=None, butler=None, imageSource=None, doFlatten=True, cor
 #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
-def foo(data, visits=(902936, 903332, 902476), ccdIds=[], fig0=1, dfig=1, savefig=False, fileNameSuffix = "",
+
+def foo(data, visits=(902936, 903332, 902476), ccdIds=[], fig0=1, dfig=1, savefig=False, fileNameSuffix="",
         showCamera=True, showZP=False, correctJacobian=True, pclim=(None, None),
         visit2=None, zplim=(None, None), zp2lim=(None, None), rmax=None,
         **kwargs):
@@ -3466,8 +3481,8 @@ def foo(data, visits=(902936, 903332, 902476), ccdIds=[], fig0=1, dfig=1, savefi
     if False:
         for v in visits:
             if True:
-                figure = anUtils.plotCalibration(data, selectObjId=anUtils.makeSelectVisit(v,ccds=ccdIds), fig=fig,
-                                                 showCamera=showCamera, showZP=showZP,
+                figure = anUtils.plotCalibration(data, selectObjId=anUtils.makeSelectVisit(v, ccds=ccdIds),
+                                                 fig=fig, showCamera=showCamera, showZP=showZP,
                                                  correctJacobian=correctJacobian, 
                                                  ymin=pclim[0], ymax=pclim[1], markersize=1.0,
                                                  **kwargs)

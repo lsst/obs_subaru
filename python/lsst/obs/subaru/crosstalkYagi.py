@@ -44,6 +44,7 @@ import lsst.afw.display.ds9 as ds9
 import lsst.pipe.base as pipeBase
 import lsst.pex.config as pexConfig
 import lsst.obs.subaru.subaruLib as subaruLib # for crosstalk
+from lsst.obs.subaru.crosstalk import makeList, estimateCoeffs
 
 class CrosstalkYagiCoeffsConfig(pexConfig.Config):
     """Specify crosstalk coefficients for a CCD"""
