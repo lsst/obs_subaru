@@ -227,33 +227,7 @@ class SubaruIsrTask(IsrTask):
         ccd = ccdExposure.getDetector()
 
         # Read in defects to check for any dead amplifiers (entire amp is within defect region)
-        defectsRaw = sensorRef.get("defects", immediate=True)
-        # Need to rotate defects bbox if we are dealing with a rotated ccd as they are defined assuming
-        # that (0, 0) is the lower-left corner (LLC).  Rotation needs to be done in trimmed/assembled image
-        # dimensions as that is the frame for which the defects are defined.  This is computed here as
-        # bboxTrimmed.  Also need to accommodate even and odd number of 90deg rotations.
-        bboxTrimmed = afwGeom.Box2I()
-        for amp in ccd:
-            bboxTrimmed.include(amp.getBBox())
-        nQuarter = ccd.getOrientation().getNQuarter()
-        defects = []
-        if nQuarter != 0:
-            for v in defectsRaw:
-                rotBox = afwImage.imageLib.DefectBase(
-                    afwCG.rotateBBoxBy90(v.getBBox(), 4 - nQuarter,
-                                         afwGeom.Extent2I(bboxTrimmed.getHeight(), bboxTrimmed.getHeight())))
-                # We have rotated about the center of a square with ccd height dimension on a side.
-                # rotateBBoxBy90 rotates CCW, so using 4 - nQuarter we are effectively rotating
-                # CW nQuarter turns.  So, for nQuarter = 2 or 3, the rotated LLC will be shifted
-                # in x by width - height pixels wrt the LLC of the rotation square.  Thus defects
-                # for all nQuarter > 1 ccds need to be shifted back in x by this amount.
-                if nQuarter > 1:
-                    shiftBoxX0 = bboxTrimmed.getWidth() - bboxTrimmed.getHeight()
-                    shiftBoxY0 = 0
-                    rotBox.shift(afwGeom.Extent2I(shiftBoxX0, shiftBoxY0))
-                defects.append(rotBox)
-        else:
-            defects = defectsRaw
+        defects = sensorRef.get("defects", immediate=True)
 
         for amp in ccd:
             # Check if entire amp region is defined as defect (need to use amp.getBBox() for correct
@@ -299,10 +273,6 @@ class SubaruIsrTask(IsrTask):
         ccdExposure = self.assembleCcd.assembleCcd(ccdExposure)
         ccd = ccdExposure.getDetector()
 
-        doRotateCalib = False   # Rotate calib images for bias/dark/flat correction?
-        if nQuarter != 0:
-            doRotateCalib = True
-
         if self.config.doDefect:
             self.maskAndInterpDefect(ccdExposure, defects)
 
@@ -313,11 +283,7 @@ class SubaruIsrTask(IsrTask):
 
         if self.config.doBias:
             biasExposure = self.getIsrExposure(sensorRef, "bias")
-            if not doRotateCalib:
-                self.biasCorrection(ccdExposure, biasExposure)
-            else:
-                with self.rotated(ccdExposure) as exp:
-                    self.biasCorrection(exp, biasExposure)
+            self.biasCorrection(ccdExposure, biasExposure)
         if self.config.doLinearize:
             self.linearize(ccdExposure)
         if self.config.doCrosstalk:
@@ -332,18 +298,10 @@ class SubaruIsrTask(IsrTask):
                                           )
         if self.config.doDark:
             darkExposure = self.getIsrExposure(sensorRef, "dark")
-            if not doRotateCalib:
-                self.darkCorrection(ccdExposure, darkExposure)
-            else:
-                with self.rotated(ccdExposure) as exp:
-                    self.darkCorrection(exp, darkExposure)
+            self.darkCorrection(ccdExposure, darkExposure)
         if self.config.doFlat:
             flatExposure = self.getIsrExposure(sensorRef, "flat")
-            if not doRotateCalib:
-                self.flatCorrection(ccdExposure, flatExposure)
-            else:
-                with self.rotated(ccdExposure) as exp:
-                    self.flatCorrection(exp, flatExposure)
+            self.flatCorrection(ccdExposure, flatExposure)
 
         if self.config.doApplyGains:
             self.applyGains(ccdExposure, self.config.normalizeGains)
@@ -384,15 +342,6 @@ class SubaruIsrTask(IsrTask):
             ds9.scale(min=im_median*0.95, max=im_median*1.15)
 
         return Struct(exposure=ccdExposure)
-
-    @contextmanager
-    def rotated(self, exp):
-        nQuarter = exp.getDetector().getOrientation().getNQuarter()
-        exp.setMaskedImage(afwMath.rotateImageBy90(exp.getMaskedImage(), nQuarter))
-        try:
-            yield exp
-        finally:
-            exp.setMaskedImage(afwMath.rotateImageBy90(exp.getMaskedImage(), 4 - nQuarter))
 
     def applyGains(self, ccdExposure, normalizeGains):
         ccd = ccdExposure.getDetector()
