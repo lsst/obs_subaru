@@ -364,9 +364,7 @@ class SuprimecamMapperMit(SuprimecamMapperBase):
         self.defineFilters()
 
     def _extractDetectorName(self, dataId):
-        mitNames = ["w67c1", "w6c1", "si005s", "si001s",  "si002s", "si006s", "w93c2", "w9c2", "w4c5", "w7c3"]
-        ccdTmp = int("%(ccd)d" % dataId)
-        return mitNames[ccdTmp]
+        return int("%(ccd)d" % dataId)
 
     def getDataId(self, visit, ccdId):
         """get dataId dict from visit and ccd identifier
