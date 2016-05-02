@@ -45,5 +45,5 @@ namespace std {
 %include "lsst/obs/subaru/HscDistortion.h"
 
 %include "lsst/obs/subaru/Crosstalk.h"
-//%template(vectorCalib) std::vector<boost::shared_ptr<const lsst::afw::image::Calib> >;
+//%template(vectorCalib) std::vector<std::shared_ptr<const lsst::afw::image::Calib> >;
 
