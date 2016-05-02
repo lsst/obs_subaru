@@ -74,13 +74,13 @@ namespace lsst {
                 apportionFlux(MaskedImageT const& img,
                               lsst::afw::detection::Footprint const& foot,
                               std::vector<typename PTR(lsst::afw::image::Image<ImagePixelT>)> templates,
-                              std::vector<boost::shared_ptr<lsst::afw::detection::Footprint> > templ_footprints,
+                              std::vector<std::shared_ptr<lsst::afw::detection::Footprint> > templ_footprints,
                               //
                               ImagePtrT templ_sum,
                               std::vector<bool> const& ispsf,
                               std::vector<int>  const& pkx,
                               std::vector<int>  const& pky,
-                              std::vector<boost::shared_ptr<typename lsst::afw::detection::HeavyFootprint<ImagePixelT,MaskPixelT,VariancePixelT> > > & strays,
+                              std::vector<std::shared_ptr<typename lsst::afw::detection::HeavyFootprint<ImagePixelT,MaskPixelT,VariancePixelT> > > & strays,
                               int strayFluxOptions,
                               double clipStrayFluxFraction
                      );
@@ -88,13 +88,13 @@ namespace lsst {
                 static
                 bool
                 hasSignificantFluxAtEdge(ImagePtrT,
-                                         boost::shared_ptr<lsst::afw::detection::Footprint>,
+                                         std::shared_ptr<lsst::afw::detection::Footprint>,
                     ImagePixelT threshold);
 
                 static
-                boost::shared_ptr<lsst::afw::detection::Footprint>
+                std::shared_ptr<lsst::afw::detection::Footprint>
                 getSignificantEdgePixels(ImagePtrT,
-                                         boost::shared_ptr<lsst::afw::detection::Footprint>,
+                                         std::shared_ptr<lsst::afw::detection::Footprint>,
                                          ImagePixelT threshold);
 
 
@@ -109,12 +109,12 @@ namespace lsst {
                              ImagePtrT tsum,
                              MaskedImageT const& img,
                              int strayFluxOptions,
-                             std::vector<boost::shared_ptr<lsst::afw::detection::Footprint> > tfoots,
+                             std::vector<std::shared_ptr<lsst::afw::detection::Footprint> > tfoots,
                              std::vector<bool> const& ispsf,
                              std::vector<int>  const& pkx,
                              std::vector<int>  const& pky,
                              double clipStrayFluxFraction,
-                             std::vector<boost::shared_ptr<typename lsst::afw::detection::HeavyFootprint<ImagePixelT,MaskPixelT,VariancePixelT> > > & strays);
+                             std::vector<std::shared_ptr<typename lsst::afw::detection::HeavyFootprint<ImagePixelT,MaskPixelT,VariancePixelT> > > & strays);
 
             };
         }

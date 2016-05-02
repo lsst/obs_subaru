@@ -12,7 +12,7 @@ Python interface to lsst::meas::deblender classes
 %{
 #include <exception>
 #include <list>
-#include <boost/shared_ptr.hpp>
+#include <memory>
 #include "lsst/meas/deblender/Baseline.h"
 #include "lsst/afw/table.h"
 #include "lsst/afw/detection.h"
