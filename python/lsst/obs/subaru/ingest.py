@@ -49,6 +49,8 @@ def datetime2mjd(date_time):
 
 class HscParseTask(ParseTask):
     DAY0 = 55927  # Zero point for  2012-01-01  51544 -> 2000-01-01
+    expId_regex = "^HSC([A-Z])(\d{6})00$"
+    frameId_regex = "^HSC([A-Z])(\d{6})\d{2}$"
 
     def translate_field(self, md):
         field = md.get("OBJECT").strip()
@@ -60,7 +62,7 @@ class HscParseTask(ParseTask):
 
     def translate_visit(self, md):
         expId = md.get("EXP-ID").strip()
-        m = re.search("^HSC([A-Z])(\d{6})00$", expId)
+        m = re.search(self.expId_regex, expId)
         if not m:
             raise RuntimeError("Unable to interpret EXP-ID: %s" % expId)
         letter, visit = m.groups()
@@ -68,7 +70,7 @@ class HscParseTask(ParseTask):
         if int(visit) == 0:
             # Don't believe it
             frameId = md.get("FRAMEID").strip()
-            m = re.search("^HSC([A-Z])(\d{6})\d{2}$", frameId)
+            m = re.search(self.frameId_regex, frameId)
             if not m:
                 raise RuntimeError("Unable to interpret FRAMEID: %s" % frameId)
             letter, visit = m.groups()
@@ -153,3 +155,10 @@ class HscCalibsParseTask(CalibsParseTask):
 
     def translate_calibVersion(self, md):
         return self._translateFromCalibId("calibVersion", md)
+
+
+class SuprimecamParseTask(HscParseTask):
+    DAY0 = 53005  # 2004-01-01
+    expId_regex = "^SUP([A-Z])(\d{7})0$"
+    frameId_regex = "^SUP([A-Z])(\d{7})\d{1}$"
+
