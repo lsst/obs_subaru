@@ -294,12 +294,12 @@ _find_stray_flux(det::Footprint const& foot,
                  std::vector<int>  const& pkx,
                  std::vector<int>  const& pky,
                  double clipStrayFluxFraction,
-                 std::vector<boost::shared_ptr<typename det::HeavyFootprint<ImagePixelT,MaskPixelT,VariancePixelT> > > & strays
+                 std::vector<std::shared_ptr<typename det::HeavyFootprint<ImagePixelT,MaskPixelT,VariancePixelT> > > & strays
                  ) {
 
     typedef typename det::Footprint::SpanList SpanList;
     typedef typename det::HeavyFootprint<ImagePixelT, MaskPixelT, VariancePixelT> HeavyFootprint;
-    typedef typename boost::shared_ptr< HeavyFootprint > HeavyFootprintPtrT;
+    typedef typename std::shared_ptr< HeavyFootprint > HeavyFootprintPtrT;
 
     // when doing stray flux: the footprints and pixels, which we'll
     // combine into the return 'strays' HeavyFootprint at the end.
@@ -587,7 +587,7 @@ apportionFlux(MaskedImageT const& img,
               std::vector<bool> const& ispsf,
               std::vector<int>  const& pkx,
               std::vector<int>  const& pky,
-              std::vector<boost::shared_ptr<typename det::HeavyFootprint<ImagePixelT,MaskPixelT,VariancePixelT> > > & strays,
+              std::vector<std::shared_ptr<typename det::HeavyFootprint<ImagePixelT,MaskPixelT,VariancePixelT> > > & strays,
               int strayFluxOptions,
               double clipStrayFluxFraction
     ) {
@@ -1311,7 +1311,7 @@ hasSignificantFluxAtEdge(ImagePtrT img,
  *sfoot* in image *img*, above threshold *thresh*.
  */
 template<typename ImagePixelT, typename MaskPixelT, typename VariancePixelT>
-boost::shared_ptr<det::Footprint>
+std::shared_ptr<det::Footprint>
 deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::
 getSignificantEdgePixels(ImagePtrT img,
                          PTR(det::Footprint) sfoot,
