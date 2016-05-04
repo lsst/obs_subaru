@@ -32,10 +32,7 @@ coeffs = crosstalk.estimateCoeffs(range(131634, 131642), range(10), threshold=1e
                                   plot=True, title="CCD0..9", fig=1)
 crosstalk.fixCcd(131634, 0, coeffs)
 """
-import sys
-import math
 import numpy as np
-import time
 import lsst.afw.detection as afwDetect
 import lsst.afw.geom as afwGeom
 import lsst.afw.image as afwImage
@@ -44,7 +41,7 @@ import lsst.afw.display.ds9 as ds9
 import lsst.pipe.base as pipeBase
 import lsst.pex.config as pexConfig
 import lsst.obs.subaru.subaruLib as subaruLib # for crosstalk
-from lsst.obs.subaru.crosstalk import makeList, estimateCoeffs
+from lsst.obs.subaru.crosstalk import makeList, estimateCoeffs, printCoeffs, readImage, subtractXTalk
 
 class CrosstalkYagiCoeffsConfig(pexConfig.Config):
     """Specify crosstalk coefficients for a CCD"""
