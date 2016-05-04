@@ -23,7 +23,7 @@
  */
 
 #include "lsst/obs/subaru/HscDistortion.h"
-#include "boost/make_shared.hpp"
+#include <memory>
 
 namespace lsst {
 namespace obs {
@@ -102,7 +102,7 @@ HscDistortion::HscDistortion(
 
 PTR(afw::geom::XYTransform) HscDistortion::clone() const
 {
-    return boost::make_shared<HscDistortion>(_skyToCcd, _ccdToSky, _scaling*afw::geom::radians,
+    return std::make_shared<HscDistortion>(_skyToCcd, _ccdToSky, _scaling*afw::geom::radians,
                                              _inversionTolerance, _maxIterations);
 }
 
