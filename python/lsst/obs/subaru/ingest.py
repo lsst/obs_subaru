@@ -99,7 +99,7 @@ class HscParseTask(ParseTask):
             year, month, day = m.groups()
             obsday = datetime.datetime(int(year), int(month), int(day), 0, 0, 0)
             mjd = datetime2mjd(obsday)
-            return int(mjd) - day0
+            return int(mjd) - self.DAY0
         except:
             pass
 
