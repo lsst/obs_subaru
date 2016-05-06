@@ -1,13 +1,12 @@
 #include <list>
+#include <cmath>
 
 #include "lsst/meas/deblender/Baseline.h"
 #include "lsst/pex/logging.h"
 #include "lsst/pex/exceptions.h"
 #include "lsst/afw/geom/Box.h"
 
-#include <boost/math/special_functions/round.hpp>
-
-using boost::math::iround;
+using std::lround;
 
 namespace image = lsst::afw::image;
 namespace det = lsst::afw::detection;
@@ -217,8 +216,8 @@ makeMonotonic(
                         if (psx < 0 || psx >= iW)
                             continue;
                         // shadow covers a range of y values based on slope
-                        for (shy  = iround(shx * ds0);
-                             shy <= iround(shx * ds1); shy++) {
+                        for (shy  = lround(shx * ds0);
+                             shy <= lround(shx * ds1); shy++) {
                             psy = cy + y + xsign*shy - iy0;
                             if (psy < 0 || psy >= iH)
                                 continue;
@@ -237,8 +236,8 @@ makeMonotonic(
                         if (psy < 0 || psy >= iH)
                             continue;
                         // shadow covers a range of x vals based on slope
-                        for (shx  = iround(shy * ds0);
-                             shx <= iround(shy * ds1); shx++) {
+                        for (shx  = lround(shy * ds0);
+                             shx <= lround(shy * ds1); shx++) {
                             psx = cx + x + ysign*shx - ix0;
                             if (psx < 0 || psx >= iW)
                                 continue;
