@@ -323,18 +323,7 @@ class SubaruIsrTask(IsrTask):
         if doWriteDebug: ccdExposure.writeFits(outDir+"/isr9.fits")
 
         if self.config.doSaturation:
-            if not doRotateCalib:
-                self.saturationInterpolation(ccdExposure)
-            elif nQuarter == 2:
-                with self.rotated(ccdExposure, 2) as exp: # using rot 180 to match HSC
-                    self.saturationInterpolation(exp)
-            elif nQuarter == 1:
-                with self.rotated(ccdExposure, 2) as exp: # using rot 180 to match HSC
-                    with self.flipped(exp) as exp: # bc HSC transposes 90/270 ccds
-                        self.saturationInterpolation(exp)
-            elif nQuarter == 3:
-                with self.flipped(ccdExposure) as exp: # bc HSC transposes 90/270 ccds
-                    self.saturationInterpolation(exp)
+            self.saturationInterpolation(ccdExposure)
         if doWriteDebug: ccdExposure.writeFits(outDir+"/isr10.fits")
 
         if self.config.doFringe:
@@ -376,24 +365,6 @@ class SubaruIsrTask(IsrTask):
             ds9.scale(min=im_median*0.95, max=im_median*1.15)
 
         return Struct(exposure=ccdExposure)
-
-    @contextmanager
-    def rotated(self, exp, nQuarter=None):
-        if nQuarter is None:
-            nQuarter = exp.getDetector().getOrientation().getNQuarter()
-        exp.setMaskedImage(afwMath.rotateImageBy90(exp.getMaskedImage(), nQuarter))
-        try:
-            yield exp
-        finally:
-            exp.setMaskedImage(afwMath.rotateImageBy90(exp.getMaskedImage(), 4 - nQuarter))
-
-    @contextmanager
-    def flipped(self, exp, flipLR=True, flipTB=False):
-        exp.setMaskedImage(afwMath.flipImage(exp.getMaskedImage(), flipLR, flipTB))
-        try:
-            yield exp
-        finally:
-            exp.setMaskedImage(afwMath.flipImage(exp.getMaskedImage(), flipLR, flipTB))
 
     def applyGains(self, ccdExposure, normalizeGains):
         ccd = ccdExposure.getDetector()
