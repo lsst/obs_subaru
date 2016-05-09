@@ -8,6 +8,7 @@ setupRequired(sconsUtils)
 
 setupOptional(meas_modelfit)
 setupOptional(meas_extensions_psfex)
+setupOptional(meas_extensions_shapeHSM)
 setupOptional(testdata_subaru)
 
 envPrepend(LD_LIBRARY_PATH, ${PRODUCT_DIR}/lib)
