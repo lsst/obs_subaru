@@ -1,5 +1,6 @@
 #include <list>
 #include <cmath>
+#include <cstdint>
 
 #include "lsst/meas/deblender/Baseline.h"
 #include "lsst/pex/logging.h"
@@ -322,13 +323,13 @@ _find_stray_flux(det::Footprint const& foot,
 
     bool always = (strayFluxOptions & STRAYFLUX_TO_POINT_SOURCES_ALWAYS);
 
-    typedef boost::uint16_t itype;
+    typedef std::uint16_t itype;
     PTR(image::Image<itype>) nearest;
 
     if (strayFluxOptions & STRAYFLUX_NEAREST_FOOTPRINT) {
         // Compute the map of which footprint is closest to each
         // pixel in the bbox.
-        typedef boost::uint16_t dtype;
+        typedef std::uint16_t dtype;
         PTR(image::Image<dtype>) dist(new image::Image<dtype>(sumbb));
         nearest = PTR(image::Image<itype>)(new image::Image<itype>(sumbb));
 
