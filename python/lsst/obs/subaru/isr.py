@@ -104,7 +104,8 @@ class SubaruIsrConfig(IsrTask.ConfigClass):
     )
     doLinearize = pexConfig.Field(
         dtype = bool,
-        doc = "Correct for nonlinearity of the detector's response (ignored if coefficients are 0.0)",
+        doc = "Correct for nonlinearity of the detector's response and set suspect level " \
+                "(ignored if coefficients are 0.0)",
         default = True,
     )
     doApplyGains = pexConfig.Field(
@@ -544,14 +545,13 @@ class SubaruIsrTask(IsrTask):
         for amp in ccd:
             linearityCoefficient = amp.getLinearityCoeffs()[0]
             linearityThreshold = amp.getLinearityCoeffs()[1]
-            linearityMaxCorrectable = amp.getLinearityCoeffs()[2]
+            linearityMaxCorrectable = amp.getSuspectLevel()
             linearityType = amp.getLinearityType()
 
             ampImage = afwImage.MaskedImageF(exposure.getMaskedImage(), amp.getBBox(),
                                                  afwImage.PARENT)
 
-            imageTypeMax = 65535        # should be a method on the image
-            setSuspectPixels = linearityMaxCorrectable < imageTypeMax # there might be some
+            setSuspectPixels = not math.isnan(linearityMaxCorrectable)
 
             if not setSuspectPixels and linearityCoefficient == 0.0:
                 continue                # nothing to do
