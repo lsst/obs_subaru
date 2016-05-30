@@ -11,7 +11,7 @@ config.load(os.path.join(hscConfigDir, 'isr.py'))
 config.calibrate.photoCal.colorterms.load(os.path.join(hscConfigDir, 'colorterms.py'))
 config.charImage.measurePsf.starSelector.widthMin=0.9
 config.charImage.measurePsf.starSelector.fluxMin=4000
-config.calibrate.astrometry.refObjLoader.load(os.path.join(hscConfigDir, "filterMap.py"))
+config.calibrate.refObjLoader.load(os.path.join(hscConfigDir, "filterMap.py"))
 
 config.calibrate.astrometry.wcsFitter.order = 3
 config.calibrate.astrometry.matcher.maxMatchDistArcSec = 2.0
