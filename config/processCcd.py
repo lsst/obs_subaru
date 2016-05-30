@@ -27,8 +27,8 @@ except ImportError as e:
     config.charImage.measurePsf.psfDeterminer.name = "pca"
 
 # Astrometry
-config.calibrate.astrometry.refObjLoader.load(os.path.join(getPackageDir("obs_subaru"), "config",
-                                                           "filterMap.py"))
+config.calibrate.refObjLoader.load(os.path.join(getPackageDir("obs_subaru"), "config",
+                                                "filterMap.py"))
 
 
 config.calibrate.detectAndMeasure.measurement.plugins['base_ClassificationExtendedness'].fluxRatio = 0.95
