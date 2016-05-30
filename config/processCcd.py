@@ -43,7 +43,7 @@ menu = { "ps1*": {}, # Defaults are fine
          "2mass*": {"refObjLoader.filterMap": {ff: "J" for ff in "grizy"}}, # No optical bands, use J instead
          "10*": {}, # Match the empty astrometry_net_data version for use without a ref catalog
         }
-setConfigFromEups(config.calibrate.photoCal, config.calibrate.astrometry, menu)
+setConfigFromEups(config.calibrate.photoCal, config.calibrate, menu)
 
 # Demand astrometry and photoCal succeed
 config.calibrate.requireAstrometry = True
