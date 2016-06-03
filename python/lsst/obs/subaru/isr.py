@@ -201,7 +201,7 @@ class SubaruIsrTask(IsrTask):
             self.vignettePolygon = Polygon([afwGeom.Point2D(x, y) for x, y in reversed(points)])
 
     def runDataRef(self, sensorRef):
-        self.log.log(self.log.INFO, "Performing ISR on sensor %s" % (sensorRef.dataId))
+        self.log.info("Performing ISR on sensor %s" % (sensorRef.dataId))
         ccdExposure = sensorRef.get('raw')
 
         if self.config.removePcCards: # Remove any PC00N00M cards in the header
@@ -216,7 +216,7 @@ class SubaruIsrTask(IsrTask):
                             nPc += 1
 
             if nPc:
-                self.log.log(self.log.INFO, "Recreating Wcs after stripping PC00n00m" % (sensorRef.dataId))
+                self.log.info("Recreating Wcs after stripping PC00n00m" % (sensorRef.dataId))
                 ccdExposure.setWcs(afwImage.makeWcs(raw_md))
 
         ccdExposure = self.convertIntToFloat(ccdExposure)
@@ -565,7 +565,7 @@ class SubaruIsrTask(IsrTask):
                 raise NotImplementedError("Unimplemented linearity type: %d", linearityType)
 
         if linearized:
-            self.log.log(self.log.INFO, "Applying linearity corrections to Ccd %s" % (ccd.getId()))
+            self.log.info("Applying linearity corrections to Ccd %s" % (ccd.getId()))
 
 
     def flatCorrection(self, exposure, flatExposure):
@@ -644,7 +644,7 @@ class SuprimeCamIsrTask(SubaruIsrTask):
 
         md = exposure.getMetadata()
         if not md.exists("S_AG-X"):
-            self.log.log(self.log.WARN, "No autoguider position in exposure metadata.")
+            self.log.warn("No autoguider position in exposure metadata.")
             return
 
         xGuider = md.get("S_AG-X")
@@ -662,7 +662,7 @@ class SuprimeCamIsrTask(SubaruIsrTask):
 
         if False:
             # XXX This mask plane isn't respected by background subtraction or source detection or measurement
-            self.log.log(self.log.INFO, "Masking autoguider shadow at y > %d" % maskLimit)
+            self.log.info("Masking autoguider shadow at y > %d" % maskLimit)
             mask = mi.getMask()
             bbox = afwGeom.Box2I(afwGeom.Point2I(0, maskLimit - 1),
                                  afwGeom.Point2I(mask.getWidth() - 1, height - 1))
@@ -674,7 +674,7 @@ class SuprimeCamIsrTask(SubaruIsrTask):
             badMask |= badBitmask
         else:
             # XXX Temporary solution until a mask plane is respected by downstream processes
-            self.log.log(self.log.INFO, "Removing pixels affected by autoguider shadow at y > %d" % maskLimit)
+            self.log.info("Removing pixels affected by autoguider shadow at y > %d" % maskLimit)
             bbox = afwGeom.Box2I(afwGeom.Point2I(0, 0), afwGeom.Extent2I(mi.getWidth(), maskLimit))
             good = mi.Factory(mi, bbox, afwImage.LOCAL)
             exposure.setMaskedImage(good)
@@ -701,7 +701,7 @@ class SuprimeCamMitIsrTask(SubaruIsrTask):
 
         md = exposure.getMetadata()
         if not md.exists("S_AG-X"):
-            self.log.log(self.log.WARN, "No autoguider position in exposure metadata.")
+            self.log.warn("No autoguider position in exposure metadata.")
             return
 
         xGuider = md.get("S_AG-X")
@@ -719,7 +719,7 @@ class SuprimeCamMitIsrTask(SubaruIsrTask):
 
         if False:
             # XXX This mask plane isn't respected by background subtraction or source detection or measurement
-            self.log.log(self.log.INFO, "Masking autoguider shadow at y > %d" % maskLimit)
+            self.log.info("Masking autoguider shadow at y > %d" % maskLimit)
             mask = mi.getMask()
             bbox = afwGeom.Box2I(afwGeom.Point2I(0, maskLimit - 1),
                                  afwGeom.Point2I(mask.getWidth() - 1, height - 1))
@@ -731,7 +731,7 @@ class SuprimeCamMitIsrTask(SubaruIsrTask):
             badMask |= badBitmask
         else:
             # XXX Temporary solution until a mask plane is respected by downstream processes
-            self.log.log(self.log.INFO, "Removing pixels affected by autoguider shadow at y > %d" % maskLimit)
+            self.log.info("Removing pixels affected by autoguider shadow at y > %d" % maskLimit)
             bbox = afwGeom.Box2I(afwGeom.Point2I(0, 0), afwGeom.Extent2I(mi.getWidth(), maskLimit))
             good = mi.Factory(mi, bbox, afwImage.LOCAL)
             exposure.setMaskedImage(good)
