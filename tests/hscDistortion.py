@@ -3,8 +3,6 @@
 import unittest
 import lsst.utils.tests as utilsTests
 
-import itertools
-
 from lsst.obs.hsc import HscMapper
 from lsst.afw.cameraGeom import PIXELS, FOCAL_PLANE, PUPIL, TAN_PIXELS
 from lsst.afw.geom import Point2D
@@ -29,11 +27,11 @@ class HscDistortionTestCase(unittest.TestCase):
                 pixels = ccd.makeCameraPoint(Point2D(xy), PIXELS)
                 fp = ccd.transform(pixels, FOCAL_PLANE)
                 tp = camera.transform(pixels, TAN_PIXELS)
-                pupil = camera.transform(fp, PUPIL)
+                camera.transform(fp, PUPIL)
 
                 cornerVerification = ccdVerification.corners[tuple(xy)]
                 fpDiff = fp.getPoint() - cornerVerification.focalPlane
-                tpDiff = tp.getPoint() - cornerVerification.distEst
+                tp.getPoint() - cornerVerification.distEst
 
                 print ccd.getSerial(), ccd.getName(), xy, fp, fpDiff
 

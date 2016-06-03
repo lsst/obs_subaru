@@ -13,7 +13,8 @@ bin=64
 
 frame = 1
 visit = 129102
-im = cgUtils.showCamera(butler.get("camera"), rings.LnGradImage(butler, bin=bin, visit=visit, verbose=True), frame=frame, bin=bin, title=visit, overlay=True)
+im = cgUtils.showCamera(butler.get("camera"), rings.LnGradImage(butler, bin=bin, visit=visit, verbose=True),
+                        frame=frame, bin=bin, title=visit, overlay=True)
 
 grad = {}
 if False:
@@ -26,7 +27,10 @@ rings.plotRadial(r, profs, xlim=(-100, 5500), ylim=(0.8, 1.03))
 """
 
 import multiprocessing
-import os, re, sys
+import os
+import re
+import sys
+
 import numpy as np
 
 import lsst.afw.cameraGeom.utils as cgUtils
@@ -98,8 +102,8 @@ def fitPatches(exp, nx=4, ny=8, bin=None, frame=None, returnResidualImage=False,
                r=None, lnGrad=None, theta=None):
     """Fit planes to a set of patches of an image im
 
-If r, theta, and lnGrad are provided they should be lists (more accurately, support .append), and they have the
-values of r, theta, and dlnI/dr from this image appended.
+    If r, theta, and lnGrad are provided they should be lists (more accurately, support .append),
+    and they have the values of r, theta, and dlnI/dr from this image appended.
     """
 
     width, height = exp.getDimensions()
@@ -130,7 +134,7 @@ values of r, theta, and dlnI/dr from this image appended.
         assert ccd is not None, "I need a CCD to set r and the logarithmic gradient"
         assert r is not None and lnGrad is not None, "Please provide both r and lnGrad"
 
-    z = afwImage.ImageF(nx, ny);      za = z.getArray()
+    z = afwImage.ImageF(nx, ny)      za = z.getArray()
     dlnzdx = afwImage.ImageF(nx, ny); dlnzdxa = dlnzdx.getArray()
     dlnzdy = afwImage.ImageF(nx, ny); dlnzdya = dlnzdy.getArray()
     dlnzdr = afwImage.ImageF(nx, ny); dlnzdra = dlnzdr.getArray()
@@ -300,7 +304,7 @@ class LnGradImage(cgUtils.GetCcdImage):
         ccdNum = ccd.getId().getSerial()
 
         try:
-            if self.kwargs.get("ccd") is not None and not ccdNum in self.kwargs.get("ccd"):
+            if self.kwargs.get("ccd") is not None and ccdNum not in self.kwargs.get("ccd"):
                 raise RuntimeError
 
             dataId = self.kwargs
@@ -472,7 +476,7 @@ def plotRadial(r, lnGrad, theta=None, title=None, profile=False, showMedians=Fal
                 if a is None:
                     lng /= lng[tieIndex]
                 else:
-                    if lng0 is None: 
+                    if lng0 is None:
                         if tieIndex == 0:
                             lng /= lng[0]
                         lng0 = lng
@@ -967,7 +971,7 @@ def correctVignettingAndDistortion(camera, mosaics, bin=32):
     X, Y = bin*np.meshgrid(np.arange(im.getWidth()), np.arange(im.getHeight()))
     X -= 18208.0; Y -= 17472.0
 
-    vig = utils.getVignetting(X, Y);           # Vignetting correction
+    vig = utils.getVignetting(X, Y)               # Vignetting correction
     correction = utils.getPixelArea(camera, X, Y) # Jacobian correction
     correction *= vig
 
@@ -1172,7 +1176,8 @@ visit & median flux & exposure time & line type & line colour \\
         if i == 0:
             width, height = im.getDimensions()
             x, y = np.meshgrid(np.arange(width), np.arange(height))
-            x += im.getX0(); y += im.getY0()
+            x += im.getX0()
+            y += im.getY0()
             r = np.hypot(x, y)
             theta = np.arctan2(y, x)
 

@@ -1,4 +1,3 @@
-import numpy as np
 import lsst.afw.geom as afwGeom
 import lsst.afw.cameraGeom as afwCG
 
@@ -62,7 +61,8 @@ def ditherDES(camera, scale=4.5,  names=False):
                 else:
                     raise RuntimeError("Should never get here")
 
-                xOriginal = []; yOriginal = []
+                xOriginal = []
+                yOriginal = []
                 for x, y in zip(xList, yList):
                     position = ccd.getPositionFromPixel(afwGeom.Point2D(x,y)) # focal plane position
 

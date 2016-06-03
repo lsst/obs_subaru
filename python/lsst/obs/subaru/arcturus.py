@@ -79,7 +79,7 @@ process every visit in the positions dict
 
     visits0 = visits[:]                 # needed to keep frame numbers aligned
     if not force:
-        visits = [v for v in visits if not -v in mos] # don't process ones we've already seen
+        visits = [v for v in visits if -v not in mos] # don't process ones we've already seen
     if onlyVisits:
         visits = [v for v in visits if v in onlyVisits]
 
@@ -177,7 +177,7 @@ If onlyVisits is specified, only process those chips [n.b. frame0 is still obeye
 
         ima[np.hypot(X - xc, Y - yc) < R] = np.nan
 
-        if force or not -v in mos:
+        if force or -v not in mos:
             im = utils.medianFilterImage(im, medianN)
             mos[-v] = im
         else:

@@ -21,7 +21,6 @@
 # see <http://www.lsstcorp.org/LegalNotices/>.
 #
 
-import math
 import numpy
 import matplotlib.pyplot as plt
 
@@ -57,8 +56,10 @@ def main(camera, sample=20, names=False, showDistortion=True, plot=True, outputF
                 else:
                     raise RuntimeError("Should never get here")
 
-                xOriginal = []; yOriginal = []
-                xDistort = []; yDistort = []
+                xOriginal = []
+                yOriginal = []
+                xDistort = []
+                yDistort = []
                 for x, y in zip(xList, yList):
                     position = ccd.getPositionFromPixel(afwGeom.Point2D(x,y)) # focal plane position
 
@@ -130,4 +131,5 @@ if __name__ == '__main__':
     main(camera, names=args.names, sample=2, outputFile=args.outputFile,
          showDistortion=not args.noDistortion)
     if not args.outputFile:
-        print "Hit any key to exit",; raw_input()
+        print "Hit any key to exit",
+        raw_input()

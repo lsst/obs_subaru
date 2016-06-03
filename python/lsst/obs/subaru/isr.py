@@ -22,24 +22,21 @@
 #
 import os
 import math
-import numpy
 import errno
 
-from contextlib import contextmanager
+import numpy
 
 from lsst.pex.config import Field
 from lsst.pipe.base import Task, Struct
 from lsst.ip.isr import IsrTask
 from lsst.ip.isr import isr as lsstIsr
 import lsst.pex.config as pexConfig
-import lsst.afw.cameraGeom as afwCG
 import lsst.afw.detection as afwDetection
 import lsst.afw.image as afwImage
 import lsst.afw.geom as afwGeom
 import lsst.afw.math as afwMath
 from lsst.afw.display.rgb import makeRGB
 from lsst.obs.subaru.crosstalkYagi import YagiCrosstalkTask
-import lsst.meas.algorithms as measAlg
 import lsst.afw.display.ds9 as ds9
 from lsst.obs.hsc.vignette import VignetteConfig
 from lsst.afw.geom.polygon import Polygon
@@ -198,7 +195,7 @@ class SubaruIsrTask(IsrTask):
             x = self.config.vignette.radius*numpy.cos(theta) + self.config.vignette.xCenter
             y = self.config.vignette.radius*numpy.sin(theta) + self.config.vignette.yCenter
             points = numpy.array([x, y]).transpose()
-            self.vignettePolygon = Polygon([afwGeom.Point2D(x, y) for x, y in reversed(points)])
+            self.vignettePolygon = Polygon([afwGeom.Point2D(x1, y1) for x1, y1 in reversed(points)])
 
     def runDataRef(self, sensorRef):
         self.log.info("Performing ISR on sensor %s" % (sensorRef.dataId))
@@ -392,8 +389,10 @@ class SubaruIsrTask(IsrTask):
                     x0 -= xmin + extraGrow
                     x1 -= xmin - extraGrow
 
-                    if x0 < 0: x0 = 0
-                    if x1 >= width - 1: x1 = width - 1
+                    if x0 < 0:
+                        x0 = 0
+                    if x1 >= width - 1:
+                        x1 = width - 1
 
                     for x in range(x0, x1 + 1):
                         mask.set(x, y, mask.get(x, y) | saturatedBit)
@@ -542,7 +541,6 @@ class SubaruIsrTask(IsrTask):
         for amp in ccd:
             linearityCoefficient = amp.getLinearityCoeffs()[0]
             linearityThreshold = amp.getLinearityCoeffs()[1]
-            linearityMaxCorrectable = amp.getSuspectLevel()
             linearityType = amp.getLinearityType()
 
             ampImage = afwImage.MaskedImageF(exposure.getMaskedImage(), amp.getBBox(),

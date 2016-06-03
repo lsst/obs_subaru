@@ -56,7 +56,8 @@ class HscParseTask(ParseTask):
         field = md.get("OBJECT").strip()
         if field == "#":
             field = "UNKNOWN"
-        field = re.sub(r'\W', '_', field).upper() # replacing inappropriate characters for file path and upper()
+        field = re.sub(r'\W', '_', field).upper()  # replacing inappropriate characters for file path
+                                                    # and upper()
 
         return field
 

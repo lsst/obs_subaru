@@ -1,5 +1,7 @@
 #!/usr/bin/env python
-import argparse, re, sys
+import argparse
+import re
+import sys
 import lsst.obs.hsc as obs_hsc
 import lsst.afw.cameraGeom.utils as cameraGeomUtils
 from lsst.afw.cameraGeom import Camera
@@ -61,7 +63,7 @@ def displayCamera(args):
         elif dName.startswith('0'):
             raftMap['0'].append(dName)
         else:
-           raise RuntimeError("Did not recognize detector name")
+            raise RuntimeError("Did not recognize detector name")
 
     if args.showRaft:
         frame = 0

@@ -40,7 +40,8 @@ def formatVisits(visits):
         v0 = -1
 
         while i < len(visits):
-            v = visits[i]; i += 1
+            v = visits[i]
+            i += 1
             if v0 < 0:
                 v0 = v
                 dv = -1                 # visit stride
@@ -71,7 +72,8 @@ def formatVisits(visits):
 
 def queryRegistry(field=None, visit=None, filterName=None, summary=False):
     """Query an input registry"""
-    where = []; vals = []
+    where = []
+    vals = []
     if field:
         where.append('field like ?')
         vals.append(field.replace("*", "%"))
@@ -91,7 +93,9 @@ GROUP BY visit
 ORDER BY max(filter), visit
 """ % (where)
 
-    n = {}; expTimes = {}; visits = {}
+    n = {}
+    expTimes = {}
+    visits = {}
 
     conn = sqlite.connect(registryFile)
 
@@ -132,7 +136,8 @@ ORDER BY max(filter), visit
 
 def queryCalibRegistry(what, filterName=None, summary=False):
     """Query a calib registry"""
-    where = []; vals = []
+    where = []
+    vals = []
 
     if filterName:
         where.append('filter like ?')
@@ -147,8 +152,6 @@ FROM %s
 GROUP BY filter, calibDate
 ORDER BY filter, calibDate
 """ % (what, where)
-
-    n = {}; expTimes = {}; visits = {}
 
     conn = sqlite.connect(registryFile)
 

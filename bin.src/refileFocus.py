@@ -19,7 +19,6 @@ import glob
 import os
 import re
 import shutil
-import sys
 
 import argparse
 

@@ -1,5 +1,8 @@
 #!/usr/bin/env python
-import argparse, os, re, sys
+import argparse
+import os
+import re
+import sys
 
 import numpy as np
 from matplotlib.mlab import griddata
@@ -32,7 +35,7 @@ def getNumDataGrids(xArr, yArr, dataArr, xs, ys):
 
             ndata = 0
             for xc, yc, v in zip(xArr, yArr, dataArr):
-                if xmin <= xc and xc < xmax and ymin <= yc and yc < ymax and (not np.isnan(v)) and v > -9999.0:
+                if xmin <= xc < xmax and ymin <= yc < ymax and (not np.isnan(v)) and v > -9999.0:
                     ndata += 1
             nDataX.append(ndata)
 
@@ -66,9 +69,16 @@ def main(dataDir, visit, title="", outputTxtFileName=None,
     #
     # Read all the tableSeeingMap files, converting their (x, y) to focal plane coordinates
     #
-    xArr = []; yArr = []; ellArr = []; fwhmArr = []
-    paArr = []; aArr = []; bArr = [];
-    e1Arr=[]; e2Arr=[]; elle1e2Arr =[];
+    xArr = []
+    yArr = []
+    ellArr = []
+    fwhmArr = []
+    paArr = []
+    aArr = []
+    bArr = []
+    e1Arr = []
+    e2Arr = []
+    elle1e2Arr = []
     for tab in butler.subset("tableSeeingMap", visit=visit):
         # we could use tab.datasetExists() but it prints a rude message
         fileName = butler.get("tableSeeingMap_filename", **tab.dataId)[0]
