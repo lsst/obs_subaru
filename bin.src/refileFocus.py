@@ -2,15 +2,15 @@
 
 """
 Refile focus chips, which had incorrect DET-ID values for the Jan/Feb 2013 run
-	Old (DET-ID)	Future (Furusawa's note)
-	112		106
-	104		104
-	107		105
-	113		107
-	115		109
-	111		111
-	108		110
-	114		108
+    Old (DET-ID)	Future (Furusawa's note)
+    112		106
+    104		104
+    107		105
+    113		107
+    115		109
+    111		111
+    108		110
+    114		108
 """
 
 #!/usr/bin/env python
@@ -121,4 +121,4 @@ for visit, ccds in visits.items():
             os.rmdir(tmpDir)
 #
 #
-    
+

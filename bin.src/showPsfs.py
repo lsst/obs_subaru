@@ -46,7 +46,7 @@ def main(dataDir, visit, title="", outputTxtFileName=None,
          correctDistortion=False,
          showEllipticity=False, ellipticityDirection=False,
          showNdataFwhm=False, showNdataEll=False,
-         minNdata=None, maxNdata=None, 
+         minNdata=None, maxNdata=None,
          gridPoints=30, verbose=False):
 
     butler = dafPersist.ButlerFactory(mapper=hscSim.HscSimMapper(root=dataDir)).create()

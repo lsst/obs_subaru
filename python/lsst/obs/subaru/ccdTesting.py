@@ -2866,7 +2866,7 @@ def makeFlatImage(im, filter=None, modelVignetting=True, modelJacobian=True, mod
 
     fxy = []
     for xy in [(0,         0),
-               (width - 1, height - 1), 
+               (width - 1, height - 1),
                ]:
         fxy.append(ccd.getPositionFromPixel(afwGeom.PointD(*xy)).getPixels(1.0))
 
@@ -3291,7 +3291,7 @@ def foo(data, visits=(902936, 903332, 902476), ccdIds=[], fig0=1, dfig=1, savefi
             if True:
                 figure = anUtils.plotCalibration(data, selectObjId=anUtils.makeSelectVisit(v, ccds=ccdIds),
                                                  fig=fig, showCamera=showCamera, showZP=showZP,
-                                                 correctJacobian=correctJacobian, 
+                                                 correctJacobian=correctJacobian,
                                                  ymin=pclim[0], ymax=pclim[1], markersize=1.0,
                                                  **kwargs)
                 if savefig:

@@ -75,7 +75,7 @@ def printAmpDefaults(buff):
 def printCcdAmpDefaults(buff):
     # Depending on how much we need to undo the imsplice operation
     # here are the defaults from straight off the camera
-    # 
+    #
     # http://www.cfht.hawaii.edu/Instruments/Imaging/Megacam/specsinformation.html
     # if ccdId < 18:
     #     first  = 'B'
