@@ -2,7 +2,7 @@ import math
 import os
 import re
 import sys
-import matplotlib.pyplot as plt;  pyplot = plt
+import matplotlib.pyplot as plt
 import numpy as np
 try:
     import scipy
@@ -749,7 +749,7 @@ def plotCcdQE(butler, filter, zmin=None, zmax=None, filter2=None, relative=False
     xc, yc = 0.5*md.get("NAXIS1"), 0.5*md.get("NAXIS2")
     ccdCen = afwGeom.PointD(xc, yc)
 
-    norm = pyplot.Normalize(zmin, zmax)
+    norm = plt.Normalize(zmin, zmax)
 
     qe = np.empty_like(ccdIds)
     qe.dtype = float
@@ -773,7 +773,7 @@ def plotCcdQE(butler, filter, zmin=None, zmax=None, filter2=None, relative=False
 
     markersize=100
     sc = axes.scatter(xmm, ymm, c=qe, norm=norm,
-                      cmap=pyplot.cm.rainbow, marker="o", s=markersize, edgecolors="none")
+                      cmap=plt.cm.rainbow, marker="o", s=markersize, edgecolors="none")
     fig.colorbar(sc)
     axes.set_aspect('equal')
     axes.set_xlabel("X/pixels")
@@ -895,10 +895,10 @@ def plotCcdZP(butler, visit, correctJacobian=False, zlim=(None, None), visit2=No
         else:
             zlim = np.median(zp) + np.array([-zlim, zlim])
 
-    norm = pyplot.Normalize(*zlim)
+    norm = plt.Normalize(*zlim)
 
     sc = axes.scatter(xmm, ymm, c=zp, norm=norm,
-                      cmap=pyplot.cm.rainbow, marker="o", s=markersize, edgecolors="none")
+                      cmap=plt.cm.rainbow, marker="o", s=markersize, edgecolors="none")
     fig.colorbar(sc)
     axes.set_aspect('equal')
     axes.set_xlabel("X/pixels")
@@ -940,17 +940,17 @@ def plotCcdTemperatures(butler, visit):
         temp[i] = md.get("T_CCDTV")
 
 
-    pyplot.clf()
+    plt.clf()
 
     markersize=100
-    pyplot.scatter(xmm, ymm, c=temp,
-                   cmap=pyplot.cm.rainbow, marker="o", s=markersize,
+    plt.scatter(xmm, ymm, c=temp,
+                   cmap=plt.cm.rainbow, marker="o", s=markersize,
                    edgecolors="none")
-    pyplot.colorbar()
-    pyplot.axes().set_aspect('equal')
-    pyplot.xlabel("X/pixels")
-    pyplot.ylabel("Y/pixels")
-    pyplot.title("CCD Temperatures ($^\circ$C), visit %d" % (visit))
+    plt.colorbar()
+    plt.axes().set_aspect('equal')
+    plt.xlabel("X/pixels")
+    plt.ylabel("Y/pixels")
+    plt.title("CCD Temperatures ($^\circ$C), visit %d" % (visit))
 
 #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
@@ -2776,9 +2776,9 @@ def getPixelArea(camera, X, Y):
         det[i] = dist.computeQuadrupoleTransform(afwGeom.PointD(0, br[i]), False).computeDeterminant()
 
     if False:
-        pyplot.clf()
-        pyplot.plot(br, det)
-        pyplot.show()
+        plt.clf()
+        plt.plot(br, det)
+        plt.show()
 
     area = np.reshape(np.interp(r.flatten(), br, det), X.shape) # better interpolation's in scipy
 
