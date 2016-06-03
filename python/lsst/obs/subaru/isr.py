@@ -86,6 +86,7 @@ class NullCrosstalkTask(Task):
 class SubaruIsrConfig(IsrTask.ConfigClass):
     qa = pexConfig.ConfigField(doc="QA-related config options", dtype=QaConfig)
     doSaturation = pexConfig.Field(doc="Mask saturated pixels?", dtype=bool, default=True)
+    doSuspect = pexConfig.Field(doc="Mask suspect pixels?", dtype=bool, default=True)
     doWidenSaturationTrails = pexConfig.Field(doc="Widen bleed trails based on their width?",
                                               dtype=bool, default=True)
     doOverscan = pexConfig.Field(doc="Do overscan subtraction?", dtype=bool, default=True)
@@ -100,12 +101,6 @@ class SubaruIsrConfig(IsrTask.ConfigClass):
     doCrosstalk = pexConfig.Field(
         dtype = bool,
         doc = "Correct for crosstalk",
-        default = True,
-    )
-    doLinearize = pexConfig.Field(
-        dtype = bool,
-        doc = "Correct for nonlinearity of the detector's response and set suspect level " \
-                "(ignored if coefficients are 0.0)",
         default = True,
     )
     doApplyGains = pexConfig.Field(
@@ -246,6 +241,8 @@ class SubaruIsrTask(IsrTask):
             self.measureOverscan(ccdExposure, amp)
             if self.config.doSaturation and not badAmp:
                 self.saturationDetection(ccdExposure, amp)
+            if self.config.doSuspect and not badAmp:
+                self.suspectDetection(ccdExposure, amp)
             if self.config.doOverscan and not badAmp:
                 ampImage = afwImage.MaskedImageF(ccdExposure.getMaskedImage(), amp.getRawDataBBox(),
                                                  afwImage.PARENT)
@@ -551,18 +548,10 @@ class SubaruIsrTask(IsrTask):
             ampImage = afwImage.MaskedImageF(exposure.getMaskedImage(), amp.getBBox(),
                                                  afwImage.PARENT)
 
-            setSuspectPixels = not math.isnan(linearityMaxCorrectable)
-
-            if not setSuspectPixels and linearityCoefficient == 0.0:
+            if linearityCoefficient == 0.0:
                 continue                # nothing to do
 
             linearized = True
-            #
-            # We may have a max correctable level even if we make no attempt to correct
-            #
-            if setSuspectPixels:
-                afwDetection.FootprintSet(ampImage,
-                                          afwDetection.Threshold(linearityMaxCorrectable), "SUSPECT")
 
             if linearityType == 'PROPORTIONAL':
                 if linearityThreshold != 0.0:
