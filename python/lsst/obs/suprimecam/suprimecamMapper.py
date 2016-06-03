@@ -6,7 +6,9 @@ import lsst.daf.base as dafBase
 import lsst.afw.geom as afwGeom
 import lsst.afw.image.utils as afwImageUtils
 
+from lsst.daf.persistence import ButlerLocation
 from lsst.daf.butlerUtils import CameraMapper
+from lsst.ip.isr import LinearizeSquared
 import lsst.pex.policy as pexPolicy
 
 class SuprimecamMapperBase(CameraMapper):
@@ -14,6 +16,8 @@ class SuprimecamMapperBase(CameraMapper):
 
     def __init__(self, *args, **kwargs):
         super(SuprimecamMapperBase, self).__init__(*args, **kwargs)
+
+        self._linearize = LinearizeSquared()
 
         # Ensure each dataset type of interest knows about the full range of keys available from the registry
         keys = {'field': str,
@@ -216,6 +220,27 @@ class SuprimecamMapperBase(CameraMapper):
 
     def bypass_ccdExposureId_bits(self, datasetType, pythonType, location, dataId):
         return 32 # not really, but this leaves plenty of space for sources
+
+    def map_linearize(self, dataId, write=False):
+        """Map a linearizer."""
+        if self._linearize is None:
+            raise RuntimeError("No linearizer available.")
+        actualId = self._transformId(dataId)
+        return ButlerLocation(
+            pythonType = "lsst.ip.isr.LinearizeSquared",
+            cppType = "Config",
+            storageName = "PickleStorage",
+            locationList = "ignored",
+            dataId = actualId,
+            mapper = self,
+        )
+
+    def bypass_linearize(self, datasetType, pythonType, butlerLocation, dataId):
+        """Return the linearizer.
+        """
+        if self._linearize is None:
+            raise RuntimeError("No linearizer available.")
+        return self._linearize
 
     def _computeStackExposureId(self, dataId):
         """Compute the 64-bit (long) identifier for a Stack exposure.
