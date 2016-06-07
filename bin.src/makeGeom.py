@@ -21,7 +21,7 @@
 # the GNU General Public License along with this program.  If not,
 # see <https://www.lsstcorp.org/LegalNotices/>.
 #
-import pyfits
+import astropy.io.fits as pyfits
 import sys
 import re
 import os

@@ -5,7 +5,7 @@ import os.path
 import re
 
 import numpy
-import pyfits
+import astropy.io.fits as pyfits
 import collections
 
 from lsst.obs.hsc import HscMapper

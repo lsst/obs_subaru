@@ -3,7 +3,7 @@ setupRequired(daf_butlerUtils)
 setupRequired(skypix)
 setupRequired(pipe_tasks)
 setupRequired(meas_astrom)
-setupRequired(pyfits)
+setupRequired(astropy)
 setupRequired(sconsUtils)
 
 setupOptional(meas_modelfit)

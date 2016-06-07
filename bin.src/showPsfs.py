@@ -243,7 +243,7 @@ def main(dataDir, visit, title="", outputTxtFileName=None,
     plt.axis([-20000, 20000, -20000, 20000])
 
     def frameInfoFrom(filepath):
-        import pyfits
+        import astropy.io.fits as pyfits
         with pyfits.open(filepath) as hdul:
             h = hdul[0].header
             'object=ABELL2163 filter=HSC-I exptime=360.0 alt=62.11143274 azm=202.32265181 hst=(23:40:08.363-23:40:48.546)'
