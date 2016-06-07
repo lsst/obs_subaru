@@ -38,12 +38,12 @@ def datetime2mjd(date_time):
 
     dd = DD + (HH/24.0 + MI/24.0/60.0 + SS/24.0/3600.0)
 
-    A = int(365.25*yy);
-    B = int(yy/400.0);
-    C = int(yy/100.0);
-    D = int(30.59*(mm-2));
+    A = int(365.25*yy)
+    B = int(yy/400.0)
+    C = int(yy/100.0)
+    D = int(30.59*(mm-2))
 
-    mjd = A + B -C + D  + dd - 678912;
+    mjd = A + B -C + D  + dd - 678912
 
     return mjd
 
@@ -56,7 +56,8 @@ class HscParseTask(ParseTask):
         field = md.get("OBJECT").strip()
         if field == "#":
             field = "UNKNOWN"
-        field = re.sub(r'\W', '_', field).upper() # replacing inappropriate characters for file path and upper()
+        field = re.sub(r'\W', '_', field).upper()  # replacing inappropriate characters for file path
+                                                    # and upper()
 
         return field
 

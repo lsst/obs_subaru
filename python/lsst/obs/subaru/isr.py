@@ -1,8 +1,8 @@
-# 
+#
 # LSST Data Management System
 #
 # Copyright 2008-2016 AURA/LSST.
-# 
+#
 # This product includes software developed by the
 # LSST Project (http://www.lsst.org/).
 #
@@ -10,36 +10,33 @@
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
-# You should have received a copy of the LSST License Statement and 
-# the GNU General Public License along with this program.  If not, 
+#
+# You should have received a copy of the LSST License Statement and
+# the GNU General Public License along with this program.  If not,
 # see <https://www.lsstcorp.org/LegalNotices/>.
 #
 import os
 import math
-import numpy
 import errno
 
-from contextlib import contextmanager
+import numpy
 
 from lsst.pex.config import Field
 from lsst.pipe.base import Task, Struct
 from lsst.ip.isr import IsrTask
 from lsst.ip.isr import isr as lsstIsr
 import lsst.pex.config as pexConfig
-import lsst.afw.cameraGeom as afwCG
 import lsst.afw.detection as afwDetection
 import lsst.afw.image as afwImage
 import lsst.afw.geom as afwGeom
 import lsst.afw.math as afwMath
 from lsst.afw.display.rgb import makeRGB
 from lsst.obs.subaru.crosstalkYagi import YagiCrosstalkTask
-import lsst.meas.algorithms as measAlg
 import lsst.afw.display.ds9 as ds9
 from lsst.obs.hsc.vignette import VignetteConfig
 from lsst.afw.geom.polygon import Polygon
@@ -86,6 +83,7 @@ class NullCrosstalkTask(Task):
 class SubaruIsrConfig(IsrTask.ConfigClass):
     qa = pexConfig.ConfigField(doc="QA-related config options", dtype=QaConfig)
     doSaturation = pexConfig.Field(doc="Mask saturated pixels?", dtype=bool, default=True)
+    doSuspect = pexConfig.Field(doc="Mask suspect pixels?", dtype=bool, default=True)
     doWidenSaturationTrails = pexConfig.Field(doc="Widen bleed trails based on their width?",
                                               dtype=bool, default=True)
     doOverscan = pexConfig.Field(doc="Do overscan subtraction?", dtype=bool, default=True)
@@ -100,12 +98,6 @@ class SubaruIsrConfig(IsrTask.ConfigClass):
     doCrosstalk = pexConfig.Field(
         dtype = bool,
         doc = "Correct for crosstalk",
-        default = True,
-    )
-    doLinearize = pexConfig.Field(
-        dtype = bool,
-        doc = "Correct for nonlinearity of the detector's response and set suspect level " \
-                "(ignored if coefficients are 0.0)",
         default = True,
     )
     doApplyGains = pexConfig.Field(
@@ -203,10 +195,10 @@ class SubaruIsrTask(IsrTask):
             x = self.config.vignette.radius*numpy.cos(theta) + self.config.vignette.xCenter
             y = self.config.vignette.radius*numpy.sin(theta) + self.config.vignette.yCenter
             points = numpy.array([x, y]).transpose()
-            self.vignettePolygon = Polygon([afwGeom.Point2D(x, y) for x, y in reversed(points)])
+            self.vignettePolygon = Polygon([afwGeom.Point2D(x1, y1) for x1, y1 in reversed(points)])
 
     def runDataRef(self, sensorRef):
-        self.log.log(self.log.INFO, "Performing ISR on sensor %s" % (sensorRef.dataId))
+        self.log.info("Performing ISR on sensor %s" % (sensorRef.dataId))
         ccdExposure = sensorRef.get('raw')
 
         if self.config.removePcCards: # Remove any PC00N00M cards in the header
@@ -221,7 +213,7 @@ class SubaruIsrTask(IsrTask):
                             nPc += 1
 
             if nPc:
-                self.log.log(self.log.INFO, "Recreating Wcs after stripping PC00n00m" % (sensorRef.dataId))
+                self.log.info("Recreating Wcs after stripping PC00n00m" % (sensorRef.dataId))
                 ccdExposure.setWcs(afwImage.makeWcs(raw_md))
 
         ccdExposure = self.convertIntToFloat(ccdExposure)
@@ -246,6 +238,8 @@ class SubaruIsrTask(IsrTask):
             self.measureOverscan(ccdExposure, amp)
             if self.config.doSaturation and not badAmp:
                 self.saturationDetection(ccdExposure, amp)
+            if self.config.doSuspect and not badAmp:
+                self.suspectDetection(ccdExposure, amp)
             if self.config.doOverscan and not badAmp:
                 ampImage = afwImage.MaskedImageF(ccdExposure.getMaskedImage(), amp.getRawDataBBox(),
                                                  afwImage.PARENT)
@@ -395,8 +389,10 @@ class SubaruIsrTask(IsrTask):
                     x0 -= xmin + extraGrow
                     x1 -= xmin - extraGrow
 
-                    if x0 < 0: x0 = 0
-                    if x1 >= width - 1: x1 = width - 1
+                    if x0 < 0:
+                        x0 = 0
+                    if x1 >= width - 1:
+                        x1 = width - 1
 
                     for x in range(x0, x1 + 1):
                         mask.set(x, y, mask.get(x, y) | saturatedBit)
@@ -545,24 +541,15 @@ class SubaruIsrTask(IsrTask):
         for amp in ccd:
             linearityCoefficient = amp.getLinearityCoeffs()[0]
             linearityThreshold = amp.getLinearityCoeffs()[1]
-            linearityMaxCorrectable = amp.getSuspectLevel()
             linearityType = amp.getLinearityType()
 
             ampImage = afwImage.MaskedImageF(exposure.getMaskedImage(), amp.getBBox(),
                                                  afwImage.PARENT)
 
-            setSuspectPixels = not math.isnan(linearityMaxCorrectable)
-
-            if not setSuspectPixels and linearityCoefficient == 0.0:
+            if linearityCoefficient == 0.0:
                 continue                # nothing to do
 
             linearized = True
-            #
-            # We may have a max correctable level even if we make no attempt to correct
-            #
-            if setSuspectPixels:
-                afwDetection.FootprintSet(ampImage,
-                                          afwDetection.Threshold(linearityMaxCorrectable), "SUSPECT")
 
             if linearityType == 'PROPORTIONAL':
                 if linearityThreshold != 0.0:
@@ -576,7 +563,7 @@ class SubaruIsrTask(IsrTask):
                 raise NotImplementedError("Unimplemented linearity type: %d", linearityType)
 
         if linearized:
-            self.log.log(self.log.INFO, "Applying linearity corrections to Ccd %s" % (ccd.getId()))
+            self.log.info("Applying linearity corrections to Ccd %s" % (ccd.getId()))
 
 
     def flatCorrection(self, exposure, flatExposure):
@@ -655,7 +642,7 @@ class SuprimeCamIsrTask(SubaruIsrTask):
 
         md = exposure.getMetadata()
         if not md.exists("S_AG-X"):
-            self.log.log(self.log.WARN, "No autoguider position in exposure metadata.")
+            self.log.warn("No autoguider position in exposure metadata.")
             return
 
         xGuider = md.get("S_AG-X")
@@ -673,7 +660,7 @@ class SuprimeCamIsrTask(SubaruIsrTask):
 
         if False:
             # XXX This mask plane isn't respected by background subtraction or source detection or measurement
-            self.log.log(self.log.INFO, "Masking autoguider shadow at y > %d" % maskLimit)
+            self.log.info("Masking autoguider shadow at y > %d" % maskLimit)
             mask = mi.getMask()
             bbox = afwGeom.Box2I(afwGeom.Point2I(0, maskLimit - 1),
                                  afwGeom.Point2I(mask.getWidth() - 1, height - 1))
@@ -685,7 +672,7 @@ class SuprimeCamIsrTask(SubaruIsrTask):
             badMask |= badBitmask
         else:
             # XXX Temporary solution until a mask plane is respected by downstream processes
-            self.log.log(self.log.INFO, "Removing pixels affected by autoguider shadow at y > %d" % maskLimit)
+            self.log.info("Removing pixels affected by autoguider shadow at y > %d" % maskLimit)
             bbox = afwGeom.Box2I(afwGeom.Point2I(0, 0), afwGeom.Extent2I(mi.getWidth(), maskLimit))
             good = mi.Factory(mi, bbox, afwImage.LOCAL)
             exposure.setMaskedImage(good)
@@ -712,7 +699,7 @@ class SuprimeCamMitIsrTask(SubaruIsrTask):
 
         md = exposure.getMetadata()
         if not md.exists("S_AG-X"):
-            self.log.log(self.log.WARN, "No autoguider position in exposure metadata.")
+            self.log.warn("No autoguider position in exposure metadata.")
             return
 
         xGuider = md.get("S_AG-X")
@@ -730,7 +717,7 @@ class SuprimeCamMitIsrTask(SubaruIsrTask):
 
         if False:
             # XXX This mask plane isn't respected by background subtraction or source detection or measurement
-            self.log.log(self.log.INFO, "Masking autoguider shadow at y > %d" % maskLimit)
+            self.log.info("Masking autoguider shadow at y > %d" % maskLimit)
             mask = mi.getMask()
             bbox = afwGeom.Box2I(afwGeom.Point2I(0, maskLimit - 1),
                                  afwGeom.Point2I(mask.getWidth() - 1, height - 1))
@@ -742,7 +729,7 @@ class SuprimeCamMitIsrTask(SubaruIsrTask):
             badMask |= badBitmask
         else:
             # XXX Temporary solution until a mask plane is respected by downstream processes
-            self.log.log(self.log.INFO, "Removing pixels affected by autoguider shadow at y > %d" % maskLimit)
+            self.log.info("Removing pixels affected by autoguider shadow at y > %d" % maskLimit)
             bbox = afwGeom.Box2I(afwGeom.Point2I(0, 0), afwGeom.Extent2I(mi.getWidth(), maskLimit))
             good = mi.Factory(mi, bbox, afwImage.LOCAL)
             exposure.setMaskedImage(good)

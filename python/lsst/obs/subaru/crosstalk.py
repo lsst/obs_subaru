@@ -1,7 +1,7 @@
-# 
+#
 # LSST Data Management System
 # Copyright 2008-2016 AURA/LSST.
-# 
+#
 # This product includes software developed by the
 # LSST Project (http://www.lsst.org/).
 #
@@ -9,14 +9,14 @@
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
-# You should have received a copy of the LSST License Statement and 
-# the GNU General Public License along with this program.  If not, 
+#
+# You should have received a copy of the LSST License Statement and
+# the GNU General Public License along with this program.  If not,
 # see <https://www.lsstcorp.org/LegalNotices/>.
 #
 """
@@ -32,9 +32,12 @@ coeffs, coeffsErr = crosstalk.estimateCoeffs(butler, range(131634, 131642), rang
                                              plot=True, title="CCD0..9", fig=1)
 crosstalk.fixCcd(butler, 131634, 0, coeffs)
 """
+import sys
 import math
-import numpy as np
 import time
+
+import numpy as np
+
 import lsst.afw.detection as afwDetect
 import lsst.afw.geom as afwGeom
 import lsst.afw.image as afwImage
@@ -173,7 +176,8 @@ def calculateCoeffs(rats, nsigma, plot=False, fig=None, title=None):
 
     for ain in range(nAmp):
         for aout in range(nAmp):
-            tmp = np.array(rats[ain][aout]); tmp.sort()
+            tmp = np.array(rats[ain][aout])
+            tmp.sort()
             for i in range(3):
                 n = len(tmp)
                 med = tmp[int(0.5*n)]
@@ -231,8 +235,8 @@ def subtractXTalk(mi, coeffs, minPixelToMask=45000, crosstalkStr="CROSSTALK"):
 
         mi.getMask().addMaskPlane(crosstalkStr)
         afwDisplay.getDisplay().setMaskPlaneColor(crosstalkStr, afwDisplay.MAGENTA)
-        fs.setMask(mi.getMask(), crosstalkStr) # the crosstalkStr bit will now be set whenever
-                                               # we subtract crosstalk
+        fs.setMask(mi.getMask(), crosstalkStr)  # the crosstalkStr bit will now be set whenever
+                                                # we subtract crosstalk
         crosstalk = mi.getMask().getPlaneBitMask(crosstalkStr)
 
         width, height = mi.getDimensions()
@@ -385,7 +389,8 @@ def readImage(butler, **kwargs):
         return butler.get("calexp", **kwargs).getMaskedImage()
     except Exception, e:
         print e
-        import pdb; pdb.set_trace()
+        import pdb
+        pdb.set_trace()
 
 def makeList(x):
     try:
@@ -472,7 +477,7 @@ def getMpFigure(fig=None, clear=True):
         if mpFigures.has_key(i):
             try:
                 lift(mpFigures[i])
-            except Exception, e:
+            except Exception:
                 del mpFigures[i]
 
         if not mpFigures.has_key(i):
@@ -487,7 +492,7 @@ def getMpFigure(fig=None, clear=True):
                 _show(self)
                 try:
                     lift(self)
-                except Exception, e:
+                except Exception:
                     pass
             # create a bound method
             import types

@@ -55,7 +55,7 @@ for f in glob.glob(os.path.join(args.root, "*", "defects*.fits")):
     startDate = m.group(1).split('/')[-1]
     version = m.group(1)
     ccd = m.group(2)
-    if not ccd in rowsPerCcd:
+    if ccd not in rowsPerCcd:
         rowsPerCcd[ccd] = []
     rowsPerCcd[ccd].append(Row(f, version, startDate))
 

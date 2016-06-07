@@ -4,10 +4,12 @@ import os
 
 import lsst.daf.base as dafBase
 from lsst.daf.butlerUtils import CameraMapper
+from lsst.daf.persistence import ButlerLocation
 import lsst.afw.image.utils as afwImageUtils
 import lsst.afw.image as afwImage
 import lsst.afw.math as afwMath
 import lsst.afw.geom as afwGeom
+from lsst.ip.isr import LinearizeSquared
 import lsst.pex.policy as pexPolicy
 
 class HscMapper(CameraMapper):
@@ -26,6 +28,8 @@ class HscMapper(CameraMapper):
             kwargs['calibRoot'] = os.path.join(kwargs['root'], 'CALIB')
 
         super(HscMapper, self).__init__(policy, policyFile.getRepositoryPath(), **kwargs)
+
+        self._linearize = LinearizeSquared()
 
         # Ensure each dataset type of interest knows about the full range of keys available from the registry
         keys = {'field': str,
@@ -254,6 +258,27 @@ Most chips are flipped L/R, but the rotated ones (100..103) are flipped T/B
     def bypass_ccdExposureId_bits(self, datasetType, pythonType, location, dataId):
         """How many bits are required for the maximum exposure ID"""
         return 32 # just a guess, but this leaves plenty of space for sources
+
+    def map_linearize(self, dataId, write=False):
+        """Map a linearizer."""
+        if self._linearize is None:
+            raise RuntimeError("No linearizer available.")
+        actualId = self._transformId(dataId)
+        return ButlerLocation(
+            pythonType = "lsst.ip.isr.LinearizeSquared",
+            cppType = "Config",
+            storageName = "PickleStorage",
+            locationList = "ignored",
+            dataId = actualId,
+            mapper = self,
+        )
+
+    def bypass_linearize(self, datasetType, pythonType, butlerLocation, dataId):
+        """Return the linearizer.
+        """
+        if self._linearize is None:
+            raise RuntimeError("No linearizer available.")
+        return self._linearize
 
     def _computeCoaddExposureId(self, dataId, singleFilter):
         """Compute the 64-bit (long) identifier for a coadd.

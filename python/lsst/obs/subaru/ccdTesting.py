@@ -2,7 +2,7 @@ import math
 import os
 import re
 import sys
-import matplotlib.pyplot as plt;  pyplot = plt
+import matplotlib.pyplot as plt
 import numpy as np
 try:
     import scipy
@@ -143,10 +143,6 @@ def xcorr(im1, im2, n=5, border=10, frame=None):
     ims = [im1, im2]
     for i, im in enumerate(ims):
         ccd = im.getDetector()
-        try:
-            frameId = int(re.sub(r"^SUPA0*", "", im.getMetadata().get("FRAMEID")))
-        except:
-            frameId = -1
         #
         # Starting with an Exposure, MaskedImage, or Image trim the data and convert to float
         #
@@ -485,8 +481,6 @@ def dumpCameraElectronicParams(camera, nIndent=0, dIndent=4, outFile=None):
     else:
         fd = sys.stdout
 
-    dindent = "%*s" % (dIndent, "")
-
     print >> fd, """\
 #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 #
@@ -560,28 +554,28 @@ def estimatePupilIllumination(mi, centers=(( -34,   93), ( 131, -192), (-195, -1
 #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 def removeCRs(mi, background=None, crNGrow=1):
-   #
-   # Estimate the PSF
-   #
-   FWHM = 5                      # pixels
-   psf = measAlg.DoubleGaussianPsf(29, 29, FWHM/(2*math.sqrt(2*math.log(2))))
+    #
+    # Estimate the PSF
+    #
+    FWHM = 5                      # pixels
+    psf = measAlg.DoubleGaussianPsf(29, 29, FWHM/(2*math.sqrt(2*math.log(2))))
 
-   if not hasattr(mi, "getImage"):
-       mi = afwImage.makeMaskedImage(mi)
-       mi.getVariance()[:] = mi.getImage()
+    if not hasattr(mi, "getImage"):
+        mi = afwImage.makeMaskedImage(mi)
+        mi.getVariance()[:] = mi.getImage()
 
-   if background is None:
-       background = afwMath.makeStatistics(mi.getImage(), afwMath.MEANCLIP).getValue()
-       background = min(background, 100)
+    if background is None:
+        background = afwMath.makeStatistics(mi.getImage(), afwMath.MEANCLIP).getValue()
+        background = min(background, 100)
 
-   crConfig = measAlg.FindCosmicRaysConfig()
-   if True:
-       crConfig.nCrPixelMax = 1000000
-       crConfig.minSigma = 5
-       crConfig.min_DN = 150
-   crs = measAlg.findCosmicRays(mi, psf, background, pexConfig.makePolicy(crConfig))
+    crConfig = measAlg.FindCosmicRaysConfig()
+    if True:
+        crConfig.nCrPixelMax = 1000000
+        crConfig.minSigma = 5
+        crConfig.min_DN = 150
+    measAlg.findCosmicRays(mi, psf, background, pexConfig.makePolicy(crConfig))
 
-   return mi.getImage()
+    return mi.getImage()
 
 #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
@@ -606,7 +600,8 @@ def XXXremoveCRs(mi, background, maskBit=None, crThreshold=8, crNpixMax=100, crN
                 for s in foot.getSpans():
                     y = s.getY() - y0
                     for x in range(s.getX0() - x0, s.getX1() - x0 + 1):
-                        xv.append(x); yv.append(y)
+                        xv.append(x)
+                        yv.append(y)
 
         im[yv, xv] = background + 0*im[yv, xv] # keep NaNs NaN
         if maskBit is not None:
@@ -622,11 +617,11 @@ def estimateScattering(mi, threshold=2000, nGrow=2, npixMin=35, frame=None, inve
     x0, y0 = mi.getXY0()
 
     im = mi.getImage().getArray()
-    background = im[np.isfinite(im)].flatten(); background.sort()
+    background = im[np.isfinite(im)].flatten()
+    background.sort()
     background = float(background[int(0.5*len(background))])
 
     DETECTED = mi.getMask().getPlaneBitMask("DETECTED")
-    CR = mi.getMask().getPlaneBitMask("CR")
     #
     if True:                            # Mask CCD 33 with its glowing amp
         mi.getImage()[1332:1460, 845:1106] = np.nan
@@ -691,7 +686,8 @@ def estimateDarkCurrent(butler, visits, nSkipRows=35, frame=None):
             rim = raw.getMaskedImage().getImage().convertF()
 
             for a in ccd:
-                rim[a.getAllPixels()] -= afwMath.makeStatistics(rim[a.getBiasSec()], afwMath.MEANCLIP).getValue()
+                rim[a.getAllPixels()] -= afwMath.makeStatistics(rim[a.getBiasSec()],
+                                                                afwMath.MEANCLIP).getValue()
 
             if frame is not None:
                 if True:
@@ -740,8 +736,10 @@ def plotCcdQE(butler, filter, zmin=None, zmax=None, filter2=None, relative=False
             filter = "HSC-%s" % filter
 
         filters.append(filter.upper())
-    filter,     filter2 = filters; del filters
-    filterName, filterName2 = filterNames; del filterNames
+    filter,     filter2 = filters
+    del filters
+    filterName, filterName2 = filterNames
+    del filterNames
 
     visit = butler.queryMetadata("raw_md", "visit", filter=filter)[0]
     ccdIds = butler.queryMetadata('raw', 'visit', ['ccd',], visit=visit)
@@ -751,9 +749,10 @@ def plotCcdQE(butler, filter, zmin=None, zmax=None, filter2=None, relative=False
     xc, yc = 0.5*md.get("NAXIS1"), 0.5*md.get("NAXIS2")
     ccdCen = afwGeom.PointD(xc, yc)
 
-    norm = pyplot.Normalize(zmin, zmax)
+    norm = plt.Normalize(zmin, zmax)
 
-    qe = np.empty_like(ccdIds); qe.dtype = float
+    qe = np.empty_like(ccdIds)
+    qe.dtype = float
     xmm = np.empty_like(qe)
     ymm = np.empty_like(qe)
     for i, ccdId in enumerate(ccdIds):
@@ -770,11 +769,11 @@ def plotCcdQE(butler, filter, zmin=None, zmax=None, filter2=None, relative=False
     # Plotting
     #
     fig = anUtils.getMpFigure(fig)
-    axes = fig.add_axes((0.1, 0.1, 0.85, 0.80));
+    axes = fig.add_axes((0.1, 0.1, 0.85, 0.80))
 
     markersize=100
     sc = axes.scatter(xmm, ymm, c=qe, norm=norm,
-                      cmap=pyplot.cm.rainbow, marker="o", s=markersize, edgecolors="none")
+                      cmap=plt.cm.rainbow, marker="o", s=markersize, edgecolors="none")
     fig.colorbar(sc)
     axes.set_aspect('equal')
     axes.set_xlabel("X/pixels")
@@ -800,7 +799,8 @@ def plotCcdZP(butler, visit, correctJacobian=False, zlim=(None, None), visit2=No
     if not ccdIds:
         ccdIds = butler.queryMetadata('raw', 'visit', ['ccd',], visit=visit[0])
 
-    zp = np.empty_like(ccdIds); zp.dtype = float
+    zp = np.empty_like(ccdIds)
+    zp.dtype = float
     xmm = np.empty_like(zp)
     ymm = np.empty_like(zp)
     for i, ccdId in enumerate(ccdIds):
@@ -884,7 +884,7 @@ def plotCcdZP(butler, visit, correctJacobian=False, zlim=(None, None), visit2=No
     # Plotting
     #
     fig = anUtils.getMpFigure(fig)
-    axes = fig.add_axes((0.1, 0.1, 0.85, 0.80));
+    axes = fig.add_axes((0.1, 0.1, 0.85, 0.80))
 
     markersize=100
     try:
@@ -895,15 +895,15 @@ def plotCcdZP(butler, visit, correctJacobian=False, zlim=(None, None), visit2=No
         else:
             zlim = np.median(zp) + np.array([-zlim, zlim])
 
-    norm = pyplot.Normalize(*zlim)
+    norm = plt.Normalize(*zlim)
 
     sc = axes.scatter(xmm, ymm, c=zp, norm=norm,
-                      cmap=pyplot.cm.rainbow, marker="o", s=markersize, edgecolors="none")
+                      cmap=plt.cm.rainbow, marker="o", s=markersize, edgecolors="none")
     fig.colorbar(sc)
     axes.set_aspect('equal')
     axes.set_xlabel("X/pixels")
     axes.set_ylabel("Y/pixels")
-    title = "Zero Points for %s[%s]" % (", ".join([str(v) for v in visit]), filters[0])
+    title = "Zero Points for %s[%s]" % (", ".join([str(v1) for v1 in visit]), filters[0])
     if visit2:
         title +=  " - %d[%s]" % (visit2, filters[1])
         if median != 0:
@@ -925,7 +925,8 @@ def plotCcdTemperatures(butler, visit):
     camera = butler.get("camera")
     ccdIds = butler.queryMetadata('raw', 'visit', ['ccd',], visit=visit)
 
-    temp = np.empty_like(ccdIds); temp.dtype = float
+    temp = np.empty_like(ccdIds)
+    temp.dtype = float
     xmm = np.empty_like(temp)
     ymm = np.empty_like(temp)
     for i, ccdId in enumerate(ccdIds):
@@ -939,17 +940,17 @@ def plotCcdTemperatures(butler, visit):
         temp[i] = md.get("T_CCDTV")
 
 
-    pyplot.clf()
+    plt.clf()
 
     markersize=100
-    pyplot.scatter(xmm, ymm, c=temp,
-                   cmap=pyplot.cm.rainbow, marker="o", s=markersize,
+    plt.scatter(xmm, ymm, c=temp,
+                   cmap=plt.cm.rainbow, marker="o", s=markersize,
                    edgecolors="none")
-    pyplot.colorbar()
-    pyplot.axes().set_aspect('equal')
-    pyplot.xlabel("X/pixels")
-    pyplot.ylabel("Y/pixels")
-    pyplot.title("CCD Temperatures ($^\circ$C), visit %d" % (visit))
+    plt.colorbar()
+    plt.axes().set_aspect('equal')
+    plt.xlabel("X/pixels")
+    plt.ylabel("Y/pixels")
+    plt.title("CCD Temperatures ($^\circ$C), visit %d" % (visit))
 
 #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
@@ -972,7 +973,8 @@ def subtractBiasNoTrim(exp):
     im = exp.getMaskedImage()
 
     for a in ccd:
-        im[a.getDiskAllPixels()] -= afwMath.makeStatistics(im[a.getRawHorizontalOverscanBBox()], afwMath.MEANCLIP).getValue()
+        im[a.getDiskAllPixels()] -= afwMath.makeStatistics(im[a.getRawHorizontalOverscanBBox()],
+                                                           afwMath.MEANCLIP).getValue()
 
     return exp
 
@@ -2462,7 +2464,6 @@ def getLevel(serial, filter='g', fiddle=False, calculate=False, visit=0, butler=
                 continue
 
             ccd = afwCGUtils.findCcd(cam, serial1)
-            nQuarter = ccd.getOrientation().getNQuarter()
             w1, h1 = ccd.getAllPixels().getDimensions()
 
             cenMM = afwCGUtils.findCcd(cam,
@@ -2491,8 +2492,9 @@ def getLevel(serial, filter='g', fiddle=False, calculate=False, visit=0, butler=
             else:
                 try:
                     val = np.median(im.getImage().getArray())
-                except Exception as e:
-                    import pdb; pdb.set_trace()
+                except Exception:
+                    import pdb
+                    pdb.set_trace()
                     pass
 
             if False:
@@ -2516,7 +2518,7 @@ def getLevel(serial, filter='g', fiddle=False, calculate=False, visit=0, butler=
 
 def findCanonical(serial, edges, seen=None, scale=1.0, canonical=50, verbose=False):
     """Find a path to the "canonical" CCD via the pairs of adjacent CCD edges defined in edges[]"""
-    if seen == None:
+    if seen is None:
         seen = []
 
     if serial == canonical:
@@ -2691,7 +2693,7 @@ def writeObsTable(butler, mos, LaTeX=False):
     for k in ["date", "start", "exptime", "filter"]:
         if summary.values()[0].has_key(k):
             fields.append(k)
-    fields.append("comment");
+    fields.append("comment")
 
     if LaTeX:
         print r"\begin{longtable}{*{%d}{l}}" % (len(fields))
@@ -2774,9 +2776,9 @@ def getPixelArea(camera, X, Y):
         det[i] = dist.computeQuadrupoleTransform(afwGeom.PointD(0, br[i]), False).computeDeterminant()
 
     if False:
-        pyplot.clf()
-        pyplot.plot(br, det)
-        pyplot.show()
+        plt.clf()
+        plt.plot(br, det)
+        plt.show()
 
     area = np.reshape(np.interp(r.flatten(), br, det), X.shape) # better interpolation's in scipy
 
@@ -2866,7 +2868,7 @@ def makeFlatImage(im, filter=None, modelVignetting=True, modelJacobian=True, mod
 
     fxy = []
     for xy in [(0,         0),
-               (width - 1, height - 1), 
+               (width - 1, height - 1),
                ]:
         fxy.append(ccd.getPositionFromPixel(afwGeom.PointD(*xy)).getPixels(1.0))
 
@@ -3083,8 +3085,10 @@ def plotRadialFilterData(what, filters="grizy", doSpline=False):
         elif what == "lambda":
             y = filterData[b]["lambda_bar"]
             n = len(y)
-            xvec = np.empty(2*n);  yvec = np.empty_like(xvec)
-            xvec[0:n] = filterR;  xvec[n:] = filterR[::-1]
+            xvec = np.empty(2*n)
+            yvec = np.empty_like(xvec)
+            xvec[0:n] = filterR
+            xvec[n:] = filterR[::-1]
 
             if ymin is None:
                 ymin, ymax = 1e30, -1e30
@@ -3100,7 +3104,7 @@ def plotRadialFilterData(what, filters="grizy", doSpline=False):
 
                 ymin, ymax = (min(ymin, np.min(yvec)), max(ymax, np.max(yvec)))
         else:
-            raiseRuntimeError("You can't get here")
+            raise RuntimeError("You can't get here")
 
         plt.plot(filterR, y, color=filterColor[b], label=b)
         plt.plot(filterR, y, "o", color=filterColor[b])
@@ -3118,7 +3122,7 @@ def plotRadialFilterData(what, filters="grizy", doSpline=False):
         d = ymax - ymin
         plt.ylim(ymin - 0.1*d, ymax + 0.1*d)
     else:
-        raiseRuntimeError("You can't get here")
+        raise RuntimeError("You can't get here")
 
     legend = plt.legend(loc="best")
     if legend:
@@ -3127,8 +3131,6 @@ def plotRadialFilterData(what, filters="grizy", doSpline=False):
 
 def makeNewFlats(butler, calibDir, filter, modelVignetting=True, modelJacobian=True, modelQE=True,
                  modelGain=True, modelFilter=True, visit=None, ccdList=None):
-    camera = butler.get("camera")
-
     if not os.path.exists(calibDir):
         os.makedirs(calibDir)
 
@@ -3291,7 +3293,7 @@ def foo(data, visits=(902936, 903332, 902476), ccdIds=[], fig0=1, dfig=1, savefi
             if True:
                 figure = anUtils.plotCalibration(data, selectObjId=anUtils.makeSelectVisit(v, ccds=ccdIds),
                                                  fig=fig, showCamera=showCamera, showZP=showZP,
-                                                 correctJacobian=correctJacobian, 
+                                                 correctJacobian=correctJacobian,
                                                  ymin=pclim[0], ymax=pclim[1], markersize=1.0,
                                                  **kwargs)
                 if savefig:

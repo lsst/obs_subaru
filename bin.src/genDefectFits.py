@@ -8,10 +8,8 @@ import numpy
 import pyfits
 import collections
 
-import lsst.pex.policy as pexPolicy
 from lsst.obs.hsc import HscMapper
 from lsst.obs.suprimecam import SuprimecamMapper, SuprimecamMapperMit
-import lsst.afw.cameraGeom.utils as afwCGU
 
 Defect = collections.namedtuple('Defect', ['x0', 'y0', 'width', 'height'])
 mapperMap = {'hsc': HscMapper, 'suprimecam': SuprimecamMapper, 'suprimecam_mit': SuprimecamMapperMit}

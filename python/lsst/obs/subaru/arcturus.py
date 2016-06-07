@@ -62,7 +62,7 @@ class MedianFilterImageWorker(object):
     def __call__(self, v):
         print "Median filtering visit %d" % v
         return v, utils.medianFilterImage(self.mos[-v], self.medianN)
-        
+
 def prepareFrames(mos, frame0=1, R=100, medianN=23, onlyVisits=[], nJob=1, force=False):
     """Prepare frames to have their radial profiles measured.
 Subtract the first quartile
@@ -79,7 +79,7 @@ process every visit in the positions dict
 
     visits0 = visits[:]                 # needed to keep frame numbers aligned
     if not force:
-        visits = [v for v in visits if not -v in mos] # don't process ones we've already seen
+        visits = [v for v in visits if -v not in mos] # don't process ones we've already seen
     if onlyVisits:
         visits = [v for v in visits if v in onlyVisits]
 
@@ -127,7 +127,7 @@ process every visit in the positions dict
             continue
 
         im = mos[-v]
-        
+
         if True:
             ds9.mtv(im, title=v, frame=frame)
         else:
@@ -136,7 +136,7 @@ process every visit in the positions dict
         xc, yc = position[v]
         xc -= im.getX0()
         yc -= im.getY0()
-            
+
         ds9.dot("o", xc, yc, size=R, frame=frame, ctype=ds9.GREEN if yc < im.getHeight() else ds9.RED)
 
 def OLDprepareFrames(mos, frame0=1, R=23, medianN=23, onlyVisits=[], force=False):
@@ -177,7 +177,7 @@ If onlyVisits is specified, only process those chips [n.b. frame0 is still obeye
 
         ima[np.hypot(X - xc, Y - yc) < R] = np.nan
 
-        if force or not -v in mos:
+        if force or -v not in mos:
             im = utils.medianFilterImage(im, medianN)
             mos[-v] = im
         else:
@@ -254,13 +254,13 @@ def plotAnnularAverages(mos, visits, bin=16, useSmoothed=True, weightByR=True, s
             prof *= 2*np.pi*r
 
         print "%d %07.2g" % (v, np.sum(prof))
-            
+
         if showSum:
             if sumProf is None:
                 sumProf = np.zeros_like(prof)
-                
+
             sumProf += prof
-            
+
         pyplot.plot(rbar, prof, label=str(v))
 
     if sumProf is not None:

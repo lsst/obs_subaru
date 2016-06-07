@@ -1,7 +1,7 @@
-# 
+#
 # LSST Data Management System
 # Copyright 2008, 2009, 2010, 2011 LSST Corporation.
-# 
+#
 # This product includes software developed by the
 # LSST Project (http://www.lsst.org/).
 #
@@ -9,14 +9,14 @@
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
-# You should have received a copy of the LSST License Statement and 
-# the GNU General Public License along with this program.  If not, 
+#
+# You should have received a copy of the LSST License Statement and
+# the GNU General Public License along with this program.  If not,
 # see <http://www.lsstcorp.org/LegalNotices/>.
 #
 """
@@ -200,7 +200,8 @@ def getAmplifier(image, amp, ampReference=None, offset=2):
     return ampImage, offsetImage
 
 
-def subtractCrosstalkYagi(mi, coeffs1List, coeffs2List, gainsPreampSig, minPixelToMask=45000, crosstalkStr="CROSSTALK"):
+def subtractCrosstalkYagi(mi, coeffs1List, coeffs2List, gainsPreampSig, minPixelToMask=45000,
+                          crosstalkStr="CROSSTALK"):
     """Subtract the crosstalk from MaskedImage mi given a set of coefficients
        based on procedure presented in Yagi et al. 2012, PASP in publication; arXiv:1210.8212
        The pixels affected by signal over minPixelToMask have the crosstalkStr bit set
@@ -221,7 +222,8 @@ def subtractCrosstalkYagi(mi, coeffs1List, coeffs2List, gainsPreampSig, minPixel
 
         mi.getMask().addMaskPlane(crosstalkStr)
         ds9.setMaskPlaneColor(crosstalkStr, ds9.MAGENTA)
-        fs.setMask(mi.getMask(), crosstalkStr) # the crosstalkStr bit will now be set whenever we subtract crosstalk
+        fs.setMask(mi.getMask(), crosstalkStr)  # the crosstalkStr bit will now be set
+                                                # whenever we subtract crosstalk
         crosstalk = mi.getMask().getPlaneBitMask(crosstalkStr)
 
     if True:
