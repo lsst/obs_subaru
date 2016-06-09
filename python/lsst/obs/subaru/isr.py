@@ -279,8 +279,10 @@ class SubaruIsrTask(IsrTask):
         if self.config.doBias:
             biasExposure = self.getIsrExposure(sensorRef, "bias")
             self.biasCorrection(ccdExposure, biasExposure)
-        if self.config.doLinearize:
-            self.linearize(ccdExposure)
+        if self.doLinearize(ccd):
+            # immediate=True required for functors and linearizers are functors; see ticket DM-6515
+            linearizer = sensorRef.get("linearizer", immediate=True)
+            linearizer(image=ccdExposure.getMaskedImage().getImage(), detector=ccd, log=self.log)
         if self.config.doCrosstalk:
             self.crosstalk.run(ccdExposure)
 
@@ -522,48 +524,6 @@ class SubaruIsrTask(IsrTask):
         raise NotImplementedError(
             "Guider shadow trimming is enabled but no generic implementation is present"
             )
-
-    def linearize(self, exposure):
-        """Correct for non-linearity
-
-        @param exposure Exposure to process
-        """
-        assert exposure, "No exposure provided"
-
-        ccd = exposure.getDetector()
-
-        if ccd.getSerial() in map(str, range(104, 112)):
-            self.log.warn("Skipping linearity correction for focus CCD %s: no coefficients available" %
-                          (ccd.getSerial(),))
-            return
-
-        linearized = False              # did we apply linearity corrections?
-        for amp in ccd:
-            linearityCoefficient = amp.getLinearityCoeffs()[0]
-            linearityThreshold = amp.getLinearityCoeffs()[1]
-            linearityType = amp.getLinearityType()
-
-            ampImage = afwImage.MaskedImageF(exposure.getMaskedImage(), amp.getBBox(),
-                                                 afwImage.PARENT)
-
-            if linearityCoefficient == 0.0:
-                continue                # nothing to do
-
-            linearized = True
-
-            if linearityType == 'PROPORTIONAL':
-                if linearityThreshold != 0.0:
-                    raise RuntimeError(
-                        ("The threshold for PROPORTIONAL linearity corrections must be 0; saw %g" +
-                         " for ccd %s amp %s") % (linearityThreshold, ccd.getId(), amp.getName()))
-
-                ampArr = ampImage.getImage().getArray()
-                ampArr *= 1.0 + linearityCoefficient*ampArr
-            else:
-                raise NotImplementedError("Unimplemented linearity type: %d", linearityType)
-
-        if linearized:
-            self.log.info("Applying linearity corrections to Ccd %s" % (ccd.getId()))
 
 
     def flatCorrection(self, exposure, flatExposure):

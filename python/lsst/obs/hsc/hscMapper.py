@@ -259,7 +259,7 @@ Most chips are flipped L/R, but the rotated ones (100..103) are flipped T/B
         """How many bits are required for the maximum exposure ID"""
         return 32 # just a guess, but this leaves plenty of space for sources
 
-    def map_linearize(self, dataId, write=False):
+    def map_linearizer(self, dataId, write=False):
         """Map a linearizer."""
         if self._linearize is None:
             raise RuntimeError("No linearizer available.")
@@ -273,7 +273,7 @@ Most chips are flipped L/R, but the rotated ones (100..103) are flipped T/B
             mapper = self,
         )
 
-    def bypass_linearize(self, datasetType, pythonType, butlerLocation, dataId):
+    def bypass_linearizer(self, datasetType, pythonType, butlerLocation, dataId):
         """Return the linearizer.
         """
         if self._linearize is None:

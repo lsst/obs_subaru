@@ -221,7 +221,7 @@ class SuprimecamMapperBase(CameraMapper):
     def bypass_ccdExposureId_bits(self, datasetType, pythonType, location, dataId):
         return 32 # not really, but this leaves plenty of space for sources
 
-    def map_linearize(self, dataId, write=False):
+    def map_linearizer(self, dataId, write=False):
         """Map a linearizer."""
         if self._linearize is None:
             raise RuntimeError("No linearizer available.")
@@ -235,7 +235,7 @@ class SuprimecamMapperBase(CameraMapper):
             mapper = self,
         )
 
-    def bypass_linearize(self, datasetType, pythonType, butlerLocation, dataId):
+    def bypass_linearizer(self, datasetType, pythonType, butlerLocation, dataId):
         """Return the linearizer.
         """
         if self._linearize is None:
