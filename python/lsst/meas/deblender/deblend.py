@@ -212,16 +212,16 @@ class SourceDeblendTask(pipeBase.Task):
                     self.tooManyPeaksKey, self.tooBigKey)))
 
     @pipeBase.timeMethod
-    def run(self, exposure, sources, psf):
+    def run(self, exposure, sources):
         """!
         Run deblend().
 
         @param[in]     exposure Exposure to process
         @param[in,out] sources  SourceCatalog containing sources detected on this exposure.
-        @param[in]     psf      PSF
 
         @return None
         """
+        psf = exposure.getPsf()
         self.deblend(exposure, sources, psf)
 
     def _getPsfFwhm(self, psf, bbox):
