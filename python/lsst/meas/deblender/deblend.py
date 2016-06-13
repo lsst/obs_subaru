@@ -214,7 +214,7 @@ class SourceDeblendTask(pipeBase.Task):
     @pipeBase.timeMethod
     def run(self, exposure, sources):
         """!
-        Run deblend().
+        Get the psf from the provided exposure and then run deblend().
 
         @param[in]     exposure Exposure to process
         @param[in,out] sources  SourceCatalog containing sources detected on this exposure.

@@ -45,7 +45,7 @@ class MyTask(CmdLineTask):
         sources = outsources
         print len(sources), 'sources before deblending'
 
-        self.deblend.run(calexp, sources, psf)
+        self.deblend.run(calexp, sources)
         print len(sources), 'sources after deblending'
 
         fn = 'deblended.fits'
