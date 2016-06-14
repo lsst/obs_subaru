@@ -91,7 +91,7 @@ class IncludeTestCase(lsst.utils.tests.TestCase):
         sources = result.sources
 
         # Run the deblender
-        debTask.run(self.calexp, sources, self.calexp.getPsf())
+        debTask.run(self.calexp, sources)
 
         # Run the measurement task: this where the replace-with-noise occurs
         measureTask.run(sources, self.calexp)

@@ -96,7 +96,7 @@ class DeblendAndMeasureTask(pipeBase.CmdLineTask):
         print len(srcs), 'sources before deblending'
 
         if self.config.doDeblend:
-            self.deblend.run(calexp, srcs, calexp.getPsf())
+            self.deblend.run(calexp, srcs)
         
         if self.config.doMeasurement:
             self.measurement.run(calexp, srcs)

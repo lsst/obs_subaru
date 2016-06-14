@@ -94,7 +94,7 @@ class DeblendTestCase(unittest.TestCase):
         good = makeSource(xGood, yGood)
         bad = makeSource(xBad, yBad)
 
-        task.run(exposure, catalog, psf)
+        task.run(exposure, catalog)
 
         self.assertFalse(good.get('deblend_failed'))
         self.assertTrue(bad.get('deblend_failed'))
