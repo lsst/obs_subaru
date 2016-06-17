@@ -4,3 +4,5 @@ config.astrom.load(os.path.join(getPackageDir("obs_subaru"), "config", "filterMa
 
 from lsst.pipe.tasks.setConfigFromEups import setPhotocalConfigFromEups
 setPhotocalConfigFromEups(config)
+
+config.load(os.path.join(getPackageDir("obs_subaru"), "config", "srcSchemaMap.py"))
