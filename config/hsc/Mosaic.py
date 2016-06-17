@@ -4,6 +4,7 @@ from lsst.utils import getPackageDir
 
 config.colorterms.load(os.path.join(getPackageDir("obs_subaru"), "config", "hsc", "colorterms.py"))
 config.astrom.load(os.path.join(getPackageDir("obs_subaru"), "config", "hsc", "filterMap.py"))
+config.load(os.path.join(getPackageDir("obs_subaru"), "config", "hsc", "srcSchemaMap.py"))
 
 config.fittingOrder = 9
 config.fluxFitOrder = 7
