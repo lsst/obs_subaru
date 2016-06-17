@@ -49,8 +49,6 @@ def datetime2mjd(date_time):
 
 class HscParseTask(ParseTask):
     DAY0 = 55927  # Zero point for  2012-01-01  51544 -> 2000-01-01
-    expId_regex = "^HSC([A-Z])(\d{6})00$"
-    frameId_regex = "^HSC([A-Z])(\d{6})\d{2}$"
 
     def translate_field(self, md):
         field = md.get("OBJECT").strip()
@@ -63,15 +61,20 @@ class HscParseTask(ParseTask):
 
     def translate_visit(self, md):
         expId = md.get("EXP-ID").strip()
-        m = re.search(self.expId_regex, expId)
+        m = re.search("^HSCE(\d{8})$", expId)  # 2016-06-14 and new scheme
+        if m:
+            return int(m.group(1))
+
+        # Fallback to old scheme
+        m = re.search("^HSC([A-Z])(\d{6})00$", expId)
         if not m:
             raise RuntimeError("Unable to interpret EXP-ID: %s" % expId)
         letter, visit = m.groups()
         visit = int(visit)
-        if int(visit) == 0:
+        if visit == 0:
             # Don't believe it
             frameId = md.get("FRAMEID").strip()
-            m = re.search(self.frameId_regex, frameId)
+            m = re.search("^HSC([A-Z])(\d{6})\d{2}$", frameId)
             if not m:
                 raise RuntimeError("Unable to interpret FRAMEID: %s" % frameId)
             letter, visit = m.groups()
@@ -160,6 +163,19 @@ class HscCalibsParseTask(CalibsParseTask):
 
 class SuprimecamParseTask(HscParseTask):
     DAY0 = 53005  # 2004-01-01
-    expId_regex = "^SUP([A-Z])(\d{7})0$"
-    frameId_regex = "^SUP([A-Z])(\d{7})\d{1}$"
+
+    def translate_visit(self, md):
+        expId = md.get("EXP-ID").strip()
+        m = re.search("^SUP[A-Z](\d{7})0$", expId)
+        if not m:
+            raise RuntimeError("Unable to interpret EXP-ID: %s" % expId)
+        visit = int(m.group(1))
+        if int(visit) == 0:
+            # Don't believe it
+            frameId = md.get("FRAMEID").strip()
+            m = re.search("^SUP[A-Z](\d{7})\d{1}$", frameId)
+            if not m:
+                raise RuntimeError("Unable to interpret FRAMEID: %s" % frameId)
+            visit = int(m.group(1))
+        return visit
 
