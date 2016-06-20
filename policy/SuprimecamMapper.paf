@@ -128,15 +128,6 @@ exposures: {
         tables:        "raw_visit"
         columns:       "pointing" "filter" "visit" "ccd"
     }
-    calibrated_src: {
-        template:      "%(pointing)05d/%(filter)s/output/%(tract)04d/CALSRC%(visit)07d%(ccd)1d.fits"
-        python:        "lsst.afw.table.SourceCatalog"
-        persistable:   "SourceCatalog"
-        storage:       "FitsCatalogStorage"
-        tables:        "raw"
-        tables:        "raw_visit"
-        columns:       "pointing" "filter" "visit" "ccd"
-    }
     calibrated_exp:  {
         template:      "%(pointing)05d/%(filter)s/corr/%(tract)04d/CALEXP-%(visit)07d%(ccd)1d.fits"
         python:        "lsst.afw.image.ExposureF"
@@ -366,6 +357,22 @@ datasets: {
     }
     src_schema: {
         template:      "schema/src.fits"
+        python:        "lsst.afw.table.SourceCatalog"
+        persistable:   "SourceCatalog"
+        storage:       "FitsCatalogStorage"
+        tables:        "raw"
+        tables:        "raw_visit"
+    }
+    calibrated_src: {
+        template:      "%(pointing)05d/%(filter)s/output/%(tract)04d/CALSRC%(visit)07d%(ccd)1d.fits"
+        python:        "lsst.afw.table.SourceCatalog"
+        persistable:   "SourceCatalog"
+        storage:       "FitsCatalogStorage"
+        tables:        "raw"
+        tables:        "raw_visit"
+    }
+    calibrated_src_schema: {
+        template:      "schema/calibrated_src.fits"
         python:        "lsst.afw.table.SourceCatalog"
         persistable:   "SourceCatalog"
         storage:       "FitsCatalogStorage"
