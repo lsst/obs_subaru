@@ -540,16 +540,41 @@ datasets: {
         storage:       "EupsStorage"
     }
 
-    processCcd_config: {
-        template:      "config/processCcd.py"
-        python:        "lsst.pipe.tasks.processCcd.ProcessCcdConfig"
-        persistable:      "Config"
-        storage:    "ConfigStorage"
+    processCcd_metadata: {
+        template:      "%(pointing)05d/%(filter)s/processCcd_metadata/%(visit)07d%(ccd)1d.boost"
+        python:        "lsst.daf.base.PropertySet"
+        persistable:        "PropertySet"
+        storage:    "BoostStorage"
         tables:        raw
         tables:        raw_visit
     }
-    processCcd_metadata: {
-        template:      "%(pointing)05d/%(filter)s/processCcd_metadata/%(visit)07d%(ccd)1d.boost"
+
+    isr_config: {
+        template:      "config/isr.py"
+        python:        "lsst.obs.subaru.isr.SuprimeCamIsrConfig"
+        persistable:      "Config"
+        storage:    "ConfigStorage"
+    }
+    isr_metadata: {
+        template:      "%(pointing)05d/%(filter)s/isr_metadata/%(visit)07d%(ccd)1d.boost"
+        python:        "lsst.daf.base.PropertySet"
+        persistable:        "PropertySet"
+        storage:    "BoostStorage"
+        tables:        raw
+        tables:        raw_visit
+    }
+
+    characterizeImage_metadata: {
+        template:      "%(pointing)05d/%(filter)s/characterizeImage_metadata/%(visit)07d%(ccd)1d.boost"
+        python:        "lsst.daf.base.PropertySet"
+        persistable:        "PropertySet"
+        storage:    "BoostStorage"
+        tables:        raw
+        tables:        raw_visit
+    }
+
+    calibrate_metadata: {
+        template:      "%(pointing)05d/%(filter)s/calibrate_metadata/%(visit)07d%(ccd)1d.boost"
         python:        "lsst.daf.base.PropertySet"
         persistable:        "PropertySet"
         storage:    "BoostStorage"
