@@ -31,9 +31,9 @@ config.calibrate.refObjLoader.load(os.path.join(getPackageDir("obs_subaru"), "co
                                                 "filterMap.py"))
 
 
-config.calibrate.measurement.plugins['base_ClassificationExtendedness'].fluxRatio = 0.95
+config.calibrate.afterburners.plugins['base_ClassificationExtendedness'].fluxRatio = 0.95
 # LAM the following had to be set to affect the fluxRatio used in photoCal in meas_astrom
-config.calibrate.measurement.plugins['base_ClassificationExtendedness'].fluxRatio = 0.95
+config.calibrate.afterburners.plugins['base_ClassificationExtendedness'].fluxRatio = 0.95
 
 config.calibrate.photoCal.applyColorTerms = True
 
@@ -59,7 +59,7 @@ config.calibrate.measurement.load(os.path.join(configDir, "apertures.py"))
 # config.calibrate.detectAndMeasure.measurement.load(os.path.join(configDir, "cmodel.py"))
 config.calibrate.measurement.load(os.path.join(configDir, "kron.py"))
 config.calibrate.measurement.load(os.path.join(configDir, "hsm.py"))
-if "ext_shapeHSM_HsmShapeRegauss" in config.calibrate.detectAndMeasure.measurement.plugins:
+if "ext_shapeHSM_HsmShapeRegauss" in config.calibrate.measurement.plugins:
     # no deblending has been done
     config.calibrate.measurement.plugins["ext_shapeHSM_HsmShapeRegauss"].deblendNChild = ""
 
