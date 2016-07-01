@@ -13,6 +13,12 @@ config.charImage.measurePsf.starSelector["objectSize"].widthMin = 0.9
 config.charImage.measurePsf.starSelector["objectSize"].fluxMin = 4000
 config.calibrate.refObjLoader.load(os.path.join(hscConfigDir, "filterMap.py"))
 
+# Set to same defaults used in HSC
+config.calibrate.astrometry.matcher.sourceFluxType='Psf'
+config.calibrate.astrometry.matcher.allowedNonperpDeg=0.2
+config.calibrate.astrometry.matcher.maxRotationDeg=1.145916
+config.calibrate.astrometry.wcsFitter.numRejIter=3
+
 config.calibrate.astrometry.wcsFitter.order = 3
 config.calibrate.astrometry.matcher.maxMatchDistArcSec = 2.0
 config.calibrate.astrometry.matcher.maxOffsetPix = 750

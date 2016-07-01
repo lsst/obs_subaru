@@ -31,8 +31,9 @@ config.calibrate.refObjLoader.load(os.path.join(getPackageDir("obs_subaru"), "co
                                                 "filterMap.py"))
 
 
-config.calibrate.detectAndMeasure.measurement.plugins['base_ClassificationExtendedness'].fluxRatio = 0.95
 # LAM the following had to be set to affect the fluxRatio used in photoCal in meas_astrom
+# Set to same defaults used in HSC
+config.charImage.detectAndMeasure.measurement.plugins['base_ClassificationExtendedness'].fluxRatio = 0.985
 config.calibrate.detectAndMeasure.measurement.plugins['base_ClassificationExtendedness'].fluxRatio = 0.95
 
 config.calibrate.photoCal.applyColorTerms = True
@@ -69,5 +70,5 @@ config.charImage.detectAndMeasure.deblend.maxFootprintArea = 10000
 config.calibrate.detectAndMeasure.deblend.maskLimits["NO_DATA"] = 0.25 # Ignore sources that are in the vignetted region
 config.calibrate.detectAndMeasure.deblend.maxFootprintArea = 10000
 
-config.charImage.detectAndMeasure.measurement.plugins.names |= ["base_Jacobian"]
-config.calibrate.detectAndMeasure.measurement.plugins.names |= ["base_Jacobian"]
+config.charImage.detectAndMeasure.measurement.plugins.names |= ["base_Jacobian", "base_FPPosition"]
+config.calibrate.detectAndMeasure.measurement.plugins.names |= ["base_Jacobian", "base_FPPosition"]
