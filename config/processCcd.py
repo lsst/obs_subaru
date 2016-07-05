@@ -30,10 +30,9 @@ except ImportError as e:
 config.calibrate.refObjLoader.load(os.path.join(getPackageDir("obs_subaru"), "config",
                                                 "filterMap.py"))
 
-
-config.calibrate.afterburners.plugins['base_ClassificationExtendedness'].fluxRatio = 0.95
-# LAM the following had to be set to affect the fluxRatio used in photoCal in meas_astrom
-config.calibrate.afterburners.plugins['base_ClassificationExtendedness'].fluxRatio = 0.95
+# Set to match defaults curretnly used in HSC production runs (e.g. S15B)
+config.charImage.afterburners.plugins['base_ClassificationExtendedness'].fluxRatio = 0.95
+config.calibrate.afterburners.plugins['base_ClassificationExtendedness'].fluxRatio = 0.985
 
 config.calibrate.photoCal.applyColorTerms = True
 
