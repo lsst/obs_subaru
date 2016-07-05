@@ -2,7 +2,7 @@ import os.path
 
 from lsst.utils import getPackageDir
 
-config.load(os.path.join(getPackageDir("obs_subaru"), "config", "hsc", "colorterms.py"))
+config.colorterms.load(os.path.join(getPackageDir("obs_subaru"), "config", "hsc", "colorterms.py"))
 config.astrom.load(os.path.join(getPackageDir("obs_subaru"), "config", "hsc", "filterMap.py"))
 
 config.fittingOrder = 9
