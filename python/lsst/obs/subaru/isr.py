@@ -268,9 +268,6 @@ class SubaruIsrTask(IsrTask):
         ccdExposure = self.assembleCcd.assembleCcd(ccdExposure)
         ccd = ccdExposure.getDetector()
 
-        if self.config.doDefect:
-            self.maskAndInterpDefect(ccdExposure, defects)
-
         if self.config.qa.doWriteOss:
             sensorRef.put(ccdExposure, "ossImage")
         if self.config.qa.doThumbnailOss:
@@ -299,6 +296,9 @@ class SubaruIsrTask(IsrTask):
         if self.config.doFlat:
             flatExposure = self.getIsrExposure(sensorRef, "flat")
             self.flatCorrection(ccdExposure, flatExposure)
+
+        if self.config.doDefect:
+            self.maskAndInterpDefect(ccdExposure, defects)
 
         if self.config.doApplyGains:
             self.applyGains(ccdExposure, self.config.normalizeGains)
