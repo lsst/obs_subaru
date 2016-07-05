@@ -69,5 +69,5 @@ config.charImage.deblend.maxFootprintArea = 10000
 config.calibrate.deblend.maskLimits["NO_DATA"] = 0.25 # Ignore sources that are in the vignetted region
 config.calibrate.deblend.maxFootprintArea = 10000
 
-config.charImage.measurement.plugins.names |= ["base_Jacobian"]
-config.calibrate.measurement.plugins.names |= ["base_Jacobian"]
+config.charImage.measurement.plugins.names |= ["base_Jacobian", "base_FPPosition"]
+config.calibrate.measurement.plugins.names |= ["base_Jacobian", "base_FPPosition"]
