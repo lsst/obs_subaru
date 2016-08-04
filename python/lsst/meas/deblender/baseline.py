@@ -267,13 +267,13 @@ def deblend(footprint, maskedImage, psf, psffwhm,
                            % strayFluxAssignment) + str(validStrayAssign))
 
     if log is None:
-        import lsst.pex.logging as pexLogging
+        import lsst.log as lsstLog
 
         component = 'meas_deblender.baseline'
-        log = pexLogging.Log(pexLogging.Log.getDefaultLog(), component)
+        log = lsstLog.Log.getLogger(component)
 
-        if verbose:      # pexLogging defines DEBUG in terms of "importance" == -verbosity
-            pexLogging.Trace.setVerbosity(component, -pexLogging.Log.DEBUG)
+        if verbose:
+            log.setLevel(lsstLog.Log.TRACE)
 
     img = maskedImage.getImage()
     varimg = maskedImage.getVariance()
@@ -300,7 +300,7 @@ def deblend(footprint, maskedImage, psf, psffwhm,
         # FIXME -- just within the bbox?
         stats = afwMath.makeStatistics(varimg, mask, afwMath.MEDIAN)
         sigma1 = math.sqrt(stats.getValue(afwMath.MEDIAN))
-        log.logdebug('Estimated sigma1 = %f' % sigma1)
+        log.trace('Estimated sigma1 = %f', sigma1)
 
     # get object that will hold our results
     res = PerFootprint(fp, peaks=peaks)
@@ -312,19 +312,19 @@ def deblend(footprint, maskedImage, psf, psffwhm,
                   tinyFootprintSize=tinyFootprintSize)
 
     # Create templates...
-    log.logdebug(('Creating templates for footprint at x0,y0,W,H = ' +
-                  '(%i, %i, %i, %i)') % (x0, y0, W, H))
+    log.trace('Creating templates for footprint at x0,y0,W,H = ' +
+              '(%i, %i, %i, %i)', x0, y0, W, H)
     for peaki, pkres in enumerate(res.peaks):
-        log.logdebug('Deblending peak %i of %i' % (peaki, len(res.peaks)))
+        log.trace('Deblending peak %i of %i', peaki, len(res.peaks))
         if pkres.skip or pkres.deblendedAsPsf:
             continue
         pk = pkres.peak
         cx, cy = pk.getIx(), pk.getIy()
         if not imbb.contains(afwGeom.Point2I(cx,cy)):
-            log.logdebug('Peak center is not inside image; skipping %i' % pkres.pki)
+            log.trace('Peak center is not inside image; skipping %i', pkres.pki)
             pkres.setOutOfBounds()
             continue
-        log.logdebug('computing template for peak %i at (%i, %i)' % (pkres.pki, cx, cy))
+        log.trace('computing template for peak %i at (%i, %i)', pkres.pki, cx, cy)
         S, patched = butils.buildSymmetricTemplate(maskedImage, fp, pk, sigma1, True, patchEdges)
         # SWIG doesn't know how to unpack a std::pair into a 2-tuple...
         # (in this case, a nested pair)
@@ -332,8 +332,8 @@ def deblend(footprint, maskedImage, psf, psffwhm,
         del S
 
         if t1 is None:
-            log.logdebug(('Peak %i at (%i, %i): failed to build symmetric ' +
-                          'template') % (pkres.pki, cx, cy))
+            log.trace('Peak %i at (%i, %i): failed to build symmetric ' +
+                      'template', pkres.pki, cx, cy)
             pkres.setFailedSymmetricTemplate()
             continue
 
@@ -344,10 +344,10 @@ def deblend(footprint, maskedImage, psf, psffwhm,
         pkres.setOrigTemplate(t1, tfoot)
 
         if rampFluxAtEdge:
-            log.logdebug('Checking for significant flux at edge: sigma1=%g' % sigma1)
+            log.trace('Checking for significant flux at edge: sigma1=%g', sigma1)
         if (rampFluxAtEdge and
             butils.hasSignificantFluxAtEdge(t1, tfoot, 3*sigma1)):
-            log.logdebug("Template %i has significant flux at edge: ramping" % pkres.pki)
+            log.trace("Template %i has significant flux at edge: ramping", pkres.pki)
             try:
                 (t2, tfoot2, patched) = _handle_flux_at_edge(log, psffwhm, t1, tfoot, fp,
                                                              maskedImage, x0, x1, y0, y1,
@@ -366,7 +366,7 @@ def deblend(footprint, maskedImage, psf, psffwhm,
         if medianSmoothTemplate:
             filtsize = medianFilterHalfsize*2 + 1
             if t1.getWidth() >= filtsize and t1.getHeight() >= filtsize:
-                log.logdebug('Median filtering template %i' % pkres.pki)
+                log.trace('Median filtering template %i', pkres.pki)
                 # We want the output to go in "t1", so copy it into
                 # "inimg" for input
                 inimg = t1.Factory(t1, True)
@@ -374,12 +374,12 @@ def deblend(footprint, maskedImage, psf, psffwhm,
                 # possible save this median-filtered template
                 pkres.setMedianFilteredTemplate(t1, tfoot)
             else:
-                log.logdebug(('Not median-filtering template %i: size '
-                              + '%i x %i smaller than required %i x %i') %
-                              (pkres.pki, t1.getWidth(), t1.getHeight(), filtsize, filtsize))
+                log.trace('Not median-filtering template %i: size ' +
+                          '%i x %i smaller than required %i x %i',
+                          pkres.pki, t1.getWidth(), t1.getHeight(), filtsize, filtsize)
 
         if monotonicTemplate:
-            log.logdebug('Making template %i monotonic' % pkres.pki)
+            log.trace('Making template %i monotonic', pkres.pki)
             butils.makeMonotonic(t1, pk)
 
         if clipFootprintToNonzero:
@@ -444,7 +444,7 @@ def deblend(footprint, maskedImage, psf, psffwhm,
     # FIXME -- Remove templates that are too similar (via dot-product test)?
 
     # Now apportion flux according to the templates
-    log.logdebug('Apportioning flux among %i templates' % len(tmimgs))
+    log.trace('Apportioning flux among %i templates', len(tmimgs))
     sumimg = afwImage.ImageF(bb)
     #.getDimensions())
     #sumimg.setXY0(bb.getMinX(), bb.getMinY())
@@ -569,7 +569,7 @@ def _fitPsfs(fp, peaks, fpres, log, psf, psffwhm, img, varimg,
     peakF = [pk.getF() for pk in peaks]
 
     for pki,(pk,pkres,pkF) in enumerate(zip(peaks, fpres.peaks, peakF)):
-        log.logdebug('Peak %i' % pki)
+        log.trace('Peak %i', pki)
         _fitPsf(fp, fmask, pk, pkF, pkres, fbb, peaks, peakF, log, cpsf, psffwhm,
                 img, varimg, psfChisqCut1, psfChisqCut2, psfChisqCut2b,
                 **kwargs)
@@ -632,7 +632,7 @@ def _fitPsf(fp, fmask, pk, pkF, pkres, fbb, peaks, peaksF, log, psf, psffwhm,
     xlo, xhi = stampbb.getMinX(), stampbb.getMaxX()
     ylo, yhi = stampbb.getMinY(), stampbb.getMaxY()
     if xlo > xhi or ylo > yhi:
-        log.logdebug('Skipping this peak: out of bounds')
+        log.trace('Skipping this peak: out of bounds')
         pkres.setOutOfBounds()
         return
 
@@ -640,7 +640,7 @@ def _fitPsf(fp, fmask, pk, pkF, pkres, fbb, peaks, peaksF, log, psf, psffwhm,
     if min(stampbb.getWidth(), stampbb.getHeight()) <= max(tinyFootprintSize, 2):
         # Minimum size limit of 2 comes from the "PSF dx" calculation, which involves shifting the PSF
         # by one pixel to the left and right.
-        log.logdebug('Skipping this peak: tiny footprint / close to edge')
+        log.trace('Skipping this peak: tiny footprint / close to edge')
         pkres.setTinyFootprint()
         return
 
@@ -655,7 +655,7 @@ def _fitPsf(fp, fmask, pk, pkF, pkres, fbb, peaks, peaksF, log, psf, psffwhm,
         if not opsfimg.getBBox(afwImage.LOCAL).overlaps(stampbb):
             continue
         otherpeaks.append(opsfimg)
-        log.logdebug('%i other peaks within range' % len(otherpeaks))
+        log.trace('%i other peaks within range', len(otherpeaks))
 
     # Now we are going to do a least-squares fit for the flux in this
     # PSF, plus a decenter term, a linear sky, and fluxes of nearby
@@ -789,7 +789,7 @@ def _fitPsf(fp, fmask, pk, pkF, pkres, fbb, peaks, peaksF, log, psf, psffwhm,
     w = np.sqrt(rw[valid]/var_sub[valid])
     # save the effective number of pixels
     sumr = np.sum(rw[valid])
-    log.log(-9, 'sumr = %g' % sumr)
+    log.debug('sumr = %g' % sumr)
 
     del ii
 
@@ -833,7 +833,7 @@ def _fitPsf(fp, fmask, pk, pkF, pkres, fbb, peaks, peaksF, log, psf, psffwhm,
         pkres.setPsfFitFailed()
         return
 
-    log.log(-9, 'r1 r2 %s %s' % (r1, r2))
+    log.debug('r1 r2 %s %s' % (r1, r2))
 
     # r is weighted chi-squared = sum over pixels: ramp * (model -
     # data)**2/sigma**2
@@ -847,17 +847,17 @@ def _fitPsf(fp, fmask, pk, pkF, pkres, fbb, peaks, peaksF, log, psf, psffwhm,
         chisq2 = 1e30
     dof1 = sumr - len(X1)
     dof2 = sumr - len(X2)
-    log.log(-9, 'dof1, dof2 %g %g' % (dof1, dof2))
+    log.debug('dof1, dof2 %g %g' % (dof1, dof2))
 
     # This can happen if we're very close to the edge (?)
     if dof1 <= 0 or dof2 <= 0:
-        log.logdebug('Skipping this peak: bad DOF %g, %g' % (dof1, dof2))
+        log.trace('Skipping this peak: bad DOF %g, %g', dof1, dof2)
         pkres.setBadPsfDof()
         return
 
     q1 = chisq1/dof1
     q2 = chisq2/dof2
-    log.logdebug('PSF fits: chisq/dof = %g, %g' % (q1, q2))
+    log.trace('PSF fits: chisq/dof = %g, %g', q1, q2)
     ispsf1 = (q1 < psfChisqCut1)
     ispsf2 = (q2 < psfChisqCut2)
 
@@ -872,8 +872,8 @@ def _fitPsf(fp, fmask, pk, pkF, pkres, fbb, peaks, peaksF, log, psf, psffwhm,
         dx = fdx/f0
         dy = fdy/f0
         ispsf2 = ispsf2 and (abs(dx) < 1. and abs(dy) < 1.)
-        log.logdebug('isPSF2 -- checking derivatives: dx,dy = %g, %g -> %s' %
-                     (dx, dy, str(ispsf2)))
+        log.trace('isPSF2 -- checking derivatives: dx,dy = %g, %g -> %s',
+                     dx, dy, str(ispsf2))
         if not ispsf2:
             pkres.psfFitBigDecenter = True
 
@@ -921,8 +921,8 @@ def _fitPsf(fp, fmask, pk, pkF, pkres, fbb, peaks, peaksF, log, psf, psffwhm,
             ispsf2 = (qb < psfChisqCut2b)
             q2 = qb
             X2 = Xb
-            log.logdebug('shifted PSF: new chisq/dof = %g; good? %s' %
-                         (qb, ispsf2))
+            log.trace('shifted PSF: new chisq/dof = %g; good? %s',
+                         qb, ispsf2)
             pkres.psfFit3 = (chisqb, dofb)
 
     # Which one do we keep?
@@ -931,8 +931,8 @@ def _fitPsf(fp, fmask, pk, pkF, pkres, fbb, peaks, peaksF, log, psf, psffwhm,
         Xpsf = X2
         chisq = chisq2
         dof = dof2
-        log.log(-9, 'dof %g' % dof)
-        log.logdebug('Keeping shifted-PSF model')
+        log.debug('dof %g' % dof)
+        log.trace('Keeping shifted-PSF model')
         cx += dx
         cy += dy
         pkres.psfFitWithDecenter = True
@@ -941,8 +941,8 @@ def _fitPsf(fp, fmask, pk, pkF, pkres, fbb, peaks, peaksF, log, psf, psffwhm,
         Xpsf = X1
         chisq = chisq1
         dof = dof1
-        log.log(-9, 'dof %g' % dof)
-        log.logdebug('Keeping unshifted PSF model')
+        log.debug('dof %g' % dof)
+        log.trace('Keeping unshifted PSF model')
 
     ispsf = (ispsf1 or ispsf2)
 
@@ -988,7 +988,7 @@ def _fitPsf(fp, fmask, pk, pkF, pkres, fbb, peaks, peaksF, log, psf, psffwhm,
     pkres.psfFitR1 = R1
     pkres.psfFitStampExtent = (xlo, xhi, ylo, yhi)
     pkres.psfFitCenter = (cx, cy)
-    log.log(-9, 'saving chisq,dof %g %g' % (chisq, dof))
+    log.debug('saving chisq,dof %g %g' % (chisq, dof))
     pkres.psfFitBest = (chisq, dof)
     pkres.psfFitParams = Xpsf
     pkres.psfFitFlux = Xpsf[I_psf]
@@ -999,7 +999,7 @@ def _fitPsf(fp, fmask, pk, pkF, pkres, fbb, peaks, peaksF, log, psf, psffwhm,
 
         # replace the template image by the PSF + derivatives
         # image.
-        log.logdebug('Deblending as PSF; setting template to PSF model')
+        log.trace('Deblending as PSF; setting template to PSF model')
 
         # Instantiate the PSF model and clip it to the footprint
         psfimg = psf.computeImage(cx, cy)
@@ -1031,7 +1031,7 @@ def _handle_flux_at_edge(log, psffwhm, t1, tfoot, fp, maskedImage,
     import lsst.meas.deblender as deb
     butils = deb.BaselineUtilsF
 
-    log.logdebug('Found significant flux at template edge.')
+    log.trace('Found significant flux at template edge.')
     # Compute the max of:
     #  -symmetric-template-clipped image * PSF
     #  -footprint-clipped image
