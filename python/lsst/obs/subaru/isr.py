@@ -346,8 +346,8 @@ class SubaruIsrTask(IsrTask):
 
         medians = []
         for a in ccd:
-            sim = ccdImage.Factory(ccdImage, a.getDataSec())
-            sim *= a.getElectronicParams().getGain()
+            sim = ccdImage.Factory(ccdImage, a.getBBox())
+            sim *= a.getGain()
 
             if normalizeGains:
                 medians.append(numpy.median(sim.getImage().getArray()))
