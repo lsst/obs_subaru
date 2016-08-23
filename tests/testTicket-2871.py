@@ -1,8 +1,8 @@
 #!/usr/bin/env python
-
 #
 # LSST Data Management System
-# Copyright 2008-2013 LSST Corporation.
+#
+# Copyright 2008-2016  AURA/LSST.
 #
 # This product includes software developed by the
 # LSST Project (http://www.lsst.org/).
@@ -19,13 +19,11 @@
 #
 # You should have received a copy of the LSST License Statement and
 # the GNU General Public License along with this program.  If not,
-# see <http://www.lsstcorp.org/LegalNotices/>.
+# see <https://www.lsstcorp.org/LegalNotices/>.
 #
-
 import unittest
-import lsst.utils.tests as tests
 
-
+import lsst.utils.tests
 import lsst.afw.detection as afwDetection
 import lsst.afw.image as afwImage
 import lsst.afw.geom as afwGeom
@@ -33,6 +31,7 @@ import lsst.afw.table as afwTable
 import lsst.meas.algorithms as algorithms
 
 #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
 
 class DeblendTestCase(unittest.TestCase):
     """A test case for deblending"""
@@ -55,7 +54,7 @@ class DeblendTestCase(unittest.TestCase):
 
         self.checkDeblender()
         xGood, yGood = 57, 86
-        xBad, yBad = 0, 0 # Required to be in image so we can evaluate the PSF; will put neighbour just outside
+        xBad, yBad = 0, 0  # Required to be in image so we can evaluate the PSF; will put neighbour just outside
         flux = 100.0
         dims = afwGeom.Extent2I(128, 128)
 
@@ -101,18 +100,14 @@ class DeblendTestCase(unittest.TestCase):
 
 #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
-def suite():
-    """Returns a suite containing all the test cases in this module."""
-    tests.init()
 
-    suites = []
-    suites += unittest.makeSuite(DeblendTestCase)
-    suites += unittest.makeSuite(tests.MemoryTestCase)
-    return unittest.TestSuite(suites)
+class TestMemory(lsst.utils.tests.MemoryTestCase):
+    pass
 
-def run(exit = False):
-    """Run the tests"""
-    tests.run(suite(), exit)
+
+def setup_module(module):
+    lsst.utils.tests.init()
 
 if __name__ == "__main__":
-    run(True)
+    lsst.utils.tests.init()
+    unittest.main()

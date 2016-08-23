@@ -5,6 +5,7 @@
 *.so
 *.os
 *.dylib
+tests/.cache/*
 tests/.tests
 ups/*.cfgc
 config.log
