@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 #
 # LSST Data Management System
-# Copyright 2008-2015 LSST Corporation.
+#
+# Copyright 2008-2016  AURA/LSST.
 #
 # This product includes software developed by the
 # LSST Project (http://www.lsst.org/).
@@ -18,9 +19,8 @@
 #
 # You should have received a copy of the LSST License Statement and
 # the GNU General Public License along with this program.  If not,
-# see <http://www.lsstcorp.org/LegalNotices/>.
+# see <https://www.lsstcorp.org/LegalNotices/>.
 #
-
 import os
 import numpy as np
 import unittest
@@ -37,9 +37,11 @@ try:
 except NameError:
     display = False
 
-DATA_DIR = os.path.join(os.environ["MEAS_DEBLENDER_DIR"], "tests", "data")
+DATA_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)),"data")
 
 #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+
 class IncludeTestCase(lsst.utils.tests.TestCase):
     """ Test case for DM-1738: test that include method successfully
     expands footprint to include the union of itself and all others provided.
@@ -102,25 +104,20 @@ class IncludeTestCase(lsst.utils.tests.TestCase):
 
         # The relative differences ranged from 0.02 to ~2.  This rtol is somewhat
         # random, but will certainly catch the pathology if it occurs.
-        self.assertClose(self.calexpOrig.getMaskedImage().getImage().getArray(),
+        self.assertFloatsAlmostEqual(self.calexpOrig.getMaskedImage().getImage().getArray(),
                          self.calexp.getMaskedImage().getImage().getArray(),
                          rtol=1E-3, printFailures=False, plotOnFailure=plotOnFailure)
 
 #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
-def suite():
-    """Returns a suite containing all the test cases in this module."""
 
+class TestMemory(lsst.utils.tests.MemoryTestCase):
+    pass
+
+
+def setup_module(module):
     lsst.utils.tests.init()
 
-    suites = []
-    suites += unittest.makeSuite(IncludeTestCase)
-    suites += unittest.makeSuite(lsst.utils.tests.MemoryTestCase)
-    return unittest.TestSuite(suites)
-
-def run(shouldExit=False):
-    """Run the tests"""
-    lsst.utils.tests.run(suite(), shouldExit)
-
 if __name__ == "__main__":
-    run(True)
+    lsst.utils.tests.init()
+    unittest.main()

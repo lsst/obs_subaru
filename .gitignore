@@ -5,10 +5,12 @@
 *.so
 *.os
 *.dylib
+tests/.cache/*
 tests/.tests
 ups/*.cfgc
 config.log
 doc/html
+doc/xml
 doc/*.tag
 doc/doxygen.conf
 doc/*aux

@@ -1,4 +1,37 @@
 #!/usr/bin/env python
+#
+# LSST Data Management System
+#
+# Copyright 2008-2016  AURA/LSST.
+#
+# This product includes software developed by the
+# LSST Project (http://www.lsst.org/).
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the LSST License Statement and
+# the GNU General Public License along with this program.  If not,
+# see <https://www.lsstcorp.org/LegalNotices/>.
+#
+import unittest
+import numpy as np
+
+import lsst.utils.tests
+import lsst.afw.detection as afwDet
+import lsst.afw.geom as afwGeom
+import lsst.afw.image as afwImage
+import lsst.pex.logging as pexLogging
+import lsst.meas.algorithms as measAlg
+from lsst.meas.deblender.baseline import _fitPsf, CachingPsf, PerPeak
+
 doPlot = False
 if doPlot:
     import matplotlib
@@ -8,23 +41,13 @@ if doPlot:
 else:
     print "doPlot is not set -- not saving plots.  To enable plots, edit", __file__
 
-import unittest
-import lsst.utils.tests  as utilsTests
-
-import numpy as np
-
-import lsst.afw.detection as afwDet
-import lsst.afw.geom as afwGeom
-import lsst.afw.image as afwImage
-import lsst.pex.logging as pexLogging
-import lsst.meas.algorithms as measAlg
-from lsst.meas.deblender.baseline import _fitPsf, CachingPsf, PerPeak
 
 class FitPsfTestCase(unittest.TestCase):
+
     def test1(self):
 
         # circle
-        fp = afwDet.Footprint(afwGeom.Point2I(50,50), 45.)
+        fp = afwDet.Footprint(afwGeom.Point2I(50, 50), 45.)
 
         #
         psfsig = 1.5
@@ -33,10 +56,9 @@ class FitPsfTestCase(unittest.TestCase):
 
         psf2 = measAlg.DoubleGaussianPsf(100, 100, psfsig)
 
-
         fbb = fp.getBBox()
         print 'fbb', fbb.getMinX(), fbb.getMaxX(), fbb.getMinY(), fbb.getMaxY()
-        
+
         fmask = afwImage.MaskU(fbb)
         fmask.setXY0(fbb.getMinX(), fbb.getMinY())
         afwDet.setMaskFromFootprint(fmask, fp, 1)
@@ -50,7 +72,8 @@ class FitPsfTestCase(unittest.TestCase):
         print 'BBox', img.getBBox()
 
         peaks = afwDet.PeakCatalog(afwDet.PeakTable.makeMinimalSchema())
-	def makePeak(x, y):
+
+        def makePeak(x, y):
             p = peaks.addNew()
             p.setFx(x)
             p.setFy(y)
@@ -63,13 +86,13 @@ class FitPsfTestCase(unittest.TestCase):
 
         ibb = img.getBBox()
         iext = [ibb.getMinX(), ibb.getMaxX(), ibb.getMinY(), ibb.getMaxY()]
-        ix0,iy0 = iext[0], iext[2]
+        ix0, iy0 = iext[0], iext[2]
 
         pbbs = []
         pxys = []
-        
+
         fluxes = [10000., 5000., 5000.]
-        for pk,f in zip(peaks, fluxes):
+        for pk, f in zip(peaks, fluxes):
             psfim = psf1.computeImage(afwGeom.Point2D(pk.getFx(), pk.getFy()))
             print 'psfim x0,y0', psfim.getX0(), psfim.getY0()
             pbb = psfim.getBBox()
@@ -86,16 +109,15 @@ class FitPsfTestCase(unittest.TestCase):
             pbbs.append((pbb.getMinX(), pbb.getMaxX(), pbb.getMinY(), pbb.getMaxY()))
             pxys.append((pk.getFx(), pk.getFy()))
 
-
         if doPlot:
             plt.clf()
             plt.imshow(img.getArray(), extent=iext, interpolation='nearest', origin='lower')
             ax = plt.axis()
-            x0,x1,y0,y1 = fbb.getMinX(), fbb.getMaxX(), fbb.getMinY(), fbb.getMaxY()
-            plt.plot([x0,x0,x1,x1,x0], [y0,y1,y1,y0,y0], 'k-')
-            for x0,x1,y0,y1 in pbbs:
-                plt.plot([x0,x0,x1,x1,x0], [y0,y1,y1,y0,y0], 'r-')
-            for x,y in pxys:
+            x0, x1, y0, y1 = fbb.getMinX(), fbb.getMaxX(), fbb.getMinY(), fbb.getMaxY()
+            plt.plot([x0, x0, x1, x1, x0], [y0, y1, y1, y0, y0], 'k-')
+            for x0, x1, y0, y1 in pbbs:
+                plt.plot([x0, x0, x1, x1, x0], [y0, y1, y1, y0, y0], 'r-')
+            for x, y in pxys:
                 plt.plot(x, y, 'ro')
             plt.axis(ax)
             plt.savefig('img.png')
@@ -108,7 +130,7 @@ class FitPsfTestCase(unittest.TestCase):
         pkres = PerPeak()
 
         loglvl = pexLogging.Log.INFO
-        #if verbose:
+        # if verbose:
         #    loglvl = pexLogging.Log.DEBUG
         log = pexLogging.Log(pexLogging.Log.getDefaultLog(), 'tests.fit_psf', loglvl)
 
@@ -118,8 +140,8 @@ class FitPsfTestCase(unittest.TestCase):
         pkF = pk1.getF()
 
         _fitPsf(fp, fmask, pk1, pkF, pkres, fbb, peaks, peaksF, log, cpsf, psffwhm,
-                 img, varimg,
-                 psf_chisq_cut1, psf_chisq_cut2, psf_chisq_cut2b)
+                img, varimg,
+                psf_chisq_cut1, psf_chisq_cut2, psf_chisq_cut2b)
         for k in dir(pkres):
             if k.startswith('__'):
                 continue
@@ -127,18 +149,17 @@ class FitPsfTestCase(unittest.TestCase):
 
         cpsf = CachingPsf(psf2)
         _fitPsf(fp, fmask, pk1, pkF, pkres, fbb, peaks, peaksF, log, cpsf, psffwhm,
-                 img, varimg,
-                 psf_chisq_cut1, psf_chisq_cut2, psf_chisq_cut2b)
+                img, varimg,
+                psf_chisq_cut1, psf_chisq_cut2, psf_chisq_cut2b)
         for k in dir(pkres):
             if k.startswith('__'):
                 continue
             print '  ', k, getattr(pkres, k)
 
-
         pkF = pk3.getF()
         _fitPsf(fp, fmask, pk3, pkF, pkres, fbb, peaks, peaksF, log, cpsf, psffwhm,
-                 img, varimg,
-                 psf_chisq_cut1, psf_chisq_cut2, psf_chisq_cut2b)
+                img, varimg,
+                psf_chisq_cut1, psf_chisq_cut2, psf_chisq_cut2b)
         for k in dir(pkres):
             if k.startswith('__'):
                 continue
@@ -147,23 +168,13 @@ class FitPsfTestCase(unittest.TestCase):
 
 #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
-def suite():
-    utilsTests.init()
-    suites = []
-    suites += unittest.makeSuite(FitPsfTestCase)
-    suites += unittest.makeSuite(utilsTests.MemoryTestCase)
-    return unittest.TestSuite(suites)
+class TestMemory(lsst.utils.tests.MemoryTestCase):
+    pass
 
-def run(exit=False):
-    """Run the tests"""
-    utilsTests.run(suite(), exit)
- 
+
+def setup_module(module):
+    lsst.utils.tests.init()
+
 if __name__ == "__main__":
-    run(True)
-
-
-
-
-
-
-
+    lsst.utils.tests.init()
+    unittest.main()
