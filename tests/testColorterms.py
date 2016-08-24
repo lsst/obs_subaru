@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 from __future__ import absolute_import, division, print_function
-# 
+#
 # LSST Data Management System
 # Copyright 2008, 2009, 2010 LSST Corporation.
-# 
+#
 # This product includes software developed by the
 # LSST Project (http://www.lsst.org/).
 #
@@ -11,14 +11,14 @@ from __future__ import absolute_import, division, print_function
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
-# You should have received a copy of the LSST License Statement and 
-# the GNU General Public License along with this program.  If not, 
+#
+# You should have received a copy of the LSST License Statement and
+# the GNU General Public License along with this program.  If not,
 # see <http://www.lsstcorp.org/LegalNotices/>.
 #
 
@@ -29,10 +29,13 @@ import unittest
 import lsst.utils.tests
 import lsst.pipe.tasks.photoCal as photoCal
 
+
 def setup_module(module):
     lsst.utils.tests.init()
 
+
 class ColortermOverrideTestCase(unittest.TestCase):
+
     def setUp(self):
         """Test that colorterms specific to HSC override correctly"""
         colortermsFile = os.path.join(os.environ["OBS_SUBARU_DIR"], "config", "hsc", "colorterms.py")
@@ -44,7 +47,7 @@ class ColortermOverrideTestCase(unittest.TestCase):
         refBands = ["g", "r", "i", "z", "y"]
         hscBands = ["g", "r", "i", "z", "y"]
         for band in hscBands:
-            ct = self.photoCalConf.colorterms.getColorterm(band, photoCatName="hsc") # exact match
+            ct = self.photoCalConf.colorterms.getColorterm(band, photoCatName="hsc")  # exact match
             self.assertIn(ct.primary, refBands)
             self.assertIn(ct.secondary, refBands)
             self.assertIsInstance(ct.c0, numbers.Number)
@@ -56,7 +59,7 @@ class ColortermOverrideTestCase(unittest.TestCase):
         sdssBands = ["g", "r", "i", "z", "y"]
         hscBands = ["g", "r", "i", "i2", "z", "y", "N816", "N921"]
         for band in hscBands:
-            ct = self.photoCalConf.colorterms.getColorterm(band, photoCatName="sdss") # exact match
+            ct = self.photoCalConf.colorterms.getColorterm(band, photoCatName="sdss")  # exact match
             self.assertIn(ct.primary, sdssBands)
             self.assertIn(ct.secondary, sdssBands)
             self.assertIsInstance(ct.c0, numbers.Number)
@@ -68,12 +71,13 @@ class ColortermOverrideTestCase(unittest.TestCase):
         ps1Bands = ["g", "r", "i", "z", "y"]
         hscBands = ["g", "r", "i", "i2", "z", "y", "N816", "N921"]
         for band in hscBands:
-            ct = self.photoCalConf.colorterms.getColorterm(band, photoCatName="ps1") # exact match
+            ct = self.photoCalConf.colorterms.getColorterm(band, photoCatName="ps1")  # exact match
             self.assertIn(ct.primary, ps1Bands)
             self.assertIn(ct.secondary, ps1Bands)
             self.assertIsInstance(ct.c0, numbers.Number)
             self.assertIsInstance(ct.c1, numbers.Number)
             self.assertIsInstance(ct.c2, numbers.Number)
+
 
 class MemoryTester(lsst.utils.tests.MemoryTestCase):
     pass

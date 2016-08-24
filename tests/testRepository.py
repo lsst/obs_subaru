@@ -37,6 +37,7 @@ from lsst.utils import getPackageDir
 
 TEST_DATA_PACKAGE = "testdata_subaru"
 
+
 def requirePackage(packageName):
     """
     Decorator to skip unit tests unless the package ``packageName`` is set up.
@@ -145,6 +146,7 @@ def suite():
     suites += unittest.makeSuite(GetDataTestCase)
     suites += unittest.makeSuite(utilsTests.MemoryTestCase)
     return unittest.TestSuite(suites)
+
 
 def run(shouldExit=False):
     """Run the tests"""

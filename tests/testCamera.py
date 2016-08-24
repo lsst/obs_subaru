@@ -29,7 +29,9 @@ import lsst.utils.tests as utilsTests
 from lsst.afw.image import Filter
 from lsst.obs.hsc import HscMapper
 
+
 class CameraTestCase(utilsTests.TestCase):
+
     def setUp(self):
         self.mapper = HscMapper(root=".")
         self.camera = self.mapper.camera
@@ -77,6 +79,7 @@ def suite():
     suites += unittest.makeSuite(CameraTestCase)
     suites += unittest.makeSuite(utilsTests.MemoryTestCase)
     return unittest.TestSuite(suites)
+
 
 def run(shouldExit=False):
     """Run the tests"""

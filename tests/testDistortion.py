@@ -48,7 +48,8 @@ def suite():
     suites += unittest.makeSuite(utilsTests.MemoryTestCase)
     return unittest.TestSuite(suites)
 
-def run(shouldExit = False):
+
+def run(shouldExit=False):
     """Run the tests"""
     utilsTests.run(suite(), shouldExit)
 
@@ -57,6 +58,7 @@ def run(shouldExit = False):
 from collections import namedtuple
 CcdData = namedtuple("CcdData", ['name', 'id', 'corners'])
 CornerData = namedtuple("CornerData", ['focalPlane', 'distEst'])
+
 
 def getVerificationData():
     """Retrieve verification data
@@ -1227,10 +1229,9 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(-7467.721499, 4715.448735),
                                                            distEst=Point2D(2111.006174, -40.2208897))}
                             ),
-    }
+            }
 
 ################################################################################
 
 if __name__ == "__main__":
     run(True)
-
