@@ -2,7 +2,7 @@
 #
 # LSST Data Management System
 #
-# Copyright 2008-2016 AURA/LSST.
+# Copyright 2008-2016  AURA/LSST.
 #
 # This product includes software developed by the
 # LSST Project (http://www.lsst.org/).
@@ -21,7 +21,6 @@
 # the GNU General Public License along with this program.  If not,
 # see <https://www.lsstcorp.org/LegalNotices/>.
 #
-
 import os
 import unittest
 from glob import glob
@@ -32,22 +31,13 @@ from tempfile import mkdtemp
 import lsst.afw.geom as afwGeom
 import lsst.daf.persistence as dafPersist
 import lsst.pex.exceptions as pexExcept
-import lsst.utils.tests as utilsTests
-from lsst.utils import getPackageDir
+import lsst.utils
 
-TEST_DATA_PACKAGE = "testdata_subaru"
-
-
-def requirePackage(packageName):
-    """
-    Decorator to skip unit tests unless the package ``packageName`` is set up.
-    """
-    try:
-        getPackageDir(packageName)
-    except pexExcept.NotFoundError as e:
-        return unittest.skip("Required package %s not available [%s]." % (packageName, str(e)))
-    return lambda func: func
-
+testDataPackage = "testdata_subaru"
+try:
+    testDataDirectory = lsst.utils.getPackageDir(testDataPackage)
+except lsst.pex.exceptions.NotFoundError as err:
+    testDataDirectory = None
 
 def createDataRepository(mapperName, inputPath):
     """
@@ -60,16 +50,16 @@ def createDataRepository(mapperName, inputPath):
     repoPath = mkdtemp()
     with open(os.path.join(repoPath, "_mapper"), "w") as _mapper:
         _mapper.write(mapperName)
-    ingest_cmd = os.path.join(getPackageDir("obs_subaru"), "bin", "hscIngestImages.py")
+    ingest_cmd = os.path.join(os.path.dirname(os.path.realpath(__file__)), "..", "bin", "hscIngestImages.py")
     check_call([ingest_cmd, repoPath] + glob(os.path.join(inputPath, "*.fits.gz")))
     return repoPath
 
 
-class IngestRawTestCase(utilsTests.TestCase):
+class IngestRawTestCase(lsst.utils.tests.TestCase):
     """Ensure that we can ingest raw data to a repository."""
-    @requirePackage(TEST_DATA_PACKAGE)
+    @unittest.skipIf(testDataDirectory is None, "%s is not available" % testDataPackage)
     def setUp(self):
-        rawPath = os.path.join(getPackageDir(TEST_DATA_PACKAGE), "hsc", "raw")
+        rawPath = os.path.join(testDataDirectory, "hsc", "raw")
         self.repoPath = createDataRepository("lsst.obs.hsc.HscMapper", rawPath)
 
     def tearDown(self):
@@ -83,12 +73,12 @@ class IngestRawTestCase(utilsTests.TestCase):
         self.assertEqual(name, "obs_subaru")
 
 
-class GetDataTestCase(utilsTests.TestCase):
+class GetDataTestCase(lsst.utils.tests.TestCase):
     """Demonstrate retrieval of data from a repository."""
-    @requirePackage(TEST_DATA_PACKAGE)
+    @unittest.skipIf(testDataDirectory is None, "%s is not available" % testDataPackage)
     def setUp(self):
-        rawPath = os.path.join(getPackageDir(TEST_DATA_PACKAGE), "hsc", "raw")
-        calibPath = os.path.join(getPackageDir(TEST_DATA_PACKAGE), "hsc", "calib")
+        rawPath = os.path.join(testDataDirectory, "hsc", "raw")
+        calibPath = os.path.join(testDataDirectory, "hsc", "calib")
         self.repoPath = createDataRepository("lsst.obs.hsc.HscMapper", rawPath)
         self.butler = dafPersist.Butler(root=self.repoPath, calibRoot=calibPath)
 
@@ -136,21 +126,13 @@ class GetDataTestCase(utilsTests.TestCase):
         self.assertEqual(flat.getDetector().getId(), self.ccdNum)
 
 
-def suite():
-    """Returns a suite containing all the test cases in this module."""
-
-    utilsTests.init()
-
-    suites = []
-    suites += unittest.makeSuite(IngestRawTestCase)
-    suites += unittest.makeSuite(GetDataTestCase)
-    suites += unittest.makeSuite(utilsTests.MemoryTestCase)
-    return unittest.TestSuite(suites)
+class TestMemory(lsst.utils.tests.MemoryTestCase):
+    pass
 
 
-def run(shouldExit=False):
-    """Run the tests"""
-    utilsTests.run(suite(), shouldExit)
+def setup_module(module):
+    lsst.utils.tests.init()
 
 if __name__ == "__main__":
-    run(True)
+    lsst.utils.tests.init()
+    unittest.main()

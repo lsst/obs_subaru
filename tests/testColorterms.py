@@ -1,8 +1,8 @@
 #!/usr/bin/env python
-from __future__ import absolute_import, division, print_function
 #
 # LSST Data Management System
-# Copyright 2008, 2009, 2010 LSST Corporation.
+#
+# Copyright 2008-2016  AURA/LSST.
 #
 # This product includes software developed by the
 # LSST Project (http://www.lsst.org/).
@@ -19,8 +19,9 @@ from __future__ import absolute_import, division, print_function
 #
 # You should have received a copy of the LSST License Statement and
 # the GNU General Public License along with this program.  If not,
-# see <http://www.lsstcorp.org/LegalNotices/>.
+# see <https://www.lsstcorp.org/LegalNotices/>.
 #
+from __future__ import absolute_import, division, print_function
 
 import os
 import numbers
@@ -42,7 +43,7 @@ class ColortermOverrideTestCase(unittest.TestCase):
         self.photoCalConf = photoCal.PhotoCalConfig()
         self.photoCalConf.colorterms.load(colortermsFile)
 
-    def testHSCColorterms(self):
+    def testHscColorterms(self):
         """Test that the colorterm libraries are formatted correctly"""
         refBands = ["g", "r", "i", "z", "y"]
         hscBands = ["g", "r", "i", "z", "y"]
@@ -54,7 +55,7 @@ class ColortermOverrideTestCase(unittest.TestCase):
             self.assertIsInstance(ct.c1, numbers.Number)
             self.assertIsInstance(ct.c2, numbers.Number)
 
-    def testSDSSColorterms(self):
+    def testSdssColorterms(self):
         """Test that the colorterm libraries are formatted correctly"""
         sdssBands = ["g", "r", "i", "z", "y"]
         hscBands = ["g", "r", "i", "i2", "z", "y", "N816", "N921"]
@@ -66,7 +67,7 @@ class ColortermOverrideTestCase(unittest.TestCase):
             self.assertIsInstance(ct.c1, numbers.Number)
             self.assertIsInstance(ct.c2, numbers.Number)
 
-    def testPS1Colorterms(self):
+    def testPs1Colorterms(self):
         """Test that the colorterm libraries are formatted correctly"""
         ps1Bands = ["g", "r", "i", "z", "y"]
         hscBands = ["g", "r", "i", "i2", "z", "y", "N816", "N921"]

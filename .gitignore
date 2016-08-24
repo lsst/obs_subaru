@@ -11,6 +11,7 @@ _build.*
 .sconsign.dblite
 config.log
 tests/.tests
+tests/.cache/*
 ups/*.cfgc
 python/lsst/obs/subaru/version.py
 python/lsst/obs/hsc/hscLib.py
