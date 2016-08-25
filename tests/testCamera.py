@@ -2,7 +2,7 @@
 #
 # LSST Data Management System
 #
-# Copyright 2008-2015  AURA/LSST.
+# Copyright 2008-2016  AURA/LSST.
 #
 # This product includes software developed by the
 # LSST Project (http://www.lsst.org/).
@@ -21,15 +21,16 @@
 # the GNU General Public License along with this program.  If not,
 # see <https://www.lsstcorp.org/LegalNotices/>.
 #
-
 import unittest
 from collections import namedtuple
 
-import lsst.utils.tests as utilsTests
+import lsst.utils.tests
 from lsst.afw.image import Filter
 from lsst.obs.hsc import HscMapper
 
-class CameraTestCase(utilsTests.TestCase):
+
+class CameraTestCase(lsst.utils.tests.TestCase):
+
     def setUp(self):
         self.mapper = HscMapper(root=".")
         self.camera = self.mapper.camera
@@ -63,24 +64,19 @@ class CameraTestCase(utilsTests.TestCase):
             FilterName(alias="HSC-Y", canonical="y"),
             FilterName(alias="NONE", canonical="UNRECOGNISED")
         )
+
         for filterName in filterNames:
-            self.assertTrue(filterName.alias in self.mapper.filters)
+            self.assertIn(filterName.alias, self.mapper.filters)
             self.assertEqual(Filter(filterName.alias).getCanonicalName(), filterName.canonical)
 
 
-def suite():
-    """Returns a suite containing all the test cases in this module."""
+class TestMemory(lsst.utils.tests.MemoryTestCase):
+    pass
 
-    utilsTests.init()
 
-    suites = []
-    suites += unittest.makeSuite(CameraTestCase)
-    suites += unittest.makeSuite(utilsTests.MemoryTestCase)
-    return unittest.TestSuite(suites)
-
-def run(shouldExit=False):
-    """Run the tests"""
-    utilsTests.run(suite(), shouldExit)
+def setup_module(module):
+    lsst.utils.tests.init()
 
 if __name__ == "__main__":
-    run(True)
+    lsst.utils.tests.init()
+    unittest.main()
