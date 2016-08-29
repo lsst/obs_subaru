@@ -31,8 +31,8 @@ config.calibrate.refObjLoader.load(os.path.join(getPackageDir("obs_subaru"), "co
                                                 "filterMap.py"))
 
 # Set to match defaults curretnly used in HSC production runs (e.g. S15B)
-config.charImage.afterburners.plugins['base_ClassificationExtendedness'].fluxRatio = 0.95
-config.calibrate.afterburners.plugins['base_ClassificationExtendedness'].fluxRatio = 0.95
+config.charImage.catalogCalculation.plugins['base_ClassificationExtendedness'].fluxRatio = 0.95
+config.calibrate.catalogCalculation.plugins['base_ClassificationExtendedness'].fluxRatio = 0.95
 
 config.calibrate.photoCal.applyColorTerms = True
 
