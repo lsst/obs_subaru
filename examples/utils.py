@@ -1,3 +1,4 @@
+from __future__ import print_function
 import math
 import os
 import pylab as plt
@@ -41,7 +42,7 @@ class DebugSourceMeasTask(measAlg.SourceMeasurementTask):
     def savefig(self, fn):
         plotfn = '%s%s.png' % (self.prefix, fn)
         plt.savefig(plotfn)
-        print 'wrote', plotfn
+        print('wrote', plotfn)
 
     def preMeasureHook(self, exposure, sources):
         measAlg.SourceMeasurementTask.preMeasureHook(self, exposure, sources)
@@ -65,7 +66,7 @@ class DebugSourceMeasTask(measAlg.SourceMeasurementTask):
         for p, ch in fams:
             self.plotorder.append(p.getId())
             self.plotorder.extend([c.getId() for c in ch])
-        print 'Will save', len(self.plotorder), 'plots'
+        print('Will save', len(self.plotorder), 'plots')
 
         # remember the deblend parents
         # pset = set()
@@ -91,7 +92,7 @@ class DebugSourceMeasTask(measAlg.SourceMeasurementTask):
             return
         mi = exposure.getMaskedImage()
         mask = mi.getMask()
-        print 'Mask planes:'
+        print('Mask planes:')
         mask.printMaskPlanes()
         oldargs = self.plotargs
         args = oldargs.copy()
@@ -110,11 +111,11 @@ class DebugSourceMeasTask(measAlg.SourceMeasurementTask):
         measAlg.SourceMeasurementTask.postSingleMeasureHook(self, exposure, sources, i)
         src = sources[i]
         if not src.getId() in self.plotorder:
-            print 'source', src.getId(), 'not blended'
+            print('source', src.getId(), 'not blended')
             return
         iplot = self.plotorder.index(src.getId())
         if iplot > 100:
-            print 'skipping', iplot
+            print('skipping', iplot)
             return
         if self.plotregion is not None:
             xlo, xhi, ylo, yhi = self.plotregion
@@ -124,7 +125,7 @@ class DebugSourceMeasTask(measAlg.SourceMeasurementTask):
             if (not np.isfinite(x)) or (not np.isfinite(y)):
                 return
         #if not (src.getId() in self.parents or src.getParent()):
-        print 'saving', iplot
+        print('saving', iplot)
 
         if src.getParent():
             bb = sources.find(src.getParent()).getFootprint().getBBox()
@@ -248,7 +249,7 @@ def plotDeblendFamilyPre(mi, parent, kids, dkids, srcs, sigma1, ellipses=True, m
 def plotDeblendFamilyReal(parent, kids, dkids, sigma1, plotb=False, idmask=None, ellipses=True,
                           arcsinh=True, maskbit=None):
     if idmask is None:
-        idmask = ~0L
+        idmask = ~0
     pim = parent.im
     pext = parent.ext
 
@@ -456,20 +457,20 @@ def readCatalog(sourcefn, heavypat, ndeblends=0, dataref=None,
             return None
     else:
         if not os.path.exists(sourcefn):
-            print 'No source catalog:', sourcefn
+            print('No source catalog:', sourcefn)
             return None
-        print 'Reading catalog:', sourcefn
+        print('Reading catalog:', sourcefn)
         cat = afwTable.SourceCatalog.readFits(sourcefn)
-        print len(cat), 'sources'
+        print(len(cat), 'sources')
     cat.sort()
     cat.defineCentroid('base_SdssCentroid')
 
     if ndeblends or keepids or keepxys:
         cat = cutCatalog(cat, ndeblends, keepids, keepxys)
-        print 'Cut to', len(cat), 'sources'
+        print('Cut to', len(cat), 'sources')
 
     if heavypat is not None:
-        print 'Reading heavyFootprints...'
+        print('Reading heavyFootprints...')
         for src in cat:
             if not src.getParent():
                 continue
@@ -477,7 +478,7 @@ def readCatalog(sourcefn, heavypat, ndeblends=0, dataref=None,
             dd.update(id=src.getId())
             heavyfn = heavypat % dd
             if not os.path.exists(heavyfn):
-                print 'No heavy footprint:', heavyfn
+                print('No heavy footprint:', heavyfn)
                 return None
             mim = afwImage.MaskedImageF(heavyfn)
             heavy = afwDet.makeHeavyFootprint(src.getFootprint(), mim)
@@ -515,9 +516,9 @@ class WrapperMapper(object):
             #print 'Wrapping', x
 
     def map(self, *args, **kwargs):
-        print 'Mapping', args, kwargs
+        print('Mapping', args, kwargs)
         R = self.real.map(*args, **kwargs)
-        print '->', R
+        print('->', R)
         return R
     # relay
 

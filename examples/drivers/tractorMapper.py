@@ -1,3 +1,4 @@
+from __future__ import print_function
 #
 # LSST Data Management System
 # Copyright 2008, 2009, 2010 LSST Corporation.
@@ -47,7 +48,7 @@ class TractorMapper(Mapper):
     def __init__(self, rerun=0, basedir='.', **kwargs):
         Mapper.__init__(self)
 
-        print 'TractorMapper(): ignoring kwargs', kwargs
+        print('TractorMapper(): ignoring kwargs', kwargs)
 
         self.basedir = basedir
         self.rerun = rerun
@@ -90,16 +91,16 @@ class TractorMapper(Mapper):
         return self.keys
 
     def getPath(self, datasetType, dataId):
-        print 'Mapping', datasetType, 'with keys', dataId
+        print('Mapping', datasetType, 'with keys', dataId)
         if not 'rerun' in dataId:
             dataId['rerun'] = self.rerun
         (pattern, cname, pyname) = self.filenames[datasetType]
         path = pattern % dataId
-        print '->', path
+        print('->', path)
         return path
 
     def map(self, datasetType, dataId):
-        print 'Mapping', datasetType, 'with keys', dataId
+        print('Mapping', datasetType, 'with keys', dataId)
         path = self.getPath(datasetType, dataId)
         (pattern, cname, pyname) = self.filenames[datasetType]
         # wow, this is rocket science

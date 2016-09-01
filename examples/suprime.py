@@ -1,5 +1,7 @@
+from __future__ import print_function
+from __future__ import absolute_import
 import lsst.obs.suprimecam as obsSc
-from utils import *
+from .utils import *
 
 
 def _getSuprimeMapper(rootdir=None, calibdir=None, outrootdir=None):
@@ -23,12 +25,12 @@ def _getSuprimeButler(rootdir=None, calibdir=None, outrootdir=None):
 
 def getSuprimeDataref(visit, ccd, single=True, rootdir=None, calibdir=None, outrootdir=None):
     butler = _getSuprimeButler(rootdir=rootdir, calibdir=calibdir, outrootdir=outrootdir)
-    print 'Butler', butler
+    print('Butler', butler)
     dataRef = butler.subset('raw', dataId=dict(visit=visit, ccd=ccd))
-    print 'dataRef:', dataRef
-    print 'len(dataRef):', len(dataRef)
+    print('dataRef:', dataRef)
+    print('len(dataRef):', len(dataRef))
     for dr in dataRef:
-        print '  ', dr
+        print('  ', dr)
     if single:
         assert(len(dataRef) == 1)
         # dataRef doesn't support indexing, but it does support iteration?

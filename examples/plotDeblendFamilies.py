@@ -1,3 +1,4 @@
+from __future__ import print_function
 import matplotlib
 matplotlib.use('Agg')
 import pylab as plt
@@ -109,7 +110,7 @@ def makeplots(butler, dataId, ps, sources=None, pids=None, minsize=0,
         # print '  parent', src.getParent()
         # print '  footprint', src.getFootprint()
 
-    print
+    print()
     lsstimg = calexp.getMaskedImage().getImage()
     img = lsstimg.getArray()
     schema = ss.getSchema()
@@ -153,7 +154,7 @@ def makeplots(butler, dataId, ps, sources=None, pids=None, minsize=0,
             continue
 
         if len(kids) < minsize:
-            print 'Skipping parent', pid, ': n kids', len(kids)
+            print('Skipping parent', pid, ': n kids', len(kids))
             continue
 
         # if len(kids) < 5:
@@ -164,11 +165,11 @@ def makeplots(butler, dataId, ps, sources=None, pids=None, minsize=0,
         #     print 'skipping'
         #     continue
 
-        print 'Parent', parent
-        print 'Kids', kids
+        print('Parent', parent)
+        print('Kids', kids)
 
-        print 'Parent', parent.getId()
-        print 'Kids', [k.getId() for k in kids]
+        print('Parent', parent.getId())
+        print('Kids', [k.getId() for k in kids])
 
         pfoot = parent.getFootprint()
         bb = pfoot.getBBox()
@@ -197,8 +198,8 @@ def makeplots(butler, dataId, ps, sources=None, pids=None, minsize=0,
             plt.axis(ax)
             ps.savefig()
 
-        print 'parent footprint:', pfoot
-        print 'heavy?', pfoot.isHeavy()
+        print('parent footprint:', pfoot)
+        print('heavy?', pfoot.isHeavy())
         plt.clf()
         pimg, h = foot_to_img(pfoot, lsstimg)
 
@@ -228,8 +229,8 @@ def makeplots(butler, dataId, ps, sources=None, pids=None, minsize=0,
             for i, kid in enumerate(kids):
                 plt.subplot(rows, cols, 1+i)
                 kfoot = kid.getFootprint()
-                print 'kfoot:', kfoot
-                print 'heavy?', kfoot.isHeavy()
+                print('kfoot:', kfoot)
+                print('heavy?', kfoot.isHeavy())
                 #print dir(kid)
                 kbb = kfoot.getBBox()
                 ky0, ky1, kx0, kx1 = kbb.getMinY(), kbb.getMaxY(), kbb.getMinX(), kbb.getMaxX()
@@ -259,8 +260,8 @@ def makeplots(butler, dataId, ps, sources=None, pids=None, minsize=0,
         plt.suptitle('Child HeavyFootprints')
         ps.savefig()
 
-        print
-        print 'Re-running deblender...'
+        print()
+        print('Re-running deblender...')
         psf = calexp.getPsf()
         psf_fwhm = psf.computeShape().getDeterminantRadius() * 2.35
         deb = deblend(pfoot, calexp.getMaskedImage(), psf, psf_fwhm, verbose=True,
@@ -268,7 +269,7 @@ def makeplots(butler, dataId, ps, sources=None, pids=None, minsize=0,
                       rampFluxAtEdge=True,
                       clipStrayFluxFraction=0.01,
                       )
-        print 'Got', deb
+        print('Got', deb)
 
         def getDebFlagString(kid):
             ss = []
@@ -393,14 +394,14 @@ def makeplots(butler, dataId, ps, sources=None, pids=None, minsize=0,
 
             plt.xlim(-5, 5)
 
-            print 'Sum of ramp weights:', np.sum(kid.psfFitDebugRampWeight)
-            print 'Quadrature sum of ramp weights:', np.sqrt(np.sum(kid.psfFitDebugRampWeight**2))
-            print 'Number of valid pix:', np.sum(kid.psfFitDebugValidPix)
+            print('Sum of ramp weights:', np.sum(kid.psfFitDebugRampWeight))
+            print('Quadrature sum of ramp weights:', np.sqrt(np.sum(kid.psfFitDebugRampWeight**2)))
+            print('Number of valid pix:', np.sum(kid.psfFitDebugValidPix))
             rw = kid.psfFitDebugRampWeight
             valid = kid.psfFitDebugValidPix
             # print 'valid values:', np.unique(valid)
-            print 'rw[valid]', np.sum(rw[valid])
-            print 'rw range', rw.min(), rw.max()
+            print('rw[valid]', np.sum(rw[valid]))
+            print('rw range', rw.min(), rw.max())
             # print 'rw', rw.shape, rw.dtype
             # print 'valid', valid.shape, valid.dtype
             # print 'rw[valid]:', rw[valid]
@@ -410,12 +411,12 @@ def makeplots(butler, dataId, ps, sources=None, pids=None, minsize=0,
                              ((kid.psfFitDebugStamp.getArray() -
                                kid.psfFitDebugPsfModel.getArray()) /
                               np.sqrt(kid.psfFitDebugVar.getArray()))**2)
-            print 'myresid:', myresid
+            print('myresid:', myresid)
 
             plt.subplot(2, 4, 8)
             N = 20000
             rwv = rw[valid]
-            print 'rwv', rwv
+            print('rwv', rwv)
             x = np.random.normal(size=(N, len(rwv)))
             ss = np.sum(rwv * x**2, axis=1)
             plt.hist(ss, 25)
@@ -468,8 +469,8 @@ def makeplots(butler, dataId, ps, sources=None, pids=None, minsize=0,
             params = kid.psfFitParams
             (flux, sky, skyx, skyy) = params[:4]
 
-            print 'Model sum:', model.sum()
-            print '- sky', model.sum() - np.sum(valid)*sky
+            print('Model sum:', model.sum())
+            print('- sky', model.sum() - np.sum(valid)*sky)
 
             sig1 = np.median(sig)
 
@@ -511,7 +512,7 @@ if __name__ == '__main__':
         opt.data = os.path.join(os.environ['SUPRIME_DATA_DIR'],
                                 'rerun', opt.rerun)
 
-    print 'Data directory:', opt.data
+    print('Data directory:', opt.data)
     butler = dafPersist.Butler(opt.data)
     dataId = dict(visit=opt.visit, ccd=opt.ccd)
     ps = PlotSequence('deb')
@@ -520,7 +521,7 @@ if __name__ == '__main__':
     if opt.sources:
         flags = 0
         sources = afwTable.SourceCatalog.readFits(opt.sources, opt.hdu, flags)
-        print 'Read sources from', opt.sources, ':', sources
+        print('Read sources from', opt.sources, ':', sources)
 
     makeplots(butler, dataId, ps, sources=sources, pids=opt.pid, minsize=opt.minsize,
               maxpeaks=opt.maxpeaks)

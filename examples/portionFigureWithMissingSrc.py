@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
 import sys
 import os
 import re
@@ -47,7 +48,7 @@ def randomCoords(nSrc, grid=False, minSep=0.15, maxSep=0.25):
                 dy = y - _y
                 s = numpy.sqrt(dx*dx + dy*dy)
                 smin = s.min()
-                print smin, iTry
+                print(smin, iTry)
                 iTry += 1
             if _x and _y:
                 x = numpy.append(x, _x)
@@ -88,11 +89,11 @@ def detect(mimg):
     thresh = afwDet.createThreshold(10., 'value', True)
     fpSet = afwDet.FootprintSet(mimg, thresh, 'DETECTED', 1)
     fps = fpSet.getFootprints()
-    print 'found', len(fps), 'footprints'
+    print('found', len(fps), 'footprints')
     for fp in fps:
-        print 'peaks:', len(fp.getPeaks())
+        print('peaks:', len(fp.getPeaks()))
         for pk in fp.getPeaks():
-            print '  ', pk.getIx(), pk.getIy()
+            print('  ', pk.getIx(), pk.getIy())
     return fps[0] if fps else None
 
 
@@ -111,7 +112,7 @@ def makePortionFigure(deblend, origMimg, origMimgB, pedestal=0.0):
         pk = peak.peak
         centers.append((pk.getIx(), pk.getIy()))
         boxes.append(((footBox.getMinX(), footBox.getMinY()), footBox.getWidth(), footBox.getHeight()))
-        print i, peak, pk.getIx(), pk.getIy(), footBox, "skip:", peak.skip
+        print(i, peak, pk.getIx(), pk.getIy(), footBox, "skip:", peak.skip)
 
         # make a sub-image for this peak, and put the aportioned flux into it
         portionedSubImg = afwImage.ImageF(portionedImg, footBox)
@@ -186,7 +187,7 @@ def main():
 
     # deblend mimgB (missing a peak) using the fp with the extra peak
     deb = measDeb.deblend(fp, mimgB, psf, fwhm0, verbose=True, rampFluxAtEdge=True, log=log)
-    print "Deblended peaks: ", len(deb.peaks)
+    print("Deblended peaks: ", len(deb.peaks))
 
     fig = makePortionFigure(deb, mimg, mimgB)
     fig.savefig("test.png")

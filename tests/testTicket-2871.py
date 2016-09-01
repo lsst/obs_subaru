@@ -39,7 +39,7 @@ class DeblendTestCase(unittest.TestCase):
     def checkDeblender(self):
         try:
             import lsst.meas.deblender
-        except ImportError, e:
+        except ImportError as e:
             self.skipTest("Cannot import lsst.meas.deblender: %s" % e)
 
     def testFailures(self):

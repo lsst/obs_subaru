@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
 import os
 import sys
 
@@ -29,43 +30,43 @@ def run(visit, rerun, config):
     butler = io.inButler
 
     bb = butler.get('bb', dataId)
-    print 'Bounding-boxes:', bb
-    print len(bb)
+    print('Bounding-boxes:', bb)
+    print(len(bb))
 
     pyfoots = butler.get('pyfoots', dataId)
     foots, pks = footprintsFromPython(pyfoots)
-    print 'Footprints:'
-    print foots
-    print 'Peaks:'
-    print pks
+    print('Footprints:')
+    print(foots)
+    print('Peaks:')
+    print(pks)
 
     # HACK peaks
     fn = mapper.getPath('truesrc', dataId)
     srcs = pyfits.open(fn)[1].data
     x = srcs.field('x').astype(float)
     y = srcs.field('y').astype(float)
-    print x, y
+    print(x, y)
     pks = []
     for foot in foots:
         thispks = []
         bbox = foot.getBBox()
         bb = (bbox.getMinX(), bbox.getMinY(), bbox.getMaxX(), bbox.getMaxY())
-        print 'Looking for sources for footprint with bbox', bb
+        print('Looking for sources for footprint with bbox', bb)
         for xi, yi in zip(x, y):
             if foot.contains(afwGeom.Point2I(int(round(xi)), int(round(yi)))):
                 thispks.append(afwDet.Peak(xi, yi))
-                print '  Source at', (xi, yi), 'is inside footprint with bbox', bb
+                print('  Source at', (xi, yi), 'is inside footprint with bbox', bb)
         pks.append(thispks)
-        print 'Got', len(thispks), 'sources for this footprint'
-    print 'OVERRODE peaks', pks
+        print('Got', len(thispks), 'sources for this footprint')
+    print('OVERRODE peaks', pks)
 
     exposureDatatype = 'visitim'
     exposure = butler.get(exposureDatatype, dataId)
     mi = exposure.getMaskedImage()
-    print 'MaskedImage:', mi
+    print('MaskedImage:', mi)
 
     psf = butler.get('psf', dataId)
-    print 'PSF:', psf
+    print('PSF:', psf)
 
     testDeblend(foots, pks, mi, psf)
 
@@ -83,7 +84,7 @@ if __name__ == "__main__":
     if len(args) > 0 or len(sys.argv) == 1 or opt.rerun is None or opt.visit is None:
         parser.print_help()
         sys.exit(1)
-    print 'running visit', opt.visit, 'rerun', opt.rerun
+    print('running visit', opt.visit, 'rerun', opt.rerun)
     run(opt.visit, opt.rerun, config)
 
     #if opt.plots:

@@ -1,3 +1,5 @@
+from __future__ import print_function
+from __future__ import absolute_import
 import matplotlib
 matplotlib.use('Agg')
 import pylab as plt
@@ -6,8 +8,8 @@ import lsst.pex.logging as pexLog
 import lsst.afw.image as afwImage
 import lsst.afw.detection as afwDet
 
-from utils import *
-from suprime import *
+from .utils import *
+from .suprime import *
 
 
 def main():
@@ -104,10 +106,10 @@ def main():
     # Load data using the butler, if desired
     dr = None
     if opt.sources is None or opt.calexp is None:
-        print 'Creating DataRef...'
+        print('Creating DataRef...')
         dr = getSuprimeDataref(opt.visit, opt.ccd, rootdir=opt.root,
                                outrootdir=opt.outroot)
-        print 'Got', dr
+        print('Got', dr)
 
     # Which parent ids / deblend families are we going to plot?
     keepids = None
@@ -116,7 +118,7 @@ def main():
         for d in opt.drill:
             for dd in d.split(','):
                 keepids.append(int(dd))
-        print 'Keeping parent ids', keepids
+        print('Keeping parent ids', keepids)
 
     keepxys = None
     if len(opt.drillxy):
@@ -126,26 +128,26 @@ def main():
                 xy = dd.split(',')
                 assert(len(xy) == 2)
                 keepxys.append((int(xy[0]), int(xy[1])))
-        print 'Keeping parents at xy', keepxys
+        print('Keeping parents at xy', keepxys)
 
     # Read from butler or local file
     cat = readCatalog(opt.sources, None, dataref=dr, keepids=keepids,
                       keepxys=keepxys, patargs=dict(visit=opt.visit, ccd=opt.ccd))
-    print 'Got', len(cat), 'sources'
+    print('Got', len(cat), 'sources')
 
     # Load data from butler or local files
     if opt.calexp is not None:
-        print 'Reading exposure from', opt.calexp
+        print('Reading exposure from', opt.calexp)
         exposure = afwImage.ExposureF(opt.calexp)
     else:
         exposure = dr.get('calexp')
-    print 'Exposure', exposure
+    print('Exposure', exposure)
     mi = exposure.getMaskedImage()
 
     if opt.psf is not None:
-        print 'Reading PSF from', opt.psf
+        print('Reading PSF from', opt.psf)
         psf = afwDet.Psf.readFits(opt.psf)
-        print 'Got', psf
+        print('Got', psf)
     elif dr:
         psf = dr.get('psf')
     else:
@@ -154,16 +156,16 @@ def main():
     sigma1 = get_sigma1(mi)
 
     fams = getFamilies(cat)
-    print len(fams), 'deblend families'
+    print(len(fams), 'deblend families')
 
     if False:
         for j, (parent, children) in enumerate(fams):
-            print 'parent', parent
-            print 'children', children
+            print('parent', parent)
+            print('children', children)
             plotDeblendFamily(mi, parent, children, cat, sigma1, ellipses=False)
             fn = '%04i.png' % parent.getId()
             plt.savefig(fn)
-            print 'wrote', fn
+            print('wrote', fn)
 
     def nlmap(X):
         return np.arcsinh(X / (3.*sigma1))
@@ -183,9 +185,9 @@ def main():
     # Make plots for each deblend family.
 
     for j, (parent, children) in enumerate(fams):
-        print 'parent', parent.getId()
-        print 'children', [ch.getId() for ch in children]
-        print 'parent x,y', parent.getX(), parent.getY()
+        print('parent', parent.getId())
+        print('children', [ch.getId() for ch in children])
+        print('parent x,y', parent.getX(), parent.getY())
 
         pid = parent.getId()
         fp = parent.getFootprint()
@@ -273,7 +275,7 @@ def main():
         else:
             raise 'Unknown section: "%s"' % opt.sec
 
-        print 'Running deblender with kwargs:', kwargs
+        print('Running deblender with kwargs:', kwargs)
         res = deblend(fp, mi, psf, psf_fwhm, **kwargs)
         #print 'got result with', [x for x in dir(res) if not x.startswith('__')]
         #for pk in res.peaks:
@@ -284,7 +286,7 @@ def main():
         tbb = fp.getBBox()
         for pkres, pk in zip(res.peaks, pks):
             tbb.include(pkres.template_foot.getBBox())
-        print 'Bounding-box of all templates:', tbb
+        print('Bounding-box of all templates:', tbb)
 
         # Sum-of-templates plot
         tsum = np.zeros((tbb.getHeight(), tbb.getWidth()))
@@ -311,7 +313,7 @@ def main():
 
             heavy = pkres.get_flux_portion()
             if heavy is None:
-                print 'Child has no HeavyFootprint -- skipping'
+                print('Child has no HeavyFootprint -- skipping')
                 continue
 
             kk = mapchild(k)
@@ -328,7 +330,7 @@ def main():
             tim = tim.getArray()
 
             (x0, x1, y0, y1) = timext
-            print 'tim ext', timext
+            print('tim ext', timext)
             tsum[y0-ty0:y1-ty0, x0-tx0:x1-tx0] += tim
 
             # "Heavy" image -- flux assigned to child
@@ -508,9 +510,9 @@ def main():
             if heavy is None:
                 continue
 
-            print 'Template footprint:', pkres.template_foot.getBBox()
-            print 'Template img:', pkres.template_mimg.getBBox()
-            print 'Heavy footprint:', heavy.getBBox()
+            print('Template footprint:', pkres.template_foot.getBBox())
+            print('Template img:', pkres.template_mimg.getBBox())
+            print('Heavy footprint:', heavy.getBBox())
 
             cfp = pkres.template_foot
             cbb = cfp.getBBox()

@@ -21,6 +21,7 @@
 # see <http://www.lsstcorp.org/LegalNotices/>.
 #
 
+from __future__ import print_function
 import lsst.pex.config as pexConfig
 import lsst.pex.exceptions as pexExceptions
 import lsst.pipe.base as pipeBase
@@ -67,8 +68,8 @@ class DeblendAndMeasureTask(pipeBase.CmdLineTask):
         self.log.info("Processing %s" % (dataRef.dataId))
         calexp = dataRef.get('calexp')
         srcs = dataRef.get('src')
-        print 'Calexp:', calexp
-        print 'srcs:', srcs
+        print('Calexp:', calexp)
+        print('srcs:', srcs)
 
         ## FIXME -- this whole mapping business is very fragile -- it
         ## seems to fail, eg, if you don't set "-c
@@ -94,7 +95,7 @@ class DeblendAndMeasureTask(pipeBase.CmdLineTask):
         outsources.reserve(len(parents))
         outsources.extend(parents, mapper=mapper)
         srcs = outsources
-        print len(srcs), 'sources before deblending'
+        print(len(srcs), 'sources before deblending')
 
         if self.config.doDeblend:
             self.deblend.run(calexp, srcs)
@@ -105,7 +106,7 @@ class DeblendAndMeasureTask(pipeBase.CmdLineTask):
         if srcs is not None and self.config.doWriteSources:
             sourceWriteFlags = (0 if self.config.doWriteHeavyFootprintsInSources
                                 else afwTable.SOURCE_IO_NO_HEAVY_FOOTPRINTS)
-            print 'Writing "src" outputs'
+            print('Writing "src" outputs')
             if self.config.sourceOutputFile:
                 srcs.writeFits(self.config.sourceOutputFile, flags=sourceWriteFlags)
             else:

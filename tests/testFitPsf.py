@@ -21,6 +21,7 @@
 # the GNU General Public License along with this program.  If not,
 # see <https://www.lsstcorp.org/LegalNotices/>.
 #
+from __future__ import print_function
 import unittest
 import numpy as np
 
@@ -37,9 +38,9 @@ if doPlot:
     import matplotlib
     matplotlib.use('Agg')
     import pylab as plt
-    print "doPlot is set -- saving plots to current directory."
+    print("doPlot is set -- saving plots to current directory.")
 else:
-    print "doPlot is not set -- not saving plots.  To enable plots, edit", __file__
+    print("doPlot is not set -- not saving plots.  To enable plots, edit", __file__)
 
 
 class FitPsfTestCase(unittest.TestCase):
@@ -57,7 +58,7 @@ class FitPsfTestCase(unittest.TestCase):
         psf2 = measAlg.DoubleGaussianPsf(100, 100, psfsig)
 
         fbb = fp.getBBox()
-        print 'fbb', fbb.getMinX(), fbb.getMaxX(), fbb.getMinY(), fbb.getMaxY()
+        print('fbb', fbb.getMinX(), fbb.getMaxX(), fbb.getMinY(), fbb.getMaxY())
 
         fmask = afwImage.MaskU(fbb)
         fmask.setXY0(fbb.getMinX(), fbb.getMinY())
@@ -68,8 +69,8 @@ class FitPsfTestCase(unittest.TestCase):
         img = afwImage.ImageF(fbb)
         A = img.getArray()
         A += np.random.normal(0, sig1, size=(fbb.getHeight(), fbb.getWidth()))
-        print 'img x0,y0', img.getX0(), img.getY0()
-        print 'BBox', img.getBBox()
+        print('img x0,y0', img.getX0(), img.getY0())
+        print('BBox', img.getBBox())
 
         peaks = afwDet.PeakCatalog(afwDet.PeakTable.makeMinimalSchema())
 
@@ -94,11 +95,11 @@ class FitPsfTestCase(unittest.TestCase):
         fluxes = [10000., 5000., 5000.]
         for pk, f in zip(peaks, fluxes):
             psfim = psf1.computeImage(afwGeom.Point2D(pk.getFx(), pk.getFy()))
-            print 'psfim x0,y0', psfim.getX0(), psfim.getY0()
+            print('psfim x0,y0', psfim.getX0(), psfim.getY0())
             pbb = psfim.getBBox()
-            print 'pbb', pbb.getMinX(), pbb.getMaxX(), pbb.getMinY(), pbb.getMaxY()
+            print('pbb', pbb.getMinX(), pbb.getMaxX(), pbb.getMinY(), pbb.getMaxY())
             pbb.clip(ibb)
-            print 'clipped pbb', pbb.getMinX(), pbb.getMaxX(), pbb.getMinY(), pbb.getMaxY()
+            print('clipped pbb', pbb.getMinX(), pbb.getMaxX(), pbb.getMinY(), pbb.getMaxY())
             psfim = psfim.Factory(psfim, pbb)
 
             psfa = psfim.getArray()
@@ -146,7 +147,7 @@ class FitPsfTestCase(unittest.TestCase):
         for k in dir(pkres):
             if k.startswith('__'):
                 continue
-            print '  ', k, getattr(pkres, k)
+            print('  ', k, getattr(pkres, k))
 
         cpsf = CachingPsf(psf2)
         _fitPsf(fp, fmask, pk1, pkF, pkres, fbb, peaks, peaksF, log, cpsf, psffwhm,
@@ -155,7 +156,7 @@ class FitPsfTestCase(unittest.TestCase):
         for k in dir(pkres):
             if k.startswith('__'):
                 continue
-            print '  ', k, getattr(pkres, k)
+            print('  ', k, getattr(pkres, k))
 
         pkF = pk3.getF()
         _fitPsf(fp, fmask, pk3, pkF, pkres, fbb, peaks, peaksF, log, cpsf, psffwhm,
@@ -164,7 +165,7 @@ class FitPsfTestCase(unittest.TestCase):
         for k in dir(pkres):
             if k.startswith('__'):
                 continue
-            print '  ', k, getattr(pkres, k)
+            print('  ', k, getattr(pkres, k))
 
 
 #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-

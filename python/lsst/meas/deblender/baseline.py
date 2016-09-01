@@ -838,7 +838,7 @@ def _fitPsf(fp, fmask, pk, pkF, pkres, fbb, peaks, peaksF, log, psf, psffwhm,
         X1, r1, rank1, s1 = np.linalg.lstsq(Aw[:, :NT1], bw)
         # X2 is with decenter
         X2, r2, rank2, s2 = np.linalg.lstsq(Aw, bw)
-    except np.linalg.LinAlgError, e:
+    except np.linalg.LinAlgError as e:
         log.log(log.WARN, "Failed to fit PSF to child: %s" % e)
         pkres.setPsfFitFailed()
         return
