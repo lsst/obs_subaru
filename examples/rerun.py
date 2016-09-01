@@ -11,8 +11,10 @@ That is, it reads the calexp and pre-deblending sources, then runs the
 deblender and writes the outputs to self-contained FITS files.
 '''
 
+
 class MyConfig(Config):
     deblend = ConfigurableField(target=SourceDeblendTask, doc="Deblender")
+
 
 class MyTask(CmdLineTask):
     _DefaultName = "my"

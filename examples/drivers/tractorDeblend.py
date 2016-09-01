@@ -17,9 +17,10 @@ matplotlib.use('Agg')
 
 from testDeblend import testDeblend
 
+
 def run(visit, rerun, config):
     mapper = getMapper()
-    dataId = { 'visit': visit, 'rerun': rerun }
+    dataId = {'visit': visit, 'rerun': rerun}
     #rrdir = mapper.getPath('outdir', dataId)
     #if not os.path.exists(rrdir):
     #    print 'Creating directory for ouputs:', rrdir
@@ -32,7 +33,7 @@ def run(visit, rerun, config):
     print len(bb)
 
     pyfoots = butler.get('pyfoots', dataId)
-    foots,pks = footprintsFromPython(pyfoots)
+    foots, pks = footprintsFromPython(pyfoots)
     print 'Footprints:'
     print foots
     print 'Peaks:'
@@ -50,10 +51,10 @@ def run(visit, rerun, config):
         bbox = foot.getBBox()
         bb = (bbox.getMinX(), bbox.getMinY(), bbox.getMaxX(), bbox.getMaxY())
         print 'Looking for sources for footprint with bbox', bb
-        for xi,yi in zip(x,y):
-            if foot.contains(afwGeom.Point2I(int(round(xi)),int(round(yi)))):
-                thispks.append(afwDet.Peak(xi,yi))
-                print '  Source at', (xi,yi), 'is inside footprint with bbox', bb
+        for xi, yi in zip(x, y):
+            if foot.contains(afwGeom.Point2I(int(round(xi)), int(round(yi)))):
+                thispks.append(afwDet.Peak(xi, yi))
+                print '  Source at', (xi, yi), 'is inside footprint with bbox', bb
         pks.append(thispks)
         print 'Got', len(thispks), 'sources for this footprint'
     print 'OVERRODE peaks', pks
@@ -72,7 +73,8 @@ def run(visit, rerun, config):
 if __name__ == "__main__":
     parser = pipOptions.OptionParser()
     parser.add_option("-r", "--rerun", default=0, dest="rerun", type=int, help='rerun number')
-    parser.add_option("-v", "--visit", dest="visit", type=int, default=0, help="visit to run (default=%default)")
+    parser.add_option("-v", "--visit", dest="visit", type=int,
+                      default=0, help="visit to run (default=%default)")
     #parser.add_option("-p", "--plots", dest="plots", default=False, action='store_true', help='Make plots?')
 
     default = os.path.join(os.getenv("PIPETTE_DIR"), "policy", "ProcessCcdDictionary.paf")
@@ -86,5 +88,3 @@ if __name__ == "__main__":
 
     #if opt.plots:
     #    plots(opt.visit, opt.rerun, config, bb)
-        
-

@@ -1,6 +1,7 @@
 import lsst.obs.suprimecam as obsSc
 from utils import *
 
+
 def _getSuprimeMapper(rootdir=None, calibdir=None, outrootdir=None):
     if rootdir is None:
         rootdir = os.path.join(os.environ['HOME'], 'lsst', 'ACT-data')
@@ -12,16 +13,18 @@ def _getSuprimeMapper(rootdir=None, calibdir=None, outrootdir=None):
     wrap = WrapperMapper(mapper)
     return wrap
 
+
 def _getSuprimeButler(rootdir=None, calibdir=None, outrootdir=None):
     mapper = _getSuprimeMapper(rootdir, calibdir, outrootdir)
-    butlerFactory = dafPersist.ButlerFactory(mapper = mapper)
+    butlerFactory = dafPersist.ButlerFactory(mapper=mapper)
     butler = butlerFactory.create()
     return butler
+
 
 def getSuprimeDataref(visit, ccd, single=True, rootdir=None, calibdir=None, outrootdir=None):
     butler = _getSuprimeButler(rootdir=rootdir, calibdir=calibdir, outrootdir=outrootdir)
     print 'Butler', butler
-    dataRef = butler.subset('raw', dataId = dict(visit=visit, ccd=ccd))
+    dataRef = butler.subset('raw', dataId=dict(visit=visit, ccd=ccd))
     print 'dataRef:', dataRef
     print 'len(dataRef):', len(dataRef)
     for dr in dataRef:

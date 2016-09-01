@@ -1,8 +1,8 @@
-# 
+#
 # LSST Data Management System
 # Copyright 2008, 2009, 2010 LSST Corporation.
 # Copyright 2011 Dustin Lang.
-# 
+#
 # This product includes software developed by the
 # LSST Project (http://www.lsst.org/).
 #
@@ -10,14 +10,14 @@
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
-# You should have received a copy of the LSST License Statement and 
-# the GNU General Public License along with this program.  If not, 
+#
+# You should have received a copy of the LSST License Statement and
+# the GNU General Public License along with this program.  If not,
 # see <http://www.lsstcorp.org/LegalNotices/>.
 #
 
@@ -41,7 +41,9 @@ import lsst.meas.algorithms as measAlgo
 import lsst.meas.multifit as measMultifit
 import lsst.afw.detection
 
+
 class TractorMapper(Mapper):
+
     def __init__(self, rerun=0, basedir='.', **kwargs):
         Mapper.__init__(self)
 
@@ -53,28 +55,28 @@ class TractorMapper(Mapper):
 
         indir = os.path.join(self.basedir, 't%(visit)04i')
         outdir = os.path.join(indir, 'rr%(rerun)04i')
-        self.filenames = { 'outdir': (outdir, None, None),
-                           'visitim': (os.path.join(indir, 't.fits'), #'t_img.fits'), #img.fits'),
-                                       'lsst.afw.image.ExposureF', 'ExposureF'),
-                           'psf': (os.path.join(outdir, 'psf.boost'),
-                                   'lsst.afw.detection.Psf', 'Psf'),
-                           'src': (os.path.join(outdir, 'src.boost'),
-                                   # dare to dream / keep dreaming
-                                   #os.path.join(outdir, 'src.fits'),
-                                   # htf did this work before?
-                                   #'lsst.afw.detection.Source', 'Source'),
-                                   'lsst.afw.detection.PersistableSourceVector',
-                                   'PersistableSourceVector'),
-                           'bb': (os.path.join(outdir, 'bb.pickle'),
-                                  None, None),
-                           'pyfoots': (os.path.join(outdir, 'foots.pickle'),
-                                       None, None),
-                           'footprints': (os.path.join(outdir, 'foots.boost'),
-                                          'lsst.afw.detection.FootprintList',
-                                          'FootprintList'),
-                           'truesrc': (os.path.join(indir, 'srcs.fits'),
-                                       None, None),
-                           }
+        self.filenames = {'outdir': (outdir, None, None),
+                          'visitim': (os.path.join(indir, 't.fits'), #'t_img.fits'), #img.fits'),
+                                      'lsst.afw.image.ExposureF', 'ExposureF'),
+                          'psf': (os.path.join(outdir, 'psf.boost'),
+                                  'lsst.afw.detection.Psf', 'Psf'),
+                          'src': (os.path.join(outdir, 'src.boost'),
+                                  # dare to dream / keep dreaming
+                                  #os.path.join(outdir, 'src.fits'),
+                                  # htf did this work before?
+                                  #'lsst.afw.detection.Source', 'Source'),
+                                  'lsst.afw.detection.PersistableSourceVector',
+                                  'PersistableSourceVector'),
+                          'bb': (os.path.join(outdir, 'bb.pickle'),
+                                 None, None),
+                          'pyfoots': (os.path.join(outdir, 'foots.pickle'),
+                                      None, None),
+                          'footprints': (os.path.join(outdir, 'foots.boost'),
+                                         'lsst.afw.detection.FootprintList',
+                                         'FootprintList'),
+                          'truesrc': (os.path.join(indir, 'srcs.fits'),
+                                      None, None),
+                          }
         '''
         for datasetType in ["raw", "bias", "dark", "flat", "fringe",
             "postISR", "postISRCCD", "sdqaAmp", "sdqaCcd",
@@ -109,5 +111,3 @@ class TractorMapper(Mapper):
         elif path.endswith('.pickle'):
             storagetype = 'PickleStorage'
         return ButlerLocation(cname, pyname, storagetype, path, dataId)
-
-

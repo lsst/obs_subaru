@@ -33,23 +33,24 @@ from lsst.meas.deblender import SourceDeblendTask
 
 
 class DeblendAndMeasureConfig(pexConfig.Config):
-    doDeblend = pexConfig.Field(dtype=bool, default=True, doc = "Deblend sources?")
-    doMeasurement = pexConfig.Field(dtype=bool, default=True, doc = "Measure sources?")
-    doWriteSources = pexConfig.Field(dtype=bool, default=True, doc = "Write sources?")
+    doDeblend = pexConfig.Field(dtype=bool, default=True, doc="Deblend sources?")
+    doMeasurement = pexConfig.Field(dtype=bool, default=True, doc="Measure sources?")
+    doWriteSources = pexConfig.Field(dtype=bool, default=True, doc="Write sources?")
     doWriteHeavyFootprintsInSources = pexConfig.Field(dtype=bool, default=False,
-                                                      doc = "Include HeavyFootprint data in source table?")
+                                                      doc="Include HeavyFootprint data in source table?")
 
-    sourceOutputFile = pexConfig.Field(dtype=str, default=None, doc="Write sources to given filename (default: use butler)", optional=True)
+    sourceOutputFile = pexConfig.Field(
+        dtype=str, default=None, doc="Write sources to given filename (default: use butler)", optional=True)
 
     deblend = pexConfig.ConfigurableField(
-        target = SourceDeblendTask,
-        doc = "Split blended sources into their components",
+        target=SourceDeblendTask,
+        doc="Split blended sources into their components",
     )
     measurement = pexConfig.ConfigurableField(
-        target = SourceMeasurementTask,
-        doc = "Final source measurement on low-threshold detections",
+        target=SourceMeasurementTask,
+        doc="Final source measurement on low-threshold detections",
     )
-    
+
 
 class DeblendAndMeasureTask(pipeBase.CmdLineTask):
     ConfigClass = DeblendAndMeasureConfig
@@ -97,7 +98,7 @@ class DeblendAndMeasureTask(pipeBase.CmdLineTask):
 
         if self.config.doDeblend:
             self.deblend.run(calexp, srcs)
-        
+
         if self.config.doMeasurement:
             self.measurement.run(calexp, srcs)
 

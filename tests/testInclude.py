@@ -37,7 +37,7 @@ try:
 except NameError:
     display = False
 
-DATA_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)),"data")
+DATA_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), "data")
 
 #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
@@ -105,8 +105,8 @@ class IncludeTestCase(lsst.utils.tests.TestCase):
         # The relative differences ranged from 0.02 to ~2.  This rtol is somewhat
         # random, but will certainly catch the pathology if it occurs.
         self.assertFloatsAlmostEqual(self.calexpOrig.getMaskedImage().getImage().getArray(),
-                         self.calexp.getMaskedImage().getImage().getArray(),
-                         rtol=1E-3, printFailures=False, plotOnFailure=plotOnFailure)
+                                     self.calexp.getMaskedImage().getImage().getArray(),
+                                     rtol=1E-3, printFailures=False, plotOnFailure=plotOnFailure)
 
 #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 

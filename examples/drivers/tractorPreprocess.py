@@ -24,13 +24,17 @@ import lsst.meas.algorithms
 
 
 class NullISR(pipIsr.Isr):
+
     def __init__(self, **kwargs):
         pass
+
     def run(self, exposures, detrends):
         # exposure, defects, background
         return exposures[0], None, None
 
+
 class MyPhotometry(pipPhot.Photometry):
+
     def run(self, exposure, psf, apcorr=None, wcs=None):
         #print 'my config:', self.config
         print "policy = config['detect'] = ", self.config['detect']
@@ -38,7 +42,9 @@ class MyPhotometry(pipPhot.Photometry):
         print 'policy["thresholdValue"] = ', (self.config['detect'])['thresholdValue']
         return pipPhot.Photometry.run(self, exposure, psf, apcorr=apcorr, wcs=wcs)
 
+
 class MyCalibrate(pipCalib.Calibrate):
+
     def run2(self, exposure, defects=None, background=None):
         assert exposure is not None, "No exposure provided"
         print 'creating fake PSF...'
@@ -68,8 +74,8 @@ class MyCalibrate(pipCalib.Calibrate):
             for s in sources:
                 print '  ', s, s.getXAstrom(), s.getYAstrom(), s.getPsfFlux(), s.getIxx(), s.getIyy(), s.getIxy()
             # sourceMeasurement():
-            import lsst.meas.algorithms   as measAlg
-            import lsst.afw.detection     as afwDetection
+            import lsst.meas.algorithms as measAlg
+            import lsst.afw.detection as afwDetection
             print 'Simulating sourceMeasurement()...'
             pexLog.Trace_setVerbosity("meas.algorithms.measure", True)
             exposure.setPsf(psf)
@@ -87,7 +93,6 @@ class MyCalibrate(pipCalib.Calibrate):
                 measureSources.apply(s, f)
                 print 'got', s
                 print '  ', s, s.getXAstrom(), s.getYAstrom(), s.getPsfFlux(), s.getIxx(), s.getIyy(), s.getIxy()
-
 
         print 'initial photometry...'
         sources, footprints = self.phot(exposure, psf)
@@ -115,9 +120,10 @@ def getMapper():
     mapper = TractorMapper(basedir=database)
     return mapper
 
+
 def run(visit, rerun, config):
     mapper = getMapper()
-    dataId = { 'visit': visit, 'rerun': rerun }
+    dataId = {'visit': visit, 'rerun': rerun}
     rrdir = mapper.getPath('outdir', dataId)
     if not os.path.exists(rrdir):
         print 'Creating directory for ouputs:', rrdir
@@ -149,7 +155,7 @@ def run(visit, rerun, config):
     print 'Calibrate()...'
     log = pexLog.getDefaultLog()
     cal = MyCalibrate(config=config, log=log, Photometry=MyPhotometry)
-    psf,sources,footprints = cal.run2(exposure)
+    psf, sources, footprints = cal.run2(exposure)
 
     print 'Photometry()...'
     phot = pipPhot.Photometry(config=config, log=log)
@@ -202,11 +208,9 @@ def run(visit, rerun, config):
     return bb
 
 
-
-
 def plots(visit, rerun, config, bb=[]):
     mapper = getMapper()
-    dataId = { 'visit': visit, 'rerun': rerun }
+    dataId = {'visit': visit, 'rerun': rerun}
     rrdir = mapper.getPath('outdir', dataId)
     if not os.path.exists(rrdir):
         raise RuntimeError('Rerun dir not found: "%s"' % rrdir)
@@ -216,14 +220,15 @@ def plots(visit, rerun, config, bb=[]):
     import plotSources
 
     plotSources.plotSources(butler=butler, dataId=dataId,
-                            fn='src-v%04i-rr%04i.png' % (visit,rerun),
+                            fn='src-v%04i-rr%04i.png' % (visit, rerun),
                             bboxes=bb)
 
 
 if __name__ == "__main__":
     parser = pipOptions.OptionParser()
     parser.add_option("-r", "--rerun", default=0, dest="rerun", type=int, help='rerun number')
-    parser.add_option("-v", "--visit", dest="visit", type=int, default=0, help="visit to run (default=%default)")
+    parser.add_option("-v", "--visit", dest="visit", type=int,
+                      default=0, help="visit to run (default=%default)")
     parser.add_option("-p", "--plots", dest="plots", default=False, action='store_true', help='Make plots?')
 
     default = os.path.join(os.getenv("PIPETTE_DIR"), "policy", "ProcessCcdDictionary.paf")
@@ -237,5 +242,3 @@ if __name__ == "__main__":
 
     if opt.plots:
         plots(opt.visit, opt.rerun, config, bb)
-        
-
