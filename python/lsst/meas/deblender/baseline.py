@@ -1054,7 +1054,7 @@ def _handle_flux_at_edge(log, psffwhm, t1, tfoot, fp, maskedImage,
     # The size we'll grow by
     S = psffwhm*1.5
     # make it an odd integer
-    S = (int(S + 0.5)/2)*2 + 1
+    S = int((S + 0.5)/2)*2 + 1
 
     tbb = tfoot.getBBox()
     tbb.grow(S)
