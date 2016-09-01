@@ -21,6 +21,20 @@ defaultSubLevels: {
 }
 
 exposures: {
+    deepCoadd: {
+        template:    "deepCoadd/%(filter)s/%(tract)d/%(patch)s.fits"
+        python:      "lsst.afw.image.ExposureF"
+        persistable: "ExposureF"
+        storage:     "FitsStorage"
+        level:       "Skytile"
+    }
+    deepCoadd_calexp: {
+        template:      "deepCoadd-results/%(filter)s/%(tract)d/%(patch)s/calexp-%(filter)s-%(tract)d-%(patch)s.fits"
+        python:        "lsst.afw.image.ExposureF"
+        persistable:   "ExposureF"
+        storage:       "FitsStorage"
+        level:         "None"
+    }
     raw: {
         template:    "%(field)s/%(dateObs)s/%(pointing)05d/%(filter)s/SUPA%(visit)07d%(ccd)1d.fits"
         python:     "lsst.afw.image.DecoratedImageU"
@@ -138,23 +152,6 @@ exposures: {
         columns:       "pointing" "filter" "visit" "ccd"
     }
 
-    deepCoadd: {
-        template:    "deepCoadd/%(filter)s/%(tract)d/%(patch)s.fits"
-        python:      "lsst.afw.image.ExposureF"
-        persistable: "ExposureF"
-        storage:     "FitsStorage"
-        level:       "Skytile"
-        tables:      raw_skytile
-    }
-    deepCoadd_calexp: {
-        template:      "deepCoadd-results/%(filter)s/%(tract)d/%(patch)s/calexp-%(filter)s-%(tract)d-%(patch)s.fits"
-        python:        "lsst.afw.image.ExposureF"
-        persistable:   "ExposureF"
-        storage:       "FitsStorage"
-        level:         "None"
-        tables:        raw
-        tables:        raw_skyTile
-    }
     deepCoadd_depth: {
         template:    "deepCoadd/%(filter)s/%(tract)d/%(patch)s.depth.fits"
         python:      "lsst.afw.image.ImageF"
