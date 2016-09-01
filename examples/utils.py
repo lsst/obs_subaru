@@ -409,8 +409,7 @@ def getFamilies(cat):
             children[pid].append(src)
         else:
             children[pid] = [src]
-    keys = list(children.keys())
-    keys.sort()
+    keys = sorted(children.keys())
     return [(cat.find(pid), children[pid]) for pid in keys]
 
 
