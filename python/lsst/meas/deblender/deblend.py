@@ -1,3 +1,4 @@
+from builtins import str
 #
 # LSST Data Management System
 # Copyright 2008-2015 AURA/LSST.
@@ -412,7 +413,7 @@ class SourceDeblendTask(pipeBase.Task):
     def isMasked(self, footprint, mask):
         """Returns whether the footprint violates the mask limits"""
         size = float(footprint.getArea())
-        for maskName, limit in self.config.maskLimits.iteritems():
+        for maskName, limit in self.config.maskLimits.items():
             maskVal = mask.getPlaneBitMask(maskName)
             unmasked = afwDet.Footprint(footprint)
             unmasked.intersectMask(mask, maskVal) # footprint of unmasked pixels

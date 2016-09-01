@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 
 from __future__ import print_function
+from builtins import zip
+from builtins import range
 import sys
 import os
 import re
@@ -54,7 +56,7 @@ def randomCoords(nSrc, grid=False, minSep=0.15, maxSep=0.25):
                 x = numpy.append(x, _x)
                 y = numpy.append(y, _y)
             i += 1
-        xy = zip(x, y)
+        xy = list(zip(x, y))
 
     return xy
 

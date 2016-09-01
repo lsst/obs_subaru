@@ -1,4 +1,7 @@
 from __future__ import print_function
+from builtins import zip
+from builtins import range
+from builtins import object
 import math
 import os
 import pylab as plt
@@ -406,7 +409,7 @@ def getFamilies(cat):
             children[pid].append(src)
         else:
             children[pid] = [src]
-    keys = children.keys()
+    keys = list(children.keys())
     keys.sort()
     return [(cat.find(pid), children[pid]) for pid in keys]
 
