@@ -207,7 +207,7 @@ class SourceDeblendTask(pipeBase.Task):
             'deblend_hasStrayFlux', type='Flag',
             doc=('This source was assigned some stray flux'))
 
-        self.log.logdebug('Added keys to schema: %s' % ", ".join(str(x) for x in (
+        self.log.trace('Added keys to schema: %s', ", ".join(str(x) for x in (
                     self.nChildKey, self.psfKey, self.psfCenterKey, self.psfFluxKey,
                     self.tooManyPeaksKey, self.tooBigKey)))
 
@@ -250,7 +250,7 @@ class SourceDeblendTask(pipeBase.Task):
         statsCtrl.setAndMask(mi.getMask().getPlaneBitMask(self.config.maskPlanes))
         stats = afwMath.makeStatistics(mi.getVariance(), mi.getMask(), afwMath.MEDIAN, statsCtrl)
         sigma1 = math.sqrt(stats.getValue(afwMath.MEDIAN))
-        self.log.logdebug('sigma1: %g' % sigma1)
+        self.log.trace('sigma1: %g', sigma1)
 
         n0 = len(srcs)
         nparents = 0
@@ -270,19 +270,19 @@ class SourceDeblendTask(pipeBase.Task):
             if self.isLargeFootprint(fp):
                 src.set(self.tooBigKey, True)
                 self.skipParent(src, mi.getMask())
-                self.log.logdebug('Parent %i: skipping large footprint' % (int(src.getId()),))
+                self.log.trace('Parent %i: skipping large footprint', int(src.getId()))
                 continue
             if self.isMasked(fp, exposure.getMaskedImage().getMask()):
                 src.set(self.maskedKey, True)
                 self.skipParent(src, mi.getMask())
-                self.log.logdebug('Parent %i: skipping masked footprint' % (int(src.getId()),))
+                self.log.trace('Parent %i: skipping masked footprint', int(src.getId()))
                 continue
 
             nparents += 1
             bb = fp.getBBox()
             psf_fwhm = self._getPsfFwhm(psf, bb)
 
-            self.log.logdebug('Parent %i: deblending %i peaks' % (int(src.getId()), len(pks)))
+            self.log.trace('Parent %i: deblending %i peaks', int(src.getId()), len(pks))
 
             self.preSingleDeblendHook(exposure, srcs, i, fp, psf, psf_fwhm, sigma1)
             npre = len(srcs)
@@ -328,8 +328,8 @@ class SourceDeblendTask(pipeBase.Task):
                         # Don't care
                         continue
                     # We need to preserve the peak: make sure we have enough info to create a minimal child src
-                    self.log.logdebug("Peak at (%i,%i) failed.  Using minimal default info for child." %
-                                      (pks[j].getIx(), pks[j].getIy()))
+                    self.log.trace("Peak at (%i,%i) failed.  Using minimal default info for child.",
+                                      pks[j].getIx(), pks[j].getIy())
                     if heavy is None:
                         # copy the full footprint and strip out extra peaks
                         foot = afwDet.Footprint(src.getFootprint())

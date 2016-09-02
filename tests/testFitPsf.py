@@ -28,7 +28,7 @@ import lsst.utils.tests
 import lsst.afw.detection as afwDet
 import lsst.afw.geom as afwGeom
 import lsst.afw.image as afwImage
-import lsst.pex.logging as pexLogging
+from lsst.log import Log
 import lsst.meas.algorithms as measAlg
 from lsst.meas.deblender.baseline import _fitPsf, CachingPsf, PerPeak
 
@@ -129,10 +129,11 @@ class FitPsfTestCase(unittest.TestCase):
 
         pkres = PerPeak()
 
-        loglvl = pexLogging.Log.INFO
+        loglvl = Log.INFO
         # if verbose:
-        #    loglvl = pexLogging.Log.DEBUG
-        log = pexLogging.Log(pexLogging.Log.getDefaultLog(), 'tests.fit_psf', loglvl)
+        #    loglvl = Log.DEBUG
+        log = Log.getLogger('tests.fit_psf')
+        log.setLevel(loglvl)
 
         cpsf = CachingPsf(psf1)
 
