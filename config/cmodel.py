@@ -6,5 +6,5 @@ try:
     config.measurement.plugins.names |= ["modelfit_DoubleShapeletPsfApprox", "modelfit_CModel"]
     config.measurement.slots.modelFlux = 'modelfit_CModel'
     config.catalogCalculation.plugins['base_ClassificationExtendedness'].fluxRatio = 0.985
-except KeyError, ImportError:
+except (KeyError, ImportError):
     print "Cannot import lsst.meas.modelfit: disabling CModel measurements"
