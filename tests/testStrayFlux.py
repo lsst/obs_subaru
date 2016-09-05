@@ -25,6 +25,7 @@ from __future__ import print_function
 from builtins import zip
 import unittest
 import numpy as np
+from functools import reduce
 
 import lsst.utils.tests
 import lsst.afw.detection as afwDet
@@ -33,7 +34,6 @@ import lsst.afw.image as afwImage
 import lsst.pex.logging as pexLogging
 from lsst.meas.deblender.baseline import deblend
 import lsst.meas.algorithms as measAlg
-from functools import reduce
 
 doPlot = False
 if doPlot:
