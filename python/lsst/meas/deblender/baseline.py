@@ -271,11 +271,11 @@ def deblend(footprint, maskedImage, psf, psffwhm,
     validStrayAssign = ['r-to-peak', 'r-to-footprint', 'nearest-footprint', 'trim']
     if not strayFluxToPointSources in validStrayPtSrc:
         raise ValueError((('strayFluxToPointSources: value \"%s\" not in the '
-                           + 'set of allowed values: ')
+                           'set of allowed values: ')
                           % strayFluxToPointSources) + str(validStrayPtSrc))
     if not strayFluxAssignment in validStrayAssign:
         raise ValueError((('strayFluxAssignment: value \"%s\" not in the '
-                           + 'set of allowed values: ')
+                           'set of allowed values: ')
                           % strayFluxAssignment) + str(validStrayAssign))
 
     if log is None:
