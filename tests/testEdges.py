@@ -21,6 +21,9 @@
 # the GNU General Public License along with this program.  If not,
 # see <https://www.lsstcorp.org/LegalNotices/>.
 #
+from __future__ import print_function
+from builtins import zip
+from builtins import range
 import unittest
 
 import numpy as np
@@ -40,9 +43,9 @@ if doPlot:
     import pylab as plt
     import os.path
     plotpat = os.path.join(os.path.dirname(__file__), 'edge%i.png')
-    print 'Writing plots to', plotpat
+    print('Writing plots to', plotpat)
 else:
-    print '"doPlot" not set -- not making plots.  To enable plots, edit', __file__
+    print('"doPlot" not set -- not making plots.  To enable plots, edit', __file__)
 
 root = pexLogging.Log.getDefaultLog()
 root.setThreshold(pexLogging.Log.DEBUG)
@@ -99,7 +102,7 @@ class RampEdgeTestCase(lsst.utils.tests.TestCase):
         blob_psf = doubleGaussianPsf(201, 201, blob_fwhm, 3.*blob_fwhm, 0.03)
         fakepsf_fwhm = 5.
         S = int(np.ceil(fakepsf_fwhm * 2.)) * 2 + 1
-        print 'S', S
+        print('S', S)
         fakepsf = gaussianPsf(S, S, fakepsf_fwhm)
 
         # Create and save blob images, and add to image to deblend.
@@ -126,7 +129,7 @@ class RampEdgeTestCase(lsst.utils.tests.TestCase):
         thresh = afwDet.createThreshold(10., 'value', True)
         fpSet = afwDet.FootprintSet(afwimg, thresh, 'DETECTED', 1)
         fps = fpSet.getFootprints()
-        print 'found', len(fps), 'footprints'
+        print('found', len(fps), 'footprints')
 
         # set EDGE bit on edge pixels.
         margin = 5
@@ -135,10 +138,10 @@ class RampEdgeTestCase(lsst.utils.tests.TestCase):
         hi = imgbb.getMax()
         hi.shift(afwGeom.Extent2I(-margin, -margin))
         goodbbox = afwGeom.Box2I(lo, hi)
-        print 'Good bbox for setting EDGE pixels:', goodbbox
-        print 'image bbox:', imgbb
+        print('Good bbox for setting EDGE pixels:', goodbbox)
+        print('image bbox:', imgbb)
         edgebit = afwimg.getMask().getPlaneBitMask("EDGE")
-        print 'edgebit:', edgebit
+        print('edgebit:', edgebit)
         measAlg.SourceDetectionTask.setEdgeBits(afwimg, goodbbox, edgebit)
 
         if False:
@@ -162,9 +165,9 @@ class RampEdgeTestCase(lsst.utils.tests.TestCase):
                 plt.savefig('mask-%02i.png' % bit)
 
         for fp in fps:
-            print 'peaks:', len(fp.getPeaks())
+            print('peaks:', len(fp.getPeaks()))
             for pk in fp.getPeaks():
-                print '  ', pk.getIx(), pk.getIy()
+                print('  ', pk.getIx(), pk.getIy())
         assert(len(fps) == 1)
         fp = fps[0]
         assert(len(fp.getPeaks()) == 2)
@@ -262,7 +265,7 @@ class RampEdgeTestCase(lsst.utils.tests.TestCase):
             plt.title('1-d slice: %s' % tt)
             fn = plotpat % (2*j+0)
             plt.savefig(fn)
-            print 'Wrote', fn
+            print('Wrote', fn)
 
             def myimshow(*args, **kwargs):
                 x0, x1, y0, y1 = imExt(afwimg)
@@ -367,7 +370,7 @@ class RampEdgeTestCase(lsst.utils.tests.TestCase):
             plt.suptitle(tt)
             fn = plotpat % (2*j + 1)
             plt.savefig(fn)
-            print 'Wrote', fn
+            print('Wrote', fn)
 
 
 #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-

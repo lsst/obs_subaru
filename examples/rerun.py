@@ -1,3 +1,4 @@
+from __future__ import print_function
 from lsst.pex.config import Config, ConfigurableField
 from lsst.pipe.base import CmdLineTask
 from lsst.meas.deblender import SourceDeblendTask
@@ -11,8 +12,10 @@ That is, it reads the calexp and pre-deblending sources, then runs the
 deblender and writes the outputs to self-contained FITS files.
 '''
 
+
 class MyConfig(Config):
     deblend = ConfigurableField(target=SourceDeblendTask, doc="Deblender")
+
 
 class MyTask(CmdLineTask):
     _DefaultName = "my"
@@ -43,23 +46,23 @@ class MyTask(CmdLineTask):
         outsources.reserve(2 * len(sources))
         outsources.extend(sources, mapper=mapper)
         sources = outsources
-        print len(sources), 'sources before deblending'
+        print(len(sources), 'sources before deblending')
 
         self.deblend.run(calexp, sources)
-        print len(sources), 'sources after deblending'
+        print(len(sources), 'sources after deblending')
 
         fn = 'deblended.fits'
-        print 'Writing sources...'
+        print('Writing sources...')
         sources.writeFits(fn)
-        print 'Wrote sources to', fn
+        print('Wrote sources to', fn)
 
         fn = 'calexp.fits'
         calexp.writeFits(fn)
-        print 'Wrote calexp to', fn
+        print('Wrote calexp to', fn)
 
         fn = 'psf.fits'
         psf.writeFits(fn)
-        print 'Wrote PSF to', fn
+        print('Wrote PSF to', fn)
 
 if __name__ == "__main__":
     MyTask.parseAndRun()

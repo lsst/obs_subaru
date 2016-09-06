@@ -1,3 +1,6 @@
+from __future__ import print_function
+from __future__ import absolute_import
+from builtins import zip
 import matplotlib
 matplotlib.use('Agg')
 import pylab as plt
@@ -6,8 +9,9 @@ import lsst.pex.logging as pexLog
 import lsst.afw.image as afwImage
 import lsst.afw.detection as afwDet
 
-from utils import *
-from suprime import *
+from .utils import *
+from .suprime import *
+
 
 def main():
     '''
@@ -32,7 +36,8 @@ def main():
     parser.add_option('--ccd', dest='ccd', type=int, default=5, help='Suprimecam CCD number')
     parser.add_option('--prefix', dest='prefix', default='design-', help='plot filename prefix')
     parser.add_option('--suffix', dest='suffix', default=None, help='plot filename suffix (default: ".png")')
-    parser.add_option('--pat', dest='pat', help='Plot filename pattern: eg, "design-%(pid)04i-%(name).png"; overrides --prefix and --suffix')
+    parser.add_option('--pat', dest='pat',
+        help='Plot filename pattern: eg, "design-%(pid)04i-%(name).png"; overrides --prefix and --suffix')
     parser.add_option('--pdf', dest='pdf', action='store_true', default=False, help='save in PDF format?')
     parser.add_option('-v', dest='verbose', action='store_true')
     parser.add_option('--figw', dest='figw', type=float, help='Figure window width (inches)',
@@ -54,7 +59,7 @@ def main():
     parser.add_option('--patch', dest='sec', action='store_const', const='patch',
                       help='Produce plots for the "patch edges" section.')
 
-    opt,args = parser.parse_args()
+    opt, args = parser.parse_args()
 
     # Logging
     root = pexLog.Log.getDefaultLog()
@@ -64,13 +69,12 @@ def main():
         root.setThreshold(pexLog.Log.INFO)
     # Quiet some of the more chatty loggers
     pexLog.Log(root, 'lsst.meas.deblender.symmetrizeFootprint',
-                   pexLog.Log.INFO)
+               pexLog.Log.INFO)
     #pexLog.Log(root, 'lsst.meas.deblender.symmetricFootprint',
     #               pexLog.Log.INFO)
     pexLog.Log(root, 'lsst.meas.deblender.getSignificantEdgePixels',
-                   pexLog.Log.INFO)
+               pexLog.Log.INFO)
     pexLog.Log(root, 'afw.Mask', pexLog.Log.INFO)
-
 
     if opt.sec is None:
         opt.sec = 'sdss'
@@ -103,10 +107,10 @@ def main():
     # Load data using the butler, if desired
     dr = None
     if opt.sources is None or opt.calexp is None:
-        print 'Creating DataRef...'
+        print('Creating DataRef...')
         dr = getSuprimeDataref(opt.visit, opt.ccd, rootdir=opt.root,
                                outrootdir=opt.outroot)
-        print 'Got', dr
+        print('Got', dr)
 
     # Which parent ids / deblend families are we going to plot?
     keepids = None
@@ -115,7 +119,7 @@ def main():
         for d in opt.drill:
             for dd in d.split(','):
                 keepids.append(int(dd))
-        print 'Keeping parent ids', keepids
+        print('Keeping parent ids', keepids)
 
     keepxys = None
     if len(opt.drillxy):
@@ -124,51 +128,49 @@ def main():
             for dd in d.split(';'):
                 xy = dd.split(',')
                 assert(len(xy) == 2)
-                keepxys.append((int(xy[0]),int(xy[1])))
-        print 'Keeping parents at xy', keepxys
-        
+                keepxys.append((int(xy[0]), int(xy[1])))
+        print('Keeping parents at xy', keepxys)
+
     # Read from butler or local file
     cat = readCatalog(opt.sources, None, dataref=dr, keepids=keepids,
                       keepxys=keepxys, patargs=dict(visit=opt.visit, ccd=opt.ccd))
-    print 'Got', len(cat), 'sources'
+    print('Got', len(cat), 'sources')
 
     # Load data from butler or local files
     if opt.calexp is not None:
-        print 'Reading exposure from', opt.calexp
+        print('Reading exposure from', opt.calexp)
         exposure = afwImage.ExposureF(opt.calexp)
     else:
         exposure = dr.get('calexp')
-    print 'Exposure', exposure
+    print('Exposure', exposure)
     mi = exposure.getMaskedImage()
 
     if opt.psf is not None:
-        print 'Reading PSF from', opt.psf
+        print('Reading PSF from', opt.psf)
         psf = afwDet.Psf.readFits(opt.psf)
-        print 'Got', psf
+        print('Got', psf)
     elif dr:
         psf = dr.get('psf')
     else:
         psf = exposure.getPsf()
-        
 
     sigma1 = get_sigma1(mi)
 
     fams = getFamilies(cat)
-    print len(fams), 'deblend families'
-    
+    print(len(fams), 'deblend families')
+
     if False:
-        for j,(parent,children) in enumerate(fams):
-            print 'parent', parent
-            print 'children', children
+        for j, (parent, children) in enumerate(fams):
+            print('parent', parent)
+            print('children', children)
             plotDeblendFamily(mi, parent, children, cat, sigma1, ellipses=False)
             fn = '%04i.png' % parent.getId()
             plt.savefig(fn)
-            print 'wrote', fn
-
-
+            print('wrote', fn)
 
     def nlmap(X):
         return np.arcsinh(X / (3.*sigma1))
+
     def myimshow(im, **kwargs):
         kwargs = kwargs.copy()
         mn = kwargs.get('vmin', -5*sigma1)
@@ -177,16 +179,16 @@ def main():
         kwargs['vmax'] = nlmap(mx)
         plt.imshow(nlmap(im), **kwargs)
     plt.figure(figsize=(opt.figw, opt.figh))
-    plt.subplot(1,1,1)
+    plt.subplot(1, 1, 1)
     plt.subplots_adjust(left=0.01, right=0.99, bottom=0.01, top=0.99,
                         wspace=0.05, hspace=0.1)
 
     # Make plots for each deblend family.
 
-    for j,(parent,children) in enumerate(fams):
-        print 'parent', parent.getId()
-        print 'children', [ch.getId() for ch in children]
-        print 'parent x,y', parent.getX(), parent.getY()
+    for j, (parent, children) in enumerate(fams):
+        print('parent', parent.getId())
+        print('children', [ch.getId() for ch in children])
+        print('parent x,y', parent.getX(), parent.getY())
 
         pid = parent.getId()
         fp = parent.getFootprint()
@@ -202,7 +204,7 @@ def main():
         plt.xticks([])
         plt.yticks([])
         savefig(pid, 'image')
-        
+
         # Parent footprint
         plt.clf()
         myimshow(pim, extent=pext, **imargs)
@@ -222,9 +224,9 @@ def main():
             psf_fwhm = psf.getFwhm(xc, yc)
         else:
             psf_fwhm = psf.computeShape().getDeterminantRadius() * 2.35
-            
+
         # Each section of the design doc runs the deblender with different args.
-            
+
         kwargs = dict(sigma1=sigma1, verbose=opt.verbose,
                       getTemplateSum=True)
 
@@ -241,7 +243,7 @@ def main():
             # SDSS intro
             kwargs = basic
             kwargs.update(lstsq_weight_templates=True)
-                          
+
         elif opt.sec == 'mono':
             kwargs = basic
             kwargs.update(lstsq_weight_templates=True,
@@ -274,7 +276,7 @@ def main():
         else:
             raise 'Unknown section: "%s"' % opt.sec
 
-        print 'Running deblender with kwargs:', kwargs
+        print('Running deblender with kwargs:', kwargs)
         res = deblend(fp, mi, psf, psf_fwhm, **kwargs)
         #print 'got result with', [x for x in dir(res) if not x.startswith('__')]
         #for pk in res.peaks:
@@ -283,13 +285,13 @@ def main():
 
         # Find bounding-box of all templates.
         tbb = fp.getBBox()
-        for pkres,pk in zip(res.peaks, pks):
+        for pkres, pk in zip(res.peaks, pks):
             tbb.include(pkres.template_foot.getBBox())
-        print 'Bounding-box of all templates:', tbb
+        print('Bounding-box of all templates:', tbb)
 
         # Sum-of-templates plot
         tsum = np.zeros((tbb.getHeight(), tbb.getWidth()))
-        tx0,ty0 = tbb.getMinX(), tbb.getMinY()
+        tx0, ty0 = tbb.getMinX(), tbb.getMinY()
 
         # Sum-of-deblended children plot(s)
         # "heavy" bbox == template bbox.
@@ -306,13 +308,13 @@ def main():
         savefig(pid, 'tsum1')
 
         # Make plots for each deblended child (peak)
-        
+
         k = 0
-        for pkres,pk in zip(res.peaks, pks):
+        for pkres, pk in zip(res.peaks, pks):
 
             heavy = pkres.get_flux_portion()
             if heavy is None:
-                print 'Child has no HeavyFootprint -- skipping'
+                print('Child has no HeavyFootprint -- skipping')
                 continue
 
             kk = mapchild(k)
@@ -328,31 +330,31 @@ def main():
             timext = cext
             tim = tim.getArray()
 
-            (x0,x1,y0,y1) = timext
-            print 'tim ext', timext
+            (x0, x1, y0, y1) = timext
+            print('tim ext', timext)
             tsum[y0-ty0:y1-ty0, x0-tx0:x1-tx0] += tim
 
             # "Heavy" image -- flux assigned to child
             him = footprintToImage(heavy).getArray()
             hext = getExtent(heavy.getBBox())
 
-            (x0,x1,y0,y1) = hext
+            (x0, x1, y0, y1) = hext
             hsum[y0-ty0:y1-ty0, x0-tx0:x1-tx0] += him
 
             # "Heavy" without stray flux
             h2 = pkres.get_flux_portion(strayFlux=False)
             him2 = footprintToImage(h2).getArray()
             hext2 = getExtent(h2.getBBox())
-            (x0,x1,y0,y1) = hext2
+            (x0, x1, y0, y1) = hext2
             hsum2[y0-ty0:y1-ty0, x0-tx0:x1-tx0] += him2
-            
+
             if opt.sec == 'median':
                 try:
                     med = pkres.median_filtered_template
                 except:
                     med = pkres.orig_template
 
-                for im,nm in [(pkres.orig_template, 'symm'), (med, 'med')]:
+                for im, nm in [(pkres.orig_template, 'symm'), (med, 'med')]:
                     #print 'im:', im
                     plt.clf()
                     myimshow(im.getArray(), extent=cext, **imargs)
@@ -407,8 +409,8 @@ def main():
 
             if opt.sec == 'patch' and pkres.patched:
                 pass
-            
-            if opt.sec in ['ramp','ramp2'] and pkres.has_ramped_template:
+
+            if opt.sec in ['ramp', 'ramp2'] and pkres.has_ramped_template:
 
                 # Ramped template
                 plt.clf()
@@ -472,7 +474,6 @@ def main():
                     plt.axis(pext)
                     savefig(pid, 'hb%i' % (kk))
 
-
             k += 1
 
         # sum of templates
@@ -505,20 +506,20 @@ def main():
         savefig(pid, 'hsum2')
 
         k = 0
-        for pkres,pk in zip(res.peaks, pks):
+        for pkres, pk in zip(res.peaks, pks):
             heavy = pkres.get_flux_portion()
             if heavy is None:
                 continue
 
-            print 'Template footprint:', pkres.template_foot.getBBox()
-            print 'Template img:', pkres.template_mimg.getBBox()
-            print 'Heavy footprint:', heavy.getBBox()
+            print('Template footprint:', pkres.template_foot.getBBox())
+            print('Template img:', pkres.template_mimg.getBBox())
+            print('Heavy footprint:', heavy.getBBox())
 
             cfp = pkres.template_foot
             cbb = cfp.getBBox()
             cext = getExtent(cbb)
             tim = pkres.template_mimg.getImage().getArray()
-            (x0,x1,y0,y1) = cext
+            (x0, x1, y0, y1) = cext
 
             frac = tim / tsum[y0-ty0:y1-ty0, x0-tx0:x1-tx0]
 
@@ -536,7 +537,7 @@ def main():
             plt.xticks([])
             plt.yticks([])
             plt.plot([pk.getIx()], [pk.getIy()], **pksty)
-            plt.gca().set_axis_bgcolor((0.9,0.9,0.5))
+            plt.gca().set_axis_bgcolor((0.9, 0.9, 0.5))
             plt.axis(pext)
             savefig(pid, 'f%i' % (mapchild(k)))
 
@@ -544,4 +545,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-

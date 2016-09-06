@@ -21,8 +21,11 @@
 # the GNU General Public License along with this program.  If not,
 # see <https://www.lsstcorp.org/LegalNotices/>.
 #
+from __future__ import print_function
+from builtins import zip
 import unittest
 import numpy as np
+from functools import reduce
 
 import lsst.utils.tests
 import lsst.afw.detection as afwDet
@@ -39,9 +42,9 @@ if doPlot:
     import pylab as plt
     import os.path
     plotpat = os.path.join(os.path.dirname(__file__), 'stray%i.png')
-    print 'Writing plots to', plotpat
+    print('Writing plots to', plotpat)
 else:
-    print '"doPlot" not set -- not making plots.  To enable plots, edit', __file__
+    print('"doPlot" not set -- not making plots.  To enable plots, edit', __file__)
 
 root = pexLogging.Log.getDefaultLog()
 root.setThreshold(pexLogging.Log.DEBUG)
@@ -123,12 +126,12 @@ class StrayFluxTestCase(lsst.utils.tests.TestCase):
         thresh = afwDet.createThreshold(5., 'value', True)
         fpSet = afwDet.FootprintSet(afwimg, thresh, 'DETECTED', 1)
         fps = fpSet.getFootprints()
-        print 'found', len(fps), 'footprints'
+        print('found', len(fps), 'footprints')
         pks2 = []
         for fp in fps:
-            print 'peaks:', len(fp.getPeaks())
+            print('peaks:', len(fp.getPeaks()))
             for pk in fp.getPeaks():
-                print '  ', pk.getIx(), pk.getIy()
+                print('  ', pk.getIx(), pk.getIy())
                 pks2.append((pk.getIx(), pk.getIy()))
 
         # The first peak in this list is the one we want to omit.
@@ -261,9 +264,9 @@ class StrayFluxTestCase(lsst.utils.tests.TestCase):
         # Sum of children ~= Original image inside footprint (parent_img)
 
         absdiff = np.max(np.abs(sumimg - parent_img.getArray()))
-        print 'Max abs diff:', absdiff
+        print('Max abs diff:', absdiff)
         imgmax = parent_img.getArray().max()
-        print 'Img max:', imgmax
+        print('Img max:', imgmax)
         self.assertLess(absdiff, imgmax*1e-6)
 
     def test2(self):
@@ -314,7 +317,7 @@ class StrayFluxTestCase(lsst.utils.tests.TestCase):
             p1 = plt.plot(XX, img[y, :].repeat(2), 'g-', lw=3, alpha=0.3)
 
             for i, dpk in enumerate(deb.peaks):
-                print dpk
+                print(dpk)
                 port = dpk.fluxPortion.getImage()
                 bb = port.getBBox()
                 YY = np.zeros(XX.shape)

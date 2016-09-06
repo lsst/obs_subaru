@@ -21,6 +21,7 @@
 # see <http://www.lsstcorp.org/LegalNotices/>.
 #
 
+from __future__ import print_function
 import lsst.pex.config as pexConfig
 import lsst.pex.exceptions as pexExceptions
 import lsst.pipe.base as pipeBase
@@ -33,23 +34,24 @@ from lsst.meas.deblender import SourceDeblendTask
 
 
 class DeblendAndMeasureConfig(pexConfig.Config):
-    doDeblend = pexConfig.Field(dtype=bool, default=True, doc = "Deblend sources?")
-    doMeasurement = pexConfig.Field(dtype=bool, default=True, doc = "Measure sources?")
-    doWriteSources = pexConfig.Field(dtype=bool, default=True, doc = "Write sources?")
+    doDeblend = pexConfig.Field(dtype=bool, default=True, doc="Deblend sources?")
+    doMeasurement = pexConfig.Field(dtype=bool, default=True, doc="Measure sources?")
+    doWriteSources = pexConfig.Field(dtype=bool, default=True, doc="Write sources?")
     doWriteHeavyFootprintsInSources = pexConfig.Field(dtype=bool, default=False,
-                                                      doc = "Include HeavyFootprint data in source table?")
+                                                      doc="Include HeavyFootprint data in source table?")
 
-    sourceOutputFile = pexConfig.Field(dtype=str, default=None, doc="Write sources to given filename (default: use butler)", optional=True)
+    sourceOutputFile = pexConfig.Field(
+        dtype=str, default=None, doc="Write sources to given filename (default: use butler)", optional=True)
 
     deblend = pexConfig.ConfigurableField(
-        target = SourceDeblendTask,
-        doc = "Split blended sources into their components",
+        target=SourceDeblendTask,
+        doc="Split blended sources into their components",
     )
     measurement = pexConfig.ConfigurableField(
-        target = SourceMeasurementTask,
-        doc = "Final source measurement on low-threshold detections",
+        target=SourceMeasurementTask,
+        doc="Final source measurement on low-threshold detections",
     )
-    
+
 
 class DeblendAndMeasureTask(pipeBase.CmdLineTask):
     ConfigClass = DeblendAndMeasureConfig
@@ -66,8 +68,8 @@ class DeblendAndMeasureTask(pipeBase.CmdLineTask):
         self.log.info("Processing %s" % (dataRef.dataId))
         calexp = dataRef.get('calexp')
         srcs = dataRef.get('src')
-        print 'Calexp:', calexp
-        print 'srcs:', srcs
+        print('Calexp:', calexp)
+        print('srcs:', srcs)
 
         ## FIXME -- this whole mapping business is very fragile -- it
         ## seems to fail, eg, if you don't set "-c
@@ -93,18 +95,18 @@ class DeblendAndMeasureTask(pipeBase.CmdLineTask):
         outsources.reserve(len(parents))
         outsources.extend(parents, mapper=mapper)
         srcs = outsources
-        print len(srcs), 'sources before deblending'
+        print(len(srcs), 'sources before deblending')
 
         if self.config.doDeblend:
             self.deblend.run(calexp, srcs)
-        
+
         if self.config.doMeasurement:
             self.measurement.run(calexp, srcs)
 
         if srcs is not None and self.config.doWriteSources:
             sourceWriteFlags = (0 if self.config.doWriteHeavyFootprintsInSources
                                 else afwTable.SOURCE_IO_NO_HEAVY_FOOTPRINTS)
-            print 'Writing "src" outputs'
+            print('Writing "src" outputs')
             if self.config.sourceOutputFile:
                 srcs.writeFits(self.config.sourceOutputFile, flags=sourceWriteFlags)
             else:
