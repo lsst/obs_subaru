@@ -14,7 +14,6 @@ Interface class for subaru crosstalk correction
 #include "lsst/base.h"
 #include "lsst/daf/base.h"
 #include "lsst/afw/geom.h"
-#include "lsst/pex/logging.h"
 //#include "lsst/afw/geom/Point.h"
 //#include "lsst/afw/geom/Extent.h"
 #include "lsst/afw/cameraGeom.h"
@@ -34,7 +33,6 @@ namespace std {
   %template(VecVecInt) vector< vector<int> >;
 }
 
-%import "lsst/pex/logging/loggingLib.i"
 %import "lsst/daf/base/baseLib.i"
 %import "lsst/afw/geom/geomLib.i"
 %import "lsst/afw/cameraGeom/cameraGeomLib.i"
