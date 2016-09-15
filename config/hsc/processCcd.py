@@ -19,7 +19,8 @@ config.calibrate.astrometry.matcher.allowedNonperpDeg=0.2
 config.calibrate.astrometry.matcher.maxRotationDeg=1.145916
 config.calibrate.astrometry.wcsFitter.numRejIter=3
 
-config.calibrate.astrometry.wcsFitter.order = 3
+for subTask in (config.charImage, config.calibrate):
+    subTask.astrometry.wcsFitter.order = 3
 config.calibrate.astrometry.matcher.maxMatchDistArcSec = 2.0
 config.calibrate.astrometry.matcher.maxOffsetPix = 750
 

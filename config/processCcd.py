@@ -56,12 +56,14 @@ config.calibrate.detection.isotropicGrow = True
 config.charImage.load(os.path.join(configDir, "cmodel.py"))
 config.charImage.measurement.load(os.path.join(configDir, "apertures.py"))
 config.charImage.measurement.load(os.path.join(configDir, "kron.py"))
+config.charImage.measurement.load(os.path.join(configDir, "hsm.py"))
+if "ext_shapeHSM_HsmShapeRegauss" in config.charImage.measurement.plugins:
+    # no deblending has been done
+    config.charImage.measurement.plugins["ext_shapeHSM_HsmShapeRegauss"].deblendNChild = ""
 
 config.calibrate.measurement.load(os.path.join(configDir, "apertures.py"))
+config.calibrate.measurement.load(os.path.join(configDir, "kron.py"))
 config.calibrate.measurement.load(os.path.join(configDir, "hsm.py"))
-if "ext_shapeHSM_HsmShapeRegauss" in config.calibrate.measurement.plugins:
-    # no deblending has been done
-    config.calibrate.measurement.plugins["ext_shapeHSM_HsmShapeRegauss"].deblendNChild = ""
 
 # Deblender
 config.charImage.deblend.maskLimits["NO_DATA"] = 0.25 # Ignore sources that are in the vignetted region
