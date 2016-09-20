@@ -403,6 +403,14 @@ datasets: {
         storage:       "None"
     }
 
+    deepCoadd_srcMatch: {
+        template:      "deepCoadd-results/%(filter)s/%(tract)d/%(patch)s/srcMatch-%(filter)s-%(tract)d-%(patch)s.fits"
+        python:        "lsst.afw.table.BaseCatalog"
+        persistable:   "BaseCatalog"
+        storage:       "FitsCatalogStorage"
+        tables:        raw
+        tables:        raw_visit
+    }
     deepCoadd_tempExp_diffsrc: {
         template:    "deepCoadd-diff/%(filter)s/%(tract)d/%(patch)s/diffsrc-%(filter)s-%(tract)d-%(patch)s-%(visit)d.fits"
         python:      "lsst.afw.table.SourceCatalog"
