@@ -143,6 +143,14 @@ exposures: {
         columns:       "pointing" "filter" "visit" "ccd"
     }
 
+    deepCoadd_depth: {
+        template:    "deepCoadd/%(filter)s/%(tract)d/%(patch)s.depth.fits"
+        python:      "lsst.afw.image.ImageF"
+        persistable: "ImageF"
+        storage:     "FitsStorage"
+        level:       "Skytile"
+        tables:      raw_skytile
+    }
     deepCoadd_tempExp: {
         template:    "deepCoadd/%(filter)s/%(tract)d/%(patch)s/warp-%(filter)s-%(tract)d-%(patch)s-%(visit)d.fits"
         python:      "lsst.afw.image.ExposureF"
@@ -151,7 +159,31 @@ exposures: {
         level:       "Skytile"
         tables:      raw_skytile
     }
+    deepCoadd_bgRef: {
+        template:    "deepCoadd/%(filter)s/%(tract)d/%(patch)s/bgRef-%(tract)d-%(patch)s-%(filter)s.fits"
+        python:      "lsst.afw.image.ExposureF"
+        persistable: "ExposureF"
+        storage:     "FitsStorage"
+        level:       "Skytile"
+        tables:      raw_skytile
+    }
+    deepCoadd_bg: {
+        template:      "deepCoadd/%(filter)s/%(tract)d/%(patch)s/bgModel-%(tract)d-%(patch)s-%(filter)s.fits"
+        python:        "lsst.afw.image.ImageF"
+        persistable:   "ImageF"
+        storage:       "FitsStorage"
+        level:         "Skytile"
+        tables:        raw_skytile
+    }
 
+    deepCoadd_diff: {
+        template:    "deepCoadd-diff/%(filter)s/%(tract)d/diff-%(filter)s-%(tract)d-%(patch)s.fits"
+        python:      "lsst.afw.image.ExposureF"
+        persistable: "ExposureF"
+        storage:     "FitsStorage"
+        level:       "Skytile"
+        tables:      raw_skytile
+    }
     deepCoadd_tempExp_diff: {
         template:    "deepCoadd-diff/%(filter)s/%(tract)d/%(patch)s/diff-%(filter)s-%(tract)d-%(patch)s-%(visit)d.fits"
         python:      "lsst.afw.image.ExposureF"
@@ -403,13 +435,12 @@ datasets: {
         storage:       "None"
     }
 
-    deepCoadd_srcMatch: {
-        template:      "deepCoadd-results/%(filter)s/%(tract)d/%(patch)s/srcMatch-%(filter)s-%(tract)d-%(patch)s.fits"
-        python:        "lsst.afw.table.BaseCatalog"
-        persistable:   "BaseCatalog"
-        storage:       "FitsCatalogStorage"
-        tables:        raw
-        tables:        raw_visit
+    deepCoadd_diffsrc: {
+        template:    "deepCoadd-diff/%(filter)s/%(tract)d/diffsrc-%(filter)s-%(tract)d-%(patch)s.fits"
+        python:      "lsst.afw.table.SourceCatalog"
+        persistable: "SourceCatalog"
+        storage:     "FitsCatalogStorage"
+	tables:      "raw_skytile"
     }
     deepCoadd_tempExp_diffsrc: {
         template:    "deepCoadd-diff/%(filter)s/%(tract)d/%(patch)s/diffsrc-%(filter)s-%(tract)d-%(patch)s-%(visit)d.fits"
@@ -421,6 +452,13 @@ datasets: {
 
     diffsources: {
         template:      "diff/%(diff)05d/SRC%(patch)08d%(filter)s.fits"
+        python:        "lsst.afw.table.SourceCatalog"
+        persistable:   "SourceCatalog"
+        storage:       "FitsCatalogStorage"
+        tables:        "raw_skytile"
+    }
+    diffsources_schema: {
+        template:      "schema/diffsources.fits"
         python:        "lsst.afw.table.SourceCatalog"
         persistable:   "SourceCatalog"
         storage:       "FitsCatalogStorage"
@@ -513,6 +551,22 @@ datasets: {
 
 
 
+    deepCoadd_srcMatch: {
+        template:      "deepCoadd-results/%(filter)s/%(tract)d/%(patch)s/srcMatch-%(filter)s-%(tract)d-%(patch)s.fits"
+        python:        "lsst.afw.table.BaseCatalog"
+        persistable:   "BaseCatalog"
+        storage:       "FitsCatalogStorage"
+        tables:        "raw"
+        tables:        "raw_visit"
+    }
+    deepCoadd_icMatch: {
+        template:      "deepCoadd-results/%(filter)s/%(tract)d/%(patch)s/icMatch-%(filter)s-%(tract)d-%(patch)s.fits"
+        python:        "lsst.afw.table.BaseCatalog"
+        persistable:   "BaseCatalog"
+        storage:       "FitsCatalogStorage"
+        tables:        "raw"
+        tables:        "raw_visit"
+    }
     deepCoadd_calexp_background: {
         template:      "deepCoadd-results/%(filter)s/%(tract)d/%(patch)s/det_bkgd-%(filter)s-%(tract)d-%(patch)s.fits"
         python:        "lsst.afw.math.BackgroundList"
