@@ -10,9 +10,13 @@ from lsst.daf.persistence import ButlerLocation
 from lsst.daf.butlerUtils import CameraMapper
 from lsst.ip.isr import LinearizeSquared
 import lsst.pex.policy as pexPolicy
+from .makeSuprimecamRawVisitInfo import MakeSuprimecamRawVisitInfo
+
 
 class SuprimecamMapperBase(CameraMapper):
     packageName = "obs_subaru"
+
+    MakeRawVisitInfoClass = MakeSuprimecamRawVisitInfo
 
     def __init__(self, *args, **kwargs):
         super(SuprimecamMapperBase, self).__init__(*args, **kwargs)
@@ -294,28 +298,6 @@ class SuprimecamMapperBase(CameraMapper):
 
     def bypass_deepMergedCoaddId(self, datasetType, pythonType, location, dataId):
         return self._computeCoaddExposureId(dataId, False)
-
-    def _setTimes(self, mapping, item, dataId):
-        """Set the exposure time and exposure midpoint in the calib object in
-        an Exposure.  Use the EXPTIME and MJD keywords (and strip out
-        EXPTIME).
-        @param mapping (lsst.daf.butlerUtils.Mapping)
-        @param[in,out] item (lsst.afw.image.Exposure)
-        @param dataId (dict) Dataset identifier"""
-
-        md = item.getMetadata()
-        calib = item.getCalib()
-        if md.exists("EXPTIME"):
-            expTime = md.get("EXPTIME")
-            calib.setExptime(expTime)
-            md.remove("EXPTIME")
-        else:
-            expTime = calib.getExptime()
-        if md.exists("MJD"):
-            obsStart = dafBase.DateTime(md.get("MJD"),
-                    dafBase.DateTime.MJD, dafBase.DateTime.UTC)
-            obsMidpoint = obsStart.nsecs() + long(expTime * 1000000000L / 2)
-            calib.setMidTime(dafBase.DateTime(obsMidpoint))
 
     # The following allow grabbing a 'psf' from the butler directly, without having to get it from a calexp
     def map_psf(self, dataId, write=False):

@@ -11,10 +11,13 @@ import lsst.afw.math as afwMath
 import lsst.afw.geom as afwGeom
 from lsst.ip.isr import LinearizeSquared
 import lsst.pex.policy as pexPolicy
+from .makeHscRawVisitInfo import MakeHscRawVisitInfo
 
 class HscMapper(CameraMapper):
     """Provides abstract-physical mapping for HSC data"""
     packageName = "obs_subaru"
+
+    MakeRawVisitInfoClass = MakeHscRawVisitInfo
 
     def __init__(self, **kwargs):
         policyFile = pexPolicy.DefaultPolicyFile("obs_subaru", "HscMapper.paf", "policy")
@@ -189,14 +192,6 @@ Most chips are flipped L/R, but the rotated ones (100..103) are flipped T/B
     def std_raw(self, item, dataId):
         exp = super(HscMapper, self).std_raw(item, dataId)
 
-        md = exp.getMetadata()
-        if md.exists("MJD-STR"):
-            calib = exp.getCalib()
-            expTime = calib.getExptime()
-            obsStart = dafBase.DateTime(md.get("MJD-STR"), dafBase.DateTime.MJD, dafBase.DateTime.UTC)
-            obsMidpoint = obsStart.nsecs() + long(expTime * 1000000000L / 2)
-            calib.setMidTime(dafBase.DateTime(obsMidpoint))
-
         return self._flipChipsLR(exp, exp.getWcs(), dataId)
 
     def standardizeCalib(self, dataset, item, dataId):
@@ -232,7 +227,10 @@ Most chips are flipped L/R, but the rotated ones (100..103) are flipped T/B
 
     def std_dark(self, item, dataId):
         exp = self.standardizeCalib("dark", item, dataId)
-        exp.getCalib().setExptime(1.0)
+        if exp.getInfo().getVisitInfo() is None:
+            # probably always true, but if not, leave the existing VisitInfo
+            visitInfo = afwImage.makeVisitInfo(exposureTime=1.0)
+            exp.getInfo().setVisitInfo(visitInfo)
         return exp
 
     def std_flat(self, item, dataId):

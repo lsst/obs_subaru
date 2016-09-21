@@ -21,6 +21,7 @@
 # the GNU General Public License along with this program.  If not,
 # see <https://www.lsstcorp.org/LegalNotices/>.
 #
+import math
 import os
 import unittest
 from glob import glob
@@ -32,6 +33,11 @@ import lsst.afw.geom as afwGeom
 import lsst.daf.persistence as dafPersist
 import lsst.pex.exceptions as pexExcept
 import lsst.utils
+from lsst.daf.base import DateTime
+from lsst.daf.butlerUtils import MakeRawVisitInfo
+from lsst.afw.image import RotType_UNKNOWN
+from lsst.afw.coord import IcrsCoord, Coord
+from lsst.afw.geom import degrees
 
 testDataPackage = "testdata_subaru"
 try:
@@ -88,6 +94,21 @@ class GetDataTestCase(lsst.utils.tests.TestCase):
         self.filter = 'i'
         self.rawSize = (2144, 4241)
         self.ccdSize = (2048, 4176)
+        self.exptime = 30.0
+        dateBeg = DateTime(56598.26106374757, DateTime.MJD, DateTime.UTC)
+        dateAvgNSec = dateBeg.nsecs() + int(0.5e9*self.exptime)
+        self.dateAvg = DateTime(dateAvgNSec, DateTime.TAI)
+        self.boresightRaDec = IcrsCoord('21:22:59.982', '+00:30:00.07')
+        self.boresightAzAlt = Coord(226.68922661*degrees, 63.04359233*degrees)
+        self.boresightAirmass = 1.121626027604189
+        self.boresightRotAngle = float("nan")*degrees
+        self.rotType = RotType_UNKNOWN
+        self.obs_longitude = -155.476667*degrees
+        self.obs_latitude = 19.825556*degrees
+        self.obs_elevation = 4139
+        self.weath_airTemperature = MakeRawVisitInfo.centigradeFromKelvin(272.35)
+        self.weath_airPressure = MakeRawVisitInfo.pascalFromMmHg(621.7)
+        self.weath_humidity = 33.1
 
     def tearDown(self):
         del self.butler
@@ -101,6 +122,22 @@ class GetDataTestCase(lsst.utils.tests.TestCase):
         self.assertEqual(raw.getFilter().getFilterProperty().getName(), self.filter)
         self.assertEqual(ccd.getId(), self.ccdNum)
         self.assertEqual(ccd.getBBox().getDimensions(), afwGeom.Extent2I(*self.ccdSize))
+
+        visitInfo = raw.getInfo().getVisitInfo()
+        self.assertAlmostEqual(visitInfo.getDate().get(), self.dateAvg.get())
+        self.assertCoordsNearlyEqual(visitInfo.getBoresightRaDec(), self.boresightRaDec)
+        self.assertCoordsNearlyEqual(visitInfo.getBoresightAzAlt(), self.boresightAzAlt)
+        self.assertAlmostEqual(visitInfo.getBoresightAirmass(), self.boresightAirmass)
+        self.assertTrue(math.isnan(visitInfo.getBoresightRotAngle().asDegrees()))
+        self.assertEqual(visitInfo.getRotType(), self.rotType)
+        observatory = visitInfo.getObservatory()
+        self.assertAnglesNearlyEqual(observatory.getLongitude(), self.obs_longitude)
+        self.assertAnglesNearlyEqual(observatory.getLatitude(), self.obs_latitude)
+        self.assertAlmostEqual(observatory.getElevation(), self.obs_elevation)
+        weather = visitInfo.getWeather()
+        self.assertAlmostEqual(weather.getAirTemperature(), self.weath_airTemperature)
+        self.assertAlmostEqual(weather.getAirPressure(), self.weath_airPressure)
+        self.assertAlmostEqual(weather.getHumidity(), self.weath_humidity)
 
     def testRawMetadata(self):
         """Test retrieval of raw image metadata"""
@@ -118,6 +155,7 @@ class GetDataTestCase(lsst.utils.tests.TestCase):
         dark = self.butler.get("dark", visit=self.visit, ccd=self.ccdNum)
         self.assertEqual(dark.getDimensions(), afwGeom.Extent2I(*self.ccdSize))
         self.assertEqual(dark.getDetector().getId(), self.ccdNum)
+        self.assertEqual(dark.getInfo().getVisitInfo().getExposureTime(), 1.0)
 
     def testFlat(self):
         """Test retrieval of flat"""
