@@ -194,47 +194,11 @@ Most chips are flipped L/R, but the rotated ones (100..103) are flipped T/B
 
         return self._flipChipsLR(exp, exp.getWcs(), dataId)
 
-    def standardizeCalib(self, dataset, item, dataId):
-        """Standardize a calibration image read in by the butler
-
-        Some calibrations are stored on disk as Images instead of MaskedImages
-        or Exposures.  Here, we convert it to an Exposure.
-
-        @param dataset  Dataset type (e.g., "bias", "dark" or "flat")
-        @param item  The item read by the butler
-        @param dataId  The data identifier (unused, included for future flexibility)
-        @return standardized Exposure
-        """
-        mapping = self.calibrations[dataset]
-        if "MaskedImage" in mapping.python:
-            exp = afwImage.makeExposure(item)
-        elif "Image" in mapping.python:
-            if hasattr(item, "getImage"): # For DecoratedImageX
-                item = item.getImage()
-            exp = afwImage.makeExposure(afwImage.makeMaskedImage(item))
-        elif "Exposure" in mapping.python:
-            exp = item
-        else:
-            raise RuntimeError("Unrecognised python type: %s" % mapping.python)
-
-        parent = super(HscMapper, self)
-        if hasattr(parent, "std_" + dataset):
-            return getattr(parent, "std_" + dataset)(exp, dataId)
-        return self._standardizeExposure(mapping, exp, dataId)
-
-    def std_bias(self, item, dataId):
-        return self.standardizeCalib("bias", item, dataId)
-
     def std_dark(self, item, dataId):
-        exp = self.standardizeCalib("dark", item, dataId)
-        if exp.getInfo().getVisitInfo() is None:
-            # probably always true, but if not, leave the existing VisitInfo
-            visitInfo = afwImage.makeVisitInfo(exposureTime=1.0)
-            exp.getInfo().setVisitInfo(visitInfo)
-        return exp
-
-    def std_flat(self, item, dataId):
-        return self.standardizeCalib("flat", item, dataId)
+        exposure = self._standardizeExposure(self.calibrations['dark'], item, dataId, trimmed=False)
+        visitInfo = afwImage.makeVisitInfo(exposureTime=1.0)
+        exposure.getInfo().setVisitInfo(visitInfo)
+        return exposure
 
     def _extractAmpId(self, dataId):
         return (self._extractDetectorName(dataId), 0, 0)
