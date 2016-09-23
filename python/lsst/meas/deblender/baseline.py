@@ -324,8 +324,7 @@ def deblend(footprint, maskedImage, psf, psffwhm,
                  tinyFootprintSize=tinyFootprintSize)
 
     # Create templates...
-    log.trace('Creating templates for footprint at x0,y0,W,H = ' +
-              '(%i, %i, %i, %i)', x0, y0, W, H)
+    log.trace('Creating templates for footprint at x0,y0,W,H = %i, %i, %i, %i)', x0, y0, W, H)
     for peaki, pkres in enumerate(res.peaks):
         log.trace('Deblending peak %i of %i', peaki, len(res.peaks))
         if pkres.skip or pkres.deblendedAsPsf:
@@ -344,8 +343,7 @@ def deblend(footprint, maskedImage, psf, psffwhm,
         del S
 
         if t1 is None:
-            log.trace('Peak %i at (%i, %i): failed to build symmetric ' +
-                      'template', pkres.pki, cx, cy)
+            log.trace('Peak %i at (%i, %i): failed to build symmetric template', pkres.pki, cx, cy)
             pkres.setFailedSymmetricTemplate()
             continue
 
@@ -385,8 +383,7 @@ def deblend(footprint, maskedImage, psf, psffwhm,
                 # possible save this median-filtered template
                 pkres.setMedianFilteredTemplate(t1, tfoot)
             else:
-                log.trace('Not median-filtering template %i: size ' +
-                          '%i x %i smaller than required %i x %i',
+                log.trace('Not median-filtering template %i: size %i x %i smaller than required %i x %i',
                           pkres.pki, t1.getWidth(), t1.getHeight(), filtsize, filtsize)
         if monotonicTemplate:
             log.trace('Making template %i monotonic', pkres.pki)
@@ -714,7 +711,7 @@ def _fitPsf(fp, fmask, pk, pkF, pkres, fbb, peaks, peaksF, log, psf, psffwhm,
     NP = valid.sum()
 
     if NP == 0:
-        log.warn('Skipping peak at (%.1f, %.1f): no unmasked pixels nearby' % (cx, cy))
+        log.warn('Skipping peak at (%.1f, %.1f): no unmasked pixels nearby', cx, cy)
         pkres.setNoValidPixels()
         return
 
@@ -803,7 +800,7 @@ def _fitPsf(fp, fmask, pk, pkF, pkres, fbb, peaks, peaksF, log, psf, psffwhm,
     w = np.sqrt(rw[valid]/var_sub[valid])
     # save the effective number of pixels
     sumr = np.sum(rw[valid])
-    log.debug('sumr = %g' % sumr)
+    log.debug('sumr = %g', sumr)
 
     del ii
 
@@ -847,7 +844,7 @@ def _fitPsf(fp, fmask, pk, pkF, pkres, fbb, peaks, peaksF, log, psf, psffwhm,
         pkres.setPsfFitFailed()
         return
 
-    log.debug('r1 r2 %s %s' % (r1, r2))
+    log.debug('r1 r2 %s %s', r1, r2)
 
     # r is weighted chi-squared = sum over pixels: ramp * (model -
     # data)**2/sigma**2
@@ -861,7 +858,7 @@ def _fitPsf(fp, fmask, pk, pkF, pkres, fbb, peaks, peaksF, log, psf, psffwhm,
         chisq2 = 1e30
     dof1 = sumr - len(X1)
     dof2 = sumr - len(X2)
-    log.debug('dof1, dof2 %g %g' % (dof1, dof2))
+    log.debug('dof1, dof2 %g %g', dof1, dof2)
 
     # This can happen if we're very close to the edge (?)
     if dof1 <= 0 or dof2 <= 0:
@@ -886,8 +883,7 @@ def _fitPsf(fp, fmask, pk, pkF, pkres, fbb, peaks, peaksF, log, psf, psffwhm,
         dx = fdx/f0
         dy = fdy/f0
         ispsf2 = ispsf2 and (abs(dx) < 1. and abs(dy) < 1.)
-        log.trace('isPSF2 -- checking derivatives: dx,dy = %g, %g -> %s',
-                     dx, dy, str(ispsf2))
+        log.trace('isPSF2 -- checking derivatives: dx,dy = %g, %g -> %s', dx, dy, str(ispsf2))
         if not ispsf2:
             pkres.psfFitBigDecenter = True
 
@@ -935,8 +931,7 @@ def _fitPsf(fp, fmask, pk, pkF, pkres, fbb, peaks, peaksF, log, psf, psffwhm,
             ispsf2 = (qb < psfChisqCut2b)
             q2 = qb
             X2 = Xb
-            log.trace('shifted PSF: new chisq/dof = %g; good? %s',
-                         qb, ispsf2)
+            log.trace('shifted PSF: new chisq/dof = %g; good? %s', qb, ispsf2)
             pkres.psfFit3 = (chisqb, dofb)
 
     # Which one do we keep?
@@ -945,7 +940,7 @@ def _fitPsf(fp, fmask, pk, pkF, pkres, fbb, peaks, peaksF, log, psf, psffwhm,
         Xpsf = X2
         chisq = chisq2
         dof = dof2
-        log.debug('dof %g' % dof)
+        log.debug('dof %g', dof)
         log.trace('Keeping shifted-PSF model')
         cx += dx
         cy += dy
@@ -955,7 +950,7 @@ def _fitPsf(fp, fmask, pk, pkF, pkres, fbb, peaks, peaksF, log, psf, psffwhm,
         Xpsf = X1
         chisq = chisq1
         dof = dof1
-        log.debug('dof %g' % dof)
+        log.debug('dof %g', dof)
         log.trace('Keeping unshifted PSF model')
 
     ispsf = (ispsf1 or ispsf2)
@@ -1001,7 +996,7 @@ def _fitPsf(fp, fmask, pk, pkF, pkres, fbb, peaks, peaksF, log, psf, psffwhm,
     pkres.psfFitR1 = R1
     pkres.psfFitStampExtent = (xlo, xhi, ylo, yhi)
     pkres.psfFitCenter = (cx, cy)
-    log.debug('saving chisq,dof %g %g' % (chisq, dof))
+    log.debug('saving chisq,dof %g %g', chisq, dof)
     pkres.psfFitBest = (chisq, dof)
     pkres.psfFitParams = Xpsf
     pkres.psfFitFlux = Xpsf[I_psf]
