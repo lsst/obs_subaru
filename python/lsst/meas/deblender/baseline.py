@@ -5,8 +5,7 @@ from builtins import object
 #!/usr/bin/env python
 #
 # LSST Data Management System
-#
-# Copyright 2008-2015  AURA/LSST.
+# Copyright 2008-2016 AURA/LSST.
 #
 # This product includes software developed by the
 # LSST Project (http://www.lsst.org/).
@@ -164,8 +163,7 @@ class PerPeak(object):
         """
         if self.templateFootprint is None or self.fluxPortion is None:
             return None
-        heavy = afwDet.makeHeavyFootprint(self.templateFootprint,
-                                          self.fluxPortion)
+        heavy = afwDet.makeHeavyFootprint(self.templateFootprint, self.fluxPortion)
         if strayFlux:
             if self.strayFlux is not None:
                 heavy.normalize()
@@ -269,14 +267,12 @@ def deblend(footprint, maskedImage, psf, psffwhm,
 
     validStrayPtSrc = ['never', 'necessary', 'always']
     validStrayAssign = ['r-to-peak', 'r-to-footprint', 'nearest-footprint', 'trim']
-    if not strayFluxToPointSources in validStrayPtSrc:
-        raise ValueError((('strayFluxToPointSources: value \"%s\" not in the '
-                           'set of allowed values: ')
-                          % strayFluxToPointSources) + str(validStrayPtSrc))
-    if not strayFluxAssignment in validStrayAssign:
-        raise ValueError((('strayFluxAssignment: value \"%s\" not in the '
-                           'set of allowed values: ')
-                          % strayFluxAssignment) + str(validStrayAssign))
+    if strayFluxToPointSources not in validStrayPtSrc:
+        raise ValueError((('strayFluxToPointSources: value \"%s\" not in the set of allowed values: ') %
+                          strayFluxToPointSources) + str(validStrayPtSrc))
+    if strayFluxAssignment not in validStrayAssign:
+        raise ValueError((('strayFluxAssignment: value \"%s\" not in the set of allowed values: ') %
+                          strayFluxAssignment) + str(validStrayAssign))
 
     if log is None:
         import lsst.log as lsstLog
@@ -301,8 +297,8 @@ def deblend(footprint, maskedImage, psf, psffwhm,
     imbb = img.getBBox()
     bb = fp.getBBox()
     if not imbb.contains(bb):
-        raise ValueError(('Footprint bounding-box %s extends outside image '
-                          + 'bounding-box %s') % (str(bb), str(imbb)))
+        raise ValueError(('Footprint bounding-box %s extends outside image bounding-box %s') %
+                         (str(bb), str(imbb)))
     W, H = bb.getWidth(), bb.getHeight()
     x0, y0 = bb.getMinX(), bb.getMinY()
     x1, y1 = bb.getMaxX(), bb.getMaxY()
@@ -331,7 +327,7 @@ def deblend(footprint, maskedImage, psf, psffwhm,
             continue
         pk = pkres.peak
         cx, cy = pk.getIx(), pk.getIy()
-        if not imbb.contains(afwGeom.Point2I(cx,cy)):
+        if not imbb.contains(afwGeom.Point2I(cx, cy)):
             log.trace('Peak center is not inside image; skipping %i', pkres.pki)
             pkres.setOutOfBounds()
             continue
@@ -453,8 +449,8 @@ def deblend(footprint, maskedImage, psf, psffwhm,
     # Now apportion flux according to the templates
     log.trace('Apportioning flux among %i templates', len(tmimgs))
     sumimg = afwImage.ImageF(bb)
-    #.getDimensions())
-    #sumimg.setXY0(bb.getMinX(), bb.getMinY())
+    # .getDimensions())
+    # sumimg.setXY0(bb.getMinX(), bb.getMinY())
 
     strayflux = afwDet.HeavyFootprintPtrListF()
 
@@ -579,7 +575,7 @@ def _fitPsfs(fp, peaks, fpres, log, psf, psffwhm, img, varimg,
     # grab them all here.
     peakF = [pk.getF() for pk in peaks]
 
-    for pki,(pk,pkres,pkF) in enumerate(zip(peaks, fpres.peaks, peakF)):
+    for pki, (pk, pkres, pkF) in enumerate(zip(peaks, fpres.peaks, peakF)):
         log.trace('Peak %i', pki)
         _fitPsf(fp, fmask, pk, pkF, pkres, fbb, peaks, peakF, log, cpsf, psffwhm,
                 img, varimg, psfChisqCut1, psfChisqCut2, psfChisqCut2b,
@@ -988,7 +984,7 @@ def _fitPsf(fp, fmask, pk, pkF, pkres, fbb, peaks, peaksF, log, psf, psffwhm,
         pkres.psfFitDebugVar = varimg.Factory(varimg, stampbb, True)
         ww = np.zeros(valid.shape, np.float)
         ww[valid] = w
-        pkres.psfFitDebugWeight = ww # numpy
+        pkres.psfFitDebugWeight = ww  # numpy
         pkres.psfFitDebugRampWeight = rw
 
     # Save things we learned about this peak for posterity...
