@@ -835,7 +835,8 @@ def plotCcdZP(butler, visit, correctJacobian=False, zlim=(None, None), visit2=No
                         continue
 
                     calib = afwImage.Calib(calexp_md)
-                    zps.append(calib.getMagnitude(1.0) - 2.5*np.log10(calib.getExptime()))
+                    exposureTime = float(calexp_md.get("EXPTIME"))  # might be a string
+                    zps.append(calib.getMagnitude(1.0) - 2.5*np.log10(exposureTime))
 
                 if zps:
                     ZP = np.median(zps)
@@ -860,8 +861,9 @@ def plotCcdZP(butler, visit, correctJacobian=False, zlim=(None, None), visit2=No
                     continue
 
                 calib = afwImage.Calib(calexp_md)
+                exposureTime = float(calexp_md.get("EXPTIME"))  # might be a string
                 try:
-                    ZP = calib.getMagnitude(1.0) - 2.5*np.log10(calib.getExptime())
+                    ZP = calib.getMagnitude(1.0) - 2.5*np.log10(exposureTime)
                 except:
                     ZP = np.nan
 
@@ -3266,9 +3268,6 @@ def isrCallback(im, ccd=None, butler=None, imageSource=None, doFlatten=True, cor
         if isrTask.config.doFlat else None
     dark = butler.get("dark", ccd=ccdId, taiObs=taiObs, visit=0) \
         if isrTask.config.doDark else None
-
-    if dark and dark.getCalib().getExptime() == 0:
-        dark.getCalib().setExptime(1.0)
 
     if imageSource and imageSource.verbose:
         print "Running ISR for visit %d CCD %3d" % (visit, ccdId)

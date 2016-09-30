@@ -1148,11 +1148,11 @@ visit & median flux & exposure time & line type & line colour \\
             ima /= med
 
         if not butler:
-            calib = None
+            exposureTime = float("nan")
         else:
             raw = butler.get("raw", visit=v, ccd=10)
             filter = raw.getFilter()
-            calib = raw.getCalib()
+            exposureTime = raw.getInfo().getVisitInfo().getExposureTime()
             if labelVisit:
                 pass
             else:
@@ -1166,9 +1166,9 @@ visit & median flux & exposure time & line type & line colour \\
 
                 if False:
                     label.append(r"%5.0f" % med)
-                    label.append(r"%3gs" % calib.getExptime())
+                    label.append(r"%3gs" % exposureTime)
                 else:
-                    label.append(r"%3.0f e/s" % (med/calib.getExptime()))
+                    label.append(r"%3.0f e/s" % (med/exposureTime))
 
                 if False:
                     label.append(r"%s" % filter.getName())
@@ -1205,7 +1205,7 @@ visit & median flux & exposure time & line type & line colour \\
               'blue'
 
         if True:
-            columns = (v, med, calib.getExptime() if calib else np.nan, marker, ctype)
+            columns = (v, med, exposureTime, marker, ctype)
             if LaTeX:
                 print r"%s & %6.0f & %3.0f & %2s & %s \\" % columns
             else:
