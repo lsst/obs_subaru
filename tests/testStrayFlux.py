@@ -31,7 +31,7 @@ import lsst.utils.tests
 import lsst.afw.detection as afwDet
 import lsst.afw.geom as afwGeom
 import lsst.afw.image as afwImage
-import lsst.pex.logging as pexLogging
+from lsst.log import Log
 from lsst.meas.deblender.baseline import deblend
 import lsst.meas.algorithms as measAlg
 
@@ -46,19 +46,8 @@ if doPlot:
 else:
     print('"doPlot" not set -- not making plots.  To enable plots, edit', __file__)
 
-root = pexLogging.Log.getDefaultLog()
-root.setThreshold(pexLogging.Log.DEBUG)
-
-# Quiet some of the more chatty loggers
-pexLogging.Log(root, 'lsst.meas.deblender.symmetrizeFootprint',
-               pexLogging.Log.INFO)
-pexLogging.Log(root, 'lsst.meas.deblender.symmetricFootprint',
-               pexLogging.Log.INFO)
-pexLogging.Log(root, 'lsst.meas.deblender.getSignificantEdgePixels',
-               pexLogging.Log.INFO)
-pexLogging.Log(root, 'afw.Mask',
-               pexLogging.Log.INFO)
-
+# Lower the level to Log.DEBUG to see debug messages
+Log.getLogger('meas.deblender.symmetrizeFootprint').setLevel(Log.INFO)
 
 def imExt(img):
     bbox = img.getBBox()
@@ -163,6 +152,7 @@ class StrayFluxTestCase(lsst.utils.tests.TestCase):
                 plt.axis(ax)
             plt.savefig(plotpat % 1)
 
+        # Change verbose to False to quiet down the meas_deblender.baseline logger
         deb = deblend(fakefp, afwimg, fakepsf, fakepsf_fwhm, verbose=True)
         parent_img = afwImage.ImageF(fpbb)
         afwDet.copyWithinFootprintImage(fakefp, afwimg.getImage(), parent_img)
@@ -307,6 +297,7 @@ class StrayFluxTestCase(lsst.utils.tests.TestCase):
         # for pk in fp.getPeaks():
         #    print '  ', pk.getFx(), pk.getFy()
 
+        # Change verbose to False to quiet down the meas_deblender.baseline logger
         deb = deblend(fp, afwimg, fakepsf, fakepsf_fwhm, verbose=True,
                       fitPsfs=False, )
 
