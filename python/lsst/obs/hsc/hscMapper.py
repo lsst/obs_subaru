@@ -11,10 +11,13 @@ import lsst.afw.math as afwMath
 import lsst.afw.geom as afwGeom
 from lsst.ip.isr import LinearizeSquared
 import lsst.pex.policy as pexPolicy
+from .makeHscRawVisitInfo import MakeHscRawVisitInfo
 
 class HscMapper(CameraMapper):
     """Provides abstract-physical mapping for HSC data"""
     packageName = "obs_subaru"
+
+    MakeRawVisitInfoClass = MakeHscRawVisitInfo
 
     def __init__(self, **kwargs):
         policyFile = pexPolicy.DefaultPolicyFile("obs_subaru", "HscMapper.paf", "policy")
@@ -189,54 +192,13 @@ Most chips are flipped L/R, but the rotated ones (100..103) are flipped T/B
     def std_raw(self, item, dataId):
         exp = super(HscMapper, self).std_raw(item, dataId)
 
-        md = exp.getMetadata()
-        if md.exists("MJD-STR"):
-            calib = exp.getCalib()
-            expTime = calib.getExptime()
-            obsStart = dafBase.DateTime(md.get("MJD-STR"), dafBase.DateTime.MJD, dafBase.DateTime.UTC)
-            obsMidpoint = obsStart.nsecs() + long(expTime * 1000000000L / 2)
-            calib.setMidTime(dafBase.DateTime(obsMidpoint))
-
         return self._flipChipsLR(exp, exp.getWcs(), dataId)
 
-    def standardizeCalib(self, dataset, item, dataId):
-        """Standardize a calibration image read in by the butler
-
-        Some calibrations are stored on disk as Images instead of MaskedImages
-        or Exposures.  Here, we convert it to an Exposure.
-
-        @param dataset  Dataset type (e.g., "bias", "dark" or "flat")
-        @param item  The item read by the butler
-        @param dataId  The data identifier (unused, included for future flexibility)
-        @return standardized Exposure
-        """
-        mapping = self.calibrations[dataset]
-        if "MaskedImage" in mapping.python:
-            exp = afwImage.makeExposure(item)
-        elif "Image" in mapping.python:
-            if hasattr(item, "getImage"): # For DecoratedImageX
-                item = item.getImage()
-            exp = afwImage.makeExposure(afwImage.makeMaskedImage(item))
-        elif "Exposure" in mapping.python:
-            exp = item
-        else:
-            raise RuntimeError("Unrecognised python type: %s" % mapping.python)
-
-        parent = super(HscMapper, self)
-        if hasattr(parent, "std_" + dataset):
-            return getattr(parent, "std_" + dataset)(exp, dataId)
-        return self._standardizeExposure(mapping, exp, dataId)
-
-    def std_bias(self, item, dataId):
-        return self.standardizeCalib("bias", item, dataId)
-
     def std_dark(self, item, dataId):
-        exp = self.standardizeCalib("dark", item, dataId)
-        exp.getCalib().setExptime(1.0)
-        return exp
-
-    def std_flat(self, item, dataId):
-        return self.standardizeCalib("flat", item, dataId)
+        exposure = self._standardizeExposure(self.calibrations['dark'], item, dataId, trimmed=False)
+        visitInfo = afwImage.makeVisitInfo(exposureTime=1.0)
+        exposure.getInfo().setVisitInfo(visitInfo)
+        return exposure
 
     def _extractAmpId(self, dataId):
         return (self._extractDetectorName(dataId), 0, 0)
