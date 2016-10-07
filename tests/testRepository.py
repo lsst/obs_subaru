@@ -34,7 +34,7 @@ import lsst.daf.persistence as dafPersist
 import lsst.pex.exceptions as pexExcept
 import lsst.utils
 from lsst.daf.base import DateTime
-from lsst.daf.butlerUtils import MakeRawVisitInfo
+from lsst.obs.base import MakeRawVisitInfo
 from lsst.afw.image import RotType_UNKNOWN
 from lsst.afw.coord import IcrsCoord, Coord
 from lsst.afw.geom import degrees

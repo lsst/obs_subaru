@@ -7,7 +7,7 @@ import lsst.afw.geom as afwGeom
 import lsst.afw.image.utils as afwImageUtils
 
 from lsst.daf.persistence import ButlerLocation
-from lsst.daf.butlerUtils import CameraMapper
+from lsst.obs.base import CameraMapper
 from lsst.ip.isr import LinearizeSquared
 import lsst.pex.policy as pexPolicy
 from .makeSuprimecamRawVisitInfo import MakeSuprimecamRawVisitInfo
