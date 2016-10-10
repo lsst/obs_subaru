@@ -421,27 +421,25 @@ def deblend(footprint, maskedImage, psf, psffwhm,
     if weightTemplates:
         # Reweight the templates by doing a least-squares fit to the image
         A = np.zeros((W*H, len(tmimgs)))
-        b = img.getArray()[y0:y1+1, x0:x1+1].ravel()
+        pimage = afwImage.ImageF(bb)
+        afwDet.copyWithinFootprintImage(fp, img, pimage)
+        b = pimage.getArray().ravel()
 
-        for mim, i in zip(tmimgs, ibi):
-            ibb = mim.getBBox()
-            ix0, iy0 = ibb.getMinX(), ibb.getMinY()
-            pkres = res.peaks[i]
-            foot = pkres.templateFootprint
-            ima = mim.getImage().getArray()
-            for sp in foot.getSpans():
-                sy, sx0, sx1 = sp.getY(), sp.getX0(), sp.getX1()
-                imrow = ima[sy-iy0, sx0-ix0: 1+sx1-ix0]
-                r0 = (sy-y0)*W
-                A[r0 + sx0-x0: r0+1+sx1-x0, i] = imrow
+        index = 0
+        for pkres in res.peaks:
+            if pkres.skip:
+                continue
+            cimage = afwImage.ImageF(bb)
+            afwDet.copyWithinFootprintImage(fp, pkres.templateImage, cimage)
+            A[:, index] = cimage.getArray().ravel()
+            index +=1
 
         X1, r1, rank1, s1 = np.linalg.lstsq(A, b)
         del A
         del b
 
         for mim, i, w in zip(tmimgs, ibi, X1):
-            im = mim.getImage()
-            im *= w
+            mim *= w
             res.peaks[i].setTemplateWeight(w)
 
     # FIXME -- Remove templates that are too similar (via dot-product test)?

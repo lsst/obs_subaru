@@ -121,6 +121,8 @@ class SourceDeblendConfig(pexConf.Config):
         doc=("Mask planes with the corresponding limit on the fraction of masked pixels. "
              "Sources violating this limit will not be deblended."),
     )
+    weightTemplates = pexConf.Field(dtype=bool, default=False,
+                                    doc=('If true, a least-squares fit of the templates will be done'))
 
 ## \addtogroup LSST_task_documentation
 ## \{
@@ -307,6 +309,7 @@ class SourceDeblendTask(pipeBase.Task):
                     patchEdges=(self.config.edgeHandling == 'noclip'),
                     tinyFootprintSize=self.config.tinyFootprintSize,
                     clipStrayFluxFraction=self.config.clipStrayFluxFraction,
+                    weightTemplates=self.config.weightTemplates
                 )
                 if self.config.catchFailures:
                     src.set(self.deblendFailedKey, False)
