@@ -27,7 +27,7 @@ import astropy.units
 
 from lsst.afw.geom import degrees
 from lsst.afw.coord import Coord, IcrsCoord, Observatory, Weather
-from lsst.daf.butlerUtils import MakeRawVisitInfo
+from lsst.obs.base import MakeRawVisitInfo
 
 __all__ = ["MakeHscRawVisitInfo"]
 

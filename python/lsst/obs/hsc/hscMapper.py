@@ -3,7 +3,7 @@
 import os
 
 import lsst.daf.base as dafBase
-from lsst.daf.butlerUtils import CameraMapper
+from lsst.obs.base import CameraMapper
 from lsst.daf.persistence import ButlerLocation
 import lsst.afw.image.utils as afwImageUtils
 import lsst.afw.image as afwImage
