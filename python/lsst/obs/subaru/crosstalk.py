@@ -229,7 +229,8 @@ def subtractXTalk(mi, coeffs, minPixelToMask=45000, crosstalkStr="CROSSTALK"):
     # the ones that we label as causing crosstalk; in reality all pixels cause crosstalk)
     #
     tempStr = "TEMP"                    # mask plane used to record the bright pixels that we need to mask
-    mi.getMask().addMaskPlane(tempStr)
+    msk = mi.getMask()
+    msk.addMaskPlane(tempStr)
     try:
         fs = afwDetect.FootprintSet(mi, afwDetect.Threshold(minPixelToMask), tempStr)
 
