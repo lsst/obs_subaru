@@ -143,14 +143,6 @@ exposures: {
         columns:       "pointing" "filter" "visit" "ccd"
     }
 
-    deepCoadd_depth: {
-        template:    "deepCoadd/%(filter)s/%(tract)d/%(patch)s.depth.fits"
-        python:      "lsst.afw.image.ImageF"
-        persistable: "ImageF"
-        storage:     "FitsStorage"
-        level:       "Skytile"
-        tables:      raw_skytile
-    }
     deepCoadd_tempExp: {
         template:    "deepCoadd/%(filter)s/%(tract)d/%(patch)s/warp-%(filter)s-%(tract)d-%(patch)s-%(visit)d.fits"
         python:      "lsst.afw.image.ExposureF"
@@ -158,22 +150,6 @@ exposures: {
         storage:     "FitsStorage"
         level:       "Skytile"
         tables:      raw_skytile
-    }
-    deepCoadd_bgRef: {
-        template:    "deepCoadd/%(filter)s/%(tract)d/%(patch)s/bgRef-%(tract)d-%(patch)s-%(filter)s.fits"
-        python:      "lsst.afw.image.ExposureF"
-        persistable: "ExposureF"
-        storage:     "FitsStorage"
-        level:       "Skytile"
-        tables:      raw_skytile
-    }
-    deepCoadd_bg: {
-        template:      "deepCoadd/%(filter)s/%(tract)d/%(patch)s/bgModel-%(tract)d-%(patch)s-%(filter)s.fits"
-        python:        "lsst.afw.image.ImageF"
-        persistable:   "ImageF"
-        storage:       "FitsStorage"
-        level:         "Skytile"
-        tables:        raw_skytile
     }
 
     deepCoadd_diff: {
@@ -193,14 +169,6 @@ exposures: {
         tables:      raw_skytile
     }
 
-    diff: {
-        template:      "diff/%(diff)05d/DIFF%(patch)08d.fits"
-        python:        "lsst.afw.image.ExposureF"
-        persistable:        "ExposureF"
-        storage:    "FitsStorage"
-        level:        "Skytile"
-        tables:        "raw_skytile"
-    }
 
     mosaicCalib: {
         template:    "%(pointing)05d/%(filter)s/output/CALIB-%(visit)07d-%(ccd)03d-%(tract)d.fits"
@@ -450,28 +418,7 @@ datasets: {
 	tables:      "raw_skytile"
     }
 
-    diffsources: {
-        template:      "diff/%(diff)05d/SRC%(patch)08d%(filter)s.fits"
-        python:        "lsst.afw.table.SourceCatalog"
-        persistable:   "SourceCatalog"
-        storage:       "FitsCatalogStorage"
-        tables:        "raw_skytile"
-    }
-    diffsources_schema: {
-        template:      "schema/diffsources.fits"
-        python:        "lsst.afw.table.SourceCatalog"
-        persistable:   "SourceCatalog"
-        storage:       "FitsCatalogStorage"
-        tables:        "raw_skytile"
-    }
 
-    diffpsf: {
-        template:      "diff/%(diff)05d/PSF%(patch)08d%(filter)s.boost"
-        python:        "lsst.afw.detection.Psf"
-        persistable:   "Psf"
-        storage:       "BoostStorage"
-        tables:        "raw_skytile"
-    }
 
     warppsf: {
         template:      "%(pointing)05d/%(filter)s/warp/WARPPSF-%(visit)07d-%(ccd)03d.boost"
