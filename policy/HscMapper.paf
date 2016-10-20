@@ -514,11 +514,9 @@ datasets: {
         tables:        "raw"
         tables:        "raw_visit"
     }
+    # dataset defined in obs_base modified in this mapper as follows:
     deepCoadd_calexp_background: {
         template:      "deepCoadd-results/%(filter)s/%(tract)d/%(patch)s/det_bkgd-%(filter)s-%(tract)d-%(patch)s.fits"
-        python:        "lsst.afw.math.BackgroundList"
-        persistable:   "PurePythonClass"
-        storage:       "FitsCatalogStorage"
     }
 
 

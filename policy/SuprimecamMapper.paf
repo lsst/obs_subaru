@@ -527,17 +527,13 @@ datasets: {
         tables:        raw
         tables:        raw_visit
     }
+    # dataset defined in obs_base modified in this mapper as follows:
     forced_src_schema: {
         template:      "schema/forced_src.fits"
-        python:        "lsst.afw.table.SourceCatalog"
-        persistable:        "ignored"
-        storage:    "FitsCatalogStorage"
     }
+    # dataset defined in obs_base modified in this mapper as follows:
     forcedPhotCcd_config: {
-        template:      "config/forcedPhotCcd.py"
         python:        "lsst.pipe.tasks.forcedPhotCcd.ForcedPhotCcdConfig"
-        persistable:      "Config"
-        storage:    "ConfigStorage"
     }
     forcedPhotCcd_metadata: {
         template:      "%(pointing)05d/%(filter)s/tract%(tract)d/forcedPhotCcd_metadata/%(visit)07d%(ccd)1d.boost"
@@ -705,11 +701,9 @@ datasets: {
     # Measurements on coadds
 
     # Reference catalog for coadds
+    # dataset defined in obs_base modified in this mapper as follows:
     mergeCoaddMeasurements_config: {
-        template:      "config/mergeMeasure.py"
         python:        "lsst.pipe.tasks.multiBand.MergeSourcesConfig"
-        persistable:   "Config"
-        storage:       "ConfigStorage"
     }
 
     multiband_config: {
