@@ -138,39 +138,11 @@ exposures: {
         columns:       "pointing" "filter" "visit" "ccd"
     }
 
-    deepCoadd_depth: {
-        template:    "deepCoadd/%(filter)s/%(tract)d/%(patch)s.depth.fits"
-        python:      "lsst.afw.image.ImageF"
-        persistable: "ImageF"
-        storage:     "FitsStorage"
-        level:       "Skytile"
-        tables:      raw_skytile
-    }
+    # dataset defined in obs_base modified in this mapper as follows:
     deepCoadd_tempExp: {
         template:    "deepCoadd/%(filter)s/%(tract)d/%(patch)s/warp-%(filter)s-%(tract)d-%(patch)s-%(visit)d.fits"
-        python:      "lsst.afw.image.ExposureF"
-        persistable: "ExposureF"
-        storage:     "FitsStorage"
-        level:       "Skytile"
-        tables:      raw_skytile
-    }
-    deepCoadd_bgRef: {
-        template:    "deepCoadd/%(filter)s/%(tract)d/%(patch)s/bgRef-%(tract)d-%(patch)s-%(filter)s.fits"
-        python:      "lsst.afw.image.ExposureF"
-        persistable: "ExposureF"
-        storage:     "FitsStorage"
-        level:       "Skytile"
-        tables:      raw_skytile
     }
 
-    diff: {
-        template:      "diff/%(diff)05d/DIFF%(patch)08d.fits"
-        python:        "lsst.afw.image.ExposureF"
-        persistable:        "ExposureF"
-        storage:    "FitsStorage"
-        level:        "Skytile"
-        tables:        "raw_skytile"
-    }
 
     mosaicCalib: {
         template:    "%(pointing)05d/%(filter)s/output/CALIB%(visit)07d%(ccd)1d-%(tract)d.fits"
@@ -402,28 +374,7 @@ datasets: {
         storage:       "None"
     }
 
-    diffsources: {
-        template:      "diff/%(diff)05d/SRC%(patch)08d%(filter)s.fits"
-        python:        "lsst.afw.table.SourceCatalog"
-        persistable:   "SourceCatalog"
-        storage:       "FitsCatalogStorage"
-        tables:        "raw_skytile"
-    }
-    diffsources_schema: {
-        template:      "schema/diffsources.fits"
-        python:        "lsst.afw.table.SourceCatalog"
-        persistable:   "SourceCatalog"
-        storage:       "FitsCatalogStorage"
-        tables:        "raw_skytile"
-    }
 
-    diffpsf: {
-        template:      "diff/%(diff)05d/PSF%(patch)08d%(filter)s.boost"
-        python:        "lsst.afw.detection.Psf"
-        persistable:   "Psf"
-        storage:       "BoostStorage"
-        tables:        "raw_skytile"
-    }
 
     warppsf: {
         template:      "%(pointing)05d/%(filter)s/warp/WARPPSF-%(visit)07d-%(ccd)03d.boost"
@@ -498,29 +449,9 @@ datasets: {
     }
 
 
-    deepCoadd_icMatch: {
-        template:      "deepCoadd-results/%(filter)s/%(tract)d/%(patch)s/icMatch-%(filter)s-%(tract)d-%(patch)s.fits"
-        python:        "lsst.afw.table.SourceCatalog"
-        persistable:        "ignored"
-        storage:    "FitsCatalogStorage"
-        tables:        raw
-        tables:        raw_skyTile
-    }
+    # dataset defined in obs_base modified in this mapper as follows:
     deepCoadd_srcMatch: {
         template:      "deepCoadd-results/%(filter)s/%(tract)d/%(patch)s/srcMatch-%(filter)s-%(tract)d-%(patch)s.fits"
-        python:        "lsst.afw.table.BaseCatalog"
-        persistable:   "BaseCatalog"
-        storage:       "FitsCatalogStorage"
-        tables:        "raw"
-        tables:        "raw_visit"
-    }
-    deepCoadd_icMatch: {
-        template:      "deepCoadd-results/%(filter)s/%(tract)d/%(patch)s/icMatch-%(filter)s-%(tract)d-%(patch)s.fits"
-        python:        "lsst.afw.table.BaseCatalog"
-        persistable:   "BaseCatalog"
-        storage:       "FitsCatalogStorage"
-        tables:        "raw"
-        tables:        "raw_visit"
     }
     deepCoadd_calexpBackground: {
         template:      "deepCoadd-results/%(filter)s/%(tract)d/%(patch)s/bkgd-%(filter)s-%(tract)d-%(patch)s.fits"
@@ -572,17 +503,13 @@ datasets: {
         tables:        raw
         tables:        raw_visit
     }
+    # dataset defined in obs_base modified in this mapper as follows:
     forced_src_schema: {
         template:      "schema/forced_src.fits"
-        python:        "lsst.afw.table.SourceCatalog"
-        persistable:        "ignored"
-        storage:    "FitsCatalogStorage"
     }
+    # dataset defined in obs_base modified in this mapper as follows:
     forcedPhotCcd_config: {
-        template:      "config/forcedPhotCcd.py"
         python:        "lsst.pipe.tasks.forcedPhotCcd.ForcedPhotCcdConfig"
-        persistable:      "Config"
-        storage:    "ConfigStorage"
     }
     forcedPhotCcd_metadata: {
         template:      "%(pointing)05d/%(filter)s/tract%(tract)d/forcedPhotCcd_metadata/%(visit)07d%(ccd)1d.boost"
@@ -750,11 +677,9 @@ datasets: {
     # Measurements on coadds
 
     # Reference catalog for coadds
+    # dataset defined in obs_base modified in this mapper as follows:
     mergeCoaddMeasurements_config: {
-        template:      "config/mergeMeasure.py"
         python:        "lsst.pipe.tasks.multiBand.MergeSourcesConfig"
-        persistable:   "Config"
-        storage:       "ConfigStorage"
     }
 
     multiband_config: {
