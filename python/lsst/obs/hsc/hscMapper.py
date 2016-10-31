@@ -44,8 +44,8 @@ class HscMapper(CameraMapper):
                 }
         for name in ("raw",
                      # processCcd outputs
-                     "postISRCCD", "calexp", "postISRCCD", "src", "icSrc", "icMatch", "icMatchFull",
-                     "srcMatch", "srcMatchFull",
+                     "postISRCCD", "calexp", "postISRCCD", "src", "icSrc", "icMatch",
+                     "srcMatch",
                      # processCcd QA
                      "ossThumb", "flattenedThumb", "calexpThumb", "plotMagHist", "plotSeeingRough",
                      "plotSeeingRobust", "plotSeeingMap", "plotEllipseMap", "plotEllipticityMap",
@@ -54,8 +54,6 @@ class HscMapper(CameraMapper):
                      "fitsPsfSrcGrid", "fitsPsfModelGrid", "tableSeeingMap", "tableSeeingGrid",
                      # forcedPhot outputs
                      "forced_src",
-                     # Warp
-                     "coaddTempExp",
                      ):
             self.mappings[name].keyDict.update(keys)
 

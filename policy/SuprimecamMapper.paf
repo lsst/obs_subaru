@@ -265,14 +265,6 @@ datasets: {
         tables:        raw
         tables:        raw_skyTile
     }
-    deepCoad_calexpBackground: {
-        template:    "deepCoadd-results/%(filter)s/%(tract)d/%(patch)s/bkgd-%(filter)s-%(tract)d-%(patch)s.fits"
-        python:        "lsst.afw.math.BackgroundList"
-        persistable:   "PurePythonClass"
-        storage:       "FitsCatalogStorage"
-        tables:        raw
-        tables:        raw_skyTile
-    }
     psf: {
         template:      "%(pointing)05d/%(filter)s/output/PSF%(visit)07d%(ccd)1d.boost"
         python:        "lsst.afw.detection.Psf"
@@ -471,10 +463,6 @@ datasets: {
     # dataset defined in obs_base modified in this mapper as follows:
     forced_src_schema: {
         template:      "schema/forced_src.fits"
-    }
-    # dataset defined in obs_base modified in this mapper as follows:
-    forcedPhotCcd_config: {
-        python:        "lsst.pipe.tasks.forcedPhotCcd.ForcedPhotCcdConfig"
     }
     forcedPhotCcd_metadata: {
         template:      "%(pointing)05d/%(filter)s/tract%(tract)d/forcedPhotCcd_metadata/%(visit)07d%(ccd)1d.boost"

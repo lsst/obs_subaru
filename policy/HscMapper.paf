@@ -328,7 +328,7 @@ datasets: {
     transformed_src: {
         template:      "%(pointing)05d/%(filter)s/output/TRSRC-%(visit)07d-%(ccd)03d.fits"
         python:        "lsst.afw.table.BaseCatalog"
-        persistable:   "BaseCatalog"
+        persistable:   "SourceCatalog"
         storage:       "FitsCatalogStorage"
         tables:        "raw"
         tables:        "raw_visit"
@@ -341,24 +341,8 @@ datasets: {
         tables:        "raw"
         tables:        "raw_visit"
     }
-    icMatchFull: {
-        template:      "%(pointing)05d/%(filter)s/output/ML-%(visit)07d-%(ccd)03d.fits"
-        python:        "lsst.afw.table.BaseCatalog"
-        persistable:   "BaseCatalog"
-        storage:       "FitsCatalogStorage"
-        tables:        "raw"
-        tables:        "raw_visit"
-    }
     srcMatch: {
         template:      "%(pointing)05d/%(filter)s/output/SRCMATCH-%(visit)07d-%(ccd)03d.fits"
-        python:        "lsst.afw.table.BaseCatalog"
-        persistable:   "BaseCatalog"
-        storage:       "FitsCatalogStorage"
-        tables:        "raw"
-        tables:        "raw_visit"
-    }
-    srcMatchFull: {
-        template:      "%(pointing)05d/%(filter)s/output/SRCML-%(visit)07d-%(ccd)03d.fits"
         python:        "lsst.afw.table.BaseCatalog"
         persistable:   "BaseCatalog"
         storage:       "FitsCatalogStorage"
