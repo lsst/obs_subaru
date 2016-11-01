@@ -10,4 +10,4 @@ menu = { "ps1*": {}, # Defaults are fine
         }
 setAstrometryConfigFromEups(config, menu)
 
-config.astrom.load(os.path.join(getPackageDir("obs_subaru"), "config", "filterMap.py"))
+config.loadAstrom.load(os.path.join(getPackageDir("obs_subaru"), "config", "filterMap.py"))
