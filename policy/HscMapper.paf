@@ -599,7 +599,7 @@ datasets: {
         storage:       TextStorage
     }
     plotVisit: {
-        template:      "plots/%(filter)s/visit-%(visit)d/plot-v%(visit)d-%(description)s-%(style)s.png"
+        template:      "plots/%(filter)s/tract-%(tract)d/visit-%(visit)d/plot-v%(visit)d-%(description)s-%(style)s.png"
         python:        __builtin__.str
         persistable:   None
         storage:       TextStorage
@@ -611,7 +611,7 @@ datasets: {
         storage:       TextStorage
     }
     plotCompareVisit: {
-        template:      "plots/%(filter)s/visit-%(visit)d/compareVisit-v%(visit)d-%(description)s-%(style)s.png"
+        template:      "plots/%(filter)s/tract-%(tract)d/visit-%(visit)d/compareVisit-v%(visit)d-%(description)s-%(style)s.png"
         python:        __builtin__.str
         persistable:   None
         storage:       TextStorage
