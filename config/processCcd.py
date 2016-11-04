@@ -57,6 +57,7 @@ config.calibrate.detection.isotropicGrow = True
 config.charImage.load(os.path.join(configDir, "cmodel.py"))
 config.charImage.measurement.load(os.path.join(configDir, "apertures.py"))
 config.charImage.measurement.load(os.path.join(configDir, "kron.py"))
+config.charImage.measurement.load(os.path.join(configDir, "convolvedFluxes.py"))
 config.charImage.measurement.load(os.path.join(configDir, "hsm.py"))
 if "ext_shapeHSM_HsmShapeRegauss" in config.charImage.measurement.plugins:
     # no deblending has been done
@@ -74,3 +75,8 @@ config.calibrate.deblend.maxFootprintArea = 10000
 
 config.charImage.measurement.plugins.names |= ["base_Jacobian", "base_FPPosition"]
 config.calibrate.measurement.plugins.names |= ["base_Jacobian", "base_FPPosition"]
+
+# Convolved fluxes can fail for small target seeing if the observation seeing is larger
+if "ext_convolved_ConvolvedFlux" in config.charImage.measurement.plugins:
+    names = config.charImage.measurement.plugins["ext_convolved_ConvolvedFlux"].getAllResultNames()
+    config.charImage.measureApCorr.allowFailure += names
