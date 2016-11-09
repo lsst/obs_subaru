@@ -32,6 +32,7 @@ coeffs = crosstalk.estimateCoeffs(range(131634, 131642), range(10), threshold=1e
                                   plot=True, title="CCD0..9", fig=1)
 crosstalk.fixCcd(131634, 0, coeffs)
 """
+from builtins import range
 import numpy as np
 import lsst.afw.detection as afwDetect
 import lsst.afw.geom as afwGeom
@@ -267,7 +268,7 @@ def subtractCrosstalkYagi(mi, coeffs1List, coeffs2List, gainsPreampSig, minPixel
 def main(visit=131634, ccd=None, threshold=45000, nSample=1, showCoeffs=True, fixXTalk=True,
          plot=False, title=None):
     if ccd is None:
-        visitList = range(nSample)
+        visitList = list(range(nSample))
         ccdList = ["simulated", ]
     else:
         ccdList = makeList(ccd)

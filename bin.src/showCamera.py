@@ -22,6 +22,8 @@
 #
 
 from __future__ import print_function
+from builtins import input
+from builtins import zip
 import numpy
 import matplotlib.pyplot as plt
 
@@ -134,4 +136,4 @@ if __name__ == '__main__':
          showDistortion=not args.noDistortion)
     if not args.outputFile:
         print("Hit any key to exit", end=' ')
-        raw_input()
+        input()

@@ -1,3 +1,4 @@
+from builtins import map
 #!/usr/bin/env python
 
 import os
@@ -254,10 +255,10 @@ Most chips are flipped L/R, but the rotated ones (100..103) are flipped T/B
                                    must contain filter.
         """
 
-        tract = long(dataId['tract'])
+        tract = int(dataId['tract'])
         if tract < 0 or tract >= 2**HscMapper._nbit_tract:
             raise RuntimeError('tract not in range [0,%d)' % (2**HscMapper._nbit_tract))
-        patchX, patchY = map(int, dataId['patch'].split(','))
+        patchX, patchY = list(map(int, dataId['patch'].split(',')))
         for p in (patchX, patchY):
             if p < 0 or p >= 2**HscMapper._nbit_patch:
                 raise RuntimeError('patch component not in range [0, %d)' % 2**HscMapper._nbit_patch)

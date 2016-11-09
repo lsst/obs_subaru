@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 from __future__ import print_function
+from builtins import zip
 import glob
 import os
 import re
@@ -65,7 +66,7 @@ for f in glob.glob(os.path.join(args.root, "*", "defects*.fits")):
 # Fix up end dates so there are no collisions.
 # Defects files for a CCD are valid from the date they are registered until the next date.
 # This means that any defects file should carry ALL the defects that are present at that time.
-for ccd, rowList in rowsPerCcd.iteritems():
+for ccd, rowList in rowsPerCcd.items():
     rowList.sort(key=lambda row: row.validStart) # ISO-8601 will sort just fine without conversion from str
     for thisRow, nextRow in zip(rowList[:-1], rowList[1:]):
         thisRow.validEnd = (datetime.datetime.strptime(nextRow.validStart, "%Y-%m-%d") -

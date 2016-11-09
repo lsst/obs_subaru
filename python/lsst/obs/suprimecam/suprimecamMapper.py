@@ -1,3 +1,6 @@
+from builtins import map
+from builtins import zip
+from builtins import range
 #!/usr/bin/env python
 
 import os
@@ -251,8 +254,8 @@ class SuprimecamMapperBase(CameraMapper):
         """
         nFilters = len(self.filters)
         nPatches = 1000000
-        return (long(dataId["stack"]) * nFilters * nPatches +
-                long(dataId["patch"]) * nFilters +
+        return (int(dataId["stack"]) * nFilters * nPatches +
+                int(dataId["patch"]) * nFilters +
                 self.filterIdMap[dataId["filter"]])
 
     def bypass_stackExposureId(self, datasetType, pythonType, location, dataId):
@@ -273,10 +276,10 @@ class SuprimecamMapperBase(CameraMapper):
         # FIXME: this bit allocation is for LSST's huge-tract skymaps, and needs
         # to be updated to something more appropriate for Subaru
         # (actually, it shouldn't be the mapper's job at all; see #2797).
-        tract = long(dataId['tract'])
+        tract = int(dataId['tract'])
         if tract < 0 or tract >= 128:
             raise RuntimeError('tract not in range [0,128)')
-        patchX, patchY = map(int, dataId['patch'].split(','))
+        patchX, patchY = list(map(int, dataId['patch'].split(',')))
         for p in (patchX, patchY):
             if p < 0 or p >= 2**13:
                 raise RuntimeError('patch component not in range [0, 8192)')

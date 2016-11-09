@@ -33,6 +33,8 @@ coeffs, coeffsErr = crosstalk.estimateCoeffs(butler, range(131634, 131642), rang
 crosstalk.fixCcd(butler, 131634, 0, coeffs)
 """
 from __future__ import print_function
+from builtins import next
+from builtins import range
 import sys
 import math
 import time
@@ -430,7 +432,7 @@ def estimateCoeffs(butler, visitList, ccdList, threshold=45000, nSample=1, plot=
 def main(butler, visit=131634, ccd=None, threshold=45000, nSample=1, showCoeffs=True, fixXTalk=True,
          plot=False, title=None):
     if ccd is None:
-        visitList = range(nSample)
+        visitList = list(range(nSample))
         ccdList = ["simulated", ]
     else:
         ccdList = makeList(ccd)

@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 from __future__ import print_function
+from builtins import zip
+from builtins import input
+from builtins import range
 import argparse
 import fnmatch
 import os
@@ -265,4 +268,4 @@ E.g.
         plt.savefig(args.fileName)
     else:
         plt.interactive(1)
-        raw_input("Exit? ")
+        input("Exit? ")

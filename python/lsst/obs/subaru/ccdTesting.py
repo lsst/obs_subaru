@@ -1,4 +1,8 @@
 from __future__ import print_function
+from builtins import input
+from builtins import zip
+from builtins import range
+from builtins import object
 import math
 import os
 import re
@@ -254,7 +258,7 @@ def findBiasLevels(butler, **dataId):
     dataType = "raw_md"
     for did in butler.queryMetadata(dataType, "visit", keys, **dataId):
         did = dict(zip(keys, did))
-        if did["visit"] not in range(902030, 902076+1):
+        if did["visit"] not in list(range(902030, 902076+1)):
             continue
 
         try:
@@ -341,7 +345,7 @@ Grow BAD regions in the flat field by nGrow pixels (useful for vignetted chips)
         ccds[v] = ccd
         if False and frame is not None:
             ds9.mtv(im, frame=frame)
-            raw_input("Continue? ")
+            input("Continue? ")
 
     ampMeans = []
     ccd0 = ccds[visits[0]]
@@ -680,7 +684,7 @@ def estimateDarkCurrent(butler, visits, nSkipRows=35, frame=None):
         print("%8d" % (visit), end=' ')
     print("%8s" % "mean")
 
-    ccds = range(100)                   # don't use 100..103
+    ccds = list(range(100))                   # don't use 100..103
 
     cameraDark = 0.0                    # average dark current for all ccds
     for ccdNo in ccds:
@@ -1833,8 +1837,8 @@ CCDQe = CCDQe_filter
 levels = None                           # no per-CCD QE
 if False:
     alpha = 0.5
-    keys = sorted(CCDQe.values()[0].keys())
-    levels = dict(zip(keys, [(alpha*levels902936ZP[_] + (1 - alpha)*levels903332ZP[_]) for _ in keys]))
+    keys = sorted(list(CCDQe.values())[0].keys())
+    levels = dict(list(zip(keys, [(alpha*levels902936ZP[_] + (1 - alpha)*levels903332ZP[_]) for _ in keys])))
 
 
 def getQE(serial, filter):
@@ -1845,7 +1849,7 @@ def getQE(serial, filter):
     if not levels:
         return 1.0
 
-    levs = np.array(levels.values())
+    levs = np.array(list(levels.values()))
     avg = np.median(levs[np.where(levs > 0.5*np.median(levs))])
 
     return float(levels[serial])/avg
@@ -2439,7 +2443,7 @@ def getLevel(serial, filter='g', fiddle=False, calculate=False, visit=0, butler=
         avg = 1.0
     else:
         if canonical is None:
-            levs = np.array(levels.values())
+            levs = np.array(list(levels.values()))
             avg = np.median(levs[np.where(levs > 0.5*np.median(levs))])
         else:
             avg = levels[canonical]
@@ -2614,7 +2618,7 @@ def writeQETable(butler, filters="ugrizy", LaTeX=False, nCol=3, canonical=50):
     _filters = filters
     filters = []
     for f in _filters:
-        if f in ['g'] + edges.keys():
+        if f in ['g'] + list(edges.keys()):
             filters.append(f)
 
     ccds = sorted(butler.queryMetadata("raw", "visit", ["ccd"]))
@@ -2710,7 +2714,7 @@ def writeObsTable(butler, mos, LaTeX=False):
 
     fields = ["visit"]
     for k in ["date", "start", "exptime", "filter"]:
-        if k in summary.values()[0]:
+        if k in list(summary.values())[0]:
             fields.append(k)
     fields.append("comment")
 
@@ -3126,7 +3130,7 @@ def plotRadialFilterData(what, filters="grizy", doSpline=False):
                 yvec[0:n] = filterData[b]["on%d" % i]
                 yvec[n:] = filterData[b]["off%d" % i][::-1]
 
-                p = plt.Polygon(zip(xvec, yvec), color=filterColor[b], alpha=alpha)
+                p = plt.Polygon(list(zip(xvec, yvec)), color=filterColor[b], alpha=alpha)
                 plt.axes().add_artist(p)
 
                 ymin, ymax = (min(ymin, np.min(yvec)), max(ymax, np.max(yvec)))

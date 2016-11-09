@@ -26,6 +26,9 @@ else:
 rings.plotRadial(r, profs, xlim=(-100, 5500), ylim=(0.8, 1.03))
 """
 from __future__ import print_function
+from builtins import next
+from builtins import range
+from builtins import object
 
 import multiprocessing
 import os
@@ -998,7 +1001,7 @@ def mosaicIo(dirName, mosaics=None, mode=None):
 
 def correctVignettingAndDistortion(camera, mosaics, bin=32):
     """Correct a dict of mosaics IN PLACE for vignetting and distortion"""
-    im = mosaics.values()[0]
+    im = list(mosaics.values())[0]
 
     X, Y = bin*np.meshgrid(np.arange(im.getWidth()), np.arange(im.getHeight()))
     X -= 18208.0
@@ -1068,42 +1071,42 @@ visits may be a filter name
     colors = ["red", "blue", "green", "cyan", "magenta", "yellow", "black", "brown", "orchid", "orange"]
 
     abell2163 = []
-    abell2163 += range(902924, 902928+1, 2)  # g
-    abell2163 += range(903266, 903274+1, 2)  # r
+    abell2163 += list(range(902924, 902928+1, 2))  # g
+    abell2163 += list(range(903266, 903274+1, 2))  # r
     abell2163 += [v for v in range(902876, 902894+1, 2) if v not in (902884, 902886, 902890)]  # i
 
     dth_a = []
-    dth_a += range(904410, 904450+1, 4) + range(904456, 904474+1, 2)  # y
+    dth_a += list(range(904410, 904450+1, 4)) + list(range(904456, 904474+1, 2))  # y
 
     dth_16h = []
-    dth_16h += range(902800, 902860 + 1, 6) + range(902862, 902870+1, 2)  # i
+    dth_16h += list(range(902800, 902860 + 1, 6)) + list(range(902862, 902870+1, 2))  # i
 
     stripe82l = []
-    stripe82l += range(902936, 902942+1, 2)            # g
-    stripe82l += range(903332, 903338+1, 2)            # r
-    stripe82l += range(904006, 904008+1, 2) + range(904036, 904038+1, 2)  # i
-    stripe82l += range(904350, 904400+1, 2)           # y
+    stripe82l += list(range(902936, 902942+1, 2))            # g
+    stripe82l += list(range(903332, 903338+1, 2))            # r
+    stripe82l += list(range(904006, 904008+1, 2)) + list(range(904036, 904038+1, 2))  # i
+    stripe82l += list(range(904350, 904400+1, 2))           # y
 
     science = abell2163 + dth_a + dth_16h + stripe82l
 
     darkDome = []
-    darkDome += range(904326, 904330+1, 2)  # g
-    darkDome += [904520] + range(904534, 904538+1, 2) + range(904670,
-                                                              904678+1, 2) + range(904786, 904794+1, 2)  # i
+    darkDome += list(range(904326, 904330+1, 2))  # g
+    darkDome += [904520] + list(range(904534, 904538+1, 2)) + list(range(904670,
+                                                              904678+1, 2)) + list(range(904786, 904794+1, 2))  # i
 
     domeflats = []
-    domeflats += range(903036, 903044+1, 2)  # g
-    domeflats += range(903440, 903452+1, 2)  # r
-    domeflats += range(902686, 902704+1, 2)  # i
+    domeflats += list(range(903036, 903044+1, 2))  # g
+    domeflats += list(range(903440, 903452+1, 2))  # r
+    domeflats += list(range(902686, 902704+1, 2))  # i
     domeflats += [904606, 904608, 904626, 904628]  # i
-    domeflats += range(905420, 905428+1, 2)  # i
-    domeflats += range(904478, 904490+1, 2)  # y
-    domeflats += range(904742, 904766+1, 2)  # NB921
+    domeflats += list(range(905420, 905428+1, 2))  # i
+    domeflats += list(range(904478, 904490+1, 2))  # y
+    domeflats += list(range(904742, 904766+1, 2))  # NB921
 
     skyflats = []
-    skyflats += range(902976, 903002+1, 2)          # g
-    skyflats += range(903420, 903432 + 1, 2)        # r
-    skyflats += range(902612, 902634+1, 2)          # i
+    skyflats += list(range(902976, 903002+1, 2))          # g
+    skyflats += list(range(903420, 903432 + 1, 2))        # r
+    skyflats += list(range(902612, 902634+1, 2))          # i
     skyflats = [v for v in skyflats if v != 902996]  # remove failed exposures
 
     filterName = None

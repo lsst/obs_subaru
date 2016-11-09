@@ -1,4 +1,6 @@
 from __future__ import print_function
+from builtins import input
+from builtins import zip
 import lsst.afw.geom as afwGeom
 import lsst.afw.cameraGeom as afwCG
 
@@ -83,4 +85,4 @@ def ditherDES(camera, scale=4.5, names=False):
 
 if __name__ == "__main__":
     ditherDES()
-    raw_input("Exit? ")
+    input("Exit? ")

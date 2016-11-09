@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 from __future__ import print_function
+from builtins import zip
+from builtins import range
 import argparse
 import os
 import re

@@ -22,6 +22,8 @@
 # see <https://www.lsstcorp.org/LegalNotices/>.
 #
 from __future__ import print_function
+from builtins import map
+from builtins import range
 import pyfits
 import sys
 import re
@@ -41,7 +43,7 @@ hack = True
 def getSecCenter(sec):
     sec = re.sub('\'', '', sec)
     sec = re.sub('\[|\:|\,|\]', ' ', sec)
-    fields = map(int, sec.split())
+    fields = list(map(int, sec.split()))
     # these indices run from 1..N
     # to run from 0..N-1 subtract off 2 from each sum
     return 0.5 * (fields[0] + fields[1] - 2), 0.5 * (fields[2] + fields[3] - 2)

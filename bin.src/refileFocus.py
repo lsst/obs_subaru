@@ -14,8 +14,6 @@ Refile focus chips, which had incorrect DET-ID values for the Jan/Feb 2013 run
 """
 from __future__ import print_function
 
-#!/usr/bin/env python
-
 import glob
 import os
 import re
