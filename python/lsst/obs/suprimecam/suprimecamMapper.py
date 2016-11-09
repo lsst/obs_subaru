@@ -64,25 +64,25 @@ class SuprimecamMapperBase(CameraMapper):
 
     def defineFilters(self):
         afwImageUtils.resetFilters()
-        
+
         afwImageUtils.defineFilter('NONE', lambdaEff=0)
 
         # Johnson filters
-        afwImageUtils.defineFilter('U',  lambdaEff=300,  alias=['W-J-U'])
-        afwImageUtils.defineFilter('B',  lambdaEff=400,  alias=['W-J-B'])
-        afwImageUtils.defineFilter('V',  lambdaEff=550,  alias=['W-J-V'])
-        afwImageUtils.defineFilter('VR', lambdaEff=600,  alias=['W-J-VR'])
+        afwImageUtils.defineFilter('U', lambdaEff=300, alias=['W-J-U'])
+        afwImageUtils.defineFilter('B', lambdaEff=400, alias=['W-J-B'])
+        afwImageUtils.defineFilter('V', lambdaEff=550, alias=['W-J-V'])
+        afwImageUtils.defineFilter('VR', lambdaEff=600, alias=['W-J-VR'])
 
         # Cousins filters
-        afwImageUtils.defineFilter('R',  lambdaEff=650,  alias=['W-C-RC'])
-        afwImageUtils.defineFilter('I',  lambdaEff=800,  alias=['W-C-IC'])
+        afwImageUtils.defineFilter('R', lambdaEff=650, alias=['W-C-RC'])
+        afwImageUtils.defineFilter('I', lambdaEff=800, alias=['W-C-IC'])
 
         # Sloan filters
-        afwImageUtils.defineFilter('g',  lambdaEff=450,  alias=['W-S-G+'])
-        afwImageUtils.defineFilter('r',  lambdaEff=600,  alias=['W-S-R+'])
-        afwImageUtils.defineFilter('i',  lambdaEff=770,  alias=['W-S-I+'])
-        afwImageUtils.defineFilter('z',  lambdaEff=900,  alias=['W-S-Z+'])
-        afwImageUtils.defineFilter('y',  lambdaEff=1000, alias=['W-S-ZR'])
+        afwImageUtils.defineFilter('g', lambdaEff=450, alias=['W-S-G+'])
+        afwImageUtils.defineFilter('r', lambdaEff=600, alias=['W-S-R+'])
+        afwImageUtils.defineFilter('i', lambdaEff=770, alias=['W-S-I+'])
+        afwImageUtils.defineFilter('z', lambdaEff=900, alias=['W-S-Z+'])
+        afwImageUtils.defineFilter('y', lambdaEff=1000, alias=['W-S-ZR'])
 
         # Narrow-band filters
         afwImageUtils.defineFilter("NA503", lambdaEff=503, alias=['N-A-L503'])
@@ -93,20 +93,20 @@ class SuprimecamMapperBase(CameraMapper):
 
         afwImageUtils.defineFilter('NB1006', lambdaEff=1006, alias=['N-B-1006'])
         afwImageUtils.defineFilter('NB1010', lambdaEff=1010, alias=['N-B-1010'])
-        afwImageUtils.defineFilter('NB100',  lambdaEff=100,  alias=['N-B-L100'])
-        afwImageUtils.defineFilter('NB359',  lambdaEff=359,  alias=['N-B-L359'])
-        afwImageUtils.defineFilter('NB387',  lambdaEff=387,  alias=['N-B-L387'])
-        afwImageUtils.defineFilter('NB413',  lambdaEff=413,  alias=['N-B-L413'])
-        afwImageUtils.defineFilter('NB497',  lambdaEff=497,  alias=['N-B-L497'])
-        afwImageUtils.defineFilter('NB515',  lambdaEff=515,  alias=['N-B-L515'])
-        afwImageUtils.defineFilter('NB570',  lambdaEff=570,  alias=['N-B-L570'])
-        afwImageUtils.defineFilter('NB704',  lambdaEff=704,  alias=['N-B-L704'])
-        afwImageUtils.defineFilter('NB711',  lambdaEff=711,  alias=['N-B-L711'])
-        afwImageUtils.defineFilter('NB816',  lambdaEff=816,  alias=['N-B-L816'])
-        afwImageUtils.defineFilter('NB818',  lambdaEff=818,  alias=['N-B-L818'])
-        afwImageUtils.defineFilter('NB912',  lambdaEff=912,  alias=['N-B-L912'])
-        afwImageUtils.defineFilter('NB921',  lambdaEff=921,  alias=['N-B-L921'])
-        afwImageUtils.defineFilter('NB973',  lambdaEff=973,  alias=['N-B-L973'])
+        afwImageUtils.defineFilter('NB100', lambdaEff=100, alias=['N-B-L100'])
+        afwImageUtils.defineFilter('NB359', lambdaEff=359, alias=['N-B-L359'])
+        afwImageUtils.defineFilter('NB387', lambdaEff=387, alias=['N-B-L387'])
+        afwImageUtils.defineFilter('NB413', lambdaEff=413, alias=['N-B-L413'])
+        afwImageUtils.defineFilter('NB497', lambdaEff=497, alias=['N-B-L497'])
+        afwImageUtils.defineFilter('NB515', lambdaEff=515, alias=['N-B-L515'])
+        afwImageUtils.defineFilter('NB570', lambdaEff=570, alias=['N-B-L570'])
+        afwImageUtils.defineFilter('NB704', lambdaEff=704, alias=['N-B-L704'])
+        afwImageUtils.defineFilter('NB711', lambdaEff=711, alias=['N-B-L711'])
+        afwImageUtils.defineFilter('NB816', lambdaEff=816, alias=['N-B-L816'])
+        afwImageUtils.defineFilter('NB818', lambdaEff=818, alias=['N-B-L818'])
+        afwImageUtils.defineFilter('NB912', lambdaEff=912, alias=['N-B-L912'])
+        afwImageUtils.defineFilter('NB921', lambdaEff=921, alias=['N-B-L921'])
+        afwImageUtils.defineFilter('NB973', lambdaEff=973, alias=['N-B-L973'])
 
         # Intermediate-band filters
         afwImageUtils.defineFilter("L427", lambdaEff=427, alias=['I-A-L427'])
@@ -135,22 +135,21 @@ class SuprimecamMapperBase(CameraMapper):
         afwImageUtils.defineFilter("P550", lambdaEff=0, alias=['P-A-L550'])
         afwImageUtils.defineFilter("SN01", lambdaEff=0, alias=['S-A-SN01'])
         afwImageUtils.defineFilter("SN02", lambdaEff=0, alias=['S-A-SN02'])
-        afwImageUtils.defineFilter("Y",    lambdaEff=0, alias=['W-A-Y'])
-        afwImageUtils.defineFilter("ZB",   lambdaEff=0, alias=['W-S-ZB'])
-
+        afwImageUtils.defineFilter("Y", lambdaEff=0, alias=['W-A-Y'])
+        afwImageUtils.defineFilter("ZB", lambdaEff=0, alias=['W-S-ZB'])
 
         self.filters = {
-            "W-J-U"   : "U",
-            "W-J-B"   : "B",
-            "W-J-V"   : "V",
-            "W-J-VR"  : "VR",
-            "W-C-RC"  : "R",
-            "W-C-IC"  : "I",
-            "W-S-G+"  : "g",
-            "W-S-R+"  : "r",
-            "W-S-I+"  : "i",
-            "W-S-Z+"  : "z",
-            "W-S-ZR"  : "y",
+            "W-J-U": "U",
+            "W-J-B": "B",
+            "W-J-V": "V",
+            "W-J-VR": "VR",
+            "W-C-RC": "R",
+            "W-C-IC": "I",
+            "W-S-G+": "g",
+            "W-S-R+": "r",
+            "W-S-I+": "i",
+            "W-S-Z+": "z",
+            "W-S-ZR": "y",
             'N-A-L503': "NA503",
             'N-A-L651': "NA651",
             'N-A-L656': "NA656",
@@ -195,10 +194,9 @@ class SuprimecamMapperBase(CameraMapper):
             'P-A-L550': "P550",
             'S-A-SN01': "SN01",
             'S-A-SN02': "SN02",
-            'W-A-Y'   : "Y",
-            'W-S-ZB'  : "ZB",
-            }
-
+            'W-A-Y': "Y",
+            'W-S-ZB': "ZB",
+        }
 
         # next line makes a dict that maps filter names to sequential integers (arbitrarily sorted),
         # for use in generating unique IDs for sources.
@@ -231,12 +229,12 @@ class SuprimecamMapperBase(CameraMapper):
             raise RuntimeError("No linearizer available.")
         actualId = self._transformId(dataId)
         return ButlerLocation(
-            pythonType = "lsst.ip.isr.LinearizeSquared",
-            cppType = "Config",
-            storageName = "PickleStorage",
-            locationList = "ignored",
-            dataId = actualId,
-            mapper = self,
+            pythonType="lsst.ip.isr.LinearizeSquared",
+            cppType="Config",
+            storageName="PickleStorage",
+            locationList="ignored",
+            dataId=actualId,
+            mapper=self,
         )
 
     def bypass_linearizer(self, datasetType, pythonType, butlerLocation, dataId):
@@ -289,6 +287,7 @@ class SuprimecamMapperBase(CameraMapper):
 
     def bypass_deepCoaddId(self, datasetType, pythonType, location, dataId):
         return self._computeCoaddExposureId(dataId, True)
+
     def bypass_deepCoaddId_bits(self, datasetType, pythonType, location, dataId):
         return 1 + 7 + 13*2 + 3
 
@@ -304,14 +303,16 @@ class SuprimecamMapperBase(CameraMapper):
         if write:
             raise RuntimeError("Writing a psf directly is no longer permitted: write as part of a calexp")
         copyId = dataId.copy()
-        copyId['bbox'] = afwGeom.Box2I(afwGeom.Point2I(0,0), afwGeom.Extent2I(1,1))
+        copyId['bbox'] = afwGeom.Box2I(afwGeom.Point2I(0, 0), afwGeom.Extent2I(1, 1))
         return self.map_calexp_sub(copyId)
+
     def std_psf(self, calexp, dataId):
         return calexp.getPsf()
 
     @classmethod
     def getEupsProductName(cls):
         return "obs_subaru"
+
 
 class SuprimecamMapper(SuprimecamMapperBase):
     """
@@ -349,6 +350,7 @@ class SuprimecamMapper(SuprimecamMapperBase):
     @classmethod
     def getCameraName(cls):
         return "suprimecam"
+
 
 class SuprimecamMapperMit(SuprimecamMapperBase):
     """

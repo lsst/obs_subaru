@@ -12,4 +12,3 @@ config.calibrate.photocal.colorterms.load(os.path.join(suprimecamConfigDir, 'col
 
 config.charImage.measurement.plugins["base_Jacobian"].pixelScale = 0.2
 config.calibrate.measurement.plugins["base_Jacobian"].pixelScale = 0.2
-

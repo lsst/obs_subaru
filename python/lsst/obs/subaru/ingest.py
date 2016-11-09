@@ -4,7 +4,9 @@ import datetime
 from lsst.pipe.tasks.ingest import IngestTask, ParseTask, IngestArgumentParser
 from lsst.pipe.tasks.ingestCalibs import CalibsParseTask
 
+
 class HscIngestArgumentParser(IngestArgumentParser):
+
     def _parseDirectories(self, namespace):
         """Don't do any 'rerun' hacking: we want the raw data to end up in the root directory"""
         namespace.input = namespace.rawInput
@@ -15,9 +17,9 @@ class HscIngestArgumentParser(IngestArgumentParser):
         del namespace.rawOutput
         del namespace.rawRerun
 
+
 class HscIngestTask(IngestTask):
     ArgumentParser = HscIngestArgumentParser
-
 
 
 def datetime2mjd(date_time):
@@ -43,9 +45,10 @@ def datetime2mjd(date_time):
     C = int(yy/100.0)
     D = int(30.59*(mm-2))
 
-    mjd = A + B -C + D  + dd - 678912
+    mjd = A + B - C + D + dd - 678912
 
     return mjd
+
 
 class HscParseTask(ParseTask):
     DAY0 = 55927  # Zero point for  2012-01-01  51544 -> 2000-01-01
@@ -55,7 +58,7 @@ class HscParseTask(ParseTask):
         if field == "#":
             field = "UNKNOWN"
         field = re.sub(r'\W', '_', field).upper()  # replacing inappropriate characters for file path
-                                                    # and upper()
+        # and upper()
 
         return field
 
@@ -120,6 +123,7 @@ class HscParseTask(ParseTask):
                                108: 110,
                                114: 108,
                                }
+
     def translate_ccd(self, md):
         """Focus CCDs were numbered incorrectly in the readout software during
         commissioning run 2.  We need to map to the correct ones.
@@ -142,7 +146,9 @@ class HscParseTask(ParseTask):
         except:
             return "Unrecognized"
 
+
 class HscCalibsParseTask(CalibsParseTask):
+
     def _translateFromCalibId(self, field, md):
         data = md.get("CALIB_ID")
         match = re.search(".*%s=(\S+)" % field, data)
@@ -178,4 +184,3 @@ class SuprimecamParseTask(HscParseTask):
                 raise RuntimeError("Unable to interpret FRAMEID: %s" % frameId)
             visit = int(m.group(1))
         return visit
-

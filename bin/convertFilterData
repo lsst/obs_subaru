@@ -8,6 +8,7 @@ import os
 import re
 import sys
 
+
 def convertData(fileName, filterName, verbose):
     with open(fileName, "r") as fd:
         colVals = []
@@ -44,19 +45,18 @@ def convertData(fileName, filterName, verbose):
         prefix = " "*len(prefix)
 
     print "                 ),"
-        
+
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser(description="""\
 Convert one of Kawanomoto's filter.dat files into a set of numpy initialisations
 in a format that can be used to set ccdTesting.filterData["filterName"]
 """)
-    
+
     parser.add_argument('fileName', help="Input file")
     parser.add_argument('--filterName', type=str, help="name of filter")
     parser.add_argument('--verbose', action="store_true", help="How chatty should I be?", default=False)
-    
+
     args = parser.parse_args()
 
     convertData(args.fileName, args.filterName, args.verbose)
-    

@@ -36,95 +36,96 @@ import numpy as np
 import lsst.afw.detection as afwDetect
 import lsst.afw.geom as afwGeom
 import lsst.afw.image as afwImage
-import lsst.afw.math  as afwMath
+import lsst.afw.math as afwMath
 import lsst.afw.display.ds9 as ds9
 import lsst.pipe.base as pipeBase
 import lsst.pex.config as pexConfig
 import lsst.obs.subaru.subaruLib as subaruLib # for crosstalk
 from lsst.obs.subaru.crosstalk import makeList, estimateCoeffs, printCoeffs, readImage, subtractXTalk
 
+
 class CrosstalkYagiCoeffsConfig(pexConfig.Config):
     """Specify crosstalk coefficients for a CCD"""
 
     crossTalkCoeffs1 = pexConfig.ListField(
-        dtype = float,
-        doc = "crosstalk coefficients (primary by the high-count pixel)",
-        default = [ 0,   -0.000148, -0.000162, -0.000167,   # cAA,cAB,cAC,cAD
-                    -0.000148, 0, -0.000077, -0.000162,     # cBA,cBB,cBC,cBD
-                    -0.000162, -0.000077, 0, -0.000148,     # cCA,cCB,cCC,cCD
-                    -0.000167, -0.000162, -0.000148, 0,  ], # cDA,cDB,cDC,cDD
-        )
+        dtype=float,
+        doc="crosstalk coefficients (primary by the high-count pixel)",
+        default=[0, -0.000148, -0.000162, -0.000167,   # cAA,cAB,cAC,cAD
+                 -0.000148, 0, -0.000077, -0.000162,     # cBA,cBB,cBC,cBD
+                 -0.000162, -0.000077, 0, -0.000148,     # cCA,cCB,cCC,cCD
+                 -0.000167, -0.000162, -0.000148, 0, ], # cDA,cDB,cDC,cDD
+    )
     crossTalkCoeffs2 = pexConfig.ListField(
-        dtype = float,
-        doc = "crosstalk coefficients (secondary by the high-count pixel + 2pix)",
-        default = [ 0,       0.000051,0.000050,0.000053,
-                    0.000051,0,       0,       0.000050,
-                    0.000050,0,       0,       0.000051,
-                    0.000053,0.000050,0.000051,0,         ],
-        )
+        dtype=float,
+        doc="crosstalk coefficients (secondary by the high-count pixel + 2pix)",
+        default=[0, 0.000051, 0.000050, 0.000053,
+                 0.000051, 0, 0, 0.000050,
+                 0.000050, 0, 0, 0.000051,
+                 0.000053, 0.000050, 0.000051, 0, ],
+    )
 
     relativeGainsPreampAndSigboard = pexConfig.ListField(
-        dtype = float,
-        doc = "effective gain of combination of SIG board + preAmp for CCD, relatve to chB@CCD=5. \
+        dtype=float,
+        doc="effective gain of combination of SIG board + preAmp for CCD, relatve to chB@CCD=5. \
                g2*g3 in Yagi+2012",
-        default = [ 0.949, 0.993, 0.976, 0.996,
-                    0.973, 0.984, 0.966, 0.977,
-                    1.008, 0.989, 0.970, 0.976,
-                    0.961, 0.966, 1.008, 0.967,
-                    0.967, 0.984, 0.998, 1.000,
-                    0.989, 1.000, 1.034, 1.030,
-                    0.957, 1.019, 0.952, 0.979,
-                    0.974, 1.015, 0.967, 0.962,
-                    0.972, 0.932, 0.999, 0.963,
-                    0.987, 0.985, 0.986, 1.012, ],
-        )
+        default=[0.949, 0.993, 0.976, 0.996,
+                 0.973, 0.984, 0.966, 0.977,
+                 1.008, 0.989, 0.970, 0.976,
+                 0.961, 0.966, 1.008, 0.967,
+                 0.967, 0.984, 0.998, 1.000,
+                 0.989, 1.000, 1.034, 1.030,
+                 0.957, 1.019, 0.952, 0.979,
+                 0.974, 1.015, 0.967, 0.962,
+                 0.972, 0.932, 0.999, 0.963,
+                 0.987, 0.985, 0.986, 1.012, ],
+    )
     relativeGainsTotalBeforeOct2010 = pexConfig.ListField(
-        dtype = float,
-        doc = "total effective gain of SIG board + preAmp + CCD on-chip amp, relatve to chB@CCD=5. \
+        dtype=float,
+        doc="total effective gain of SIG board + preAmp + CCD on-chip amp, relatve to chB@CCD=5. \
                effective before Oct 2010  g1*g2*g3 in Yagi+2012",
-        default = [ 1.0505,   1.06294, 1.08287,   1.06868,
-                    1.06962,  1.13801, 1.21669,   1.21205,
-                    0.99456,  1.01931, 1.038,     0.947461,
-                    1.02245,  1.03952, 1.04192,   1.1544,
-                    1.0055,   1.12767, 1.08451,   1.03309,
-                    1.01532,  1.00000 , 0.972106, 1.08237,
-                    1.19014,  0.987111, 0.984164, 1.03382,
-                    0.971049, 1.05928,  1.06713,  0.980967,
-                    1.0107,   1.25209,  1.27565,  1.17183,
-                    0.993771, 1.077,    1.03909,  1.03241,  ],
-        )
+        default=[1.0505, 1.06294, 1.08287, 1.06868,
+                 1.06962, 1.13801, 1.21669, 1.21205,
+                 0.99456, 1.01931, 1.038, 0.947461,
+                 1.02245, 1.03952, 1.04192, 1.1544,
+                 1.0055, 1.12767, 1.08451, 1.03309,
+                 1.01532, 1.00000, 0.972106, 1.08237,
+                 1.19014, 0.987111, 0.984164, 1.03382,
+                 0.971049, 1.05928, 1.06713, 0.980967,
+                 1.0107, 1.25209, 1.27565, 1.17183,
+                 0.993771, 1.077, 1.03909, 1.03241, ],
+    )
 
     relativeGainsTotalAfterOct2010 = pexConfig.ListField(
-        dtype = float,
-        doc = "total effective gain of SIG board + preAmp + CCD on-chip amp, relatve to chB@CCD=5. \
+        dtype=float,
+        doc="total effective gain of SIG board + preAmp + CCD on-chip amp, relatve to chB@CCD=5. \
                effective after Oct 2010  g1*g2*g3 in Yagi+2012",
-        default = [ 1.0505,   1.06294, 1.08287,   1.06868,
-                    1.06962,  1.13801, 1.21669,   1.21205,
-                    0.99456,  1.01931, 1.038,     0.947461,
-                    1.02245,  1.03952, 1.04192,   1.1544,
-                    1.0055,   1.12767, 1.08451,   1.03309,
-                    1.01532,  1.00000 , 0.972106, 1.08237,
-                    1.19014,  0.987111, 0.984164, 1.03382,
-                    0.971049, 1.05928,  1.06713,  0.980967,
-                    1.0107,   1.25209,  1.27565,  1.17183,
-                    1.13003, 1.077,    1.03909,  1.03241, ],
-        )
+        default=[1.0505, 1.06294, 1.08287, 1.06868,
+                 1.06962, 1.13801, 1.21669, 1.21205,
+                 0.99456, 1.01931, 1.038, 0.947461,
+                 1.02245, 1.03952, 1.04192, 1.1544,
+                 1.0055, 1.12767, 1.08451, 1.03309,
+                 1.01532, 1.00000, 0.972106, 1.08237,
+                 1.19014, 0.987111, 0.984164, 1.03382,
+                 0.971049, 1.05928, 1.06713, 0.980967,
+                 1.0107, 1.25209, 1.27565, 1.17183,
+                 1.13003, 1.077, 1.03909, 1.03241, ],
+    )
 
     shapeGainsArray = pexConfig.ListField(
-        dtype = int,
-        doc = "Shape of gain arrays",
-        default = [10, 4], # 10 CCDs and 4 channels per CCD
-        minLength = 1,                  # really 2, but there's a bug in pex_config
-        maxLength = 2,
-        )
+        dtype=int,
+        doc="Shape of gain arrays",
+        default=[10, 4], # 10 CCDs and 4 channels per CCD
+        minLength=1,                  # really 2, but there's a bug in pex_config
+        maxLength=2,
+    )
 
     shapeCoeffsArray = pexConfig.ListField(
-        dtype = int,
-        doc = "Shape of coeffs arrays",
-        default = [4, 4], # 4 channels and 4 mirror-symmetry patterns per channel
-        minLength = 1,                  # really 2, but there's a bug in pex_config
-        maxLength = 2,
-        )
+        dtype=int,
+        doc="Shape of coeffs arrays",
+        default=[4, 4], # 4 channels and 4 mirror-symmetry patterns per channel
+        minLength=1,                  # really 2, but there's a bug in pex_config
+        maxLength=2,
+    )
 
     def getCoeffs1(self):
         """Return a 2-D numpy array of crosstalk coefficients of the proper shape"""
@@ -147,18 +148,20 @@ class CrosstalkYagiCoeffsConfig(pexConfig.Config):
 
 nAmp = 4
 
+
 def getCrosstalkX1(x, xmax=512):
     """
     Return the primary X positions in CCD which affect the count of input x pixel
     x    :  xpos in Ccd, affected by the returned pixels
     xmax :  nx per amp
     """
-    ctx1List = [ x,
-             2 * xmax - x - 1,
-             2 * xmax + x ,
-             4 * xmax - x - 1, ]
+    ctx1List = [x,
+                2 * xmax - x - 1,
+                2 * xmax + x,
+                4 * xmax - x - 1, ]
 
     return ctx1List
+
 
 def getCrosstalkX2(x, xmax=512):
     """
@@ -168,12 +171,13 @@ def getCrosstalkX2(x, xmax=512):
     xmax :  nx per amp
     """
     # ch0,ch2: ctx2 = ctx1 - 2,  ch1,ch3: ctx2 = ctx1 + 2
-    ctx2List = [ x - 2,
-             2 * xmax - x - 1 + 2,
-             2 * xmax + x - 2,
-             4 * xmax - x - 1 + 2, ]
+    ctx2List = [x - 2,
+                2 * xmax - x - 1 + 2,
+                2 * xmax + x - 2,
+                4 * xmax - x - 1 + 2, ]
 
     return ctx2List
+
 
 def getAmplifier(image, amp, ampReference=None, offset=2):
     """Extract an image of the amplifier from the CCD, along with an offset version
@@ -207,7 +211,6 @@ def subtractCrosstalkYagi(mi, coeffs1List, coeffs2List, gainsPreampSig, minPixel
        The pixels affected by signal over minPixelToMask have the crosstalkStr bit set
     """
 
-
     ####sctrl = afwMath.StatisticsControl()
     ####sctrl.setAndMask(mi.getMask().getPlaneBitMask("DETECTED"))
     ####bkgd = afwMath.makeStatistics(mi, afwMath.MEDIAN, sctrl).getValue()
@@ -223,7 +226,7 @@ def subtractCrosstalkYagi(mi, coeffs1List, coeffs2List, gainsPreampSig, minPixel
         mi.getMask().addMaskPlane(crosstalkStr)
         ds9.setMaskPlaneColor(crosstalkStr, ds9.MAGENTA)
         fs.setMask(mi.getMask(), crosstalkStr)  # the crosstalkStr bit will now be set
-                                                # whenever we subtract crosstalk
+        # whenever we subtract crosstalk
         crosstalk = mi.getMask().getPlaneBitMask(crosstalkStr)
 
     if True:
@@ -262,10 +265,10 @@ def subtractCrosstalkYagi(mi, coeffs1List, coeffs2List, gainsPreampSig, minPixel
 
 
 def main(visit=131634, ccd=None, threshold=45000, nSample=1, showCoeffs=True, fixXTalk=True,
-                       plot=False, title=None):
+         plot=False, title=None):
     if ccd is None:
         visitList = range(nSample)
-        ccdList = ["simulated",]
+        ccdList = ["simulated", ]
     else:
         ccdList = makeList(ccd)
         visitList = makeList(visit)
@@ -284,19 +287,20 @@ def main(visit=131634, ccd=None, threshold=45000, nSample=1, showCoeffs=True, fi
 
 class YagiCrosstalkConfig(pexConfig.Config):
     coeffs = pexConfig.ConfigField(
-        dtype = CrosstalkYagiCoeffsConfig,
-        doc = "Crosstalk coefficients by Yagi+ 2012",
+        dtype=CrosstalkYagiCoeffsConfig,
+        doc="Crosstalk coefficients by Yagi+ 2012",
     )
     crosstalkMaskPlane = pexConfig.Field(
-        dtype = str,
-        doc = "Name of Mask plane for crosstalk corrected pixels",
-        default = "CROSSTALK",
+        dtype=str,
+        doc="Name of Mask plane for crosstalk corrected pixels",
+        default="CROSSTALK",
     )
     minPixelToMask = pexConfig.Field(
-        dtype = float,
-        doc = "Minimum pixel value (in electrons) to cause crosstalkMaskPlane bit to be set",
-        default = 45000,
-        )
+        dtype=float,
+        doc="Minimum pixel value (in electrons) to cause crosstalkMaskPlane bit to be set",
+        default=45000,
+    )
+
 
 class YagiCrosstalkTask(pipeBase.Task):
     ConfigClass = YagiCrosstalkConfig

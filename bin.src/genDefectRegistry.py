@@ -13,7 +13,9 @@ import datetime
 
 from lsst.pipe.base import Struct
 
+
 class Row(Struct):
+
     def __init__(self, path, version, validStart, validEnd=None):
         super(Row, self).__init__(path=path, version=version, validStart=validStart, validEnd=validEnd)
 

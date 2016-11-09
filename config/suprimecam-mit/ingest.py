@@ -5,7 +5,7 @@ config.parse.retarget(SuprimecamParseTask)
 config.parse.defaults = {'ccdTemp': '0',
                          'config': 'configuration',
                          'autoguider': '0'
-                        }
+                         }
 
 config.parse.translation = {'proposal': 'PROP-ID',
                             'dataType': 'DATA-TYP',
@@ -19,4 +19,4 @@ config.parse.translation = {'proposal': 'PROP-ID',
                             'expId': 'EXP-ID',
                             'dateObs': 'DATE-OBS',
                             'taiObs': 'DATE-OBS',
-                           }
+                            }

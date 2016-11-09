@@ -12,22 +12,23 @@ import lsst.afw.display.ds9 as ds9
 import lsst.analysis.utils as utils
 
 position = {                            # position of Arcturus on 16x16 binned "showCamera" images
-    906142 : (8,    8),
-    906144 : (8,  116),
-    906146 : (6,  228),
-    906148 : (5,  341),
-    906150 : (5,  455),
-    906152 : (8,  566),
-    906154 : (9,  682),
-    906156 : (8,  798),
-    906158 : (8,  917),
-    906160 : (8, 1039),
-    906162 : (8, 1038 +   108),
-    906164 : (8, 1038 + 2*108),
-    906186 : (8, 1038 + 3*108),
-    906188 : (8, 1038 + 4*108),
-    906190 : (8, 1038 + 5*108),
-    }
+    906142: (8, 8),
+    906144: (8, 116),
+    906146: (6, 228),
+    906148: (5, 341),
+    906150: (5, 455),
+    906152: (8, 566),
+    906154: (9, 682),
+    906156: (8, 798),
+    906158: (8, 917),
+    906160: (8, 1039),
+    906162: (8, 1038 + 108),
+    906164: (8, 1038 + 2*108),
+    906186: (8, 1038 + 3*108),
+    906188: (8, 1038 + 4*108),
+    906190: (8, 1038 + 5*108),
+}
+
 
 def showFrames(mos, frame0=1, R=23, subtractSky=True):
     visits = sorted(position.keys())
@@ -54,7 +55,9 @@ def showFrames(mos, frame0=1, R=23, subtractSky=True):
 
 #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
+
 class MedianFilterImageWorker(object):
+
     def __init__(self, mos, medianN):
         self.mos = mos
         self.medianN = medianN
@@ -62,6 +65,7 @@ class MedianFilterImageWorker(object):
     def __call__(self, v):
         print "Median filtering visit %d" % v
         return v, utils.medianFilterImage(self.mos[-v], self.medianN)
+
 
 def prepareFrames(mos, frame0=1, R=100, medianN=23, onlyVisits=[], nJob=1, force=False):
     """Prepare frames to have their radial profiles measured.
@@ -138,6 +142,7 @@ process every visit in the positions dict
         yc -= im.getY0()
 
         ds9.dot("o", xc, yc, size=R, frame=frame, ctype=ds9.GREEN if yc < im.getHeight() else ds9.RED)
+
 
 def OLDprepareFrames(mos, frame0=1, R=23, medianN=23, onlyVisits=[], force=False):
     """Prepare frames to have their radial profiles measured.
@@ -231,8 +236,8 @@ If rmax is provided it's the maximum value of r to consider
 
         prof[i] = val
 
-
     return rbar, prof
+
 
 def plotAnnularAverages(mos, visits, bin=16, useSmoothed=True, weightByR=True, showSum=True, **kwargs):
     pyplot.clf()

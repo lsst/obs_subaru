@@ -30,6 +30,7 @@ try:
 except ImportError:
     import sqlite
 
+
 def formatVisits(visits):
     """Format a set of visits into the format used for an --id argument"""
     visits = sorted(visits)
@@ -133,6 +134,7 @@ ORDER BY max(filter), visit
             filter, field = k
 
             print "%-7s %-20s %7.1f %s" % (filter, field, expTimes[k], formatVisits(visits[k]))
+
 
 def queryCalibRegistry(what, filterName=None, summary=False):
     """Query a calib registry"""

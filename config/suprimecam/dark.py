@@ -7,4 +7,3 @@ config.darkTime = "EXP1TIME"
 config.isr.doGuider = False
 
 config.combination.clip = 2.5
-

@@ -1254,6 +1254,7 @@ def getVerificationData():
 
 ################################################################################
 
+
 class TestMemory(lsst.utils.tests.MemoryTestCase):
     pass
 

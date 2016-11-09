@@ -13,6 +13,7 @@ from lsst.ip.isr import LinearizeSquared
 import lsst.pex.policy as pexPolicy
 from .makeHscRawVisitInfo import MakeHscRawVisitInfo
 
+
 class HscMapper(CameraMapper):
     """Provides abstract-physical mapping for HSC data"""
     packageName = "obs_subaru"
@@ -73,7 +74,7 @@ class HscMapper(CameraMapper):
         afwImageUtils.resetFilters()
         afwImageUtils.defineFilter(name="UNRECOGNISED", lambdaEff=0,
                                    alias=["NONE", "None", "Unrecognised", "UNRECOGNISED",
-                                          "Unrecognized", "UNRECOGNIZED", "NOTSET",])
+                                          "Unrecognized", "UNRECOGNIZED", "NOTSET", ])
         afwImageUtils.defineFilter(name='g', lambdaEff=477, alias=['W-S-G+', 'HSC-G'])
         afwImageUtils.defineFilter(name='r', lambdaEff=623, alias=['W-S-R+', 'HSC-R'])
         afwImageUtils.defineFilter(name='r1', lambdaEff=623, alias=['109', 'ENG-R1'])
@@ -86,8 +87,8 @@ class HscMapper(CameraMapper):
         afwImageUtils.defineFilter(name='N816', lambdaEff=816, alias=['NB0816'])
         afwImageUtils.defineFilter(name='N921', lambdaEff=921, alias=['NB0921'])
         afwImageUtils.defineFilter(name='N1010', lambdaEff=1010, alias=['NB1010'])
-        afwImageUtils.defineFilter(name='SH', lambdaEff=0, alias=['SH',])
-        afwImageUtils.defineFilter(name='PH', lambdaEff=0, alias=['PH',])
+        afwImageUtils.defineFilter(name='SH', lambdaEff=0, alias=['SH', ])
+        afwImageUtils.defineFilter(name='PH', lambdaEff=0, alias=['PH', ])
         afwImageUtils.defineFilter(name='N527', lambdaEff=527, alias=['NB0527'])
         afwImageUtils.defineFilter(name='N718', lambdaEff=718, alias=['NB0718'])
         afwImageUtils.defineFilter(name='I945', lambdaEff=945, alias=['IB0945'])
@@ -123,7 +124,7 @@ class HscMapper(CameraMapper):
             "SH",
             "PH",
             "NONE",
-            "UNRECOGNISED"]:
+                "UNRECOGNISED"]:
             self.filters[f] = afwImage.Filter(f).getCanonicalName()
         self.defaultFilterName = "UNRECOGNISED"
 
@@ -134,7 +135,7 @@ class HscMapper(CameraMapper):
         # This shouldn't be the mapper's job at all; see #2797.
 
         HscMapper._nbit_tract = 16
-        HscMapper._nbit_patch  = 5
+        HscMapper._nbit_patch = 5
         HscMapper._nbit_filter = 6
 
         HscMapper._nbit_id = 64 - (HscMapper._nbit_tract + 2*HscMapper._nbit_patch + HscMapper._nbit_filter)
@@ -229,12 +230,12 @@ Most chips are flipped L/R, but the rotated ones (100..103) are flipped T/B
             raise RuntimeError("No linearizer available.")
         actualId = self._transformId(dataId)
         return ButlerLocation(
-            pythonType = "lsst.ip.isr.LinearizeSquared",
-            cppType = "Config",
-            storageName = "PickleStorage",
-            locationList = "ignored",
-            dataId = actualId,
-            mapper = self,
+            pythonType="lsst.ip.isr.LinearizeSquared",
+            cppType="Config",
+            storageName="PickleStorage",
+            locationList="ignored",
+            dataId=actualId,
+            mapper=self,
         )
 
     def bypass_linearizer(self, datasetType, pythonType, butlerLocation, dataId):
@@ -284,8 +285,9 @@ Most chips are flipped L/R, but the rotated ones (100..103) are flipped T/B
         if write:
             raise RuntimeError("Writing a psf directly is no longer permitted: write as part of a calexp")
         copyId = dataId.copy()
-        copyId['bbox'] = afwGeom.Box2I(afwGeom.Point2I(0,0), afwGeom.Extent2I(1,1))
+        copyId['bbox'] = afwGeom.Box2I(afwGeom.Point2I(0, 0), afwGeom.Extent2I(1, 1))
         return self.map_calexp_sub(copyId)
+
     def std_psf(self, calexp, dataId):
         return calexp.getPsf()
 

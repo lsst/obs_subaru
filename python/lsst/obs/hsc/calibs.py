@@ -8,6 +8,7 @@ import lsst.afw.image as afwImage
 import lsst.afw.geom as afwGeom
 import lsst.afw.cameraGeom as afwcg
 
+
 class HscFlatCombineConfig(CalibCombineConfig):
     vignette = ConfigField(dtype=VignetteConfig, doc="Vignetting parameters in focal plane coordinates")
     badAmpCcdList = ListField(dtype=int, default=[], doc="List of CCD serial numbers for bad amplifiers")
@@ -19,9 +20,11 @@ class HscFlatCombineConfig(CalibCombineConfig):
         if len(self.badAmpCcdList) != len(self.badAmpList):
             raise RuntimeError("Length of badAmpCcdList and badAmpList don't match")
 
+
 class HscFlatCombineTask(CalibCombineTask):
     """Mask the vignetted area"""
     ConfigClass = HscFlatCombineConfig
+
     def run(self, sensorRefList, *args, **kwargs):
         """Mask vignetted pixels after combining
 

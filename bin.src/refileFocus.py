@@ -37,17 +37,19 @@ globFilename = "HSC-%07d-???.fits"
 #
 # Desired remapping
 #
-remap = {112 : 106,
+remap = {112: 106,
          #104 : 104
-         107 : 105,
-         113 : 107,
-         115 : 109,
+         107: 105,
+         113: 107,
+         115: 109,
          #111 : 111,
-         108 : 110,
-         114 : 108,
+         108: 110,
+         114: 108,
          }
 
 # Gather list of files
+
+
 def globber(field="*", filename="*.fits"):
     return glob.glob(os.path.join(args.root, field, "*-*-*", "*", "*", filename))
 
@@ -120,4 +122,3 @@ for visit, ccds in visits.items():
             os.rmdir(tmpDir)
 #
 #
-
