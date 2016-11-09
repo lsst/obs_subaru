@@ -21,6 +21,7 @@
 # see <http://www.lsstcorp.org/LegalNotices/>.
 #
 
+from __future__ import print_function
 import numpy
 import matplotlib.pyplot as plt
 
@@ -132,5 +133,5 @@ if __name__ == '__main__':
     main(camera, names=args.names, sample=2, outputFile=args.outputFile,
          showDistortion=not args.noDistortion)
     if not args.outputFile:
-        print "Hit any key to exit",
+        print("Hit any key to exit", end=' ')
         raw_input()

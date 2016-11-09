@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
 import glob
 import os
 import re
@@ -47,7 +48,7 @@ rowsPerCcd = {}
 for f in glob.glob(os.path.join(args.root, "*", "defects*.fits")):
     m = re.search(r'(\S+)/defects_(\d+)\.fits', f)
     if not m:
-        print >>sys.stderr, "Unrecognized file: %s" % (f,)
+        print("Unrecognized file: %s" % (f,), file=sys.stderr)
         continue
     #
     # Convert f to be relative to the location of the registry
@@ -73,7 +74,7 @@ for ccd, rowList in rowsPerCcd.iteritems():
 
     for row in rowList:
         if args.verbose:
-            print "Registering %s" % row.path
+            print("Registering %s" % row.path)
         conn.execute(cmd, (row.path, row.version, ccd, row.validStart, row.validEnd))
 
 conn.commit()

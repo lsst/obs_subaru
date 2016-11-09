@@ -1,3 +1,4 @@
+from __future__ import print_function
 import math
 import os
 import re
@@ -128,12 +129,12 @@ def getImageLevels(butler, **kwargs):
         try:
             ccd = exp.getDetector()
             im = trim(exp.getMaskedImage().getImage(), ccd)
-        except Exception, e:
-            print >> sys.stderr, "Skipping %d %s: %s" % (visit, ccd.getId(), e)
+        except Exception as e:
+            print("Skipping %d %s: %s" % (visit, ccd.getId(), e), file=sys.stderr)
             continue
 
-        print "%d %3d %.1f" % (visit, ccd.getId().getSerial(),
-                               afwMath.makeStatistics(im, afwMath.MEANCLIP).getValue())
+        print("%d %3d %.1f" % (visit, ccd.getId().getSerial(),
+                               afwMath.makeStatistics(im, afwMath.MEANCLIP).getValue()))
 
 
 def xcorr(im1, im2, n=5, border=10, frame=None):
@@ -192,8 +193,8 @@ def xcorr(im1, im2, n=5, border=10, frame=None):
         global diffim
         diffim = diff
     if False:
-        print afwMath.makeStatistics(diff, afwMath.MEDIAN, sctrl).getValue()
-        print afwMath.makeStatistics(diff, afwMath.VARIANCECLIP, sctrl).getValue(), np.var(diff.getArray())
+        print(afwMath.makeStatistics(diff, afwMath.MEDIAN, sctrl).getValue())
+        print(afwMath.makeStatistics(diff, afwMath.VARIANCECLIP, sctrl).getValue(), np.var(diff.getArray()))
     #
     # Measure the correlations
     #
@@ -258,11 +259,11 @@ def findBiasLevels(butler, **dataId):
 
         try:
             calexp = butler.get(dataType, did, immediate=True)
-        except Exception, e:
-            print e
+        except Exception as e:
+            print(e)
             continue
 
-        print did["visit"], calexp.get("RA2000"), calexp.get("DEC2000")
+        print(did["visit"], calexp.get("RA2000"), calexp.get("DEC2000"))
         continue
 
         ccd = calexp.getDetector()
@@ -270,27 +271,27 @@ def findBiasLevels(butler, **dataId):
         for amp in ccd:
             bias = afwMath.makeStatistics(ccdImage[amp.getBiasSec()], afwMath.MEANCLIP).getValue()
             data = afwMath.makeStatistics(ccdImage[amp.getDataSec()], afwMath.MEANCLIP).getValue()
-            print did, amp.getId().getSerial(), "%7.2f, %7.2f" % (bias, data)
+            print(did, amp.getId().getSerial(), "%7.2f, %7.2f" % (bias, data))
 
 
 def showElectronics(camera, maxCorr=1.8e5, showLinearity=False, fd=sys.stderr):
-    print >> fd, "%-12s" % (camera.getId())
+    print("%-12s" % (camera.getId()), file=fd)
     for raft in [afwCG.cast_Raft(det) for det in camera]:
-        print >> fd, "   %-12s" % (raft.getId())
+        print("   %-12s" % (raft.getId()), file=fd)
         for ccd in [det for det in raft]:
-            print >> fd, "      %-12s" % (ccd.getId())
+            print("      %-12s" % (ccd.getId()), file=fd)
             for amp in ccd:
                 ep = amp.getElectronicParams()
                 if showLinearity:
                     linearity = ep.getLinearity()
-                    print >> fd, "         %s %s %9.3g %.0f" % (
+                    print("         %s %s %9.3g %.0f" % (
                         amp.getId(),
                         ("PROPORTIONAL" if linearity.type == afwCG.Linearity.PROPORTIONAL else "Unknown"),
                         linearity.coefficient,
-                        (linearity.maxCorrectable if linearity.maxCorrectable < 1e30 else np.nan))
+                        (linearity.maxCorrectable if linearity.maxCorrectable < 1e30 else np.nan)), file=fd)
                 else:
-                    print >> fd, "         %s %.2f %.1f %.1f" % (
-                        amp.getId(), ep.getGain(), ep.getSaturationLevel(), maxCorr/ep.getGain())
+                    print("         %s %.2f %.1f %.1f" % (
+                        amp.getId(), ep.getGain(), ep.getSaturationLevel(), maxCorr/ep.getGain()), file=fd)
 
 
 def estimateGains(butler, ccdNo, visits, nGrow=0, frame=None):
@@ -366,8 +367,8 @@ Grow BAD regions in the flat field by nGrow pixels (useful for vignetted chips)
         if not np.isfinite(gain):
             gain = amp.getElectronicParams().getGain()
 
-        print "%s %d %.2f -> %.2f" % (ccd.getId().getName(), amp.getId().getSerial(),
-                                      amp.getElectronicParams().getGain(), gain)
+        print("%s %d %.2f -> %.2f" % (ccd.getId().getName(), amp.getId().getSerial(),
+                                      amp.getElectronicParams().getGain(), gain))
 
         amp.getElectronicParams().setGain(gain)
 
@@ -397,14 +398,14 @@ def dumpRaftParams(raft, nIndent=0, dIndent=4, fd=sys.stdout, nCol=15, nRow=8):
     indent = "%*s" % (nIndent, "")
     dindent = "%*s" % (dIndent, "")
 
-    print >> fd, "%sRaft: {" % (indent)
-    print >> fd, "%snCol: %d\t\t%s" % (indent + dindent, nCol, "# number of columns of CCDs")
-    print >> fd, "%snRow: %d\t\t%s" % (indent + dindent, nRow, "# number of rows of CCDs")
+    print("%sRaft: {" % (indent), file=fd)
+    print("%snCol: %d\t\t%s" % (indent + dindent, nCol, "# number of columns of CCDs"), file=fd)
+    print("%snRow: %d\t\t%s" % (indent + dindent, nRow, "# number of rows of CCDs"), file=fd)
 
     for ccd in raft:
         dumpCcdParams(ccd, nIndent + dIndent, dIndent, fd=fd)
 
-    print >> fd, "%s}" % (indent)
+    print("%s}" % (indent), file=fd)
 
 
 def dumpCcdParams(ccd, nIndent=0, dIndent=4, fd=sys.stdout, iC=0, iR=0):
@@ -412,10 +413,10 @@ def dumpCcdParams(ccd, nIndent=0, dIndent=4, fd=sys.stdout, iC=0, iR=0):
     indent = "%*s" % (nIndent, "")
     dindent = "%*s" % (dIndent, "")
 
-    print >> fd, "%sCcd: {" % indent
-    print >> fd, "%sserial: %d" % (indent + dindent, ccd.getId().getSerial())
-    print >> fd, "%sname: \"%s\"" % (indent + dindent, ccd.getId().getName())
-    print >> fd, "%sptype: \"default\"" % (indent + dindent)
+    print("%sCcd: {" % indent, file=fd)
+    print("%sserial: %d" % (indent + dindent, ccd.getId().getSerial()), file=fd)
+    print("%sname: \"%s\"" % (indent + dindent, ccd.getId().getName()), file=fd)
+    print("%sptype: \"default\"" % (indent + dindent), file=fd)
 
     orient = ccd.getOrientation()
 
@@ -424,17 +425,17 @@ def dumpCcdParams(ccd, nIndent=0, dIndent=4, fd=sys.stdout, iC=0, iR=0):
 
     x, y = ccd.getPositionFromPixel(afwGeom.PointD(xc, yc)).getMm()
 
-    print >> fd, "%sindex: %d %d" % (indent + dindent, iC, iR)
-    print >> fd, "%soffset: %10.2f %10.2f\t%s" % (indent + dindent, x, y,
-                                                  "# offset of CCD center from raft center, (x, y)")
-    print >> fd, "%snQuarter: %d\t\t\t%s" % (indent + dindent, orient.getNQuarter(),
-                                             "# number of quarter turns applied to CCD when put into raft")
-    print >> fd, "%sorientation: %f %f %f\t\t%s" % (indent + dindent,
+    print("%sindex: %d %d" % (indent + dindent, iC, iR), file=fd)
+    print("%soffset: %10.2f %10.2f\t%s" % (indent + dindent, x, y,
+                                                  "# offset of CCD center from raft center, (x, y)"), file=fd)
+    print("%snQuarter: %d\t\t\t%s" % (indent + dindent, orient.getNQuarter(),
+                                             "# number of quarter turns applied to CCD when put into raft"), file=fd)
+    print("%sorientation: %f %f %f\t\t%s" % (indent + dindent,
                                                     math.degrees(orient.getPitch()),
                                                     math.degrees(orient.getRoll()),
                                                     math.degrees(orient.getYaw()),
-                                                    "# pitch, roll, yaw; degrees")
-    print >> fd, "%s}" % (indent)
+                                                    "# pitch, roll, yaw; degrees"), file=fd)
+    print("%s}" % (indent), file=fd)
 
 
 def dumpCcdElectronicParams(ccd, nIndent=0, dIndent=4, fd=sys.stdout):
@@ -442,21 +443,21 @@ def dumpCcdElectronicParams(ccd, nIndent=0, dIndent=4, fd=sys.stdout):
     indent = "%*s" % (nIndent, "")
     dindent = "%*s" % (dIndent, "")
 
-    print >> fd, "%sCcd: {" % indent
-    print >> fd, "%sname: \"%s\"" % (indent + dindent, ccd.getId().getName())
-    print >> fd, "%sptype: \"default\"" % (indent + dindent)
-    print >> fd, "%sserial: %d" % (indent + dindent, ccd.getId().getSerial())
+    print("%sCcd: {" % indent, file=fd)
+    print("%sname: \"%s\"" % (indent + dindent, ccd.getId().getName()), file=fd)
+    print("%sptype: \"default\"" % (indent + dindent), file=fd)
+    print("%sserial: %d" % (indent + dindent, ccd.getId().getSerial()), file=fd)
 
     for i, a in enumerate(ccd):
         ep = a.getElectronicParams()
-        print >> fd, "%sAmp: {" % (indent + dindent)
-        print >> fd, "%sindex: %d 0" % (indent + 2*dindent, i)
-        print >> fd, "%sgain: %.4f" % (indent + 2*dindent, ep.getGain())
-        print >> fd, "%sreadNoise: %.1f" % (indent + 2*dindent, ep.getReadNoise())
-        print >> fd, "%ssaturationLevel: %.1f" % (indent + 2*dindent, ep.getSaturationLevel())
-        print >> fd, "%s}" % (indent + dindent)
+        print("%sAmp: {" % (indent + dindent), file=fd)
+        print("%sindex: %d 0" % (indent + 2*dindent, i), file=fd)
+        print("%sgain: %.4f" % (indent + 2*dindent, ep.getGain()), file=fd)
+        print("%sreadNoise: %.1f" % (indent + 2*dindent, ep.getReadNoise()), file=fd)
+        print("%ssaturationLevel: %.1f" % (indent + 2*dindent, ep.getSaturationLevel()), file=fd)
+        print("%s}" % (indent + dindent), file=fd)
 
-    print >> fd, "%s}" % (indent)
+    print("%s}" % (indent), file=fd)
 
 
 def dumpRaftElectronicParams(raft, nIndent=0, dIndent=4, fd=sys.stdout):
@@ -466,13 +467,13 @@ def dumpRaftElectronicParams(raft, nIndent=0, dIndent=4, fd=sys.stdout):
     indent = "%*s" % (nIndent, "")
     dindent = "%*s" % (dIndent, "")
 
-    print >> fd, "%sRaft: {" % (indent)
-    print >> fd, "%sname: \"%s\"" % (indent + dindent, raft.getId().getName())
+    print("%sRaft: {" % (indent), file=fd)
+    print("%sname: \"%s\"" % (indent + dindent, raft.getId().getName()), file=fd)
 
     for ccd in raft:
         dumpCcdElectronicParams(ccd, nIndent + dIndent, dIndent, fd=fd)
 
-    print >> fd, "%s}" % (indent)
+    print("%s}" % (indent), file=fd)
 
 
 def dumpCameraElectronicParams(camera, nIndent=0, dIndent=4, outFile=None):
@@ -482,15 +483,15 @@ def dumpCameraElectronicParams(camera, nIndent=0, dIndent=4, outFile=None):
     else:
         fd = sys.stdout
 
-    print >> fd, """\
+    print("""\
 #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 #
 # Electronic properties of our CCDs
-#"""
-    print >> fd, "Electronic: {"
+#""", file=fd)
+    print("Electronic: {", file=fd)
     for raft in camera:
         dumpRaftElectronicParams(afwCG.cast_Raft(raft), dIndent, dIndent, fd=fd)
-    print >> fd, "}"
+    print("}", file=fd)
 
 
 #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -659,8 +660,8 @@ def estimateScattering(mi, threshold=2000, nGrow=2, npixMin=35, frame=None, inve
 
     frac = 1 - sum(arr[np.where(msk & DETECTED)])/sum(arr)
     notDetected = np.where(np.bitwise_not(msk) & DETECTED)
-    print "median: %.2f" % (np.median(arr[notDetected]))
-    print "from median: %.2f%%" % (100*np.median(arr[notDetected])*len(notDetected[0])/sum(arr))
+    print("median: %.2f" % (np.median(arr[notDetected])))
+    print("from median: %.2f%%" % (100*np.median(arr[notDetected])*len(notDetected[0])/sum(arr)))
 
     if frame is not None:
         if invertDetected:
@@ -674,16 +675,16 @@ def estimateScattering(mi, threshold=2000, nGrow=2, npixMin=35, frame=None, inve
 
 
 def estimateDarkCurrent(butler, visits, nSkipRows=35, frame=None):
-    print "CCD",
+    print("CCD", end=' ')
     for visit in visits:
-        print "%8d" % (visit),
-    print "%8s" % "mean"
+        print("%8d" % (visit), end=' ')
+    print("%8s" % "mean")
 
     ccds = range(100)                   # don't use 100..103
 
     cameraDark = 0.0                    # average dark current for all ccds
     for ccdNo in ccds:
-        print "%3d" % ccdNo,
+        print("%3d" % ccdNo, end=' ')
         darkValues = np.empty(len(visits))
         for i, visit in enumerate(visits):
             raw = butler.get("raw", visit=visit, ccd=ccdNo)
@@ -717,13 +718,13 @@ def estimateDarkCurrent(butler, visits, nSkipRows=35, frame=None):
             val = np.median(dark)
             darkValues[i] = val
 
-            print "%8.3f" % val,
+            print("%8.3f" % val, end=' ')
 
         val = np.mean(darkValues)
-        print "%8.3f" % val
+        print("%8.3f" % val)
         cameraDark += val
 
-    print "%8.3f" % (cameraDark/len(ccds))
+    print("%8.3f" % (cameraDark/len(ccds)))
 
 #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
@@ -819,7 +820,7 @@ def plotCcdZP(butler, visit, correctJacobian=False, zlim=(None, None), visit2=No
             ccdCenMm = ccd.getPositionFromPixel(afwGeom.PointD(xc, yc)).getMm()
             xmm[i], ymm[i] = ccdCenMm
         except Exception as e:
-            print e
+            print(e)
             zp[i] = np.nan
             continue
 
@@ -836,9 +837,9 @@ def plotCcdZP(butler, visit, correctJacobian=False, zlim=(None, None), visit2=No
                 for v in visit:
                     try:
                         calexp_md = butler.get("calexp_md", visit=v, ccd=ccdId, immediate=True)
-                    except Exception, e:
+                    except Exception as e:
                         if v is not None:
-                            print e
+                            print(e)
                         continue
 
                     calib = afwImage.Calib(calexp_md)
@@ -862,8 +863,8 @@ def plotCcdZP(butler, visit, correctJacobian=False, zlim=(None, None), visit2=No
 
                 try:
                     calexp_md = butler.get("calexp_md", visit=v, ccd=ccdId, immediate=True)
-                except Exception, e:
-                    print e
+                except Exception as e:
+                    print(e)
                     zps.append(np.nan)
                     continue
 
@@ -2466,15 +2467,15 @@ def getLevel(serial, filter='g', fiddle=False, calculate=False, visit=0, butler=
 
         cenMM0 = afwCGUtils.findCcd(cam, serial).getPositionFromPixel(afwGeom.PointD(0.5*w, 0.5*h)).getMm()
 
-        if not edges.has_key(filter):
+        if filter not in edges:
             edges[filter] = edges['r'].copy()
 
         neighbors = sorted(edges[filter][serial].keys())
 
-        print "        %-3d : {" % serial,
+        print("        %-3d : {" % serial, end=' ')
         for serial1 in neighbors:
             if serial1 is None:
-                print "None:None,",
+                print("None:None,", end=' ')
                 continue
 
             ccd = afwCGUtils.findCcd(cam, serial1)
@@ -2497,7 +2498,7 @@ def getLevel(serial, filter='g', fiddle=False, calculate=False, visit=0, butler=
                     im = raw[100:-100, -(30+delta):-30]
             else:
                 if offset[1] != 0:
-                    print serial, serial1, offset
+                    print(serial, serial1, offset)
                 assert offset[1] == 0
                 im = raw[-(30+delta):-30, 100:-100]
 
@@ -2513,16 +2514,16 @@ def getLevel(serial, filter='g', fiddle=False, calculate=False, visit=0, butler=
 
             if False:
                 ds9Utils.drawBBox(im.getBBox(), borderWidth=0.4)
-                print serial, serial1, offset, val
+                print(serial, serial1, offset, val)
 
-            print "%3d : %5d," % (serial1, val),
-        print " },"
+            print("%3d : %5d," % (serial1, val), end=' ')
+        print(" },")
 
         return
     #
     # Apply correction factors
     #
-    if fiddle and edges.has_key(filter):
+    if fiddle and filter in edges:
         canonical = 50
         scale = findCanonical(serial, edges[filter], canonical=canonical, verbose=False)
         if scale:
@@ -2546,15 +2547,15 @@ def findCanonical(serial, edges, seen=None, scale=1.0, canonical=50, verbose=Fal
         seen.append(serial)
         if s == canonical:
             if verbose:
-                print canonical, serial, scale, edges[serial][canonical], edges[canonical][serial]
+                print(canonical, serial, scale, edges[serial][canonical], edges[canonical][serial])
             return float(edges[serial][canonical])/float(edges[canonical][serial])
 
         x = findCanonical(s, edges, seen, scale=scale, canonical=canonical, verbose=verbose)
         if x is not None:
             if verbose:
-                print s, serial, scale, edges[s][serial], edges[serial][s], \
+                print(s, serial, scale, edges[s][serial], edges[serial][s], \
                     x, float(edges[serial][s])/float(edges[s][serial]), \
-                    x*float(edges[serial][s])/float(edges[s][serial])
+                    x*float(edges[serial][s])/float(edges[s][serial]))
             return x*float(edges[serial][s])/float(edges[s][serial])
 
     return None
@@ -2582,10 +2583,10 @@ def getCameraQE(butler, visit, fd=None):
     qe = 10**(0.4*qe)
 
     if fd:
-        print >> fd, "levels%dZP = {" % visit
+        print("levels%dZP = {" % visit, file=fd)
         for i, ccd in enumerate(ccdIds):
-            print >> fd, "    %-3d : %.4f," % (ccd, qe[i])
-        print >> fd, "}"
+            print("    %-3d : %.4f," % (ccd, qe[i]), file=fd)
+        print("}", file=fd)
 
     return dict(zip(ccdIds, qe))
 
@@ -2598,12 +2599,12 @@ def printLine(line, LaTeX, underline=False):
     else:
         line = " ".join(line)
 
-    print line
+    print(line)
     if underline:
         if LaTeX:
-            print r"\hline"
+            print(r"\hline")
         else:
-            print "-"*len(line)
+            print("-"*len(line))
 
     return []
 
@@ -2630,7 +2631,7 @@ def writeQETable(butler, filters="ugrizy", LaTeX=False, nCol=3, canonical=50):
 
     if LaTeX:
         llll = "l"*(1 + len(filters))
-        print r"\begin{tabular}{*%d{%s@{\qquad}}%s}" % (nCol - 1, llll, llll)
+        print(r"\begin{tabular}{*%d{%s@{\qquad}}%s}" % (nCol - 1, llll, llll))
 
     line = []
     for i in range(nCol):
@@ -2641,7 +2642,7 @@ def writeQETable(butler, filters="ugrizy", LaTeX=False, nCol=3, canonical=50):
     line = printLine(line, LaTeX, underline=True)
 
     for i, ccd in enumerate(ccds):
-        if not QE.has_key(ccd):
+        if ccd not in QE:
             continue
 
         line.append("%3d " % (ccd))
@@ -2654,7 +2655,7 @@ def writeQETable(butler, filters="ugrizy", LaTeX=False, nCol=3, canonical=50):
         line = printLine(line, LaTeX)
 
     if LaTeX:
-        print r"\end{tabular}"
+        print(r"\end{tabular}")
 
 
 def writeObsTable(butler, mos, LaTeX=False):
@@ -2704,17 +2705,17 @@ def writeObsTable(butler, mos, LaTeX=False):
                           date=md.get("DATE-OBS"),
                           start=md.get("UT")[:8],
                           )
-        if not comments.has_key(v):
+        if v not in comments:
             comments[v] = md.get("OBJECT")
 
     fields = ["visit"]
     for k in ["date", "start", "exptime", "filter"]:
-        if summary.values()[0].has_key(k):
+        if k in summary.values()[0]:
             fields.append(k)
     fields.append("comment")
 
     if LaTeX:
-        print r"\begin{longtable}{*{%d}{l}}" % (len(fields))
+        print(r"\begin{longtable}{*{%d}{l}}" % (len(fields)))
 
     line = []
     for k in fields:
@@ -2733,7 +2734,7 @@ def writeObsTable(butler, mos, LaTeX=False):
         line = printLine(line, LaTeX)
 
     if LaTeX:
-        print r"\end{longtable}"
+        print(r"\end{longtable}")
 
 
 def stackMosaics(mos, visits):
@@ -2856,7 +2857,7 @@ corrects for vignetting/Jacobian"""
     # Estimate useful signal level even for very strongly vignetted chips
     #
     if imageSource and imageSource.verbose:
-        print "Correcting vignetting for %s %3d %.2f" % (ccd.getId().getName(), ccdSerial, median)
+        print("Correcting vignetting for %s %3d %.2f" % (ccd.getId().getName(), ccdSerial, median))
 
     if medianFilter:
         im = medianFilterImage(im, nx, ny)
@@ -3197,7 +3198,7 @@ def makeNewFlats(butler, calibDir, filter, modelVignetting=True, modelJacobian=T
                 flatIm[a.getDataSec(True)] /= a.getElectronicParams().getGain()
 
         ofileName = os.path.join(calibDir, os.path.split(fileName)[1])
-        print ofileName
+        print(ofileName)
 
         md = flat.getMetadata()
         md.add("COMMENT", "Artificial Flat")
@@ -3299,7 +3300,7 @@ def isrCallback(im, ccd=None, butler=None, imageSource=None, doFlatten=True, cor
         if isrTask.config.doDark else None
 
     if imageSource and imageSource.verbose:
-        print "Running ISR for visit %d CCD %3d" % (visit, ccdId)
+        print("Running ISR for visit %d CCD %3d" % (visit, ccdId))
 
     result = isrTask.run(raw, bias=bias, dark=dark, flat=flat)
 

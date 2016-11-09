@@ -21,6 +21,7 @@
 # the GNU General Public License along with this program.  If not,
 # see <https://www.lsstcorp.org/LegalNotices/>.
 #
+from __future__ import print_function
 import pyfits
 import sys
 import re
@@ -254,8 +255,8 @@ if __name__ == '__main__':
         saturate1 = ptr[ccd].header['MAXLINA']
         saturate2 = ptr[ccd].header['MAXLINB']
 
-        print ccdId, ccdBoundary, amp1Boundary, amp2Boundary, gain1, gain2, rdnoise1, rdnoise2, \
-            saturate1, saturate2
+        print(ccdId, ccdBoundary, amp1Boundary, amp2Boundary, gain1, gain2, rdnoise1, rdnoise2, \
+            saturate1, saturate2)
 
         # flip y
         xidx = ccdId % 9

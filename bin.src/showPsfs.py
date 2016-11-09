@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import print_function
 import argparse
 import os
 import re
@@ -298,7 +299,7 @@ switches to that dataDir (the one on the command line is used previously)
     if not (args.dataDir or args.inputFile):
         args.dataDir = os.environ.get("SUPRIME_DATA_DIR")
         if not args.dataDir:
-            print >> sys.stderr, "Please specify a dataDir (maybe in an inputFile) or set $SUPRIME_DATA_DIR"
+            print("Please specify a dataDir (maybe in an inputFile) or set $SUPRIME_DATA_DIR", file=sys.stderr)
             sys.exit(1)
 
     if args.rerun:
@@ -327,7 +328,7 @@ switches to that dataDir (the one on the command line is used previously)
                 desires.append([dd, v, t])
     else:
         if not args.visit:
-            print >> sys.stderr, "Please choose a visit"
+            print("Please choose a visit", file=sys.stderr)
             sys.exit(1)
 
         visits = []
@@ -347,7 +348,7 @@ switches to that dataDir (the one on the command line is used previously)
 
     for dataDir, visit, title in desires:
         if args.verbose:
-            print "%-10s %s" % (visit, title)
+            print("%-10s %s" % (visit, title))
 
         if args.correctDistortion:
             if title:

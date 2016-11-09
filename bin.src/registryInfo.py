@@ -21,6 +21,7 @@
 # the GNU General Public License along with this program.  If not,
 # see <https://www.lsstcorp.org/LegalNotices/>.
 #
+from __future__ import print_function
 import argparse
 import os
 import sys
@@ -103,10 +104,10 @@ ORDER BY max(filter), visit
     cursor = conn.cursor()
 
     if args.summary:
-        print "%-7s %-20s %7s %s" % ("filter", "field", "expTime", "visit")
+        print("%-7s %-20s %7s %s" % ("filter", "field", "expTime", "visit"))
     else:
-        print "%-7s %-20s %10s %7s %8s %6s %4s" % ("filter", "field", "dataObs", "expTime",
-                                                   "pointing", "visit", "nCCD")
+        print("%-7s %-20s %10s %7s %8s %6s %4s" % ("filter", "field", "dataObs", "expTime",
+                                                   "pointing", "visit", "nCCD"))
 
     ret = cursor.execute(query, vals)
 
@@ -124,8 +125,8 @@ ORDER BY max(filter), visit
             expTimes[k] += expTime
             visits[k].append(visit)
         else:
-            print "%-7s %-20s %10s %7.1f %8d %6d %4d" % (filter, field, dateObs, expTime,
-                                                         pointing, visit, nCCD)
+            print("%-7s %-20s %10s %7.1f %8d %6d %4d" % (filter, field, dateObs, expTime,
+                                                         pointing, visit, nCCD))
 
     conn.close()
 
@@ -133,7 +134,7 @@ ORDER BY max(filter), visit
         for k in sorted(n.keys()):
             filter, field = k
 
-            print "%-7s %-20s %7.1f %s" % (filter, field, expTimes[k], formatVisits(visits[k]))
+            print("%-7s %-20s %7.1f %s" % (filter, field, expTimes[k], formatVisits(visits[k])))
 
 
 def queryCalibRegistry(what, filterName=None, summary=False):
@@ -160,19 +161,19 @@ ORDER BY filter, calibDate
     cursor = conn.cursor()
 
     if summary:
-        print >> sys.stderr, "No summary is available for calib data"
+        print("No summary is available for calib data", file=sys.stderr)
         return
     else:
-        print "%-10s--%-10s  %-10s  %-7s %-24s %4s" % (
-            "validStart", "validEnd", "calibDate", "filter", "calibVersion", "nCCD")
+        print("%-10s--%-10s  %-10s  %-7s %-24s %4s" % (
+            "validStart", "validEnd", "calibDate", "filter", "calibVersion", "nCCD"))
 
     ret = cursor.execute(query, vals)
 
     for line in ret:
         validStart, validEnd, calibDate, filter, calibVersion, nCCD = line
 
-        print "%-10s--%-10s  %-10s  %-7s %-24s %4d" % (
-            validStart, validEnd, calibDate, filter, calibVersion, nCCD)
+        print("%-10s--%-10s  %-10s  %-7s %-24s %4d" % (
+            validStart, validEnd, calibDate, filter, calibVersion, nCCD))
 
     conn.close()
 
@@ -207,11 +208,11 @@ If no registry is provided, try $SUPRIME_DATA_DIR
         registryFile = os.path.join(args.registryFile,
                                     "calibRegistry.sqlite3" if args.calib else "registry.sqlite3")
         if not os.path.exists(registryFile):
-            print >> sys.stderr, "Unable to open %s" % registryFile
+            print("Unable to open %s" % registryFile, file=sys.stderr)
             sys.exit(1)
 
     if args.verbose:
-        print "Reading %s" % registryFile
+        print("Reading %s" % registryFile)
 
     if args.calib:
         queryCalibRegistry(args.calib, args.filterName, args.summary)

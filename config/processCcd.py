@@ -1,6 +1,7 @@
 """
 Subaru-specific overrides for ProcessCcdTask (applied before SuprimeCam- and HSC-specific overrides).
 """
+from __future__ import print_function
 import os.path
 
 from lsst.utils import getPackageDir
@@ -23,7 +24,7 @@ try:
     config.charImage.measurePsf.psfDeterminer["psfex"].spatialOrder = 2
     config.charImage.measurePsf.psfDeterminer.name = "psfex"
 except ImportError as e:
-    print "WARNING: Unable to use psfex: %s" % e
+    print("WARNING: Unable to use psfex: %s" % e)
     config.charImage.measurePsf.psfDeterminer.name = "pca"
 
 # Astrometry

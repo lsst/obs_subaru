@@ -1,4 +1,5 @@
 """Process the scattered light data from Arcturus"""
+from __future__ import print_function
 
 import numpy as np
 import multiprocessing
@@ -63,7 +64,7 @@ class MedianFilterImageWorker(object):
         self.medianN = medianN
 
     def __call__(self, v):
-        print "Median filtering visit %d" % v
+        print("Median filtering visit %d" % v)
         return v, utils.medianFilterImage(self.mos[-v], self.medianN)
 
 
@@ -168,7 +169,7 @@ If onlyVisits is specified, only process those chips [n.b. frame0 is still obeye
         if onlyVisits and v not in onlyVisits:
             continue
 
-        print "Processing %d" % v
+        print("Processing %d" % v)
 
         im = mos[v].clone()
         im[2121:2230, 590:830] = np.nan # QE for this chip is bad
@@ -258,7 +259,7 @@ def plotAnnularAverages(mos, visits, bin=16, useSmoothed=True, weightByR=True, s
             r = bin*(np.hypot(*position[v]) + 0.3*spacing) # really a geometric mean?
             prof *= 2*np.pi*r
 
-        print "%d %07.2g" % (v, np.sum(prof))
+        print("%d %07.2g" % (v, np.sum(prof)))
 
         if showSum:
             if sumProf is None:

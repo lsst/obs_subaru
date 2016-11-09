@@ -32,6 +32,7 @@ coeffs, coeffsErr = crosstalk.estimateCoeffs(butler, range(131634, 131642), rang
                                              plot=True, title="CCD0..9", fig=1)
 crosstalk.fixCcd(butler, 131634, 0, coeffs)
 """
+from __future__ import print_function
 import sys
 import math
 import time
@@ -45,6 +46,7 @@ import lsst.afw.math as afwMath
 import lsst.pipe.base as pipeBase
 import lsst.pex.config as pexConfig
 import lsst.afw.display as afwDisplay
+from functools import reduce
 
 
 class CrosstalkCoeffsConfig(pexConfig.Config):
@@ -153,7 +155,7 @@ def getAmplitudeRatios(mi, threshold=45000, bkgd=None, rats=None):
                         if False:
                             foo = (img.get(_x, y) - bkgd)/val
                             if np.abs(foo) < 1e-5:
-                                print img.get(_x, y) - bkgd, val
+                                print(img.get(_x, y) - bkgd, val)
                                 mi.getMask().set(_x, y, 0x100)
 
                         rats[amp][a].append((img.get(_x, y) - bkgd)/val)
@@ -199,7 +201,7 @@ def calculateCoeffs(rats, nsigma, plot=False, fig=None, title=None):
             coeffsErr[ain][aout] = err
 
             if plot:
-                axes = subplots.next()
+                axes = next(subplots)
                 axes.xaxis.set_major_locator(xMajorLocator)
 
                 if ain != aout:
@@ -287,10 +289,10 @@ def printCoeffs(coeffs, coeffsErr=None, LaTeX=False, ppm=False):
     """Print cross-talk coefficients"""
 
     if LaTeX:
-        print r"""\begin{tabular}{l|*{4}{l}}
+        print(r"""\begin{tabular}{l|*{4}{l}}
 ampIn    &    \multicolumn{4}{c}{ampOut} \\
      &    0              &    1              &     2             &    3           \\
-\hline"""
+\hline""")
         for ain in range(nAmp):
             msg = "%-4d " % ain
             for aout in range(nAmp):
@@ -305,22 +307,22 @@ ampIn    &    \multicolumn{4}{c}{ampOut} \\
                             msg += r"$\pm$ %s%d " % (r"$\phantom{0}$" if val < 10 else "", val)
                     else:
                         msg += r"$\pm$ %7.1e " % (coeffsErr[ain][aout])
-            print msg + r" \\"
-        print r"\end{tabular}"
+            print(msg + r" \\")
+        print(r"\end{tabular}")
 
         return
 
-    print "ampIn                   ",
+    print("ampIn                   ", end=' ')
     if coeffsErr is not None:
-        print "                         ",
-    print "ampOut"
+        print("                         ", end=' ')
+    print("ampOut")
 
     msg = "%-4s " % ""
     for aout in range(nAmp):
         msg += "       %d    " % aout
         if coeffsErr is not None:
             msg += "%11s" % ""
-    print msg
+    print(msg)
     for ain in range(nAmp):
         msg = "%-4d " % ain
         for aout in range(nAmp):
@@ -328,7 +330,7 @@ ampIn    &    \multicolumn{4}{c}{ampOut} \\
             if coeffsErr is not None:
                 msg += " +- %7.1e" % coeffsErr[ain][aout]
 
-        print msg
+        print(msg)
 
 #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 #
@@ -397,8 +399,8 @@ def makeImage(width=500, height=1000):
 def readImage(butler, **kwargs):
     try:
         return butler.get("calexp", **kwargs).getMaskedImage()
-    except Exception, e:
-        print e
+    except Exception as e:
+        print(e)
         import pdb
         pdb.set_trace()
 
@@ -483,19 +485,19 @@ def getMpFigure(fig=None, clear=True):
                 i = sorted(mpFigures.keys())[i] # simulate list's [-n] syntax
             except IndexError:
                 if mpFigures:
-                    print >> sys.stderr, "Illegal index: %d" % i
+                    print("Illegal index: %d" % i, file=sys.stderr)
                 i = 1
 
         def lift(fig):
             fig.canvas._tkcanvas._root().lift() # == Tk's raise, but raise is a python reserved word
 
-        if mpFigures.has_key(i):
+        if i in mpFigures:
             try:
                 lift(mpFigures[i])
             except Exception:
                 del mpFigures[i]
 
-        if not mpFigures.has_key(i):
+        if i not in mpFigures:
             for j in range(1, i):
                 getMpFigure(j)
 

@@ -12,6 +12,7 @@ Refile focus chips, which had incorrect DET-ID values for the Jan/Feb 2013 run
     108		110
     114		108
 """
+from __future__ import print_function
 
 #!/usr/bin/env python
 
@@ -63,7 +64,7 @@ else:
     if args.fields:
         for f in args.fields:
             files += globber(field=f)
-print 'Processing %d files...' % len(files)
+print('Processing %d files...' % len(files))
 
 # Set up regex for parsing directory structure
 reField = r'([\w .+-]+)'
@@ -77,13 +78,13 @@ fileNames = {}
 for fileNo, fits in enumerate(files):
     m = re.search(regex, fits)
     if not m:
-        print "Warning: skipping unrecognized filename:", fits
+        print("Warning: skipping unrecognized filename:", fits)
         continue
 
     field, dateObs, pointing, filterId, visit, ccd = m.groups()
     visit = int(visit)
     ccd = int(ccd)
-    if not visits.has_key(visit):
+    if visit not in visits:
         visits[visit] = set()
     visits[visit].add(ccd)
     #print "Processing %s" % fits
@@ -93,14 +94,14 @@ for fileNo, fits in enumerate(files):
 #
 for visit, ccds in visits.items():
     if 105 in ccds:                     # already refiled
-        print "%d is already refiled" % visit
+        print("%d is already refiled" % visit)
         del visits[visit]
         continue
 
     if set(remap.keys()) != set([_ for _ in ccds if remap.get(_)]): # no focus chips are available
         continue
 
-    print visit
+    print(visit)
     try:
         tmpDir = None
         for old, new in remap.items():

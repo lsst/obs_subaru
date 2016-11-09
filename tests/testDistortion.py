@@ -21,6 +21,7 @@
 # the GNU General Public License along with this program.  If not,
 # see <https://www.lsstcorp.org/LegalNotices/>.
 #
+from __future__ import print_function
 import unittest
 
 import lsst.utils.tests
@@ -54,7 +55,7 @@ class HscDistortionTestCase(unittest.TestCase):
                 fpDiff = fp.getPoint() - cornerVerification.focalPlane
                 tp.getPoint() - cornerVerification.distEst
 
-                print ccd.getSerial(), ccd.getName(), xy, fp, fpDiff
+                print(ccd.getSerial(), ccd.getName(), xy, fp, fpDiff)
 
 
 #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -130,7 +131,7 @@ def getVerificationData():
 
         print pickle.dumps(data)
     """
-    return {'1_44': CcdData(name='1_44', id=6L,
+    return {'1_44': CcdData(name='1_44', id=6,
                             corners={(0, 0): CornerData(focalPlane=Point2D(13764.18245, -65.60289259),
                                                         distEst=Point2D(1757.325262, 4175.07894)),
                                      (2047, 0): CornerData(focalPlane=Point2D(11717.18344, -63.58738901),
@@ -140,7 +141,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(13760.07169, -4240.600869),
                                                            distEst=Point2D(1726.140418, 97.2513258))}
                             ),
-            '1_45': CcdData(name='1_45', id=7L,
+            '1_45': CcdData(name='1_45', id=7,
                             corners={(0, 0): CornerData(focalPlane=Point2D(13759.95779, 4412.536539),
                                                         distEst=Point2D(1723.26049, 4071.55042)),
                                      (2047, 0): CornerData(focalPlane=Point2D(11712.95971, 4409.737902),
@@ -150,7 +151,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(13765.66581, 237.5404407),
                                                            distEst=Point2D(1757.54326, -4.803878365))}
                             ),
-            '1_46': CcdData(name='1_46', id=8L,
+            '1_46': CcdData(name='1_46', id=8,
                             corners={(0, 0): CornerData(focalPlane=Point2D(13764.61796, 8888.296166),
                                                         distEst=Point2D(1624.844697, 3900.07959)),
                                      (2047, 0): CornerData(focalPlane=Point2D(11717.61873, 8890.0733),
@@ -160,7 +161,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(13760.99337, 4713.29774),
                                                            distEst=Point2D(1719.300832, -113.5804695))}
                             ),
-            '1_47': CcdData(name='1_47', id=9L,
+            '1_47': CcdData(name='1_47', id=9,
                             corners={(0, 0): CornerData(focalPlane=Point2D(13766.12638, 13362.90815),
                                                         distEst=Point2D(1446.924006, 3588.231029)),
                                      (2047, 0): CornerData(focalPlane=Point2D(11719.12862, 13365.93348),
@@ -170,7 +171,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(13759.95601, 9187.912712),
                                                            distEst=Point2D(1613.460372, -290.6948165))}
                             ),
-            '1_40': CcdData(name='1_40', id=14L,
+            '1_40': CcdData(name='1_40', id=14,
                             corners={(0, 0): CornerData(focalPlane=Point2D(11637.75535, 8889.539668),
                                                         distEst=Point2D(1764.817979, 3960.471013)),
                                      (2047, 0): CornerData(focalPlane=Point2D(9590.756747, 8887.151076),
@@ -180,7 +181,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(11642.62705, 4714.54251),
                                                            distEst=Point2D(1844.761026, -82.33657042))}
                             ),
-            '1_41': CcdData(name='1_41', id=15L,
+            '1_41': CcdData(name='1_41', id=15,
                             corners={(0, 0): CornerData(focalPlane=Point2D(11640.66934, 13364.0567),
                                                         distEst=Point2D(1621.677387, 3684.815988)),
                                      (2047, 0): CornerData(focalPlane=Point2D(9593.669659, 13365.1939),
@@ -190,7 +191,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(11638.34996, 9189.057346),
                                                            distEst=Point2D(1758.025246, -228.8826181))}
                             ),
-            '1_42': CcdData(name='1_42', id=4L,
+            '1_42': CcdData(name='1_42', id=4,
                             corners={(0, 0): CornerData(focalPlane=Point2D(13759.36893, -9016.390851),
                                                         distEst=Point2D(1620.790607, 4453.130396)),
                                      (2047, 0): CornerData(focalPlane=Point2D(11712.36897, -9016.816458),
@@ -200,7 +201,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(13760.23699, -13191.39076),
                                                            distEst=Point2D(1456.06039, 566.5498437))}
                             ),
-            '1_43': CcdData(name='1_43', id=5L,
+            '1_43': CcdData(name='1_43', id=5,
                             corners={(0, 0): CornerData(focalPlane=Point2D(13762.74199, -4541.450976),
                                                         distEst=Point2D(1723.373182, 4280.890177)),
                                      (2047, 0): CornerData(focalPlane=Point2D(11715.74247, -4540.050489),
@@ -210,7 +211,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(13759.8856, -8716.449999),
                                                            distEst=Point2D(1629.268319, 262.4641959))}
                             ),
-            '1_48': CcdData(name='1_48', id=104L,
+            '1_48': CcdData(name='1_48', id=104,
                             corners={(0, 0): CornerData(focalPlane=Point2D(18007.86, -4399.42),
                                                         distEst=Point2D(1317.5775, 4351.171465)),
                                      (2047, 0): CornerData(focalPlane=Point2D(15960.86, -4399.42),
@@ -220,7 +221,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(18007.86, -8574.42),
                                                            distEst=Point2D(1186.919297, 410.3653125))}
                             ),
-            '0_29': CcdData(name='0_29', id=17L,
+            '0_29': CcdData(name='0_29', id=17,
                             corners={(0, 0): CornerData(focalPlane=Point2D(7465.933568, -8489.063695),
                                                         distEst=Point2D(-105.8856082, 119.8073714)),
                                      (2047, 0): CornerData(focalPlane=Point2D(9512.933016, -8490.567225),
@@ -230,7 +231,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(7469.000124, -4314.064821),
                                                            distEst=Point2D(-60.4778549, 4210.74571))}
                             ),
-            '0_28': CcdData(name='0_28', id=18L,
+            '0_28': CcdData(name='0_28', id=18,
                             corners={(0, 0): CornerData(focalPlane=Point2D(7467.417867, -4014.87778),
                                                         distEst=Point2D(-59.57998091, 32.04431031)),
                                      (2047, 0): CornerData(focalPlane=Point2D(9514.417707, -4015.686172),
@@ -240,7 +241,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(7469.066639, 160.1218946),
                                                            distEst=Point2D(-45.60200494, 4174.309862))}
                             ),
-            '0_21': CcdData(name='0_21', id=32L,
+            '0_21': CcdData(name='0_21', id=32,
                             corners={(0, 0): CornerData(focalPlane=Point2D(3220.080235, -8490.742227),
                                                         distEst=Point2D(-29.0393586, 76.61770969)),
                                      (2047, 0): CornerData(focalPlane=Point2D(5267.080156, -8490.173076),
@@ -250,7 +251,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(3218.919412, -4315.742389),
                                                            distEst=Point2D(-11.06337425, 4188.863297))}
                             ),
-            '0_20': CcdData(name='0_20', id=33L,
+            '0_20': CcdData(name='0_20', id=33,
                             corners={(0, 0): CornerData(focalPlane=Point2D(3225.1677, -4014.127361),
                                                         distEst=Point2D(-8.846307159, 11.43464494)),
                                      (2047, 0): CornerData(focalPlane=Point2D(5272.166609, -4012.01458),
@@ -260,7 +261,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(3220.858535, 160.870415),
                                                            distEst=Point2D(-5.332532073, 4174.253363))}
                             ),
-            '0_23': CcdData(name='0_23', id=30L,
+            '0_23': CcdData(name='0_23', id=30,
                             corners={(0, 0): CornerData(focalPlane=Point2D(3223.143276, -17441.66905),
                                                         distEst=Point2D(-116.5999908, 635.9896586)),
                                      (2047, 0): CornerData(focalPlane=Point2D(5270.142771, -17440.23132),
@@ -270,7 +271,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(3220.210928, -13266.67008),
                                                            distEst=Point2D(-67.16058517, 4449.723508))}
                             ),
-            '0_22': CcdData(name='0_22', id=31L,
+            '0_22': CcdData(name='0_22', id=31,
                             corners={(0, 0): CornerData(focalPlane=Point2D(3219.299287, -12966.86782),
                                                         distEst=Point2D(-64.607016, 257.4145671)),
                                      (2047, 0): CornerData(focalPlane=Point2D(5266.29849, -12968.67411),
@@ -280,7 +281,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(3222.983336, -8791.869444),
                                                            distEst=Point2D(-30.29774643, 4259.941813))}
                             ),
-            '0_25': CcdData(name='0_25', id=24L,
+            '0_25': CcdData(name='0_25', id=24,
                             corners={(0, 0): CornerData(focalPlane=Point2D(5347.661555, -8490.243894),
                                                         distEst=Point2D(-58.13902044, 93.2973653)),
                                      (2047, 0): CornerData(focalPlane=Point2D(7394.660395, -8488.064769),
@@ -290,7 +291,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(5343.217075, -4315.24626),
                                                            distEst=Point2D(-29.30628397, 4197.008674))}
                             ),
-            '0_24': CcdData(name='0_24', id=25L,
+            '0_24': CcdData(name='0_24', id=25,
                             corners={(0, 0): CornerData(focalPlane=Point2D(5346.209007, -4012.402506),
                                                         distEst=Point2D(-26.0890698, 19.56139523)),
                                      (2047, 0): CornerData(focalPlane=Point2D(7393.208574, -4011.071158),
@@ -300,7 +301,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(5343.493629, 162.5966111),
                                                            distEst=Point2D(-18.03927402, 4174.191627))}
                             ),
-            '0_27': CcdData(name='0_27', id=22L,
+            '0_27': CcdData(name='0_27', id=22,
                             corners={(0, 0): CornerData(focalPlane=Point2D(5342.082586, -17440.8728),
                                                         distEst=Point2D(-207.7530571, 678.1726161)),
                                      (2047, 0): CornerData(focalPlane=Point2D(7389.082563, -17441.18154),
@@ -310,7 +311,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(5342.712278, -13265.87285),
                                                            distEst=Point2D(-121.7920951, 4478.57657))}
                             ),
-            '0_26': CcdData(name='0_26', id=23L,
+            '0_26': CcdData(name='0_26', id=23,
                             corners={(0, 0): CornerData(focalPlane=Point2D(5347.030908, -12966.61211),
                                                         distEst=Point2D(-116.200517, 284.391544)),
                                      (2047, 0): CornerData(focalPlane=Point2D(7394.030306, -12965.04182),
@@ -320,7 +321,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(5343.828178, -8791.613342),
                                                            distEst=Point2D(-63.03344506, 4276.788437))}
                             ),
-            '1_31': CcdData(name='1_31', id=103L,
+            '1_31': CcdData(name='1_31', id=103,
                             corners={(0, 0): CornerData(focalPlane=Point2D(-8563.673972, 12603.11061),
                                                         distEst=Point2D(3334.862875, -1394.280747)),
                                      (2047, 0): CornerData(focalPlane=Point2D(-8564.981276, 14650.11019),
@@ -330,7 +331,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(-12738.67312, 12600.44427),
                                                            distEst=Point2D(-588.7921283, -1536.5464))}
                             ),
-            '1_30': CcdData(name='1_30', id=83L,
+            '1_30': CcdData(name='1_30', id=83,
                             corners={(0, 0): CornerData(focalPlane=Point2D(-7468.25958, 13366.06643),
                                                         distEst=Point2D(2243.388786, 3820.867)),
                                      (2047, 0): CornerData(focalPlane=Point2D(-9515.259505, 13365.51106),
@@ -340,7 +341,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(-7467.126869, 9191.066583),
                                                            distEst=Point2D(2161.771616, -142.0057542))}
                             ),
-            '1_33': CcdData(name='1_33', id=20L,
+            '1_33': CcdData(name='1_33', id=20,
                             corners={(0, 0): CornerData(focalPlane=Point2D(9515.188, 8888.673919),
                                                         distEst=Point2D(1867.875848, 4006.824237)),
                                      (2047, 0): CornerData(focalPlane=Point2D(7468.188071, 8889.215239),
@@ -350,7 +351,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(9514.08394, 4713.674065),
                                                            distEst=Point2D(1928.713243, -58.96707078))}
                             ),
-            '1_32': CcdData(name='1_32', id=19L,
+            '1_32': CcdData(name='1_32', id=19,
                             corners={(0, 0): CornerData(focalPlane=Point2D(9514.654572, 4412.01794),
                                                         distEst=Point2D(1931.382492, 4121.566013)),
                                      (2047, 0): CornerData(focalPlane=Point2D(7467.654803, 4411.046962),
@@ -360,7 +361,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(9516.634951, 237.0184098),
                                                            distEst=Point2D(1952.908396, -2.051574261))}
                             ),
-            '1_35': CcdData(name='1_35', id=101L,
+            '1_35': CcdData(name='1_35', id=101,
                             corners={(0, 0): CornerData(focalPlane=Point2D(8568.290019, 16777.76953),
                                                         distEst=Point2D(704.3847846, 2407.335789)),
                                      (2047, 0): CornerData(focalPlane=Point2D(8568.242752, 14730.76953),
@@ -370,7 +371,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(12743.29002, 16777.67313),
                                                            distEst=Point2D(4551.175221, 2203.807936))}
                             ),
-            '1_34': CcdData(name='1_34', id=21L,
+            '1_34': CcdData(name='1_34', id=21,
                             corners={(0, 0): CornerData(focalPlane=Point2D(9512.143055, 13365.44516),
                                                         distEst=Point2D(1750.793741, 3763.733305)),
                                      (2047, 0): CornerData(focalPlane=Point2D(7465.147845, 13361.01681),
@@ -380,7 +381,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(9521.174988, 9190.454928),
                                                            distEst=Point2D(1863.380382, -178.3312126))}
                             ),
-            '1_37': CcdData(name='1_37', id=11L,
+            '1_37': CcdData(name='1_37', id=11,
                             corners={(0, 0): CornerData(focalPlane=Point2D(11635.12336, -4539.477965),
                                                         distEst=Point2D(1844.796124, 4254.045191)),
                                      (2047, 0): CornerData(focalPlane=Point2D(9588.125414, -4542.377502),
@@ -390,7 +391,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(11641.03717, -8714.473777),
                                                            distEst=Point2D(1772.501195, 207.1153978))}
                             ),
-            '1_36': CcdData(name='1_36', id=10L,
+            '1_36': CcdData(name='1_36', id=10,
                             corners={(0, 0): CornerData(focalPlane=Point2D(11638.13077, -9016.136908),
                                                         distEst=Point2D(1763.728823, 4393.924897)),
                                      (2047, 0): CornerData(focalPlane=Point2D(9591.130787, -9015.901054),
@@ -400,7 +401,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(11637.64973, -13191.13688),
                                                            distEst=Point2D(1629.424472, 472.3224263))}
                             ),
-            '1_39': CcdData(name='1_39', id=13L,
+            '1_39': CcdData(name='1_39', id=13,
                             corners={(0, 0): CornerData(focalPlane=Point2D(11640.03761, 4410.8137),
                                                         distEst=Point2D(1848.461555, 4098.129329)),
                                      (2047, 0): CornerData(focalPlane=Point2D(9593.038547, 4412.767182),
@@ -410,7 +411,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(11636.05335, 235.8156016),
                                                            distEst=Point2D(1872.425906, -4.316688823))}
                             ),
-            '1_38': CcdData(name='1_38', id=12L,
+            '1_38': CcdData(name='1_38', id=12,
                             corners={(0, 0): CornerData(focalPlane=Point2D(11641.33927, -61.93617774),
                                                         distEst=Point2D(1874.474769, 4175.018966)),
                                      (2047, 0): CornerData(focalPlane=Point2D(9594.340681, -59.53034382),
@@ -420,7 +421,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(11636.4324, -4236.933294),
                                                            distEst=Point2D(1848.422627, 70.98772003))}
                             ),
-            '1_57': CcdData(name='1_57', id=107L,
+            '1_57': CcdData(name='1_57', id=107,
                             corners={(0, 0): CornerData(focalPlane=Point2D(15884.71, 13359.95),
                                                         distEst=Point2D(1214.967734, 3474.880078)),
                                      (2047, 0): CornerData(focalPlane=Point2D(13837.71, 13359.95),
@@ -430,7 +431,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(15884.71, 9184.95),
                                                            distEst=Point2D(1418.225547, -363.9392578))}
                             ),
-            '1_56': CcdData(name='1_56', id=3L,
+            '1_56': CcdData(name='1_56', id=3,
                             corners={(0, 0): CornerData(focalPlane=Point2D(15885.1169, 8888.808422),
                                                         distEst=Point2D(1429.753482, 3828.840617)),
                                      (2047, 0): CornerData(focalPlane=Point2D(13838.11695, 8889.277102),
@@ -440,7 +441,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(15884.16099, 4713.808531),
                                                            distEst=Point2D(1546.522433, -149.801315))}
                             ),
-            '1_55': CcdData(name='1_55', id=2L,
+            '1_55': CcdData(name='1_55', id=2,
                             corners={(0, 0): CornerData(focalPlane=Point2D(15884.02337, 4412.162579),
                                                         distEst=Point2D(1551.918513, 4036.649141)),
                                      (2047, 0): CornerData(focalPlane=Point2D(13837.02349, 4411.452264),
@@ -450,7 +451,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(15885.47211, 237.1628304),
                                                            distEst=Point2D(1591.291986, -7.826669563))}
                             ),
-            '1_54': CcdData(name='1_54', id=1L,
+            '1_54': CcdData(name='1_54', id=1,
                             corners={(0, 0): CornerData(focalPlane=Point2D(15884.85432, -63.26114806),
                                                         distEst=Point2D(1591.129665, 4175.527059)),
                                      (2047, 0): CornerData(focalPlane=Point2D(13837.85432, -63.19295258),
@@ -460,7 +461,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(15884.71523, -4238.261146),
                                                            distEst=Point2D(1555.510531, 129.9370827))}
                             ),
-            '1_53': CcdData(name='1_53', id=0L,
+            '1_53': CcdData(name='1_53', id=0,
                             corners={(0, 0): CornerData(focalPlane=Point2D(15884.11223, -4541.560689),
                                                         distEst=Point2D(1550.14862, 4315.968663)),
                                      (2047, 0): CornerData(focalPlane=Point2D(13837.11225, -4541.866476),
@@ -470,7 +471,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(15884.7359, -8716.560643),
                                                            distEst=Point2D(1437.697853, 333.6279298))}
                             ),
-            '1_52': CcdData(name='1_52', id=106L,
+            '1_52': CcdData(name='1_52', id=106,
                             corners={(0, 0): CornerData(focalPlane=Point2D(15884.71, -8865.59),
                                                         distEst=Point2D(1432.075156, 4517.293125)),
                                      (2047, 0): CornerData(focalPlane=Point2D(13837.71, -8865.59),
@@ -480,7 +481,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(15884.71, -13040.59),
                                                            distEst=Point2D(1237.459922, 668.1691016))}
                             ),
-            '1_51': CcdData(name='1_51', id=105L,
+            '1_51': CcdData(name='1_51', id=105,
                             corners={(0, 0): CornerData(focalPlane=Point2D(18007.86, 8894.86),
                                                         distEst=Point2D(1166.284531, 3742.893906)),
                                      (2047, 0): CornerData(focalPlane=Point2D(15960.86, 8894.86),
@@ -490,7 +491,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(18007.86, 4719.86),
                                                            distEst=Point2D(1307.936875, -194.4181055))}
                             ),
-            '0_54': CcdData(name='0_54', id=98L,
+            '0_54': CcdData(name='0_54', id=98,
                             corners={(0, 0): CornerData(focalPlane=Point2D(-15888.02926, 466.2268113),
                                                         distEst=Point2D(452.851398, -13.16440691)),
                                      (2047, 0): CornerData(focalPlane=Point2D(-13841.03149, 463.2063826),
@@ -500,7 +501,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(-15881.86888, 4641.222266),
                                                            distEst=Point2D(497.7416331, 4029.863648))}
                             ),
-            '0_55': CcdData(name='0_55', id=97L,
+            '0_55': CcdData(name='0_55', id=97,
                             corners={(0, 0): CornerData(focalPlane=Point2D(-15885.18352, -4010.822787),
                                                         distEst=Point2D(485.3694319, 121.8494959)),
                                      (2047, 0): CornerData(focalPlane=Point2D(-13838.18352, -4010.731633),
@@ -510,7 +511,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(-15885.36943, 164.177209),
                                                            distEst=Point2D(453.7007618, 4169.384778))}
                             ),
-            '0_56': CcdData(name='0_56', id=96L,
+            '0_56': CcdData(name='0_56', id=96,
                             corners={(0, 0): CornerData(focalPlane=Point2D(-15885.04328, -8488.887806),
                                                         distEst=Point2D(599.8186276, 318.9755393)),
                                      (2047, 0): CornerData(focalPlane=Point2D(-13838.04329, -8488.776574),
@@ -520,7 +521,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(-15885.27015, -4313.887812),
                                                            distEst=Point2D(490.3098053, 4307.458497))}
                             ),
-            '0_57': CcdData(name='0_57', id=108L,
+            '0_57': CcdData(name='0_57', id=108,
                             corners={(0, 0): CornerData(focalPlane=Point2D(-15885.76, -13040.59),
                                                         distEst=Point2D(807.8498438, 662.4435156)),
                                      (2047, 0): CornerData(focalPlane=Point2D(-13838.76, -13040.59),
@@ -530,7 +531,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(-15885.76, -8865.59),
                                                            distEst=Point2D(613.5051172, 4515.789219))}
                             ),
-            '0_51': CcdData(name='0_51', id=110L,
+            '0_51': CcdData(name='0_51', id=110,
                             corners={(0, 0): CornerData(focalPlane=Point2D(-18010.05, -8574.42),
                                                         distEst=Point2D(862.2160156, 403.9590625)),
                                      (2047, 0): CornerData(focalPlane=Point2D(-15963.05, -8574.42),
@@ -540,7 +541,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(-18010.05, -4399.42),
                                                            distEst=Point2D(727.5949219, 4350.195879))}
                             ),
-            '0_52': CcdData(name='0_52', id=109L,
+            '0_52': CcdData(name='0_52', id=109,
                             corners={(0, 0): CornerData(focalPlane=Point2D(-15885.76, 9184.95),
                                                         distEst=Point2D(624.4396875, -362.8142578)),
                                      (2047, 0): CornerData(focalPlane=Point2D(-13838.76, 9184.95),
@@ -550,7 +551,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(-15885.76, 13359.95),
                                                            distEst=Point2D(823.6975, 3477.191602))}
                             ),
-            '0_53': CcdData(name='0_53', id=99L,
+            '0_53': CcdData(name='0_53', id=99,
                             corners={(0, 0): CornerData(focalPlane=Point2D(-15887.84211, 4943.897804),
                                                         distEst=Point2D(500.9638282, -156.4826744)),
                                      (2047, 0): CornerData(focalPlane=Point2D(-13840.84452, 4940.753974),
@@ -560,7 +561,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(-15881.43005, 9118.89288),
                                                            distEst=Point2D(623.3476186, 3817.66277))}
                             ),
-            '0_48': CcdData(name='0_48', id=111L,
+            '0_48': CcdData(name='0_48', id=111,
                             corners={(0, 0): CornerData(focalPlane=Point2D(-18010.05, 4719.86),
                                                         distEst=Point2D(733.1496094, -192.410293)),
                                      (2047, 0): CornerData(focalPlane=Point2D(-15963.05, 4719.86),
@@ -570,7 +571,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(-18010.05, 8894.86),
                                                            distEst=Point2D(870.3039062, 3744.948594))}
                             ),
-            '0_47': CcdData(name='0_47', id=90L,
+            '0_47': CcdData(name='0_47', id=90,
                             corners={(0, 0): CornerData(focalPlane=Point2D(-13761.22584, -12963.08046),
                                                         distEst=Point2D(578.9826165, 544.4212708)),
                                      (2047, 0): CornerData(focalPlane=Point2D(-11714.22587, -12962.75853),
@@ -580,7 +581,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(-13761.88244, -8788.080514),
                                                            distEst=Point2D(417.7001489, 4440.951543))}
                             ),
-            '0_46': CcdData(name='0_46', id=91L,
+            '0_46': CcdData(name='0_46', id=91,
                             corners={(0, 0): CornerData(focalPlane=Point2D(-13760.7931, -8489.075327),
                                                         distEst=Point2D(410.2430648, 250.6980263)),
                                      (2047, 0): CornerData(focalPlane=Point2D(-11713.79449, -8486.689765),
@@ -590,7 +591,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(-13765.65862, -4314.078162),
                                                            distEst=Point2D(318.4536276, 4274.000242))}
                             ),
-            '0_45': CcdData(name='0_45', id=92L,
+            '0_45': CcdData(name='0_45', id=92,
                             corners={(0, 0): CornerData(focalPlane=Point2D(-13761.21438, -4010.847464),
                                                         distEst=Point2D(315.2222636, 91.44717963)),
                                      (2047, 0): CornerData(focalPlane=Point2D(-11714.21438, -4010.777604),
@@ -600,7 +601,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(-13761.35686, 164.1525334),
                                                            distEst=Point2D(289.2098422, 4170.76516))}
                             ),
-            '0_44': CcdData(name='0_44', id=93L,
+            '0_44': CcdData(name='0_44', id=93,
                             corners={(0, 0): CornerData(focalPlane=Point2D(-13764.25409, 464.5587639),
                                                         distEst=Point2D(288.8147303, -9.979419954)),
                                      (2047, 0): CornerData(focalPlane=Point2D(-11717.25491, 462.7262176),
@@ -610,7 +611,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(-13760.51649, 4639.557091),
                                                            distEst=Point2D(325.0647927, 4065.284682))}
                             ),
-            '0_43': CcdData(name='0_43', id=94L,
+            '0_43': CcdData(name='0_43', id=94,
                             corners={(0, 0): CornerData(focalPlane=Point2D(-13760.85042, 4942.303208),
                                                         distEst=Point2D(328.6520019, -119.0418703)),
                                      (2047, 0): CornerData(focalPlane=Point2D(-11713.85046, 4941.890505),
@@ -620,7 +621,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(-13760.00868, 9117.303123),
                                                            distEst=Point2D(427.6276987, 3890.476917))}
                             ),
-            '0_42': CcdData(name='0_42', id=95L,
+            '0_42': CcdData(name='0_42', id=95,
                             corners={(0, 0): CornerData(focalPlane=Point2D(-13760.44201, 9416.868897),
                                                         distEst=Point2D(436.8173864, -300.4283846)),
                                      (2047, 0): CornerData(focalPlane=Point2D(-11713.44206, 9416.433451),
@@ -630,7 +631,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(-13759.55389, 13591.8688),
                                                            distEst=Point2D(608.8665588, 3570.931734))}
                             ),
-            '0_41': CcdData(name='0_41', id=84L,
+            '0_41': CcdData(name='0_41', id=84,
                             corners={(0, 0): CornerData(focalPlane=Point2D(-11636.5098, -12965.76477),
                                                         distEst=Point2D(409.8088641, 452.0563329)),
                                      (2047, 0): CornerData(focalPlane=Point2D(-9589.511643, -12963.02006),
@@ -640,7 +641,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(-11642.10783, -8790.768523),
                                                            distEst=Point2D(276.063161, 4382.689851))}
                             ),
-            '0_40': CcdData(name='0_40', id=85L,
+            '0_40': CcdData(name='0_40', id=85,
                             corners={(0, 0): CornerData(focalPlane=Point2D(-11637.7243, -8488.718558),
                                                         distEst=Point2D(270.2895332, 195.7771586)),
                                      (2047, 0): CornerData(focalPlane=Point2D(-9590.724473, -8487.883806),
@@ -650,7 +651,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(-11639.42684, -4313.718905),
                                                            distEst=Point2D(196.998477, 4247.506542))}
                             ),
-            '1_08': CcdData(name='1_08', id=42L,
+            '1_08': CcdData(name='1_08', id=42,
                             corners={(0, 0): CornerData(focalPlane=Point2D(3147.122857, 4412.436325),
                                                         distEst=Point2D(2035.727824, 4160.592926)),
                                      (2047, 0): CornerData(focalPlane=Point2D(1100.123168, 4411.307363),
@@ -660,7 +661,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(3149.425455, 237.43696),
                                                            distEst=Point2D(2043.555589, -0.02398432877))}
                             ),
-            '1_09': CcdData(name='1_09', id=43L,
+            '1_09': CcdData(name='1_09', id=43,
                             corners={(0, 0): CornerData(focalPlane=Point2D(3144.285627, 8890.427727),
                                                         distEst=Point2D(2014.860519, 4088.356268)),
                                      (2047, 0): CornerData(focalPlane=Point2D(1097.286501, 8888.535939),
@@ -670,7 +671,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(3148.144062, 4715.42951),
                                                            distEst=Point2D(2036.310334, -16.63455034))}
                             ),
-            '1_00': CcdData(name='1_00', id=26L,
+            '1_00': CcdData(name='1_00', id=26,
                             corners={(0, 0): CornerData(focalPlane=Point2D(7394.209937, 4410.526155),
                                                         distEst=Point2D(1986.95048, 4138.653619)),
                                      (2047, 0): CornerData(focalPlane=Point2D(5347.21008, 4411.291039),
@@ -680,7 +681,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(7392.649902, 235.5264462),
                                                            distEst=Point2D(2001.945671, -1.523018334))}
                             ),
-            '1_01': CcdData(name='1_01', id=27L,
+            '1_01': CcdData(name='1_01', id=27,
                             corners={(0, 0): CornerData(focalPlane=Point2D(7392.19439, 8889.614339),
                                                         distEst=Point2D(1937.08627, 4043.861947)),
                                      (2047, 0): CornerData(focalPlane=Point2D(5345.194746, 8888.407949),
@@ -690,7 +691,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(7394.654907, 4714.615064),
                                                            distEst=Point2D(1984.892707, -39.7568094))}
                             ),
-            '1_02': CcdData(name='1_02', id=28L,
+            '1_02': CcdData(name='1_02', id=28,
                             corners={(0, 0): CornerData(focalPlane=Point2D(7391.436746, 13366.03577),
                                                         distEst=Point2D(1849.605099, 3822.709281)),
                                      (2047, 0): CornerData(focalPlane=Point2D(5344.439658, 13362.58313),
@@ -700,7 +701,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(7398.478657, 9191.041711),
                                                            distEst=Point2D(1934.664461, -140.7115186))}
                             ),
-            '1_03': CcdData(name='1_03', id=29L,
+            '1_03': CcdData(name='1_03', id=29,
                             corners={(0, 0): CornerData(focalPlane=Point2D(7392.905759, 17840.92502),
                                                         distEst=Point2D(1719.116873, 3383.830314)),
                                      (2047, 0): CornerData(focalPlane=Point2D(5345.90583, 17841.46487),
@@ -710,7 +711,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(7391.804688, 13665.92516),
                                                            distEst=Point2D(1844.097876, -374.9423003))}
                             ),
-            '1_04': CcdData(name='1_04', id=34L,
+            '1_04': CcdData(name='1_04', id=34,
                             corners={(0, 0): CornerData(focalPlane=Point2D(5270.478272, 4410.689821),
                                                         distEst=Point2D(2019.447836, 4151.622841)),
                                      (2047, 0): CornerData(focalPlane=Point2D(3223.478364, 4411.303237),
@@ -720,7 +721,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(5269.227166, 235.690008),
                                                            distEst=Point2D(2029.992866, -0.8569789537))}
                             ),
-            '1_05': CcdData(name='1_05', id=35L,
+            '1_05': CcdData(name='1_05', id=35,
                             corners={(0, 0): CornerData(focalPlane=Point2D(5270.418189, 8887.644177),
                                                         distEst=Point2D(1985.44105, 4070.009133)),
                                      (2047, 0): CornerData(focalPlane=Point2D(3223.418585, 8888.917934),
@@ -730,7 +731,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(5267.820273, 4712.644986),
                                                            distEst=Point2D(2016.937767, -26.53351139))}
                             ),
-            '1_06': CcdData(name='1_06', id=36L,
+            '1_06': CcdData(name='1_06', id=36,
                             corners={(0, 0): CornerData(focalPlane=Point2D(5270.637876, 13363.44575),
                                                         distEst=Point2D(1924.631565, 3865.147042)),
                                      (2047, 0): CornerData(focalPlane=Point2D(3223.637876, 13363.42475),
@@ -740,7 +741,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(5270.680708, 9188.44575),
                                                            distEst=Point2D(1981.587717, -113.7331334))}
                             ),
-            '1_07': CcdData(name='1_07', id=37L,
+            '1_07': CcdData(name='1_07', id=37,
                             corners={(0, 0): CornerData(focalPlane=Point2D(5270.505554, 17841.03831),
                                                         distEst=Point2D(1832.151177, 3447.401001)),
                                      (2047, 0): CornerData(focalPlane=Point2D(3223.505696, 17841.80032),
@@ -750,7 +751,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(5268.951364, 13666.03859),
                                                            distEst=Point2D(1919.218114, -330.4070773))}
                             ),
-            '1_19': CcdData(name='1_19', id=61L,
+            '1_19': CcdData(name='1_19', id=61,
                             corners={(0, 0): CornerData(focalPlane=Point2D(-1099.239192, 17842.20504),
                                                         distEst=Point2D(2086.055144, 3509.988238)),
                                      (2047, 0): CornerData(focalPlane=Point2D(-3146.239094, 17841.57149),
@@ -760,7 +761,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(-1097.947018, 13667.20524),
                                                            distEst=Point2D(2069.388737, -286.7445801))}
                             ),
-            '1_18': CcdData(name='1_18', id=60L,
+            '1_18': CcdData(name='1_18', id=60,
                             corners={(0, 0): CornerData(focalPlane=Point2D(-1096.59387, 13366.28427),
                                                         distEst=Point2D(2067.968771, 3907.161913)),
                                      (2047, 0): CornerData(focalPlane=Point2D(-3143.593862, 13366.10523),
@@ -770,7 +771,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(-1096.228716, 9191.284282),
                                                            distEst=Point2D(2057.09881, -86.5475762))}
                             ),
-            '1_13': CcdData(name='1_13', id=51L,
+            '1_13': CcdData(name='1_13', id=51,
                             corners={(0, 0): CornerData(focalPlane=Point2D(1019.947169, 8891.04399),
                                                         distEst=Point2D(2035.64726, 4097.529405)),
                                      (2047, 0): CornerData(focalPlane=Point2D(-1027.049258, 8887.219264),
@@ -780,7 +781,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(1027.747965, 4716.051278),
                                                            distEst=Point2D(2046.049191, -11.59489843))}
                             ),
-            '1_12': CcdData(name='1_12', id=50L,
+            '1_12': CcdData(name='1_12', id=50,
                             corners={(0, 0): CornerData(focalPlane=Point2D(1018.568013, 4415.736128),
                                                         distEst=Point2D(2042.560502, 4165.480853)),
                                      (2047, 0): CornerData(focalPlane=Point2D(-1028.428678, 4412.055667),
@@ -790,7 +791,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(1026.074571, 240.7428765),
                                                            distEst=Point2D(2048.530467, 0.8419675765))}
                             ),
-            '1_11': CcdData(name='1_11', id=45L,
+            '1_11': CcdData(name='1_11', id=45,
                             corners={(0, 0): CornerData(focalPlane=Point2D(3146.311058, 17841.50181),
                                                         distEst=Point2D(1925.011025, 3489.57029)),
                                      (2047, 0): CornerData(focalPlane=Point2D(1099.311121, 17840.99262),
@@ -800,7 +801,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(3147.349595, 13666.50194),
                                                            distEst=Point2D(1977.435811, -300.9968066))}
                             ),
-            '1_10': CcdData(name='1_10', id=44L,
+            '1_10': CcdData(name='1_10', id=44,
                             corners={(0, 0): CornerData(focalPlane=Point2D(3146.477171, 13366.55809),
                                                         distEst=Point2D(1979.737237, 3893.472499)),
                                      (2047, 0): CornerData(focalPlane=Point2D(1099.477359, 13365.68032),
@@ -810,7 +811,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(3148.267453, 9191.558474),
                                                            distEst=Point2D(2014.353932, -95.38267094))}
                             ),
-            '1_17': CcdData(name='1_17', id=59L,
+            '1_17': CcdData(name='1_17', id=59,
                             corners={(0, 0): CornerData(focalPlane=Point2D(-1097.890016, 8889.981748),
                                                         distEst=Point2D(2056.470698, 4096.525238)),
                                      (2047, 0): CornerData(focalPlane=Point2D(-3144.890012, 8890.099411),
@@ -820,7 +821,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(-1098.129998, 4714.981755),
                                                            distEst=Point2D(2049.85442, -12.581399))}
                             ),
-            '1_16': CcdData(name='1_16', id=58L,
+            '1_16': CcdData(name='1_16', id=58,
                             corners={(0, 0): CornerData(focalPlane=Point2D(-1098.976974, 4412.437538),
                                                         distEst=Point2D(2049.39266, 4164.662861)),
                                      (2047, 0): CornerData(focalPlane=Point2D(-3145.976935, 4412.040755),
@@ -830,7 +831,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(-1098.167707, 237.4376165),
                                                            distEst=Point2D(2047.565082, 0.04331345836))}
                             ),
-            '1_15': CcdData(name='1_15', id=53L,
+            '1_15': CcdData(name='1_15', id=53,
                             corners={(0, 0): CornerData(focalPlane=Point2D(1023.652848, 17841.04794),
                                                         distEst=Point2D(2007.244192, 3510.355533)),
                                      (2047, 0): CornerData(focalPlane=Point2D(-1023.347031, 17840.34382),
@@ -840,7 +841,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(1025.08895, 13666.04818),
                                                            distEst=Point2D(2025.072794, -286.5675117))}
                             ),
-            '1_14': CcdData(name='1_14', id=52L,
+            '1_14': CcdData(name='1_14', id=52,
                             corners={(0, 0): CornerData(focalPlane=Point2D(1025.256261, 13366.29476),
                                                         distEst=Point2D(2026.468778, 3906.874405)),
                                      (2047, 0): CornerData(focalPlane=Point2D(-1021.74336, 13367.5411),
@@ -850,7 +851,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(1022.714264, 9191.295535),
                                                            distEst=Point2D(2036.407559, -86.8717776))}
                             ),
-            '0_10': CcdData(name='0_10', id=55L,
+            '0_10': CcdData(name='0_10', id=55,
                             corners={(0, 0): CornerData(focalPlane=Point2D(-3149.666409, -12964.52674),
                                                         distEst=Point2D(61.2528274, 256.5729098)),
                                      (2047, 0): CornerData(focalPlane=Point2D(-1102.667644, -12966.77599),
@@ -860,7 +861,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(-3145.07892, -8789.529265),
                                                            distEst=Point2D(31.40602552, 4259.733874))}
                             ),
-            '0_11': CcdData(name='0_11', id=54L,
+            '0_11': CcdData(name='0_11', id=54,
                             corners={(0, 0): CornerData(focalPlane=Point2D(-3148.296619, -17442.15835),
                                                         distEst=Point2D(114.5797059, 635.1874351)),
                                      (2047, 0): CornerData(focalPlane=Point2D(-1101.297129, -17443.60338),
@@ -870,7 +871,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(-3145.349377, -13267.15939),
                                                            distEst=Point2D(66.00511517, 4449.512325))}
                             ),
-            '0_12': CcdData(name='0_12', id=49L,
+            '0_12': CcdData(name='0_12', id=49,
                             corners={(0, 0): CornerData(focalPlane=Point2D(-1022.952934, -4013.390879),
                                                         distEst=Point2D(2.43866821, 7.948652945)),
                                      (2047, 0): CornerData(focalPlane=Point2D(1024.046999, -4012.867158),
@@ -880,7 +881,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(-1024.021098, 161.6089845),
                                                            distEst=Point2D(0.05276763412, 4174.837924))}
                             ),
-            '0_13': CcdData(name='0_13', id=48L,
+            '0_13': CcdData(name='0_13', id=48,
                             corners={(0, 0): CornerData(focalPlane=Point2D(-1024.288128, -8490.087164),
                                                         distEst=Point2D(8.263104113, 68.35460889)),
                                      (2047, 0): CornerData(focalPlane=Point2D(1022.711857, -8490.33846),
@@ -890,7 +891,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(-1023.775593, -4315.087196),
                                                            distEst=Point2D(2.580491795, 4184.91628))}
                             ),
-            '0_14': CcdData(name='0_14', id=47L,
+            '0_14': CcdData(name='0_14', id=47,
                             corners={(0, 0): CornerData(focalPlane=Point2D(-1026.219755, -12965.74754),
                                                         distEst=Point2D(19.81775632, 242.7552268)),
                                      (2047, 0): CornerData(focalPlane=Point2D(1020.780181, -12965.23719),
@@ -900,7 +901,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(-1027.260638, -8790.747667),
                                                            distEst=Point2D(8.753755222, 4250.544723))}
                             ),
-            '0_15': CcdData(name='0_15', id=46L,
+            '0_15': CcdData(name='0_15', id=46,
                             corners={(0, 0): CornerData(focalPlane=Point2D(-1025.375797, -17441.77452),
                                                         distEst=Point2D(36.40631446, 615.105638)),
                                      (2047, 0): CornerData(focalPlane=Point2D(1021.624142, -17442.27624),
@@ -910,7 +911,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(-1024.352518, -13266.77465),
                                                            distEst=Point2D(20.66100509, 4435.718972))}
                             ),
-            '0_16': CcdData(name='0_16', id=41L,
+            '0_16': CcdData(name='0_16', id=41,
                             corners={(0, 0): CornerData(focalPlane=Point2D(1099.809485, -4011.58186),
                                                         distEst=Point2D(-1.994859453, 7.880462232)),
                                      (2047, 0): CornerData(focalPlane=Point2D(3146.809406, -4011.014181),
@@ -920,7 +921,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(1098.651664, 163.41798),
                                                            distEst=Point2D(-0.6729293873, 4174.796243))}
                             ),
-            '0_17': CcdData(name='0_17', id=40L,
+            '0_17': CcdData(name='0_17', id=40,
                             corners={(0, 0): CornerData(focalPlane=Point2D(1097.949369, -8489.307795),
                                                         distEst=Point2D(-9.207590783, 68.44901109)),
                                      (2047, 0): CornerData(focalPlane=Point2D(3144.949267, -8489.956302),
@@ -930,7 +931,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(1099.272046, -4314.308004),
                                                            distEst=Point2D(-2.255171536, 4184.958953))}
                             ),
-            '0_18': CcdData(name='0_18', id=39L,
+            '0_18': CcdData(name='0_18', id=39,
                             corners={(0, 0): CornerData(focalPlane=Point2D(1095.158516, -12964.40792),
                                                         distEst=Point2D(-21.37623946, 243.513762)),
                                      (2047, 0): CornerData(focalPlane=Point2D(3142.15761, -12966.33347),
@@ -940,7 +941,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(1099.085811, -8789.409767),
                                                            distEst=Point2D(-8.535334679, 4251.141339))}
                             ),
-            '0_19': CcdData(name='0_19', id=38L,
+            '0_19': CcdData(name='0_19', id=38,
                             corners={(0, 0): CornerData(focalPlane=Point2D(1098.519416, -17441.37481),
                                                         distEst=Point2D(-38.53434064, 615.3505078)),
                                      (2047, 0): CornerData(focalPlane=Point2D(3145.519416, -17441.39557),
@@ -950,7 +951,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(1098.561752, -13266.37481),
                                                            distEst=Point2D(-21.32763697, 4435.833993))}
                             ),
-            '0_03': CcdData(name='0_03', id=70L,
+            '0_03': CcdData(name='0_03', id=70,
                             corners={(0, 0): CornerData(focalPlane=Point2D(-7398.978874, -17439.35792),
                                                         distEst=Point2D(310.4384228, 737.2031088)),
                                      (2047, 0): CornerData(focalPlane=Point2D(-5351.983675, -17443.79155),
@@ -960,7 +961,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(-7389.936171, -13264.36771),
                                                            distEst=Point2D(194.2296794, 4519.77479))}
                             ),
-            '0_02': CcdData(name='0_02', id=71L,
+            '0_02': CcdData(name='0_02', id=71,
                             corners={(0, 0): CornerData(focalPlane=Point2D(-7393.45656, -12965.40659),
                                                         distEst=Point2D(185.4588996, 323.5491966)),
                                      (2047, 0): CornerData(focalPlane=Point2D(-5346.45656, -12965.38023),
@@ -970,7 +971,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(-7393.510321, -8790.40659),
                                                            distEst=Point2D(107.2535586, 4302.116106))}
                             ),
-            '0_01': CcdData(name='0_01', id=72L,
+            '0_01': CcdData(name='0_01', id=72,
                             corners={(0, 0): CornerData(focalPlane=Point2D(-7391.575544, -8488.531402),
                                                         distEst=Point2D(102.9826353, 117.7573181)),
                                      (2047, 0): CornerData(focalPlane=Point2D(-5344.575551, -8488.365772),
@@ -980,7 +981,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(-7391.913358, -4313.531416),
                                                            distEst=Point2D(59.19992941, 4209.446593))}
                             ),
-            '0_00': CcdData(name='0_00', id=73L,
+            '0_00': CcdData(name='0_00', id=73,
                             corners={(0, 0): CornerData(focalPlane=Point2D(-7394.217511, -4014.197611),
                                                         distEst=Point2D(57.67714761, 30.81272062)),
                                      (2047, 0): CornerData(focalPlane=Point2D(-5347.217634, -4013.486789),
@@ -990,7 +991,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(-7395.667282, 160.8021371),
                                                            distEst=Point2D(43.8261057, 4173.472659))}
                             ),
-            '0_07': CcdData(name='0_07', id=62L,
+            '0_07': CcdData(name='0_07', id=62,
                             corners={(0, 0): CornerData(focalPlane=Point2D(-5268.081889, -17442.24336),
                                                         distEst=Point2D(205.8491036, 674.4618744)),
                                      (2047, 0): CornerData(focalPlane=Point2D(-3221.082182, -17441.14901),
@@ -1000,7 +1001,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(-5270.313893, -13267.24396),
                                                            distEst=Point2D(119.9010067, 4476.329711))}
                             ),
-            '0_06': CcdData(name='0_06', id=63L,
+            '0_06': CcdData(name='0_06', id=63,
                             corners={(0, 0): CornerData(focalPlane=Point2D(-5271.210247, -12965.71517),
                                                         distEst=Point2D(115.4215087, 282.7385084)),
                                      (2047, 0): CornerData(focalPlane=Point2D(-3224.210248, -12965.77449),
@@ -1010,7 +1011,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(-5271.089258, -8790.715171),
                                                            distEst=Point2D(60.92467845, 4276.284594))}
                             ),
-            '0_05': CcdData(name='0_05', id=64L,
+            '0_05': CcdData(name='0_05', id=64,
                             corners={(0, 0): CornerData(focalPlane=Point2D(-5271.15002, -8487.594968),
                                                         distEst=Point2D(57.29438632, 93.18830412)),
                                      (2047, 0): CornerData(focalPlane=Point2D(-3224.150294, -8488.654256),
@@ -1020,7 +1021,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(-5268.989528, -4312.595527),
                                                            distEst=Point2D(27.66749644, 4197.466909))}
                             ),
-            '0_04': CcdData(name='0_04', id=65L,
+            '0_04': CcdData(name='0_04', id=65,
                             corners={(0, 0): CornerData(focalPlane=Point2D(-5269.796706, -4012.090085),
                                                         distEst=Point2D(25.33668774, 19.74442241)),
                                      (2047, 0): CornerData(focalPlane=Point2D(-3222.796832, -4012.80936),
@@ -1030,7 +1031,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(-5268.329694, 162.9096577),
                                                            distEst=Point2D(16.72343407, 4174.519524))}
                             ),
-            '0_09': CcdData(name='0_09', id=56L,
+            '0_09': CcdData(name='0_09', id=56,
                             corners={(0, 0): CornerData(focalPlane=Point2D(-3146.128749, -8488.500224),
                                                         distEst=Point2D(28.57654018, 76.45892751)),
                                      (2047, 0): CornerData(focalPlane=Point2D(-1099.128751, -8488.419324),
@@ -1040,7 +1041,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(-3146.29375, -4313.500227),
                                                            distEst=Point2D(10.27865598, 4188.992005))}
                             ),
-            '0_08': CcdData(name='0_08', id=57L,
+            '0_08': CcdData(name='0_08', id=57,
                             corners={(0, 0): CornerData(focalPlane=Point2D(-3148.590604, -4013.670509),
                                                         distEst=Point2D(8.208625777, 12.58988342)),
                                      (2047, 0): CornerData(focalPlane=Point2D(-1101.592099, -4016.143902),
@@ -1050,7 +1051,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(-3143.545945, 161.3264434),
                                                            distEst=Point2D(5.119679773, 4175.408723))}
                             ),
-            '0_38': CcdData(name='0_38', id=87L,
+            '0_38': CcdData(name='0_38', id=87,
                             corners={(0, 0): CornerData(focalPlane=Point2D(-11642.82051, 462.88393),
                                                         distEst=Point2D(171.8752557, -6.839517614)),
                                      (2047, 0): CornerData(focalPlane=Point2D(-9595.82218, 460.2733025),
@@ -1060,7 +1061,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(-11637.49596, 4637.880535),
                                                            distEst=Point2D(202.2499515, 4094.870993))}
                             ),
-            '0_39': CcdData(name='0_39', id=86L,
+            '0_39': CcdData(name='0_39', id=86,
                             corners={(0, 0): CornerData(focalPlane=Point2D(-11639.2297, -4009.970728),
                                                         distEst=Point2D(193.9815758, 66.47112353)),
                                      (2047, 0): CornerData(focalPlane=Point2D(-9592.229699, -4010.087805),
@@ -1070,7 +1071,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(-11638.99091, 165.029265),
                                                            distEst=Point2D(172.851477, 4171.885194))}
                             ),
-            '0_36': CcdData(name='0_36', id=89L,
+            '0_36': CcdData(name='0_36', id=89,
                             corners={(0, 0): CornerData(focalPlane=Point2D(-11638.49884, 9416.504803),
                                                         distEst=Point2D(291.8448591, -237.5027538)),
                                      (2047, 0): CornerData(focalPlane=Point2D(-9591.499074, 9415.526307),
@@ -1080,7 +1081,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(-11636.50313, 13591.50433),
                                                            distEst=Point2D(432.957204, 3668.479327))}
                             ),
-            '0_37': CcdData(name='0_37', id=88L,
+            '0_37': CcdData(name='0_37', id=88,
                             corners={(0, 0): CornerData(focalPlane=Point2D(-11640.55, 4941.09659),
                                                         distEst=Point2D(203.951273, -87.26860698)),
                                      (2047, 0): CornerData(focalPlane=Point2D(-9593.55085, 4939.232826),
@@ -1090,7 +1091,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(-11636.74872, 9116.094859),
                                                            distEst=Point2D(285.4573852, 3951.504268))}
                             ),
-            '0_34': CcdData(name='0_34', id=78L,
+            '0_34': CcdData(name='0_34', id=78,
                             corners={(0, 0): CornerData(focalPlane=Point2D(-9512.728285, -12968.33478),
                                                         distEst=Point2D(281.8830556, 379.0058211)),
                                      (2047, 0): CornerData(focalPlane=Point2D(-7465.73029, -12965.46954),
@@ -1100,7 +1101,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(-9518.572139, -8793.338866),
                                                            distEst=Point2D(175.4859606, 4336.813676))}
                             ),
-            '0_35': CcdData(name='0_35', id=102L,
+            '0_35': CcdData(name='0_35', id=102,
                             corners={(0, 0): CornerData(focalPlane=Point2D(-8566.708974, -16375.56816),
                                                         distEst=Point2D(3455.53323, -410.4006279)),
                                      (2047, 0): CornerData(focalPlane=Point2D(-8568.828858, -14328.56926),
@@ -1110,7 +1111,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(-12741.70674, -16379.89181),
                                                            distEst=Point2D(-404.7767614, -215.9593408))}
                             ),
-            '0_32': CcdData(name='0_32', id=80L,
+            '0_32': CcdData(name='0_32', id=80,
                             corners={(0, 0): CornerData(focalPlane=Point2D(-9515.339295, -4011.46753),
                                                         distEst=Point2D(110.6566432, 46.56578884)),
                                      (2047, 0): CornerData(focalPlane=Point2D(-7468.339345, -4011.91726),
@@ -1120,7 +1121,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(-9514.422039, 163.5323695),
                                                            distEst=Point2D(94.04124907, 4172.923699))}
                             ),
-            '0_33': CcdData(name='0_33', id=79L,
+            '0_33': CcdData(name='0_33', id=79,
                             corners={(0, 0): CornerData(focalPlane=Point2D(-9514.177418, -8487.788926),
                                                         distEst=Point2D(171.6399183, 151.3931518)),
                                      (2047, 0): CornerData(focalPlane=Point2D(-7467.177894, -8486.391762),
@@ -1130,7 +1131,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(-9517.027032, -4312.789899),
                                                            distEst=Point2D(112.9034362, 4225.790387))}
                             ),
-            '0_30': CcdData(name='0_30', id=16L,
+            '0_30': CcdData(name='0_30', id=16,
                             corners={(0, 0): CornerData(focalPlane=Point2D(7465.218048, -12968.74997),
                                                         distEst=Point2D(-188.5258925, 327.0726469)),
                                      (2047, 0): CornerData(focalPlane=Point2D(9512.217648, -12970.02887),
@@ -1140,7 +1141,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(7467.826456, -8793.750784),
                                                            distEst=Point2D(-108.889393, 4304.259827))}
                             ),
-            '0_31': CcdData(name='0_31', id=100L,
+            '0_31': CcdData(name='0_31', id=100,
                             corners={(0, 0): CornerData(focalPlane=Point2D(8565.781569, -12201.66814),
                                                         distEst=Point2D(850.5081763, 3416.166062)),
                                      (2047, 0): CornerData(focalPlane=Point2D(8564.977078, -14248.66798),
@@ -1150,7 +1151,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(12740.78125, -12203.30896),
                                                            distEst=Point2D(4779.192911, 3549.894125))}
                             ),
-            '1_26': CcdData(name='1_26', id=76L,
+            '1_26': CcdData(name='1_26', id=76,
                             corners={(0, 0): CornerData(focalPlane=Point2D(-5342.664597, 13366.15742),
                                                         distEst=Point2D(2171.041875, 3864.032943)),
                                      (2047, 0): CornerData(focalPlane=Point2D(-7389.663827, 13367.93288),
@@ -1160,7 +1161,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(-5346.285776, 9191.158992),
                                                            distEst=Point2D(2111.969932, -114.5887524))}
                             ),
-            '1_27': CcdData(name='1_27', id=77L,
+            '1_27': CcdData(name='1_27', id=77,
                             corners={(0, 0): CornerData(focalPlane=Point2D(-5344.118928, 17842.34694),
                                                         distEst=Point2D(2263.081072, 3445.555576)),
                                      (2047, 0): CornerData(focalPlane=Point2D(-7391.118921, 17842.17767),
@@ -1170,7 +1171,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(-5343.773696, 13667.34696),
                                                            distEst=Point2D(2175.29066, -330.8314223))}
                             ),
-            '1_24': CcdData(name='1_24', id=74L,
+            '1_24': CcdData(name='1_24', id=74,
                             corners={(0, 0): CornerData(focalPlane=Point2D(-5344.973785, 4414.07769),
                                                         distEst=Point2D(2074.866056, 4151.636117)),
                                      (2047, 0): CornerData(focalPlane=Point2D(-7391.973694, 4413.467282),
@@ -1180,7 +1181,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(-5343.728814, 239.0778758),
                                                            distEst=Point2D(2064.368032, -0.7809125484))}
                             ),
-            '1_25': CcdData(name='1_25', id=75L,
+            '1_25': CcdData(name='1_25', id=75,
                             corners={(0, 0): CornerData(focalPlane=Point2D(-5344.753101, 8891.179182),
                                                         distEst=Point2D(2109.538594, 4069.965537)),
                                      (2047, 0): CornerData(focalPlane=Point2D(-7391.753095, 8891.020262),
@@ -1190,7 +1191,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(-5344.428972, 4716.179195),
                                                            distEst=Point2D(2076.841494, -26.46679045))}
                             ),
-            '1_22': CcdData(name='1_22', id=68L,
+            '1_22': CcdData(name='1_22', id=68,
                             corners={(0, 0): CornerData(focalPlane=Point2D(-3221.964693, 13365.24263),
                                                         distEst=Point2D(2113.568208, 3893.165552)),
                                      (2047, 0): CornerData(focalPlane=Point2D(-5268.964591, 13364.59895),
@@ -1200,7 +1201,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(-3220.651853, 9190.242841),
                                                            distEst=Point2D(2080.496008, -95.5519535))}
                             ),
-            '1_23': CcdData(name='1_23', id=69L,
+            '1_23': CcdData(name='1_23', id=69,
                             corners={(0, 0): CornerData(focalPlane=Point2D(-3218.029913, 17840.69773),
                                                         distEst=Point2D(2170.058768, 3488.427914)),
                                      (2047, 0): CornerData(focalPlane=Point2D(-5265.029286, 17842.29969),
@@ -1210,7 +1211,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(-3221.297218, 13665.69901),
                                                            distEst=Point2D(2116.274255, -301.7369766))}
                             ),
-            '1_20': CcdData(name='1_20', id=66L,
+            '1_20': CcdData(name='1_20', id=66,
                             corners={(0, 0): CornerData(focalPlane=Point2D(-3221.454857, 4412.866117),
                                                         distEst=Point2D(2057.755778, 4160.241627)),
                                      (2047, 0): CornerData(focalPlane=Point2D(-5268.454855, 4412.777958),
@@ -1220,7 +1221,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(-3221.275049, 237.8661212),
                                                            distEst=Point2D(2051.173021, -0.2999802449))}
                             ),
-            '1_21': CcdData(name='1_21', id=67L,
+            '1_21': CcdData(name='1_21', id=67,
                             corners={(0, 0): CornerData(focalPlane=Point2D(-3220.142285, 8890.754812),
                                                         distEst=Point2D(2078.618648, 4087.573025)),
                                      (2047, 0): CornerData(focalPlane=Point2D(-5267.142199, 8891.34825),
@@ -1230,7 +1231,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(-3221.352643, 4715.754987),
                                                            distEst=Point2D(2058.454879, -17.33960908))}
                             ),
-            '1_28': CcdData(name='1_28', id=81L,
+            '1_28': CcdData(name='1_28', id=81,
                             corners={(0, 0): CornerData(focalPlane=Point2D(-7469.062762, 4415.846645),
                                                         distEst=Point2D(2108.16038, 4138.312255)),
                                      (2047, 0): CornerData(focalPlane=Point2D(-9516.062762, 4415.864451),
@@ -1240,7 +1241,7 @@ def getVerificationData():
                                      (0, 4175): CornerData(focalPlane=Point2D(-7469.099079, 240.8466453),
                                                            distEst=Point2D(2092.516278, -1.866691739))}
                             ),
-            '1_29': CcdData(name='1_29', id=82L,
+            '1_29': CcdData(name='1_29', id=82,
                             corners={(0, 0): CornerData(focalPlane=Point2D(-7470.436585, 8890.447852),
                                                         distEst=Point2D(2156.331508, 4043.223084)),
                                      (2047, 0): CornerData(focalPlane=Point2D(-9517.436153, 8889.116647),

@@ -1,3 +1,4 @@
+from __future__ import print_function
 import lsst.afw.geom as afwGeom
 import lsst.afw.cameraGeom as afwCG
 
@@ -37,7 +38,7 @@ def ditherDES(camera, scale=4.5, names=False):
     xdither, ydither = [x*scale for x, y in positions], [y*scale for x, y in positions]
     x0, y0 = xdither[0], ydither[0]
     for x, y in zip(xdither, ydither):
-        print "%8.1f %8.1f   %8.1f %8.1f" % (x, y, x - x0, y - y0)
+        print("%8.1f %8.1f   %8.1f %8.1f" % (x, y, x - x0, y - y0))
         x0, y0 = x, y
 
     pyplot.clf()

@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import print_function
 import argparse
 import fnmatch
 import os
@@ -28,9 +29,9 @@ def main(butler, visits, fields, fieldRadius, showCCDs=False, aitoff=False, alph
     for v in _visits:
         try:
             exp = butler.get("raw", visit=v, ccd=49)
-        except RuntimeError, e:
+        except RuntimeError as e:
             if verbose:
-                print >> sys.stderr, e
+                print(e, file=sys.stderr)
             continue
 
         ccd = exp.getDetector()
@@ -76,7 +77,7 @@ def main(butler, visits, fields, fieldRadius, showCCDs=False, aitoff=False, alph
     for v, r, d in zip(visits, ra, dec):
         field = fields.get(v)
         if verbose:
-            print "Drawing %s %s         \r" % (v, field),
+            print("Drawing %s %s         \r" % (v, field), end=' ')
             sys.stdout.flush()
 
         if byFilter:
@@ -97,9 +98,9 @@ def main(butler, visits, fields, fieldRadius, showCCDs=False, aitoff=False, alph
             for ccd in butler.queryMetadata("raw", "visit", ["ccd"], visit=v):
                 try:
                     md = butler.get("raw_md", visit=v, ccd=ccd)
-                except RuntimeError, e:
+                except RuntimeError as e:
                     if verbose:
-                        print >> sys.stderr, e
+                        print(e, file=sys.stderr)
                     continue
 
                 width, height = md.get("NAXIS1"), md.get("NAXIS2")
@@ -173,17 +174,17 @@ E.g.
     if not args.dataDir:
         args.dataDir = os.environ.get("SUPRIME_DATA_DIR")
         if not args.dataDir:
-            print >> sys.stderr, "Please specify a dataDir (maybe in an inputFile) or set $SUPRIME_DATA_DIR"
+            print("Please specify a dataDir (maybe in an inputFile) or set $SUPRIME_DATA_DIR", file=sys.stderr)
             sys.exit(1)
 
     try:
         butler = dafPersist.Butler(args.dataDir)
     except RuntimeError as e:
-        print >> sys.stderr, "I couldn't instantiate a butler with root %s: %s" % (args.dataDir, e)
+        print("I couldn't instantiate a butler with root %s: %s" % (args.dataDir, e), file=sys.stderr)
         sys.exit(1)
 
     if not (args.visits or args.field or args.dateObs):
-        print >> sys.stderr, "Please choose a visit, field, and/or dateObs (and maybe a filter)"
+        print("Please choose a visit, field, and/or dateObs (and maybe a filter)", file=sys.stderr)
         sys.exit(1)
 
     visits = []
@@ -242,7 +243,7 @@ E.g.
                 visits.append(v)
 
     if not visits:
-        print >> sys.stderr, "You haven't provided any visits for me to process"
+        print("You haven't provided any visits for me to process", file=sys.stderr)
         sys.exit(1)
 
     fields = dict([(v, f) for v, f in fields.items() if v in visits])
@@ -250,14 +251,14 @@ E.g.
 
     if args.verbose:
         for v in visits:
-            print v, fields[v]
+            print(v, fields[v])
 
     fig = main(butler, visits, fields, args.fieldRadius, byFilter=args.byFilter, byVisit=args.byVisit,
                showCCDs=args.showCCDs, aitoff=args.aitoff, alpha=args.alpha, title="",
                verbose=args.verbose)
 
     if args.verbose:
-        print "                          \r",
+        print("                          \r", end=' ')
         sys.stdout.flush()
 
     if args.fileName:
