@@ -979,8 +979,8 @@ def mosaicIo(dirName, mosaics=None, mode=None):
 
     if mode == "r":
         import glob
-        for f in glob.glob(os.path.join(dirName, "*.fits")) + \
-                glob.glob(os.path.join(dirName, "*.fits.gz")):
+        files = glob.glob(os.path.join(dirName, "*.fits")) + glob.glob(os.path.join(dirName, "*.fits.gz"))
+        for f in files:
             v = re.search(r"^([^.]+)", os.path.basename(f)).group(1)
             try:
                 v = int(v)

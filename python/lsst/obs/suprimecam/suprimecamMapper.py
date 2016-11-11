@@ -1,11 +1,8 @@
-from builtins import map
 from builtins import zip
 from builtins import range
-#!/usr/bin/env python
 
 import os
 
-import lsst.daf.base as dafBase
 import lsst.afw.geom as afwGeom
 import lsst.afw.image.utils as afwImageUtils
 
@@ -224,7 +221,7 @@ class SuprimecamMapperBase(CameraMapper):
         return self._computeCcdExposureId(dataId)
 
     def bypass_ccdExposureId_bits(self, datasetType, pythonType, location, dataId):
-        return 32 # not really, but this leaves plenty of space for sources
+        return 32  # not really, but this leaves plenty of space for sources
 
     def map_linearizer(self, dataId, write=False):
         """Map a linearizer."""
@@ -279,7 +276,7 @@ class SuprimecamMapperBase(CameraMapper):
         tract = int(dataId['tract'])
         if tract < 0 or tract >= 128:
             raise RuntimeError('tract not in range [0,128)')
-        patchX, patchY = list(map(int, dataId['patch'].split(',')))
+        patchX, patchY = [int(patch) for patch in dataId['patch'].split(',')]
         for p in (patchX, patchY):
             if p < 0 or p >= 2**13:
                 raise RuntimeError('patch component not in range [0, 8192)')

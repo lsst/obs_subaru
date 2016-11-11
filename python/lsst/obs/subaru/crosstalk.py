@@ -245,8 +245,8 @@ def subtractXTalk(mi, coeffs, minPixelToMask=45000, crosstalkStr="CROSSTALK"):
 
         mi.getMask().addMaskPlane(crosstalkStr)
         afwDisplay.getDisplay().setMaskPlaneColor(crosstalkStr, afwDisplay.MAGENTA)
-        fs.setMask(mi.getMask(), crosstalkStr)  # the crosstalkStr bit will now be set whenever
-        # we subtract crosstalk
+        # the crosstalkStr bit will now be set whenever we subtract crosstalk
+        fs.setMask(mi.getMask(), crosstalkStr)
         crosstalk = mi.getMask().getPlaneBitMask(crosstalkStr)
 
         width, height = mi.getDimensions()

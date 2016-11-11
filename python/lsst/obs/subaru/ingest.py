@@ -57,8 +57,8 @@ class HscParseTask(ParseTask):
         field = md.get("OBJECT").strip()
         if field == "#":
             field = "UNKNOWN"
-        field = re.sub(r'\W', '_', field).upper()  # replacing inappropriate characters for file path
-        # and upper()
+        # replacing inappropriate characters for file path and upper()
+        field = re.sub(r'\W', '_', field).upper()
 
         return field
 
@@ -82,7 +82,7 @@ class HscParseTask(ParseTask):
                 raise RuntimeError("Unable to interpret FRAMEID: %s" % frameId)
             letter, visit = m.groups()
             visit = int(visit)
-            if visit % 2: # Odd?
+            if visit % 2:  # Odd?
                 visit -= 1
         return visit + 1000000*(ord(letter) - ord("A"))
 

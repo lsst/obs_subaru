@@ -68,7 +68,7 @@ def main(butler, visits, fields, fieldRadius, showCCDs=False, aitoff=False, alph
                             )
     else:
         ctypeKeys = {}
-        colors = list("rgbcmyk") + ["orange", "brown", "orchid"] # colours for ctypeKeys
+        colors = list("rgbcmyk") + ["orange", "brown", "orchid"]  # colours for ctypeKeys
 
     if aitoff:
         fieldRadius = np.radians(fieldRadius)
@@ -80,8 +80,7 @@ def main(butler, visits, fields, fieldRadius, showCCDs=False, aitoff=False, alph
     for v, r, d in zip(visits, ra, dec):
         field = fields.get(v)
         if verbose:
-            print("Drawing %s %s         \r" % (v, field), end=' ')
-            sys.stdout.flush()
+            print("Drawing %s %s         \r" % (v, field), end=' ', flush=True)
 
         if byFilter:
             facecolor = ctypes.get(field, ctypeFilters.get(filters[v], "gray"))
@@ -177,7 +176,8 @@ E.g.
     if not args.dataDir:
         args.dataDir = os.environ.get("SUPRIME_DATA_DIR")
         if not args.dataDir:
-            print("Please specify a dataDir (maybe in an inputFile) or set $SUPRIME_DATA_DIR", file=sys.stderr)
+            print("Please specify a dataDir (maybe in an inputFile) or set $SUPRIME_DATA_DIR",
+                  file=sys.stderr)
             sys.exit(1)
 
     try:
@@ -261,8 +261,7 @@ E.g.
                verbose=args.verbose)
 
     if args.verbose:
-        print("                          \r", end=' ')
-        sys.stdout.flush()
+        print("                          \r", end=' ', flush=True)
 
     if args.fileName:
         plt.savefig(args.fileName)

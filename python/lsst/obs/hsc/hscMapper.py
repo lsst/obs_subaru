@@ -1,9 +1,5 @@
-from builtins import map
-#!/usr/bin/env python
-
 import os
 
-import lsst.daf.base as dafBase
 from lsst.obs.base import CameraMapper
 from lsst.daf.persistence import ButlerLocation
 import lsst.afw.image.utils as afwImageUtils
@@ -223,7 +219,7 @@ Most chips are flipped L/R, but the rotated ones (100..103) are flipped T/B
 
     def bypass_ccdExposureId_bits(self, datasetType, pythonType, location, dataId):
         """How many bits are required for the maximum exposure ID"""
-        return 32 # just a guess, but this leaves plenty of space for sources
+        return 32  # just a guess, but this leaves plenty of space for sources
 
     def map_linearizer(self, dataId, write=False):
         """Map a linearizer."""
@@ -258,7 +254,7 @@ Most chips are flipped L/R, but the rotated ones (100..103) are flipped T/B
         tract = int(dataId['tract'])
         if tract < 0 or tract >= 2**HscMapper._nbit_tract:
             raise RuntimeError('tract not in range [0,%d)' % (2**HscMapper._nbit_tract))
-        patchX, patchY = list(map(int, dataId['patch'].split(',')))
+        patchX, patchY = [int(patch) for patch in dataId['patch'].split(',')]
         for p in (patchX, patchY):
             if p < 0 or p >= 2**HscMapper._nbit_patch:
                 raise RuntimeError('patch component not in range [0, %d)' % 2**HscMapper._nbit_patch)
