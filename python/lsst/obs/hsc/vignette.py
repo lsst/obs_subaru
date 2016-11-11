@@ -1,5 +1,6 @@
 from lsst.pex.config import Config, Field
 
+
 class VignetteConfig(Config):
     """
     Settings to define vignetting pattern

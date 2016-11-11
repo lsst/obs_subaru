@@ -21,6 +21,9 @@
 # the GNU General Public License along with this program.  If not,
 # see <https://www.lsstcorp.org/LegalNotices/>.
 #
+from __future__ import print_function
+from builtins import map
+from builtins import range
 import pyfits
 import sys
 import re
@@ -36,10 +39,11 @@ detCenterY = 0.5 * detsizeY  # pixels
 
 hack = True
 
+
 def getSecCenter(sec):
     sec = re.sub('\'', '', sec)
     sec = re.sub('\[|\:|\,|\]', ' ', sec)
-    fields = map(int, sec.split())
+    fields = list(map(int, sec.split()))
     # these indices run from 1..N
     # to run from 0..N-1 subtract off 2 from each sum
     return 0.5 * (fields[0] + fields[1] - 2), 0.5 * (fields[2] + fields[3] - 2)
@@ -59,6 +63,7 @@ def printCameraGeom(filename, buff):
     buff.write('    } \n')
     buff.write('} \n')
 
+
 def printAmpDefaults(buff):
     # http://cfht.hawaii.edu/Instruments/Imaging/MegaPrime/rawdata.html
     #
@@ -71,6 +76,7 @@ def printAmpDefaults(buff):
     buff.write('    overclockH: 32 \n')
     buff.write('    overclockV: 32 \n')
     buff.write('} \n')
+
 
 def printCcdAmpDefaults(buff):
     # Depending on how much we need to undo the imsplice operation
@@ -103,6 +109,7 @@ def printCcdAmpDefaults(buff):
     buff.write('        readoutCorner: LRC \n')
     buff.write('    } \n')
     buff.write('} \n')
+
 
 def printCcdDiskLayout(buff):
     buff.write('CcdDiskLayout: { \n')
@@ -148,6 +155,7 @@ def printRaftCcdGeom(buff, ccdId, ccdname, xidx, yidx, xpos, ypos):
     buff.write('        nQuarter: 0 \n')
     buff.write('        orientation: 0.000000 0.000000 0.000000 \n')
     buff.write('    } \n')
+
 
 def printElectronics(buff, ccdId, ccdname, xidx, yidx, infoA, infoB):
     # http://www.cfht.hawaii.edu/Instruments/Imaging/Megacam/specsinformation.html
@@ -215,11 +223,11 @@ if __name__ == '__main__':
     # everything else.  Raft w.r.t. boresight; CCD w.r.t. Raft center; Amp
     # w.r.t CCD center.
 
-    buffCamera  = open('Camera.paf', 'w')
+    buffCamera = open('Camera.paf', 'w')
     buffElectro = open('Electronics.paf', 'w')
 
     infile = sys.argv[1]           # full MEF file; e.g. 871034p.fits
-    ptr    = pyfits.open(infile)
+    ptr = pyfits.open(infile)
 
     printCameraGeom(infile, buffCamera)
     printAmpDefaults(buffCamera)
@@ -228,29 +236,29 @@ if __name__ == '__main__':
 
     # 0th layer is pure metadata
     for ccd in range(1, len(ptr)):
-    #for ccd in [1, 28]:
-        ccdId        = ptr[ccd].header['EXTVER']
-        ccdBoundary  = ptr[ccd].header['DETSEC']
-        ccdName      = ptr[ccd].header['CCDNAME']
+        #for ccd in [1, 28]:
+        ccdId = ptr[ccd].header['EXTVER']
+        ccdBoundary = ptr[ccd].header['DETSEC']
+        ccdName = ptr[ccd].header['CCDNAME']
         amp1Boundary = ptr[ccd].header['DETSECA']
         amp2Boundary = ptr[ccd].header['DETSECB']
 
         ccdxc, ccdyc = getSecCenter(ccdBoundary)
-        xpos         = (ccdxc - detCenterX) * cfhtPixelScale
-        ypos         = (ccdyc - detCenterY) * cfhtPixelScale
+        xpos = (ccdxc - detCenterX) * cfhtPixelScale
+        ypos = (ccdyc - detCenterY) * cfhtPixelScale
 
-        gain1        = ptr[ccd].header['GAINA']
-        gain2        = ptr[ccd].header['GAINB']
+        gain1 = ptr[ccd].header['GAINA']
+        gain2 = ptr[ccd].header['GAINB']
 
-        rdnoise1     = ptr[ccd].header['RDNOISEA']
-        rdnoise2     = ptr[ccd].header['RDNOISEB']
+        rdnoise1 = ptr[ccd].header['RDNOISEA']
+        rdnoise2 = ptr[ccd].header['RDNOISEB']
 
         # assume non-linear = saturation since we have no non-linearity curves
-        saturate1    = ptr[ccd].header['MAXLINA']
-        saturate2    = ptr[ccd].header['MAXLINB']
+        saturate1 = ptr[ccd].header['MAXLINA']
+        saturate2 = ptr[ccd].header['MAXLINB']
 
-        print ccdId, ccdBoundary, amp1Boundary, amp2Boundary, gain1, gain2, rdnoise1, rdnoise2, \
-            saturate1, saturate2
+        print(ccdId, ccdBoundary, amp1Boundary, amp2Boundary, gain1, gain2,
+              rdnoise1, rdnoise2, saturate1, saturate2)
 
         # flip y
         xidx = ccdId % 9

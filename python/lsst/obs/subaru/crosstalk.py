@@ -32,6 +32,9 @@ coeffs, coeffsErr = crosstalk.estimateCoeffs(butler, range(131634, 131642), rang
                                              plot=True, title="CCD0..9", fig=1)
 crosstalk.fixCcd(butler, 131634, 0, coeffs)
 """
+from __future__ import print_function
+from builtins import next
+from builtins import range
 import sys
 import math
 import time
@@ -41,29 +44,31 @@ import numpy as np
 import lsst.afw.detection as afwDetect
 import lsst.afw.geom as afwGeom
 import lsst.afw.image as afwImage
-import lsst.afw.math  as afwMath
+import lsst.afw.math as afwMath
 import lsst.pipe.base as pipeBase
 import lsst.pex.config as pexConfig
 import lsst.afw.display as afwDisplay
+from functools import reduce
+
 
 class CrosstalkCoeffsConfig(pexConfig.Config):
     """Specify crosstalk coefficients for a CCD"""
 
     values = pexConfig.ListField(
-        dtype = float,
-        doc = "Crosstalk coefficients",
-        default = [0, 0, 0, 0,
-                   0, 0, 0, 0,
-                   0, 0, 0, 0,
-                   0, 0, 0, 0],
+        dtype=float,
+        doc="Crosstalk coefficients",
+        default=[0, 0, 0, 0,
+                 0, 0, 0, 0,
+                 0, 0, 0, 0,
+                 0, 0, 0, 0],
     )
     shape = pexConfig.ListField(
-        dtype = int,
-        doc = "Shape of coeffs array",
-        default = [4, 4],
-        minLength = 1,                  # really 2, but there's a bug in pex_config
-        maxLength = 2,
-        )
+        dtype=int,
+        doc="Shape of coeffs array",
+        default=[4, 4],
+        minLength=1,                  # really 2, but there's a bug in pex_config
+        maxLength=2,
+    )
 
     def getCoeffs(self):
         """Return a 2-D numpy array of crosstalk coefficients of the proper shape"""
@@ -76,6 +81,7 @@ class CrosstalkConfig(pexConfig.Config):
     crosstalkMaskPlane = pexConfig.Field(dtype=str, default="CROSSTALK", doc="Name for crosstalk mask plane")
     coeffs = pexConfig.ConfigField(dtype=CrosstalkCoeffsConfig, doc="Crosstalk coefficients")
 
+
 class CrosstalkTask(pipeBase.Task):
     ConfigClass = CrosstalkConfig
 
@@ -86,6 +92,7 @@ class CrosstalkTask(pipeBase.Task):
 
 
 nAmp = 4
+
 
 def getXPos(width, hwidth, x):
     """Return the amp that x is in, and the positions of its image in each amplifier"""
@@ -150,12 +157,13 @@ def getAmplitudeRatios(mi, threshold=45000, bkgd=None, rats=None):
                         if False:
                             foo = (img.get(_x, y) - bkgd)/val
                             if np.abs(foo) < 1e-5:
-                                print img.get(_x, y) - bkgd, val
+                                print(img.get(_x, y) - bkgd, val)
                                 mi.getMask().set(_x, y, 0x100)
 
                         rats[amp][a].append((img.get(_x, y) - bkgd)/val)
 
     return rats
+
 
 def calculateCoeffs(rats, nsigma, plot=False, fig=None, title=None):
     """Calculate cross-talk coefficients"""
@@ -169,7 +177,7 @@ def calculateCoeffs(rats, nsigma, plot=False, fig=None, title=None):
         fig = getMpFigure(fig, clear=True)
         subplots = makeSubplots(fig, nAmp, nAmp)
 
-        rMin=2e-3
+        rMin = 2e-3
         bins = np.arange(-rMin, rMin, 0.05*rMin)
 
         xMajorLocator = ticker.MaxNLocator(nbins=3) # steps=(-rMin/2, 0, rMin/2))
@@ -195,7 +203,7 @@ def calculateCoeffs(rats, nsigma, plot=False, fig=None, title=None):
             coeffsErr[ain][aout] = err
 
             if plot:
-                axes = subplots.next()
+                axes = next(subplots)
                 axes.xaxis.set_major_locator(xMajorLocator)
 
                 if ain != aout:
@@ -205,8 +213,8 @@ def calculateCoeffs(rats, nsigma, plot=False, fig=None, title=None):
                 axes.axvline(0, linestyle="--", color="green")
                 axes.axvline(coeffs[ain][aout], linestyle="-", color="blue")
                 for i in (-1, 1):
-                    axes.axvline(coeffs[ain][aout] + i*coeffsErr[ain][aout] , linestyle=":", color="cyan")
-                axes.text(-0.9*rMin,0.8*axes.get_ylim()[1], r"%.1e" % coeffs[ain][aout], fontsize="smaller")
+                    axes.axvline(coeffs[ain][aout] + i*coeffsErr[ain][aout], linestyle=":", color="cyan")
+                axes.text(-0.9*rMin, 0.8*axes.get_ylim()[1], r"%.1e" % coeffs[ain][aout], fontsize="smaller")
                 axes.set_xlim(-1.05*rMin, 1.05*rMin)
 
     if plot:
@@ -215,6 +223,7 @@ def calculateCoeffs(rats, nsigma, plot=False, fig=None, title=None):
         fig.show()
 
     return coeffs, coeffsErr
+
 
 def subtractXTalk(mi, coeffs, minPixelToMask=45000, crosstalkStr="CROSSTALK"):
     """Subtract the crosstalk from MaskedImage mi given a set of coefficients
@@ -236,8 +245,8 @@ def subtractXTalk(mi, coeffs, minPixelToMask=45000, crosstalkStr="CROSSTALK"):
 
         mi.getMask().addMaskPlane(crosstalkStr)
         afwDisplay.getDisplay().setMaskPlaneColor(crosstalkStr, afwDisplay.MAGENTA)
-        fs.setMask(mi.getMask(), crosstalkStr)  # the crosstalkStr bit will now be set whenever
-                                                # we subtract crosstalk
+        # the crosstalkStr bit will now be set whenever we subtract crosstalk
+        fs.setMask(mi.getMask(), crosstalkStr)
         crosstalk = mi.getMask().getPlaneBitMask(crosstalkStr)
 
         width, height = mi.getDimensions()
@@ -282,10 +291,10 @@ def printCoeffs(coeffs, coeffsErr=None, LaTeX=False, ppm=False):
     """Print cross-talk coefficients"""
 
     if LaTeX:
-        print r"""\begin{tabular}{l|*{4}{l}}
+        print(r"""\begin{tabular}{l|*{4}{l}}
 ampIn    &    \multicolumn{4}{c}{ampOut} \\
      &    0              &    1              &     2             &    3           \\
-\hline"""
+\hline""")
         for ain in range(nAmp):
             msg = "%-4d " % ain
             for aout in range(nAmp):
@@ -300,22 +309,22 @@ ampIn    &    \multicolumn{4}{c}{ampOut} \\
                             msg += r"$\pm$ %s%d " % (r"$\phantom{0}$" if val < 10 else "", val)
                     else:
                         msg += r"$\pm$ %7.1e " % (coeffsErr[ain][aout])
-            print msg + r" \\"
-        print r"\end{tabular}"
+            print(msg + r" \\")
+        print(r"\end{tabular}")
 
         return
 
-    print "ampIn                   ",
+    print("ampIn                   ", end=' ')
     if coeffsErr is not None:
-        print "                         ",
-    print "ampOut"
+        print("                         ", end=' ')
+    print("ampOut")
 
     msg = "%-4s " % ""
     for aout in range(nAmp):
         msg += "       %d    " % aout
         if coeffsErr is not None:
             msg += "%11s" % ""
-    print msg
+    print(msg)
     for ain in range(nAmp):
         msg = "%-4d " % ain
         for aout in range(nAmp):
@@ -323,16 +332,17 @@ ampIn    &    \multicolumn{4}{c}{ampOut} \\
             if coeffsErr is not None:
                 msg += " +- %7.1e" % coeffsErr[ain][aout]
 
-        print msg
+        print(msg)
 
 #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 #
 # Code to simulate crosstalk
 #
-xTalkAmplitudes = np.array([(      0, -1.0e-4,  -2.0e-4, -3.0e-4), # cross talk from amp0 to amp1, 2, 3
-                            (-1.5e-4,       0,  -2.5e-4, -2.9e-4),
-                            (-2.2e-4, -3.1e-4,        0, -0.9e-4),
-                            (-2.7e-4, -3.3e-4, -1.9e-4,        0)]) # ... from amp 3
+xTalkAmplitudes = np.array([(0, -1.0e-4, -2.0e-4, -3.0e-4), # cross talk from amp0 to amp1, 2, 3
+                            (-1.5e-4, 0, -2.5e-4, -2.9e-4),
+                            (-2.2e-4, -3.1e-4, 0, -0.9e-4),
+                            (-2.7e-4, -3.3e-4, -1.9e-4, 0)]) # ... from amp 3
+
 
 def addTrail(mi, val, x0, y0, pix, addCrosstalk=True):
     width = mi.getWidth()
@@ -355,19 +365,21 @@ def addTrail(mi, val, x0, y0, pix, addCrosstalk=True):
 
     mi += xtalk
 
+
 def addSaturated(mi, addCrosstalk=True):
     trail1 = 6*[(0, 2)] + 4*[(-1, 3)] + 4*[(-2, 4)] + 3*[(-1, 3)] + 4*[(0, 2)]
     trail2 = 12*[(0, 2)] + 8*[(-1, 3)] + 4*[(-2, 4)] + 4*[(-3, 6)] + 3*[(-2, 5)] + 3*[(-1, 3)] + 10*[(0, 2)]
 
     addTrail(mi, 48000, 300, 350, trail1, addCrosstalk)
     addTrail(mi, 50000, 100, 450, trail1, addCrosstalk)
-    addTrail(mi, 60000,  50, 550, trail1, addCrosstalk)
+    addTrail(mi, 60000, 50, 550, trail1, addCrosstalk)
     addTrail(mi, 52000, 450, 650, trail1, addCrosstalk)
 
     addTrail(mi, 60000, 100, 300, trail2, addCrosstalk)
     addTrail(mi, 50000, 200, 400, trail2, addCrosstalk)
     addTrail(mi, 46000, 300, 500, trail2, addCrosstalk)
     addTrail(mi, 48000, 400, 600, trail2, addCrosstalk)
+
 
 def makeImage(width=500, height=1000):
     mi = afwImage.MaskedImageF(width, height)
@@ -385,13 +397,15 @@ def makeImage(width=500, height=1000):
 
     return mi
 
+
 def readImage(butler, **kwargs):
     try:
         return butler.get("calexp", **kwargs).getMaskedImage()
-    except Exception, e:
-        print e
+    except Exception as e:
+        print(e)
         import pdb
         pdb.set_trace()
+
 
 def makeList(x):
     try:
@@ -399,6 +413,7 @@ def makeList(x):
         return x
     except TypeError:
         return [x]
+
 
 def estimateCoeffs(butler, visitList, ccdList, threshold=45000, nSample=1, plot=False, fig=None, title=None):
     rats = None
@@ -413,11 +428,12 @@ def estimateCoeffs(butler, visitList, ccdList, threshold=45000, nSample=1, plot=
 
     return calculateCoeffs(rats, nsigma=2, plot=plot, title=title, fig=fig)
 
+
 def main(butler, visit=131634, ccd=None, threshold=45000, nSample=1, showCoeffs=True, fixXTalk=True,
-                       plot=False, title=None):
+         plot=False, title=None):
     if ccd is None:
-        visitList = range(nSample)
-        ccdList = ["simulated",]
+        visitList = list(range(nSample))
+        ccdList = ["simulated", ]
     else:
         ccdList = makeList(ccd)
         visitList = makeList(visit)
@@ -441,12 +457,14 @@ except ImportError:
 try:
     mpFigures
 except NameError:
-    mpFigures = {0 : None}              # matplotlib (actually pyplot) figures
+    mpFigures = {0: None}              # matplotlib (actually pyplot) figures
+
 
 def makeSubplots(figure, nx=2, ny=2):
     """Return a generator of a set of subplots"""
     for window in range(nx*ny):
         yield figure.add_subplot(nx, ny, window + 1) # 1-indexed
+
 
 def getMpFigure(fig=None, clear=True):
     """Return a pyplot figure(); if fig is supplied save it and make it the default
@@ -469,19 +487,19 @@ def getMpFigure(fig=None, clear=True):
                 i = sorted(mpFigures.keys())[i] # simulate list's [-n] syntax
             except IndexError:
                 if mpFigures:
-                    print >> sys.stderr, "Illegal index: %d" % i
+                    print("Illegal index: %d" % i, file=sys.stderr)
                 i = 1
 
         def lift(fig):
             fig.canvas._tkcanvas._root().lift() # == Tk's raise, but raise is a python reserved word
 
-        if mpFigures.has_key(i):
+        if i in mpFigures:
             try:
                 lift(mpFigures[i])
             except Exception:
                 del mpFigures[i]
 
-        if not mpFigures.has_key(i):
+        if i not in mpFigures:
             for j in range(1, i):
                 getMpFigure(j)
 
@@ -489,6 +507,7 @@ def getMpFigure(fig=None, clear=True):
             #
             # Modify pyplot.figure().show() to make it raise the plot too
             #
+
             def show(self, _show=mpFigures[i].show):
                 _show(self)
                 try:
@@ -514,6 +533,7 @@ def getMpFigure(fig=None, clear=True):
     pyplot.figure(fig.number)           # make it active
 
     return fig
+
 
 def fixCcd(butler, visit, ccd, coeffs, display=True):
     """Apply cross-talk correction to a CCD, given the cross-talk coefficients"""

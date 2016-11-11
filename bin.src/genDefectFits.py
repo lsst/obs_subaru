@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
 import sys
 import os.path
 import re
@@ -13,6 +14,7 @@ from lsst.obs.suprimecam import SuprimecamMapper, SuprimecamMapperMit
 
 Defect = collections.namedtuple('Defect', ['x0', 'y0', 'width', 'height'])
 mapperMap = {'hsc': HscMapper, 'suprimecam': SuprimecamMapper, 'suprimecam_mit': SuprimecamMapperMit}
+
 
 def genDefectFits(cameraName, source, targetDir):
     mapper = mapperMap[cameraName.lower()](root=".")
@@ -32,16 +34,16 @@ def genDefectFits(cameraName, source, targetDir):
             continue
         ccd, x0, y0, width, height = re.split("\s+", line)
         ccd = int(ccd)
-        if not ccds.has_key(ccd):
+        if ccd not in ccds:
             raise RuntimeError("Unrecognised ccd: %d" % ccd)
-        if not defects.has_key(ccd):
+        if ccd not in defects:
             defects[ccd] = list()
         defects[ccd].append(Defect(x0=int(x0), y0=int(y0), width=int(width), height=int(height)))
     f.close()
 
     for ccd in ccds:
         # Make empty defect FITS file for CCDs with no defects
-        if not defects.has_key(ccd):
+        if ccd not in defects:
             defects[ccd] = list()
 
         columns = list()
@@ -56,12 +58,12 @@ def genDefectFits(cameraName, source, targetDir):
         table.header['NAME'] = ccd
 
         name = os.path.join(targetDir, "defects_%d.fits" % ccd)
-        print "Writing %d defects from CCD %d (%s) to %s" % (table.header['NAXIS2'], ccd, ccds[ccd], name)
+        print("Writing %d defects from CCD %d (%s) to %s" % (table.header['NAXIS2'], ccd, ccds[ccd], name))
         if os.path.exists(name):
             if args.force:
                 os.unlink(name)
             else:
-                print >> sys.stderr, "File %s already exists; use --force to overwrite" % name
+                print("File %s already exists; use --force to overwrite" % name, file=sys.stderr)
                 continue
 
         table.writeto(name)

@@ -45,6 +45,7 @@ try:
 except lsst.pex.exceptions.NotFoundError as err:
     testDataDirectory = None
 
+
 def createDataRepository(mapperName, inputPath):
     """
     Construct a data repository for a particular mapper containing a given set

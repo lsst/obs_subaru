@@ -1,3 +1,4 @@
+from __future__ import print_function
 # Enable CModel mags (unsetup meas_multifit or use $MEAS_MULTIFIT_DIR/config/disable.py to disable)
 # 'config' is a SourceMeasurementConfig.
 import os
@@ -7,4 +8,4 @@ try:
     config.measurement.slots.modelFlux = 'modelfit_CModel'
     config.catalogCalculation.plugins['base_ClassificationExtendedness'].fluxRatio = 0.985
 except (KeyError, ImportError):
-    print "Cannot import lsst.meas.modelfit: disabling CModel measurements"
+    print("Cannot import lsst.meas.modelfit: disabling CModel measurements")

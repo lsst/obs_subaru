@@ -1,6 +1,7 @@
 """
 Subaru-specific overrides for ProcessCcdTask (applied before SuprimeCam- and HSC-specific overrides).
 """
+from __future__ import print_function
 import os.path
 
 from lsst.utils import getPackageDir
@@ -23,7 +24,7 @@ try:
     config.charImage.measurePsf.psfDeterminer["psfex"].spatialOrder = 2
     config.charImage.measurePsf.psfDeterminer.name = "psfex"
 except ImportError as e:
-    print "WARNING: Unable to use psfex: %s" % e
+    print("WARNING: Unable to use psfex: %s" % e)
     config.charImage.measurePsf.psfDeterminer.name = "pca"
 
 # Astrometry
@@ -37,10 +38,10 @@ config.calibrate.catalogCalculation.plugins['base_ClassificationExtendedness'].f
 config.calibrate.photoCal.applyColorTerms = True
 
 from lsst.pipe.tasks.setConfigFromEups import setConfigFromEups
-menu = { "ps1*": {}, # Defaults are fine
-         "sdss*": {"refObjLoader.filterMap": {"y": "z"}}, # No y-band, use z instead
-         "2mass*": {"refObjLoader.filterMap": {ff: "J" for ff in "grizy"}}, # No optical bands, use J instead
-         "10*": {}, # Match the empty astrometry_net_data version for use without a ref catalog
+menu = {"ps1*": {}, # Defaults are fine
+        "sdss*": {"refObjLoader.filterMap": {"y": "z"}}, # No y-band, use z instead
+        "2mass*": {"refObjLoader.filterMap": {ff: "J" for ff in "grizy"}}, # No optical bands, use J instead
+        "10*": {}, # Match the empty astrometry_net_data version for use without a ref catalog
         }
 setConfigFromEups(config.calibrate.photoCal, config.calibrate, menu)
 

@@ -1,4 +1,7 @@
 #!/usr/bin/env python
+from __future__ import print_function
+from builtins import zip
+from builtins import range
 import argparse
 import os
 import re
@@ -13,13 +16,14 @@ import lsst.afw.cameraGeom as cameraGeom
 import lsst.daf.persistence as dafPersist
 import lsst.obs.hscSim as hscSim
 
+
 def getNumDataGrids(xArr, yArr, dataArr, xs, ys):
     """
     xs = [[0,0,..,0][1,1,..,1][2,2,..,2],..,[n,n,..,n]]
     ys = [[0,1,..,n][0,1,..,n][0,1,..,n],..,[0,1,..,n]]
     """
 
-    gridWidth  = xs[1][0] - xs[0][0]
+    gridWidth = xs[1][0] - xs[0][0]
     gridHeight = ys[0][1] - ys[0][0]
     nx = len(xs)
     ny = len(ys)
@@ -95,7 +99,7 @@ def main(dataDir, visit, title="", outputTxtFileName=None,
                 if ccd is None:
                     ccd = ccds[int(fields[0])]
 
-                x, y, fwhm, ell, pa, a, b  = fields[1:8]
+                x, y, fwhm, ell, pa, a, b = fields[1:8]
                 x, y = ccd.getPositionFromPixel(afwGeom.PointD(x, y)).getMm()
                 xArr.append(x)
                 yArr.append(y)
@@ -109,7 +113,9 @@ def main(dataDir, visit, title="", outputTxtFileName=None,
                     e2 = fields[9]
                     elle1e2 = fields[10]
                 else:
-                    e1 = -9999.; e2 = -9999. ; elle1e2 = -9999.
+                    e1 = -9999.
+                    e2 = -9999.
+                    elle1e2 = -9999.
                 e1Arr.append(e1)
                 e2Arr.append(e2)
                 elle1e2Arr.append(elle1e2)
@@ -125,7 +131,6 @@ def main(dataDir, visit, title="", outputTxtFileName=None,
     e1Arr = np.array(e1Arr)
     e2Arr = np.array(e2Arr)
     elle1e2Arr = np.array(elle1e2Arr)
-
 
     if correctDistortion:
         import lsst.afw.geom.ellipses as afwEllipses
@@ -148,16 +153,16 @@ def main(dataDir, visit, title="", outputTxtFileName=None,
     else:
         N = gridPoints*1j
         extent = [min(xArr), max(xArr), min(yArr), max(yArr)]
-        xs,ys = np.mgrid[extent[0]:extent[1]:N, extent[2]:extent[3]:N]
+        xs, ys = np.mgrid[extent[0]:extent[1]:N, extent[2]:extent[3]:N]
 
-    title = [title,]
+    title = [title, ]
 
     title.append("\n#")
 
     if outputTxtFileName:
         f = open(outputTxtFileName, 'w')
         f.write("# %s visit %s\n" % (" ".join(title), visit))
-        for x, y, ell, fwhm, pa, a, b, e1, e2, elle1e2 in zip(xArr, yArr,  ellArr, fwhmArr, paArr, aArr, bArr, e1Arr, e2Arr, elle1e2Arr):
+        for x, y, ell, fwhm, pa, a, b, e1, e2, elle1e2 in zip(xArr, yArr, ellArr, fwhmArr, paArr, aArr, bArr, e1Arr, e2Arr, elle1e2Arr):
             f.write('%f %f %f %f %f %f %f %f %f %f\n' % (x, y, ell, fwhm, pa, a, b, e1, e2, elle1e2))
 
     if showFwhm:
@@ -186,8 +191,8 @@ def main(dataDir, visit, title="", outputTxtFileName=None,
         if ellipticityDirection:        # we don't care about the magnitude
             ellArr = 0.1
 
-        u =  -ellArr*np.cos(paArr)
-        v =  -ellArr*np.sin(paArr)
+        u = -ellArr*np.cos(paArr)
+        v = -ellArr*np.sin(paArr)
         if gridPoints > 0:
             u = griddata(xArr, yArr, u, xs, ys)
             v = griddata(xArr, yArr, v, xs, ys)
@@ -223,7 +228,8 @@ def main(dataDir, visit, title="", outputTxtFileName=None,
         title.append("N per fwhm grid")
         if len(xs) > 0:
             ndataGrids = getNumDataGrids(xArr, yArr, fwhmArr, xs, ys)
-            plt.imshow(ndataGrids, interpolation='nearest', extent=extent, vmin=minNdata, vmax=maxNdata, origin='lower')
+            plt.imshow(ndataGrids, interpolation='nearest', extent=extent,
+                       vmin=minNdata, vmax=maxNdata, origin='lower')
             plt.colorbar()
         else:
             pass
@@ -232,7 +238,8 @@ def main(dataDir, visit, title="", outputTxtFileName=None,
         title.append("N per ell grid")
         if len(xs) > 0:
             ndataGrids = getNumDataGrids(xArr, yArr, ellArr, xs, ys)
-            plt.imshow(ndataGrids, interpolation='nearest', extent=extent, vmin=minNdata, vmax=maxNdata, origin='lower')
+            plt.imshow(ndataGrids, interpolation='nearest', extent=extent,
+                       vmin=minNdata, vmax=maxNdata, origin='lower')
             plt.colorbar()
         else:
             pass
@@ -249,7 +256,7 @@ def main(dataDir, visit, title="", outputTxtFileName=None,
             'object=ABELL2163 filter=HSC-I exptime=360.0 alt=62.11143274 azm=202.32265181 hst=(23:40:08.363-23:40:48.546)'
             return 'object=%s filter=%s exptime=%.1f azm=%.2f hst=%s' % (h['OBJECT'], h['FILTER01'], h['EXPTIME'], h['AZIMUTH'], h['HST'])
 
-    title.insert(0, frameInfoFrom(butler.get('raw_filename', {'visit':visit, 'ccd':0})[0]))
+    title.insert(0, frameInfoFrom(butler.get('raw_filename', {'visit': visit, 'ccd': 0})[0]))
     title.append(r'$\langle$FWHM$\rangle %4.2f$"' % np.median(fwhmArr))
     plt.title("%s visit=%s" % (" ".join(title), visit), fontsize=9)
 
@@ -260,7 +267,8 @@ if __name__ == "__main__":
 
     parser.add_argument('dataDir', type=str, nargs="?", help='Datadir to search for PSF information')
     parser.add_argument('--rerun', type=str, help="Rerun to examine", default=None)
-    parser.add_argument('--visit', type=str, help='Name of desired visit (you may use .. and ^ as in pipe_base --id)')
+    parser.add_argument('--visit', type=str,
+                        help='Name of desired visit (you may use .. and ^ as in pipe_base --id)')
     parser.add_argument('--inputFile', help="""File of desired visits and titles.
 One page will be generated per line in the file.  A line
 #dataDir: path
@@ -273,8 +281,10 @@ switches to that dataDir (the one on the command line is used previously)
     parser.add_argument('--maxFwhm', type=float, help="Maximum FWHM to plot", default=None)
     parser.add_argument('--showEllipticity', action="store_true", help="Show the stars' ellipticity",
                         default=False)
-    parser.add_argument('--showNdataFwhm', action="store_true", help="Show the num of sources used to make Fwhm grids", default=False)
-    parser.add_argument('--showNdataEll', action="store_true", help="Show the num of sources used to make ellipticity grids", default=False)
+    parser.add_argument('--showNdataFwhm', action="store_true",
+                        help="Show the num of sources used to make Fwhm grids", default=False)
+    parser.add_argument('--showNdataEll', action="store_true",
+                        help="Show the num of sources used to make ellipticity grids", default=False)
     parser.add_argument('--minNdata', type=int, help="Minimum N sources to plot", default=None)
     parser.add_argument('--maxNdata', type=int, help="Maximum N sources to plot", default=None)
 
@@ -291,7 +301,7 @@ switches to that dataDir (the one on the command line is used previously)
     if not (args.dataDir or args.inputFile):
         args.dataDir = os.environ.get("SUPRIME_DATA_DIR")
         if not args.dataDir:
-            print >> sys.stderr, "Please specify a dataDir (maybe in an inputFile) or set $SUPRIME_DATA_DIR"
+            print("Please specify a dataDir (maybe in an inputFile) or set $SUPRIME_DATA_DIR", file=sys.stderr)
             sys.exit(1)
 
     if args.rerun:
@@ -320,7 +330,7 @@ switches to that dataDir (the one on the command line is used previously)
                 desires.append([dd, v, t])
     else:
         if not args.visit:
-            print >> sys.stderr, "Please choose a visit"
+            print("Please choose a visit", file=sys.stderr)
             sys.exit(1)
 
         visits = []
@@ -329,7 +339,8 @@ switches to that dataDir (the one on the command line is used previously)
             if mat:
                 v1 = int(mat.group(1))
                 v2 = int(mat.group(2))
-                v3 = mat.group(3); v3 = int(v3) if v3 else 1
+                v3 = mat.group(3)
+                v3 = int(v3) if v3 else 1
                 for v in range(v1, v2 + 1, v3):
                     visits.append(v)
             else:
@@ -339,7 +350,7 @@ switches to that dataDir (the one on the command line is used previously)
 
     for dataDir, visit, title in desires:
         if args.verbose:
-            print "%-10s %s" % (visit, title)
+            print("%-10s %s" % (visit, title))
 
         if args.correctDistortion:
             if title:
@@ -351,7 +362,7 @@ switches to that dataDir (the one on the command line is used previously)
                    showFwhm=args.showFwhm, minFwhm=args.minFwhm, maxFwhm=args.maxFwhm,
                    correctDistortion=args.correctDistortion,
                    showEllipticity=args.showEllipticity, ellipticityDirection=args.ellipticityDirection,
-                   showNdataFwhm = args.showNdataFwhm, showNdataEll = args.showNdataEll,
+                   showNdataFwhm=args.showNdataFwhm, showNdataEll=args.showNdataEll,
                    minNdata=args.minNdata, maxNdata=args.maxNdata,
                    verbose=args.verbose)
 
@@ -369,4 +380,3 @@ switches to that dataDir (the one on the command line is used previously)
             plt.savefig(args.outputPlotFile)
         else:
             plt.show()
-

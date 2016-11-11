@@ -6,6 +6,7 @@ import lsst.obs.hsc as obs_hsc
 import lsst.afw.cameraGeom.utils as cameraGeomUtils
 from lsst.afw.cameraGeom import Camera
 
+
 def checkStr(strVal, level):
     """Check if a string is a valid identifier
     @param[in] strVal: String containing the identifier
@@ -54,8 +55,8 @@ def displayCamera(args):
                 cameraGeomUtils.showCcd(detector, frame=frame)
                 frame += 1
 
-    raftMap = {'0':[],
-               '1':[]}
+    raftMap = {'0': [],
+               '1': []}
     for det in camera:
         dName = det.getName()
         if dName.startswith('1'):
@@ -87,16 +88,16 @@ def displayCamera(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Display the Subaru cameras')
-    parser.add_argument('--showAmp', help='Show an amplifier segment in ds9  May have multiple arguments. '\
-                                          'Format like ccd_name amp_name e.g. '\
+    parser.add_argument('--showAmp', help='Show an amplifier segment in ds9  May have multiple arguments. '
+                                          'Format like ccd_name amp_name e.g. '
                                           '\"1_53 0,0\"', type=str, nargs='+')
-    parser.add_argument('--showCcd', help='Show a CCD from the mosaic in ds9.  May have multiple arguments. '\
+    parser.add_argument('--showCcd', help='Show a CCD from the mosaic in ds9.  May have multiple arguments. '
                                           'Format like ccd_name e.g. \"0_17\"', type=str,
                                           nargs='+')
-    parser.add_argument('--showRaft', help='Show a raft from the mosaic in ds9.  May have multiple arguments. '\
-                                          'May be 0 or 1', type=str)
+    parser.add_argument('--showRaft', help='Show a raft from the mosaic in ds9.  May have multiple arguments. '
+                        'May be 0 or 1', type=str)
     parser.add_argument('--showCamera', help='Show the camera mosaic in ds9.', action='store_true')
-    parser.add_argument('--cameraBinSize', type= int, default=20,
+    parser.add_argument('--cameraBinSize', type=int, default=20,
                         help='Size of binning when displaying the full camera mosaic')
     parser.add_argument('--plotFocalPlane', action='store_true',
                         help='Plot the focalplane in an interactive matplotlib window')
