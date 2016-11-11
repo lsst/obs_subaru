@@ -11,25 +11,12 @@ import lsst.daf.persistence as dafPersist
 import lsst.afw.detection as afwDet
 import lsst.afw.image as afwImage
 import lsst.afw.table as afwTable
-import lsst.pex.logging as pexLogging
 from lsst.meas.deblender.baseline import *
 
 from astrometry.util.plotutils import *
 
 import lsstDebug
 lsstDebug.Info('lsst.meas.deblender.baseline').psf = True
-
-
-root = pexLogging.Log.getDefaultLog()
-root.setThreshold(pexLogging.Log.DEBUG)
-# Quiet some of the more chatty loggers
-pexLogging.Log(root, 'lsst.meas.deblender.symmetrizeFootprint',
-               pexLogging.Log.INFO)
-pexLogging.Log(root, 'lsst.meas.deblender.symmetricFootprint',
-               pexLogging.Log.INFO)
-pexLogging.Log(root, 'lsst.meas.deblender.getSignificantEdgePixels',
-               pexLogging.Log.INFO)
-pexLogging.Log(root, 'afw.Mask', pexLogging.Log.INFO)
 
 
 def foot_to_img(foot, img=None):

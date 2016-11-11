@@ -8,7 +8,7 @@ import sys
 import matplotlib
 matplotlib.use('Agg')
 
-import lsst.pex.logging as pexLog
+from lsst.log import Log
 import lsst.pipette.options as pipOptions
 import lsst.pipette.readwrite as pipReadWrite
 import lsst.pipette.processCcd as pipProcCcd
@@ -79,7 +79,6 @@ class MyCalibrate(pipCalib.Calibrate):
             import lsst.meas.algorithms as measAlg
             import lsst.afw.detection as afwDetection
             print('Simulating sourceMeasurement()...')
-            pexLog.Trace_setVerbosity("meas.algorithms.measure", True)
             exposure.setPsf(psf)
             measureSources = measAlg.makeMeasureSources(exposure, policy)
             #print 'ms policy', str(measureSources.getPolicy())
@@ -155,7 +154,7 @@ def run(visit, rerun, config):
     # raws = [exposure]
     #exposure, psf, apcorr, brightSources, sources, matches, matchMeta = ccdProc.run(raws, detrends)
     print('Calibrate()...')
-    log = pexLog.getDefaultLog()
+    log = Log.getDefaultLogger()
     cal = MyCalibrate(config=config, log=log, Photometry=MyPhotometry)
     psf, sources, footprints = cal.run2(exposure)
 
