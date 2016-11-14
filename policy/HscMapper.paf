@@ -159,6 +159,16 @@ exposures: {
         level:       "Skytile"
         tables:      raw_skytile
     }
+
+    deepCoadd_tempCov: {
+        template:    "deepCoadd/%(filter)s/%(tract)d/%(patch)s/warpCov-%(filter)s-%(tract)d-%(patch)s-%(visit)d.fits"
+        python:      "lsst.afw.image.ImageD"
+        persistable: "ImageD"
+        storage:     "FitsStorage"
+        level:       "Skytile"
+        tables:      raw_skytile
+    }
+
     deepCoadd_bgRef: {
         template:    "deepCoadd/%(filter)s/%(tract)d/%(patch)s/bgRef-%(tract)d-%(patch)s-%(filter)s.fits"
         python:      "lsst.afw.image.ExposureF"
@@ -480,7 +490,7 @@ datasets: {
         storage:       "BoostStorage"
         tables:        "raw_skytile"
     }
- 
+
 
 
 
