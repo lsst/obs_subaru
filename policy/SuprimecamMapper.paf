@@ -21,19 +21,15 @@ defaultSubLevels: {
 }
 
 exposures: {
-    # dataset defined in obs_base modified in this mapper as follows:
     raw: {
         template:    "%(field)s/%(dateObs)s/%(pointing)05d/%(filter)s/SUPA%(visit)07d%(ccd)1d.fits"
     }
-    # dataset defined in obs_base modified in this mapper as follows:
     postISRCCD: {
         template:    "postISRCCD/v%(visit)07d-f%(filter)s/c%(ccd)1d.fits"
     }
-    # dataset defined in obs_base modified in this mapper as follows:
     icExp: {
         template:      "%(pointing)05d/%(filter)s/corr/ICEXP%(visit)07d%(ccd)1d.fits"
     }
-    # dataset defined in obs_base modified in this mapper as follows:
     calexp: {
         template:      "%(pointing)05d/%(filter)s/corr/CORR%(visit)07d%(ccd)1d.fits"
     }
@@ -55,7 +51,6 @@ exposures: {
         tables:        "raw"
         tables:        "raw_visit"
     }
-    # dataset defined in obs_base modified in this mapper as follows:
     wcs: {
         template: "%(pointing)05d/%(filter)s/corr/%(tract)04d/wcs%(visit)07d%(ccd)1d.fits"
         columns:       "pointing" "filter" "visit" "ccd"
@@ -215,15 +210,12 @@ calibrations: {
 }
 
 datasets: {
-    # dataset defined in obs_base modified in this mapper as follows:
     icExpBackground: {
         template:      "%(pointing)05d/%(filter)s/corr/ICEXPBKGD%(visit)07d%(ccd)1d.fits"
     }
-    # dataset defined in obs_base modified in this mapper as follows:
     calexpBackground: {
         template:      "%(pointing)05d/%(filter)s/corr/BKGD%(visit)07d%(ccd)1d.fits"
     }
-    # dataset defined in obs_base modified in this mapper as follows:
     src: {
         template:      "%(pointing)05d/%(filter)s/output/SRC%(visit)07d%(ccd)1d.fits"
     }
@@ -251,7 +243,6 @@ datasets: {
         tables:        "raw"
         tables:        "raw_visit"
     }
-    # dataset defined in obs_base modified in this mapper as follows:
     srcMatch: {
         template:      "%(pointing)05d/%(filter)s/output/SRCMATCH%(visit)07d%(ccd)1d.fits"
     }
@@ -263,7 +254,6 @@ datasets: {
         tables:        "raw"
         tables:        "raw_visit"
     }
-    # dataset defined in obs_base modified in this mapper as follows:
     icSrc: {
         template:      "%(pointing)05d/%(filter)s/output/ICSRC%(visit)07d%(ccd)1d.fits"
     }
@@ -286,23 +276,18 @@ datasets: {
         storage:       "BoostStorage"
         tables:        "raw_skytile"
     }
-    # dataset defined in obs_base modified in this mapper as follows:
     processCcd_metadata: {
         template:      "%(pointing)05d/%(filter)s/processCcd_metadata/%(visit)07d%(ccd)1d.boost"
     }
-    # dataset defined in obs_base modified in this mapper as follows:
     isr_config: {
         python:        "lsst.obs.subaru.isr.SuprimeCamIsrConfig"
     }
-    # dataset defined in obs_base modified in this mapper as follows:
     isr_metadata: {
         template:      "%(pointing)05d/%(filter)s/isr_metadata/%(visit)07d%(ccd)1d.boost"
     }
-    # dataset defined in obs_base modified in this mapper as follows:
     characterizeImage_metadata: {
         template:      "%(pointing)05d/%(filter)s/characterizeImage_metadata/%(visit)07d%(ccd)1d.boost"
     }
-    # dataset defined in obs_base modified in this mapper as follows:
     calibrate_metadata: {
         template:      "%(pointing)05d/%(filter)s/calibrate_metadata/%(visit)07d%(ccd)1d.boost"
     }
