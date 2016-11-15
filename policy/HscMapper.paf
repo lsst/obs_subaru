@@ -28,50 +28,16 @@ defaultSubLevels: {
 exposures: {
     raw: {
         template:    "%(field)s/%(dateObs)s/%(pointing)05d/%(filter)s/HSC-%(visit)07d-%(ccd)03d.fits"
-        python:     "lsst.afw.image.DecoratedImageU"
-        persistable:         "DecoratedImageU"
-        storage:     "FitsStorage"
-        level:        "Ccd"
-        tables:        "raw"
-        tables:        "raw_visit"
     }
     postISRCCD: {
         template:    "postISRCCD/v%(visit)07d-f%(filter)s/c%(ccd)03d.fits"
-        python:        "lsst.afw.image.ExposureF"
-        persistable:        "ExposureF"
-        storage:    "FitsStorage"
-        level:        "Ccd"
-        tables:        "raw"
-        tables:        "raw_visit"
-    }
-    visitim: {
-        template:      "visitim/v%(visit)07d-f%(filter)s/c%(ccd)03d.fits"
-        python:        "lsst.afw.image.ExposureF"
-        persistable:        "ExposureF"
-        storage:    "FitsStorage"
-        level:        "Ccd"
-        tables:        "raw"
-        tables:        "raw_visit"
     }
     icExp: {
         template:      "%(pointing)05d/%(filter)s/corr/ICEXP-%(visit)07d-%(ccd)03d.fits"
-        python:        "lsst.afw.image.ExposureF"
-        persistable:        "ExposureF"
-        storage:    "FitsStorage"
-        level:        "Ccd"
-        tables:        "raw"
-        tables:        "raw_visit"
     }
     calexp: {
         template:      "%(pointing)05d/%(filter)s/corr/CORR-%(visit)07d-%(ccd)03d.fits"
-        python:        "lsst.afw.image.ExposureF"
-        persistable:        "ExposureF"
-        storage:    "FitsStorage"
-        level:        "Ccd"
-        tables:        "raw"
-        tables:        "raw_visit"
     }
-
     revexp: {
         template:      "%(pointing)05d/%(filter)s/corr/CORW-%(visit)07d-%(ccd)03d.fits"
         python:        "lsst.afw.image.ExposureF"
@@ -81,7 +47,6 @@ exposures: {
         tables:        "raw"
         tables:        "raw_visit"
     }
-
     expMetadata: {
         template: "%(pointing)05d/%(filter)s/qa/metaQaExp-%(visit)07d-000.fits"
         python:        "lsst.afw.image.ExposureI"
@@ -91,18 +56,10 @@ exposures: {
         tables:        "raw"
         tables:        "raw_visit"
     }
-
     wcs: {
         template: "%(pointing)05d/%(filter)s/corr/%(tract)04d/wcs-%(visit)07d-%(ccd)03d.fits"
-        python:        "lsst.afw.image.ExposureI"
-        persistable:        "ExposureI"
-        storage:    "FitsStorage"
-        level:        "Ccd"
-        tables:        "raw"
-        tables:        "raw_visit"
         columns:       "pointing" "filter" "visit" "ccd"
     }
-
     fcr: {
         template: "%(pointing)05d/%(filter)s/corr/%(tract)04d/fcr-%(visit)07d-%(ccd)03d.fits"
         python:        "lsst.afw.image.ExposureI"
@@ -142,12 +99,10 @@ exposures: {
         tables:        "raw_visit"
         columns:       "pointing" "filter" "visit" "ccd"
     }
-
     # dataset defined in obs_base modified in this mapper as follows:
     deepCoadd_tempExp: {
         template:    "deepCoadd/%(filter)s/%(tract)d/%(patch)s/warp-%(filter)s-%(tract)d-%(patch)s-%(visit)d.fits"
     }
-
     deepCoadd_diff: {
         template:    "deepCoadd-diff/%(filter)s/%(tract)d/diff-%(filter)s-%(tract)d-%(patch)s.fits"
         python:      "lsst.afw.image.ExposureF"
@@ -164,8 +119,6 @@ exposures: {
         level:       "Skytile"
         tables:      raw_skytile
     }
-
-
     mosaicCalib: {
         template:    "%(pointing)05d/%(filter)s/output/CALIB-%(visit)07d-%(ccd)03d-%(tract)d.fits"
         python:      "lsst.afw.image.ExposureU"
@@ -178,7 +131,6 @@ exposures: {
         tables:      raw
         level:       Ccd
     }
-
     coaddTempExp: {
         template:    "coaddTemp/%(filter)s/%(tract)d/TEMP-%(visit)07d-%(ccd)03d-%(patch)s.fits"
         python:      "lsst.afw.image.ExposureF"
@@ -187,7 +139,6 @@ exposures: {
         level:       "Skytile"
         tables:      raw
     }
-
     ossImage: {
         template:    "%(pointing)05d/%(filter)s/thumbs/oss-%(visit)07d-%(ccd)03d.fits"
         python:      "lsst.afw.image.ExposureF"
@@ -206,7 +157,6 @@ exposures: {
         tables:      "raw"
         tables:      "raw_visit"
     }
-
 }
 
 calibrations: {
@@ -290,43 +240,12 @@ calibrations: {
 datasets: {
     icExpBackground: {
         template:      "%(pointing)05d/%(filter)s/corr/ICEXPBKGD-%(visit)07d-%(ccd)03d.fits"
-        python:        "lsst.afw.math.BackgroundList"
-        persistable:   "PurePythonClass"
-        storage:       "FitsCatalogStorage"
-        tables:        raw
-        tables:        raw_visit
     }
     calexpBackground: {
         template:      "%(pointing)05d/%(filter)s/corr/BKGD-%(visit)07d-%(ccd)03d.fits"
-        python:        "lsst.afw.math.BackgroundList"
-        persistable:   "PurePythonClass"
-        storage:       "FitsCatalogStorage"
-        tables:        raw
-        tables:        raw_visit
-    }
-    psf: {
-        template:      "%(pointing)05d/%(filter)s/output/PSF-%(visit)07d-%(ccd)03d.boost"
-        python:        "lsst.afw.detection.Psf"
-        persistable:        "Psf"
-        storage:    "BoostStorage"
-        tables:        "raw"
-        tables:        "raw_visit"
-    }
-    apCorr: {
-        template:      "%(pointing)05d/%(filter)s/output/APC-%(visit)07d-%(ccd)03d.pickle"
-        python:        "lsst.meas.algorithms.ApertureCorrection"
-        persistable:        "ApertureCorrection"
-        storage:    "PickleStorage"
-        tables:        raw
-        tables:        raw_visit
     }
     src: {
         template:      "%(pointing)05d/%(filter)s/output/SRC-%(visit)07d-%(ccd)03d.fits"
-        python:        "lsst.afw.table.SourceCatalog"
-        persistable:        "SourceCatalog"
-        storage:    "FitsCatalogStorage"
-        tables:        "raw"
-        tables:        "raw_visit"
     }
     calibrated_src: {
         template:      "%(pointing)05d/%(filter)s/output/%(tract)04d/CALSRC-%(visit)07d-%(ccd)03d.fits"
@@ -339,7 +258,7 @@ datasets: {
     transformed_src: {
         template:      "%(pointing)05d/%(filter)s/output/TRSRC-%(visit)07d-%(ccd)03d.fits"
         python:        "lsst.afw.table.BaseCatalog"
-        persistable:   "BaseCatalog"
+        persistable:   "SourceCatalog"
         storage:       "FitsCatalogStorage"
         tables:        "raw"
         tables:        "raw_visit"
@@ -352,40 +271,12 @@ datasets: {
         tables:        "raw"
         tables:        "raw_visit"
     }
-    icMatchFull: {
-        template:      "%(pointing)05d/%(filter)s/output/ML-%(visit)07d-%(ccd)03d.fits"
-        python:        "lsst.afw.table.BaseCatalog"
-        persistable:   "BaseCatalog"
-        storage:       "FitsCatalogStorage"
-        tables:        "raw"
-        tables:        "raw_visit"
-    }
     srcMatch: {
         template:      "%(pointing)05d/%(filter)s/output/SRCMATCH-%(visit)07d-%(ccd)03d.fits"
-        python:        "lsst.afw.table.BaseCatalog"
-        persistable:   "BaseCatalog"
-        storage:       "FitsCatalogStorage"
-        tables:        "raw"
-        tables:        "raw_visit"
-    }
-    srcMatchFull: {
-        template:      "%(pointing)05d/%(filter)s/output/SRCML-%(visit)07d-%(ccd)03d.fits"
-        python:        "lsst.afw.table.BaseCatalog"
-        persistable:   "BaseCatalog"
-        storage:       "FitsCatalogStorage"
-        tables:        "raw"
-        tables:        "raw_visit"
     }
     icSrc: {
         template:      "%(pointing)05d/%(filter)s/output/ICSRC-%(visit)07d-%(ccd)03d.fits"
-        python:        "lsst.afw.table.SourceCatalog"
-        persistable:   "SourceCatalog"
-        storage:       "FitsCatalogStorage"
-        tables:        "raw"
-        tables:        "raw_visit"
     }
-
-
     log: {
         template:      "%(pointing)05d/%(filter)s/logs/run.log"
         python:        "str"
@@ -398,7 +289,6 @@ datasets: {
         persistable:   "None"
         storage:       "None"
     }
-
     deepCoadd_diffsrc: {
         template:    "deepCoadd-diff/%(filter)s/%(tract)d/diffsrc-%(filter)s-%(tract)d-%(patch)s.fits"
         python:      "lsst.afw.table.SourceCatalog"
@@ -413,9 +303,6 @@ datasets: {
         storage:     "FitsCatalogStorage"
 	tables:      "raw_skytile"
     }
-
-
-
     warppsf: {
         template:      "%(pointing)05d/%(filter)s/warp/WARPPSF-%(visit)07d-%(ccd)03d.boost"
         python:        "lsst.afw.detection.Psf"
@@ -423,47 +310,18 @@ datasets: {
         storage:       "BoostStorage"
         tables:        "raw_skytile"
     }
- 
-
-
-
     processCcd_metadata: {
         template:      "%(pointing)05d/%(filter)s/processCcd_metadata/%(visit)07d-%(ccd)03d.boost"
-        python:        "lsst.daf.base.PropertySet"
-        persistable:        "PropertySet"
-        storage:    "BoostStorage"
-        tables:        raw
-        tables:        raw_visit
-    }
-    isr_config: {
-        template:      "config/isr.py"
-        python:        "lsst.obs.subaru.isr.SubaruIsrConfig"
-        persistable:      "Config"
-        storage:    "ConfigStorage"
     }
     isr_metadata: {
         template:      "%(pointing)05d/%(filter)s/isr_metadata/%(visit)07d-%(ccd)03d.boost"
-        python:        "lsst.daf.base.PropertySet"
-        persistable:        "PropertySet"
-        storage:    "BoostStorage"
-        tables:        raw
-        tables:        raw_visit
     }
     characterizeImage_metadata: {
         template:      "%(pointing)05d/%(filter)s/characterizeImage_metadata/%(visit)07d-%(ccd)03d.boost"
-        python:        "lsst.daf.base.PropertySet"
-        persistable:        "PropertySet"
-        storage:    "BoostStorage"
     }
     calibrate_metadata: {
         template:      "%(pointing)05d/%(filter)s/calibrate_metadata/%(visit)07d-%(ccd)03d.boost"
-        python:        "lsst.daf.base.PropertySet"
-        persistable:        "PropertySet"
-        storage:    "BoostStorage"
-        tables:        raw
-        tables:        raw_visit
     }
-
     transformSrcMeasurement_metadata: {
         template:      "%(pointing)05d/%(filter)s/transformSrcMeasurement_metadata/%(visit)07d-%(ccd)03d.boost"
         python:        "lsst.daf.base.PropertySet"
@@ -472,7 +330,6 @@ datasets: {
         tables:        raw
         tables:        raw_visit
     }
-
     singleFrameDriver_metadata: {
         template:      "%(pointing)05d/%(filter)s/singleFrameDriver_metadata/%(visit)07d.boost"
         python:        "lsst.daf.base.PropertySet"
@@ -481,8 +338,6 @@ datasets: {
         tables:        raw
         tables:        raw_visit
     }
-
-
     processStack_metadata: {
         template:      "stack/%(stack)05d/processStack_metadata/%(patch)08d%(filter)s.boost"
         python:        "lsst.daf.base.PropertySet"
@@ -491,9 +346,6 @@ datasets: {
         tables:        raw
         tables:        raw_visit
     }
-
-
-
     # dataset defined in obs_base modified in this mapper as follows:
     deepCoadd_srcMatch: {
         template:      "deepCoadd-results/%(filter)s/%(tract)d/%(patch)s/srcMatch-%(filter)s-%(tract)d-%(patch)s.fits"
@@ -502,28 +354,12 @@ datasets: {
     deepCoadd_calexp_background: {
         template:      "deepCoadd-results/%(filter)s/%(tract)d/%(patch)s/det_bkgd-%(filter)s-%(tract)d-%(patch)s.fits"
     }
-
-
-
-
-
     forced_src: {
         template:      "%(pointing)05d/%(filter)s/tract%(tract)d/FORCEDSRC-%(visit)07d-%(ccd)03d.fits"
-        python:        "lsst.afw.table.SourceCatalog"
-        persistable:        "ignored"
-        storage:    "FitsCatalogStorage"
-        tables:        raw
-        tables:        raw_visit
     }
     forcedPhotCcd_metadata: {
         template:      "%(pointing)05d/%(filter)s/tract%(tract)d/forcedPhotCcd_metadata/%(visit)07d-%(ccd)03d.boost"
-        python:        "lsst.daf.base.PropertySet"
-        persistable:        "PropertySet"
-        storage:    "BoostStorage"
-        tables:        raw
-        tables:        raw_visit
     }
-
     ossThumb: {
         template:    "%(pointing)05d/%(filter)s/thumbs/oss-%(visit)07d-%(ccd)03d.png"
         python:      __builtin__.str
@@ -545,7 +381,6 @@ datasets: {
         storage:     TextStorage
         tables:      raw
     }
-
     plotMagHist: {
         template:    "%(pointing)05d/%(filter)s/qa/magHist-%(visit)07d-%(ccd)03d.png"
         python:      __builtin__.str
@@ -672,7 +507,6 @@ datasets: {
         storage:     TextStorage
         tables:      raw
     }
-
     focusPlot: {
         template:    "%(pointing)05d/%(filter)s/qa/focus-%(visit)07d.png"
         # Not really text: we only need the filename, and will write the output ourselves
@@ -697,7 +531,6 @@ datasets: {
         tables:        raw
         tables:        raw_visit
     }
-
     focusSweepPlot: {
         template:    "%(pointing)05d/%(filter)s/qa/focusSweep-%(visit)07d.png"
         # Not really text: we only need the filename, and will write the output ourselves
@@ -714,14 +547,4 @@ datasets: {
         tables:        raw
         tables:        raw_visit
     }
-
-    # Detections on coadds
-
-    # Merged detections on coadds
-
-    # Measurements on coadds
-
-    # Reference catalog for coadds
-
-
 }

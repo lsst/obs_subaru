@@ -35,8 +35,8 @@ class SuprimecamMapperBase(CameraMapper):
                 }
         for name in ("raw",
                      # processCcd outputs
-                     "postISRCCD", "calexp", "postISRCCD", "src", "icSrc", "icMatch", "icMatchFull",
-                     "srcMatch", "srcMatchFull",
+                     "postISRCCD", "calexp", "postISRCCD", "src", "icSrc", "icMatch",
+                     "srcMatch",
                      # processCcd QA
                      "ossThumb", "flattenedThumb", "calexpThumb", "plotMagHist", "plotSeeingRough",
                      "plotSeeingRobust", "plotSeeingMap", "plotEllipseMap", "plotEllipticityMap",
@@ -45,8 +45,6 @@ class SuprimecamMapperBase(CameraMapper):
                      "fitsPsfSrcGrid", "fitsPsfModelGrid", "tableSeeingMap", "tableSeeingGrid",
                      # forcedPhot outputs
                      "forced_src",
-                     # Warp
-                     "coaddTempExp",
                      ):
             self.mappings[name].keyDict.update(keys)
 
@@ -243,24 +241,6 @@ class SuprimecamMapperBase(CameraMapper):
         if self._linearize is None:
             raise RuntimeError("No linearizer available.")
         return self._linearize
-
-    def _computeStackExposureId(self, dataId):
-        """Compute the 64-bit (long) identifier for a Stack exposure.
-
-        @param dataId (dict) Data identifier with stack, patch, filter
-        """
-        nFilters = len(self.filters)
-        nPatches = 1000000
-        return (int(dataId["stack"]) * nFilters * nPatches +
-                int(dataId["patch"]) * nFilters +
-                self.filterIdMap[dataId["filter"]])
-
-    def bypass_stackExposureId(self, datasetType, pythonType, location, dataId):
-        return self._computeStackExposureId(dataId)
-
-    def bypass_stackExposureId_bits(self, datasetType, pythonType, location, dataId):
-        # log_2 [nFilters(=30) * nPatches(=10^6) * nStack(=10^5)]
-        return 42
 
     def _computeCoaddExposureId(self, dataId, singleFilter):
         """Compute the 64-bit (long) identifier for a coadd.
