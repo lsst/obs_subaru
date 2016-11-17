@@ -20,6 +20,12 @@ defaultSubLevels: {
     sensor: "none"
 }
 
+# exposures and datasets which are needed for all of the mappers are defined
+# in the obs_base package (in either exposures.yaml or datasets.yaml).
+# Where a modification to such a dataset is required for a particular camera,
+# (e.g., for a template or specialized python type), the modification will
+# appear below as a partial dataset definition.
+
 exposures: {
     raw: {
         template:    "%(field)s/%(dateObs)s/%(pointing)05d/%(filter)s/SUPA%(visit)07d%(ccd)1d.fits"
@@ -94,7 +100,6 @@ exposures: {
         tables:        "raw_visit"
         columns:       "pointing" "filter" "visit" "ccd"
     }
-    # dataset defined in obs_base modified in this mapper as follows:
     deepCoadd_tempExp: {
         template:    "deepCoadd/%(filter)s/%(tract)d/%(patch)s/warp-%(filter)s-%(tract)d-%(patch)s-%(visit)d.fits"
     }
@@ -307,7 +312,6 @@ datasets: {
         tables:        raw
         tables:        raw_visit
     }
-    # dataset defined in obs_base modified in this mapper as follows:
     deepCoadd_srcMatch: {
         template:      "deepCoadd-results/%(filter)s/%(tract)d/%(patch)s/srcMatch-%(filter)s-%(tract)d-%(patch)s.fits"
     }
@@ -352,7 +356,6 @@ datasets: {
     forced_src: {
         template:      "%(pointing)05d/%(filter)s/tract%(tract)d/FORCEDSRC%(visit)07d%(ccd)1d.fits"
     }
-    # dataset defined in obs_base modified in this mapper as follows:
     forced_src_schema: {
         template:      "schema/forced_src.fits"
     }
@@ -506,7 +509,6 @@ datasets: {
         storage:     TextStorage
         tables:      raw
     }
-    # dataset defined in obs_base modified in this mapper as follows:
     mergeCoaddMeasurements_config: {
         python:        "lsst.pipe.tasks.multiBand.MergeSourcesConfig"
     }
