@@ -63,6 +63,8 @@ class MakeHscRawVisitInfo(MakeRawVisitInfo):
             self.pascalFromMmHg(self.popFloat(md, "OUT-PRS")),
             self.popFloat(md, "OUT-HUM"),
         )
+        LST = self.popAngle(md, "LST-STR", units=astropy.units.h)
+        argDict['era'] = self.eraFromLstAndLongitude(LST, self.observatory.getLongitude())
 
     def getDateAvg(self, md, exposureTime):
         """Return date at the middle of the exposure
