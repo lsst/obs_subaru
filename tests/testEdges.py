@@ -32,8 +32,8 @@ import lsst.utils.tests
 import lsst.afw.detection as afwDet
 import lsst.afw.geom as afwGeom
 import lsst.afw.image as afwImage
-import lsst.pex.logging as pexLogging
 import lsst.meas.algorithms as measAlg
+from lsst.log import Log
 from lsst.meas.deblender.baseline import deblend
 
 doPlot = False
@@ -47,16 +47,9 @@ if doPlot:
 else:
     print('"doPlot" not set -- not making plots.  To enable plots, edit', __file__)
 
-root = pexLogging.Log.getDefaultLog()
-root.setThreshold(pexLogging.Log.DEBUG)
-# Quiet some of the more chatty loggers
-pexLogging.Log(root, 'lsst.meas.deblender.symmetrizeFootprint',
-               pexLogging.Log.INFO)
-pexLogging.Log(root, 'lsst.meas.deblender.symmetricFootprint',
-               pexLogging.Log.INFO)
-pexLogging.Log(root, 'lsst.meas.deblender.getSignificantEdgePixels',
-               pexLogging.Log.INFO)
-pexLogging.Log(root, 'afw.Mask', pexLogging.Log.INFO)
+# Lower the level to Log.DEBUG to see debug messages
+Log.getLogger('meas.deblender.symmetrizeFootprint').setLevel(Log.INFO)
+Log.getLogger('meas.deblender.symmetricFootprint').setLevel(Log.INFO)
 
 
 def imExt(img):
@@ -182,6 +175,7 @@ class RampEdgeTestCase(lsst.utils.tests.TestCase):
             ('No clip at edge', dict(patchEdges=True)),
         ]):
             # print 'Deblending...'
+            # Change verbose to False to quiet down the meas_deblender.baseline logger
             deb = deblend(fp, afwimg, fakepsf, fakepsf_fwhm, verbose=True,
                           **kwa)
             # print 'Result:', deb

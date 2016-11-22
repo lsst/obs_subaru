@@ -5,9 +5,9 @@ import matplotlib
 matplotlib.use('Agg')
 import pylab as plt
 import numpy as np
-import lsst.pex.logging as pexLog
 import lsst.afw.image as afwImage
 import lsst.afw.detection as afwDet
+import lsst.log
 
 from .utils import *
 from .suprime import *
@@ -62,19 +62,10 @@ def main():
     opt, args = parser.parse_args()
 
     # Logging
-    root = pexLog.Log.getDefaultLog()
     if opt.verbose:
-        root.setThreshold(pexLog.Log.DEBUG)
+        lsst.log.setLevel('', lsst.log.DEBUG)
     else:
-        root.setThreshold(pexLog.Log.INFO)
-    # Quiet some of the more chatty loggers
-    pexLog.Log(root, 'lsst.meas.deblender.symmetrizeFootprint',
-               pexLog.Log.INFO)
-    #pexLog.Log(root, 'lsst.meas.deblender.symmetricFootprint',
-    #               pexLog.Log.INFO)
-    pexLog.Log(root, 'lsst.meas.deblender.getSignificantEdgePixels',
-               pexLog.Log.INFO)
-    pexLog.Log(root, 'afw.Mask', pexLog.Log.INFO)
+        lsst.log.setLevel('', lsst.log.INFO)
 
     if opt.sec is None:
         opt.sec = 'sdss'

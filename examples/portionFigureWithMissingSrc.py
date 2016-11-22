@@ -12,10 +12,10 @@ import matplotlib.figure as figure
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigCanvas
 from matplotlib.patches import Rectangle
 
-import lsst.pex.logging as pexLog
 import lsst.afw.geom as afwGeom
 import lsst.afw.image as afwImage
 import lsst.afw.detection as afwDet
+from lsst.log import Log
 import lsst.meas.algorithms as measAlg
 import lsst.meas.deblender.baseline as measDeb
 
@@ -160,7 +160,8 @@ def makePortionFigure(deblend, origMimg, origMimgB, pedestal=0.0):
 
 def main():
 
-    log = pexLog.Log(pexLog.Log.getDefaultLog(), 'foo', pexLog.Log.INFO)
+    log = Log.getLogger('foo')
+    log.setLevel(Log.INFO)
 
     ny, nx = 256, 256
 

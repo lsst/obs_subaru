@@ -34,7 +34,7 @@ import lsst.afw.geom as afwGeom
 import lsst.afw.cameraGeom as afwCameraGeom
 import lsst.afw.cameraGeom.utils as cameraGeomUtils
 import lsst.afw.image.utils as imageUtils
-import lsst.pex.logging as pexLog
+from lsst.log import Log
 import lsst.pex.policy as pexPolicy
 
 # Solely to get boost serialization registrations for Measurement subclasses
@@ -52,7 +52,7 @@ class TractorMapper(Mapper):
 
         self.basedir = basedir
         self.rerun = rerun
-        self.log = pexLog.Log(pexLog.getDefaultLog(), 'TractorMapper')
+        self.log = Log.getLogger('TractorMapper')
 
         indir = os.path.join(self.basedir, 't%(visit)04i')
         outdir = os.path.join(indir, 'rr%(rerun)04i')

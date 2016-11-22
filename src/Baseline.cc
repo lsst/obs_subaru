@@ -2,8 +2,8 @@
 #include <cmath>
 #include <cstdint>
 
+#include "lsst/log/Log.h"
 #include "lsst/meas/deblender/Baseline.h"
-#include "lsst/pex/logging.h"
 #include "lsst/pex/exceptions.h"
 #include "lsst/afw/geom/Box.h"
 
@@ -13,7 +13,6 @@ namespace image = lsst::afw::image;
 namespace det = lsst::afw::detection;
 namespace deblend = lsst::meas::deblender;
 namespace geom = lsst::afw::geom;
-namespace pexLog = lsst::pex::logging;
 
 
 static bool span_ptr_compare(PTR(det::Span) sp1, PTR(det::Span) sp2) {
@@ -413,7 +412,7 @@ _find_stray_flux(det::Footprint const& foot,
                 (strayFluxOptions &
                  STRAYFLUX_TO_POINT_SOURCES_WHEN_NECESSARY)) {
                 // No extended sources -- assign to pt sources
-                //log.debugf("necessary to assign stray flux to point sources");
+                //LOGL_DEBUG(_log, "necessary to assign stray flux to point sources");
                 ptsrcs = true;
                 for (size_t i=0; i<tfoots.size(); ++i) {
                     if (contrib[i] == -1.0) {
@@ -616,8 +615,7 @@ apportionFlux(MaskedImageT const& img,
     // the apportioned flux return value
     std::vector<MaskedImagePtrT> portions;
 
-    pexLog::Log log(pexLog::Log::getDefaultLog(),
-                    "lsst.meas.deblender.apportionFlux");
+    LOG_LOGGER _log = LOG_GET("meas.deblender.apportionFlux");
     bool findStrayFlux = (strayFluxOptions & ASSIGN_STRAYFLUX);
 
     int ix0 = img.getX0();
@@ -873,8 +871,7 @@ symmetrizeFootprint(
     const SpanList spans = foot.getSpans();
     assert(foot.isNormalized());
 
-    pexLog::Log log(pexLog::Log::getDefaultLog(),
-                    "lsst.meas.deblender.symmetrizeFootprint");
+    LOG_LOGGER _log = LOG_GET("meas.deblender.symmetrizeFootprint");
 
     // Find the Span containing the peak.
     PTR(det::Span) target(new det::Span(cy, cx, cx));
@@ -888,7 +885,7 @@ symmetrizeFootprint(
     if (peakspan == spans.begin()) {
         sp = *peakspan;
         if (!sp->contains(cx, cy)) {
-            log.warnf(
+            LOGL_WARN(_log,
                 "Failed to find span containing (%i,%i): before the beginning of this footprint", cx, cy);
             return PTR(det::Footprint)();
         }
@@ -901,7 +898,7 @@ symmetrizeFootprint(
             sp = *peakspan;
             if (!sp->contains(cx, cy)) {
                 geom::Box2I fbb = foot.getBBox();
-                log.warnf("Failed to find span containing (%i,%i): nearest is %i, [%i,%i].  "
+                LOGL_WARN(_log, "Failed to find span containing (%i,%i): nearest is %i, [%i,%i].  "
                           "Footprint bbox is [%i,%i],[%i,%i]",
                           cx, cy, sp->getY(), sp->getX0(), sp->getX1(),
                           fbb.getMinX(), fbb.getMaxX(), fbb.getMinY(), fbb.getMaxY());
@@ -909,7 +906,7 @@ symmetrizeFootprint(
             }
         }
     }
-    log.debugf("Span containing (%i,%i): (x=[%i,%i], y=%i)",
+    LOGL_DEBUG(_log, "Span containing (%i,%i): (x=[%i,%i], y=%i)",
                cx, cy, sp->getX0(), sp->getX1(), sp->getY());
 
     // The symmetric templates are essentially an AND of the footprint
@@ -966,36 +963,36 @@ symmetrizeFootprint(
                 break;
         }
 
-        log.debugf("dy=%i, fy=%i, fx=[%i, %i],   by=%i, fx=[%i, %i],  fdx=%i, bdx=%i",
+        LOGL_DEBUG(_log, "dy=%i, fy=%i, fx=[%i, %i],   by=%i, fx=[%i, %i],  fdx=%i, bdx=%i",
                    dy, fy, fwd.x0(), fwd.x1(), by, back.x0(), back.x1(),
                    fdxlo, bdxlo);
 
         // Find possibly-overlapping span
         if (bdxlo > fdxlo) {
-            log.debugf("Advancing forward.");
+            LOGL_DEBUG(_log, "Advancing forward.");
             // While the "forward" span is entirely to the "left" of the "backward" span,
             // (in dx coords), ie, |---fwd---X   X---back---|
             // and we are comparing the edges marked X
             while ((fwd != fend) && (fwd.dxhi() < bdxlo)) {
                 fwd++;
                 if (fwd == fend) {
-                    log.debugf("Reached fend");
+                    LOGL_DEBUG(_log, "Reached fend");
                 } else {
-                    log.debugf("Advanced to forward span %i, [%i, %i]",
+                    LOGL_DEBUG(_log, "Advanced to forward span %i, [%i, %i]",
                                fy, fwd.x0(), fwd.x1());
                 }
             }
         } else if (fdxlo > bdxlo) {
-            log.debugf("Advancing backward.");
+            LOGL_DEBUG(_log, "Advancing backward.");
             // While the "backward" span is entirely to the "left" of the "foreward" span,
             // (in dx coords), ie, |---back---X   X---fwd---|
             // and we are comparing the edges marked X
             while ((back != bend) && (back.dxhi() < fdxlo)) {
                 back++;
                 if (back == bend) {
-                    log.debugf("Reached bend");
+                    LOGL_DEBUG(_log, "Reached bend");
                 } else {
-                    log.debugf("Advanced to backward span %i, [%i, %i]",
+                    LOGL_DEBUG(_log, "Advanced to backward span %i, [%i, %i]",
                                by, back.x0(), back.x1());
                 }
             }
@@ -1005,10 +1002,10 @@ symmetrizeFootprint(
             // We reached the end of the row without finding spans that could
             // overlap.  Move onto the next dy.
             if (back == bend) {
-                log.debugf("Reached bend");
+                LOGL_DEBUG(_log, "Reached bend");
             }
             if (fwd == fend) {
-                log.debugf("Reached fend");
+                LOGL_DEBUG(_log, "Reached fend");
             }
             back = bend;
             fwd  = fend;
@@ -1020,7 +1017,7 @@ symmetrizeFootprint(
         int dxlo = std::max(fwd.dxlo(), back.dxlo());
         int dxhi = std::min(fwd.dxhi(), back.dxhi());
         if (dxlo <= dxhi) {
-            log.debugf("Adding span fwd %i, [%i, %i],  back %i, [%i, %i]",
+            LOGL_DEBUG(_log, "Adding span fwd %i, [%i, %i],  back %i, [%i, %i]",
                        fy, cx+dxlo, cx+dxhi, by, cx-dxhi, cx-dxlo);
             sfoot->addSpan(fy, cx + dxlo, cx + dxhi);
             sfoot->addSpan(by, cx - dxhi, cx - dxlo);
@@ -1030,17 +1027,17 @@ symmetrizeFootprint(
         if (fwd.dxhi() < back.dxhi()) {
             fwd++;
             if (fwd == fend) {
-                log.debugf("Stepped to fend");
+                LOGL_DEBUG(_log, "Stepped to fend");
             } else {
-                log.debugf("Stepped forward to span %i, [%i, %i]",
+                LOGL_DEBUG(_log, "Stepped forward to span %i, [%i, %i]",
                            fwd.y(), fwd.x0(), fwd.x1());
             }
         } else {
             back++;
             if (back == bend) {
-                log.debugf("Stepped to bend");
+                LOGL_DEBUG(_log, "Stepped to bend");
             } else {
-                log.debugf("Stepped backward to span %i, [%i, %i]",
+                LOGL_DEBUG(_log, "Stepped backward to span %i, [%i, %i]",
                            back.y(), back.x0(), back.x1());
             }
         }
@@ -1048,10 +1045,10 @@ symmetrizeFootprint(
         if ((back == bend) || (fwd == fend)) {
             // Reached the end of the row.  On to the next dy!
             if (back == bend) {
-                log.debugf("Reached bend");
+                LOGL_DEBUG(_log, "Reached bend");
             }
             if (fwd == fend) {
-                log.debugf("Reached fend");
+                LOGL_DEBUG(_log, "Reached fend");
             }
             back = bend;
             fwd  = fend;
@@ -1097,8 +1094,7 @@ buildSymmetricTemplate(
     int cx = peak.getIx();
     int cy = peak.getIy();
 
-    pexLog::Log log(pexLog::Log::getDefaultLog(),
-                    "lsst.meas.deblender.symmetricFootprint");
+    LOG_LOGGER _log = LOG_GET("meas.deblender.symmetricFootprint");
 
     if (!img.getBBox(image::PARENT).contains(foot.getBBox())) {
         throw LSST_EXCEPT(lsst::pex::exceptions::LengthError, "Image too small for footprint");
@@ -1118,7 +1114,7 @@ buildSymmetricTemplate(
     // does this footprint touch an EDGE?
     bool touchesEdge = false;
     if (patchEdge) {
-        log.debugf("Checking footprint for EDGE bits");
+        LOGL_DEBUG(_log, "Checking footprint for EDGE bits");
         MaskPtrT mask = img.getMask();
         bool edge = false;
         MaskPixelT edgebit = mask->getPlaneBitMask("EDGE");
@@ -1138,7 +1134,7 @@ buildSymmetricTemplate(
                 break;
         }
         if (edge) {
-            log.debugf("Footprint includes an EDGE pixel.");
+            LOGL_DEBUG(_log, "Footprint includes an EDGE pixel.");
             touchesEdge = true;
         }
     }
@@ -1194,7 +1190,7 @@ buildSymmetricTemplate(
         //geom::Box2I imbb = img.getBBox();
         geom::Box2I imbb = foot.getBBox();
 
-        log.debugf("Footprint touches EDGE: start bbox [%i,%i],[%i,%i]",
+        LOGL_DEBUG(_log, "Footprint touches EDGE: start bbox [%i,%i],[%i,%i]",
                    bb.getMinX(), bb.getMaxX(), bb.getMinY(), bb.getMaxY());
         // original footprint spans
         const SpanList ospans = foot.getSpans();
@@ -1213,17 +1209,17 @@ buildSymmetricTemplate(
                 bb.include(geom::Point2I(x, y));
             }
         }
-        log.debugf("Footprint touches EDGE: grown bbox [%i,%i],[%i,%i]",
+        LOGL_DEBUG(_log, "Footprint touches EDGE: grown bbox [%i,%i],[%i,%i]",
                    bb.getMinX(), bb.getMaxX(), bb.getMinY(), bb.getMaxY());
 
         // New template image
         ImagePtrT targetimg2(new ImageT(bb));
         copyWithinFootprint(*sfoot, targetimg, targetimg2);
 
-        log.debugf("Symmetric footprint spans:");
+        LOGL_DEBUG(_log, "Symmetric footprint spans:");
         const SpanList sspans = sfoot->getSpans();
         for (fwd = sspans.begin(); fwd != sspans.end(); ++fwd) {
-            log.debugf("  %s", (*fwd)->toString().c_str());
+            LOGL_DEBUG(_log, "  %s", (*fwd)->toString().c_str());
         }
 
         // copy original 'img' pixels for the portion of spans whose
@@ -1251,7 +1247,7 @@ buildSymmetricTemplate(
             if (in1) {
                 x1 = cx + (cx - (imbb.getMaxX() + 1));
             }
-            log.debugf("Span y=%i, x=[%i,%i] has mirror (%i,[%i,%i]) out-of-bounds; clipped to %i,[%i,%i]",
+            LOGL_DEBUG(_log, "Span y=%i, x=[%i,%i] has mirror (%i,[%i,%i]) out-of-bounds; clipped to %i,[%i,%i]",
                        y, (*fwd)->getX0(), (*fwd)->getX1(), ym, xm1, xm0, y, x0, x1);
             typename MaskedImageT::x_iterator initer =
                 img.x_at(x0 - img.getX0(), y - img.getY0());
@@ -1282,8 +1278,7 @@ hasSignificantFluxAtEdge(ImagePtrT img,
                          ImagePixelT thresh) {
     typedef typename det::Footprint::SpanList SpanList;
 
-    pexLog::Log log(pexLog::Log::getDefaultLog(),
-                    "lsst.meas.deblender.hasSignificantFluxAtEdge");
+    LOG_LOGGER _log = LOG_GET("meas.deblender.hasSignificantFluxAtEdge");
 
     // Find edge template pixels with significant flux -- perhaps
     // because their symmetric pixels were outside the footprint?
@@ -1316,8 +1311,7 @@ deblend::BaselineUtils<ImagePixelT,MaskPixelT,VariancePixelT>::
 getSignificantEdgePixels(ImagePtrT img,
                          PTR(det::Footprint) sfoot,
                          ImagePixelT thresh) {
-    pexLog::Log log(pexLog::Log::getDefaultLog(),
-                    "lsst.meas.deblender.getSignificantEdgePixels");
+    LOG_LOGGER _log = LOG_GET("meas.deblender.getSignificantEdgePixels");
 
     sfoot->normalize();                 // Algorithms require spans sorted by y
 

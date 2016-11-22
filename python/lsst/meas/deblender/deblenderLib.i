@@ -13,10 +13,10 @@ Python interface to lsst::meas::deblender classes
 #include <exception>
 #include <list>
 #include <memory>
+#include "lsst/log/Log.h"
 #include "lsst/meas/deblender/Baseline.h"
 #include "lsst/afw/table.h"
 #include "lsst/afw/detection.h"
-#include "lsst/pex/logging.h"
 #include "lsst/afw/cameraGeom.h"
 #include "lsst/afw/math.h"
 
