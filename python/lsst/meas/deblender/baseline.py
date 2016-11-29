@@ -84,6 +84,7 @@ class PerPeak(object):
         self.tinyFootprint = False
         self.noValidPixels = False
         self.deblendedAsPsf = False
+        self.degenerate = False
 
         # Field set during _fitPsf:
         self.psfFitFailed = False
@@ -240,6 +241,7 @@ def deblend(footprint, maskedImage, psf, psffwhm,
             rampFluxAtEdge=False, patchEdges=False, tinyFootprintSize=2,
             getTemplateSum=False,
             clipStrayFluxFraction=0.001, clipFootprintToNonzero=True,
+            removeDegenerateTemplates=False, maxTempDotProd=0.5
             ):
     """!
     Deblend a single ``footprint`` in a ``maskedImage``.
@@ -393,6 +395,121 @@ def deblend(footprint, maskedImage, psf, psffwhm,
 
         pkres.setTemplate(t1, tfoot)
 
+    # Loop over fitting and identifying degenerate templates until no more objects are removed
+    while True:
+
+        if weightTemplates:
+            # Reweight the templates by doing a least-squares fit to the image
+            log.trace('Reweighting templates')
+            nchild = np.sum([pkres.skip is False for pkres in res.peaks])
+            A = np.zeros((W*H, nchild))
+            parentImage = afwImage.ImageF(bb)
+            afwDet.copyWithinFootprintImage(fp, img, parentImage)
+            b = parentImage.getArray().ravel()
+
+            index = 0
+            for pkres in res.peaks:
+                if pkres.skip:
+                    continue
+                childImage = afwImage.ImageF(bb)
+                afwDet.copyWithinFootprintImage(fp, pkres.templateImage, childImage)
+                A[:, index] = childImage.getArray().ravel()
+                index += 1
+
+            X1, r1, rank1, s1 = np.linalg.lstsq(A, b)
+            del A
+            del b
+
+            index = 0
+            for pkres in res.peaks:
+                if pkres.skip:
+                    continue
+                pkres.templateImage *= X1[index]
+                pkres.setTemplateWeight(X1[index])
+                index += 1
+
+        exitLoop = True
+
+        # If galaxies have substructure, such as face-on spirals, the process of identifying peaks can
+        # "shred" the galaxy into many pieces.  The templates of shredded galaxies are typically quite
+        # similiar because they represent the same galaxy.  We try to identify these "degenerate" peaks
+        # by looking at the inner product (in pixel space) of pairs of templates.  If they are nearly
+        # parallel, we only keep one of the peaks an reject the other.
+        if removeDegenerateTemplates:
+
+            log.trace('Looking for degnerate templates')
+
+            nchild = np.sum([pkres.skip is False for pkres in res.peaks])
+            indexes = [pkres.pki for pkres in res.peaks if pkres.skip is False]
+
+            # We build a matrix that stores the dot product between templates.
+            # We convert the template images to HeavyFootprints because they already have a method
+            # to compute the dot product.
+            A = np.zeros((nchild, nchild))
+            maxTemplate = []
+            heavies = []
+            for pkres in res.peaks:
+                if pkres.skip:
+                    continue
+                heavies.append(afwDet.makeHeavyFootprint(pkres.templateFootprint,
+                                                         afwImage.MaskedImageF(pkres.templateImage)))
+                maxTemplate.append(np.max(pkres.templateImage.getArray()))
+
+            for i in range(nchild):
+                for j in range(i + 1):
+                    A[i, j] = heavies[i].dot(heavies[j])
+
+            # Normalize the dot products to get the cosine of the angle between templates
+            for i in range(nchild):
+                for j in range(i):
+                    norm = A[i, i]*A[j, j]
+                    if norm <= 0:
+                        A[i, j] = 0
+                    else:
+                        A[i, j] /= np.sqrt(norm)
+
+            # Iterate over pairs of objects and find the maximum non-diagonal element of the matrix.
+            # Exit the loop once we find a single degenerate pair greater than the threshold.
+            rejectedIndex = -1
+            foundReject = False
+            for i in range(nchild):
+                currentMax = 0.
+                for j in range(i):
+                    if A[i, j] > currentMax:
+                        currentMax = A[i, j]
+                        if currentMax > maxTempDotProd:
+                            foundReject = True
+                            rejectedIndex = j
+
+                if foundReject:
+                    break
+
+            del A
+
+            # If one of the objects is identified as a PSF keep the other one, otherwise keep the one
+            # with the maximum template value
+            if foundReject:
+                keep = indexes[i]
+                reject = indexes[rejectedIndex]
+                exitLoop = False
+                if res.peaks[keep].deblendedAsPsf and res.peaks[reject].deblendedAsPsf is False:
+                    keep = indexes[rejectedIndex]
+                    reject = indexes[i]
+                elif res.peaks[keep].deblendedAsPsf is False and res.peaks[reject].deblendedAsPsf:
+                    reject = indexes[rejectedIndex]
+                    keep = indexes[i]
+                else:
+                    if maxTemplate[rejectedIndex] > maxTemplate[i]:
+                            keep = indexes[rejectedIndex]
+                            reject = indexes[i]
+                log.trace('Removing object with index %d : %f.  Degenerate with %d' % (reject, currentMax,
+                                                                                       keep))
+                res.peaks[reject].skip = True
+                res.peaks[reject].degenerate = True
+
+        if exitLoop:
+            break
+
     # Prepare inputs to "apportionFlux" call.
     # template maskedImages
     tmimgs = []
@@ -417,34 +534,6 @@ def deblend(footprint, maskedImage, psf, psffwhm,
         pkx.append(pk.getIx())
         pky.append(pk.getIy())
         ibi.append(pkres.pki)
-
-    if weightTemplates:
-        # Reweight the templates by doing a least-squares fit to the image
-        A = np.zeros((W*H, len(tmimgs)))
-        b = img.getArray()[y0:y1+1, x0:x1+1].ravel()
-
-        for mim, i in zip(tmimgs, ibi):
-            ibb = mim.getBBox()
-            ix0, iy0 = ibb.getMinX(), ibb.getMinY()
-            pkres = res.peaks[i]
-            foot = pkres.templateFootprint
-            ima = mim.getImage().getArray()
-            for sp in foot.getSpans():
-                sy, sx0, sx1 = sp.getY(), sp.getX0(), sp.getX1()
-                imrow = ima[sy-iy0, sx0-ix0: 1+sx1-ix0]
-                r0 = (sy-y0)*W
-                A[r0 + sx0-x0: r0+1+sx1-x0, i] = imrow
-
-        X1, r1, rank1, s1 = np.linalg.lstsq(A, b)
-        del A
-        del b
-
-        for mim, i, w in zip(tmimgs, ibi, X1):
-            im = mim.getImage()
-            im *= w
-            res.peaks[i].setTemplateWeight(w)
-
-    # FIXME -- Remove templates that are too similar (via dot-product test)?
 
     # Now apportion flux according to the templates
     log.trace('Apportioning flux among %i templates', len(tmimgs))

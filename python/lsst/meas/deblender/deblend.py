@@ -121,6 +121,17 @@ class SourceDeblendConfig(pexConf.Config):
         doc=("Mask planes with the corresponding limit on the fraction of masked pixels. "
              "Sources violating this limit will not be deblended."),
     )
+    weightTemplates = pexConf.Field(dtype=bool, default=False,
+                                    doc=("If true, a least-squares fit of the templates will be done to the "
+                                        "full image. The templates will be re-weighted based on this fit."))
+    removeDegenerateTemplates = pexConf.Field(dtype=bool, default=False,
+                                              doc=("Try to remove similar templates?"))
+    maxTempDotProd = pexConf.Field(dtype=float, default=0.5,
+                                   doc=("If the dot product between two templates is larger than this value"
+                                        ", we consider them to be describing the same object (i.e. they are "
+                                        "degenerate).  If one of the objects has been labeled as a PSF it "
+                                        "will be removed, otherwise the template with the lowest value will "
+                                        "be removed."))
 
 ## \addtogroup LSST_task_documentation
 ## \{
@@ -307,6 +318,9 @@ class SourceDeblendTask(pipeBase.Task):
                     patchEdges=(self.config.edgeHandling == 'noclip'),
                     tinyFootprintSize=self.config.tinyFootprintSize,
                     clipStrayFluxFraction=self.config.clipStrayFluxFraction,
+                    weightTemplates=self.config.weightTemplates,
+                    removeDegenerateTemplates=self.config.removeDegenerateTemplates,
+                    maxTempDotProd=self.config.maxTempDotProd
                 )
                 if self.config.catchFailures:
                     src.set(self.deblendFailedKey, False)
