@@ -604,7 +604,7 @@ datasets: {
         persistable:   None
         storage:       TextStorage
     }
-    plotCompare: {
+    plotCompareCoadd: {
         template:      "plots/%(filter)s/tract-%(tract)d/compare-t%(tract)d-%(filter)s-%(description)s-%(style)s.png"
         python:        __builtin__.str
         persistable:   None
