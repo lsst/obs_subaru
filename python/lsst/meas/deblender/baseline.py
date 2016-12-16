@@ -361,8 +361,8 @@ def deblend(footprint, maskedImage, psf, psffwhm,
         How the flux is apportioned is determined by ``strayFluxAssignment``.
         The default is True.
     assignStrayFlux: `bool`, optional
-        Not implemented. TODO: Check that is ok to remove (it might be kept around to avoid breaking
-        the API)
+        Not implemented. TODO: DM-8677 will deprecate ``findStrayFlux`` and use ``assignStrayFlux`` in its
+        place.
     strayFluxToPointSources: `string`
         Determines how stray flux is apportioned to point sources
         * ``never``: never apportion stray flux to point sources
@@ -788,6 +788,7 @@ def _fitPsfs(fp, peaks, fpres, log, psf, psffwhm, img, varimg,
              **kwargs
              ):
     """Fit a PSF + smooth background model (linear) to a small region around each peak.
+
     This routine uses a linear least squares algorithm to fit each peak (and neighboring peaks)
     to the PSF.
     To make the comparison more robust, each peak is fit with and without including
