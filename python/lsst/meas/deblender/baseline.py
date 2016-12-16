@@ -243,19 +243,61 @@ def deblend(footprint, maskedImage, psf, psffwhm,
             clipStrayFluxFraction=0.001, clipFootprintToNonzero=True,
             removeDegenerateTemplates=False, maxTempDotProd=0.5
             ):
-    """
-    Deblend a parent ``footprint`` in a ``maskedImage``. This involves several mandatory and optional steps:
+    """Deblend a parent ``Footprint`` in a ``MaskedImageF``.
     
-    # Optionally find all peaks that are well-fit by a PSF + background model (see ``fitPsfs``,
-      ``psfChisqCut*)
+    Deblending assumes that ``footprint`` has multiple peaks, as it will still create a
+    `PerFootprint` object with a list of peaks even if there is only one peak in the list.
+    It is recommended to first check that ``footprint`` has more than one peak, similar to the
+    execution of `lsst.meas.deblender.deblend.SourceDeblendTask`.
+    
+    Deblending involves several mandatory and optional steps:
+    # Optional: If ``fitPsfs`` is True, find all peaks that are well-fit by a PSF + background model
+        * Peaks that pass the cuts have their footprints modified to the PSF + background model
+          and their ``deblendedAsPsf`` property set to ``True``.
+        * Relevant parameters: ``psfChisqCut1``, ``psfChisqCut2``, ``psfChisqCut2b``,
+          ``tinyFootprintSize``.
+        * See the parameter descriptions for more.
     # Build a symmetric template for each peak not well-fit by the PSF model
-    # Optionally adjust flux on the edges of the template footprints (see ``rampFluxAtEdge``)
-    # Optionally filter the template images (see ``medianSmoothTemplate``)
-    # Optionally make the templates monotonic (see ``monotonicTemplate``)
-    # Optionally clip non-nonzero spans in the template footprints (see ``clipFootprintToNonzero``)
-    # Optionally weight the templates to best fit the observed image (see ``weightTemplates``)
-    # Optionally reconstruct shredded galaxies (see ``removeDegenerateTemplates``)
+        * Given ``maskedImageF``, ``footprint``, and a ``PerPeak``, creates a symmetric
+          template (``templateImage`` and ``templateFootprint``) around the peak
+          for all peaks not flagged as ``skip`` or ``deblendedAsPsf``.
+        * If ``patchEdges=True`` and if ``footprint`` touches pixels with the
+          ``EDGE`` bit set, then ``footprint`` is grown to include spans whose
+          symmetric mirror is outside of the image.
+        * Relevant parameters: ``sigma1`` and ``patchEdges``.
+    # Optional: If ``rampFluxAtEdge`` is True, adjust flux on the edges of the template footprints
+        * Using the PSF, a peak ``Footprint`` with pixels on the edge of of ``footprint``
+          is grown by the psffwhm*1.5 and filled in with zeros.
+        * The result is a new symmetric footprint template for the peaks near the edge.
+        * Relevant parameter: ``patchEdges``.
+    # Optionally (``medianSmoothTemplate=True``) filter the template images
+        * Apply a median smoothing filter to all of the template images.
+        * Relevant parameters: ``medianFilterHalfSize``
+    # Optional: If ``monotonicTemplate`` is True, make the templates monotonic.
+        * The pixels in the templates are modified such that pixels
+          further from the peak will have values smaller than those closer to the peak.
+    # Optional: If ``clipFootprintToNonzero`` is True, clip non-zero spans in the template footprints
+        * Peak ``Footprint``s are clipped to the region in the image containing non-zero values
+          by dropping spans that are completely zero and moving endpoints to non-zero pixels
+          (but does not split spans that have internal zeros).
+    # Optional: If ``weightTemplates`` is True,  weight the templates to best fit the observed image
+        * Re-weight the templates so that their linear combination
+          best represents the observed ``maskedImage``
+    # Optional: If ``removeDegenerateTempaltes`` is True, reconstruct shredded galaxies
+        * If galaxies have substructure, such as face-on spirals, the process of identifying peaks can
+          "shred" the galaxy into many pieces. The templates of shredded galaxies are typically quite
+          similar because they represent the same galaxy, so we try to identify these "degenerate" peaks
+          by looking at the inner product (in pixel space) of pairs of templates.
+        * If they are nearly parallel, we only keep one of the peaks and reject the other.
+        * If only one of the peaks is a PSF template, the other template is used,
+          otherwise the one with the maximum template value is kept.
+        * Relevant parameters: ``maxTempDotProduct``
     # Apportion flux to all of the peak templates
+        * Divide the ``maskedImage`` flux amongst all of the templates based on the fraction of 
+          flux assigned to each ``tempalteFootprint``.
+        * Leftover "stray flux" is assigned to peaks based on the other parameters.
+        * Relevant parameters: ``clipStrayFluxFraction``, ``strayFluxAssignment``,
+          ``strayFluxToPointSources``, ``findStrayFlux``
     
     Parameters
     ----------
@@ -268,7 +310,7 @@ def deblend(footprint, maskedImage, psf, psffwhm,
     psffwhm: `float`
         FWHM of the ``maskedImage``'s ``psf``
     psfChisqCut*: `float`, optional
-        If ``fitPsfs==True``, all of the peaks are fit to the image PSF if ``fitPSfs`` is ``True``.
+        If ``fitPsfs==True``, all of the peaks are fit to the image PSF.
         ``psfChisqCut1`` is the maximum chi-squared-per-degree-of-freedom allowed for a peak to
         be considered a PSF match without recentering.
         A fit is also made that includes terms to recenter the PSF.
@@ -282,7 +324,7 @@ def deblend(footprint, maskedImage, psf, psffwhm,
         but parameters for all three psf fits are stored in the ``PerPeak``.
         The default for ``psfChisqCut1``, ``psfChisqCut2``, and ``psfChisqCut2b`` is ``1.5``.
     fitPsfs: `bool`, optional
-        If ``fitPsfs==True`` then all of the peaks will be compared to the image PSF to
+        If True then all of the peaks will be compared to the image PSF to
         distinguish stars from galaxies.
     medianSmoothTemplate: ``bool``, optional
         If ``medianSmoothTemplate==True`` it a median smoothing filter is applied to the ``maskedImage``.
@@ -293,20 +335,23 @@ def deblend(footprint, maskedImage, psf, psffwhm,
         This parameter is only used when ``medianSmoothTemplate==True``, otherwise it is ignored.
         The default value is 2.
     monotonicTempalte: `bool`, optional
-        If ``monotonicTemplate==True``, the pixels in the template are modified such that pixels
-        further from the peak will have values smaller than those closer to the peak.
+        If True then make the template monotonic.
+        The default is True.
     weightTemplates: `bool`, optional
-        If ``weightTemplates==True``, re-weight the templates so that their linear combination
-        best represents the observed ``maskedImage``.
+        If True, re-weight the templates so that their linear combination best represents
+        the observed ``maskedImage``.
+        The default is False.
     log: `log.Log`, optional
-        LSST logger for logging purposes. The default is ``None`` (no logging).
+        LSST logger for logging purposes.
+        The default is ``None`` (no logging).
     verbose: `bool`, optional
-        Whether or not to show a more verbose output. The default is ``False``.
+        Whether or not to show a more verbose output.
+        The default is ``False``.
     sigma1: `float`, optional
         Average noise level in ``maskedImage``.
         The default is ``None``, which estimates the noise from the median value of ``maskedImage``.
     maxNumberOfPeaks: `int`, optional
-        Maximum number of peaks to deblend (if ``maxNumberOfPeaks>0``).
+        If nonzero, the maximum number of peaks to deblend.
         If the total number of peaks is greater than ``maxNumberOfPeaks``,
         then only the brightest ``maxNumberOfPeaks`` sources are deblended.
         The default is 0, which deblends all of the peaks.
@@ -321,8 +366,8 @@ def deblend(footprint, maskedImage, psf, psffwhm,
     strayFluxToPointSources: `string`
         Determines how stray flux is apportioned to point sources
         * ``never``: never apportion stray flux to point sources
-        * ``necessary`` (default): point sources are always included in the 1/(1+r^2) splitting
-        * ``always``: point sources are included only if there are no extended sources nearby
+        * ``necessary`` (default): point sources are included only if there are no extended sources nearby
+        * ``always``: point sources are always included in the 1/(1+r^2) splitting
     strayFluxAssignment: `string`, optional
         Determines how stray flux is apportioned.
         * ``trim``: Trim stray flux and do not include in any footprints
@@ -332,17 +377,15 @@ def deblend(footprint, maskedImage, psf, psffwhm,
         * ``nearest-footprint``: Stray flux is assigned to the footprint with lowest L-1 (Manhattan)
           distance to the stray flux
     rampFluxAtEdge: `bool`, optional
-        If ``rampFluxAtEdge==True`` then the symmetric template for peaks with extra flux on the edges
-        can be extended outside of the parent footprint.
+        If True then extend footprints with excessive flux on the edges as described above.
         The default is False.
     patchEdges: `bool`, optional
-        If ``patchEdges==True`` and if the footprint touches pixels with the ``EDGE`` bit set,
-        then for spans whose symmetric mirror are outside the image,
-        the symmetric footprint is grown to include them and their pixel values are stored.
+        If True and if the footprint touches pixels with the ``EDGE`` bit set,
+        then grow the footprint to include all symmetric templates.
         The default is ``False``.
     tinyFootprintSize: `float`, optional
         The PSF model is shrunk to the size that contains the original footprint.
-        If the bbox of the clipped PSF model for a peak is smaller than ``max(``tinyFootprintSize``,2)``
+        If the bbox of the clipped PSF model for a peak is smaller than ``max(tinyFootprintSize,2)``
         then ``tinyFootprint`` for the peak is set to ``True`` and the peak is not fit.
         The default is 2.
     getTemplateSum: `bool`, optional
@@ -350,24 +393,15 @@ def deblend(footprint, maskedImage, psf, psffwhm,
         If ``getTemplateSum==True`` then the sum of the templates is stored in the result (a `PerFootprint`).
         The default is False.
     clipStrayFluxFraction: `float`, optional
-        Minimum stray-flux portion. Any stray-flux portion less than 
-        ``clipStrayFluxFraction`` is clipped to zero.
+        Minimum stray-flux portion.
+        Any stray-flux portion less than ``clipStrayFluxFraction`` is clipped to zero.
         The default is 0.001.
     clipFootprintToNonzero: `bool`, optional
-        If ``clipFootprintToNonzero==True``, peak footprints are clipped to the region in the
-        image containing non-zero values by dropping spans that are totally zero and moving
-        endpoints to non-zero pixels (but does not split spans that have internal zeros).
+        If True then clip non-zero spans in the template footprints. See above for more.
         The default is True.
     removeDegenerateTemplates: `bool`, optional
-        If galaxies have substructure, such as face-on spirals, the process of identifying peaks can
-        "shred" the galaxy into many pieces. The templates of shredded galaxies are typically quite
-        similar because they represent the same galaxy, so if ``removeDegenerateTemplate==True``
-        we try to identify these "degenerate" peaks by looking at the inner product (in pixel space)
-        of pairs of templates.
-        If they are nearly parallel, we only keep one of the peaks an reject the other.
-        If only one of the peaks is a PSF template, the other template is used, otherwise the
-        one with the maximum template value is kept.
-        ``maxTempDotProduct`` determines the cutoff value for removing a degenerate template.
+        If True then we try to identify "degenerate" peaks by looking at the inner product
+        (in pixel space) of pairs of templates.
         The default is False.
     maxTempDotProduct: `float`, optional
         All dot products between templates greater than ``maxTempDotProduct`` will result in one
@@ -753,14 +787,14 @@ def _fitPsfs(fp, peaks, fpres, log, psf, psffwhm, img, varimg,
              psfChisqCut1, psfChisqCut2, psfChisqCut2b,
              **kwargs
              ):
-    """
-    Fit a PSF + smooth background model (linear) to a small region around each peak.
+    """Fit a PSF + smooth background model (linear) to a small region around each peak.
     This routine uses a linear least squares algorithm to fit each peak (and neighboring peaks)
     to the PSF.
     To make the comparison more robust, each peak is fit with and without including
     additional terms to recenter the PSF.
     If a peak matches the recentered PSF, a third fit is calculated by shifting the PSF to the new center.
-    See ``psfChisqCut*`` below for more.
+    
+    See `deblend` for a description of parameters not described below.
 
     Parameters
     ----------
@@ -770,31 +804,13 @@ def _fitPsfs(fp, peaks, fpres, log, psf, psffwhm, img, varimg,
         Catalog of peaks contained in the parent footprint.
     fpres: `meas.deblender.PerFootprint`
         Footprint results object that will hold the results.
-    log: `log.Log`
-        LSST logger for logging purposes.
-    psf: `afw.detection.Psf`
-        PSF of the image.
-    psffwhm: `float`
-        PSF FWHM in pixels.
     img: `afw.image.ImageF`
         The image that contains the footprint.
     varimg: `afw.image.ImageF`
         The variance of the image that contains the footprint.
-    psfChisqCut*: `float`
-        Up to three different fits are made. 
-        ``psfChisqCut1`` is the maximum chi-squared-per-degree-of-freedom allowed for a peak to
-        be considered a PSF match without recentering.
-        A fit is also made that includes terms to recenter the PSF.
-        ``psfChisqCut2`` is the same as ``psfChisqCut1`` except it determines the restriction on the
-        fit that includes recentering terms.
-        If the peak is a match for a recentered PSF, the PSF is repositioned at the new center and
-        the peak is fit again to the new PSF.
-        If the resulting chi-squared-per-degree-of-freedom is less than ``psfChisqCut2b`` then it
-        passes the recentering algorithm.
-        If the peak passes both the decentered and fixed position cuts, the better of the two is accepted,
-        but parameters for all three fits are stored in pkres.
     **kwargs: keyword arguments
         Dictionary of kwargs used in _fitPsf for each peak in ``peaks``.
+        At this time the only possible kwarg is ``tinyFootprintSize``.
 
     Returns
     -------
@@ -824,19 +840,12 @@ def _fitPsf(fp, fmask, pk, pkF, pkres, fbb, peaks, peaksF, log, psf, psffwhm,
             img, varimg, psfChisqCut1, psfChisqCut2, psfChisqCut2b,
             tinyFootprintSize=2,
             ):
-    """
-    Fit a PSF + smooth background model (linear) to a small region around the peak.
-    This routine uses a linear least squares algorithm to fit the peak (and neighboring peaks)
-    to the PSF.
-    To make the comparison more robust the peak is fit with and without including
-    additional terms to recenter the PSF.
-    If the peak matches a recentered PSF, a third fit is calculated by shifting the PSF to the new center.
-    See ``psfChisqCut*`` below for more.
+    """Fit a PSF + smooth background model (linear) to a small region around the peak.
+
+    See _fitPsf for a more thorough description, including all parameters not described below.
 
     Parameters
     ----------
-    fp: `afw.detection.Footprint`
-        Footprint containing the Peaks to model
     fmask: `afw.image.MaskU`
         The Mask plane for pixels in the Footprint
     pk: `afw.detection.PeakRecord`
@@ -847,38 +856,13 @@ def _fitPsf(fp, fmask, pk, pkF, pkres, fbb, peaks, peaksF, log, psf, psffwhm,
         Peak results object that will hold the results.
     fbb: `afw.geom.Box2I`
         Bounding box of ``fp``
-    peaks: `afw.detection.PeakCatalog`
-        Catalog of all peaks contained in ``fp``.
     peaksF: list of `afw.geom.Point2D`
         List of floating point coordinates of all of the peaks.
-    log: `log.Log`
-        LSST logger for logging purposes
-    psf: `afw.detection.Psf`
-        PSF of the image.
-    psffwhm: `float`
-        PSF FWHM in pixels
-    img: `afw.image.ImageF`
-        The image that contains the footprint.
-    varimg: `afw.image.ImageF`
-        The variance of the image that contains the footprint.
-    psfChisqCut*: `float`
-        Up to three different fits are made. 
-        ``psfChisqCut1`` is the maximum chi-squared-per-degree-of-freedom allowed for a peak to
-        be considered a PSF match without recentering.
-        A fit is also made that includes terms to recenter the PSF.
-        ``psfChisqCut2`` is the same as ``psfChisqCut1`` except it determines the restriction on the
-        fit that includes recentering terms.
-        If the peak is a match for a recentered PSF, the PSF is repositioned at the new center and
-        the peak is fit again to the new PSF.
-        If the resulting chi-squared-per-degree-of-freedom is less than ``psfChisqCut2b`` then it
-        passes the recentering algorithm.
-        If the peak passes both the re-centered and fixed position cuts, the better of the two is accepted,
-        but parameters for all three fits are stored in pkres.
     tinyFootprintSize: `float`, optional
         The PSF model is shrunk to the size that contains the original footprint.
-        If the bbox of the clipped PSF model is smaller than the maximum of ``tinyFootprintSize`` and 2,
-        then ``pkres.tinyFootprint`` is set to ``True`` and the peak is not fit.
-        Default is 2.
+        If the bbox of the clipped PSF model for a peak is smaller than ``max(tinyFootprintSize,2)``
+        then ``tinyFootprint`` for the peak is set to ``True`` and the peak is not fit.
+        The default is 2.
 
     Results
     -------
@@ -1312,10 +1296,11 @@ def _fitPsf(fp, fmask, pk, pkF, pkres, fbb, peaks, peaksF, log, psf, psffwhm,
 def _handle_flux_at_edge(log, psffwhm, t1, tfoot, fp, maskedImage,
                          x0, x1, y0, y1, psf, pk, sigma1, patchEdges
     ):
-    """
-    If a substantial amount of flux is found at the edge of the template,
-    this routine can be used to extend the template by the PSF and
-    "fill in" the footprint.
+    """Extend a template by the PSF to fill in the footprint.
+
+    Using the PSF, a footprint that touches the edge is passed to the function
+    and is grown by the psffwhm*1.5 and filled in with zeros.
+    Finally a symmetric footprint is created in the new footprint.
 
     Parameters
     ----------
@@ -1346,7 +1331,7 @@ def _handle_flux_at_edge(log, psffwhm, t1, tfoot, fp, maskedImage,
         ``EDGE`` bit set, then for spans whose symmetric mirror are outside the
         image, the symmetric footprint is grown to include them and their
         pixel values are stored.
-    
+
     Results
     -------
     t2: `afw.image.ImageF`
