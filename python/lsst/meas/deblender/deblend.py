@@ -57,11 +57,12 @@ class SourceDeblendConfig(pexConf.Config):
         }
     )
 
-    findStrayFlux = pexConf.Field(dtype=bool, default=True,
-                                  doc='Find stray flux---flux not claimed by any child in the deblender.')
+    findStrayFlux = pexConf.Field(dtype=bool, default=None,
+                                  doc='Deprecated. Use assignStrayFlux instead')
 
     assignStrayFlux = pexConf.Field(dtype=bool, default=True,
-                                    doc='Assign stray flux to deblend children.  Implies findStrayFlux.')
+                                    doc='Assign stray flux (not claimed by any child in the deblender) '
+                                        'to deblend children.')
 
     strayFluxRule = pexConf.ChoiceField(
         doc='How to split flux among peaks',
@@ -312,7 +313,7 @@ class SourceDeblendTask(pipeBase.Task):
                     maxNumberOfPeaks=self.config.maxNumberOfPeaks,
                     strayFluxToPointSources=self.config.strayFluxToPointSources,
                     assignStrayFlux=self.config.assignStrayFlux,
-                    findStrayFlux=(self.config.assignStrayFlux or self.config.findStrayFlux),
+                    findStrayFlux=self.config.findStrayFlux,
                     strayFluxAssignment=self.config.strayFluxRule,
                     rampFluxAtEdge=(self.config.edgeHandling == 'ramp'),
                     patchEdges=(self.config.edgeHandling == 'noclip'),

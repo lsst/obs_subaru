@@ -236,7 +236,7 @@ def deblend(footprint, maskedImage, psf, psffwhm,
             medianSmoothTemplate=True, medianFilterHalfsize=2,
             monotonicTemplate=True, weightTemplates=False,
             log=None, verbose=False, sigma1=None, maxNumberOfPeaks=0,
-            findStrayFlux=True, assignStrayFlux=True,
+            findStrayFlux=None, assignStrayFlux=True,
             strayFluxToPointSources='necessary', strayFluxAssignment='r-to-peak',
             rampFluxAtEdge=False, patchEdges=False, tinyFootprintSize=2,
             getTemplateSum=False,
@@ -297,7 +297,7 @@ def deblend(footprint, maskedImage, psf, psffwhm,
           flux assigned to each ``tempalteFootprint``.
         * Leftover "stray flux" is assigned to peaks based on the other parameters.
         * Relevant parameters: ``clipStrayFluxFraction``, ``strayFluxAssignment``,
-          ``strayFluxToPointSources``, ``findStrayFlux``
+          ``strayFluxToPointSources``, ``assignStrayFlux``
     
     Parameters
     ----------
@@ -356,13 +356,12 @@ def deblend(footprint, maskedImage, psf, psffwhm,
         then only the brightest ``maxNumberOfPeaks`` sources are deblended.
         The default is 0, which deblends all of the peaks.
     findStrayFlux: `bool`, optional
-        If ``findStrayFlux==True`` then flux in the parent footprint that is not covered by any of the
+        Deprecated. Use ``assignStrayFlux``
+    assignStrayFlux: `bool`, optional
+        If True then flux in the parent footprint that is not covered by any of the
         template footprints is assigned to templates based on their 1/(1+r^2) distance.
         How the flux is apportioned is determined by ``strayFluxAssignment``.
         The default is True.
-    assignStrayFlux: `bool`, optional
-        Not implemented. TODO: DM-8677 will deprecate ``findStrayFlux`` and use ``assignStrayFlux`` in its
-        place.
     strayFluxToPointSources: `string`
         Determines how stray flux is apportioned to point sources
         * ``never``: never apportion stray flux to point sources
@@ -418,6 +417,9 @@ def deblend(footprint, maskedImage, psf, psffwhm,
     import lsst.meas.deblender as deb
     butils = deb.BaselineUtilsF
 
+    if findStrayFlux is not None:
+        assignStrayFlux = findStrayFlux
+        log.WARN("'findStrayFlux' is deprecated, please use 'assignStrayFlux' instead.")
     validStrayPtSrc = ['never', 'necessary', 'always']
     validStrayAssign = ['r-to-peak', 'r-to-footprint', 'nearest-footprint', 'trim']
     if strayFluxToPointSources not in validStrayPtSrc:
@@ -698,9 +700,9 @@ def deblend(footprint, maskedImage, psf, psffwhm,
 
     strayopts = 0
     if strayFluxAssignment == 'trim':
-        findStrayFlux = False
+        assignStrayFlux = False
         strayopts |= butils.STRAYFLUX_TRIM
-    if findStrayFlux:
+    if assignStrayFlux:
         strayopts |= butils.ASSIGN_STRAYFLUX
         if strayFluxToPointSources == 'necessary':
             strayopts |= butils.STRAYFLUX_TO_POINT_SOURCES_WHEN_NECESSARY
@@ -732,7 +734,7 @@ def deblend(footprint, maskedImage, psf, psffwhm,
             continue
         pkres.setFluxPortion(portions[ii])
 
-        if findStrayFlux:
+        if assignStrayFlux:
             # NOTE that due to a swig bug (https://github.com/swig/swig/issues/59)
             # we CANNOT iterate over "strayflux", but must index into it.
             stray = strayflux[ii]

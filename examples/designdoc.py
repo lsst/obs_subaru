@@ -226,7 +226,7 @@ def main():
                      median_smooth_template=False,
                      monotonic_template=False,
                      lstsq_weight_templates=False,
-                     findStrayFlux=False,
+                     assignStrayFlux=False,
                      rampFluxAtEdge=False,
                      patchEdges=False)
 
@@ -255,7 +255,6 @@ def main():
             kwargs.update(median_smooth_template=True,
                           monotonic_template=True,
                           rampFluxAtEdge=True,
-                          findStrayFlux=True,
                           assignStrayFlux=True)
 
         elif opt.sec == 'patch':
