@@ -32,7 +32,8 @@ import lsst.afw.geom as afwGeom
 import lsst.afw.image as afwImage
 from lsst.log import Log
 import lsst.meas.algorithms as measAlg
-from lsst.meas.deblender.baseline import _fitPsf, CachingPsf, PerPeak
+from lsst.meas.deblender.plugins import _fitPsf, CachingPsf
+from lsst.meas.deblender.baseline import DeblendedPeak
 
 doPlot = False
 if doPlot:
@@ -129,7 +130,8 @@ class FitPsfTestCase(unittest.TestCase):
 
         psf_chisq_cut1 = psf_chisq_cut2 = psf_chisq_cut2b = 1.5
 
-        pkres = PerPeak()
+        #pkres = PerPeak()
+        pkres = DeblendedPeak(pk1, 0, None)
 
         loglvl = Log.INFO
         # if verbose:
