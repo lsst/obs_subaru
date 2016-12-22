@@ -337,7 +337,7 @@ class SourceDeblendTask(pipeBase.Task):
 
             kids = []
             nchild = 0
-            for j, peak in enumerate(res.peaks):
+            for j, peak in enumerate(res.deblendedParents[0].peaks):
                 heavy = peak.getFluxPortion()
                 if heavy is None or peak.skip:
                     src.set(self.deblendSkippedKey, True)
