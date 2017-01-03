@@ -32,8 +32,8 @@ import lsst.afw.geom as afwGeom
 import lsst.afw.image as afwImage
 from lsst.log import Log
 import lsst.meas.algorithms as measAlg
-from lsst.meas.deblender.plugins import _fitPsf, CachingPsf
-from lsst.meas.deblender.baseline import DeblendedPeak
+from lsst.meas.deblender.plugins import _fitPsf
+from lsst.meas.deblender.baseline import DeblendedPeak, CachingPsf
 
 doPlot = False
 if doPlot:

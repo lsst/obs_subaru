@@ -719,3 +719,28 @@ def newDeblend(debPlugins, footprint, maskedImage, psf, psffwhm, filters=None,
             step+=1
 
     return debResult
+
+
+class CachingPsf(object):
+    """Cache the PSF models
+
+    In the PSF fitting code, we request PSF models for all peaks near
+    the one being fit.  This was turning out to be quite expensive in
+    some cases.  Here, we cache the PSF models to bring the cost down
+    closer to O(N) rather than O(N^2).
+    """
+
+    def __init__(self, psf):
+        self.cache = {}
+        self.psf = psf
+
+    def computeImage(self, cx, cy):
+        im = self.cache.get((cx, cy), None)
+        if im is not None:
+            return im
+        try:
+            im = self.psf.computeImage(afwGeom.Point2D(cx, cy))
+        except lsst.pex.exceptions.Exception:
+            im = self.psf.computeImage()
+        self.cache[(cx, cy)] = im
+        return im
