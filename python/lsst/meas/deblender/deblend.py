@@ -57,9 +57,6 @@ class SourceDeblendConfig(pexConf.Config):
         }
     )
 
-    findStrayFlux = pexConf.Field(dtype=bool, default=None,
-                                  doc='Deprecated. Use assignStrayFlux instead')
-
     assignStrayFlux = pexConf.Field(dtype=bool, default=True,
                                     doc='Assign stray flux (not claimed by any child in the deblender) '
                                         'to deblend children.')
@@ -313,7 +310,6 @@ class SourceDeblendTask(pipeBase.Task):
                     maxNumberOfPeaks=self.config.maxNumberOfPeaks,
                     strayFluxToPointSources=self.config.strayFluxToPointSources,
                     assignStrayFlux=self.config.assignStrayFlux,
-                    findStrayFlux=self.config.findStrayFlux,
                     strayFluxAssignment=self.config.strayFluxRule,
                     rampFluxAtEdge=(self.config.edgeHandling == 'ramp'),
                     patchEdges=(self.config.edgeHandling == 'noclip'),

@@ -418,11 +418,9 @@ def deblend(footprint, maskedImage, psf, psffwhm, filters=None,
             medianSmoothTemplate=True, medianFilterHalfsize=2,
             monotonicTemplate=True, weightTemplates=False,
             log=None, verbose=False, sigma1=None, maxNumberOfPeaks=0,
-            findStrayFlux=None, assignStrayFlux=True,
-            strayFluxToPointSources='necessary', strayFluxAssignment='r-to-peak',
+            assignStrayFlux=True, strayFluxToPointSources='necessary', strayFluxAssignment='r-to-peak',
             rampFluxAtEdge=False, patchEdges=False, tinyFootprintSize=2,
-            getTemplateSum=False,
-            clipStrayFluxFraction=0.001, clipFootprintToNonzero=True,
+            getTemplateSum=False, clipStrayFluxFraction=0.001, clipFootprintToNonzero=True,
             removeDegenerateTemplates=False, maxTempDotProd=0.5
             ):
     """Deblend a parent ``Footprint`` in a ``MaskedImageF``.
@@ -484,7 +482,7 @@ def deblend(footprint, maskedImage, psf, psffwhm, filters=None,
           flux assigned to each ``tempalteFootprint``.
         * Leftover "stray flux" is assigned to peaks based on the other parameters.
         * Relevant parameters: ``clipStrayFluxFraction``, ``strayFluxAssignment``,
-          ``strayFluxToPointSources``, ``findStrayFlux``
+          ``strayFluxToPointSources``, ``assignStrayFlux``
     
     Parameters
     ----------
@@ -542,8 +540,6 @@ def deblend(footprint, maskedImage, psf, psffwhm, filters=None,
         If the total number of peaks is greater than ``maxNumberOfPeaks``,
         then only the brightest ``maxNumberOfPeaks`` sources are deblended.
         The default is 0, which deblends all of the peaks.
-    findStrayFlux: `bool`, optional
-        Deprecated. Use ``assignStrayFlux``.
     assignStrayFlux: `bool`, optional
         If True then flux in the parent footprint that is not covered by any of the
         template footprints is assigned to templates based on their 1/(1+r^2) distance.
@@ -600,9 +596,6 @@ def deblend(footprint, maskedImage, psf, psffwhm, filters=None,
         Deblender result that contains a list of ``PerPeak``s for each peak and (optionally)
         the template sum.
     """
-    if findStrayFlux is not None:
-        assignStrayFlux = findStrayFlux
-        log.WARN("'findStrayFlux' has been deprecated, please use 'assignStrayFlux'")
     avgNoise = sigma1
 
     debPlugins = []
