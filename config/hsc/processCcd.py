@@ -11,16 +11,18 @@ config.load(os.path.join(hscConfigDir, 'isr.py'))
 config.calibrate.photoCal.colorterms.load(os.path.join(hscConfigDir, 'colorterms.py'))
 config.charImage.measurePsf.starSelector["objectSize"].widthMin = 0.9
 config.charImage.measurePsf.starSelector["objectSize"].fluxMin = 4000
-config.calibrate.refObjLoader.load(os.path.join(hscConfigDir, "filterMap.py"))
+for refObjLoader in (config.calibrate.astromRefObjLoader,
+                     config.calibrate.photoRefObjLoader,
+                     config.charImage.refObjLoader,
+                     ):
+    refObjLoader.load(os.path.join(hscConfigDir, "filterMap.py"))
 
 # Set to match defaults curretnly used in HSC production runs (e.g. S15B)
 config.calibrate.astrometry.matcher.sourceFluxType = 'Psf'
 config.calibrate.astrometry.matcher.allowedNonperpDeg = 0.2
 config.calibrate.astrometry.matcher.maxRotationDeg = 1.145916
 config.calibrate.astrometry.wcsFitter.numRejIter = 3
-
-for subTask in (config.charImage, config.calibrate):
-    subTask.astrometry.wcsFitter.order = 3
+config.calibrate.astrometry.wcsFitter.order = 3
 config.calibrate.astrometry.matcher.maxMatchDistArcSec = 2.0
 config.calibrate.astrometry.matcher.maxOffsetPix = 750
 
