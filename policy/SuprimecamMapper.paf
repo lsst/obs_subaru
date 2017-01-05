@@ -364,98 +364,98 @@ datasets: {
     }
     ossThumb: {
         template:    "%(pointing)05d/%(filter)s/thumbs/oss%(visit)07d%(ccd)d.png"
-        python:      __builtin__.str
+        python:      builtins.str
         persistable: None
         storage:     TextStorage
         tables:      raw
     }
     flattenedThumb: {
         template:    "%(pointing)05d/%(filter)s/thumbs/flattened%(visit)07d%(ccd)d.png"
-        python:      __builtin__.str
+        python:      builtins.str
         persistable: None
         storage:     TextStorage
         tables:      raw
     }
     calexpThumb: {
         template:    "%(pointing)05d/%(filter)s/thumbs/corr%(visit)07d%(ccd)d.png"
-        python:      __builtin__.str
+        python:      builtins.str
         persistable: None
         storage:     TextStorage
         tables:      raw
     }
     plotMagHist: {
         template:    "%(pointing)05d/%(filter)s/qa/magHist%(visit)07d%(ccd)d.png"
-        python:      __builtin__.str
+        python:      builtins.str
         persistable: None
         storage:     TextStorage
         tables:      raw
     }
     plotSeeingRough: {
         template:    "%(pointing)05d/%(filter)s/qa/seeingRough%(visit)07d%(ccd)d.png"
-        python:      __builtin__.str
+        python:      builtins.str
         persistable: None
         storage:     TextStorage
         tables:      raw
     }
     plotSeeingRobust: {
         template:    "%(pointing)05d/%(filter)s/qa/seeingRobust%(visit)07d%(ccd)d.png"
-        python:      __builtin__.str
+        python:      builtins.str
         persistable: None
         storage:     TextStorage
         tables:      raw
     }
     plotSeeingMap: {
         template:    "%(pointing)05d/%(filter)s/qa/seeingMap%(visit)07d%(ccd)d.png"
-        python:      __builtin__.str
+        python:      builtins.str
         persistable: None
         storage:     TextStorage
         tables:      raw
     }
     plotEllipseMap: {
         template:    "%(pointing)05d/%(filter)s/qa/ellipseMap%(visit)07d%(ccd)d.png"
-        python:      __builtin__.str
+        python:      builtins.str
         persistable: None
         storage:     TextStorage
         tables:      raw
     }
     plotEllipticityMap: {
         template:    "%(pointing)05d/%(filter)s/qa/ellipticityMap%(visit)07d%(ccd)d.png"
-        python:      __builtin__.str
+        python:      builtins.str
         persistable: None
         storage:     TextStorage
         tables:      raw
     }
     plotFwhmGrid: {
         template:    "%(pointing)05d/%(filter)s/qa/fwhmGrid%(visit)07d%(ccd)d.png"
-        python:      __builtin__.str
+        python:      builtins.str
         persistable: None
         storage:     TextStorage
         tables:      raw
     }
     plotEllipseGrid: {
         template:    "%(pointing)05d/%(filter)s/qa/ellipseGrid%(visit)07d%(ccd)d.png"
-        python:      __builtin__.str
+        python:      builtins.str
         persistable: None
         storage:     TextStorage
         tables:      raw
     }
     plotEllipticityGrid: {
         template:    "%(pointing)05d/%(filter)s/qa/ellipticityGrid%(visit)07d%(ccd)d.png"
-        python:      __builtin__.str
+        python:      builtins.str
         persistable: None
         storage:     TextStorage
         tables:      raw
     }
     plotPsfSrcGrid: {
         template:    "%(pointing)05d/%(filter)s/qa/psfSrcGrid%(visit)07d%(ccd)d.png"
-        python:      __builtin__.str
+        python:      builtins.str
         persistable: None
         storage:     TextStorage
         tables:      raw
     }
     plotPsfModelGrid: {
         template:    "%(pointing)05d/%(filter)s/qa/psfModelGrid%(visit)07d%(ccd)d.png"
-        python:      __builtin__.str
+        python:      builtins.str
         persistable: None
         storage:     TextStorage
         tables:      raw
@@ -497,14 +497,14 @@ datasets: {
     }
     tableSeeingMap: {
         template:    "%(pointing)05d/%(filter)s/qa/seeingMap%(visit)07d%(ccd)d.txt"
-        python:      __builtin__.str
+        python:      builtins.str
         persistable: None
         storage:     TextStorage
         tables:      raw
     }
     tableSeeingGrid: {
         template:    "%(pointing)05d/%(filter)s/qa/seeingGrid%(visit)07d%(ccd)d.txt"
-        python:      __builtin__.str
+        python:      builtins.str
         persistable: None
         storage:     TextStorage
         tables:      raw
