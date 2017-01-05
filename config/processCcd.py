@@ -28,8 +28,11 @@ except ImportError as e:
     config.charImage.measurePsf.psfDeterminer.name = "pca"
 
 # Astrometry
-config.calibrate.refObjLoader.load(os.path.join(getPackageDir("obs_subaru"), "config",
-                                                "filterMap.py"))
+for refObjLoader in (config.calibrate.astromRefObjLoader,
+                     config.calibrate.photoRefObjLoader,
+                     config.charImage.refObjLoader,
+                     ):
+    refObjLoader.load(os.path.join(getPackageDir("obs_subaru"), "config", "filterMap.py"))
 
 # Set to match defaults curretnly used in HSC production runs (e.g. S15B)
 config.charImage.catalogCalculation.plugins['base_ClassificationExtendedness'].fluxRatio = 0.95
@@ -39,8 +42,10 @@ config.calibrate.photoCal.applyColorTerms = True
 
 from lsst.pipe.tasks.setConfigFromEups import setConfigFromEups
 menu = {"ps1*": {}, # Defaults are fine
-        "sdss*": {"refObjLoader.filterMap": {"y": "z"}}, # No y-band, use z instead
-        "2mass*": {"refObjLoader.filterMap": {ff: "J" for ff in "grizy"}}, # No optical bands, use J instead
+        "sdss*": {"photoRefObjLoader.filterMap": {"y": "z"},
+                  "astromRefObjLoader.filterMap": {"y": "z"}}, # No y-band, use z instead
+        "2mass*": {"photoRefObjLoader.filterMap": {ff: "J" for ff in "grizy"},
+                   "astromRefObjLoader.filterMap": {ff: "J" for ff in "grizy"}}, # No optical, use J instead
         "10*": {}, # Match the empty astrometry_net_data version for use without a ref catalog
         }
 setConfigFromEups(config.calibrate.photoCal, config.calibrate, menu)
