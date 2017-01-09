@@ -62,19 +62,19 @@ class DeblenderResult(object):
             Masked image containing the ``footprint`` in each band.
         psf: list of `afw.detection.Psf`s
             Psf of the ``maskedImage`` for each band.
-        psffwhm: list pf `float`s
+        psffwhm: list of `float`s
             FWHM of the ``maskedImage``'s ``psf`` in each band.
         filters: list of `string`, optional
             Names of the filters. This should be the same length as the other lists
         maxNumberOfPeaks: `int`, optional
             If positive, the maximum number of peaks to deblend.
             If the total number of peaks is greater than ``maxNumberOfPeaks``,
-            then only the brightest ``maxNumberOfPeaks`` sources are deblended.
+            then only the first ``maxNumberOfPeaks`` sources are deblended.
             The default is 0, which deblends all of the peaks.
         avgNoise: `float`or list of `float`s, optional
             Average noise level in each ``maskedImage``.
-            The default is ``None``, which estimates the noise from the median value of ``maskedImage``
-            for each filter.
+            The default is ``None``, which estimates the noise from the median value of the
+            variance plane of ``maskedImage`` for each filter.
         Returns
         -------
         None
@@ -147,8 +147,39 @@ class DeblenderResult(object):
                 self.deblendedParents[f].templateSum = templateSum
 
 class DeblendedParent(object):
+    """Deblender result of a single parent footprint, in a single band
+    
+    Convenience class to store useful objects used by the deblender for a single band,
+    such as the maskedImage, psf, etc as well as the results from the deblender.
+    """
     def __init__(self, filterName, footprint, maskedImage, psf, psffwhm, avgNoise, 
                  maxNumberOfPeaks, debResult):
+        """Create a DeblendedParent to store a deblender result
+        
+        Parameters
+        ----------
+        filterName: `str`
+            Name of the filter used for `maskedImage`
+        footprint: list of `afw.detection.Footprint`s
+            Parent footprint to deblend in each band.
+        maskedImages: list of `afw.image.MaskedImageF`s
+            Masked image containing the ``footprint`` in each band.
+        psf: list of `afw.detection.Psf`s
+            Psf of the ``maskedImage`` for each band.
+        psffwhm: list of `float`s
+            FWHM of the ``maskedImage``'s ``psf`` in each band.
+        avgNoise: `float`or list of `float`s, optional
+            Average noise level in each ``maskedImage``.
+            The default is ``None``, which estimates the noise from the median value of the
+            variance plane of ``maskedImage`` for each filter.
+        maxNumberOfPeaks: `int`, optional
+            If positive, the maximum number of peaks to deblend.
+            If the total number of peaks is greater than ``maxNumberOfPeaks``,
+            then only the first ``maxNumberOfPeaks`` sources are deblended.
+            The default is 0, which deblends all of the peaks.
+        debResult: `DeblenderResult`
+            The ``DeblenderResult`` that contains this ``DeblendedParent``.
+        """
         self.filter = filterName
         self.fp = footprint
         self.fp.normalize()
@@ -156,6 +187,7 @@ class DeblendedParent(object):
         self.psf = psf
         self.psffwhm = psffwhm
         self.img = maskedImage.getImage()
+        self.imbb = self.img.getBBox()
         self.varimg = maskedImage.getVariance()
         self.mask = maskedImage.getMask()
         self.avgNoise = avgNoise
@@ -181,11 +213,9 @@ class DeblendedParent(object):
     def updateFootprintBbox(self):
         """Update the bounding box of the parent footprint
         
-        If the parent Footprint is resized, for example when `meas.deblender.baseline.deblend`
-        has `patchEdges=True`, it will be necessary to update the bounding box of the footprint.
+        If the parent Footprint is resized it will be necessary to update the bounding box of the footprint.
         """
         # Pull out the image bounds of the parent Footprint
-        self.imbb = self.img.getBBox()
         self.bb = self.fp.getBBox()
         if not self.imbb.contains(self.bb):
             raise ValueError(('Footprint bounding-box %s extends outside image bounding-box %s') %
@@ -443,7 +473,7 @@ def deblend(footprint, maskedImage, psf, psffwhm, filters=None,
           ``tinyFootprintSize``.
         * See the parameter descriptions for more.
     # Build a symmetric template for each peak not well-fit by the PSF model
-        * Given ``maskedImageF``, ``footprint``, and a ``PerPeak``, creates a symmetric
+        * Given ``maskedImageF``, ``footprint``, and a ``DeblendedPeak``, creates a symmetric
           template (``templateImage`` and ``templateFootprint``) around the peak
           for all peaks not flagged as ``skip`` or ``deblendedAsPsf``.
         * If ``patchEdges=True`` and if ``footprint`` touches pixels with the
@@ -506,7 +536,7 @@ def deblend(footprint, maskedImage, psf, psffwhm, filters=None,
         If the resulting chi-squared-per-degree-of-freedom is less than ``psfChisqCut2b`` then it
         passes the re-centering algorithm.
         If the peak passes both the re-centered and fixed position cuts, the better of the two is accepted,
-        but parameters for all three psf fits are stored in the ``PerPeak``.
+        but parameters for all three psf fits are stored in the ``DeblendedPeak``.
         The default for ``psfChisqCut1``, ``psfChisqCut2``, and ``psfChisqCut2b`` is ``1.5``.
     fitPsfs: `bool`, optional
         If True then all of the peaks will be compared to the image PSF to
@@ -538,7 +568,7 @@ def deblend(footprint, maskedImage, psf, psffwhm, filters=None,
     maxNumberOfPeaks: `int`, optional
         If nonzero, the maximum number of peaks to deblend.
         If the total number of peaks is greater than ``maxNumberOfPeaks``,
-        then only the brightest ``maxNumberOfPeaks`` sources are deblended.
+        then only the first ``maxNumberOfPeaks`` sources are deblended.
         The default is 0, which deblends all of the peaks.
     assignStrayFlux: `bool`, optional
         If True then flux in the parent footprint that is not covered by any of the
@@ -593,7 +623,7 @@ def deblend(footprint, maskedImage, psf, psffwhm, filters=None,
     Returns
     -------
     res: `PerFootprint`
-        Deblender result that contains a list of ``PerPeak``s for each peak and (optionally)
+        Deblender result that contains a list of ``DeblendedPeak``s for each peak and (optionally)
         the template sum.
     """
     avgNoise = sigma1
@@ -603,16 +633,16 @@ def deblend(footprint, maskedImage, psf, psffwhm, filters=None,
     # Add activated deblender plugins
     if fitPsfs:
         debPlugins.append(plugins.DeblenderPlugin(plugins.fitPsfs, 
-                                               psfChisqCut1=psfChisqCut1,
-                                               psfChisqCut2=psfChisqCut2,
-                                               psfChisqCut2b=psfChisqCut2b,
-                                               tinyFootprintSize=tinyFootprintSize))
+                                                  psfChisqCut1=psfChisqCut1,
+                                                  psfChisqCut2=psfChisqCut2,
+                                                  psfChisqCut2b=psfChisqCut2b,
+                                                  tinyFootprintSize=tinyFootprintSize))
     debPlugins.append(plugins.DeblenderPlugin(plugins.buildSymmetricTemplates, patchEdges=patchEdges))
     if rampFluxAtEdge:
         debPlugins.append(plugins.DeblenderPlugin(plugins.rampFluxAtEdge, patchEdges=patchEdges))
     if medianSmoothTemplate:
         debPlugins.append(plugins.DeblenderPlugin(plugins.medianSmoothTemplates,
-                                               medianFilterHalfsize=medianFilterHalfsize))
+                                                  medianFilterHalfsize=medianFilterHalfsize))
     if monotonicTemplate:
         debPlugins.append(plugins.DeblenderPlugin(plugins.makeTemplatesMonotonic))
     if clipFootprintToNonzero:
@@ -628,18 +658,18 @@ def deblend(footprint, maskedImage, psf, psffwhm, filters=None,
                                                   onReset=onReset,
                                                   maxTempDotProd=maxTempDotProd))
     debPlugins.append(plugins.DeblenderPlugin(plugins.apportionFlux,
-                                           clipStrayFluxFraction=clipStrayFluxFraction,
-                                           assignStrayFlux=assignStrayFlux,
-                                           strayFluxAssignment=strayFluxAssignment,
-                                           strayFluxToPointSources=strayFluxToPointSources,
-                                           getTemplateSum=getTemplateSum))
+                                              clipStrayFluxFraction=clipStrayFluxFraction,
+                                              assignStrayFlux=assignStrayFlux,
+                                              strayFluxAssignment=strayFluxAssignment,
+                                              strayFluxToPointSources=strayFluxToPointSources,
+                                              getTemplateSum=getTemplateSum))
 
     debResult = newDeblend(debPlugins, footprint, maskedImage, psf, psffwhm, filters, log, verbose, avgNoise)
 
     return debResult
 
 def newDeblend(debPlugins, footprint, maskedImage, psf, psffwhm, filters=None,
-                 log=None, verbose=False, avgNoise=None, maxNumberOfPeaks=0):
+               log=None, verbose=False, avgNoise=None, maxNumberOfPeaks=0):
     """Deblend a parent ``Footprint`` in a ``MaskedImageF``.
     
     Deblending assumes that ``footprint`` has multiple peaks, as it will still create a
@@ -654,7 +684,7 @@ def newDeblend(debPlugins, footprint, maskedImage, psf, psffwhm, filters=None,
     ----------
     debPlugins: list of `meas.deblender.plugins.DeblenderPlugins`
         Plugins to execute (in order of execution) for the deblender.
-    footprint: `afw.detection.Footprint` of list of Footprints
+    footprint: `afw.detection.Footprint` or list of Footprints
         Parent footprint to deblend.
     maskedImage: `afw.image.MaskedImageF` or list of MaskedImages
         Masked image containing the ``footprint``.
@@ -672,13 +702,14 @@ def newDeblend(debPlugins, footprint, maskedImage, psf, psffwhm, filters=None,
     verbose: `bool`, optional
         Whether or not to show a more verbose output.
         The default is ``False``.
-    avgNoise: `float`, optional
-        Average noise level in ``maskedImage``.
-        The default is ``None``, which estimates the noise from the median value of ``maskedImage``.
+    avgNoise: `float`or list of `float`s, optional
+        Average noise level in each ``maskedImage``.
+        The default is ``None``, which estimates the noise from the median value of the
+        variance plane of ``maskedImage`` for each filter.
     maxNumberOfPeaks: `int`, optional
         If nonzero, the maximum number of peaks to deblend.
         If the total number of peaks is greater than ``maxNumberOfPeaks``,
-        then only the brightest ``maxNumberOfPeaks`` sources are deblended.
+        then only the first ``maxNumberOfPeaks`` sources are deblended.
 
     Returns
     -------
@@ -704,7 +735,7 @@ def newDeblend(debPlugins, footprint, maskedImage, psf, psffwhm, filters=None,
                                 maxNumberOfPeaks=maxNumberOfPeaks, avgNoise=avgNoise)
 
     step = 0
-    while step<len(debPlugins):
+    while step < len(debPlugins):
         reset = debPlugins[step].run(debResult, log)
         if reset:
             step = debPlugins[step].onReset
