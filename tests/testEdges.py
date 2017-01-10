@@ -196,7 +196,7 @@ class RampEdgeTestCase(lsst.utils.tests.TestCase):
             mono1ds = []
             yslice = H/2
             parent1d = img[yslice, :]
-            for i, dpk in enumerate(deb.peaks):
+            for i, dpk in enumerate(deb.deblendedParents[0].peaks):
                 symm = dpk.origTemplate
                 symms.append(symm)
 
@@ -290,7 +290,7 @@ class RampEdgeTestCase(lsst.utils.tests.TestCase):
             plt.title('Footprint')
 
             sumimg = None
-            for i, dpk in enumerate(deb.peaks):
+            for i, dpk in enumerate(deb.deblendedParents[0].peaks):
 
                 plt.subplot(R, C, i*C + 1)
                 myimshow(blobimgs[i], **ima)

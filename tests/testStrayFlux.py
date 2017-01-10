@@ -243,7 +243,7 @@ class StrayFluxTestCase(lsst.utils.tests.TestCase):
 
         # Compute the sum-of-children image
         sumimg = None
-        for i, dpk in enumerate(deb.peaks):
+        for i, dpk in enumerate(deb.deblendedParents[0].peaks):
             himg2 = afwImage.ImageF(fpbb)
             dpk.getFluxPortion().insert(himg2)
             if sumimg is None:
@@ -325,7 +325,7 @@ class StrayFluxTestCase(lsst.utils.tests.TestCase):
             plt.savefig(plotpat % 3)
 
         strays = []
-        for i, dpk in enumerate(deb.peaks):
+        for i, dpk in enumerate(deb.deblendedParents[0].peaks):
             simg = afwImage.ImageF(fpbb)
             dpk.strayFlux.insert(simg)
             strays.append(simg.getArray())

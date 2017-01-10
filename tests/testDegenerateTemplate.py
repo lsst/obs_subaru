@@ -100,9 +100,9 @@ class DegenerateTemplateTestCase(lsst.utils.tests.TestCase):
 
         deb = deblend(fp0, afwimg, fakepsf, fakepsf_fwhm, verbose=True, removeDegenerateTemplates=True)
 
-        self.assertTrue(deb.peaks[3].degenerate)
-        self.assertTrue(deb.peaks[4].degenerate)
-        self.assertTrue(deb.peaks[5].degenerate)
+        self.assertTrue(deb.deblendedParents[0].peaks[3].degenerate)
+        self.assertTrue(deb.deblendedParents[0].peaks[4].degenerate)
+        self.assertTrue(deb.deblendedParents[0].peaks[5].degenerate)
 
 #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
