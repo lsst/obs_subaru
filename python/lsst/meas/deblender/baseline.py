@@ -99,7 +99,10 @@ class DeblenderResult(object):
         try:
             len(avgNoise)
         except TypeError:
-            avgNoise = [avgNoise]
+            if avgNoise is None:
+                avgNoise = [None]*len(psfs)
+            else:
+                avgNoise = [avgNoise]
         # Now check that all of the parameters have the same number of entries
         if any([len(footprints)!=len(p) for p in [maskedImages, psfs, psffwhms, avgNoise]]):
             raise ValueError("To use the multi-color deblender, "
