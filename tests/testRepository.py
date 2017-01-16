@@ -96,6 +96,7 @@ class GetDataTestCase(lsst.utils.tests.TestCase):
         self.rawSize = (2144, 4241)
         self.ccdSize = (2048, 4176)
         self.exptime = 30.0
+        self.darktime = self.exptime  # No explicit darktime
         dateBeg = DateTime(56598.26106374757, DateTime.MJD, DateTime.UTC)
         dateAvgNSec = dateBeg.nsecs() + int(0.5e9*self.exptime)
         self.dateAvg = DateTime(dateAvgNSec, DateTime.TAI)
@@ -135,6 +136,8 @@ class GetDataTestCase(lsst.utils.tests.TestCase):
         self.assertAlmostEqual(visitInfo.getBoresightAirmass(), self.boresightAirmass)
         self.assertTrue(math.isnan(visitInfo.getBoresightRotAngle().asDegrees()))
         self.assertEqual(visitInfo.getRotType(), self.rotType)
+        self.assertEqual(visitInfo.getExposureTime(), self.exptime)
+        self.assertEqual(visitInfo.getDarkTime(), self.darktime)
         observatory = visitInfo.getObservatory()
         self.assertAnglesNearlyEqual(observatory.getLongitude(), self.obs_longitude)
         self.assertAnglesNearlyEqual(observatory.getLatitude(), self.obs_latitude)
