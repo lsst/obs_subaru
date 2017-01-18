@@ -28,8 +28,7 @@ import lsst.afw.detection as afwDet
 import lsst.afw.geom as afwGeom
 
 # Import C++ routines
-import lsst.meas.deblender as deb
-butils = deb.BaselineUtilsF
+from ._baseline import BaselineUtilsF as butils
 
 class DeblenderPlugin(object):
     """Class to define plugins for the deblender.
@@ -664,13 +663,8 @@ def buildSymmetricTemplates(debResult, log, patchEdges=False, setOrigTemplate=Tr
                 pkres.setOutOfBounds()
                 continue
             log.trace('computing template for peak %i at (%i, %i)', pkres.pki, cx, cy)
-            S, patched = butils.buildSymmetricTemplate(dp.maskedImage, dp.fp, pk, dp.avgNoise,
+            timg, tfoot, patched = butils.buildSymmetricTemplate(dp.maskedImage, dp.fp, pk, dp.avgNoise,
                                                        True, patchEdges)
-            # SWIG doesn't know how to unpack a std::pair into a 2-tuple...
-            # (in this case, a nested pair)
-            timg, tfoot = S[0], S[1]
-            del S
-
             if timg is None:
                 log.trace('Peak %i at (%i, %i): failed to build symmetric template', pkres.pki, cx, cy)
                 pkres.setFailedSymmetricTemplate()
@@ -854,10 +848,7 @@ def _handle_flux_at_edge(log, psffwhm, t1, tfoot, fp, maskedImage,
     I = (padim.getImage().getArray() == 0)
     padim.getImage().getArray()[I] = ramped.getArray()[I]
 
-    rtn, patched = butils.buildSymmetricTemplate(padim, fpcopy, pk, sigma1, True, patchEdges)
-    # silly SWIG can't unpack pairs as tuples
-    t2, tfoot2 = rtn[0], rtn[1]
-    del rtn
+    t2, tfoot2, patched = butils.buildSymmetricTemplate(padim, fpcopy, pk, sigma1, True, patchEdges)
 
     # This template footprint may extend outside the parent
     # footprint -- or the image.  Clip it.
@@ -1241,8 +1232,6 @@ def apportionFlux(debResult, log, assignStrayFlux=True, strayFluxAssignment='r-t
         # .getDimensions())
         # sumimg.setXY0(bb.getMinX(), bb.getMinY())
 
-        strayflux = afwDet.HeavyFootprintPtrListF()
-
         strayopts = 0
         if strayFluxAssignment == 'trim':
             assignStrayFlux = False
@@ -1262,8 +1251,8 @@ def apportionFlux(debResult, log, assignStrayFlux=True, strayFluxAssignment='r-t
             elif strayFluxAssignment == 'nearest-footprint':
                 strayopts |= butils.STRAYFLUX_NEAREST_FOOTPRINT
 
-        portions = butils.apportionFlux(dp.maskedImage, dp.fp, tmimgs, tfoots, sumimg, dpsf,
-                                        pkx, pky, strayflux, strayopts, clipStrayFluxFraction)
+        portions, strayflux = butils.apportionFlux(dp.maskedImage, dp.fp, tmimgs, tfoots, sumimg, dpsf,
+                                        pkx, pky, strayopts, clipStrayFluxFraction)
 
         # Shrink parent to union of children
         if strayFluxAssignment == 'trim':
@@ -1275,6 +1264,7 @@ def apportionFlux(debResult, log, assignStrayFlux=True, strayFluxAssignment='r-t
         
         # Save the apportioned fluxes
         ii = 0
+        print("STRAY FLUX", strayflux)
         for j, (pk, pkres) in enumerate(zip(dp.fp.getPeaks(), dp.peaks)):
             if pkres.skip:
                 continue

@@ -20,7 +20,7 @@
 # see <http://www.lsstcorp.org/LegalNotices/>.
 #
 import math
-import numpy
+import numpy as np
 
 import lsst.pex.config as pexConf
 import lsst.pipe.base as pipeBase
@@ -181,7 +181,7 @@ class SourceDeblendTask(pipeBase.Task):
         self.addSchemaKeys(schema)
 
     def addSchemaKeys(self, schema):
-        self.nChildKey = schema.addField('deblend_nChild', type=int,
+        self.nChildKey = schema.addField('deblend_nChild', type=np.int64,
                                          doc='Number of children this object has (defaults to 0)')
         self.psfKey = schema.addField('deblend_deblendedAsPsf', type='Flag',
                                       doc='Deblender thought this source looked like a PSF')

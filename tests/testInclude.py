@@ -39,8 +39,6 @@ except NameError:
 
 DATA_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), "data")
 
-#-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-
 
 class IncludeTestCase(lsst.utils.tests.TestCase):
     """ Test case for DM-1738: test that include method successfully
@@ -107,8 +105,6 @@ class IncludeTestCase(lsst.utils.tests.TestCase):
         self.assertFloatsAlmostEqual(self.calexpOrig.getMaskedImage().getImage().getArray(),
                                      self.calexp.getMaskedImage().getImage().getArray(),
                                      rtol=1E-3, printFailures=False, plotOnFailure=plotOnFailure)
-
-#-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 
 class TestMemory(lsst.utils.tests.MemoryTestCase):

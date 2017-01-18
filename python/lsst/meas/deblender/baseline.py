@@ -387,7 +387,7 @@ class DeblendedPeak(object):
             if self.strayFlux is not None:
                 heavy.normalize()
                 self.strayFlux.normalize()
-                heavy = afwDet.mergeHeavyFootprintsF(heavy, self.strayFlux)
+                heavy = afwDet.mergeHeavyFootprints(heavy, self.strayFlux)
 
         return heavy
 

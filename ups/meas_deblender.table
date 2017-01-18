@@ -5,6 +5,7 @@ setupRequired(numpy)
 setupRequired(scons)
 setupRequired(sconsUtils)
 setupRequired(utils)
+setupRequired(pybind11)
 
 setupOptional(matplotlib)
 

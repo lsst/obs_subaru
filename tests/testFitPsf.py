@@ -171,8 +171,6 @@ class FitPsfTestCase(unittest.TestCase):
             print('  ', k, getattr(pkres, k))
 
 
-#-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-
 class TestMemory(lsst.utils.tests.MemoryTestCase):
     pass
 

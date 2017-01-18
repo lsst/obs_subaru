@@ -65,7 +65,6 @@ def doubleGaussianPsf(W, H, fwhm1, fwhm2, a2):
 def gaussianPsf(W, H, fwhm):
     return measAlg.DoubleGaussianPsf(W, H, fwhm)
 
-
 class RampEdgeTestCase(lsst.utils.tests.TestCase):
 
     def test1(self):
@@ -366,8 +365,6 @@ class RampEdgeTestCase(lsst.utils.tests.TestCase):
             plt.savefig(fn)
             print('Wrote', fn)
 
-
-#-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 class TestMemory(lsst.utils.tests.MemoryTestCase):
     pass

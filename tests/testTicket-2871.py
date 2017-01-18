@@ -30,8 +30,6 @@ import lsst.afw.geom as afwGeom
 import lsst.afw.table as afwTable
 import lsst.meas.algorithms as algorithms
 
-#-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-
 
 class DeblendTestCase(unittest.TestCase):
     """A test case for deblending"""
@@ -97,8 +95,6 @@ class DeblendTestCase(unittest.TestCase):
 
         self.assertFalse(good.get('deblend_failed'))
         self.assertTrue(bad.get('deblend_failed'))
-
-#-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 
 class TestMemory(lsst.utils.tests.MemoryTestCase):

@@ -1,0 +1,6 @@
+#tests/testDegenerateTemplate.py
+#tests/testEdges.py
+#tests/testFitPsf.py
+#tests/testInclude.py
+#tests/testStrayFlux.py
+#tests/testTicket-2871.py
