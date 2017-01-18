@@ -134,9 +134,11 @@ class DeblenderResult(object):
             self.deblendedParents[self.filters[n]] = dp
 
         # Group the peaks in each color
+        self.peaks = []
         for idx in range(self.peakCount):
             peakDict = {f: dp.peaks[idx] for f,dp in self.deblendedParents.items()}
             multiPeak = MultiColorPeak(peakDict, idx, self)
+            self.peaks.append(multiPeak)
 
     def getParentProperty(self, propertyName):
         """Get the footprint in each filter"""
