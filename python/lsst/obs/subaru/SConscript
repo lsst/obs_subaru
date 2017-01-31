@@ -1,7 +1,7 @@
 # -*- python -*-
 from lsst.sconsUtils import env, targets
 
-# Not using lsst.sconsUtils.scripts.BasicSConscript because we have multiple swigs to do (?)
-targets["python"].extend(env.SwigLoadableModule("_subaruLib", ["subaruLib.i"],
+targets["python"].extend(env.Pybind11LoadableModule("_crosstalk", ["crosstalk.cc"],
                                                 LIBS=env.getLibs("main python")))
-
+targets["python"].extend(env.Pybind11LoadableModule("_hscDistortion", ["hscDistortion.cc"],
+                                                LIBS=env.getLibs("main python")))

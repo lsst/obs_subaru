@@ -5,8 +5,10 @@ setupRequired(pipe_tasks)
 setupRequired(meas_astrom)
 setupRequired(pyfits)
 setupRequired(sconsUtils)
+setupRequired(pybind11)
 
-setupOptional(meas_modelfit)
+# temporarily disable meas_modelfit until it is wrapped with pybind11
+#setupOptional(meas_modelfit)
 setupOptional(meas_extensions_psfex)
 setupOptional(meas_extensions_shapeHSM)
 setupOptional(testdata_subaru)
