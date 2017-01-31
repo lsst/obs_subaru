@@ -35,7 +35,7 @@ import lsst.pex.exceptions as pexExcept
 import lsst.utils
 from lsst.daf.base import DateTime
 from lsst.obs.base import MakeRawVisitInfo
-from lsst.afw.image import RotType_UNKNOWN
+from lsst.afw.image import RotType
 from lsst.afw.coord import IcrsCoord, Coord
 from lsst.afw.geom import degrees
 
@@ -104,7 +104,7 @@ class GetDataTestCase(lsst.utils.tests.TestCase):
         self.boresightAzAlt = Coord(226.68922661*degrees, 63.04359233*degrees)
         self.boresightAirmass = 1.121626027604189
         self.boresightRotAngle = float("nan")*degrees
-        self.rotType = RotType_UNKNOWN
+        self.rotType = RotType.UNKNOWN
         self.obs_longitude = -155.476667*degrees
         self.obs_latitude = 19.825556*degrees
         self.obs_elevation = 4139
