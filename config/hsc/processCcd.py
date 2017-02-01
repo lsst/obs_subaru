@@ -5,9 +5,11 @@ HSC-specific overrides for ProcessCcdTask
 import os.path
 
 from lsst.utils import getPackageDir
+from lsst.obs.subaru.isr import SubaruIsrTask
 
 hscConfigDir = os.path.join(getPackageDir("obs_subaru"), "config", "hsc")
-config.load(os.path.join(hscConfigDir, 'isr.py'))
+config.isr.retarget(SubaruIsrTask)
+config.isr.load(os.path.join(hscConfigDir, 'isr.py'))
 config.calibrate.photoCal.colorterms.load(os.path.join(hscConfigDir, 'colorterms.py'))
 config.charImage.measurePsf.starSelector["objectSize"].widthMin = 0.9
 config.charImage.measurePsf.starSelector["objectSize"].fluxMin = 4000
