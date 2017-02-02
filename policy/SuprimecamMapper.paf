@@ -103,6 +103,9 @@ exposures: {
     deepCoadd_tempExp: {
         template:    "deepCoadd/%(filter)s/%(tract)d/%(patch)s/warp-%(filter)s-%(tract)d-%(patch)s-%(visit)d.fits"
     }
+    deepCoadd_tempExpPsfMatched: {
+        template:    "deepCoadd/%(filter)s/%(tract)d/%(patch)s/psfMatchedWarp-%(filter)s-%(tract)d-%(patch)s-%(visit)d.fits"
+    }
     mosaicCalib: {
         template:    "%(pointing)05d/%(filter)s/output/CALIB%(visit)07d%(ccd)1d-%(tract)d.fits"
         python:      "lsst.afw.image.ExposureU"

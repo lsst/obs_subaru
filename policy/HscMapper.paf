@@ -120,6 +120,9 @@ exposures: {
     deepCoadd_tempExp: {
         template:    "deepCoadd/%(filter)s/%(tract)d/%(patch)s/warp-%(filter)s-%(tract)d-%(patch)s-%(visit)d.fits"
     }
+    deepCoadd_tempExpPsfMatched: {
+        template:    "deepCoadd/%(filter)s/%(tract)d/%(patch)s/psfMatchedWarp-%(filter)s-%(tract)d-%(patch)s-%(visit)d.fits"
+    }
     deepCoadd_diff: {
         template:    "deepCoadd-diff/%(filter)s/%(tract)d/diff-%(filter)s-%(tract)d-%(patch)s.fits"
         python:      "lsst.afw.image.ExposureF"
