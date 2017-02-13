@@ -358,6 +358,16 @@ datasets: {
     deepCoadd_measMatchFull: {
         template:      "deepCoadd-results/%(filter)s/%(tract)d/%(patch)s/srcMatchFull-%(filter)s-%(tract)d-%(patch)s.fits"
     }
+    # the following is to accommodate reading in HSC stack measMatch files:
+    deepCoadd_calexp_hsc: {
+        template:      "deepCoadd/%(filter)s/%(tract)d/%(patch)s/calexp-%(filter)s-%(tract)d-%(patch)s.fits"
+        python:        "lsst.afw.image.ExposureF"
+        persistable:   "ExposureF"
+        storage:       "FitsStorage"
+        level:         "None"
+        tables:        raw
+        tables:        raw_skyTile
+    }
     deepCoadd_calexp_background: {
         template:      "deepCoadd-results/%(filter)s/%(tract)d/%(patch)s/det_bkgd-%(filter)s-%(tract)d-%(patch)s.fits"
     }
