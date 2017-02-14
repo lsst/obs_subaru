@@ -280,7 +280,7 @@ def findBiasLevels(butler, **dataId):
 
 def showElectronics(camera, maxCorr=1.8e5, showLinearity=False, fd=sys.stderr):
     print("%-12s" % (camera.getId()), file=fd)
-    for raft in [afwCG.cast_Raft(det) for det in camera]:
+    for raft in camera:
         print("   %-12s" % (raft.getId()), file=fd)
         for ccd in [det for det in raft]:
             print("      %-12s" % (ccd.getId()), file=fd)
