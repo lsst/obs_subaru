@@ -379,9 +379,7 @@ def plotDeblendFamilyReal(parent, kids, dkids, sigma1, plotb=False, idmask=None,
 
 
 def footprintToImage(fp, mi=None, mask=False):
-    if fp.isHeavy():
-        fp = afwDet.cast_HeavyFootprintF(fp)
-    else:
+    if not fp.isHeavy():
         fp = afwDet.makeHeavyFootprint(fp, mi)
     bb = fp.getBBox()
     if mask:

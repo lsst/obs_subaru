@@ -23,7 +23,6 @@ def foot_to_img(foot, img=None):
     fimg = afwImage.ImageF(foot.getBBox())
     fimg.getArray()[:, :] = np.nan
     if foot.isHeavy():
-        foot = afwDet.cast_HeavyFootprintF(foot)
         foot.insert(fimg)
         heavy = True
     else:

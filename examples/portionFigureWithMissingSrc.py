@@ -109,7 +109,7 @@ def makePortionFigure(deblend, origMimg, origMimgB, pedestal=0.0):
         portionedImg = afwImage.ImageF(origMimg.getBBox())
 
         # get the heavy footprint for the flux aportioned to this peak
-        heavyFoot = afwDet.cast_HeavyFootprintF(peak.getFluxPortion())
+        heavyFoot = peak.getFluxPortion()
         footBox = heavyFoot.getBBox()
         pk = peak.peak
         centers.append((pk.getIx(), pk.getIy()))
