@@ -181,7 +181,7 @@ class SourceDeblendTask(pipeBase.Task):
         self.addSchemaKeys(schema)
 
     def addSchemaKeys(self, schema):
-        self.nChildKey = schema.addField('deblend_nChild', type=np.int64,
+        self.nChildKey = schema.addField('deblend_nChild', type=np.int32,
                                          doc='Number of children this object has (defaults to 0)')
         self.psfKey = schema.addField('deblend_deblendedAsPsf', type='Flag',
                                       doc='Deblender thought this source looked like a PSF')
