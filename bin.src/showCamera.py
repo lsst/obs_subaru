@@ -43,7 +43,6 @@ def main(camera, sample=20, names=False, showDistortion=True, plot=True, outputF
     dist = camera.getDistortion()
 
     for raft in camera:
-        raft = cameraGeom.cast_Raft(raft)
         for ccd in raft:
             ccd.setTrimmed(True)
 

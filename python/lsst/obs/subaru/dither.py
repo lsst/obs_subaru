@@ -48,7 +48,6 @@ def ditherDES(camera, scale=4.5, names=False):
     pyplot.axes().set_aspect('equal')
 
     for raft in camera:
-        raft = afwCG.cast_Raft(raft)
         for ccd in raft:
             ccd.setTrimmed(True)
 
