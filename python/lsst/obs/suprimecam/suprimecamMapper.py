@@ -233,6 +233,7 @@ class SuprimecamMapperBase(CameraMapper):
             locationList="ignored",
             dataId=actualId,
             mapper=self,
+            storage=self.rootStorage
         )
 
     def bypass_linearizer(self, datasetType, pythonType, butlerLocation, dataId):
