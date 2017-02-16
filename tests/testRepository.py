@@ -171,6 +171,8 @@ class GetDataTestCase(lsst.utils.tests.TestCase):
         self.assertEqual(flat.getDimensions(), afwGeom.Extent2I(*self.ccdSize))
         self.assertEqual(flat.getDetector().getId(), self.ccdNum)
 
+    def testLinearizer(self):
+        self.assertTrue(self.butler.get('linearizer', ccdnum=1))
 
 class TestMemory(lsst.utils.tests.MemoryTestCase):
     pass
