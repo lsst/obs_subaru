@@ -64,7 +64,6 @@ exposures: {
     }
     wcs: {
         template: "%(pointing)05d/%(filter)s/corr/%(tract)04d/wcs-%(visit)07d-%(ccd)03d.fits"
-        columns:       "pointing" "filter" "visit" "ccd"
     }
     fcr: {
         template: "%(pointing)05d/%(filter)s/corr/%(tract)04d/fcr-%(visit)07d-%(ccd)03d.fits"
@@ -74,7 +73,6 @@ exposures: {
         level:        "Ccd"
         tables:        "raw"
         tables:        "raw_visit"
-        columns:       "pointing" "filter" "visit" "ccd"
     }
     detj: {
         template:      "%(pointing)05d/%(filter)s/corr/%(tract)04d/DETJ-%(visit)07d-%(ccd)03d.fits"

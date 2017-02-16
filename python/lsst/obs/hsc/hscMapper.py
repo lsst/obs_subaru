@@ -46,6 +46,8 @@ class HscMapper(CameraMapper):
                      # processCcd outputs
                      "postISRCCD", "calexp", "postISRCCD", "src", "icSrc", "icMatch",
                      "srcMatch",
+                     # mosaic outputs
+                     "wcs", "fcr",
                      # processCcd QA
                      "ossThumb", "flattenedThumb", "calexpThumb", "plotMagHist", "plotSeeingRough",
                      "plotSeeingRobust", "plotSeeingMap", "plotEllipseMap", "plotEllipticityMap",
