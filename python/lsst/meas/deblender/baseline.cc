@@ -36,83 +36,88 @@ namespace lsst {
 namespace meas {
 namespace deblender {
 
-namespace{
-    template <typename ImagePixelT,
-              typename MaskPixelT=lsst::afw::image::MaskPixel,
-              typename VariancePixelT=lsst::afw::image::VariancePixel>
-    void declareBaselineUtils(py::module & mod, const std::string & suffix){
-        typedef typename lsst::afw::image::MaskedImage<ImagePixelT, MaskPixelT, VariancePixelT> MaskedImageT;
-        typedef typename PTR(lsst::afw::image::Image<ImagePixelT>) ImagePtrT;
-        typedef typename PTR(lsst::afw::detection::Footprint) FootprintPtrT;
-        
-        py::class_<BaselineUtils<ImagePixelT, MaskPixelT, VariancePixelT>>
-            cls(mod, ("BaselineUtils"+suffix).c_str());
-        cls.def_static("symmetrizeFootprint",
-                       &BaselineUtils<ImagePixelT, MaskPixelT, VariancePixelT>::symmetrizeFootprint);
-        // The function has a std::pair return value and a referenced boolean (patchedEdges) that is
-        // updated, so we combine them together to give a more pythonic interface to the function.
-        cls.def_static("buildSymmetricTemplate", [](MaskedImageT const& img,
-                                                    lsst::afw::detection::Footprint const& foot,
-                                                    lsst::afw::detection::PeakRecord const& pk,
-                                                    double sigma1,
-                                                    bool minZero,
-                                                    bool patchEdges){
-            bool patchedEdges;
-            std::pair<ImagePtrT, FootprintPtrT> result;
-            
-            result = BaselineUtils<ImagePixelT, MaskPixelT, VariancePixelT>::buildSymmetricTemplate(
-                img, foot, pk, sigma1, minZero, patchEdges, &patchedEdges);
-            return py::make_tuple(result.first, result.second, patchedEdges);
-        });
-        cls.def_static("medianFilter", &BaselineUtils<ImagePixelT, MaskPixelT, VariancePixelT>::medianFilter);
-        cls.def_static("makeMonotonic",
-                       &BaselineUtils<ImagePixelT, MaskPixelT, VariancePixelT>::makeMonotonic);
-        // apportionFlux expects an empty vector containing HeavyFootprint pointers that is modified 
-        // in the function. But when a list is passed to pybind11 in place of the vector,
-        // the changes are not passed back to python. So instead we create the vector in this lambda and
-        // include it in the return value.
-        cls.def_static("apportionFlux",
-                       [](MaskedImageT const& img,
-                          lsst::afw::detection::Footprint const& foot,
-                          std::vector<typename PTR(lsst::afw::image::Image<ImagePixelT>)> templates,
-                          std::vector<std::shared_ptr<lsst::afw::detection::Footprint> > templ_footprints,
-                          ImagePtrT templ_sum,
-                          std::vector<bool> const& ispsf,
-                          std::vector<int>  const& pkx,
-                          std::vector<int>  const& pky,
-                          int strayFluxOptions,
-                          double clipStrayFluxFraction
-                     ){
-            typedef typename std::vector<std::shared_ptr<typename lsst::afw::detection::HeavyFootprint<ImagePixelT,MaskPixelT,VariancePixelT> > > HeavyFootprintPtrList;
-            
-            std::vector<typename PTR(lsst::afw::image::MaskedImage<ImagePixelT, MaskPixelT, VariancePixelT>)> result;
-            HeavyFootprintPtrList strays;
-            result = BaselineUtils<ImagePixelT, MaskPixelT, VariancePixelT>::apportionFlux(
-                img, foot, templates, templ_footprints, templ_sum, ispsf, pkx, pky, strays, strayFluxOptions, clipStrayFluxFraction);
+namespace {
+template <typename ImagePixelT, typename MaskPixelT = lsst::afw::image::MaskPixel,
+          typename VariancePixelT = lsst::afw::image::VariancePixel>
+void declareBaselineUtils(py::module& mod, const std::string& suffix) {
+    using MaskedImageT = lsst::afw::image::MaskedImage<ImagePixelT, MaskPixelT, VariancePixelT>;
+    using ImagePtrT = std::shared_ptr<lsst::afw::image::Image<ImagePixelT>>;
+    using FootprintPtrT = std::shared_ptr<lsst::afw::detection::Footprint>;
 
-            return py::make_tuple(result, strays);
-        });
-        cls.def_static("hasSignificantFluxAtEdge",
-                       &BaselineUtils<ImagePixelT, MaskPixelT, VariancePixelT>::hasSignificantFluxAtEdge);
-        cls.def_static("getSignificantEdgePixels",
-                       &BaselineUtils<ImagePixelT, MaskPixelT, VariancePixelT>::getSignificantEdgePixels);
-        // There appears to be an issue binding to a static const member of a templated type, so for now
-        // we just use the values constants
-        cls.attr("ASSIGN_STRAYFLUX") = py::cast(0x1);
-        cls.attr("STRAYFLUX_TO_POINT_SOURCES_WHEN_NECESSARY") = py::cast(0x2);
-        cls.attr("STRAYFLUX_TO_POINT_SOURCES_ALWAYS") = py::cast(0x4);
-        cls.attr("STRAYFLUX_R_TO_FOOTPRINT") = py::cast(0x8);
-        cls.attr("STRAYFLUX_NEAREST_FOOTPRINT") = py::cast(0x10);
-        cls.attr("STRAYFLUX_TRIM") = py::cast(0x20);
-    };
-} // namespace
+    py::class_<BaselineUtils<ImagePixelT, MaskPixelT, VariancePixelT>> cls(
+            mod, ("BaselineUtils" + suffix).c_str());
+    cls.def_static("symmetrizeFootprint",
+                   &BaselineUtils<ImagePixelT, MaskPixelT, VariancePixelT>::symmetrizeFootprint, "foot"_a,
+                   "cx"_a, "cy"_a);
+    // The C++ function returns a std::pair return value but also takes a referenced boolean
+    // (patchedEdges) that is modified by the function and used by the python API,
+    // so we wrap this in a lambda to combine the std::pair and patchedEdges in a tuple
+    // that is returned to python.
+    cls.def_static(
+            "buildSymmetricTemplate",
+            [](MaskedImageT const& img, lsst::afw::detection::Footprint const& foot,
+               lsst::afw::detection::PeakRecord const& pk, double sigma1, bool minZero, bool patchEdges) {
+                bool patchedEdges;
+                std::pair<ImagePtrT, FootprintPtrT> result;
+
+                result = BaselineUtils<ImagePixelT, MaskPixelT, VariancePixelT>::buildSymmetricTemplate(
+                        img, foot, pk, sigma1, minZero, patchEdges, &patchedEdges);
+                return py::make_tuple(result.first, result.second, patchedEdges);
+            });
+    cls.def_static("medianFilter", &BaselineUtils<ImagePixelT, MaskPixelT, VariancePixelT>::medianFilter,
+                   "img"_a, "outimg"_a, "halfsize"_a);
+    cls.def_static("makeMonotonic", &BaselineUtils<ImagePixelT, MaskPixelT, VariancePixelT>::makeMonotonic,
+                   "img"_a, "pk"_a);
+    // apportionFlux expects an empty vector containing HeavyFootprint pointers that is modified
+    // in the function. But when a list is passed to pybind11 in place of the vector,
+    // the changes are not passed back to python. So instead we create the vector in this lambda and
+    // include it in the return value.
+    cls.def_static("apportionFlux",
+                   [](MaskedImageT const& img, lsst::afw::detection::Footprint const& foot,
+                      std::vector<typename std::shared_ptr<lsst::afw::image::Image<ImagePixelT>>> templates,
+                      std::vector<std::shared_ptr<lsst::afw::detection::Footprint>> templ_footprints,
+                      ImagePtrT templ_sum, std::vector<bool> const& ispsf, std::vector<int> const& pkx,
+                      std::vector<int> const& pky, int strayFluxOptions, double clipStrayFluxFraction) {
+                       using HeavyFootprintPtrList =
+                               std::vector<std::shared_ptr<typename lsst::afw::detection::HeavyFootprint<
+                                       ImagePixelT, MaskPixelT, VariancePixelT>>>;
+
+                       std::vector<typename std::shared_ptr<
+                               lsst::afw::image::MaskedImage<ImagePixelT, MaskPixelT, VariancePixelT>>>
+                               result;
+                       HeavyFootprintPtrList strays;
+                       result = BaselineUtils<ImagePixelT, MaskPixelT, VariancePixelT>::apportionFlux(
+                               img, foot, templates, templ_footprints, templ_sum, ispsf, pkx, pky, strays,
+                               strayFluxOptions, clipStrayFluxFraction);
+
+                       return py::make_tuple(result, strays);
+                   });
+    cls.def_static("hasSignificantFluxAtEdge",
+                   &BaselineUtils<ImagePixelT, MaskPixelT, VariancePixelT>::hasSignificantFluxAtEdge, "img"_a,
+                   "sfoot"_a, "thresh"_a);
+    cls.def_static("getSignificantEdgePixels",
+                   &BaselineUtils<ImagePixelT, MaskPixelT, VariancePixelT>::getSignificantEdgePixels, "img"_a,
+                   "sfoot"_a, "thresh"_a);
+    // There appears to be an issue binding to a static const member of a templated type, so for now
+    // we just use the values constants
+    cls.attr("ASSIGN_STRAYFLUX") = py::cast(0x1);
+    cls.attr("STRAYFLUX_TO_POINT_SOURCES_WHEN_NECESSARY") = py::cast(0x2);
+    cls.attr("STRAYFLUX_TO_POINT_SOURCES_ALWAYS") = py::cast(0x4);
+    cls.attr("STRAYFLUX_R_TO_FOOTPRINT") = py::cast(0x8);
+    cls.attr("STRAYFLUX_NEAREST_FOOTPRINT") = py::cast(0x10);
+    cls.attr("STRAYFLUX_TRIM") = py::cast(0x20);
+};
+}  // namespace
 
 PYBIND11_PLUGIN(_baseline) {
+    py::module::import("lsst.afw.image");
+    py::module::import("lsst.afw.detection");
     py::module mod("_baseline", "Python wrapper for meas_deblender _baseline library");
 
     declareBaselineUtils<float>(mod, "F");
 
     return mod.ptr();
 }
-
-}}} // lsst::meas::deblender
+}
+}
+}  // lsst::meas::deblender

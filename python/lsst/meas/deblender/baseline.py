@@ -24,7 +24,6 @@ from builtins import object
 # the GNU General Public License along with this program.  If not,
 # see <https://www.lsstcorp.org/LegalNotices/>.
 #
-import math # FIXME: remove this line and replace all uses of math
 from collections import OrderedDict
 import numpy as np
 
@@ -204,7 +203,7 @@ class DeblendedParent(object):
         # avgNoise is an estiamte of the average noise level for the image in this filter
         if avgNoise is None:
             stats = afwMath.makeStatistics(self.varimg, self.mask, afwMath.MEDIAN)
-            avgNoise = math.sqrt(stats.getValue(afwMath.MEDIAN))
+            avgNoise = np.sqrt(stats.getValue(afwMath.MEDIAN))
             debResult.log.trace('Estimated avgNoise for filter %s = %f', self.filter, avgNoise)
         self.avgNoise = avgNoise
         

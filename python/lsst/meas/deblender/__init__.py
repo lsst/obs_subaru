@@ -23,4 +23,7 @@
 """lsst.meas.deblender
 """
 from __future__ import absolute_import
-from .deblenderLib import *
+from ._baseline import *
+from .baseline import *
+from .plugins import *
+from .deblend import *
