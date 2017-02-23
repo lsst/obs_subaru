@@ -27,7 +27,7 @@
 #include "lsst/afw/detection/Footprint.h"
 #include "lsst/afw/detection/Peak.h"
 
-#include "lsst/meas/deblender/Baseline.h"
+#include "lsst/meas/deblender/BaselineUtils.h"
 
 namespace py = pybind11;
 using namespace pybind11::literals;
@@ -109,10 +109,10 @@ void declareBaselineUtils(py::module& mod, const std::string& suffix) {
 };
 }  // namespace
 
-PYBIND11_PLUGIN(_baseline) {
+PYBIND11_PLUGIN(_baselineUtils) {
     py::module::import("lsst.afw.image");
     py::module::import("lsst.afw.detection");
-    py::module mod("_baseline", "Python wrapper for meas_deblender _baseline library");
+    py::module mod("_baselineUtils", "Python wrapper for meas_deblender _baselineUtils library");
 
     declareBaselineUtils<float>(mod, "F");
 

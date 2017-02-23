@@ -3,7 +3,7 @@
 #include <cstdint>
 
 #include "lsst/log/Log.h"
-#include "lsst/meas/deblender/Baseline.h"
+#include "lsst/meas/deblender/BaselineUtils.h"
 #include "lsst/pex/exceptions.h"
 #include "lsst/afw/geom/Box.h"
 
