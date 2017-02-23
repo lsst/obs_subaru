@@ -283,6 +283,9 @@ datasets: {
     icSrc: {
         template:      "%(pointing)05d/%(filter)s/output/ICSRC-%(visit)07d-%(ccd)03d.fits"
     }
+    donutCat: {
+        template:      "%(pointing)05d/%(filter)s/output/DONUT-%(visit)07d-%(ccd)03d.fits"
+    }
     log: {
         template:      "%(pointing)05d/%(filter)s/logs/run.log"
         python:        "str"
@@ -338,6 +341,14 @@ datasets: {
     }
     singleFrameDriver_metadata: {
         template:      "%(pointing)05d/%(filter)s/singleFrameDriver_metadata/%(visit)07d.boost"
+        python:        "lsst.daf.base.PropertySet"
+        persistable:        "PropertySet"
+        storage:    "BoostStorage"
+        tables:        raw
+        tables:        raw_visit
+    }
+    donutDriver_metadata: {
+        template:      "%(pointing)05d/%(filter)s/donutDriver_metadata/%(visit)07d.boost"
         python:        "lsst.daf.base.PropertySet"
         persistable:        "PropertySet"
         storage:    "BoostStorage"
