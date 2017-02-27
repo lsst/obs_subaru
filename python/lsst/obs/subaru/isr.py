@@ -247,6 +247,11 @@ class SubaruIsrTask(IsrTask):
                 self.saturationDetection(ccdExposure, amp)
             if self.config.doSuspect and not badAmp:
                 self.suspectDetection(ccdExposure, amp)
+            ampMask = afwImage.MaskU(ccdExposure.getMaskedImage().getMask(), amp.getRawDataBBox(),
+                                     afwImage.PARENT)
+            maskVal = ampMask.getPlaneBitMask([self.config.saturatedMaskName, self.config.suspectMaskName])
+            if numpy.all(ampMask.getArray() & maskVal > 0):
+                badAmp = True
             if self.config.doOverscan and not badAmp:
                 ampImage = afwImage.MaskedImageF(ccdExposure.getMaskedImage(), amp.getRawDataBBox(),
                                                  afwImage.PARENT)
