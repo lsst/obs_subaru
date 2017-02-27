@@ -28,7 +28,7 @@ import lsst.afw.detection as afwDet
 import lsst.afw.geom as afwGeom
 
 # Import C++ routines
-from ._baselineUtils import BaselineUtilsF as butils
+from .baselineUtils import BaselineUtilsF as butils
 
 class DeblenderPlugin(object):
     """Class to define plugins for the deblender.

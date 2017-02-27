@@ -23,7 +23,7 @@
 """lsst.meas.deblender
 """
 from __future__ import absolute_import
-from ._baselineUtils import *
+from .baselineUtils import *
 from .baseline import *
 from .plugins import *
 from .deblend import *
