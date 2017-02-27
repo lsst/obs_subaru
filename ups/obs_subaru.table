@@ -7,8 +7,7 @@ setupRequired(pyfits)
 setupRequired(sconsUtils)
 setupRequired(pybind11)
 
-# temporarily disable meas_modelfit until it is wrapped with pybind11
-#setupOptional(meas_modelfit)
+setupOptional(meas_modelfit)
 setupOptional(meas_extensions_psfex)
 setupOptional(meas_extensions_shapeHSM)
 setupOptional(testdata_subaru)
