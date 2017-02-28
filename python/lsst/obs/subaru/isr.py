@@ -271,12 +271,6 @@ class SubaruIsrTask(IsrTask):
                                            statControl=statControl,
                                            )
 
-            if self.config.doVariance:
-                # Ideally, this should be done after bias subtraction,
-                # but CCD assembly demands a variance plane
-                ampExposure = ccdExposure.Factory(ccdExposure, amp.getRawDataBBox(), afwImage.PARENT)
-                self.updateVariance(ampExposure, amp)
-
         ccdExposure = self.assembleCcd.assembleCcd(ccdExposure)
         ccd = ccdExposure.getDetector()
 
@@ -288,6 +282,10 @@ class SubaruIsrTask(IsrTask):
         if self.config.doBias:
             biasExposure = self.getIsrExposure(sensorRef, "bias")
             self.biasCorrection(ccdExposure, biasExposure)
+        if self.config.doVariance:
+            for amp in ccd:
+                ampExposure = ccdExposure.Factory(ccdExposure, amp.getBBox(), afwImage.PARENT)
+                self.updateVariance(ampExposure, amp)
         if self.doLinearize(ccd):
             # immediate=True required for functors and linearizers are functors; see ticket DM-6515
             linearizer = sensorRef.get("linearizer", immediate=True)
