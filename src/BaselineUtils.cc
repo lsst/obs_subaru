@@ -1345,5 +1345,26 @@ getSignificantEdgePixels(ImagePtrT img,
 }
 
 
+template <typename ImagePixelT, typename MaskPixelT, typename VariancePixelT>
+const int deblend::BaselineUtils<ImagePixelT, MaskPixelT, VariancePixelT>::ASSIGN_STRAYFLUX;
+
+template <typename ImagePixelT, typename MaskPixelT, typename VariancePixelT>
+const int
+deblend::BaselineUtils<ImagePixelT, MaskPixelT, VariancePixelT>::STRAYFLUX_TO_POINT_SOURCES_WHEN_NECESSARY;
+
+template <typename ImagePixelT, typename MaskPixelT, typename VariancePixelT>
+const int deblend::BaselineUtils<ImagePixelT, MaskPixelT, VariancePixelT>::STRAYFLUX_TO_POINT_SOURCES_ALWAYS;
+
+template <typename ImagePixelT, typename MaskPixelT, typename VariancePixelT>
+const int deblend::BaselineUtils<ImagePixelT, MaskPixelT, VariancePixelT>::STRAYFLUX_R_TO_FOOTPRINT;
+
+template <typename ImagePixelT, typename MaskPixelT, typename VariancePixelT>
+const int deblend::BaselineUtils<ImagePixelT, MaskPixelT, VariancePixelT>::STRAYFLUX_NEAREST_FOOTPRINT;
+
+template <typename ImagePixelT, typename MaskPixelT, typename VariancePixelT>
+const int deblend::BaselineUtils<ImagePixelT, MaskPixelT, VariancePixelT>::STRAYFLUX_TRIM;
+
+
+
 // Instantiate
 template class deblend::BaselineUtils<float>;

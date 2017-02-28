@@ -94,12 +94,13 @@ void declareBaselineUtils(py::module& mod, const std::string& suffix) {
                    "thresh"_a);
     // There appears to be an issue binding to a static const member of a templated type, so for now
     // we just use the values constants
-    cls.attr("ASSIGN_STRAYFLUX") = py::cast(0x1);
-    cls.attr("STRAYFLUX_TO_POINT_SOURCES_WHEN_NECESSARY") = py::cast(0x2);
-    cls.attr("STRAYFLUX_TO_POINT_SOURCES_ALWAYS") = py::cast(0x4);
-    cls.attr("STRAYFLUX_R_TO_FOOTPRINT") = py::cast(0x8);
-    cls.attr("STRAYFLUX_NEAREST_FOOTPRINT") = py::cast(0x10);
-    cls.attr("STRAYFLUX_TRIM") = py::cast(0x20);
+    cls.attr("ASSIGN_STRAYFLUX") = py::cast(Class::ASSIGN_STRAYFLUX);
+    cls.attr("STRAYFLUX_TO_POINT_SOURCES_WHEN_NECESSARY") =
+        py::cast(Class::STRAYFLUX_TO_POINT_SOURCES_WHEN_NECESSARY);
+    cls.attr("STRAYFLUX_TO_POINT_SOURCES_ALWAYS") = py::cast(Class::STRAYFLUX_TO_POINT_SOURCES_ALWAYS);
+    cls.attr("STRAYFLUX_R_TO_FOOTPRINT") = py::cast(Class::STRAYFLUX_R_TO_FOOTPRINT);
+    cls.attr("STRAYFLUX_NEAREST_FOOTPRINT") = py::cast(Class::STRAYFLUX_NEAREST_FOOTPRINT);
+    cls.attr("STRAYFLUX_TRIM") = py::cast(Class::STRAYFLUX_TRIM);
 };
 
 }  // namespace
