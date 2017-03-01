@@ -279,11 +279,42 @@ calibrations:
     storage: PickleStorage
     template: BFKERNEL/brighter_fatter_kernel.pkl
 
+  sky:
+    template: SKY/%(calibDate)s/%(filter)s/SKY-%(calibDate)s-%(filter)s-%(ccd)03d.fits
+    python: lsst.afw.image.ExposureF
+    persistable: ExposureF
+    storage: FitsStorage
+    level: Ccd
+    tables: sky
+    columns:
+    - ccd
+    - filter
+    - taiObs
+    reference: raw_visit
+    refCols:
+    - visit
+    - filter
+    filter: true
+    validRange: true
+    validStartName: validStart
+    validEndName: validEnd
+  sky_camera:
+    template: focalplane/SKY/%(calibDate)s/%(filter)s/SKY-%(calibDate)s-%(filter)s.fits
+    persistable: ExposureF
+    python: lsst.afw.image.ExposureF
+    storage: FitsStorage
+    level: None
+
+
 datasets:
   icExpBackground:
     template: '%(pointing)05d/%(filter)s/corr/ICEXPBKGD-%(visit)07d-%(ccd)03d.fits'
   calexpBackground:
     template: '%(pointing)05d/%(filter)s/corr/BKGD-%(visit)07d-%(ccd)03d.fits'
+  skyCorr:
+    template: '%(pointing)05d/%(filter)s/corr/skyCorr-%(visit)07d-%(ccd)03d.fits'
+  calexp_camera:
+    template: '%(pointing)05d/%(filter)s/corr/calexp-camera-%(visit)d.fits'
   src:
     template: '%(pointing)05d/%(filter)s/output/SRC-%(visit)07d-%(ccd)03d.fits'
   calibrated_src:
