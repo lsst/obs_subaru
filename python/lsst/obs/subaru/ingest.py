@@ -155,7 +155,7 @@ class HscCalibsParseTask(CalibsParseTask):
         return match.groups()[0]
 
     def translate_ccd(self, md):
-        return self._translateFromCalibId("ccd", md)
+        return int(self._translateFromCalibId("ccd", md))
 
     def translate_filter(self, md):
         return self._translateFromCalibId("filter", md)
