@@ -17,13 +17,14 @@ libpathstr = lsst.sconsUtils.utils.libraryLoaderEnvironment()
 # We always run these commands with an explicit python rather than relying on the shebang
 python = "{} python".format(libpathstr)
 
-dep = "#python/lsst/obs/subaru/_subaruLib.so"  # Dependency required for running the python scripts
-
 defectsDatList = glob.glob("defects/*/defects.dat")
 for defectsDat in defectsDatList:
     command = "%s bin.src/genDefectFits.py HSC %s --force" % (python, os.path.join("hsc", defectsDat))
-    env.AlwaysBuild(env.Command(defectsDat + "-fits", [defectsDat, dep], command))
+    commandInst = env.Command(defectsDat + "-fits", [defectsDat], command)
+    env.Depends(commandInst, lsst.sconsUtils.targets["python"])
+    env.AlwaysBuild(commandInst)
 
 command = "%s bin.src/genDefectRegistry.py --root hsc/defects" % (python)
-registry = env.AlwaysBuild(env.Command("defects/defectRegistry.sqlite3",
-                                       [d + "-fits" for d in defectsDatList] + [dep], command))
+commandInst = env.Command("defects/defectRegistry.sqlite3", [d + "-fits" for d in defectsDatList], command)
+env.Depends(commandInst, lsst.sconsUtils.targets["python"])
+registry = env.AlwaysBuild(commandInst)

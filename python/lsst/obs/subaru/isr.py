@@ -30,7 +30,7 @@ import numpy
 from lsst.pex.config import Field
 from lsst.pipe.base import Task, Struct
 from lsst.ip.isr import IsrTask
-from lsst.ip.isr import isr as lsstIsr
+from lsst.ip.isr import isrFunctions as lsstIsr
 import lsst.pex.config as pexConfig
 import lsst.afw.detection as afwDetection
 import lsst.afw.image as afwImage

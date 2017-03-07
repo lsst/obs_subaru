@@ -106,8 +106,8 @@ def getVerificationData():
         CcdData = namedtuple("CcdData", ['name', 'id', 'corners'])
         CornerData = namedtuple("CornerData", ['focalPlane', 'distEst'])
         data = {}
-        for raft in map(afwCG.cast_Raft, camera):
-            for ccd in map(afwCG.cast_Ccd, raft):
+        for raft in map(afwCG.cast_Raft, camera):  # now use: `for raft in camera:`
+            for ccd in map(afwCG.cast_Ccd, raft):  # now use: `for ccd in raft:`
                 ccd.setTrimmed(True)
                 distorter = ccd.getDistortion()
                 cornerData = {}

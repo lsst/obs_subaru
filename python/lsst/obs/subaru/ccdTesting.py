@@ -280,7 +280,7 @@ def findBiasLevels(butler, **dataId):
 
 def showElectronics(camera, maxCorr=1.8e5, showLinearity=False, fd=sys.stderr):
     print("%-12s" % (camera.getId()), file=fd)
-    for raft in [afwCG.cast_Raft(det) for det in camera]:
+    for raft in camera:
         print("   %-12s" % (raft.getId()), file=fd)
         for ccd in [det for det in raft]:
             print("      %-12s" % (ccd.getId()), file=fd)
@@ -521,7 +521,7 @@ def estimatePupilIllumination(mi, centers=((-34, 93), (131, -192), (-195, -192),
         for x, y in centers:
             ds9.dot('o', x - x0, y - y0, size=R, ctype=ds9.GREEN)
 
-    imgList = afwImage.vectorMaskedImageF()
+    imgList = []
     size = 2*(int(2*R + 0.5)//2) + 1
     for x, y in centers:
         stamp = mi[x - x0 - size//2: x - x0 + size//2, y - y0 - size//2: y - y0 + size//2]
@@ -970,7 +970,7 @@ def plotCcdTemperatures(butler, visit):
 
 
 def makeBias(images):
-    imgList = afwImage.vectorMaskedImageF()
+    imgList = []
     for im in images:
         imgList.push_back(im)
 
@@ -2747,7 +2747,7 @@ def stackMosaics(mos, visits):
     sctrl = afwMath.StatisticsControl()
     #sctrl.setAndMask(BAD)
 
-    imgList = afwImage.vectorMaskedImageF() if hasattr(im, "getImage") else afwImage.vectorImageF()
+    imgList = []
     for v in visits:
         im = mos[v].clone()
         if False:

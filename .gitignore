@@ -14,10 +14,6 @@ tests/.tests
 tests/.cache/*
 ups/*.cfgc
 python/lsst/obs/subaru/version.py
-python/lsst/obs/hsc/hscLib.py
-python/lsst/obs/hsc/hscLib_wrap.cc
-python/lsst/obs/subaru/subaruLib.py
-python/lsst/obs/subaru/subaruLib_wrap.cc
 bin/displayCamera.py
 bin/genCalibRegistry.py
 bin/genCameraRepository.py
