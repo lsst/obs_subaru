@@ -103,8 +103,8 @@ class GetDataTestCase(lsst.utils.tests.TestCase):
         self.boresightRaDec = IcrsCoord('21:22:59.982', '+00:30:00.07')
         self.boresightAzAlt = Coord(226.68922661*degrees, 63.04359233*degrees)
         self.boresightAirmass = 1.121626027604189
-        self.boresightRotAngle = float("nan")*degrees
-        self.rotType = RotType.UNKNOWN
+        self.boresightRotAngle = 270.0*degrees
+        self.rotType = RotType.SKY
         self.obs_longitude = -155.476667*degrees
         self.obs_latitude = 19.825556*degrees
         self.obs_elevation = 4139
@@ -134,7 +134,7 @@ class GetDataTestCase(lsst.utils.tests.TestCase):
         self.assertCoordsNearlyEqual(visitInfo.getBoresightRaDec(), self.boresightRaDec)
         self.assertCoordsNearlyEqual(visitInfo.getBoresightAzAlt(), self.boresightAzAlt)
         self.assertAlmostEqual(visitInfo.getBoresightAirmass(), self.boresightAirmass)
-        self.assertTrue(math.isnan(visitInfo.getBoresightRotAngle().asDegrees()))
+        self.assertAnglesNearlyEqual(visitInfo.getBoresightRotAngle(), self.boresightRotAngle)
         self.assertEqual(visitInfo.getRotType(), self.rotType)
         self.assertEqual(visitInfo.getExposureTime(), self.exptime)
         self.assertEqual(visitInfo.getDarkTime(), self.darktime)

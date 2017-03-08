@@ -27,6 +27,7 @@ import astropy.units
 
 from lsst.afw.geom import degrees
 from lsst.afw.coord import Coord, IcrsCoord, Observatory, Weather
+from lsst.afw.image import RotType
 from lsst.obs.base import MakeRawVisitInfo
 
 __all__ = ["MakeHscRawVisitInfo"]
@@ -34,10 +35,6 @@ __all__ = ["MakeHscRawVisitInfo"]
 
 class MakeHscRawVisitInfo(MakeRawVisitInfo):
     """Make a VisitInfo from the FITS header of a Subaru HSC image
-
-    Boresight rotation angle could probably be set from one of:
-    - INST-PT (but apparently only available for HSC, not suprimecam)
-    - INR-TR, INR-END (but appears to not be SKY; so probably not interesting)
     """
     observatory = Observatory(-155.476667*degrees, 19.825556*degrees, 4139)  # long, lat, elev
 
@@ -66,6 +63,12 @@ class MakeHscRawVisitInfo(MakeRawVisitInfo):
         LST = self.popAngle(md, "LST-STR", units=astropy.units.h)
         argDict['era'] = self.eraFromLstAndLongitude(LST, self.observatory.getLongitude())
         argDict['darkTime'] = argDict['exposureTime']
+
+        # Rotation angle formula determined empirically from visual inspection
+        # of HSC images.  See DM-9111.
+        rotAngle = (270.0*degrees - self.popAngle(md, "INST-PA")).wrap()
+        argDict['boresightRotAngle'] = rotAngle
+        argDict['rotType'] = RotType.SKY
 
     def getDateAvg(self, md, exposureTime):
         """Return date at the middle of the exposure
