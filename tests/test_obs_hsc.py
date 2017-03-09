@@ -132,6 +132,7 @@ class TestObsHsc(lsst.obs.base.tests.ObsTests, lsst.utils.tests.TestCase):
         self.setUp_camera(camera_name='HSC',
                           n_detectors=112,
                           first_detector_name='1_53',
+                          camera_size=Extent2I(2048, 4176)
                           )
 
         super(TestObsHsc, self).setUp()

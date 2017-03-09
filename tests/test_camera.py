@@ -39,17 +39,6 @@ class CameraTestCase(lsst.utils.tests.TestCase):
         del self.camera
         del self.mapper
 
-    def testName(self):
-        self.assertEqual(self.camera.getName(), "HSC")
-
-    def testNumCcds(self):
-        self.assertEqual(len(list(self.camera.getIdIter())), 112)
-
-    def testCcdSize(self):
-        for ccd in self.camera:
-            self.assertEqual(ccd.getBBox().getWidth(), 2048)
-            self.assertEqual(ccd.getBBox().getHeight(), 4176)
-
     def testFilters(self):
         # Check that the mapper has defined some standard filters.
         # Note that this list is not intended to be comprehensive -- we
