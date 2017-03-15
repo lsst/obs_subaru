@@ -6,4 +6,4 @@ except ImportError as exc:
     print("Cannot import lsst.meas.extensions.convolved (%s): disabling convolved flux measurements" % (exc,))
 else:
     config.plugins.names.add("ext_convolved_ConvolvedFlux")
-    # Default values for 'seeing' and 'aperture.radii' are suitable for HSC.
+    config.plugins["ext_convolved_ConvolvedFlux"].seeing.append(8.0)
