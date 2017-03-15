@@ -1,6 +1,6 @@
 from lsst.afw.geom import xyTransformRegistry, arcseconds
 from lsst.pex.config import Config, Field, ListField
-from lsst.obs.subaru.subaruLib import HscDistortion, DistortionPolynomial
+from lsst.obs.subaru import HscDistortion, DistortionPolynomial
 __all__ = ["xyTransformRegistry"]
 
 

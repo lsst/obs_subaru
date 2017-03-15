@@ -31,7 +31,11 @@ namespace lsst {
 namespace obs {
 namespace subaru {
 
+// Note that _crosstalk is not related to the crosstalk Python module;
+// unfortunately they do have the same name.
 PYBIND11_PLUGIN(_crosstalk) {
+    py::module::import("lsst.afw.image");
+
     py::module mod("_crosstalk");
 
     mod.def("subtractCrosstalk", subtractCrosstalk, "mi"_a, "nAmp"_a, "coeffs1List"_a, "coeffs2List"_a,
@@ -39,6 +43,7 @@ PYBIND11_PLUGIN(_crosstalk) {
 
     return mod.ptr();
 }
-}
-}
-}  // lsst::obs::subaru
+
+}  // subaru
+}  // obs
+}  // lsst

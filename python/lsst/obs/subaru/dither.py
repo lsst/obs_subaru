@@ -1,4 +1,4 @@
-from __future__ import division, print_function
+from __future__ import absolute_import, division, print_function
 from builtins import input
 from builtins import zip
 import lsst.afw.geom as afwGeom

@@ -22,5 +22,9 @@
 
 """lsst.obs.subaru
 """
-from __future__ import absolute_import
-from .subaruLib import *
+from __future__ import absolute_import, division, print_function
+
+# This module is distinct from the crosstalk Python module
+from ._crosstalk import *
+from .hscDistortion import *
+
