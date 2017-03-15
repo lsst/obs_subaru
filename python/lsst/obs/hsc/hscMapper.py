@@ -237,7 +237,7 @@ Most chips are flipped L/R, but the rotated ones (100..103) are flipped T/B
             locationList="ignored",
             dataId=actualId,
             mapper=self,
-        )
+            storage=self.rootStorage)
 
     def bypass_linearizer(self, datasetType, pythonType, butlerLocation, dataId):
         """Return the linearizer.
