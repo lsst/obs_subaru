@@ -39,7 +39,7 @@ class MakeHscRawVisitInfo(MakeRawVisitInfo):
     observatory = Observatory(-155.476667*degrees, 19.825556*degrees, 4139)  # long, lat, elev
 
     def setArgDict(self, md, argDict):
-        """Set an argument dict for makeVisitInfo and pop associated metadata
+        """Set an argument dict for VisitInfo and pop associated metadata
 
         @param[in,out] md  metadata, as an lsst.daf.base.PropertyList or PropertySet
         @param[in,out] argdict  a dict of arguments
