@@ -63,10 +63,10 @@ exposures: {
         tables:        "raw_visit"
     }
     wcs: {
-        template: "%(pointing)05d/%(filter)s/corr/%(tract)04d/wcs-%(visit)07d-%(ccd)03d.fits"
+        template: "jointcal-results/%(tract)04d/wcs-%(visit)07d-%(ccd)03d.fits"
     }
     fcr: {
-        template: "%(pointing)05d/%(filter)s/corr/%(tract)04d/fcr-%(visit)07d-%(ccd)03d.fits"
+        template: "jointcal-results/%(tract)04d/fcr-%(visit)07d-%(ccd)03d.fits"
         python:        "lsst.afw.image.ExposureI"
         persistable:        "ExposureI"
         storage:    "FitsStorage"
