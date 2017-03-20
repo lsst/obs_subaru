@@ -34,6 +34,10 @@ for refObjLoader in (config.calibrate.astromRefObjLoader,
                      ):
     refObjLoader.load(os.path.join(getPackageDir("obs_subaru"), "config", "filterMap.py"))
 
+# Better astrometry matching
+config.calibrate.astrometry.matcher.numBrightStars = 150
+config.calibrate.photoCal.matcher.numBrightStars = 150
+
 # Set to match defaults curretnly used in HSC production runs (e.g. S15B)
 config.charImage.catalogCalculation.plugins['base_ClassificationExtendedness'].fluxRatio = 0.95
 config.calibrate.catalogCalculation.plugins['base_ClassificationExtendedness'].fluxRatio = 0.95
