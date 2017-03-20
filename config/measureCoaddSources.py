@@ -14,6 +14,8 @@ config.deblend.load(os.path.join(getPackageDir("obs_subaru"), "config", "deblend
 # AstrometryTask has a refObjLoader subtask which accepts the filter map.
 config.match.refObjLoader.load(os.path.join(getPackageDir("obs_subaru"), "config", "filterMap.py"))
 
+config.doWriteMatchesDenormalized = True
+
 #
 # This isn't good!  There appears to be no way to configure the base_PixelFlags measurement
 # algorithm based on a configuration parameter; see DM-4159 for a discussion.  The name

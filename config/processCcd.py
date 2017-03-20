@@ -61,6 +61,8 @@ setConfigFromEups(config.calibrate.photoCal, config.calibrate, menu)
 config.calibrate.requireAstrometry = True
 config.calibrate.requirePhotoCal = True
 
+config.calibrate.doWriteMatchesDenormalized = True
+
 # Detection
 config.charImage.detection.isotropicGrow = True
 config.calibrate.detection.isotropicGrow = True
