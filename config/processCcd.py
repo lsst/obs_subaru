@@ -55,6 +55,8 @@ config.calibrate.photoCal.photoCatName = "ps1_pv3_3pi_20170110"
 config.calibrate.requireAstrometry = True
 config.calibrate.requirePhotoCal = True
 
+config.calibrate.doWriteMatchesDenormalized = True
+
 # Detection
 config.charImage.detection.isotropicGrow = True
 config.calibrate.detection.isotropicGrow = True
