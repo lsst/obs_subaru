@@ -277,6 +277,9 @@ datasets: {
     srcMatch: {
         template:      "%(pointing)05d/%(filter)s/output/SRCMATCH-%(visit)07d-%(ccd)03d.fits"
     }
+    srcMatchFull: {
+        template:      "%(pointing)05d/%(filter)s/output/SRCMATCHFULL-%(visit)07d-%(ccd)03d.fits"
+    }
     icSrc: {
         template:      "%(pointing)05d/%(filter)s/output/ICSRC-%(visit)07d-%(ccd)03d.fits"
     }
@@ -351,6 +354,9 @@ datasets: {
     }
     deepCoadd_srcMatch: {
         template:      "deepCoadd-results/%(filter)s/%(tract)d/%(patch)s/srcMatch-%(filter)s-%(tract)d-%(patch)s.fits"
+    }
+    deepCoadd_srcMatchFull: {
+        template:      "deepCoadd-results/%(filter)s/%(tract)d/%(patch)s/srcMatchFull-%(filter)s-%(tract)d-%(patch)s.fits"
     }
     deepCoadd_calexp_background: {
         template:      "deepCoadd-results/%(filter)s/%(tract)d/%(patch)s/det_bkgd-%(filter)s-%(tract)d-%(patch)s.fits"
