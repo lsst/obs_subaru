@@ -5,6 +5,7 @@ from __future__ import print_function
 import os.path
 
 from lsst.utils import getPackageDir
+from lsst.meas.algorithms import LoadIndexedReferenceObjectsTask
 
 configDir = os.path.join(getPackageDir("obs_subaru"), "config")
 bgFile = os.path.join(configDir, "background.py")
@@ -32,7 +33,9 @@ for refObjLoader in (config.calibrate.astromRefObjLoader,
                      config.calibrate.photoRefObjLoader,
                      config.charImage.refObjLoader,
                      ):
+    refObjLoader.retarget(LoadIndexedReferenceObjectsTask)
     refObjLoader.load(os.path.join(getPackageDir("obs_subaru"), "config", "filterMap.py"))
+    refObjLoader.ref_dataset_name = "ps1_pv3_3pi_20170110"
 
 # Better astrometry matching
 config.calibrate.astrometry.matcher.numBrightStars = 150
@@ -43,16 +46,7 @@ config.charImage.catalogCalculation.plugins['base_ClassificationExtendedness'].f
 config.calibrate.catalogCalculation.plugins['base_ClassificationExtendedness'].fluxRatio = 0.95
 
 config.calibrate.photoCal.applyColorTerms = True
-
-from lsst.pipe.tasks.setConfigFromEups import setConfigFromEups
-menu = {"ps1*": {}, # Defaults are fine
-        "sdss*": {"photoRefObjLoader.filterMap": {"y": "z"},
-                  "astromRefObjLoader.filterMap": {"y": "z"}}, # No y-band, use z instead
-        "2mass*": {"photoRefObjLoader.filterMap": {ff: "J" for ff in "grizy"},
-                   "astromRefObjLoader.filterMap": {ff: "J" for ff in "grizy"}}, # No optical, use J instead
-        "10*": {}, # Match the empty astrometry_net_data version for use without a ref catalog
-        }
-setConfigFromEups(config.calibrate.photoCal, config.calibrate, menu)
+config.calibrate.photoCal.photoCatName = "ps1_pv3_3pi_20170110"
 
 # Demand astrometry and photoCal succeed
 config.calibrate.requireAstrometry = True
