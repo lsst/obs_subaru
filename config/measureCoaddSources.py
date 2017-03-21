@@ -2,6 +2,7 @@
 
 import os.path
 from lsst.utils import getPackageDir
+from lsst.meas.algorithms import LoadIndexedReferenceObjectsTask
 
 config.measurement.load(os.path.join(getPackageDir("obs_subaru"), "config", "apertures.py"))
 config.measurement.load(os.path.join(getPackageDir("obs_subaru"), "config", "kron.py"))
@@ -11,7 +12,8 @@ config.load(os.path.join(getPackageDir("obs_subaru"), "config", "cmodel.py"))
 
 config.deblend.load(os.path.join(getPackageDir("obs_subaru"), "config", "deblend.py"))
 
-# AstrometryTask has a refObjLoader subtask which accepts the filter map.
+config.match.refObjLoader.retarget(LoadIndexedReferenceObjectsTask)
+config.match.refObjLoader.ref_dataset_name = "ps1_pv3_3pi_20170110"
 config.match.refObjLoader.load(os.path.join(getPackageDir("obs_subaru"), "config", "filterMap.py"))
 
 #
