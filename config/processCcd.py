@@ -23,6 +23,9 @@ config.charImage.measurePsf.starSelector["objectSize"].sourceFluxField = 'base_P
 try:
     import lsst.meas.extensions.psfex.psfexPsfDeterminer
     config.charImage.measurePsf.psfDeterminer["psfex"].spatialOrder = 2
+    config.charImage.measurePsf.psfDeterminer["psfex"].psfexBasis = 'PIXEL_AUTO'
+    config.charImage.measurePsf.psfDeterminer["psfex"].samplingSize = 0.5
+    config.charImage.measurePsf.psfDeterminer["psfex"].kernelSize = 81
     config.charImage.measurePsf.psfDeterminer.name = "psfex"
 except ImportError as e:
     print("WARNING: Unable to use psfex: %s" % e)
