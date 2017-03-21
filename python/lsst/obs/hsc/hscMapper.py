@@ -198,7 +198,7 @@ Most chips are flipped L/R, but the rotated ones (100..103) are flipped T/B
 
     def std_dark(self, item, dataId):
         exposure = self._standardizeExposure(self.calibrations['dark'], item, dataId, trimmed=False)
-        visitInfo = afwImage.makeVisitInfo(exposureTime=1.0, darkTime=1.0)
+        visitInfo = afwImage.VisitInfo(exposureTime=1.0, darkTime=1.0)
         exposure.getInfo().setVisitInfo(visitInfo)
         return exposure
 
