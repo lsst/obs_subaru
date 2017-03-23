@@ -352,10 +352,10 @@ datasets: {
         tables:        raw
         tables:        raw_visit
     }
-    deepCoadd_srcMatch: {
+    deepCoadd_measMatch: {
         template:      "deepCoadd-results/%(filter)s/%(tract)d/%(patch)s/srcMatch-%(filter)s-%(tract)d-%(patch)s.fits"
     }
-    deepCoadd_srcMatchFull: {
+    deepCoadd_measMatchFull: {
         template:      "deepCoadd-results/%(filter)s/%(tract)d/%(patch)s/srcMatchFull-%(filter)s-%(tract)d-%(patch)s.fits"
     }
     deepCoadd_calexp_background: {
