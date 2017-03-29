@@ -1,5 +1,5 @@
 from __future__ import print_function
-# Enable CModel mags (unsetup meas_multifit or use $MEAS_MULTIFIT_DIR/config/disable.py to disable)
+# Enable CModel mags (unsetup meas_modelfit to disable)
 # 'config' is a SourceMeasurementConfig.
 import os
 try:
