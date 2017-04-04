@@ -21,7 +21,6 @@
 # the GNU General Public License along with this program.  If not,
 # see <https://www.lsstcorp.org/LegalNotices/>.
 #
-import math
 import os
 import unittest
 from glob import glob
@@ -31,7 +30,6 @@ from tempfile import mkdtemp
 
 import lsst.afw.geom as afwGeom
 import lsst.daf.persistence as dafPersist
-import lsst.pex.exceptions as pexExcept
 import lsst.utils
 from lsst.daf.base import DateTime
 from lsst.obs.base import MakeRawVisitInfo
@@ -174,12 +172,14 @@ class GetDataTestCase(lsst.utils.tests.TestCase):
     def testLinearizer(self):
         self.assertTrue(self.butler.get('linearizer', ccdnum=1))
 
+
 class TestMemory(lsst.utils.tests.MemoryTestCase):
     pass
 
 
 def setup_module(module):
     lsst.utils.tests.init()
+
 
 if __name__ == "__main__":
     lsst.utils.tests.init()

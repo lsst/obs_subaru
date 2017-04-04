@@ -23,6 +23,7 @@
 #
 from __future__ import print_function
 import unittest
+from collections import namedtuple
 
 import lsst.utils.tests
 from lsst.obs.hsc import HscMapper
@@ -75,9 +76,7 @@ def run(shouldExit=False):
     """Run the tests"""
     utilsTests.run(suite(), shouldExit)
 
-################################################################################
 
-from collections import namedtuple
 CcdData = namedtuple("CcdData", ['name', 'id', 'corners'])
 CornerData = namedtuple("CornerData", ['focalPlane', 'distEst'])
 
@@ -1262,6 +1261,7 @@ class TestMemory(lsst.utils.tests.MemoryTestCase):
 
 def setup_module(module):
     lsst.utils.tests.init()
+
 
 if __name__ == "__main__":
     lsst.utils.tests.init()
