@@ -1,8 +1,7 @@
-#!/usr/bin/env python
 #
 # LSST Data Management System
 #
-# Copyright 2008-2016  AURA/LSST.
+# Copyright 2008-2017  AURA/LSST.
 #
 # This product includes software developed by the
 # LSST Project (http://www.lsst.org/).
@@ -21,7 +20,7 @@
 # the GNU General Public License along with this program.  If not,
 # see <https://www.lsstcorp.org/LegalNotices/>.
 #
-from __future__ import print_function
+from __future__ import absolute_import, division, print_function
 import unittest
 from collections import namedtuple
 
@@ -57,24 +56,6 @@ class HscDistortionTestCase(unittest.TestCase):
                 tp.getPoint() - cornerVerification.distEst
 
                 print(ccd.getSerial(), ccd.getName(), xy, fp, fpDiff)
-
-
-#-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-
-def suite():
-    """Returns a suite containing all the test cases in this module."""
-
-    utilsTests.init()
-
-    suites = []
-    suites += unittest.makeSuite(HscDistortionTestCase)
-    suites += unittest.makeSuite(utilsTests.MemoryTestCase)
-    return unittest.TestSuite(suites)
-
-
-def run(shouldExit=False):
-    """Run the tests"""
-    utilsTests.run(suite(), shouldExit)
 
 
 CcdData = namedtuple("CcdData", ['name', 'id', 'corners'])
