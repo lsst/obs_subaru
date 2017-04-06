@@ -1,7 +1,7 @@
 """
 Subaru-specific overrides for ProcessCcdTask (applied before SuprimeCam- and HSC-specific overrides).
 """
-from __future__ import print_function
+from __future__ import absolute_import, division, print_function
 import os.path
 
 from lsst.utils import getPackageDir

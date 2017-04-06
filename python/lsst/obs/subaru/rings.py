@@ -25,7 +25,7 @@ else:
 
 rings.plotRadial(r, profs, xlim=(-100, 5500), ylim=(0.8, 1.03))
 """
-from __future__ import print_function
+from __future__ import absolute_import, division, print_function
 from builtins import next
 from builtins import range
 from builtins import object

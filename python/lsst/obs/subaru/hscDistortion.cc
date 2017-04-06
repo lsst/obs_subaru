@@ -32,8 +32,10 @@ namespace lsst {
 namespace obs {
 namespace subaru {
 
-PYBIND11_PLUGIN(_hscDistortion) {
-    py::module mod("_hscDistortion", "Python wrapper for afw _hscDistortion library");
+PYBIND11_PLUGIN(hscDistortion) {
+    py::module::import("lsst.afw.geom");
+
+    py::module mod("hscDistortion");
 
     py::class_<DistortionPolynomial, std::shared_ptr<DistortionPolynomial>> clsDistortionPolynomial(
             mod, "DistortionPolynomial");
@@ -64,6 +66,7 @@ PYBIND11_PLUGIN(_hscDistortion) {
 
     return mod.ptr();
 }
-}
-}
+
+}  // subaru
+}  // obs
 }  // lsst::obs::subaru

@@ -1,7 +1,7 @@
 # -*- python -*-
 from lsst.sconsUtils import env, targets
 
-targets["python"].extend(env.Pybind11LoadableModule("_crosstalk", ["crosstalk.cc"],
+targets["python"].extend(env.Pybind11LoadableModule("_crosstalk", ["_crosstalk.cc"],
                                                 LIBS=env.getLibs("main python")))
-targets["python"].extend(env.Pybind11LoadableModule("_hscDistortion", ["hscDistortion.cc"],
+targets["python"].extend(env.Pybind11LoadableModule("hscDistortion", ["hscDistortion.cc"],
                                                 LIBS=env.getLibs("main python")))
