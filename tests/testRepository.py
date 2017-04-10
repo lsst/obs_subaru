@@ -145,6 +145,22 @@ class GetDataTestCase(lsst.utils.tests.TestCase):
         self.assertAlmostEqual(weather.getAirPressure(), self.weath_airPressure)
         self.assertAlmostEqual(weather.getHumidity(), self.weath_humidity)
 
+    def testPupil(self):
+        """Test retrieval of pupil (without checking value)"""
+        raw = self.butler.get("raw", visit=self.visit, ccd=self.ccdNum)
+        visitInfo = raw.getInfo().getVisitInfo()
+        camera = self.butler.get("camera", visit=self.visit, ccd=self.ccdNum)
+        size = 16.4
+        npix = 1024
+
+        pupilFactory = camera.getPupilFactory(visitInfo, size, npix)
+        self.assertIsInstance(pupilFactory, lsst.obs.hsc.hscPupil.HscPupilFactory)
+
+        pupil = pupilFactory.getPupil(afwGeom.Point2D(0.0, 0.0))
+        self.assertEqual(pupil.size, size)
+        self.assertEqual(pupil.scale, size/npix)
+        self.assertEqual(pupil.illuminated.shape, (npix, npix))
+
     def testRawMetadata(self):
         """Test retrieval of raw image metadata"""
         md = self.butler.get("raw_md", visit=self.visit, ccd=self.ccdNum)
