@@ -21,7 +21,6 @@
 # the GNU General Public License along with this program.  If not,
 # see <https://www.lsstcorp.org/LegalNotices/>.
 #
-import math
 import os
 import unittest
 from glob import glob
@@ -31,7 +30,6 @@ from tempfile import mkdtemp
 
 import lsst.afw.geom as afwGeom
 import lsst.daf.persistence as dafPersist
-import lsst.pex.exceptions as pexExcept
 import lsst.utils
 from lsst.daf.base import DateTime
 from lsst.obs.base import MakeRawVisitInfo
