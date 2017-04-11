@@ -41,7 +41,7 @@ import lsst.afw.math as afwMath
 import lsst.afw.display.ds9 as ds9
 import lsst.pipe.base as pipeBase
 import lsst.pex.config as pexConfig
-import lsst.obs.subaru.subaruLib as subaruLib # for crosstalk
+from lsst.obs.subaru import subtractCrosstalk
 from lsst.obs.subaru.crosstalk import makeList, estimateCoeffs, printCoeffs, readImage, subtractXTalk
 
 
@@ -248,7 +248,7 @@ def subtractCrosstalkYagi(mi, coeffs1List, coeffs2List, gainsPreampSig, minPixel
         image -= xtalk
     else:
         nAmp = 4
-        subaruLib.subtractCrosstalk(mi, nAmp, coeffs1List, coeffs2List, gainsPreampSig)
+        subtractCrosstalk(mi, nAmp, coeffs1List, coeffs2List, gainsPreampSig)
 
     #
     # Clear the crosstalkStr bit in the original bright pixels, where tempStr is set
