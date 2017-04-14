@@ -9,6 +9,7 @@ import lsst.afw.geom as afwGeom
 from lsst.ip.isr import LinearizeSquared
 import lsst.pex.policy as pexPolicy
 from .makeHscRawVisitInfo import MakeHscRawVisitInfo
+from .hscPupil import HscPupilFactory
 
 
 class HscMapper(CameraMapper):
@@ -16,6 +17,8 @@ class HscMapper(CameraMapper):
     packageName = "obs_subaru"
 
     MakeRawVisitInfoClass = MakeHscRawVisitInfo
+
+    PupilFactoryClass = HscPupilFactory
 
     def __init__(self, **kwargs):
         policyFile = pexPolicy.DefaultPolicyFile("obs_subaru", "HscMapper.paf", "policy")

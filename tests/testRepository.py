@@ -21,7 +21,6 @@
 # the GNU General Public License along with this program.  If not,
 # see <https://www.lsstcorp.org/LegalNotices/>.
 #
-import math
 import os
 import unittest
 from glob import glob
@@ -31,7 +30,6 @@ from tempfile import mkdtemp
 
 import lsst.afw.geom as afwGeom
 import lsst.daf.persistence as dafPersist
-import lsst.pex.exceptions as pexExcept
 import lsst.utils
 from lsst.daf.base import DateTime
 from lsst.obs.base import MakeRawVisitInfo
@@ -146,6 +144,22 @@ class GetDataTestCase(lsst.utils.tests.TestCase):
         self.assertAlmostEqual(weather.getAirTemperature(), self.weath_airTemperature)
         self.assertAlmostEqual(weather.getAirPressure(), self.weath_airPressure)
         self.assertAlmostEqual(weather.getHumidity(), self.weath_humidity)
+
+    def testPupil(self):
+        """Test retrieval of pupil (without checking value)"""
+        raw = self.butler.get("raw", visit=self.visit, ccd=self.ccdNum)
+        visitInfo = raw.getInfo().getVisitInfo()
+        camera = self.butler.get("camera", visit=self.visit, ccd=self.ccdNum)
+        size = 16.4
+        npix = 1024
+
+        pupilFactory = camera.getPupilFactory(visitInfo, size, npix)
+        self.assertIsInstance(pupilFactory, lsst.obs.hsc.hscPupil.HscPupilFactory)
+
+        pupil = pupilFactory.getPupil(afwGeom.Point2D(0.0, 0.0))
+        self.assertEqual(pupil.size, size)
+        self.assertEqual(pupil.scale, size/npix)
+        self.assertEqual(pupil.illuminated.shape, (npix, npix))
 
     def testRawMetadata(self):
         """Test retrieval of raw image metadata"""
