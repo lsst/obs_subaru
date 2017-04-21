@@ -9,3 +9,9 @@ for sub in ("makeCoaddTempExp", "backgroundReference", "assembleCoadd", "process
         getattr(config, sub).load(path)
 
 config.doBackgroundReference = False
+
+from lsst.pipe.tasks.selectImages import PsfWcsSelectImagesTask
+config.select.retarget(PsfWcsSelectImagesTask)
+
+from lsst.pipe.drivers.utils import NullSelectImagesTask
+config.assembleCoadd.select.retarget(NullSelectImagesTask)
