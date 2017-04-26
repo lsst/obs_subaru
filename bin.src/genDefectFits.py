@@ -53,7 +53,7 @@ def genDefectFits(cameraName, source, targetDir):
             columns.append(col)
 
         cols = pyfits.ColDefs(columns)
-        table = pyfits.new_table(cols)
+        table = pyfits.BinTableHDU.from_columns(cols)
 
         table.header['NAME'] = ccd
 
