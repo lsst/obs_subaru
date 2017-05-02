@@ -63,6 +63,8 @@ class HscPupilFactory(PupilFactory):
             self._spiderStartPos.append(np.dot(rot, pos))
             self._spiderAngles.append(angle - hra)
 
+    telescopeDiameter = 8.2  # meters
+
     def _horizonRotAngle(self):
         """!Compute rotation angle of camera with respect to horizontal
         coordinates from self.visitInfo.
@@ -96,8 +98,7 @@ class HscPupilFactory(PupilFactory):
         @param point  Point2D indicating focal plane coordinates.
         @returns      Pupil
         """
-        subaruDiam = 8.2  # meters
-        subaruRadius = subaruDiam/2
+        subaruRadius = self.telescopeDiameter/2
 
         hscFrac = 0.231  # linear fraction
         # radius of HSC camera shadow in meters
