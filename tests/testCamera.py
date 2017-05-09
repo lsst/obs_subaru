@@ -71,7 +71,9 @@ class CameraTestCase(lsst.utils.tests.TestCase):
 
 
 class TestMemory(lsst.utils.tests.MemoryTestCase):
-    pass
+    def setUp(self):
+        HscMapper.clearCache()
+        lsst.utils.tests.MemoryTestCase.setUp(self)
 
 
 def setup_module(module):
