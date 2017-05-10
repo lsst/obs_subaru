@@ -36,6 +36,7 @@ from lsst.obs.base import MakeRawVisitInfo
 from lsst.afw.image import RotType
 from lsst.afw.coord import IcrsCoord, Coord
 from lsst.afw.geom import degrees
+from lsst.obs.hsc import HscMapper
 
 testDataPackage = "testdata_subaru"
 try:
@@ -189,7 +190,9 @@ class GetDataTestCase(lsst.utils.tests.TestCase):
         self.assertTrue(self.butler.get('linearizer', ccdnum=1))
 
 class TestMemory(lsst.utils.tests.MemoryTestCase):
-    pass
+    def setUp(self):
+        HscMapper.clearCache()
+        lsst.utils.tests.MemoryTestCase.setUp(self)
 
 
 def setup_module(module):
