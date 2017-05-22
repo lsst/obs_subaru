@@ -74,6 +74,20 @@ exposures: {
         tables:        "raw"
         tables:        "raw_visit"
     }
+    # the following is to accommodate reading in HSC stack persisted files:
+    wcs_hsc: {
+        template: "%(pointing)05d/%(filter)s/corr/%(tract)04d/wcs-%(visit)07d-%(ccd)03d.fits"
+    }
+    fcr_hsc: {
+        template: "%(pointing)05d/%(filter)s/corr/%(tract)04d/fcr-%(visit)07d-%(ccd)03d.fits"
+        python:        "lsst.afw.image.ExposureI"
+        persistable:        "ExposureI"
+        storage:    "FitsStorage"
+        level:        "Ccd"
+        tables:        "raw"
+        tables:        "raw_visit"
+    }
+
     detj: {
         template:      "%(pointing)05d/%(filter)s/corr/%(tract)04d/DETJ-%(visit)07d-%(ccd)03d.fits"
         python:        "lsst.afw.image.ExposureF"
@@ -369,6 +383,16 @@ datasets: {
     deepCoadd_measMatchFull: {
         template:      "deepCoadd-results/%(filter)s/%(tract)d/%(patch)s/srcMatchFull-%(filter)s-%(tract)d-%(patch)s.fits"
     }
+    # the following is to accommodate reading in HSC stack measMatch files:
+    deepCoadd_calexp_hsc: {
+        template:      "deepCoadd/%(filter)s/%(tract)d/%(patch)s/calexp-%(filter)s-%(tract)d-%(patch)s.fits"
+        python:        "lsst.afw.image.ExposureF"
+        persistable:   "ExposureF"
+        storage:       "FitsStorage"
+        level:         "None"
+        tables:        raw
+        tables:        raw_skyTile
+    }
     deepCoadd_calexp_background: {
         template:      "deepCoadd-results/%(filter)s/%(tract)d/%(patch)s/det_bkgd-%(filter)s-%(tract)d-%(patch)s.fits"
     }
@@ -565,4 +589,43 @@ datasets: {
         tables:        raw
         tables:        raw_visit
     }
+
+    # Plots for analysis QA
+    plotCoadd: {
+        template:      "plots/%(filter)s/tract-%(tract)d/plot-t%(tract)d-%(filter)s-%(description)s-%(style)s.png"
+        python:        __builtin__.str
+        persistable:   None
+        storage:       TextStorage
+    }
+    plotSky: {
+        template:      "plots/%(filter)s/sky/plot-%(filter)s-%(description)s-%(style)s.png"
+        python:        __builtin__.str
+        persistable:   None
+        storage:       TextStorage
+    }
+    plotColor: {
+        template:      "plots/color/tract-%(tract)d/plot-t%(tract)d-%(description)s-%(style)s.png"
+        python:        __builtin__.str
+        persistable:   None
+        storage:       TextStorage
+    }
+    plotVisit: {
+        template:      "plots/%(filter)s/tract-%(tract)d/visit-%(visit)d/plot-v%(visit)d-%(description)s-%(style)s.png"
+        python:        __builtin__.str
+        persistable:   None
+        storage:       TextStorage
+    }
+    plotCompareCoadd: {
+        template:      "plots/%(filter)s/tract-%(tract)d/compare-t%(tract)d-%(filter)s-%(description)s-%(style)s.png"
+        python:        __builtin__.str
+        persistable:   None
+        storage:       TextStorage
+    }
+    plotCompareVisit: {
+        template:      "plots/%(filter)s/tract-%(tract)d/visit-%(visit)d/compareVisit-v%(visit)d-%(description)s-%(style)s.png"
+        python:        __builtin__.str
+        persistable:   None
+        storage:       TextStorage
+    }
+
 }
