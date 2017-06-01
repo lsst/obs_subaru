@@ -1,13 +1,12 @@
 import os
 
 from lsst.obs.base import CameraMapper
-from lsst.daf.persistence import ButlerLocation
+from lsst.daf.persistence import ButlerLocation, Policy
 import lsst.afw.image.utils as afwImageUtils
 import lsst.afw.image as afwImage
 import lsst.afw.math as afwMath
 import lsst.afw.geom as afwGeom
 from lsst.ip.isr import LinearizeSquared
-import lsst.pex.policy as pexPolicy
 from .makeHscRawVisitInfo import MakeHscRawVisitInfo
 from .hscPupil import HscPupilFactory
 
@@ -23,8 +22,8 @@ class HscMapper(CameraMapper):
     _cameraCache = None  # Camera object, cached to speed up instantiation time
 
     def __init__(self, **kwargs):
-        policyFile = pexPolicy.DefaultPolicyFile("obs_subaru", "HscMapper.paf", "policy")
-        policy = pexPolicy.Policy(policyFile)
+        policyFile = Policy.defaultPolicyFile("obs_subaru", "HscMapper.yaml", "policy")
+        policy = Policy(policyFile)
         if not kwargs.get('root', None):
             try:
                 kwargs['root'] = os.path.join(os.environ.get('SUPRIME_DATA_DIR'), 'HSC')
@@ -33,7 +32,7 @@ class HscMapper(CameraMapper):
         if not kwargs.get('calibRoot', None):
             kwargs['calibRoot'] = os.path.join(kwargs['root'], 'CALIB')
 
-        super(HscMapper, self).__init__(policy, policyFile.getRepositoryPath(), **kwargs)
+        super(HscMapper, self).__init__(policy, os.path.dirname(policyFile), **kwargs)
 
         self._linearize = LinearizeSquared()
 

@@ -6,10 +6,9 @@ import os
 import lsst.afw.geom as afwGeom
 import lsst.afw.image.utils as afwImageUtils
 
-from lsst.daf.persistence import ButlerLocation
+from lsst.daf.persistence import ButlerLocation, Policy
 from lsst.obs.base import CameraMapper
 from lsst.ip.isr import LinearizeSquared
-import lsst.pex.policy as pexPolicy
 from .makeSuprimecamRawVisitInfo import MakeSuprimecamRawVisitInfo
 
 
@@ -301,8 +300,8 @@ class SuprimecamMapper(SuprimecamMapperBase):
     """
 
     def __init__(self, **kwargs):
-        policyFile = pexPolicy.DefaultPolicyFile("obs_subaru", "SuprimecamMapper.paf", "policy")
-        policy = pexPolicy.Policy(policyFile)
+        policyFile = Policy.defaultPolicyFile("obs_subaru", "SuprimecamMapper.yaml", "policy")
+        policy = Policy(policyFile)
         if not kwargs.get('root', None):
             try:
                 kwargs['root'] = os.path.join(os.environ.get('SUPRIME_DATA_DIR'), 'SUPA')
@@ -310,7 +309,7 @@ class SuprimecamMapper(SuprimecamMapperBase):
                 raise RuntimeError("Either $SUPRIME_DATA_DIR or root= must be specified")
         if not kwargs.get('calibRoot', None):
             kwargs['calibRoot'] = os.path.join(kwargs['root'], 'CALIB')
-        super(SuprimecamMapper, self).__init__(policy, policyFile.getRepositoryPath(), **kwargs)
+        super(SuprimecamMapper, self).__init__(policy, os.path.dirname(policyFile), **kwargs)
         self.defineFilters()
 
     def _extractDetectorName(self, dataId):
@@ -339,8 +338,8 @@ class SuprimecamMapperMit(SuprimecamMapperBase):
     """
 
     def __init__(self, **kwargs):
-        policyFile = pexPolicy.DefaultPolicyFile("obs_subaru", "SuprimecamMapper.paf", "policy")
-        policy = pexPolicy.Policy(policyFile)
+        policyFile = Policy.defaultPolicyFile("obs_subaru", "SuprimecamMapper.yaml", "policy")
+        policy = Policy(policyFile)
         if not kwargs.get('root', None):
             try:
                 kwargs['root'] = os.path.join(os.environ.get('SUPRIME_DATA_DIR'), 'SUPA')
@@ -350,7 +349,7 @@ class SuprimecamMapperMit(SuprimecamMapperBase):
             kwargs['calibRoot'] = os.path.join(kwargs['root'], 'CALIB_MIT')
         policy.set("camera", "../suprimecam/mit_camera")
         policy.set("defects", "../suprimecam/mit_defects")
-        super(SuprimecamMapperMit, self).__init__(policy, policyFile.getRepositoryPath(), **kwargs)
+        super(SuprimecamMapperMit, self).__init__(policy, os.path.dirname(policyFile), **kwargs)
         self.defineFilters()
 
     def _extractDetectorName(self, dataId):
