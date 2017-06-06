@@ -29,7 +29,10 @@ config.data = {
         'i2': Colorterm(primary="i", secondary="z", c0=0.00180361, c1=-0.18483562, c2=-0.02675511),
         'z': Colorterm(primary="z", secondary="y", c0=-0.00907517, c1=-0.28840221, c2=-0.00316369),
         'y': Colorterm(primary="y", secondary="z", c0=-0.00156858, c1=0.14747401, c2=0.02880125),
+        'N387': Colorterm(primary="g", secondary="r", c0=0.54993211, c1=1.93524093, c2=0.33520994),
+        'N718': Colorterm(primary="i", secondary="r", c0=-0.03742158, c1=-0.29362076, c2=0.19006956),
         'N816': Colorterm(primary="i", secondary="z", c0=0.01191062, c1=-0.68757034, c2=-0.10781564),
         'N921': Colorterm(primary="z", secondary="y", c0=0.00142051, c1=-0.59278367, c2=-0.25059679),
+        'N973': Colorterm(primary="y", secondary="z", c0=-0.00640165, c1=-0.03915281, c2=-0.24088565),
     }),
 }
