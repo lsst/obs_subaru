@@ -12,7 +12,7 @@ config.bands = ('g','r','i','z','y')
 config.requiredFlag = (1,1,1,1,0)
 config.referenceBand = 'i'
 config.referenceCCD = 13
-config.matchNside = 32768
+config.matchNside = 4096
 
 
 
