@@ -588,7 +588,7 @@ datasets:
     storage: FitsCatalogStorage
     tables: raw
     python: lsst.afw.table.BaseCatalog
-    template: fgcm-process/fgcmstarObservations.fits
+    template: fgcm-process/fgcmStarObservations.fits
   fgcmStarIds:
     persistable: BaseCatalog
     storage: FitsCatalogStorage
