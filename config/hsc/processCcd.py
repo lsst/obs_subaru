@@ -26,7 +26,7 @@ config.calibrate.astrometry.matcher.maxRotationDeg = 1.145916
 config.calibrate.astrometry.wcsFitter.numRejIter = 3
 config.calibrate.astrometry.wcsFitter.order = 3
 config.calibrate.astrometry.matcher.maxMatchDistArcSec = 2.0
-config.calibrate.astrometry.matcher.maxOffsetPix = 750
+config.calibrate.astrometry.matcher.maxOffsetPix = 250
 
 # Do not use NO_DATA pixels for fringe subtraction.
 config.isr.fringe.stats.badMaskPlanes = ['SAT', 'NO_DATA']
