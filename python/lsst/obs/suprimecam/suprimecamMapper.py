@@ -256,7 +256,7 @@ class SuprimecamMapperBase(CameraMapper):
         tract = int(dataId['tract'])
         if tract < 0 or tract >= 128:
             raise RuntimeError('tract not in range [0,128)')
-        patchX, patchY = [int(patch) for patch in dataId['patch'].split(',')]
+        patchX, patchY = [int(patch) for patch in dataId['patch'].split('_')]
         for p in (patchX, patchY):
             if p < 0 or p >= 2**13:
                 raise RuntimeError('patch component not in range [0, 8192)')
