@@ -601,4 +601,10 @@ datasets:
     tables: raw
     python: lsst.afw.table.BaseCatalog
     template: fgcm-process/fgcmStarIndices.fits
+  fgcmLookUpTable:
+    persistable: BaseCatalog
+    storage: FitsCatalogStorage
+    tables: raw
+    python: lsst.afw.table.BaseCatalog
+    template: fgcm-process/fgcmLookUpTable.fits
     
