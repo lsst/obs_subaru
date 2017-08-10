@@ -575,39 +575,3 @@ datasets:
     python: __builtin__.str
     storage: TextStorage
     template: plots/%(filter)s/tract-%(tract)d/visit-%(visit)d/compareVisit-v%(visit)d-%(description)s-%(style)s.png
-  fgcmVisitCatalog:
-    persistable: BaseCatalog
-    storage: FitsCatalogStorage
-    tables: raw
-    python: lsst.afw.table.BaseCatalog
-    template: fgcm-process/fgcmVisitCatalog.fits
-  fgcmStarObservations:
-    persistable: BaseCatalog
-    storage: FitsCatalogStorage
-    tables: raw
-    python: lsst.afw.table.BaseCatalog
-    template: fgcm-process/fgcmStarObservations.fits
-  fgcmStarIds:
-    persistable: BaseCatalog
-    storage: FitsCatalogStorage
-    tables: raw
-    python: lsst.afw.table.BaseCatalog
-    template: fgcm-process/fgcmStarIds.fits
-  fgcmStarIndices:
-    persistable: BaseCatalog
-    storage: FitsCatalogStorage
-    tables: raw
-    python: lsst.afw.table.BaseCatalog
-    template: fgcm-process/fgcmStarIndices.fits
-  fgcmLookUpTable:
-    persistable: BaseCatalog
-    storage: FitsCatalogStorage
-    tables: raw
-    python: lsst.afw.table.BaseCatalog
-    template: fgcm-process/fgcmLookUpTable.fits
-  fgcmTest:
-    persistable: BaseCatalog
-    storage: FitsCatalogStorage
-    tables: raw
-    python: lsst.afw.table.BaseCatalog
-    template: fgcm-process/fgcmTest-%(fgcmcycle)02d.png
