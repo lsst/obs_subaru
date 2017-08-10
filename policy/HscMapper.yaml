@@ -607,4 +607,9 @@ datasets:
     tables: raw
     python: lsst.afw.table.BaseCatalog
     template: fgcm-process/fgcmLookUpTable.fits
-    
+  fgcmTest:
+    persistable: BaseCatalog
+    storage: FitsCatalogStorage
+    tables: raw
+    python: lsst.afw.table.BaseCatalog
+    template: fgcm-process/fgcmTest-%(fgcmcycle)02d.png
