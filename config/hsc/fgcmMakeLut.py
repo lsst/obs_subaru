@@ -5,8 +5,8 @@ HSC-specific overrides for FgcmMakeLut
 config.bands = ('g','r','i','z','y')
 config.pmbRange = (820.0,835.0)
 config.pmbSteps = 5
-config.pwvRange = (0.1,12.0)
-config.pwvSteps = 21
+config.pwvRange = (0.1,3.6)
+config.pwvSteps = 11
 config.o3Range = (220.0,310.0)
 config.o3Steps = 3
 config.tauRange = (0.002,0.25)
