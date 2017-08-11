@@ -22,6 +22,7 @@
 # see <https://www.lsstcorp.org/LegalNotices/>.
 #
 from __future__ import absolute_import, division, print_function
+import math
 import os.path
 import unittest
 import pickle
@@ -29,7 +30,8 @@ import pickle
 import lsst.utils.tests
 from lsst.obs.hsc import HscMapper
 from lsst.pipe.base import Struct
-from lsst.afw.cameraGeom import FOCAL_PLANE, PUPIL, PIXELS
+from lsst.afw.geom import transformRegistry
+from lsst.afw.cameraGeom import FOCAL_PLANE, FIELD_ANGLE, PIXELS
 
 # Set SAVE_DATA True to save new distortion data; this will make the test fail,
 # to remind you to set it False before committing the code.
@@ -45,9 +47,12 @@ class HscDistortionTestCase(lsst.utils.tests.TestCase):
     test that it produces the same results.
     """
     def testDistortion(self):
-        """Test that the distortion data matches the saved data
+        """Test that the distortion data matches the saved data or create new data
 
-        Or or save new data if SAVE_DATA is true.
+        If SAVE_DATA is true then save newly created data and then fail the test
+        in order to prevent anyone from committing the test with SAVE_DATA true!
+
+        Otherwise create new data and compare to the saved data
         """
         newData = self.makeDistortionData()
         dataPath = os.path.join(os.path.dirname(__file__), DataFileName)
@@ -61,8 +66,12 @@ class HscDistortionTestCase(lsst.utils.tests.TestCase):
             self.fail("Cannot find saved data %r; set SAVE_DATA = True and run again to save new data" %
                       dataPath)
 
+        fieldAngleToFocalPlaneTolerance = transformRegistry["hsc"].ConfigClass().tolerance
+
         with open(dataPath, "rb") as dataFile:
             savedData = pickle.load(dataFile)
+        maxRoundTripFocalPlaneError = 0
+        maxRoundTripPixPosError = 0
         for detectorName, ccdData in newData.items():
             savedCcdData = savedData[detectorName]
             self.assertEqual(ccdData.serial, savedCcdData.serial)
@@ -71,9 +80,17 @@ class HscDistortionTestCase(lsst.utils.tests.TestCase):
                 self.assertEqual(cornerData.pixPos, savedCornerData.pixPos)
                 self.assertPairsAlmostEqual(cornerData.focalPlane, savedCornerData.focalPlane)
                 self.assertPairsAlmostEqual(cornerData.fieldAngle, savedCornerData.fieldAngle)
+                maxRoundTripFocalPlaneError = max(
+                    maxRoundTripFocalPlaneError,
+                    math.hypot(*(cornerData.focalPlaneRoundTrip - cornerData.focalPlane))
+                )
                 self.assertPairsAlmostEqual(cornerData.focalPlaneRoundTrip, cornerData.focalPlane,
-                                            maxDiff=0.01)
-                self.assertPairsAlmostEqual(cornerData.pixPosRoundTrip, cornerData.pixPos, maxDiff=0.01)
+                                            maxDiff=fieldAngleToFocalPlaneTolerance)
+                maxRoundTripPixPosError = max(maxRoundTripPixPosError,
+                                              math.hypot(*(cornerData.pixPosRoundTrip - cornerData.pixPos)))
+                self.assertPairsAlmostEqual(cornerData.pixPosRoundTrip, cornerData.pixPos)
+        print("maxRoundTripFocalPlaneError =", maxRoundTripFocalPlaneError)
+        print("maxRoundTripPixPosError =", maxRoundTripPixPosError)
 
     def makeDistortionData(self):
         """Make distortion data
@@ -91,7 +108,7 @@ class HscDistortionTestCase(lsst.utils.tests.TestCase):
                 - pixPosRoundTrip: pixel position computed from focalPlane
         """
         camera = HscMapper(root=".").camera
-        focalPlaneToFieldAngle = camera.getTransformMap().get(PUPIL)
+        focalPlaneToFieldAngle = camera.getTransformMap().getTransform(FOCAL_PLANE, FIELD_ANGLE)
         data = {}  # dict of detector name: CcdData
         for detector in camera:
             # for each corner of each CCD:
@@ -101,14 +118,14 @@ class HscDistortionTestCase(lsst.utils.tests.TestCase):
             # - convert back to focal plane (testing inverse direction of HscDistortion) and record it
             # - convert back to pixel position and record it; pixel <-> focal plane is affine
             #   so there is no reason to doubt the inverse transform, but there is no harm
-            pixelsToFocalPlane = detector.getTransform(FOCAL_PLANE)
+            pixelsToFocalPlane = detector.getTransform(PIXELS, FOCAL_PLANE)
             cornerDict = {}
             for pixPos in detector.getCorners(PIXELS):
                 pixPos = pixPos
-                focalPlane = pixelsToFocalPlane.forwardTransform(pixPos)
-                fieldAngle = focalPlaneToFieldAngle.forwardTransform(focalPlane)
-                focalPlaneRoundTrip = focalPlaneToFieldAngle.reverseTransform(fieldAngle)
-                pixPosRoundTrip = pixelsToFocalPlane.reverseTransform(focalPlane)
+                focalPlane = pixelsToFocalPlane.applyForward(pixPos)
+                fieldAngle = focalPlaneToFieldAngle.applyForward(focalPlane)
+                focalPlaneRoundTrip = focalPlaneToFieldAngle.applyInverse(fieldAngle)
+                pixPosRoundTrip = pixelsToFocalPlane.applyInverse(focalPlane)
                 cornerDict[self.toKey(pixPos)] = Struct(
                     pixPos = pixPos,
                     focalPlane = focalPlane,

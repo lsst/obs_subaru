@@ -1,7 +1,12 @@
-from lsst.afw.geom import xyTransformRegistry, arcseconds
+from __future__ import absolute_import, division, print_function
+
+__all__ = []
+
+import numpy as np
+import astshim as ast
+
+from lsst.afw.geom import transformRegistry, arcseconds, TransformPoint2ToPoint2
 from lsst.pex.config import Config, Field, ListField
-from lsst.obs.subaru import HscDistortion, DistortionPolynomial
-__all__ = ["xyTransformRegistry"]
 
 
 class HscDistortionConfig(Config):
@@ -15,9 +20,11 @@ class HscDistortionConfig(Config):
     According to Yuki Okura, a 9th order polynomial is required to model the rapid changes
     to the distortion at the edges of the field.
     """
-    ccdToSkyOrder = Field(dtype=int, doc="Polynomial order for conversion from CCD to sky (x and y identical)",
+    ccdToSkyOrder = Field(dtype=int,
+                          doc="Polynomial order for conversion from focal plane position to field angle",
                           default=9)
-    xCcdToSky = ListField(dtype=float, doc="Coefficients for converting x CCD to sky positions",
+    xCcdToSky = ListField(dtype=float,
+                          doc="Coefficients for converting x,y focal plane position to x field angle",
                           default=[-0.00047203560468,
                                    -1.5427988883e-05,
                                    -5.95865625284e-10,
@@ -74,7 +81,8 @@ class HscDistortionConfig(Config):
                                    -1.7686068989e-37,
                                    -8.6880691822e-38,
                                    ])
-    yCcdToSky = ListField(dtype=float, doc="Coefficients for converting y CCD to sky positions",
+    yCcdToSky = ListField(dtype=float,
+                          doc="Coefficients for converting x,y focal plane position to y field angle",
                           default=[-2.27525408678e-05,
                                    -0.000149438556393 + 1.0,
                                    1.47288649136e-09,
@@ -131,9 +139,11 @@ class HscDistortionConfig(Config):
                                    1.98549941035e-37,
                                    -8.74305862185e-38,
                                    ])
-    skyToCcdOrder = Field(dtype=int, doc="Polynomial order for conversion from sky to CCD (x and y identical)",
+    skyToCcdOrder = Field(dtype=int,
+                          doc="(ignored) Polynomial order for conversion from field angle to focal plane",
                           default=9)
-    xSkyToCcd = ListField(dtype=float, doc="Coefficients for converting sky to x CCD positions",
+    xSkyToCcd = ListField(dtype=float,
+                          doc="(ignored) Coefficients for converting x,y field angle to x focal plane",
                           default=[0.00365271948353,
                                    1.70911115723e-05,
                                    1.5204217229e-10,
@@ -190,7 +200,8 @@ class HscDistortionConfig(Config):
                                    2.67441530618e-37,
                                    2.76078356876e-37,
                                    ])
-    ySkyToCcd = ListField(dtype=float, doc="Coefficients for converting sky to y CCD positions",
+    ySkyToCcd = ListField(dtype=float,
+                          doc="(ignored) Coefficients for converting x,y field angle to y focal plane",
                           default=[-0.00243520601215,
                                    0.000147893495017 + 1.0,
                                    -1.37763224595e-09,
@@ -247,20 +258,75 @@ class HscDistortionConfig(Config):
                                    -1.03493809035e-37,
                                    8.09745928121e-38,
                                    ])
-    tolerance = Field(dtype=float, default=5.0e-3, doc="Tolerance for inversion (pixels)") # Much less than 1
-    maxIter = Field(dtype=int, default=10, doc="Maximum iterations for inversion") # Usually sufficient
+    tolerance = Field(dtype=float, default=5.0e-3, doc="Tolerance for inversion (pixels)")  # Much less than 1
+    maxIter = Field(dtype=int, default=10, doc="Maximum iterations for inversion")  # Usually sufficient
     plateScale = Field(dtype=float, default=1.0, doc="Plate scale (arcsec/mm)")
 
 
-def makeHscDistortion(config):
-    """ Make an HscDistortion object
-    @param[in] config: pexConfig.Config object containing the distortion parameters needed to construct the
-    transform
+def makeAstPolyMapCoeffs(order, xCoeffs, yCoeffs):
+    """Convert polynomial coefficients in HSC format to AST PolyMap format
+
+    Paramaters
+    ----------
+    order: `int`
+        Polynomial order
+    xCoeffs, yCoeffs: `list` of `float`
+        Forward or inverse polynomial coefficients for the x and y axes
+        of output, in this order:
+            x0y0, x0y1, ...x0yN, x1y0, x1y1, ...x1yN-1, ...
+        where N is the polynomial order.
+
+    Returns
+    -------
+    Forward or inverse coefficients for `astshim.PolyMap`
+    as a 2-d numpy array.
     """
-    skyToCcd = DistortionPolynomial(config.skyToCcdOrder, config.skyToCcdOrder,
-                                    config.xSkyToCcd, config.ySkyToCcd)
-    ccdToSky = DistortionPolynomial(config.ccdToSkyOrder, config.ccdToSkyOrder,
-                                    config.xCcdToSky, config.yCcdToSky)
-    return HscDistortion(skyToCcd, ccdToSky, config.plateScale*arcseconds, config.tolerance, config.maxIter)
+    nCoeffs = (order + 1) * (order + 2) // 2
+    if len(xCoeffs) != nCoeffs:
+        raise ValueError("found %s xCcdToSky params; need %s" % (len(xCoeffs), nCoeffs))
+    if len(yCoeffs) != nCoeffs:
+        raise ValueError("found %s yCcdToSky params; need %s" % (len(yCoeffs), nCoeffs))
+
+    coeffs = np.zeros([nCoeffs * 2, 4])
+    i = 0
+    for nx in range(order + 1):
+        for ny in range(order + 1 - nx):
+            coeffs[i] = [xCoeffs[i], 1, nx, ny]
+            coeffs[i + nCoeffs] = [yCoeffs[i], 2, nx, ny]
+            i += 1
+    assert i == nCoeffs
+    return coeffs
+
+
+def makeHscDistortion(config):
+    """Make an HSC distortion transform
+
+    Note that inverse coefficients provided, but they are not accurate enough
+    to use: test_distortion.py reports an error of 2.8 pixels
+    (HSC uses pixels for its focal plane units) when transforming
+    from pupil to focal plane. That explains why the original HSC model uses
+    the inverse coefficients in conjunction with iteration.
+
+    Parameters
+    ----------
+    config: `lsst.obs.subaru.HscDistortionConfig`
+        Distortion coefficients
+
+    Returns
+    -------
+    focalPlaneToPupil: `lsst.afw.geom.TransformPoint2ToPoint2`
+        Transform from focal plane to field angle coordinates
+    """
+    forwardCoeffs = makeAstPolyMapCoeffs(config.ccdToSkyOrder, config.xCcdToSky, config.yCcdToSky)
+
+    # Note that the actual error can be somewhat larger than TolInverse;
+    # the max error I have seen is less than 2, so I scale conservatively
+    ccdToSky = ast.PolyMap(forwardCoeffs, 2, "IterInverse=1, TolInverse=%s, NIterInverse=%s" %
+                           (config.tolerance / 2.0, config.maxIter))
+    plateScaleAngle = config.plateScale * arcseconds
+    fullMapping = ccdToSky.then(ast.ZoomMap(2, plateScaleAngle.asRadians()))
+    return TransformPoint2ToPoint2(fullMapping)
+
+
 makeHscDistortion.ConfigClass = HscDistortionConfig
-xyTransformRegistry.register("hsc", makeHscDistortion)
+transformRegistry.register("hsc", makeHscDistortion)
