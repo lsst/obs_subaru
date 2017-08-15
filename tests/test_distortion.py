@@ -72,9 +72,9 @@ class HscDistortionTestCase(lsst.utils.tests.TestCase):
                 savedCornerData = savedCcdData.cornerDict[pixPos]
                 self.assertPairsAlmostEqual(cornerData.focalPlane, savedCornerData.focalPlane)
                 self.assertPairsAlmostEqual(cornerData.pupil, savedCornerData.pupil)
-                self.assertPairsAlmostEqual(cornerData.focalPlaneRoundTrip,
-                                            savedCornerData.focalPlaneRoundTrip)
-                self.assertPairsAlmostEqual(cornerData.pixPosRoundTrip, savedCornerData.pixPosRoundTrip)
+                self.assertPairsAlmostEqual(cornerData.focalPlaneRoundTrip, cornerData.focalPlane,
+                                            maxDiff=0.01)
+                self.assertPairsAlmostEqual(cornerData.pixPosRoundTrip, pixPos, maxDiff=0.01)
 
     def makeDistortionData(self):
         """Make distortion data
