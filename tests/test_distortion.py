@@ -25,7 +25,6 @@ from __future__ import absolute_import, division, print_function
 import os.path
 import unittest
 import pickle
-from collections import namedtuple
 
 import lsst.utils.tests
 from lsst.obs.hsc import HscMapper
@@ -67,19 +66,32 @@ class HscDistortionTestCase(lsst.utils.tests.TestCase):
         for detectorName, ccdData in newData.items():
             savedCcdData = savedData[detectorName]
             self.assertEqual(ccdData.serial, savedCcdData.serial)
-            for pixPos, cornerData in ccdData.cornerDict.items():
-                savedCornerData = savedCcdData.cornerDict[pixPos]
+            for pixPosKey, cornerData in ccdData.cornerDict.items():
+                savedCornerData = savedCcdData.cornerDict[pixPosKey]
+                self.assertEqual(cornerData.pixPos, savedCornerData.pixPos)
                 self.assertPairsAlmostEqual(cornerData.focalPlane, savedCornerData.focalPlane)
-                self.assertPairsAlmostEqual(cornerData.pupil, savedCornerData.pupil)
+                self.assertPairsAlmostEqual(cornerData.fieldAngle, savedCornerData.fieldAngle)
                 self.assertPairsAlmostEqual(cornerData.focalPlaneRoundTrip, cornerData.focalPlane,
                                             maxDiff=0.01)
-                self.assertPairsAlmostEqual(cornerData.pixPosRoundTrip, pixPos, maxDiff=0.01)
+                self.assertPairsAlmostEqual(cornerData.pixPosRoundTrip, cornerData.pixPos, maxDiff=0.01)
 
     def makeDistortionData(self):
         """Make distortion data
+
+        The data format is a dict of detector name: ccdData, where
+        ccdData is a Struct containing these fields:
+        - serial: detector.getSerial
+        - cornerDict: a dict of pixPosKey, cornerData, where:
+            - pixPosKey: self.asKey(pixPos) where pixPos is pixel position
+            - cornerData is Struct contains these fields (all of type lsst.afw.geom.Point2D):
+                - pixPos: pixel position
+                - focalPlane: focal plane position computed from pixPos
+                - fieldAngle: fieldAngle position computed from focalPlane
+                - focalPlaneRoundTrip: focal plane position computed from fieldAngle
+                - pixPosRoundTrip: pixel position computed from focalPlane
         """
         camera = HscMapper(root=".").camera
-        focalPlaneToPupil = camera.getTransformMap().get(PUPIL)
+        focalPlaneToFieldAngle = camera.getTransformMap().get(PUPIL)
         data = {}  # dict of detector name: CcdData
         for detector in camera:
             # for each corner of each CCD:
@@ -92,14 +104,15 @@ class HscDistortionTestCase(lsst.utils.tests.TestCase):
             pixelsToFocalPlane = detector.getTransform(FOCAL_PLANE)
             cornerDict = {}
             for pixPos in detector.getCorners(PIXELS):
+                pixPos = pixPos
                 focalPlane = pixelsToFocalPlane.forwardTransform(pixPos)
-                pupil = focalPlaneToPupil.forwardTransform(focalPlane)
-                focalPlaneRoundTrip = focalPlaneToPupil.reverseTransform(pupil)
-                pixPosRoundTrip = pixelsToFocalPlane.reverseTransform(focalPlaneRoundTrip)
-                # Use a tuple (x, y) as a the key instead of a Point2D, for assured reasonable hashability
-                cornerDict[(pixPos[0], pixPos[1])] = Struct(
+                fieldAngle = focalPlaneToFieldAngle.forwardTransform(focalPlane)
+                focalPlaneRoundTrip = focalPlaneToFieldAngle.reverseTransform(fieldAngle)
+                pixPosRoundTrip = pixelsToFocalPlane.reverseTransform(focalPlane)
+                cornerDict[self.toKey(pixPos)] = Struct(
+                    pixPos = pixPos,
                     focalPlane = focalPlane,
-                    pupil = pupil,
+                    fieldAngle = fieldAngle,
                     focalPlaneRoundTrip = focalPlaneRoundTrip,
                     pixPosRoundTrip = pixPosRoundTrip,
                 )
@@ -107,6 +120,9 @@ class HscDistortionTestCase(lsst.utils.tests.TestCase):
             data[detector.getName()] = Struct(serial=detector.getSerial(), cornerDict=cornerDict)
 
         return data
+
+    def toKey(self, pixPos):
+        return "(%0.1f, %0.1f)" % tuple(pixPos)
 
 
 class TestMemory(lsst.utils.tests.MemoryTestCase):
