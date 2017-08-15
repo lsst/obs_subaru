@@ -29,14 +29,13 @@ from collections import namedtuple
 
 import lsst.utils.tests
 from lsst.obs.hsc import HscMapper
+from lsst.pipe.base import Struct
 from lsst.afw.cameraGeom import FOCAL_PLANE, PUPIL, PIXELS
 
 # Set SAVE_DATA True to save new distortion data; this will make the test fail,
 # to remind you to set it False before committing the code.
 SAVE_DATA = False
 
-CcdData = namedtuple("CcdData", ['serial', 'cornerDict'])
-CornerData = namedtuple("CornerData", ['focalPlane', "pupil", "focalPlaneRoundTrip", "pixPosRoundTrip"])
 DataFileName = "data/distortionData.pickle"  # path relative to the tests directory
 
 
@@ -98,14 +97,14 @@ class HscDistortionTestCase(lsst.utils.tests.TestCase):
                 focalPlaneRoundTrip = focalPlaneToPupil.reverseTransform(pupil)
                 pixPosRoundTrip = pixelsToFocalPlane.reverseTransform(focalPlaneRoundTrip)
                 # Use a tuple (x, y) as a the key instead of a Point2D, for assured reasonable hashability
-                cornerDict[(pixPos[0], pixPos[1])] = CornerData(
+                cornerDict[(pixPos[0], pixPos[1])] = Struct(
                     focalPlane = focalPlane,
                     pupil = pupil,
                     focalPlaneRoundTrip = focalPlaneRoundTrip,
                     pixPosRoundTrip = pixPosRoundTrip,
                 )
 
-            data[detector.getName()] = CcdData(serial=detector.getSerial(), cornerDict=cornerDict)
+            data[detector.getName()] = Struct(serial=detector.getSerial(), cornerDict=cornerDict)
 
         return data
 
