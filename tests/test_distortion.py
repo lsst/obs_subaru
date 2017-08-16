@@ -21,6 +21,10 @@
 # the GNU General Public License along with this program.  If not,
 # see <https://www.lsstcorp.org/LegalNotices/>.
 #
+"""
+Tests that pixel to focal plane transformations are consistent with previous
+implementations. This tests is specific to HSC.
+"""
 from __future__ import absolute_import, division, print_function
 import os.path
 import unittest
