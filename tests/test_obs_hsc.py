@@ -68,9 +68,10 @@ class TestObsHsc(lsst.obs.base.tests.ObsTests, lsst.utils.tests.TestCase):
                        ({'level': 'visit', 'filter': 'HSC-I'}, 1),
                        ({'level': 'visit', 'filter': 'r'}, 0)
                        )
-        good_detectorIds = tuple(range(0, 117))
-        bad_detectorIds = (117, 118)
+        good_detectorIds = tuple(range(0, 111))
+        bad_detectorIds = (112, 113)
         linearizer_type = lsst.ip.isr.LinearizeSquared.LinearityType
+        ccd_key_name = "ccd"
         self.setUp_butler_get(ccdExposureId_bits=ccdExposureId_bits,
                               exposureIds=exposureIds,
                               filters=filters,
@@ -83,13 +84,15 @@ class TestObsHsc(lsst.obs.base.tests.ObsTests, lsst.utils.tests.TestCase):
                               raw_subsets=raw_subsets,
                               good_detectorIds=good_detectorIds,
                               bad_detectorIds=bad_detectorIds,
-                              linearizer_type=linearizer_type
+                              linearizer_type=linearizer_type,
+                              ccd_key_name=ccd_key_name
                               )
 
         raw_filename = 'HSC-0904024-050.fits'
         path_to_raw = os.path.join(data_dir, "STRIPE82L/2013-11-02/00671/HSC-I", raw_filename)
         keys = set(('calibDate', 'ccd', 'dateObs', 'field', 'filter', 'name',
-                    'patch', 'pointing', 'pixel_id', 'stack', 'tract', 'visit'))
+                    'patch', 'pointing', 'pixel_id', 'stack', 'tract', 'visit',
+                    'style', 'description', 'subfilter'))
         query_format = ["visit", "filter"]
         queryMetadata = (({'visit': visit}, [(visit, 'HSC-I')]),
                          ({'filter': 'HSC-I'}, [(visit, 'HSC-I')]),
@@ -97,7 +100,7 @@ class TestObsHsc(lsst.obs.base.tests.ObsTests, lsst.utils.tests.TestCase):
         map_python_type = 'lsst.afw.image.DecoratedImageU'
         map_cpp_type = 'DecoratedImageU'
         map_storage_name = 'FitsStorage'
-        metadata_output_path = os.path.join(data_dir, '00671/HSC-I/processCcd_metadata', '0904024-050.boost')
+        metadata_output_path = os.path.join('00671/HSC-I/processCcd_metadata', '0904024-050.boost')
         default_level = 'sensor'
         raw_levels = (('skyTile', {'filter': str, 'pointing': int,
                                    'taiObs': str, 'field': str,
