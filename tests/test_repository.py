@@ -167,12 +167,6 @@ class GetDataTestCase(lsst.utils.tests.TestCase):
         md = self.butler.get("raw_md", visit=self.visit, ccd=self.ccdNum)
         self.assertEqual(md.get("DET-ID"), self.ccdNum)
 
-    def testBias(self):
-        """Test retrieval of bias frame"""
-        bias = self.butler.get("bias", visit=self.visit, ccd=self.ccdNum)
-        self.assertEqual(bias.getDimensions(), afwGeom.Extent2I(*self.ccdSize))
-        self.assertEqual(bias.getDetector().getId(), self.ccdNum)
-
     def testDark(self):
         """Test retrieval of dark frame"""
         dark = self.butler.get("dark", visit=self.visit, ccd=self.ccdNum)
@@ -188,6 +182,7 @@ class GetDataTestCase(lsst.utils.tests.TestCase):
 
     def testLinearizer(self):
         self.assertTrue(self.butler.get('linearizer', ccdnum=1))
+
 
 class TestMemory(lsst.utils.tests.MemoryTestCase):
     def setUp(self):
