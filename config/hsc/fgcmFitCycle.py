@@ -2,7 +2,7 @@
 HSC-specific overrides for FgcmFitCycle
 """
 
-config.bands = ('g','r','i','z','Y')
+config.bands = ('g','r','i','z','y')
 config.fitFlag = (1,1,1,1,0)
 config.nCore = 4
 config.cycleNumber = 0
