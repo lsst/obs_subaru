@@ -59,7 +59,7 @@ class HscFlatCombineTask(CalibCombineTask):
         mask.addMaskPlane(self.config.maskPlane)
         bitMask = mask.getPlaneBitMask(self.config.maskPlane)
         w, h = mask.getWidth(), mask.getHeight()
-        numCorners = 0 # Number of corners outside radius
+        numCorners = 0  # Number of corners outside radius
         transform = detector.getTransformMap().get(detector.makeCameraSys(afwcg.FOCAL_PLANE))
         for i, j in ((0, 0), (0, h-1), (w-1, 0), (w-1, h-1)):
             x, y = transform.forwardTransform(afwGeom.Point2D(i, j))

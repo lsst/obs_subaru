@@ -41,7 +41,7 @@ class HscPupilFactory(PupilFactory):
 
         hra = self._horizonRotAngle()
         hraRad = hra.asRadians()
-        rot = np.array([[ np.cos(hraRad), np.sin(hraRad)],
+        rot = np.array([[np.cos(hraRad), np.sin(hraRad)],
                         [-np.sin(hraRad), np.cos(hraRad)]])
 
         # Compute spider shadow parameters accounting for rotation angle.
@@ -84,8 +84,8 @@ class HscPupilFactory(PupilFactory):
         alt = self.visitInfo.getBoresightAzAlt().getLatitude()
 
         # parallactic angle
-        sinParAng = (np.cos(lat.asRadians()) * np.sin(ha.asRadians())
-                / np.cos(alt.asRadians()))
+        sinParAng = (np.cos(lat.asRadians()) * np.sin(ha.asRadians()) /
+                     np.cos(alt.asRadians()))
         cosParAng = np.sqrt(1 - sinParAng*sinParAng)
         if dec > lat:
             cosParAng = -cosParAng
@@ -106,7 +106,7 @@ class HscPupilFactory(PupilFactory):
         # radius of HSC camera shadow in meters
         hscRadius = hscFrac * subaruRadius
 
-        subaruStrutThick = 0.22 # meters
+        subaruStrutThick = 0.22  # meters
 
         # See DM-8589 for more detailed description of following parameters
         # d(lensCenter)/d(theta) in meters per degree

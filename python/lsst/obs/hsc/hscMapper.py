@@ -203,7 +203,7 @@ Most chips are flipped L/R, but the rotated ones (100..103) are flipped T/B
 
     def std_raw_md(self, md, dataId):
         if False:            # no std_raw_md in baseclass
-            md = super(HscMapper, self).std_raw_md(md, dataId) # not present in baseclass
+            md = super(HscMapper, self).std_raw_md(md, dataId)  # not present in baseclass
         #
         # We need to flip the WCS defined by the metadata in case anyone ever constructs a Wcs from it
         #

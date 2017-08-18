@@ -2,4 +2,4 @@
 from lsst.sconsUtils import env, targets
 
 targets["python"].extend(env.Pybind11LoadableModule("_crosstalk", ["_crosstalk.cc"],
-                                                LIBS=env.getLibs("main python")))
+                                                    LIBS=env.getLibs("main python")))

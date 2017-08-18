@@ -210,7 +210,7 @@ class SubaruIsrTask(IsrTask):
         self.log.info("Performing ISR on sensor %s" % (sensorRef.dataId))
         ccdExposure = sensorRef.get('raw')
 
-        if self.config.removePcCards: # Remove any PC00N00M cards in the header
+        if self.config.removePcCards:  # Remove any PC00N00M cards in the header
             raw_md = sensorRef.get("raw_md")
             nPc = 0
             for i in (1, 2,):
@@ -574,7 +574,7 @@ class SubaruIsrTask(IsrTask):
 
     def roughZeroPoint(self, exposure):
         """Set an approximate magnitude zero point for the exposure"""
-        filterName = afwImage.Filter(exposure.getFilter().getId()).getName() # Canonical name for filter
+        filterName = afwImage.Filter(exposure.getFilter().getId()).getName()  # Canonical name for filter
         if filterName in self.config.fluxMag0T1:
             fluxMag0 = self.config.fluxMag0T1[filterName]
         else:
@@ -605,7 +605,7 @@ class SuprimeCamIsrTask(SubaruIsrTask):
         """
         assert exposure, "No exposure provided"
 
-        ccd = exposure.getDetector() # This is Suprime-Cam so we know the Detector is a Ccd
+        ccd = exposure.getDetector()  # This is Suprime-Cam so we know the Detector is a Ccd
         ccdNum = ccd.getId().getSerial()
         if ccdNum not in [0, 1, 2, 6, 7]:
             # No need to mask
@@ -618,9 +618,9 @@ class SuprimeCamIsrTask(SubaruIsrTask):
 
         xGuider = md.get("S_AG-X")
         if ccdNum in [1, 2, 7]:
-            maskLimit = int(60.0 * xGuider - 2300.0) # From SDFRED
+            maskLimit = int(60.0 * xGuider - 2300.0)  # From SDFRED
         elif ccdNum in [0, 6]:
-            maskLimit = int(60.0 * xGuider - 2000.0) # From SDFRED
+            maskLimit = int(60.0 * xGuider - 2000.0)  # From SDFRED
 
         mi = exposure.getMaskedImage()
         height = mi.getHeight()
@@ -663,7 +663,7 @@ class SuprimeCamMitIsrTask(SubaruIsrTask):
         """
         assert exposure, "No exposure provided"
 
-        ccd = exposure.getDetector() # This is Suprime-Cam so we know the Detector is a Ccd
+        ccd = exposure.getDetector()  # This is Suprime-Cam so we know the Detector is a Ccd
         ccdNum = ccd.getId().getSerial()
         if ccdNum not in [0, 1, 4, 5, 9]:
             # No need to mask
@@ -676,9 +676,9 @@ class SuprimeCamMitIsrTask(SubaruIsrTask):
 
         xGuider = md.get("S_AG-X")
         if ccdNum in [1, 4, 5]:
-            maskLimit = int(60.0 * xGuider - 2300.0) # From SDFRED
+            maskLimit = int(60.0 * xGuider - 2300.0)  # From SDFRED
         elif ccdNum in [0, 9]:
-            maskLimit = int(60.0 * xGuider - 2000.0) # From SDFRED
+            maskLimit = int(60.0 * xGuider - 2000.0)  # From SDFRED
 
         mi = exposure.getMaskedImage()
         height = mi.getHeight()

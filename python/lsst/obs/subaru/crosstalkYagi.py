@@ -53,10 +53,10 @@ class CrosstalkYagiCoeffsConfig(pexConfig.Config):
     crossTalkCoeffs1 = pexConfig.ListField(
         dtype=float,
         doc="crosstalk coefficients (primary by the high-count pixel)",
-        default=[0, -0.000148, -0.000162, -0.000167,   # cAA,cAB,cAC,cAD
+        default=[0, -0.000148, -0.000162, -0.000167,     # cAA,cAB,cAC,cAD
                  -0.000148, 0, -0.000077, -0.000162,     # cBA,cBB,cBC,cBD
                  -0.000162, -0.000077, 0, -0.000148,     # cCA,cCB,cCC,cCD
-                 -0.000167, -0.000162, -0.000148, 0, ], # cDA,cDB,cDC,cDD
+                 -0.000167, -0.000162, -0.000148, 0, ],  # cDA,cDB,cDC,cDD
     )
     crossTalkCoeffs2 = pexConfig.ListField(
         dtype=float,
@@ -117,16 +117,16 @@ class CrosstalkYagiCoeffsConfig(pexConfig.Config):
     shapeGainsArray = pexConfig.ListField(
         dtype=int,
         doc="Shape of gain arrays",
-        default=[10, 4], # 10 CCDs and 4 channels per CCD
-        minLength=1,                  # really 2, but there's a bug in pex_config
+        default=[10, 4],  # 10 CCDs and 4 channels per CCD
+        minLength=1,      # really 2, but there's a bug in pex_config
         maxLength=2,
     )
 
     shapeCoeffsArray = pexConfig.ListField(
         dtype=int,
         doc="Shape of coeffs arrays",
-        default=[4, 4], # 4 channels and 4 mirror-symmetry patterns per channel
-        minLength=1,                  # really 2, but there's a bug in pex_config
+        default=[4, 4],  # 4 channels and 4 mirror-symmetry patterns per channel
+        minLength=1,     # really 2, but there's a bug in pex_config
         maxLength=2,
     )
 
@@ -144,10 +144,11 @@ class CrosstalkYagiCoeffsConfig(pexConfig.Config):
 
     def getGainsTotal(self, dateobs='2008-08-01'):
         """Return a 2-D numpy array of effective total gain of the proper shape"""
-        if dateobs < '2010-10': #  may need rewritten to a more reliable way
+        if dateobs < '2010-10':  # may need rewritten to a more reliable way
             return np.array(self.relativeGainsTotalBeforeOct2010).reshape(self.shapeGainsArray).tolist()
         else:
             return np.array(self.relativeGainsTotalAfterOct2010).reshape(self.shapeGainsArray).tolist()
+
 
 nAmp = 4
 
@@ -214,9 +215,9 @@ def subtractCrosstalkYagi(mi, coeffs1List, coeffs2List, gainsPreampSig, minPixel
        The pixels affected by signal over minPixelToMask have the crosstalkStr bit set
     """
 
-    ####sctrl = afwMath.StatisticsControl()
-    ####sctrl.setAndMask(mi.getMask().getPlaneBitMask("DETECTED"))
-    ####bkgd = afwMath.makeStatistics(mi, afwMath.MEDIAN, sctrl).getValue()
+    # ###sctrl = afwMath.StatisticsControl()
+    # ###sctrl.setAndMask(mi.getMask().getPlaneBitMask("DETECTED"))
+    # ###bkgd = afwMath.makeStatistics(mi, afwMath.MEDIAN, sctrl).getValue()
     #
     # These are the pixels that are bright enough to cause crosstalk (more precisely,
     # the ones that we label as causing crosstalk; in reality all pixels cause crosstalk)
@@ -262,7 +263,7 @@ def subtractCrosstalkYagi(mi, coeffs1List, coeffs2List, gainsPreampSig, minPixel
     np_msk[np.where(np.bitwise_and(np_msk, xtalk_temp) == xtalk_temp)] &= ~crosstalk
 
     try:
-        msk.removeAndClearMaskPlane(tempStr, True) # added in afw #1853
+        msk.removeAndClearMaskPlane(tempStr, True)  # added in afw #1853
     except AttributeError:
         ds9.setMaskPlaneVisibility(tempStr, False)
 
@@ -309,8 +310,8 @@ class YagiCrosstalkTask(pipeBase.Task):
     ConfigClass = YagiCrosstalkConfig
 
     def run(self, exposure):
-        coeffs1List = self.config.coeffs.getCoeffs1() # primary crosstalk
-        coeffs2List = self.config.coeffs.getCoeffs2() # secondary crosstalk
+        coeffs1List = self.config.coeffs.getCoeffs1()  # primary crosstalk
+        coeffs2List = self.config.coeffs.getCoeffs2()  # secondary crosstalk
         gainsPreampSig = self.config.coeffs.getGainsPreampSigboard()
         if not np.any(coeffs1List):
             self.log.info("No crosstalk info available. Skipping crosstalk corrections to CCD %s" %
