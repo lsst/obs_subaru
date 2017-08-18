@@ -27,5 +27,3 @@ from __future__ import absolute_import, division, print_function
 from .version import *
 # This module is distinct from the crosstalk Python module
 from ._crosstalk import *
-from .hscDistortion import *
-
