@@ -32,6 +32,8 @@ coeffs = crosstalk.estimateCoeffs(range(131634, 131642), range(10), threshold=1e
                                   plot=True, title="CCD0..9", fig=1)
 crosstalk.fixCcd(131634, 0, coeffs)
 """
+from __future__ import absolute_import, division, print_function
+
 from builtins import range
 import numpy as np
 import lsst.afw.detection as afwDetect

@@ -20,6 +20,8 @@
 # see <http://www.lsstcorp.org/LegalNotices/>.
 #
 
+from __future__ import absolute_import, division, print_function
+
 from lsst.afw.cameraGeom import PupilFactory
 from lsst.afw.geom import Angle, degrees
 import numpy as np
