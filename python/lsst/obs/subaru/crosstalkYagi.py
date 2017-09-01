@@ -215,9 +215,6 @@ def subtractCrosstalkYagi(mi, coeffs1List, coeffs2List, gainsPreampSig, minPixel
        The pixels affected by signal over minPixelToMask have the crosstalkStr bit set
     """
 
-    # ###sctrl = afwMath.StatisticsControl()
-    # ###sctrl.setAndMask(mi.getMask().getPlaneBitMask("DETECTED"))
-    # ###bkgd = afwMath.makeStatistics(mi, afwMath.MEDIAN, sctrl).getValue()
     #
     # These are the pixels that are bright enough to cause crosstalk (more precisely,
     # the ones that we label as causing crosstalk; in reality all pixels cause crosstalk)
