@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 #
 # LSST Data Management System
 #
@@ -83,7 +82,6 @@ class ColortermOverrideTestCase(unittest.TestCase):
 class MemoryTester(lsst.utils.tests.MemoryTestCase):
     pass
 
-#-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 if __name__ == "__main__":
     lsst.utils.tests.init()

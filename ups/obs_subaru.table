@@ -6,6 +6,8 @@ setupRequired(meas_astrom)
 setupRequired(pyfits)
 setupRequired(sconsUtils)
 setupRequired(pybind11)
+setupRequired(numpy)
+setupRequired(astshim)
 
 setupOptional(meas_modelfit)
 setupOptional(meas_extensions_psfex)

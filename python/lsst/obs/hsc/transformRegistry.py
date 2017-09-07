@@ -1,7 +1,12 @@
-from lsst.afw.geom import xyTransformRegistry, arcseconds
+from __future__ import absolute_import, division, print_function
+
+__all__ = []
+
+import numpy as np
+import astshim as ast
+
+from lsst.afw.geom import transformRegistry, arcseconds, TransformPoint2ToPoint2
 from lsst.pex.config import Config, Field, ListField
-from lsst.obs.subaru import HscDistortion, DistortionPolynomial
-__all__ = ["xyTransformRegistry"]
 
 
 class HscDistortionConfig(Config):
@@ -15,9 +20,11 @@ class HscDistortionConfig(Config):
     According to Yuki Okura, a 9th order polynomial is required to model the rapid changes
     to the distortion at the edges of the field.
     """
-    ccdToSkyOrder = Field(dtype=int, doc="Polynomial order for conversion from CCD to sky (x and y identical)",
+    ccdToSkyOrder = Field(dtype=int,
+                          doc="Polynomial order for conversion from focal plane position to field angle",
                           default=9)
-    xCcdToSky = ListField(dtype=float, doc="Coefficients for converting x CCD to sky positions",
+    xCcdToSky = ListField(dtype=float,
+                          doc="Coefficients for converting x,y focal plane position to x field angle",
                           default=[-0.00047203560468,
                                    -1.5427988883e-05,
                                    -5.95865625284e-10,
@@ -74,7 +81,8 @@ class HscDistortionConfig(Config):
                                    -1.7686068989e-37,
                                    -8.6880691822e-38,
                                    ])
-    yCcdToSky = ListField(dtype=float, doc="Coefficients for converting y CCD to sky positions",
+    yCcdToSky = ListField(dtype=float,
+                          doc="Coefficients for converting x,y focal plane position to y field angle",
                           default=[-2.27525408678e-05,
                                    -0.000149438556393 + 1.0,
                                    1.47288649136e-09,
@@ -131,136 +139,75 @@ class HscDistortionConfig(Config):
                                    1.98549941035e-37,
                                    -8.74305862185e-38,
                                    ])
-    skyToCcdOrder = Field(dtype=int, doc="Polynomial order for conversion from sky to CCD (x and y identical)",
-                          default=9)
-    xSkyToCcd = ListField(dtype=float, doc="Coefficients for converting sky to x CCD positions",
-                          default=[0.00365271948353,
-                                   1.70911115723e-05,
-                                   1.5204217229e-10,
-                                   -3.08715201043e-13,
-                                   2.39597939294e-17,
-                                   7.81157081952e-21,
-                                   -1.29621716896e-25,
-                                   -4.16263764639e-29,
-                                   2.15552971078e-34,
-                                   6.82597059998e-38,
-                                   0.000209404097794 + 1.0,
-                                   -4.75019821106e-09,
-                                   1.10190607837e-10,
-                                   4.93339497018e-17,
-                                   -1.85924839513e-20,
-                                   -1.95896472784e-25,
-                                   3.88256510948e-28,
-                                   9.69693004122e-35,
-                                   -3.47706701826e-37,
-                                   6.71381011215e-09,
-                                   -9.50158088079e-14,
-                                   7.93173879809e-17,
-                                   1.60828614399e-21,
-                                   -1.21754098187e-24,
-                                   -2.62579677501e-29,
-                                   2.74663158936e-33,
-                                   7.59945998098e-38,
-                                   1.04498582488e-10,
-                                   1.74134310921e-17,
-                                   3.24251148641e-20,
-                                   -2.26265099203e-25,
-                                   8.70112786558e-28,
-                                   1.68537897358e-33,
-                                   -9.78020507263e-37,
-                                   -5.13651337215e-17,
-                                   1.04041291095e-20,
-                                   -7.65133837619e-26,
-                                   3.53907656972e-30,
-                                   3.47366147648e-33,
-                                   -8.85077550431e-38,
-                                   6.30556215478e-20,
-                                   9.43999734447e-26,
-                                   5.33882127553e-28,
-                                   -3.92799329224e-34,
-                                   -8.4676694827e-37,
-                                   2.185067016e-25,
-                                   -1.09047001782e-28,
-                                   -4.39266689902e-34,
-                                   1.31099098133e-37,
-                                   -5.78460936624e-30,
-                                   -1.38369955347e-34,
-                                   3.92691778634e-38,
-                                   -1.23086882478e-34,
-                                   2.67441530618e-37,
-                                   2.76078356876e-37,
-                                   ])
-    ySkyToCcd = ListField(dtype=float, doc="Coefficients for converting sky to y CCD positions",
-                          default=[-0.00243520601215,
-                                   0.000147893495017 + 1.0,
-                                   -1.37763224595e-09,
-                                   1.07833848918e-10,
-                                   4.62596775002e-17,
-                                   2.80575848534e-20,
-                                   -1.65367128388e-25,
-                                   1.54820423917e-28,
-                                   3.22741961727e-34,
-                                   7.08058901535e-39,
-                                   1.29459993973e-05,
-                                   -5.75758775598e-09,
-                                   2.59566096648e-12,
-                                   8.89501051555e-17,
-                                   -3.98215173203e-20,
-                                   -2.42815205576e-25,
-                                   2.11105473817e-28,
-                                   2.17987210027e-34,
-                                   -3.57655925495e-37,
-                                   1.71046572758e-09,
-                                   1.08416040618e-10,
-                                   -5.39914444014e-17,
-                                   4.3772487775e-20,
-                                   5.39490871566e-25,
-                                   5.37804304106e-28,
-                                   -1.33522335425e-33,
-                                   -1.00922213245e-37,
-                                   -1.61692503254e-12,
-                                   2.37001625897e-16,
-                                   -1.87396962399e-20,
-                                   -1.01303057487e-24,
-                                   1.88379875457e-28,
-                                   1.74279811617e-33,
-                                   -5.95775054508e-37,
-                                   1.73901668516e-17,
-                                   2.03868624457e-20,
-                                   9.5148136402e-25,
-                                   4.98415367039e-28,
-                                   -2.07693213639e-33,
-                                   -7.27517738702e-38,
-                                   1.71531399232e-20,
-                                   -1.65907556613e-24,
-                                   9.02531724098e-29,
-                                   3.06533133333e-33,
-                                   -1.43492096446e-37,
-                                   -4.32749987233e-26,
-                                   2.04328665654e-28,
-                                   -2.81367089917e-33,
-                                   1.74213007753e-38,
-                                   -6.279347973e-29,
-                                   3.45559728633e-33,
-                                   -2.637596961e-37,
-                                   9.34962455855e-35,
-                                   -1.03493809035e-37,
-                                   8.09745928121e-38,
-                                   ])
-    tolerance = Field(dtype=float, default=5.0e-3, doc="Tolerance for inversion (pixels)") # Much less than 1
-    maxIter = Field(dtype=int, default=10, doc="Maximum iterations for inversion") # Usually sufficient
+    tolerance = Field(dtype=float, default=5.0e-3, doc="Tolerance for inversion (pixels)")  # Much less than 1
+    maxIter = Field(dtype=int, default=10, doc="Maximum iterations for inversion")  # Usually sufficient
     plateScale = Field(dtype=float, default=1.0, doc="Plate scale (arcsec/mm)")
 
 
-def makeHscDistortion(config):
-    """ Make an HscDistortion object
-    @param[in] config: pexConfig.Config object containing the distortion parameters needed to construct the
-    transform
+def makeAstPolyMapCoeffs(order, xCoeffs, yCoeffs):
+    """Convert polynomial coefficients in HSC format to AST PolyMap format
+
+    Paramaters
+    ----------
+    order: `int`
+        Polynomial order
+    xCoeffs, yCoeffs: `list` of `float`
+        Forward or inverse polynomial coefficients for the x and y axes
+        of output, in this order:
+            x0y0, x0y1, ...x0yN, x1y0, x1y1, ...x1yN-1, ...
+        where N is the polynomial order.
+
+    Returns
+    -------
+    Forward or inverse coefficients for `astshim.PolyMap`
+    as a 2-d numpy array.
     """
-    skyToCcd = DistortionPolynomial(config.skyToCcdOrder, config.skyToCcdOrder,
-                                    config.xSkyToCcd, config.ySkyToCcd)
-    ccdToSky = DistortionPolynomial(config.ccdToSkyOrder, config.ccdToSkyOrder,
-                                    config.xCcdToSky, config.yCcdToSky)
-    return HscDistortion(skyToCcd, ccdToSky, config.plateScale*arcseconds, config.tolerance, config.maxIter)
+    nCoeffs = (order + 1) * (order + 2) // 2
+    if len(xCoeffs) != nCoeffs:
+        raise ValueError("found %s xCcdToSky params; need %s" % (len(xCoeffs), nCoeffs))
+    if len(yCoeffs) != nCoeffs:
+        raise ValueError("found %s yCcdToSky params; need %s" % (len(yCoeffs), nCoeffs))
+
+    coeffs = np.zeros([nCoeffs * 2, 4])
+    i = 0
+    for nx in range(order + 1):
+        for ny in range(order + 1 - nx):
+            coeffs[i] = [xCoeffs[i], 1, nx, ny]
+            coeffs[i + nCoeffs] = [yCoeffs[i], 2, nx, ny]
+            i += 1
+    assert i == nCoeffs
+    return coeffs
+
+
+def makeHscDistortion(config):
+    """Make an HSC distortion transform
+
+    Note that inverse coefficients provided, but they are not accurate enough
+    to use: test_distortion.py reports an error of 2.8 pixels
+    (HSC uses pixels for its focal plane units) when transforming
+    from pupil to focal plane. That explains why the original HSC model uses
+    the inverse coefficients in conjunction with iteration.
+
+    Parameters
+    ----------
+    config: `lsst.obs.subaru.HscDistortionConfig`
+        Distortion coefficients
+
+    Returns
+    -------
+    focalPlaneToPupil: `lsst.afw.geom.TransformPoint2ToPoint2`
+        Transform from focal plane to field angle coordinates
+    """
+    forwardCoeffs = makeAstPolyMapCoeffs(config.ccdToSkyOrder, config.xCcdToSky, config.yCcdToSky)
+
+    # Note that the actual error can be somewhat larger than TolInverse;
+    # the max error I have seen is less than 2, so I scale conservatively
+    ccdToSky = ast.PolyMap(forwardCoeffs, 2, "IterInverse=1, TolInverse=%s, NIterInverse=%s" %
+                           (config.tolerance / 2.0, config.maxIter))
+    plateScaleAngle = config.plateScale * arcseconds
+    fullMapping = ccdToSky.then(ast.ZoomMap(2, plateScaleAngle.asRadians()))
+    return TransformPoint2ToPoint2(fullMapping)
+
+
 makeHscDistortion.ConfigClass = HscDistortionConfig
-xyTransformRegistry.register("hsc", makeHscDistortion)
+transformRegistry.register("hsc", makeHscDistortion)

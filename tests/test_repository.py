@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 #
 # LSST Data Management System
 #
@@ -189,6 +188,7 @@ class GetDataTestCase(lsst.utils.tests.TestCase):
     def testLinearizer(self):
         self.assertTrue(self.butler.get('linearizer', ccdnum=1))
 
+
 class TestMemory(lsst.utils.tests.MemoryTestCase):
     def setUp(self):
         HscMapper.clearCache()
@@ -197,6 +197,7 @@ class TestMemory(lsst.utils.tests.MemoryTestCase):
 
 def setup_module(module):
     lsst.utils.tests.init()
+
 
 if __name__ == "__main__":
     lsst.utils.tests.init()

@@ -5,7 +5,7 @@
 #include "lsst/afw/image/MaskedImage.h"
 
 /*
- * @file HscDistortion.h
+ * @file Crosstalk.h
  * @brief C++ implementation of crosstalk correction with procedure by Yagi+2012
  * @ingroup obs_subaru
  * @author Hisanori Furusawa

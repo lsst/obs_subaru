@@ -351,7 +351,7 @@ def addTrail(mi, val, x0, y0, pix, addCrosstalk=True):
     if addCrosstalk:
         xtalk = mi.Factory(mi.getDimensions())
 
-    SAT = reduce(lambda x, y: x | afwImage.MaskU.getPlaneBitMask(y), ["SAT", "INTRP"], 0x0) if False else 0
+    SAT = reduce(lambda x, y: x | afwImage.Mask.getPlaneBitMask(y), ["SAT", "INTRP"], 0x0) if False else 0
 
     for _y, _x12 in enumerate(pix):
         for _x in range(*_x12):

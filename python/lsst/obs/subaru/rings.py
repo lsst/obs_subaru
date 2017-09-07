@@ -56,7 +56,7 @@ def fitPlane(mi, niter=3, tol=1e-5, nsigma=5, returnResidualImage=False):
     """Fit a plane to the image im using a linear fit with an nsigma clip"""
 
     width, height = mi.getDimensions()
-    BAD = afwImage.MaskU.getPlaneBitMask("BAD")
+    BAD = afwImage.Mask.getPlaneBitMask("BAD")
 
     X, Y = np.meshgrid(np.arange(width), np.arange(height))
     X, Y = X.flatten(), Y.flatten()
@@ -68,7 +68,7 @@ def fitPlane(mi, niter=3, tol=1e-5, nsigma=5, returnResidualImage=False):
     ima = im.getArray().flatten()
 
     sctrl = afwMath.StatisticsControl()
-    sctrl.setAndMask(afwImage.MaskU.getPlaneBitMask("BAD"))
+    sctrl.setAndMask(afwImage.Mask.getPlaneBitMask("BAD"))
     z, dzdx, dzdy = afwMath.makeStatistics(mi, afwMath.MEANCLIP, sctrl).getValue(), 0, 0  # initial guess
 
     returnResidualImage = True
@@ -236,7 +236,7 @@ def fitRadialParabola(mi, niter=3, tol=1e-5, nsigma=5, returnResidualImage=False
     """Fit a radial parabola (centered at (0, 0) to the image im using a linear fit with an nsigma clip"""
 
     width, height = mi.getDimensions()
-    BAD = afwImage.MaskU.getPlaneBitMask("BAD")
+    BAD = afwImage.Mask.getPlaneBitMask("BAD")
 
     X, Y = np.meshgrid(np.arange(width), np.arange(height))
     R = np.hypot(X + mi.getX0(), Y + mi.getY0())
@@ -249,7 +249,7 @@ def fitRadialParabola(mi, niter=3, tol=1e-5, nsigma=5, returnResidualImage=False
     ima = im.getArray().flatten()
 
     sctrl = afwMath.StatisticsControl()
-    sctrl.setAndMask(afwImage.MaskU.getPlaneBitMask("BAD"))
+    sctrl.setAndMask(afwImage.Mask.getPlaneBitMask("BAD"))
     c0, c1, c2 = afwMath.makeStatistics(mi, afwMath.MEANCLIP, sctrl).getValue(), 0, 0  # initial guess
     c00 = c0
 

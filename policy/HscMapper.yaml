@@ -294,6 +294,8 @@ datasets:
     template: '%(pointing)05d/%(filter)s/output/ICSRC-%(visit)07d-%(ccd)03d.fits'
   donutSrc:
     template: '%(pointing)05d/%(filter)s/output/DONUTSRC-%(visit)07d-%(ccd)03d.fits'
+  photoCalib:
+    template: jointcal-results/%(tract)04d/photoCalib-%(visit)07d-%(ccd)03d.fits
   log:
     persistable: None
     python: str
