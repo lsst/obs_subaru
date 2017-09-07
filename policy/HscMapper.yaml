@@ -575,3 +575,6 @@ datasets:
     python: __builtin__.str
     storage: TextStorage
     template: plots/%(filter)s/tract-%(tract)d/visit-%(visit)d/compareVisit-v%(visit)d-%(description)s-%(style)s.png
+  fgcmVisitObservations:
+    template: fgcm-process/fgcmVisitObservations-%(visit)07d.fits
+    
