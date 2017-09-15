@@ -20,13 +20,17 @@ for refObjLoader in (config.calibrate.astromRefObjLoader,
     refObjLoader.load(os.path.join(hscConfigDir, "filterMap.py"))
 
 # Set to match defaults curretnly used in HSC production runs (e.g. S15B)
-config.calibrate.astrometry.matcher.sourceSelector.active.sourceFluxType = 'Psf'
-config.calibrate.astrometry.matcher.allowedNonperpDeg = 0.2
-config.calibrate.astrometry.matcher.maxRotationDeg = 1.145916
 config.calibrate.astrometry.wcsFitter.numRejIter = 3
 config.calibrate.astrometry.wcsFitter.order = 3
-config.calibrate.astrometry.matcher.maxMatchDistArcSec = 2.0
-config.calibrate.astrometry.matcher.maxOffsetPix = 250
+for matcher in (config.charImage.ref_match.matcher,
+                config.calibrate.astrometry.matcher,
+                config.calibrate.photoCal.matcher,
+                ):
+    matcher.sourceSelector.active.sourceFluxType = 'Psf'
+    matcher.allowedNonperpDeg = 0.2
+    matcher.maxRotationDeg = 1.145916
+    matcher.maxMatchDistArcSec = 2.0
+    matcher.maxOffsetPix = 250
 
 # Do not use NO_DATA pixels for fringe subtraction.
 config.isr.fringe.stats.badMaskPlanes = ['SAT', 'NO_DATA']
