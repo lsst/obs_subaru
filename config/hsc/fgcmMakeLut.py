@@ -17,7 +17,7 @@ config.zenithRange = (0.0,70.0)
 config.zenithSteps = 21
 
 config.pmbStd = 828.0
-config.pwvStd = 3.0
+config.pwvStd = 1.5
 config.o3Std = 263.0
 config.tauStd = 0.030
 config.alphaStd = 1.0
