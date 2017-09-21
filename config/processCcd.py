@@ -78,6 +78,7 @@ config.calibrate.measurement.load(os.path.join(configDir, "hsm.py"))
 # Deblender
 config.charImage.deblend.maskLimits["NO_DATA"] = 0.25 # Ignore sources that are in the vignetted region
 config.charImage.deblend.maxFootprintArea = 10000
+config.calibrate.deblend.maxFootprintSize=0
 config.calibrate.deblend.maskLimits["NO_DATA"] = 0.25 # Ignore sources that are in the vignetted region
 config.calibrate.deblend.maxFootprintArea = 10000
 
