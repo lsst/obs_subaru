@@ -577,3 +577,23 @@ datasets:
     python: __builtin__.str
     storage: TextStorage
     template: plots/%(filter)s/tract-%(tract)d/visit-%(visit)d/compareVisit-v%(visit)d-%(description)s-%(style)s.png
+
+  # QA tables
+  qaTableCoadd:
+    persistable: None
+    python: __builtin__.str
+    storage: TextStorage
+    template: plots/%(filter)s/tract-%(tract)d/%(description)s.parq
+
+  qaTableColor:
+    persistable: None
+    python: __builtin__.str
+    storage: TextStorage
+    template: plots/color/tract-%(tract)d/%(description)s.parq
+
+  qaTableVisit:
+    persistable: None
+    python: __builtin__.str
+    storage: TextStorage
+    template: plots/%(filter)s/tract-%(tract)d/visit-%(visit)d/%(description)s.parq
+
