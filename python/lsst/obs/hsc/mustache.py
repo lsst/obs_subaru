@@ -1,3 +1,5 @@
+from __future__ import absolute_import, division, print_function
+
 import numpy as np
 
 import lsst.afw.geom
@@ -93,6 +95,7 @@ class HscMustacheTask(Task):
     ConfigClass = HscMustacheConfig
 
     _pixelScaleMm = 0.015  # Pixel scale: mm/pixel
+    _pixelScaleArcsec = 0.168  # Pixel scale: arcsec/pixel
 
     def outerEdgeAngle(self, radius):
         """Outer angle of the arc
@@ -186,17 +189,27 @@ class HscMustacheTask(Task):
         if inner >= outer:
             return []
         arc = self.arcParameters(radius.asDegrees(), filterName)
-        samples = np.deg2rad(np.arange(inner, outer, 0.25))
+
+#        import pdb;pdb.set_trace()
+
+        # XXX
+        if False:
+            samples = np.deg2rad(np.arange(inner, outer, 0.25))
+        else:
+            samples = 0.0
         x = arc.center - arc.radius*np.cos(samples)
         y = arc.radius*np.sin(samples)
-        rot = np.deg2rad(90.0 + theta.asDegrees() + rotAngle.asDegrees())        
+        if False:
+            rot = np.deg2rad(90.0 + theta.asDegrees() + rotAngle.asDegrees())
+        else:
+            rot = np.arange(0, 2*np.pi, 0.05)
         xRightArc = x*np.cos(rot) - y*np.sin(rot)
         yRightArc = y*np.cos(rot) + x*np.sin(rot)
         xLeftArc = x*np.cos(rot) + y*np.sin(rot)
         yLeftArc = -y*np.cos(rot) + x*np.sin(rot)
-        adjustment = self.config.parameters[filterName].filterFactor
         xArc = np.concatenate((xRightArc, xLeftArc))
         yArc = np.concatenate((yRightArc, yLeftArc))
+        adjustment = self.config.parameters[filterName].filterFactor
         xFocalPlane = (xArc*np.cos(-np.pi/2.0) + yArc*np.sin(-np.pi/2.0))*adjustment/self._pixelScaleMm
         yFocalPlane = (-xArc*np.sin(-np.pi/2.0) + yArc*np.cos(-np.pi/2.0))*adjustment/self._pixelScaleMm
         xFocalPlane += self.config.xOffset
@@ -223,7 +236,7 @@ class HscMustacheTask(Task):
 
         return ccdCoords
 
-    def getStars(self, catalog, fluxField, boresight, filterName):
+    def getStars(self, catalog, fluxField, boresight, filterName, offset=None):
         """Return a Catalog containing only stars of interest
 
         Those are stars that are bright enough and in the right place.
@@ -245,17 +258,34 @@ class HscMustacheTask(Task):
         output : `lsst.afw.table.BaseCatalog`
             Catalog of stars of interest.
         """
+
+        # XXX
+        suspect = lsst.afw.coord.IcrsCoord(149.984689*lsst.afw.geom.degrees,
+                                           3.160113*lsst.afw.geom.degrees)
+
         output = type(catalog)(catalog.getTable())
         fluxKey = catalog.schema[fluxField].asKey()
         minRadius = self.config.minRadius*lsst.afw.geom.degrees
         maxRadius = self.config.maxRadius*lsst.afw.geom.degrees
         for row in catalog:
             mag = abMagFromFlux(row[fluxKey])
-            if mag > self.config.parameters[filterName].magLimit:
+            if not np.isfinite(mag) or mag > self.config.parameters[filterName].magLimit:
                 continue
             radius = row.getCoord().angularSeparation(boresight)
             if radius < minRadius or radius > maxRadius:
                 continue
+
+            # XXX
+            if row.getCoord().angularSeparation(suspect) > 10*lsst.afw.geom.arcseconds:
+                continue
+
+            if offset is not None:
+                print("Before: %s" % row.getCoord())
+                coord = row.getCoord()
+                coord.offset(*offset)
+                row.setCoord(coord)
+                print("After: %s" % row.getCoord())
+
             output.append(row)
         return output
 
@@ -325,10 +355,34 @@ class HscMustacheTask(Task):
         rotAngle = exposure.getMetadata().get("INR-STR")*lsst.afw.geom.degrees
         filterName = exposure.getFilter().getName()
         detector = exposure.getDetector()
+
+
+
+        # XXX Tweak coordinates to compensate for difference between claimed boresight and actual boresight
+        ccdCenter = lsst.afw.geom.Box2D(detector.getBBox()).getCenter()
+        wcsCoord = exposure.getWcs().pixelToSky(ccdCenter)
+        transform = detector.getTransform(lsst.afw.cameraGeom.FOCAL_PLANE,
+                                          detector.makeCameraSys(lsst.afw.cameraGeom.PIXELS))
+        fpCenter = transform.applyInverse(ccdCenter)
+        angle = np.arctan2(fpCenter.getY(), fpCenter.getX())*lsst.afw.geom.radians
+        angle -= exposure.getInfo().getVisitInfo().getBoresightRotAngle()
+        distance = np.hypot(*fpCenter)
+        reckonCoord = boresight.clone()
+        reckonCoord.offset(-angle, distance*self._pixelScaleArcsec*lsst.afw.geom.arcseconds)
+        offset = wcsCoord.getOffsetFrom(reckonCoord)
+        print(offset[0].asDegrees(), offset[1].asDegrees())
+#        offset = (offset[0] + 180*lsst.afw.geom.degrees, offset[1])
+        reckonCoord.offset(*offset)
+        print(wcsCoord)
+        print(reckonCoord)
+        offset = None
+#        import pdb;pdb.set_trace()
+
+
         if not self.isAffected(detector):
             self.log.info("Detector %d is not affected by mustache ghosts", detector.getId())
             return
-        stars = self.getStars(catalog, fluxField, boresight, filterName)
+        stars = self.getStars(catalog, fluxField, boresight, filterName, offset)
         if len(stars) == 0:
             self.log.info("No stars producing mustache ghosts")
             return
@@ -398,10 +452,16 @@ class TestMustacheTask(CmdLineTask):
         catalog : `lsst.afw.image.BaseCatalog`
             Source catalog.
         """
-        boresight = exposure.getInfo().getVisitInfo().getBoresightRaDec()
-        radius = self.config.mustaches.maxRadius*lsst.afw.geom.degrees
+#        center = exposure.getInfo().getVisitInfo().getBoresightRaDec()
+#        radius = self.config.mustaches.maxRadius*lsst.afw.geom.degrees
+
+        detector = exposure.getDetector()
+        ccdCenter = lsst.afw.geom.Box2D(detector.getBBox()).getCenter()
+        center = exposure.getWcs().pixelToSky(ccdCenter)
+        radius = 10*lsst.afw.geom.Extent2D(detector.getBBox().getDimensions()).computeNorm()*self.mustaches._pixelScaleArcsec*lsst.afw.geom.arcseconds  # ROUGH!
+
         filterName = exposure.getFilter().getName()
-        return self.refObjLoader.loadSkyCircle(boresight, radius, filterName)
+        return self.refObjLoader.loadSkyCircle(center, radius, filterName)
 
     def run(self, dataRef):
         """Mask mustaches and inspect results interactively
@@ -416,6 +476,9 @@ class TestMustacheTask(CmdLineTask):
         exposure = dataRef.get("calexp")
         loadResult = self.loadReferenceSources(exposure)
         camera = dataRef.get("camera")
+
+        loadResult.refCat.writeFits("catalog.fits")
+
         mustaches = self.mustaches.run(exposure, loadResult.refCat, loadResult.fluxField, camera)
 
         import lsst.afw.display
