@@ -596,4 +596,3 @@ datasets:
     python: __builtin__.str
     storage: TextStorage
     template: plots/%(filter)s/tract-%(tract)d/visit-%(visit)d/%(description)s.parq
-
