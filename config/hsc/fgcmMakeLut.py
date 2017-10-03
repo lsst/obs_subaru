@@ -2,7 +2,7 @@
 HSC-specific overrides for FgcmMakeLut
 """
 
-config.bands = ('g','r','i','z','y')
+config.filterNames = ('g','r','i','i2','z','y')
 config.pmbRange = (820.0,835.0)
 config.pmbSteps = 5
 config.pwvRange = (0.1,3.6)

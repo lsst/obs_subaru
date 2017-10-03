@@ -4,6 +4,8 @@ HSC-specific overrides for FgcmFitCycle
 
 config.bands = ('g','r','i','z','y')
 config.fitFlag = (1,1,1,1,0)
+config.filterToBand = {'g':'g', 'r':'r', 'i':'i', 'i2':'i', 'z':'z', 'y':'y'}
+config.bandToStdFilter = {'g':'g', 'r':'r', 'i':'i2', 'z':'z', 'y':'y'}
 config.nCore = 4
 config.cycleNumber = 0
 config.utBoundary = 0.0
