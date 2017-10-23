@@ -18,7 +18,7 @@ config.charImage.detection.background.load(bgFile)
 config.calibrate.detection.background.load(bgFile)
 
 # PSF determination
-config.charImage.measurePsf.reserveFraction = 0.2
+config.charImage.measurePsf.reserve.fraction = 0.2
 config.charImage.measurePsf.starSelector["objectSize"].sourceFluxField = 'base_PsfFlux_flux'
 try:
     import lsst.meas.extensions.psfex.psfexPsfDeterminer
@@ -42,7 +42,6 @@ for refObjLoader in (config.calibrate.astromRefObjLoader,
 
 # Better astrometry matching
 config.calibrate.astrometry.matcher.numBrightStars = 150
-config.calibrate.photoCal.matcher.numBrightStars = 150
 
 # Set to match defaults curretnly used in HSC production runs (e.g. S15B)
 config.charImage.catalogCalculation.plugins['base_ClassificationExtendedness'].fluxRatio = 0.95
