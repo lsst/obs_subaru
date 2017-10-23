@@ -6,6 +6,7 @@ import os.path
 
 from lsst.utils import getPackageDir
 from lsst.meas.algorithms import LoadIndexedReferenceObjectsTask
+from lsst.meas.algorithms import ColorLimit
 
 configDir = os.path.join(getPackageDir("obs_subaru"), "config")
 bgFile = os.path.join(configDir, "background.py")
@@ -49,6 +50,12 @@ config.calibrate.catalogCalculation.plugins['base_ClassificationExtendedness'].f
 
 config.calibrate.photoCal.applyColorTerms = True
 config.calibrate.photoCal.photoCatName = "ps1_pv3_3pi_20170110"
+colors = config.calibrate.photoCal.match.referenceSelection.colorLimits
+colors["g-r"] = ColorLimit(primary="g_flux", secondary="r_flux", minimum=0.0)
+colors["r-i"] = ColorLimit(primary="r_flux", secondary="i_flux", maximum=0.5)
+config.calibrate.photoCal.match.referenceSelection.doMagLimit = True
+config.calibrate.photoCal.match.referenceSelection.magLimit.fluxField = "i_flux"
+config.calibrate.photoCal.match.referenceSelection.magLimit.maximum = 22.0
 
 # Demand astrometry and photoCal succeed
 config.calibrate.requireAstrometry = True
