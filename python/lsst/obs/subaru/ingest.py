@@ -13,7 +13,7 @@ class HscIngestArgumentParser(IngestArgumentParser):
         """Don't do any 'rerun' hacking: we want the raw data to end up in the root directory"""
         namespace.input = namespace.rawInput
         namespace.output = namespace.rawOutput
-        namespace.calib = None
+        namespace.calib = namespace.rawCalib
         del namespace.rawInput
         del namespace.rawCalib
         del namespace.rawOutput

@@ -2,6 +2,7 @@ from __future__ import absolute_import, division, print_function
 
 import os
 
+import lsst.log
 from lsst.obs.base import CameraMapper
 from lsst.daf.persistence import ButlerLocation, Policy
 import lsst.afw.image.utils as afwImageUtils
@@ -32,7 +33,16 @@ class HscMapper(CameraMapper):
             except:
                 raise RuntimeError("Either $SUPRIME_DATA_DIR or root= must be specified")
         if not kwargs.get('calibRoot', None):
-            kwargs['calibRoot'] = os.path.join(kwargs['root'], 'CALIB')
+            calibSearch = [os.path.join(kwargs['root'], 'CALIB')]
+            if "repositoryCfg" in kwargs:
+                calibSearch += [os.path.join(cfg.root, 'CALIB') for cfg in kwargs["repositoryCfg"].parents]
+                calibSearch += [cfg.root for cfg in kwargs["repositoryCfg"].parents]
+            for calibRoot in calibSearch:
+                if os.path.exists(os.path.join(calibRoot, "calibRegistry.sqlite3")):
+                    kwargs['calibRoot'] = calibRoot
+                    break
+            if not kwargs.get('calibRoot', None):
+                lsst.log.Log.getLogger("HscMapper").warn("Unable to find calib root directory")
 
         super(HscMapper, self).__init__(policy, os.path.dirname(policyFile), **kwargs)
 

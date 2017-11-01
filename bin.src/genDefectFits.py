@@ -17,7 +17,7 @@ mapperMap = {'hsc': HscMapper, 'suprimecam': SuprimecamMapper, 'suprimecam_mit':
 
 
 def genDefectFits(cameraName, source, targetDir):
-    mapper = mapperMap[cameraName.lower()](root=".")
+    mapper = mapperMap[cameraName.lower()](root=".", calibRoot=".")
     camera = mapper.camera
 
     ccds = dict()

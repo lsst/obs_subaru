@@ -31,7 +31,7 @@ from lsst.obs.hsc import HscMapper
 class CameraTestCase(lsst.utils.tests.TestCase):
 
     def setUp(self):
-        self.mapper = HscMapper(root=".")
+        self.mapper = HscMapper(root=".", calibRoot=".")
         self.camera = self.mapper.camera
 
     def tearDown(self):

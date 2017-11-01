@@ -44,19 +44,20 @@ except lsst.pex.exceptions.NotFoundError as err:
     testDataDirectory = None
 
 
-def createDataRepository(mapperName, inputPath):
+def createDataRepository(mapperName, inputPath, calibPath):
     """
     Construct a data repository for a particular mapper containing a given set
     of input data and return its path.
 
     @param[in] mapperName   Name of mapper class for use with repository.
     @param[in] inputPath    Location of data files which will be ingested.
+    @param[in] calibPath    Location of calibs.
     """
     repoPath = mkdtemp()
     with open(os.path.join(repoPath, "_mapper"), "w") as _mapper:
         _mapper.write(mapperName)
     ingest_cmd = os.path.join(os.path.dirname(os.path.realpath(__file__)), "..", "bin", "hscIngestImages.py")
-    check_call([ingest_cmd, repoPath] + glob(os.path.join(inputPath, "*.fits.gz")))
+    check_call([ingest_cmd, repoPath, "--calib", calibPath] + glob(os.path.join(inputPath, "*.fits.gz")))
     return repoPath
 
 
@@ -65,7 +66,8 @@ class IngestRawTestCase(lsst.utils.tests.TestCase):
     @unittest.skipIf(testDataDirectory is None, "%s is not available" % testDataPackage)
     def setUp(self):
         rawPath = os.path.join(testDataDirectory, "hsc", "raw")
-        self.repoPath = createDataRepository("lsst.obs.hsc.HscMapper", rawPath)
+        calibPath = os.path.join(testDataDirectory, "hsc", "calib")
+        self.repoPath = createDataRepository("lsst.obs.hsc.HscMapper", rawPath, calibPath)
 
     def tearDown(self):
         rmtree(self.repoPath)
@@ -84,7 +86,7 @@ class GetDataTestCase(lsst.utils.tests.TestCase):
     def setUp(self):
         rawPath = os.path.join(testDataDirectory, "hsc", "raw")
         calibPath = os.path.join(testDataDirectory, "hsc", "calib")
-        self.repoPath = createDataRepository("lsst.obs.hsc.HscMapper", rawPath)
+        self.repoPath = createDataRepository("lsst.obs.hsc.HscMapper", rawPath, calibPath)
         self.butler = dafPersist.Butler(root=self.repoPath, calibRoot=calibPath)
 
         # The following properties of the provided data are known a priori.

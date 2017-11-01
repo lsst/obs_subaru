@@ -106,7 +106,7 @@ class HscDistortionTestCase(lsst.utils.tests.TestCase):
                 - focalPlaneRoundTrip: focal plane position computed from fieldAngle
                 - pixPosRoundTrip: pixel position computed from focalPlane
         """
-        camera = HscMapper(root=".").camera
+        camera = HscMapper(root=".", calibRoot=".").camera
         focalPlaneToFieldAngle = camera.getTransformMap().getTransform(FOCAL_PLANE, FIELD_ANGLE)
         data = {}  # dict of detector name: CcdData
         for detector in camera:
