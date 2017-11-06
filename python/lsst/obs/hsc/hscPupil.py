@@ -30,12 +30,13 @@ import numpy as np
 class HscPupilFactory(PupilFactory):
     """!Pupil obscuration function factory for HSC.
     """
-    def __init__(self, visitInfo, pupilSize, npix):
+    def __init__(self, visitInfo, pupilSize, npix, doCenter=True):
         """!Construct a PupilFactory.
 
         @param[in] visitInfo  VisitInfo object for a particular exposure.
         @param[in] pupilSize  Size in meters of constructed Pupils.
         @param[in] npix       Constructed Pupils will be npix x npix.
+        @param[in] doCenter   Center illuminated pixels in pupil.
         """
         PupilFactory.__init__(self, visitInfo, pupilSize, npix)
 
@@ -64,6 +65,7 @@ class HscPupilFactory(PupilFactory):
         for pos, angle in zip(unrotStartPos, unrotAngles):
             self._spiderStartPos.append(np.dot(rot, pos))
             self._spiderAngles.append(angle - hra)
+        self._doCenter = doCenter
 
     telescopeDiameter = 8.2  # meters
 
@@ -137,4 +139,6 @@ class HscPupilFactory(PupilFactory):
             x = pos[0] + camX
             y = pos[1] + camY
             self._cutRay(pupil, (x, y), angle, subaruStrutThick)
+        if self._doCenter:
+            self._centerPupil(pupil)
         return pupil
