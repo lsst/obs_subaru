@@ -24,7 +24,6 @@ config.calibrate.astrometry.wcsFitter.numRejIter = 3
 config.calibrate.astrometry.wcsFitter.order = 3
 for matcher in (config.charImage.ref_match.matcher,
                 config.calibrate.astrometry.matcher,
-                config.calibrate.photoCal.matcher,
                 ):
     matcher.sourceSelector.active.sourceFluxType = 'Psf'
     matcher.allowedNonperpDeg = 0.2

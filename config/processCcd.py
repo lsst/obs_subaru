@@ -6,6 +6,7 @@ import os.path
 
 from lsst.utils import getPackageDir
 from lsst.meas.algorithms import LoadIndexedReferenceObjectsTask
+from lsst.meas.algorithms import ColorLimit
 
 configDir = os.path.join(getPackageDir("obs_subaru"), "config")
 bgFile = os.path.join(configDir, "background.py")
@@ -18,7 +19,7 @@ config.charImage.detection.background.load(bgFile)
 config.calibrate.detection.background.load(bgFile)
 
 # PSF determination
-config.charImage.measurePsf.reserveFraction = 0.2
+config.charImage.measurePsf.reserve.fraction = 0.2
 config.charImage.measurePsf.starSelector["objectSize"].sourceFluxField = 'base_PsfFlux_flux'
 try:
     import lsst.meas.extensions.psfex.psfexPsfDeterminer
@@ -42,7 +43,6 @@ for refObjLoader in (config.calibrate.astromRefObjLoader,
 
 # Better astrometry matching
 config.calibrate.astrometry.matcher.numBrightStars = 150
-config.calibrate.photoCal.matcher.numBrightStars = 150
 
 # Set to match defaults curretnly used in HSC production runs (e.g. S15B)
 config.charImage.catalogCalculation.plugins['base_ClassificationExtendedness'].fluxRatio = 0.95
@@ -50,6 +50,12 @@ config.calibrate.catalogCalculation.plugins['base_ClassificationExtendedness'].f
 
 config.calibrate.photoCal.applyColorTerms = True
 config.calibrate.photoCal.photoCatName = "ps1_pv3_3pi_20170110"
+colors = config.calibrate.photoCal.match.referenceSelection.colorLimits
+colors["g-r"] = ColorLimit(primary="g_flux", secondary="r_flux", minimum=0.0)
+colors["r-i"] = ColorLimit(primary="r_flux", secondary="i_flux", maximum=0.5)
+config.calibrate.photoCal.match.referenceSelection.doMagLimit = True
+config.calibrate.photoCal.match.referenceSelection.magLimit.fluxField = "i_flux"
+config.calibrate.photoCal.match.referenceSelection.magLimit.maximum = 22.0
 
 # Demand astrometry and photoCal succeed
 config.calibrate.requireAstrometry = True
