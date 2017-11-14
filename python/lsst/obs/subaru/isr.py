@@ -235,7 +235,7 @@ class SubaruIsrTask(IsrTask):
 
             if nPc:
                 self.log.info("Recreating Wcs after stripping PC00n00m" % (sensorRef.dataId))
-                ccdExposure.setWcs(afwImage.makeWcs(raw_md))
+                ccdExposure.setWcs(afwGeom.makeSkyWcs(raw_md))
 
         ccdExposure = self.convertIntToFloat(ccdExposure)
         ccd = ccdExposure.getDetector()
@@ -363,6 +363,10 @@ class SubaruIsrTask(IsrTask):
             sensorRef.put(ccdExposure, "flattenedImage")
         if self.config.qa.doThumbnailFlattened:
             self.writeThumbnail(sensorRef, "flattenedThumb", ccdExposure)
+
+        if self.config.doAddDistortionModel:
+            camera = sensorRef.get("camera")
+            self.addDistortionModel(exposure=ccdExposure, camera=camera)
 
         self.measureBackground(ccdExposure)
 

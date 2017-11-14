@@ -214,9 +214,11 @@ class HscMapper(CameraMapper):
         if exp:
             exp.setMaskedImage(afwMath.flipImage(exp.getMaskedImage(), flipLR, flipTB))
         if wcs:
-            wcs.flipImage(flipLR, flipTB, exp.getDimensions() if dims is None else dims)
+            ampDimensions = exp.getDimensions() if dims is None else dims
+            ampCenter = afwGeom.Point2D(ampDimensions/2.0)
+            wcs = afwGeom.makeFlippedWcs(wcs, flipLR, flipTB, ampCenter)
 
-        return exp
+        return exp, wcs
 
     def std_raw_md(self, md, dataId):
         if False:            # no std_raw_md in baseclass
@@ -224,9 +226,11 @@ class HscMapper(CameraMapper):
         #
         # We need to flip the WCS defined by the metadata in case anyone ever constructs a Wcs from it
         #
-        wcs = afwImage.makeWcs(md)
-        self._flipChipsLR(None, wcs, dataId, dims=afwImage.bboxFromMetadata(md).getDimensions())
-        wcsR = afwImage.Wcs(wcs.getSkyOrigin().getPosition(), wcs.getPixelOrigin(), wcs.getCDMatrix()*0.992)
+        wcs = afwGeom.makeSkyWcs(md)
+        wcs = self._flipChipsLR(None, wcs, dataId, dims=afwImage.bboxFromMetadata(md).getDimensions())[1]
+        wcsR = afwGeom.makeSkyWcs(crpix=wcs.getPixelOrigin(),
+                                  crval=wcs.getSkyOrigin(),
+                                  cdMatrix=wcs.getCdMatrix()*0.992)
         wcsMd = wcsR.getFitsMetadata()
 
         for k in wcsMd.names():
@@ -236,8 +240,9 @@ class HscMapper(CameraMapper):
 
     def std_raw(self, item, dataId):
         exp = super(HscMapper, self).std_raw(item, dataId)
-
-        return self._flipChipsLR(exp, exp.getWcs(), dataId)
+        exp, wcs = self._flipChipsLR(exp, exp.getWcs(), dataId)
+        exp.setWcs(wcs)
+        return exp
 
     def std_dark(self, item, dataId):
         exposure = self._standardizeExposure(self.calibrations['dark'], item, dataId, trimmed=False)
