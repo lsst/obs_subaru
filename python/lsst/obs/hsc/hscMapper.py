@@ -207,7 +207,8 @@ class HscMapper(CameraMapper):
     @staticmethod
     def _flipChipsLR(exp, wcs, dataId, dims=None):
         """Flip the chip left/right or top/bottom. Process either/and the pixels and wcs
-Most chips are flipped L/R, but the rotated ones (100..103) are flipped T/B
+
+        Most chips are flipped L/R, but the rotated ones (100..103) are flipped T/B
         """
         flipLR, flipTB = (False, True) if dataId['ccd'] in (100, 101, 102, 103) else (True, False)
         if exp:
