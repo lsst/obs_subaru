@@ -141,6 +141,7 @@ def main(butler, visits, fields, fieldRadius, showCCDs=False, aitoff=False, alph
 
     return plt
 
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="""Plot dither pattern from a set of visits;
 The intersection of the desired visit/field/dateObs is used.
