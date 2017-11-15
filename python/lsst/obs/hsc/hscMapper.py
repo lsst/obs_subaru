@@ -35,8 +35,9 @@ class HscMapper(CameraMapper):
         if not kwargs.get('calibRoot', None):
             calibSearch = [os.path.join(kwargs['root'], 'CALIB')]
             if "repositoryCfg" in kwargs:
-                calibSearch += [os.path.join(cfg.root, 'CALIB') for cfg in kwargs["repositoryCfg"].parents]
-                calibSearch += [cfg.root for cfg in kwargs["repositoryCfg"].parents]
+                calibSearch += [os.path.join(cfg.root, 'CALIB') for cfg in kwargs["repositoryCfg"].parents if
+                                hasattr(cfg, "root")]
+                calibSearch += [cfg.root for cfg in kwargs["repositoryCfg"].parents if hasattr(cfg, "root")]
             for calibRoot in calibSearch:
                 if os.path.exists(os.path.join(calibRoot, "calibRegistry.sqlite3")):
                     kwargs['calibRoot'] = calibRoot
