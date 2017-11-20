@@ -10,7 +10,6 @@ config.load(os.path.join(getPackageDir("obs_subaru"), "config", "cmodel.py"))
 
 config.measurement.slots.instFlux = None
 
-config.measurement.plugins['base_PixelFlags'].masksFpAnywhere.append('CLIPPED')
 config.measurement.plugins['base_PixelFlags'].masksFpCenter.append('BRIGHT_OBJECT')
 config.measurement.plugins['base_PixelFlags'].masksFpAnywhere.append('BRIGHT_OBJECT')
 
