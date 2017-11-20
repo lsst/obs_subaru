@@ -25,5 +25,7 @@
 from __future__ import absolute_import, division, print_function
 
 from .version import *
+
+from . import filterFraction
 # This module is distinct from the crosstalk Python module
 from ._crosstalk import *
