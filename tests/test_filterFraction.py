@@ -45,6 +45,7 @@ class FilterFractionTest(lsst.utils.tests.TestCase):
         self.coadd.setWcs(wcs)
         schema = ExposureCatalog.Table.makeMinimalSchema()
         self.filterKey = schema.addField("filter", type=str, doc="", size=16)
+        weightKey = schema.addField("weight", type=float, doc="")
         # First input image covers the first 2/3, second covers the last 2/3, so they
         # overlap in the middle 1/3.
         inputs = ExposureCatalog(schema)
@@ -52,10 +53,12 @@ class FilterFractionTest(lsst.utils.tests.TestCase):
         self.input1.setId(1)
         self.input1.setBBox(Box2I(Point2I(0, 0), Point2I(29, 59)))
         self.input1.setWcs(wcs)
+        self.input1.set(weightKey, 2.0)
         self.input2 = inputs.addNew()
         self.input2.setId(2)
         self.input2.setBBox(Box2I(Point2I(0, 30), Point2I(29, 89)))
         self.input2.setWcs(wcs)
+        self.input2.set(weightKey, 3.0)
         # Use the same catalog for visits and CCDs since the algorithm we're testing only cares
         # about CCDs.
         self.coadd.getInfo().setCoaddInputs(CoaddInputs(inputs, inputs))
@@ -92,9 +95,12 @@ class FilterFractionTest(lsst.utils.tests.TestCase):
         self.plugin.measure(self.record1, self.coadd)
         self.plugin.measure(self.record12, self.coadd)
         self.plugin.measure(self.record2, self.coadd)
-        self.assertEqual(self.record1.get("subaru_FilterFraction_value"), 1.0)
-        self.assertEqual(self.record12.get("subaru_FilterFraction_value"), 1.0)
-        self.assertEqual(self.record2.get("subaru_FilterFraction_value"), 1.0)
+        self.assertEqual(self.record1.get("subaru_FilterFraction_unweighted"), 1.0)
+        self.assertEqual(self.record12.get("subaru_FilterFraction_unweighted"), 1.0)
+        self.assertEqual(self.record2.get("subaru_FilterFraction_unweighted"), 1.0)
+        self.assertEqual(self.record1.get("subaru_FilterFraction_weighted"), 1.0)
+        self.assertEqual(self.record12.get("subaru_FilterFraction_weighted"), 1.0)
+        self.assertEqual(self.record2.get("subaru_FilterFraction_weighted"), 1.0)
 
     def testTwoFiltersI(self):
         """Test that we get the right answers for a mix of i and i2."""
@@ -103,9 +109,12 @@ class FilterFractionTest(lsst.utils.tests.TestCase):
         self.plugin.measure(self.record1, self.coadd)
         self.plugin.measure(self.record12, self.coadd)
         self.plugin.measure(self.record2, self.coadd)
-        self.assertEqual(self.record1.get("subaru_FilterFraction_value"), 0.0)
-        self.assertEqual(self.record12.get("subaru_FilterFraction_value"), 0.5)
-        self.assertEqual(self.record2.get("subaru_FilterFraction_value"), 1.0)
+        self.assertEqual(self.record1.get("subaru_FilterFraction_unweighted"), 0.0)
+        self.assertEqual(self.record12.get("subaru_FilterFraction_unweighted"), 0.5)
+        self.assertEqual(self.record2.get("subaru_FilterFraction_unweighted"), 1.0)
+        self.assertEqual(self.record1.get("subaru_FilterFraction_weighted"), 0.0)
+        self.assertEqual(self.record12.get("subaru_FilterFraction_weighted"), 0.6)
+        self.assertEqual(self.record2.get("subaru_FilterFraction_weighted"), 1.0)
 
     def testTwoFiltersR(self):
         """Test that we get the right answers for a mix of r and r2."""
@@ -114,9 +123,12 @@ class FilterFractionTest(lsst.utils.tests.TestCase):
         self.plugin.measure(self.record1, self.coadd)
         self.plugin.measure(self.record12, self.coadd)
         self.plugin.measure(self.record2, self.coadd)
-        self.assertEqual(self.record1.get("subaru_FilterFraction_value"), 0.0)
-        self.assertEqual(self.record12.get("subaru_FilterFraction_value"), 0.5)
-        self.assertEqual(self.record2.get("subaru_FilterFraction_value"), 1.0)
+        self.assertEqual(self.record1.get("subaru_FilterFraction_unweighted"), 0.0)
+        self.assertEqual(self.record12.get("subaru_FilterFraction_unweighted"), 0.5)
+        self.assertEqual(self.record2.get("subaru_FilterFraction_unweighted"), 1.0)
+        self.assertEqual(self.record1.get("subaru_FilterFraction_weighted"), 0.0)
+        self.assertEqual(self.record12.get("subaru_FilterFraction_weighted"), 0.6)
+        self.assertEqual(self.record2.get("subaru_FilterFraction_weighted"), 1.0)
 
     def testInvalidCombination(self):
         """Test that we get a fatal exception for weird combinations of filters."""
