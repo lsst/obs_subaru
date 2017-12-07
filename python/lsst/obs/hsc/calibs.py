@@ -60,9 +60,10 @@ class HscFlatCombineTask(CalibCombineTask):
         bitMask = mask.getPlaneBitMask(self.config.maskPlane)
         w, h = mask.getWidth(), mask.getHeight()
         numCorners = 0  # Number of corners outside radius
-        transform = detector.getTransformMap().get(detector.makeCameraSys(afwcg.FOCAL_PLANE))
+        transform = detector.getTransformMap().getTransform(detector.makeCameraSys(afwcg.PIXELS),
+                                                            detector.makeCameraSys(afwcg.FOCAL_PLANE))
         for i, j in ((0, 0), (0, h-1), (w-1, 0), (w-1, h-1)):
-            x, y = transform.forwardTransform(afwGeom.Point2D(i, j))
+            x, y = transform.applyForward(afwGeom.Point2D(i, j))
             if math.hypot(x - self.config.vignette.xCenter,
                           y - self.config.vignette.yCenter) > self.config.vignette.radius:
                 numCorners += 1
@@ -81,7 +82,7 @@ class HscFlatCombineTask(CalibCombineTask):
         y = np.empty_like(x)
         for j in range(mask.getHeight()):
             for i in range(mask.getWidth()):
-                x[j, i], y[j, i] = transform.forwardTransform(afwGeom.Point2D(i, j))
+                x[j, i], y[j, i] = transform.applyForward(afwGeom.Point2D(i, j))
         R = np.hypot(x - self.config.vignette.xCenter, y - self.config.vignette.yCenter)
         isBad = R > self.config.vignette.radius
         self.log.info("Detector %d has %f%% pixels vignetted" %
