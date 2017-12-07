@@ -78,17 +78,16 @@ class HscFlatCombineTask(CalibCombineTask):
             mask |= bitMask
             return
         # We have to go pixel by pixel
-        x = np.empty((h, w))
-        y = np.empty_like(x)
-        for j in range(mask.getHeight()):
-            for i in range(mask.getWidth()):
-                x[j, i], y[j, i] = transform.applyForward(afwGeom.Point2D(i, j))
-        R = np.hypot(x - self.config.vignette.xCenter, y - self.config.vignette.yCenter)
-        isBad = R > self.config.vignette.radius
+        numPixels = w*h
+        xx, yy = np.meshgrid(np.arange(0, w, dtype=int), np.arange(0, h, dtype=int))
+        xyDetector = [afwGeom.Point2D(x, y) for x, y in zip(xx.reshape(numPixels), yy.reshape(numPixels))]
+        xyFocalPlane = transform.applyForward(xyDetector)
+        origin = afwGeom.Point2D(self.config.vignette.xCenter, self.config.vignette.yCenter)
+        r2 = np.array([pp.distanceSquared(origin) for pp in xyFocalPlane])
+        isBad = (r2 > self.config.vignette.radius**2).reshape((h, w))
         self.log.info("Detector %d has %f%% pixels vignetted" %
                       (detector.getId(), isBad.sum()/float(isBad.size)*100.0))
         maskArray = mask.getArray()
-        xx, yy = np.meshgrid(np.arange(w), np.arange(h))
         maskArray[yy[isBad], xx[isBad]] |= bitMask
 
     def maskBadAmps(self, mask, detector):
