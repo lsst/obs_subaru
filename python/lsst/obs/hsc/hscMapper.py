@@ -68,7 +68,7 @@ class HscMapper(CameraMapper):
         if not kwargs.get('root', None):
             try:
                 kwargs['root'] = os.path.join(os.environ.get('SUPRIME_DATA_DIR'), 'HSC')
-            except:
+            except Exception:
                 raise RuntimeError("Either $SUPRIME_DATA_DIR or root= must be specified")
         if not kwargs.get('calibRoot', None):
             calibSearch = [os.path.join(kwargs['root'], 'CALIB')]
