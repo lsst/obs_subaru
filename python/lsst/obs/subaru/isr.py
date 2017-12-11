@@ -42,7 +42,6 @@ from lsst.afw.display.rgb import makeRGB
 from lsst.obs.subaru.crosstalkYagi import YagiCrosstalkTask
 import lsst.afw.display.ds9 as ds9
 from lsst.obs.hsc.vignette import VignetteConfig
-from lsst.afw.geom.polygon import Polygon
 
 from .strayLight import StrayLightTask
 
@@ -216,7 +215,7 @@ class SubaruIsrTask(IsrTask):
             x = self.config.vignette.radius*numpy.cos(theta) + self.config.vignette.xCenter
             y = self.config.vignette.radius*numpy.sin(theta) + self.config.vignette.yCenter
             points = numpy.array([x, y]).transpose()
-            self.vignettePolygon = Polygon([afwGeom.Point2D(x1, y1) for x1, y1 in reversed(points)])
+            self.vignettePolygon = afwGeom.Polygon([afwGeom.Point2D(x1, y1) for x1, y1 in reversed(points)])
 
     def runDataRef(self, sensorRef):
         self.log.info("Performing ISR on sensor %s" % (sensorRef.dataId))
