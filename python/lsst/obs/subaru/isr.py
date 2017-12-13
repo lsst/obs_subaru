@@ -304,7 +304,37 @@ class SubaruIsrTask(IsrTask):
         if self.config.doCrosstalk:
             self.crosstalk.run(ccdExposure)
 
+        if self.config.doWidenSaturationTrails:
+            self.widenSaturationTrails(ccdExposure.getMaskedImage().getMask())
+
+        interpolationDone = False
+
         if self.config.doBrighterFatter:
+
+            # Temporarily apply flat and dark so we can interpolate prior to B-F correction
+            if self.config.doDark:
+                darkExposure = self.getIsrExposure(sensorRef, "dark")
+                self.darkCorrection(ccdExposure, darkExposure)
+            if self.config.doFlat:
+                flatExposure = self.getIsrExposure(sensorRef, "flat")
+                self.flatCorrection(ccdExposure, flatExposure)
+
+            # Interpolate defects, saturation, and NaNs
+            if self.config.doDefect:
+                self.maskAndInterpDefect(ccdExposure, defects)
+            if self.config.doSaturation:
+                self.saturationInterpolation(ccdExposure)
+            self.maskAndInterpNan(ccdExposure)
+            interpolationDone = True
+
+            # Undo flat and dark application
+            if self.config.doDark:
+                darkExposure = self.getIsrExposure(sensorRef, "dark")
+                self.darkCorrection(ccdExposure, darkExposure, invert=True)
+            if self.config.doFlat:
+                flatExposure = self.getIsrExposure(sensorRef, "flat")
+                self.flatCorrection(ccdExposure, flatExposure, invert=True)
+
             brighterFatterKernel = sensorRef.get('bfKernel')
             self.brighterFatterCorrection(ccdExposure, brighterFatterKernel,
                                           self.config.brighterFatterMaxIter,
@@ -320,16 +350,14 @@ class SubaruIsrTask(IsrTask):
 
         if self.config.doFlat:
             flatExposure = self.getIsrExposure(sensorRef, "flat")
-            self.flatCorrection(ccdExposure, flatExposure)
+            self.flatCorrection(ccdExposure, flatExposure, doTweakFlat=self.config.doTweakFlat)
 
-        if self.config.doDefect:
+        if self.config.doDefect and not interpolationDone:
             self.maskAndInterpDefect(ccdExposure, defects)
 
         if self.config.doApplyGains:
             self.applyGains(ccdExposure, self.config.normalizeGains)
-        if self.config.doWidenSaturationTrails:
-            self.widenSaturationTrails(ccdExposure.getMaskedImage().getMask())
-        if self.config.doSaturation:
+        if self.config.doSaturation and not interpolationDone:
             self.saturationInterpolation(ccdExposure)
 
         if self.config.doFringe:
@@ -337,7 +365,8 @@ class SubaruIsrTask(IsrTask):
         if self.config.doSetBadRegions:
             self.setBadRegions(ccdExposure)
 
-        self.maskAndInterpNan(ccdExposure)
+        if not interpolationDone:
+            self.maskAndInterpNan(ccdExposure)
 
         if self.config.qa.doWriteFlattened:
             sensorRef.put(ccdExposure, "flattenedImage")
@@ -548,7 +577,7 @@ class SubaruIsrTask(IsrTask):
             "Guider shadow trimming is enabled but no generic implementation is present"
         )
 
-    def flatCorrection(self, exposure, flatExposure):
+    def flatCorrection(self, exposure, flatExposure, invert=False, doTweakFlat=False):
         """Apply flat correction in-place
 
         This version allows tweaking the flat-field to match the observed
@@ -560,9 +589,12 @@ class SubaruIsrTask(IsrTask):
 
         @param[in,out]  exposure        exposure to process
         @param[in]      flatExposure    flatfield exposure of same size as exposure
+        @param[in]      invert          if True, invert the flat instead of applying it
+        @param[in]      doTweakFlat     if True, adjust the flat-field (in place) as
+                                        described above.
         """
-
-        if self.config.doTweakFlat:
+        assert not (invert and doTweakFlat)  # passing this combination is almost certainly a mistake
+        if doTweakFlat:
             data = []
             flatAmpList = []
             bad = exposure.getMaskedImage().getMask().getPlaneBitMask(["BAD", "SAT"])
@@ -583,7 +615,7 @@ class SubaruIsrTask(IsrTask):
                 flat *= tweak[i]
 
         lsstIsr.flatCorrection(exposure.getMaskedImage(), flatExposure.getMaskedImage(),
-                               scalingType="USER", userScale=1.0)
+                               scalingType="USER", userScale=1.0, invert=invert)
 
     def roughZeroPoint(self, exposure):
         """Set an approximate magnitude zero point for the exposure"""
