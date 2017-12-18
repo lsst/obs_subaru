@@ -353,7 +353,7 @@ class SubaruIsrTask(IsrTask):
         if self.config.doSetBadRegions:
             self.setBadRegions(ccdExposure)
 
-        if not interpolationDone:
+        if not interpolationDone or self.config.doNanInterpAfterFlat:
             self.maskAndInterpNan(ccdExposure)
 
         if self.config.qa.doWriteFlattened:
