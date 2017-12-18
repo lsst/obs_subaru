@@ -309,31 +309,21 @@ class SubaruIsrTask(IsrTask):
 
         interpolationDone = False
 
+        darkExposure = self.getIsrExposure(sensorRef, "dark") if self.config.doDark else None
+        flatExposure = self.getIsrExposure(sensorRef, "flat") if self.config.doFlat else None
+
         if self.config.doBrighterFatter:
-
-            # Temporarily apply flat and dark so we can interpolate prior to B-F correction
-            if self.config.doDark:
-                darkExposure = self.getIsrExposure(sensorRef, "dark")
-                self.darkCorrection(ccdExposure, darkExposure)
-            if self.config.doFlat:
-                flatExposure = self.getIsrExposure(sensorRef, "flat")
-                self.flatCorrection(ccdExposure, flatExposure)
-
-            # Interpolate defects, saturation, and NaNs
-            if self.config.doDefect:
-                self.maskAndInterpDefect(ccdExposure, defects)
-            if self.config.doSaturation:
-                self.saturationInterpolation(ccdExposure)
-            self.maskAndInterpNan(ccdExposure)
-            interpolationDone = True
-
-            # Undo flat and dark application
-            if self.config.doDark:
-                darkExposure = self.getIsrExposure(sensorRef, "dark")
-                self.darkCorrection(ccdExposure, darkExposure, invert=True)
-            if self.config.doFlat:
-                flatExposure = self.getIsrExposure(sensorRef, "flat")
-                self.flatCorrection(ccdExposure, flatExposure, invert=True)
+            # We need to apply flats and darks before we can interpolate, and we
+            # need to interpolate before we do B-F, but we do B-F without the
+            # flats and darks applied so we can work in units of electrons or holes.
+            # This context manager applies and then removes the darks and flats.
+            with self.flatContext(ccdExposure, flatExposure, darkExposure):
+                if self.config.doDefect:
+                    self.maskAndInterpDefect(ccdExposure, defects)
+                if self.config.doSaturationInterpolation:
+                    self.saturationInterpolation(ccdExposure)
+                self.maskAndInterpNan(ccdExposure)
+                interpolationDone = True
 
             brighterFatterKernel = sensorRef.get('bfKernel')
             self.brighterFatterCorrection(ccdExposure, brighterFatterKernel,
@@ -342,14 +332,12 @@ class SubaruIsrTask(IsrTask):
                                           self.config.brighterFatterApplyGain,
                                           )
         if self.config.doDark:
-            darkExposure = self.getIsrExposure(sensorRef, "dark")
             self.darkCorrection(ccdExposure, darkExposure)
 
         if self.config.doStrayLight:
             self.strayLight.run(sensorRef, ccdExposure)
 
         if self.config.doFlat:
-            flatExposure = self.getIsrExposure(sensorRef, "flat")
             self.flatCorrection(ccdExposure, flatExposure, doTweakFlat=self.config.doTweakFlat)
 
         if self.config.doDefect and not interpolationDone:
