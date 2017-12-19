@@ -278,6 +278,9 @@ calibrations:
     python: numpy.ndarray
     storage: PickleStorage
     template: BFKERNEL/brighter_fatter_kernel.pkl
+  yBackground:
+    level: None
+    template: STRAY_LIGHT/ybackground-%(ccd)03d.fits
 
   sky:
     template: SKY/%(calibDate)s/%(filter)s/SKY-%(calibDate)s-%(filter)s-%(ccd)03d.fits

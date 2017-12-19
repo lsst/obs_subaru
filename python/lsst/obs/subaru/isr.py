@@ -44,6 +44,8 @@ import lsst.afw.display.ds9 as ds9
 from lsst.obs.hsc.vignette import VignetteConfig
 from lsst.afw.geom.polygon import Polygon
 
+from .strayLight import StrayLightTask
+
 
 class QaFlatnessConfig(pexConfig.Config):
     meshX = pexConfig.Field(
@@ -108,6 +110,12 @@ class SubaruIsrConfig(IsrTask.ConfigClass):
         doc="Correct for crosstalk",
         default=True,
     )
+    doStrayLight = pexConfig.Field(
+        dtype=bool,
+        doc="Subtract stray light in the y-band (due to encoder LEDs)?",
+        default=True,
+    )
+    strayLight = pexConfig.ConfigurableField(target=StrayLightTask, doc="y-band stray light correction")
     doApplyGains = pexConfig.Field(
         dtype=bool,
         doc="""Correct the amplifiers for their gains
@@ -199,6 +207,7 @@ class SubaruIsrTask(IsrTask):
     def __init__(self, *args, **kwargs):
         super(SubaruIsrTask, self).__init__(*args, **kwargs)
         self.makeSubtask("crosstalk")
+        self.makeSubtask("strayLight")
         if self.config.doWriteVignettePolygon:
             theta = numpy.linspace(0, 2*numpy.pi, num=self.config.numPolygonPoints, endpoint=False)
             x = self.config.vignette.radius*numpy.cos(theta) + self.config.vignette.xCenter
@@ -305,6 +314,10 @@ class SubaruIsrTask(IsrTask):
         if self.config.doDark:
             darkExposure = self.getIsrExposure(sensorRef, "dark")
             self.darkCorrection(ccdExposure, darkExposure)
+
+        if self.config.doStrayLight:
+            self.strayLight.run(sensorRef, ccdExposure)
+
         if self.config.doFlat:
             flatExposure = self.getIsrExposure(sensorRef, "flat")
             self.flatCorrection(ccdExposure, flatExposure)
