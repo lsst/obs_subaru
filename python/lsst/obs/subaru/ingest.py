@@ -3,25 +3,8 @@ from __future__ import absolute_import, division, print_function
 import re
 import datetime
 
-from lsst.pipe.tasks.ingest import IngestTask, ParseTask, IngestArgumentParser
+from lsst.pipe.tasks.ingest import IngestTask, ParseTask
 from lsst.pipe.tasks.ingestCalibs import CalibsParseTask
-
-
-class HscIngestArgumentParser(IngestArgumentParser):
-
-    def _parseDirectories(self, namespace):
-        """Don't do any 'rerun' hacking: we want the raw data to end up in the root directory"""
-        namespace.input = namespace.rawInput
-        namespace.output = namespace.rawOutput
-        namespace.calib = namespace.rawCalib
-        del namespace.rawInput
-        del namespace.rawCalib
-        del namespace.rawOutput
-        del namespace.rawRerun
-
-
-class HscIngestTask(IngestTask):
-    ArgumentParser = HscIngestArgumentParser
 
 
 def datetime2mjd(date_time):
