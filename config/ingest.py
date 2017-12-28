@@ -1,20 +1,15 @@
-from lsst.obs.subaru.ingest import HscParseTask
-config.parse.retarget(HscParseTask)
-
 config.parse.translation = {'proposal': 'PROP-ID',
                             'dataType': 'DATA-TYP',
                             'expTime': 'EXPTIME',
                             'ccd': 'DET-ID',
                             'pa': 'INST-PA',
-                            'autoguider': 'T_AG',
                             'ccdTemp': 'T_CCDTV',
-                            'config': 'T_CFGFIL',
                             'frameId': 'FRAMEID',
                             'expId': 'EXP-ID',
                             'dateObs': 'DATE-OBS',
                             'taiObs': 'DATE-OBS',
                             }
-config.parse.defaults = {'ccdTemp': "0", # Added in commissioning run 3
+config.parse.defaults = {'ccdTemp': "0", # Added in HSC commissioning run 3
                          }
 config.parse.translators = {'field': 'translate_field',
                             'visit': 'translate_visit',
@@ -32,9 +27,7 @@ config.register.columns = {'field': 'text',
                            'taiObs': 'text',
                            'expTime': 'double',
                            'pa': 'double',
-                           'autoguider': 'int',
                            'ccdTemp': 'double',
-                           'config': 'text',
                            'frameId': 'text',
                            'expId': 'text',
                            'dataType': 'text',
