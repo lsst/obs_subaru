@@ -205,6 +205,9 @@ class SuprimecamMapperBase(CameraMapper):
     def _extractAmpId(self, dataId):
         return (self._extractDetectorName(dataId), 0, 0)
 
+    def _extractDetectorName(self, dataId):
+        return int("%(ccd)d" % dataId)
+
     def _computeCcdExposureId(self, dataId):
         """Compute the 64-bit (long) identifier for a CCD exposure.
 
@@ -312,12 +315,6 @@ class SuprimecamMapper(SuprimecamMapperBase):
             kwargs['calibRoot'] = os.path.join(kwargs['root'], 'CALIB')
         super(SuprimecamMapper, self).__init__(policy, os.path.dirname(policyFile), **kwargs)
         self.defineFilters()
-
-    def _extractDetectorName(self, dataId):
-        miyazakiNames = ["Nausicaa", "Kiki", "Fio", "Sophie", "Sheeta",
-                         "Satsuki", "Chihiro", "Clarisse", "Ponyo", "San"]
-        ccdTmp = int("%(ccd)d" % dataId)
-        return miyazakiNames[ccdTmp]
 
     def getDataId(self, visit, ccdId):
         """get dataId dict from visit and ccd identifier
