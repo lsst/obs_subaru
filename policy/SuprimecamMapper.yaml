@@ -235,6 +235,36 @@ calibrations:
     validEndName: validEnd
     validRange: true
     validStartName: validStart
+  bias_camera:
+    template: focalplane/BIAS/%(calibDate)s/NONE/BIAS-%(calibDate)s.fits
+    persistable: ExposureF
+    python: lsst.afw.image.ExposureF
+    storage: FitsStorage
+    level: None
+  dark_camera:
+    template: focalplane/DARK/%(calibDate)s/NONE/DARK-%(calibDate)s.fits
+    persistable: ExposureF
+    python: lsst.afw.image.ExposureF
+    storage: FitsStorage
+    level: None
+  flat_camera:
+    template: focalplane/FLAT/%(calibDate)s/%(filter)s/FLAT-%(calibDate)s-%(filter)s.fits
+    persistable: ExposureF
+    python: lsst.afw.image.ExposureF
+    storage: FitsStorage
+    level: None
+  fringe_camera:
+    template: focalplane/FRINGE/%(calibDate)s/%(filter)s/FRINGE-%(calibDate)s-%(filter)s.fits
+    persistable: ExposureF
+    python: lsst.afw.image.ExposureF
+    storage: FitsStorage
+    level: None
+  bfKernel:
+    level: None
+    persistable: ignored
+    python: numpy.ndarray
+    storage: PickleStorage
+    template: BFKERNEL/brighter_fatter_kernel.pkl
 
 datasets:
   icExpBackground:
