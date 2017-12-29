@@ -318,7 +318,7 @@ class YagiCrosstalkTask(pipeBase.Task):
         self.log.info("Applying crosstalk corrections to CCD %s based on Yagi+2012" %
                       (exposure.getDetector().getId()))
 
-        ccdId = int(exposure.getDetector().getId().getSerial())
+        ccdId = int(exposure.getDetector().getId())
         gainsPreampSigCcd = gainsPreampSig[ccdId]
 
         subtractCrosstalkYagi(exposure.getMaskedImage(), coeffs1List, coeffs2List,
