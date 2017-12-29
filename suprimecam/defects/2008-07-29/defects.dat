@@ -29,44 +29,44 @@
 3 1027 0 2 24           # Nasty at bottom
 3 1019 0 10 2           # Nasty at bottom
 
-4 0 4172 2048 5         # Top            
-4 0 0 3 4177            # Left side      
-4 2045 0 3 4177         # Right side     
+4 0 4172 2048 5         # Top
+4 0 0 3 4177            # Left side
+4 2045 0 3 4177         # Right side
 4 1019 0 2 64           # Nasty at bottom
 4 1027 0 2 64           # Nasty at bottom
 4 1019 0 10 2           # Nasty at bottom
 
-5 0 0 2048 5            # Bottom      
-5 0 4172 3 4177         # Left side   
-5 2045 0 3 4177         # Right side  
+5 0 0 2048 5            # Bottom
+5 0 4172 3 4177         # Left side
+5 2045 0 3 4177         # Right side
 5 1019 0 2 64           # Nasty at top
 5 1027 0 2 64           # Nasty at top
 5 1019 0 10 2           # Nasty at top
 
-6 0 0 2048 5            # Bottom      
-6 0 0 3 4177            # Left side   
-6 2045 0 3 4177         # Right side  
+6 0 0 2048 5            # Bottom
+6 0 0 3 4177            # Left side
+6 2045 0 3 4177         # Right side
 6 1019 4151 2 26        # Nasty at top
 6 1027 4151 2 26        # Nasty at top
 6 1019 4175 10 2        # Nasty at top
 
-7 0 0 2048 5            # Bottom      
-7 0 0 3 4177            # Left side   
-7 2045 0 3 4177         # Right side  
+7 0 0 2048 5            # Bottom
+7 0 0 3 4177            # Left side
+7 2045 0 3 4177         # Right side
 7 1019 4125 2 52        # Nasty at top
 7 1027 4125 2 52        # Nasty at top
 7 1019 4175 10 2        # Nasty at top
 
-8 0 4172 2048 5         # Top            
-8 0 0 3 4177            # Left side      
-8 2045 0 3 4177         # Right side     
+8 0 4172 2048 5         # Top
+8 0 0 3 4177            # Left side
+8 2045 0 3 4177         # Right side
 8 1019 0 2 26           # Nasty at bottom
 8 1027 0 2 26           # Nasty at bottom
 8 1019 0 10 2           # Nasty at bottom
 
-9 0 4172 2048 5         # Top            
-9 0 0 3 4177            # Left side      
-9 2045 0 3 4177         # Right side     
+9 0 4172 2048 5         # Top
+9 0 0 3 4177            # Left side
+9 2045 0 3 4177         # Right side
 9 1019 0 2 54           # Nasty at bottom
 9 1027 0 2 54           # Nasty at bottom
 9 1019 0 10 2           # Nasty at bottom
