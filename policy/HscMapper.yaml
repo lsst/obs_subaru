@@ -354,6 +354,8 @@ datasets:
     template: '%(pointing)05d/%(filter)s/output/DONUTSRC-%(visit)07d-%(ccd)03d.fits'
   photoCalib:
     template: jointcal-results/%(tract)04d/photoCalib-%(visit)07d-%(ccd)03d.fits
+  transmission_sensor:   # wavelength-dependent throughput due to the sensor, in post-ISR CCD coordinates
+    template: 'transmission/sensor-%(ccd)03d.fits'
   log:
     persistable: None
     python: str
