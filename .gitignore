@@ -22,6 +22,7 @@ bin/genDefectFits.py
 bin/genDefectRegistry.py
 bin/genInputRegistry.py
 bin/hscIngestImages.py
+bin/installTransmissionCurves.py
 bin/makeAllZeroBias.py
 bin/makeGeom.py
 bin/refileFocus.py
