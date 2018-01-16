@@ -663,7 +663,7 @@ class SuprimeCamIsrTask(SubaruIsrTask):
         assert exposure, "No exposure provided"
 
         ccd = exposure.getDetector()  # This is Suprime-Cam so we know the Detector is a Ccd
-        ccdNum = ccd.getId().getSerial()
+        ccdNum = ccd.getId()
         if ccdNum not in [0, 1, 2, 6, 7]:
             # No need to mask
             return
@@ -721,7 +721,7 @@ class SuprimeCamMitIsrTask(SubaruIsrTask):
         assert exposure, "No exposure provided"
 
         ccd = exposure.getDetector()  # This is Suprime-Cam so we know the Detector is a Ccd
-        ccdNum = ccd.getId().getSerial()
+        ccdNum = ccd.getId()
         if ccdNum not in [0, 1, 4, 5, 9]:
             # No need to mask
             return
