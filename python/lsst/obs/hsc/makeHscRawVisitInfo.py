@@ -47,9 +47,14 @@ class MakeHscRawVisitInfo(MakeRawVisitInfo):
             self.popAngle(md, "RA2000", units=astropy.units.h),
             self.popAngle(md, "DEC2000"),
         )
+        altitude = self.popAngle(md, "ALTITUDE")
+        if altitude > 90*degrees:  # Sometimes during day observations, when not tracking
+            if self.log is not None:
+                self.log.warn("Clipping altitude (%f) at 90 degrees", altitude)
+            altitude = 90*degrees
         argDict["boresightAzAlt"] = Coord(
             self.popAngle(md, "AZIMUTH"),
-            self.popAngle(md, "ALTITUDE"),
+            altitude,
         )
         argDict["boresightAirmass"] = self.popFloat(md, "AIRMASS")
         argDict["observatory"] = self.observatory
