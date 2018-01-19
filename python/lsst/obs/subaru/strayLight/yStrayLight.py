@@ -80,6 +80,9 @@ class StrayLightTask(Task):
         if filterName != 'y':
             # No correction to be made
             return
+        if sensorRef.dataId["ccd"] in range(104, 112):
+            # No correction data: assume it's zero
+            return
 
         # The LEDs that are causing the Y straylight have not been covered yet (on 2017-11-27),
         # but they will be covered in the near future.
