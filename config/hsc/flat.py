@@ -11,3 +11,4 @@ config.combination.retarget(HscFlatCombineTask)
 config.combination.vignette.load(os.path.join(getPackageDir("obs_subaru"), 'config', 'hsc', 'vignette.py'))
 
 config.isr.doBrighterFatter = False
+config.isr.doStrayLight = False
