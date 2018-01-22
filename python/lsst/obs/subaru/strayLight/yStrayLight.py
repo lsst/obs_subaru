@@ -117,11 +117,11 @@ class StrayLightTask(Task):
                 box = amp.getBBox()
                 isBad[box.getBeginY():box.getEndY(), box.getBeginX():box.getEndX()] = True
             mask = exposure.getMaskedImage().getMask()
-            mask.array[isBad] |= mask.getPlaneBitMask("BAD")
             if numpy.all(isBad):
                 model[:] = 0.0
             else:
                 model[isBad] = numpy.median(model[~isBad])
+            mask.array[isBad] |= mask.getPlaneBitMask("SUSPECT")
 
         model *= exposure.getInfo().getVisitInfo().getExposureTime()
         exposure.image.array -= model
