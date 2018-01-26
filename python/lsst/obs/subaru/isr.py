@@ -498,10 +498,18 @@ class SubaruIsrTask(IsrTask):
         stats = afwMath.makeStatistics(binnedImage,
                                        afwMath.MEDIAN | afwMath.STDEVCLIP | afwMath.MAX, statsCtrl)
         low = stats.getValue(afwMath.MEDIAN) - self.config.thumbnailStdev*stats.getValue(afwMath.STDEVCLIP)
-        makeRGB(binnedImage, binnedImage, binnedImage, minimum=low, dataRange=self.config.thumbnailRange,
-                Q=self.config.thumbnailQ, fileName=filename,
-                saturatedBorderWidth=self.config.thumbnailSatBorder,
-                saturatedPixelValue=stats.getValue(afwMath.MAX))
+        try:
+            makeRGB(binnedImage, binnedImage, binnedImage, minimum=low, dataRange=self.config.thumbnailRange,
+                    Q=self.config.thumbnailQ, fileName=filename,
+                    saturatedBorderWidth=self.config.thumbnailSatBorder,
+                    saturatedPixelValue=stats.getValue(afwMath.MAX))
+        except Exception as exc:
+            # makeRGB can fail with:
+            #     SystemError: <built-in method flush of _io.BufferedWriter object at 0x2b2a0081c938>
+            #     returned a result with an error set
+            # This unhelpful error comes from the bowels of matplotlib, so not much we can do about it
+            # except keep it from being fatal.
+            self.log.warn("Unable to write thumbnail for %s: %s", dataRef.dataId, exc)
 
     def measureOverscan(self, ccdExposure, amp):
         clipSigma = 3.0
