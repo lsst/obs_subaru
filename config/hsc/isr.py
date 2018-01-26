@@ -13,6 +13,7 @@ config.doBias = True # Overscan is fairly efficient at removing bias level, but 
 config.doDark = True # Required especially around CCD 33
 config.doFringe = True
 config.fringe.filters = ['y', 'N921', 'N926', 'N973', 'N1010']
+config.fringe.stats.badMaskPlanes += ["SUSPECT"]  # stray light correction unavailable
 config.doWrite = False
 config.doCrosstalk = True
 config.doGuider = False
