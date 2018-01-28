@@ -371,6 +371,16 @@ class SubaruIsrTask(IsrTask):
         if self.config.doWriteVignettePolygon:
             self.setValidPolygonIntersect(ccdExposure, self.vignettePolygon)
 
+        if self.config.doAttachTransmissionCurve:
+            opticsTransmission = sensorRef.get("transmission_optics")
+            filterTransmission = sensorRef.get("transmission_filter")
+            sensorTransmission = sensorRef.get("transmission_sensor")
+            atmosphereTransmission = sensorRef.get("transmission_atmosphere")
+            self.attachTransmissionCurve(ccdExposure, opticsTransmission=opticsTransmission,
+                                         filterTransmission=filterTransmission,
+                                         sensorTransmission=sensorTransmission,
+                                         atmosphereTransmission=atmosphereTransmission)
+
         if self.config.doWrite:
             sensorRef.put(ccdExposure, "postISRCCD")
 
