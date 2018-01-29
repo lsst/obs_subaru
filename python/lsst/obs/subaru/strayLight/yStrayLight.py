@@ -80,6 +80,9 @@ class StrayLightTask(Task):
         if filterName != 'y':
             # No correction to be made
             return
+        if sensorRef.dataId["ccd"] in range(104, 112):
+            # No correction data: assume it's zero
+            return
 
         # The LEDs that are causing the Y straylight have not been covered yet (on 2017-11-27),
         # but they will be covered in the near future.
@@ -113,9 +116,12 @@ class StrayLightTask(Task):
                 amp = exposure.getDetector()[ii]
                 box = amp.getBBox()
                 isBad[box.getBeginY():box.getEndY(), box.getBeginX():box.getEndX()] = True
-            model[isBad] = numpy.median(model[~isBad])
             mask = exposure.getMaskedImage().getMask()
-            mask.array[isBad] |= mask.getPlaneBitMask("BAD")
+            if numpy.all(isBad):
+                model[:] = 0.0
+            else:
+                model[isBad] = numpy.median(model[~isBad])
+            mask.array[isBad] |= mask.getPlaneBitMask("SUSPECT")
 
         model *= exposure.getInfo().getVisitInfo().getExposureTime()
         exposure.image.array -= model

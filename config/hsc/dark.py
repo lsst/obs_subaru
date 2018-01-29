@@ -12,3 +12,4 @@ config.repair.cosmicray.minSigma = 5.0
 config.repair.cosmicray.min_DN = 50.0
 
 config.isr.doBrighterFatter = False
+config.isr.doStrayLight = False
