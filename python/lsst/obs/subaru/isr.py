@@ -194,6 +194,9 @@ after applying the nominal gain
     thumbnailQ = Field(dtype=float, default=20.0, doc="Softening parameter for thumbnail mapping")
     thumbnailSatBorder = Field(dtype=int, default=2, doc="Border around saturated pixels for thumbnail")
 
+    def setDefaults(self):
+        self.doAttachTransmissionCurve = True
+
     def validate(self):
         super(SubaruIsrConfig, self).validate()
         if self.doFlat and self.doApplyGains:
