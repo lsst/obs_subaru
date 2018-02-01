@@ -3,7 +3,7 @@ from __future__ import absolute_import, division, print_function
 import re
 import datetime
 
-from lsst.pipe.tasks.ingest import IngestTask, ParseTask
+from lsst.pipe.tasks.ingest import ParseTask
 from lsst.pipe.tasks.ingestCalibs import CalibsParseTask
 
 
