@@ -77,9 +77,9 @@ class MakeTransmissionCurvesTest(lsst.utils.tests.TestCase):
             self.assertGreater(throughput[mid].min(), throughput[outer].max())
 
         for curves in makeTransmissionCurves.getFilterTransmission().values():
-            check(curves["NB387"], 3870, 50, 100)
-            check(curves["NB816"], 8160, 50, 100)
-            check(curves["NB921"], 9210, 50, 100)
+            check(curves["NB0387"], 3870, 50, 100)
+            check(curves["NB0816"], 8160, 50, 100)
+            check(curves["NB0921"], 9210, 50, 100)
             check(curves["HSC-G"], 4730, 500, 1500)
             check(curves["HSC-R"], 6230, 500, 1500)
             check(curves["HSC-R2"], 6230, 500, 1500)
