@@ -44,8 +44,11 @@ def getLongFilterName(short):
     value from the short one (e.g. 'r') declared canonical in afw.image.Filter.
     """
     HscMapper.addFilters()
-    if short.startswith("HSC") or short.startswith("NB"):
+    if short.startswith("HSC"):
         return short
+    if short.startswith("NB") or short.startswith("IB"):
+        num = int(short[2:].lstrip("0"))
+        return "%s%04d" % (short[:2], num)
     f = Filter(short)
     for a in f.getAliases():
         if a.startswith("HSC") or a.startswith("NB") or a.startswith("IB"):
@@ -163,7 +166,7 @@ def getFilterTransmission():
             throughputAtMin=0.0, throughputAtMax=0.0
         )
     for filename in glob.glob(os.path.join(DATA_DIR, "wHSC-*.txt")):
-        band = os.path.split(filename)[1][len("wHSC-"): -len(".txt")]
+        band = getLongFilterName(os.path.split(filename)[1][len("wHSC-"): -len(".txt")])
         if band not in result:
             result[band] = readTransmissionCurveFromFile(filename, atMin=0.0, atMax=0.0)
     return {HSC_BEGIN: result}
