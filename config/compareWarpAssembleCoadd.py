@@ -2,6 +2,7 @@ config.subregionSize = (10000, 200)  # 200 rows (since patch width is typically 
 config.doMaskBrightObjects = True
 config.removeMaskPlanes.append("CROSSTALK")
 config.doNImage = True
+config.badMaskPlanes += ["SUSPECT"]
 
 # 200 rows (since patch width is typically < 10k pixels
 config.assembleStaticSkyModel.subregionSize = (10000, 200)
