@@ -68,7 +68,7 @@ class HscMapper(CameraMapper):
         if not kwargs.get('root', None):
             try:
                 kwargs['root'] = os.path.join(os.environ.get('SUPRIME_DATA_DIR'), 'HSC')
-            except:
+            except Exception:
                 raise RuntimeError("Either $SUPRIME_DATA_DIR or root= must be specified")
         if not kwargs.get('calibRoot', None):
             calibSearch = [os.path.join(kwargs['root'], 'CALIB')]
@@ -207,15 +207,18 @@ class HscMapper(CameraMapper):
     @staticmethod
     def _flipChipsLR(exp, wcs, dataId, dims=None):
         """Flip the chip left/right or top/bottom. Process either/and the pixels and wcs
-Most chips are flipped L/R, but the rotated ones (100..103) are flipped T/B
+
+        Most chips are flipped L/R, but the rotated ones (100..103) are flipped T/B
         """
         flipLR, flipTB = (False, True) if dataId['ccd'] in (100, 101, 102, 103) else (True, False)
         if exp:
             exp.setMaskedImage(afwMath.flipImage(exp.getMaskedImage(), flipLR, flipTB))
         if wcs:
-            wcs.flipImage(flipLR, flipTB, exp.getDimensions() if dims is None else dims)
+            ampDimensions = exp.getDimensions() if dims is None else dims
+            ampCenter = afwGeom.Point2D(ampDimensions/2.0)
+            wcs = afwGeom.makeFlippedWcs(wcs, flipLR, flipTB, ampCenter)
 
-        return exp
+        return exp, wcs
 
     def std_raw_md(self, md, dataId):
         if False:            # no std_raw_md in baseclass
@@ -223,9 +226,11 @@ Most chips are flipped L/R, but the rotated ones (100..103) are flipped T/B
         #
         # We need to flip the WCS defined by the metadata in case anyone ever constructs a Wcs from it
         #
-        wcs = afwImage.makeWcs(md)
-        self._flipChipsLR(None, wcs, dataId, dims=afwImage.bboxFromMetadata(md).getDimensions())
-        wcsR = afwImage.Wcs(wcs.getSkyOrigin().getPosition(), wcs.getPixelOrigin(), wcs.getCDMatrix()*0.992)
+        wcs = afwGeom.makeSkyWcs(md)
+        wcs = self._flipChipsLR(None, wcs, dataId, dims=afwImage.bboxFromMetadata(md).getDimensions())[1]
+        wcsR = afwGeom.makeSkyWcs(crpix=wcs.getPixelOrigin(),
+                                  crval=wcs.getSkyOrigin(),
+                                  cdMatrix=wcs.getCdMatrix()*0.992)
         wcsMd = wcsR.getFitsMetadata()
 
         for k in wcsMd.names():
@@ -235,8 +240,9 @@ Most chips are flipped L/R, but the rotated ones (100..103) are flipped T/B
 
     def std_raw(self, item, dataId):
         exp = super(HscMapper, self).std_raw(item, dataId)
-
-        return self._flipChipsLR(exp, exp.getWcs(), dataId)
+        exp, wcs = self._flipChipsLR(exp, exp.getWcs(), dataId)
+        exp.setWcs(wcs)
+        return exp
 
     def std_dark(self, item, dataId):
         exposure = self._standardizeExposure(self.calibrations['dark'], item, dataId, trimmed=False)

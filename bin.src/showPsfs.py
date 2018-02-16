@@ -139,7 +139,7 @@ def main(dataDir, visit, title="", outputTxtFileName=None,
             axes = afwEllipses.Axes(aArr[i], bArr[i], paArr[i])
             if False:                                                       # testing only!
                 axes = afwEllipses.Axes(1.0, 1.0, np.arctan2(yArr[i], xArr[i]))
-            quad = afwEllipses.Quadrupole(axes)
+            quad = afwGeom.Quadrupole(axes)
             quad = quad.transform(dist.computeQuadrupoleTransform(afwGeom.PointD(xArr[i], yArr[i]), False))
             axes = afwEllipses.Axes(quad)
             aArr[i], bArr[i], paArr[i] = axes.getA(), axes.getB(), axes.getTheta()

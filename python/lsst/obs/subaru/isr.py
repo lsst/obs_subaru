@@ -42,7 +42,6 @@ from lsst.afw.display.rgb import makeRGB
 from lsst.obs.subaru.crosstalkYagi import YagiCrosstalkTask
 import lsst.afw.display.ds9 as ds9
 from lsst.obs.hsc.vignette import VignetteConfig
-from lsst.afw.geom.polygon import Polygon
 
 from .strayLight import StrayLightTask
 
@@ -216,7 +215,7 @@ class SubaruIsrTask(IsrTask):
             x = self.config.vignette.radius*numpy.cos(theta) + self.config.vignette.xCenter
             y = self.config.vignette.radius*numpy.sin(theta) + self.config.vignette.yCenter
             points = numpy.array([x, y]).transpose()
-            self.vignettePolygon = Polygon([afwGeom.Point2D(x1, y1) for x1, y1 in reversed(points)])
+            self.vignettePolygon = afwGeom.Polygon([afwGeom.Point2D(x1, y1) for x1, y1 in reversed(points)])
 
     def runDataRef(self, sensorRef):
         self.log.info("Performing ISR on sensor %s" % (sensorRef.dataId))
@@ -235,7 +234,7 @@ class SubaruIsrTask(IsrTask):
 
             if nPc:
                 self.log.info("Recreating Wcs after stripping PC00n00m" % (sensorRef.dataId))
-                ccdExposure.setWcs(afwImage.makeWcs(raw_md))
+                ccdExposure.setWcs(afwGeom.makeSkyWcs(raw_md))
 
         ccdExposure = self.convertIntToFloat(ccdExposure)
         ccd = ccdExposure.getDetector()
@@ -363,6 +362,10 @@ class SubaruIsrTask(IsrTask):
             sensorRef.put(ccdExposure, "flattenedImage")
         if self.config.qa.doThumbnailFlattened:
             self.writeThumbnail(sensorRef, "flattenedThumb", ccdExposure)
+
+        if self.config.doAddDistortionModel:
+            camera = sensorRef.get("camera")
+            self.addDistortionModel(exposure=ccdExposure, camera=camera)
 
         self.measureBackground(ccdExposure)
 

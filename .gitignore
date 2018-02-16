@@ -10,6 +10,8 @@ _build.*
 *#
 .sconf_temp
 .sconsign.dblite
+.cache
+pytest_session.txt
 config.log
 tests/.tests
 tests/.cache/*

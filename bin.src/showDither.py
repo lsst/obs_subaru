@@ -11,7 +11,6 @@ import sys
 
 import numpy as np
 import lsst.afw.geom as afwGeom
-import lsst.afw.image as afwImage
 import lsst.afw.cameraGeom as afwCG
 import lsst.daf.persistence as dafPersist
 try:
@@ -106,7 +105,7 @@ def main(butler, visits, fields, fieldRadius, showCCDs=False, aitoff=False, alph
                     continue
 
                 width, height = md.get("NAXIS1"), md.get("NAXIS2")
-                wcs = afwImage.makeWcs(md)
+                wcs = afwGeom.makeSkyWcs(md)
 
                 verts = []
                 for p in [(0, 0), (width, 0), (width, height), (0, height)]:
@@ -140,6 +139,7 @@ def main(butler, visits, fields, fieldRadius, showCCDs=False, aitoff=False, alph
     plt.ylabel("dec")
 
     return plt
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="""Plot dither pattern from a set of visits;
