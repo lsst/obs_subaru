@@ -55,7 +55,7 @@ exposures:
     - raw
     - raw_visit
     template: '%(pointing)05d/%(filter)s/qa/metaQaExp-%(visit)07d-000.fits'
-  wcs:
+  wcs:  # deprecated in favor of jointcal_wcs; retained for reading old outputs
     template: jointcal-results/%(tract)04d/wcs-%(visit)07d-%(ccd)03d.fits
   fcr:
     level: Ccd
@@ -352,8 +352,12 @@ datasets:
     template: '%(pointing)05d/%(filter)s/output/ICSRC-%(visit)07d-%(ccd)03d.fits'
   donutSrc:
     template: '%(pointing)05d/%(filter)s/output/DONUTSRC-%(visit)07d-%(ccd)03d.fits'
-  photoCalib:
+  photoCalib:  # deprecated in favor of jointcal_photoCalib; retained for reading old outputs
     template: jointcal-results/%(tract)04d/photoCalib-%(visit)07d-%(ccd)03d.fits
+  jointcal_wcs:  # astrometric calibration produced by jointcal/meas_mosaic
+    template: jointcal-results/%(filter)s/%(tract)04d/jointcal_wcs-%(visit)07d-%(ccd)03d.fits
+  jointcal_photoCalib:  # photometric calibration produced by jointcal/meas_mosaic
+    template: jointcal-results/%(filter)s/%(tract)04d/jointcal_photoCalib-%(visit)07d-%(ccd)03d.fits
   transmission_sensor:   # wavelength-dependent throughput due to the sensor, in post-ISR CCD coordinates
     template: 'transmission/sensor-%(ccd)03d.fits'
   log:
@@ -641,4 +645,3 @@ datasets:
   # QA tables
   qaTableVisit:
     template: plots/%(filter)s/tract-%(tract)d/visit-%(visit)d/%(description)s.parq
-
