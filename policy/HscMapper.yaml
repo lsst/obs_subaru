@@ -609,6 +609,8 @@ datasets:
     - raw
     - raw_visit
     template: config/processFocusSweep.py
+  apPipe_metadata:
+    template: '%(pointing)05d/%(filter)s/apPipe_metadata/%(visit)07d-%(ccd)03d.boost'
 
   # Plots for analysis QA
   plotCoadd:
