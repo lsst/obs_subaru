@@ -575,6 +575,14 @@ datasets:
     storage: TextStorage
     tables: raw
     template: '%(pointing)05d/%(filter)s/qa/focus-%(visit)07d.png'
+  bf_config:  # TODO: Move this to obs_base
+    persistable: Config
+    python: lsst.cp.pipe.bfCoeffCalc.BfTaskConfig
+    storage: ConfigStorage
+    tables:
+    - raw
+    - raw_visit
+    template: config/processBf.py
   processFocus_config:
     persistable: Config
     python: hsc.pipe.tasks.focusTask.ProcessFocusConfig
