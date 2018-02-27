@@ -1,6 +1,5 @@
 from __future__ import absolute_import, division, print_function
 from builtins import zip
-from builtins import range
 import math
 import numpy as np
 
@@ -58,15 +57,14 @@ class HscFlatCombineTask(CalibCombineTask):
         """
         mask.addMaskPlane(self.config.maskPlane)
         bitMask = mask.getPlaneBitMask(self.config.maskPlane)
-        w, h = mask.getWidth(), mask.getHeight()
+        bbox = mask.getBBox(afwImage.LOCAL)
+        w, h = bbox.getDimensions()
         numCorners = 0  # Number of corners outside radius
-        transform = detector.getTransformMap().getTransform(detector.makeCameraSys(afwcg.PIXELS),
-                                                            detector.makeCameraSys(afwcg.FOCAL_PLANE))
-        for i, j in ((0, 0), (0, h-1), (w-1, 0), (w-1, h-1)):
-            x, y = transform.applyForward(afwGeom.Point2D(i, j))
-            if math.hypot(x - self.config.vignette.xCenter,
-                          y - self.config.vignette.yCenter) > self.config.vignette.radius:
-                numCorners += 1
+        pixelsToFocalPlane = detector.getTransform(afwcg.PIXELS, afwcg.FOCAL_PLANE)
+        pixelCorners = [afwGeom.Point2D(pos) for pos in bbox.getCorners()]
+        fpCorners = pixelsToFocalPlane.applyForward(pixelCorners)
+        fpCenter = afwGeom.Point2D(self.config.vignette.xCenter, self.config.vignette.yCenter)
+        numCorners = sum(math.hypot(*(fpPos - fpCenter)) > self.config.vignette.radius for fpPos in fpCorners)
         if numCorners == 0:
             # Nothing to be masked
             self.log.info("Detector %d is unvignetted" % detector.getId())
@@ -78,10 +76,10 @@ class HscFlatCombineTask(CalibCombineTask):
             mask |= bitMask
             return
         # We have to go pixel by pixel
-        numPixels = w*h
+        numPixels = bbox.getArea()
         xx, yy = np.meshgrid(np.arange(0, w, dtype=int), np.arange(0, h, dtype=int))
         xyDetector = [afwGeom.Point2D(x, y) for x, y in zip(xx.reshape(numPixels), yy.reshape(numPixels))]
-        xyFocalPlane = transform.applyForward(xyDetector)
+        xyFocalPlane = pixelsToFocalPlane.applyForward(xyDetector)
         origin = afwGeom.Point2D(self.config.vignette.xCenter, self.config.vignette.yCenter)
         r2 = np.array([pp.distanceSquared(origin) for pp in xyFocalPlane])
         isBad = (r2 > self.config.vignette.radius**2).reshape((h, w))
