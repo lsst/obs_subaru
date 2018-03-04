@@ -52,7 +52,7 @@ exposures:
     - raw
     - raw_visit
     template: '%(pointing)05d/%(filter)s/qa/metaQaExp%(visit)07d0.fits'
-  wcs:
+  wcs:  # deprecated in favor of jointcal_wcs; retained for reading old outputs
     columns:
     - pointing
     - filter
@@ -114,6 +114,10 @@ exposures:
     - raw
     - raw_visit
     template: '%(pointing)05d/%(filter)s/corr/%(tract)04d/CALEXP-%(visit)07d%(ccd)1d.fits'
+  jointcal_wcs:  # astrometric calibration produced by jointcal/meas_mosaic
+    template: jointcal-results/%(filter)s/%(tract)04d/jointcal_wcs-%(visit)07d-%(ccd)03d.fits
+  jointcal_photoCalib:  # photometric calibration produced by jointcal/meas_mosaic
+    template: jointcal-results/%(filter)s/%(tract)04d/jointcal_photoCalib-%(visit)07d-%(ccd)03d.fits
   deepCoadd_directWarp:
     template: deepCoadd/%(filter)s/%(tract)d/%(patch)s/warp-%(filter)s-%(tract)d-%(patch)s-%(visit)d.fits
   deepCoadd_psfMatchedWarp:
