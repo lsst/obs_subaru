@@ -278,6 +278,13 @@ calibrations:
     python: numpy.ndarray
     storage: PickleStorage
     template: BFKERNEL/brighter_fatter_kernel.pkl
+  #   level: None
+  #   persistable: ignored
+  #   python: numpy.ndarray
+  #   storage: PickleStorage
+  #   # template: BFKERNEL/brighter_fatter_kernel.pkl
+  #   template: BFKERNEL/brighter_fatter_kernel.pkl
+  #   # template: calibrations/bfKernel_%(ccd)s.pkl
   yBackground:
     level: None
     template: STRAY_LIGHT/ybackground-%(ccd)03d.fits
@@ -310,6 +317,10 @@ calibrations:
 
 
 datasets:
+  bfKernelNew:
+    template: calibrations/bfKernel-%(ccd)03d.pkl
+  bfGain:
+    template: calibrations/bfGain-%(ccd)03d.pkl
   icExpBackground:
     template: '%(pointing)05d/%(filter)s/corr/ICEXPBKGD-%(visit)07d-%(ccd)03d.fits'
   calexpBackground:
