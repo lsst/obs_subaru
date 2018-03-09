@@ -2,9 +2,9 @@
 
 .. Title is the EUPS package name
 
-{{ "#" * cookiecutter.obs_subaru|length }}
-{{ cookiecutter.obs_subaru }}
-{{ "#" * cookiecutter.obs_subaru|length }}
+##########
+obs_subaru
+##########
 
 .. Sentence/short paragraph describing what the package is for.
 
@@ -14,14 +14,14 @@ Project info
 ============
 
 Repository
-   https://github.com/{{ cookiecutter.lsst }}/{{ cookiecutter.obs_subaru }}
+   https://github.com/lsst/obs_subaru
 
 JIRA component
-   ``{{ cookiecutter.obs_subaru }}``
+   ``obs_subaru``
 
 Modules
 =======
 
 .. Link to Python module landing pages (same as in manifest.yaml)
 
-- :ref:`{{ cookiecutter.obs_subaru }} <{{ cookiecutter.obs_subaru }}>`
+- :ref:`lsst.obs.subaru <lsst.obs.subaru>`

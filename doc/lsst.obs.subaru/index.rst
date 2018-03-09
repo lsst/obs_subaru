@@ -1,8 +1,8 @@
-.. _{{ cookiecutter.obs_subaru }}:
+.. _lsst.obs.subaru:
 
-{{ "#" * cookiecutter.obs_subaru|length }}
-{{ cookiecutter.obs_subaru }}
-{{ "#" * cookiecutter.obs_subaru|length }}
+###############
+lsst.obs.subaru
+###############
 
 .. Paragraph that describes what this Python module does and links to related modules and frameworks.
 
@@ -11,4 +11,4 @@
 Python API reference
 ====================
 
-.. automodapi:: {{ cookiecutter.obs_subaru }}
+.. automodapi:: lsst.obs.subaru

@@ -1,6 +1,6 @@
-{{ "#" * (obs_subaru|length + 22) }}
-{{ obs_subaru}} documentation preview
-{{ "#" * (obs_subaru|length + 22) }}
+################################
+obs_subaru documentation preview
+################################
 
 .. This page is for local development only. It isn't published to pipelines.lsst.io.
 
@@ -10,4 +10,4 @@
    :maxdepth: 1
 
    obs_subaru/index
-   cookiecutter.lsst.obs.subaru/index
+   lsst.obs.subaru/index
