@@ -12,3 +12,4 @@ Python API reference
 ====================
 
 .. automodapi:: lsst.obs.subaru
+.. atuomodapi:: lsst.obs.subaru.hsc.hscMapper
