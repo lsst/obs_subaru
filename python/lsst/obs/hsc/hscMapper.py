@@ -15,7 +15,9 @@ from .hscPupil import HscPupilFactory
 
 
 class HscMapper(CameraMapper):
-    """Provides abstract-physical mapping for HSC data"""
+    """Provides abstract-physical mapping for HSC data
+    """
+
     packageName = "obs_subaru"
 
     MakeRawVisitInfoClass = MakeHscRawVisitInfo
@@ -316,14 +318,16 @@ class HscMapper(CameraMapper):
         return oid
 
     def bypass_deepCoaddId_bits(self, *args, **kwargs):
-        """The number of bits used up for patch ID bits"""
+        """The number of bits used up for patch ID bits
+        """
         return 64 - HscMapper._nbit_id
 
     def bypass_deepCoaddId(self, datasetType, pythonType, location, dataId):
         return self._computeCoaddExposureId(dataId, True)
 
     def bypass_deepMergedCoaddId_bits(self, *args, **kwargs):
-        """The number of bits used up for patch ID bits"""
+        """The number of bits used up for patch ID bits
+        """
         return 64 - HscMapper._nbit_id
 
     def bypass_deepMergedCoaddId(self, datasetType, pythonType, location, dataId):
