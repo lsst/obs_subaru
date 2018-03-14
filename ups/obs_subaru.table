@@ -1,6 +1,5 @@
 setupRequired(daf_persistence)
 setupRequired(obs_base)
-setupRequired(skypix)
 setupRequired(pipe_tasks)
 setupRequired(meas_astrom)
 setupRequired(pyfits)
