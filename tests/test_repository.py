@@ -33,7 +33,6 @@ import lsst.utils
 from lsst.daf.base import DateTime
 from lsst.obs.base import MakeRawVisitInfo
 from lsst.afw.image import RotType
-from lsst.afw.coord import IcrsCoord, Coord
 from lsst.afw.geom import degrees
 from lsst.obs.hsc import HscMapper
 
@@ -100,8 +99,8 @@ class GetDataTestCase(lsst.utils.tests.TestCase):
         dateBeg = DateTime(56598.26106374757, DateTime.MJD, DateTime.UTC)
         dateAvgNSec = dateBeg.nsecs() + int(0.5e9*self.exptime)
         self.dateAvg = DateTime(dateAvgNSec, DateTime.TAI)
-        self.boresightRaDec = IcrsCoord('21:22:59.982', '+00:30:00.07')
-        self.boresightAzAlt = Coord(226.68922661*degrees, 63.04359233*degrees)
+        self.boresightRaDec = afwGeom.SpherePoint(320.7499250000, 0.500019444, degrees)
+        self.boresightAzAlt = afwGeom.SpherePoint(226.68922661, 63.04359233, degrees)
         self.boresightAirmass = 1.121626027604189
         self.boresightRotAngle = 270.0*degrees
         self.rotType = RotType.SKY
@@ -131,8 +130,8 @@ class GetDataTestCase(lsst.utils.tests.TestCase):
         visitInfo = raw.getInfo().getVisitInfo()
         self.assertAlmostEqual(visitInfo.getDate().get(), self.dateAvg.get())
         self.assertAnglesAlmostEqual(visitInfo.getEra(), self.era)
-        self.assertCoordsAlmostEqual(visitInfo.getBoresightRaDec(), self.boresightRaDec)
-        self.assertCoordsAlmostEqual(visitInfo.getBoresightAzAlt(), self.boresightAzAlt)
+        self.assertSpherePointsAlmostEqual(visitInfo.getBoresightRaDec(), self.boresightRaDec)
+        self.assertSpherePointsAlmostEqual(visitInfo.getBoresightAzAlt(), self.boresightAzAlt)
         self.assertAlmostEqual(visitInfo.getBoresightAirmass(), self.boresightAirmass)
         self.assertAnglesAlmostEqual(visitInfo.getBoresightRotAngle(), self.boresightRotAngle)
         self.assertEqual(visitInfo.getRotType(), self.rotType)

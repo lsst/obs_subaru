@@ -23,8 +23,8 @@ from __future__ import absolute_import, division, print_function
 
 import astropy.units
 
-from lsst.afw.geom import degrees
-from lsst.afw.coord import Coord, IcrsCoord, Observatory, Weather
+from lsst.afw.geom import degrees, SpherePoint
+from lsst.afw.coord import Observatory, Weather
 from lsst.afw.image import RotType
 from lsst.obs.base import MakeRawVisitInfo
 
@@ -43,7 +43,7 @@ class MakeHscRawVisitInfo(MakeRawVisitInfo):
         @param[in,out] argdict  a dict of arguments
         """
         MakeRawVisitInfo.setArgDict(self, md, argDict)
-        argDict["boresightRaDec"] = IcrsCoord(
+        argDict["boresightRaDec"] = SpherePoint(
             self.popAngle(md, "RA2000", units=astropy.units.h),
             self.popAngle(md, "DEC2000"),
         )
@@ -52,7 +52,7 @@ class MakeHscRawVisitInfo(MakeRawVisitInfo):
             if self.log is not None:
                 self.log.warn("Clipping altitude (%f) at 90 degrees", altitude)
             altitude = 90*degrees
-        argDict["boresightAzAlt"] = Coord(
+        argDict["boresightAzAlt"] = SpherePoint(
             self.popAngle(md, "AZIMUTH"),
             altitude,
         )
