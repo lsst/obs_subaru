@@ -27,8 +27,7 @@ import unittest
 import lsst.utils.tests
 from lsst.afw.image import ExposureF, CoaddInputs
 from lsst.afw.table import ExposureCatalog, SourceCatalog, Point2DKey
-from lsst.afw.geom import degrees, Point2D, Box2I, Point2I, makeCdMatrix, makeSkyWcs
-from lsst.afw.coord import IcrsCoord
+from lsst.afw.geom import degrees, Point2D, Box2I, Point2I, SpherePoint, makeCdMatrix, makeSkyWcs
 from lsst.daf.base import PropertyList
 from lsst.meas.base import FatalAlgorithmError
 from lsst.obs.subaru.filterFraction import FilterFractionPlugin
@@ -41,7 +40,7 @@ class FilterFractionTest(lsst.utils.tests.TestCase):
         # in by later test code.
         self.coadd = ExposureF(30, 90)
         # WCS is arbitrary, since it'll be the same for all images
-        wcs = makeSkyWcs(crpix=Point2D(0, 0), crval=IcrsCoord(45.0*degrees, 45.0*degrees),
+        wcs = makeSkyWcs(crpix=Point2D(0, 0), crval=SpherePoint(45.0, 45.0, degrees),
                          cdMatrix=makeCdMatrix(scale=0.17*degrees))
         self.coadd.setWcs(wcs)
         schema = ExposureCatalog.Table.makeMinimalSchema()
