@@ -46,12 +46,12 @@ def datetime2mjd(date_time):
     return mjd
 
 class SuperBITParseTask(ParseTask):
-    DAY0 =  # Zero point for  the date
+    DAY0 =0  # Zero point for the starting date ##can be changed
 
     def translate_field(self, md):
         field = md.get("OBJECT").strip()
-            if field == "#":
-                field = "UNKNOWN"
+        if field == "#":
+            field = "UNKNOWN"
         # replacing inappropriate characters for file path and upper()
         field = re.sub(r'\W', '_', field).upper()
         return field
@@ -100,10 +100,10 @@ class SuperBITParseTask(ParseTask):
         try:
             return md.get('FILTER01').strip().upper()
         except:
-                return "Unrecognized"
+            return "Unrecognized"
 
 
-class HscCalibsParseTask(CalibsParseTask):
+class SuperbitCalibsParseTask(CalibsParseTask):
     
     def _translateFromCalibId(self, field, md):
         '''reading Calib information from md.CALIB_ID, so in the header of CALIB:
@@ -122,6 +122,6 @@ CALIB_ID= 'filter=NONE calibDate=2013-11-03 ccd=0'''
         return self._translateFromCalibId("calibDate", md)
     
 
-###data structure: "OBJECT"->"DATE-OBS"->translate_pointing("DATE-OBS")->"FILTER01"->HSC-"FRAMEID"-"ccd".fits
+###data structure: "OBJECT"->"DATE-OBS"->translate_pointing("DATE-OBS")->"FILTER01"->HSC-"FRAMEID(EXP-ID)"-"ccd".fits
 
 
