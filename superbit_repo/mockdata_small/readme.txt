@@ -1,4 +1,5 @@
-Folder contains simulations for debugging auxTelBIT
+Folder contains simulations for debugging obs_superBIT 
+(note that these files are all 2048 x 2048 in size)
 
 ######################
 LIST OF FILES
