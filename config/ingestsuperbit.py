@@ -41,3 +41,4 @@ config.register.columns = {'field': 'text',
                            }
 config.register.unique = ['visit', 'ccd', ]
 config.register.visit = ['visit', 'field', 'filter', 'dateObs', 'taiObs']
+
