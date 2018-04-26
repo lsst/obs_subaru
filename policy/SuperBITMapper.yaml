@@ -33,6 +33,13 @@ exposures:
     template: '%(field)s/%(dateObs)s/%(filter)s/SuperBIT-%(visit)07d.fits'
   postISRCCD:
     template: postISRCCD/v%(visit)07d-f%(filter)s/ISRCCD.fits
+  Biascorr:
+    template: postISRCCD/%(visit)07d-%(filter)s/Biascorr-%(visit)07d.fits
+  Darkcorr:
+    template: postISRCCD/%(visit)07d-%(filter)s/Darkcorr-%(visit)07d.fits
+  Flatcorr:
+    template: postISRCCD/%(visit)07d-%(filter)s/Flatcorr-%(visit)07d.fits
+
   icExp:
     template: '%(pointing)05d/%(filter)s/corr/ICEXP-%(visit)07d.fits'
   calexp:
