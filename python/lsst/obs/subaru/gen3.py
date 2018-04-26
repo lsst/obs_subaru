@@ -25,8 +25,15 @@
 import re
 
 from lsst.daf.butler.instrument import Instrument
+from lsst.daf.butler.gen2convert import Translator, KeyHandler, ConstantKeyHandler, CopyKeyHandler
 
 __all__ = ("HyperSuprimeCam",)
+
+
+# Regular expression that matches HSC PhysicalFilter names (the same as Gen2
+# filternames), with a group that can be lowercased to yield the
+# associated AbstractFilter.
+FILTER_REGEX = re.compile(r"HSC\-([GRIZY])2?")
 
 
 class HyperSuprimeCam(Instrument):
@@ -62,10 +69,63 @@ class HyperSuprimeCam(Instrument):
             # which we identify as when the physical filter starts with
             # "HSC-[GRIZY]".  Note that this means that e.g. "HSC-I" and
             # "HSC-I2" are both mapped to abstract filter "i".
-            m = re.match(r"HSC\-([GRIZY])2?", name)
+            m = FILTER_REGEX.match(name)
             self.physicalFilters.append(
                 dict(
                     physical_filter=name,
                     abstract_filter=m.group(1).lower() if m is not None else None
                 )
             )
+
+
+class HscAbstractFilterKeyHandler(KeyHandler):
+    """KeyHandler for HSC filter keys that should be mapped to AbstractFilters.
+    """
+
+    __slots__ = ()
+
+    def __init__(self):
+        super().__init__("abstract_filter", "AbstractFilter")
+
+    def extract(self, gen2id, skyMap, skyMapName):
+        physical = gen2id["filter"]
+        m = FILTER_REGEX.match(physical)
+        if m:
+            return m.group(1).lower()
+        return physical
+
+
+class HscPhysicalFilterKeyHandler(KeyHandler):
+    """KeyHandler for HSC filter keys that should be mapped to PhysicalFilters.
+    """
+
+    __slots__ = ()
+
+    def __init__(self):
+        super().__init__("physical_filter", "PhysicalFilter")
+
+    def extract(self, gen2id, skyMap, skyMapName):
+        return gen2id["filter"]
+
+
+# Add camera to Gen3 data ID if Gen2 contains "visit" or "ccd".
+# (Both rules will match, so we'll actually set camera in the same dict twice).
+Translator.addRule(ConstantKeyHandler("camera", "Camera", "HSC"),
+                   camera="HSC", gen2keys=("visit",), consume=False)
+Translator.addRule(ConstantKeyHandler("camera", "Camera", "HSC"),
+                   camera="HSC", gen2keys=("ccd",), consume=False)
+
+# Copy Gen2 'visit' to Gen3 'exposure' for raw only.
+Translator.addRule(CopyKeyHandler("exposure", "Exposure", "visit"),
+                   camera="HSC", datasetTypeName="raw", gen2keys=("visit",))
+
+# Copy Gen2 'visit' to Gen3 'visit' otherwise
+Translator.addRule(CopyKeyHandler("visit", "Visit"), camera="HSC", gen2keys=("visit",))
+
+# Copy Gen2 'ccd' to Gen3 'sensor;
+Translator.addRule(CopyKeyHandler("sensor", "Sensor", "ccd"), camera="HSC", gen2keys=("ccd",))
+
+# Translate Gen2 `filter` to AbstractFilter iff Gen2 data ID contains "tract".
+Translator.addRule(HscAbstractFilterKeyHandler(), camera="HSC", gen2keys=("tract", "filter"),
+                   consume=("filter",))
+Translator.addRule(HscPhysicalFilterKeyHandler(), camera="HSC", gen2keys=("filter"))
