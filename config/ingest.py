@@ -1,16 +1,15 @@
-from lsst.obs.subaru.ingest import HscParseTask
-config.parse.retarget(HscParseTask)
+from lsst.obs.superBIT.ingestsuperbit import SuperBITParseTask
+config.parse.retarget(SuperBITParseTask)
 
-config.parse.translation = {'proposal': 'PROP-ID',
+config.parse.translation = {#'proposal': 'PROP-ID',
                             'dataType': 'DATA-TYP',
                             'expTime': 'EXPTIME',
-                            'ccd': 'DET-ID',
-                            'pa': 'INST-PA',
-                            'autoguider': 'T_AG',
-                            'ccdTemp': 'T_CCDTV',
-                            'config': 'T_CFGFIL',
+                            #'pa': 'INST-PA',
+                            #'autoguider': 'T_AG',
+                            #'ccdTemp': 'T_CCDTV',
+                            #'config': 'T_CFGFIL',
                             'frameId': 'FRAMEID',
-                            'expId': 'EXP-ID',
+                            #'expId': 'EXP-ID',
                             'dateObs': 'DATE-OBS',
                             'taiObs': 'DATE-OBS',
                             }
@@ -20,6 +19,7 @@ config.parse.translators = {'field': 'translate_field',
                             'visit': 'translate_visit',
                             'pointing': 'translate_pointing',
                             'filter': 'translate_filter',
+                            'ccd': 'translate_ccd',
                             }
 
 config.register.columns = {'field': 'text',
@@ -27,16 +27,16 @@ config.register.columns = {'field': 'text',
                            'ccd': 'int',
                            'pointing': 'int',
                            'filter': 'text',
-                           'proposal': 'text',
+                           #'proposal': 'text',
                            'dateObs': 'text',
                            'taiObs': 'text',
                            'expTime': 'double',
-                           'pa': 'double',
-                           'autoguider': 'int',
-                           'ccdTemp': 'double',
-                           'config': 'text',
+                           #'pa': 'double',
+                           #'autoguider': 'int',
+                           #'ccdTemp': 'double',
+                           #'config': 'text',
                            'frameId': 'text',
-                           'expId': 'text',
+                           #'expId': 'text',
                            'dataType': 'text',
                            }
 config.register.unique = ['visit', 'ccd', ]
