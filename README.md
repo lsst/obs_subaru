@@ -29,4 +29,4 @@ how to use this package?
 
 5. Ingest the raw images into the data repository
 
- 	python ./bin/superbitIngestImages.py TESTDATA/ RAWDATAFILE/raw/*.fits (image in obs_superBIT/superbit_repo/TESTIMAGE1/2017-05-25/WHEELPOS0/)
+ 	python ./bin/superbitIngestImages.py TESTDATA/ RAWDATAFILE/raw/*.fits (image in obs_superBIT/superbit_repo/TESTIMAGE1/2017-05-25/WHEELPOS0/) yo, this is not general
