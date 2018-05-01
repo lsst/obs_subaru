@@ -12,6 +12,7 @@ from lsst.obs.hsc.hscPupil import HscPupilFactory
 
 
 class SuperBITMapper(CameraMapper):
+    print("oh")
     """Provides abstract-physical mapping for superbit data"""
     packageName = "obs_subaru"
 
@@ -22,7 +23,7 @@ class SuperBITMapper(CameraMapper):
     _cameraCache = None  # Camera object, cached to speed up instantiation time
 
     def __init__(self, **kwargs):
-        policyFile = Policy.defaultPolicyFile("obs_superBIT", "SuperBITMapper.yaml", "policy")
+        policyFile = Policy.defaultPolicyFile("obs_subaru", "SuperBITMapper.yaml", "policy")
         policy = Policy(policyFile)
         if not kwargs.get('root', None):
             try:
@@ -32,7 +33,7 @@ class SuperBITMapper(CameraMapper):
         if not kwargs.get('calibRoot', None):
             kwargs['calibRoot'] = os.path.join(kwargs['root'], 'CALIB')
 
-        super(HscMapper, self).__init__(policy, os.path.dirname(policyFile), **kwargs)
+        super(SuperBITMapper, self).__init__(policy, os.path.dirname(policyFile), **kwargs)
 
         self._linearize = LinearizeSquared()
 
@@ -139,15 +140,15 @@ class SuperBITMapper(CameraMapper):
         #
         # This shouldn't be the mapper's job at all; see #2797.
 
-        HscMapper._nbit_tract = 16
-        HscMapper._nbit_patch = 5
-        HscMapper._nbit_filter = 6
+        SuperBITMapper._nbit_tract = 16
+        SuperBITMapper._nbit_patch = 5
+        SuperBITMapper._nbit_filter = 6
 
-        HscMapper._nbit_id = 64 - (HscMapper._nbit_tract + 2*HscMapper._nbit_patch + HscMapper._nbit_filter)
+        SuperBITMapper._nbit_id = 64 - (SuperBITMapper._nbit_tract + 2*SuperBITMapper._nbit_patch + SuperBITMapper._nbit_filter)
 
-        if len(afwImage.Filter.getNames()) >= 2**HscMapper._nbit_filter:
+        if len(afwImage.Filter.getNames()) >= 2**SuperBITMapper._nbit_filter:
             raise RuntimeError("You have more filters defined than fit into the %d bits allocated" %
-                               HscMapper._nbit_filter)
+                               SuperBITMapper._nbit_filter)
 
     def _makeCamera(self, *args, **kwargs):
         """Make the camera object
@@ -179,7 +180,7 @@ class SuperBITMapper(CameraMapper):
         """
         copyId = dataId.copy()
         copyId.pop("flags", None)
-        location = super(HscMapper, self).map(datasetType, copyId, write=write)
+        location = super(SuperBITMapper, self).map(datasetType, copyId, write=write)
 
         if 'flags' in dataId:
             location.getAdditionalData().set('flags', dataId['flags'])
@@ -201,7 +202,7 @@ Most chips are flipped L/R, but the rotated ones (100..103) are flipped T/B
 
     def std_raw_md(self, md, dataId):
         if False:            # no std_raw_md in baseclass
-            md = super(HscMapper, self).std_raw_md(md, dataId) # not present in baseclass
+            md = super(SuperBITMapper, self).std_raw_md(md, dataId) # not present in baseclass
         #
         # We need to flip the WCS defined by the metadata in case anyone ever constructs a Wcs from it
         #
@@ -216,7 +217,7 @@ Most chips are flipped L/R, but the rotated ones (100..103) are flipped T/B
         return md
 
     def std_raw(self, item, dataId):
-        exp = super(HscMapper, self).std_raw(item, dataId)
+        exp = super(SuperBITMapper, self).std_raw(item, dataId)
 
         return self._flipChipsLR(exp, exp.getWcs(), dataId)
 
@@ -280,27 +281,27 @@ Most chips are flipped L/R, but the rotated ones (100..103) are flipped T/B
         """
 
         tract = int(dataId['tract'])
-        if tract < 0 or tract >= 2**HscMapper._nbit_tract:
-            raise RuntimeError('tract not in range [0,%d)' % (2**HscMapper._nbit_tract))
+        if tract < 0 or tract >= 2**SuperBITMapper._nbit_tract:
+            raise RuntimeError('tract not in range [0,%d)' % (2**SuperBITMapper._nbit_tract))
         patchX, patchY = [int(patch) for patch in dataId['patch'].split(',')]
         for p in (patchX, patchY):
-            if p < 0 or p >= 2**HscMapper._nbit_patch:
-                raise RuntimeError('patch component not in range [0, %d)' % 2**HscMapper._nbit_patch)
-        oid = (((tract << HscMapper._nbit_patch) + patchX) << HscMapper._nbit_patch) + patchY
+            if p < 0 or p >= 2**SuperBITMapper._nbit_patch:
+                raise RuntimeError('patch component not in range [0, %d)' % 2**SuperBITMapper._nbit_patch)
+        oid = (((tract << SuperBITMapper._nbit_patch) + patchX) << SuperBITMapper._nbit_patch) + patchY
         if singleFilter:
-            return (oid << HscMapper._nbit_filter) + afwImage.Filter(dataId['filter']).getId()
+            return (oid << SuperBITMapper._nbit_filter) + afwImage.Filter(dataId['filter']).getId()
         return oid
 
     def bypass_deepCoaddId_bits(self, *args, **kwargs):
         """The number of bits used up for patch ID bits"""
-        return 64 - HscMapper._nbit_id
+        return 64 - SuperBITMapper._nbit_id
 
     def bypass_deepCoaddId(self, datasetType, pythonType, location, dataId):
         return self._computeCoaddExposureId(dataId, True)
 
     def bypass_deepMergedCoaddId_bits(self, *args, **kwargs):
         """The number of bits used up for patch ID bits"""
-        return 64 - HscMapper._nbit_id
+        return 64 - SuperBITMapper._nbit_id
 
     def bypass_deepMergedCoaddId(self, datasetType, pythonType, location, dataId):
         return self._computeCoaddExposureId(dataId, False)
