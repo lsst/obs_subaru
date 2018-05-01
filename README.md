@@ -2,6 +2,8 @@
 
 superBIT-specific configuration and tasks (based on obs_subaru as the backbone) for the LSST Data Management Stack
 
+Version of LSST Science Pipelines: 15.0
+
 how to use this package?
 1. In lsst_stack/
 	
