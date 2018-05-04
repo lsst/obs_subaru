@@ -104,6 +104,11 @@ class HscPhysicalFilterKeyHandler(KeyHandler):
     def __init__(self):
         super().__init__("physical_filter", "PhysicalFilter")
 
+    def translate(self, gen2id, gen3id, skyMap, skyMapName):
+        super().translate(gen2id, gen3id, skyMap, skyMapName)
+        # also add camera
+        gen3id["camera"] = "HSC"
+
     def extract(self, gen2id, skyMap, skyMapName):
         return gen2id["filter"]
 
@@ -128,4 +133,4 @@ Translator.addRule(CopyKeyHandler("sensor", "Sensor", "ccd"), camera="HSC", gen2
 # Translate Gen2 `filter` to AbstractFilter iff Gen2 data ID contains "tract".
 Translator.addRule(HscAbstractFilterKeyHandler(), camera="HSC", gen2keys=("tract", "filter"),
                    consume=("filter",))
-Translator.addRule(HscPhysicalFilterKeyHandler(), camera="HSC", gen2keys=("filter"))
+Translator.addRule(HscPhysicalFilterKeyHandler(), camera="HSC", gen2keys=("filter",))
