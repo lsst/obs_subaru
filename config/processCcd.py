@@ -20,7 +20,7 @@ config.calibrate.detection.background.load(bgFile)
 
 # PSF determination
 config.charImage.measurePsf.reserve.fraction = 0.2
-config.charImage.measurePsf.starSelector["objectSize"].sourceFluxField = 'base_PsfFlux_flux'
+config.charImage.measurePsf.sourceSelector["objectSize"].sourceFluxField = 'base_PsfFlux_flux'
 try:
     import lsst.meas.extensions.psfex.psfexPsfDeterminer
     config.charImage.measurePsf.psfDeterminer["psfex"].spatialOrder = 2
