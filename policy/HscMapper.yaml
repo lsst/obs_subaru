@@ -321,6 +321,8 @@ datasets:
     template: calibrations/bfKernel-%(ccd)03d.pkl
   bfGain:
     template: calibrations/bfGain-%(ccd)03d.pkl
+  plotBfPtc:
+    template: plots/bfPtc-ccd-%(ccd)03d-amp-%(amp)02d.png
   icExpBackground:
     template: '%(pointing)05d/%(filter)s/corr/ICEXPBKGD-%(visit)07d-%(ccd)03d.fits'
   calexpBackground:
