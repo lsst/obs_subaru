@@ -95,24 +95,6 @@ class HscAbstractFilterKeyHandler(KeyHandler):
         return physical
 
 
-class HscPhysicalFilterKeyHandler(KeyHandler):
-    """KeyHandler for HSC filter keys that should be mapped to PhysicalFilters.
-    """
-
-    __slots__ = ()
-
-    def __init__(self):
-        super().__init__("physical_filter", "PhysicalFilter")
-
-    def translate(self, gen2id, gen3id, skyMap, skyMapName):
-        super().translate(gen2id, gen3id, skyMap, skyMapName)
-        # also add camera
-        gen3id["camera"] = "HSC"
-
-    def extract(self, gen2id, skyMap, skyMapName):
-        return gen2id["filter"]
-
-
 # Add camera to Gen3 data ID if Gen2 contains "visit" or "ccd".
 # (Both rules will match, so we'll actually set camera in the same dict twice).
 Translator.addRule(ConstantKeyHandler("camera", "Camera", "HSC"),
@@ -120,17 +102,30 @@ Translator.addRule(ConstantKeyHandler("camera", "Camera", "HSC"),
 Translator.addRule(ConstantKeyHandler("camera", "Camera", "HSC"),
                    camera="HSC", gen2keys=("ccd",), consume=False)
 
-# Copy Gen2 'visit' to Gen3 'exposure' for raw only.
+# Copy Gen2 'visit' to Gen3 'exposure' for raw only.  Also consume filter,
+# since that's implied by 'exposure' in Gen3.
 Translator.addRule(CopyKeyHandler("exposure", "Exposure", "visit"),
-                   camera="HSC", datasetTypeName="raw", gen2keys=("visit",))
+                   camera="HSC", datasetTypeName="raw", gen2keys=("visit",),
+                   consume=("visit", "filter"))
 
-# Copy Gen2 'visit' to Gen3 'visit' otherwise
-Translator.addRule(CopyKeyHandler("visit", "Visit"), camera="HSC", gen2keys=("visit",))
+# Copy Gen2 'visit' to Gen3 'visit' otherwise.  Also consume filter.
+Translator.addRule(CopyKeyHandler("visit", "Visit"), camera="HSC", gen2keys=("visit",),
+                   consume=("visit", "filter"))
 
 # Copy Gen2 'ccd' to Gen3 'sensor;
 Translator.addRule(CopyKeyHandler("sensor", "Sensor", "ccd"), camera="HSC", gen2keys=("ccd",))
 
-# Translate Gen2 `filter` to AbstractFilter iff Gen2 data ID contains "tract".
-Translator.addRule(HscAbstractFilterKeyHandler(), camera="HSC", gen2keys=("tract", "filter"),
+# Translate Gen2 `filter` to AbstractFilter if it hasn't been consumed yet and gen2keys includes tract.
+Translator.addRule(HscAbstractFilterKeyHandler(), camera="HSC", gen2keys=("filter", "tract"),
                    consume=("filter",))
-Translator.addRule(HscPhysicalFilterKeyHandler(), camera="HSC", gen2keys=("filter",))
+
+# Add camera for HSC transmission curve datasets (transmission_sensor is
+# already handled by the above translators).
+Translator.addRule(ConstantKeyHandler("camera", "Camera", "HSC"),
+                   camera="HSC", datasetTypeName="transmission_optics")
+Translator.addRule(ConstantKeyHandler("camera", "Camera", "HSC"),
+                   camera="HSC", datasetTypeName="transmission_atmosphere")
+Translator.addRule(ConstantKeyHandler("camera", "Camera", "HSC"),
+                   camera="HSC", datasetTypeName="transmission_filter")
+Translator.addRule(CopyKeyHandler("physical_filter", "PhysicalFilter", "filter"),
+                   camera="HSC", datasetTypeName="transmission_filter")
