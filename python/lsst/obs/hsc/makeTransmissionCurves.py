@@ -122,7 +122,7 @@ def getSensorTransmission():
     is valid after the date provided in the key.
     """
     qe = readTransmissionCurveFromFile("qe_ccd_HSC.txt", atMin=0.0, atMax=0.0)
-    return {HSC_BEGIN: {n: qe for n in range(116)}}
+    return {HSC_BEGIN: {n: qe for n in range(112)}}
 
 
 def getAtmosphereTransmission():

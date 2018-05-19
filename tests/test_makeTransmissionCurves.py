@@ -56,7 +56,7 @@ class MakeTransmissionCurvesTest(lsst.utils.tests.TestCase):
         wavelengths = np.linspace(4000, 12000, 100)
         point = Point2D(200, 10)
         for sensors in makeTransmissionCurves.getSensorTransmission().values():
-            for i in range(116):
+            for i in range(112):
                 curve = sensors[i]
                 throughputs = curve.sampleAt(point, wavelengths)
                 siliconTransparent = wavelengths > 11000
