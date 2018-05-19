@@ -11,8 +11,8 @@ hscConfigDir = os.path.join(getPackageDir("obs_subaru"), "config", "hsc")
 config.isr.retarget(SubaruIsrTask)
 config.isr.load(os.path.join(hscConfigDir, 'isr.py'))
 config.calibrate.photoCal.colorterms.load(os.path.join(hscConfigDir, 'colorterms.py'))
-config.charImage.measurePsf.sourceSelector["objectSize"].widthMin = 0.9
-config.charImage.measurePsf.sourceSelector["objectSize"].fluxMin = 4000
+config.charImage.measurePsf.starSelector["objectSize"].widthMin = 0.9
+config.charImage.measurePsf.starSelector["objectSize"].fluxMin = 4000
 for refObjLoader in (config.calibrate.astromRefObjLoader,
                      config.calibrate.photoRefObjLoader,
                      config.charImage.refObjLoader,
