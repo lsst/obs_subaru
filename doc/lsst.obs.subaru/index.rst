@@ -11,5 +11,7 @@ lsst.obs.subaru
 Python API reference
 ====================
 
+.. .. automodapi:: lsst.obs.hsc
 .. automodapi:: lsst.obs.subaru
-.. atuomodapi:: lsst.obs.subaru.hsc.hscMapper
+.. .. automodapi:: lsst.obs.subaru.arcturus
+.. automodapi:: lsst.obs.hsc.hscMapper

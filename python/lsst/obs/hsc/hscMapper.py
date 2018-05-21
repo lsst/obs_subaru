@@ -272,11 +272,15 @@ class HscMapper(CameraMapper):
         return self._computeCcdExposureId(dataId)
 
     def bypass_ccdExposureId_bits(self, datasetType, pythonType, location, dataId):
-        """How many bits are required for the maximum exposure ID"""
+        """How many bits are required for the maximum exposure ID
+        """
+
         return 32  # just a guess, but this leaves plenty of space for sources
 
     def map_linearizer(self, dataId, write=False):
-        """Map a linearizer."""
+        """Map a linearizer.
+        """
+
         if self._linearize is None:
             raise RuntimeError("No linearizer available.")
         actualId = self._transformId(dataId)

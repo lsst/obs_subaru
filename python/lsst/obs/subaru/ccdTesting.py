@@ -29,7 +29,8 @@ import lsst.analysis.utils as anUtils
 
 
 def getNameOfSet(vals):
-    """Convert a list of numbers into a string, merging consecutive values"""
+    """Convert a list of numbers into a string, merging consecutive values
+    """
     if not vals:
         return ""
 

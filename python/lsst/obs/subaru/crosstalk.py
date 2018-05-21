@@ -19,19 +19,22 @@
 # the GNU General Public License along with this program.  If not,
 # see <https://www.lsstcorp.org/LegalNotices/>.
 #
-"""
-Determine and apply crosstalk corrections
+"""Determine and apply crosstalk corrections
 
 N.b. This code was written and tested for the 4-amplifier Hamamatsu chips used in (Hyper)?SuprimeCam,
 and will need to be generalised to handle other amplifier layouts.  I don't want to do this until we
 have an example.
 
+Examples
+_ _ _ _ _
+
 N.b. To estimate crosstalk from the SuprimeCam data, the commands are e.g.:
-import crosstalk
-coeffs, coeffsErr = crosstalk.estimateCoeffs(butler, range(131634, 131642), range(10), threshold=1e5,
-                                             plot=True, title="CCD0..9", fig=1)
-crosstalk.fixCcd(butler, 131634, 0, coeffs)
+>>>import crosstalk
+>>>coeffs, coeffsErr = crosstalk.estimateCoeffs(butler, range(131634, 131642), range(10), threshold=1e5,
+plot=True, title="CCD0..9", fig=1)
+>>>crosstalk.fixCcd(butler, 131634, 0, coeffs)
 """
+
 from __future__ import absolute_import, division, print_function
 from builtins import next
 from builtins import range
@@ -50,9 +53,17 @@ import lsst.pex.config as pexConfig
 import lsst.afw.display as afwDisplay
 from functools import reduce
 
+__all__= ('CrosstalkCoeffsConfig', 'CrosstalkConfig', 'CrosstalkTask', 'getXPos', \
+        'getAmplitudeRatios', 'calculateCoeffs', 'subtractXTalk', 'printCoeffs', 'addTrail', \
+        'addSaturated', 'makeImage', 'readImage', 'makeList', 'estimateCoeffs', 'main', 'makeSubplots', \
+        'getMpFigure', 'fixCcd')
+
+
+
 
 class CrosstalkCoeffsConfig(pexConfig.Config):
-    """Specify crosstalk coefficients for a CCD"""
+    """Specify crosstalk coefficients for a CCD
+    """
 
     values = pexConfig.ListField(
         dtype=float,
@@ -71,7 +82,9 @@ class CrosstalkCoeffsConfig(pexConfig.Config):
     )
 
     def getCoeffs(self):
-        """Return a 2-D numpy array of crosstalk coefficients of the proper shape"""
+        """Return a 2-D numpy array of crosstalk coefficients of the proper shape
+        """
+
         return np.array(self.values).reshape(self.shape)
 
 
@@ -95,7 +108,9 @@ nAmp = 4
 
 
 def getXPos(width, hwidth, x):
-    """Return the amp that x is in, and the positions of its image in each amplifier"""
+    """Return the amp that x is in, and the positions of its image in each amplifier
+    """
+
     amp = x//(hwidth//2)                # which amp am I in?  Assumes nAmp == 4
     assert nAmp == 4
     assert amp in range(nAmp)
@@ -166,7 +181,9 @@ def getAmplitudeRatios(mi, threshold=45000, bkgd=None, rats=None):
 
 
 def calculateCoeffs(rats, nsigma, plot=False, fig=None, title=None):
-    """Calculate cross-talk coefficients"""
+    """Calculate cross-talk coefficients
+    """
+
     coeffs = np.empty((nAmp, nAmp))
     coeffsErr = np.empty_like(coeffs)
 
@@ -230,6 +247,7 @@ def subtractXTalk(mi, coeffs, minPixelToMask=45000, crosstalkStr="CROSSTALK"):
 
     The pixels affected by signal over minPixelToMask have the crosstalkStr bit set
     """
+
     sctrl = afwMath.StatisticsControl()
     sctrl.setAndMask(mi.getMask().getPlaneBitMask("BAD"))
     bkgd = afwMath.makeStatistics(mi, afwMath.MEDIAN, sctrl).getValue()
@@ -288,7 +306,8 @@ def subtractXTalk(mi, coeffs, minPixelToMask=45000, crosstalkStr="CROSSTALK"):
 
 
 def printCoeffs(coeffs, coeffsErr=None, LaTeX=False, ppm=False):
-    """Print cross-talk coefficients"""
+    """Print cross-talk coefficients
+    """
 
     if LaTeX:
         print(r"""\begin{tabular}{l|*{4}{l}}
@@ -536,7 +555,8 @@ def getMpFigure(fig=None, clear=True):
 
 
 def fixCcd(butler, visit, ccd, coeffs, display=True):
-    """Apply cross-talk correction to a CCD, given the cross-talk coefficients"""
+    """Apply cross-talk correction to a CCD, given the cross-talk coefficients
+    """
     mi = readImage(butler, visit=visit, ccd=ccd)
     if display:
         afwDisplay.getDisplay(frame=1).mtv(mi.getImage(), title="CCD %d" % ccd)
