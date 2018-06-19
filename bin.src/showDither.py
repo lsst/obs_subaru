@@ -104,7 +104,7 @@ def main(butler, visits, fields, fieldRadius, showCCDs=False, aitoff=False, alph
                         print(e, file=sys.stderr)
                     continue
 
-                width, height = md.get("NAXIS1"), md.get("NAXIS2")
+                width, height = md.getScalar("NAXIS1"), md.getScalar("NAXIS2")
                 wcs = afwGeom.makeSkyWcs(md)
 
                 verts = []

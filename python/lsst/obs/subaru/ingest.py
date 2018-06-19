@@ -56,7 +56,7 @@ class HscParseTask(ParseTask):
     DAY0 = 55927  # Zero point for  2012-01-01  51544 -> 2000-01-01
 
     def translate_field(self, md):
-        field = md.get("OBJECT").strip()
+        field = md.getScalar("OBJECT").strip()
         if field == "#":
             field = "UNKNOWN"
         # replacing inappropriate characters for file path and upper()
@@ -65,7 +65,7 @@ class HscParseTask(ParseTask):
         return field
 
     def translate_visit(self, md):
-        expId = md.get("EXP-ID").strip()
+        expId = md.getScalar("EXP-ID").strip()
         m = re.search("^HSCE(\d{8})$", expId)  # 2016-06-14 and new scheme
         if m:
             return int(m.group(1))
@@ -78,7 +78,7 @@ class HscParseTask(ParseTask):
         visit = int(visit)
         if visit == 0:
             # Don't believe it
-            frameId = md.get("FRAMEID").strip()
+            frameId = md.getScalar("FRAMEID").strip()
             m = re.search("^HSC([A-Z])(\d{6})\d{2}$", frameId)
             if not m:
                 raise RuntimeError("Unable to interpret FRAMEID: %s" % frameId)
@@ -90,7 +90,7 @@ class HscParseTask(ParseTask):
 
     def getTjd(self, md):
         """Return truncated (modified) Julian Date"""
-        return int(md.get('MJD')) - self.DAY0
+        return int(md.getScalar('MJD')) - self.DAY0
 
     def translate_pointing(self, md):
         """This value was originally called 'pointing', and intended to be used
@@ -105,7 +105,7 @@ class HscParseTask(ParseTask):
             pass
 
         try:
-            dateobs = md.get("DATE-OBS")
+            dateobs = md.getScalar("DATE-OBS")
             m = re.search(r'(\d{4})-(\d{2})-(\d{2})', dateobs)
             year, month, day = m.groups()
             obsday = datetime.datetime(int(year), int(month), int(day), 0, 0, 0)
@@ -130,7 +130,7 @@ class HscParseTask(ParseTask):
         """Focus CCDs were numbered incorrectly in the readout software during
         commissioning run 2.  We need to map to the correct ones.
         """
-        ccd = int(md.get("DET-ID"))
+        ccd = int(md.getScalar("DET-ID"))
         try:
             tjd = self.getTjd(md)
         except:
@@ -144,7 +144,7 @@ class HscParseTask(ParseTask):
     def translate_filter(self, md):
         """Want upper-case filter names"""
         try:
-            return md.get('FILTER01').strip().upper()
+            return md.getScalar('FILTER01').strip().upper()
         except:
             return "Unrecognized"
 
@@ -152,7 +152,7 @@ class HscParseTask(ParseTask):
 class HscCalibsParseTask(CalibsParseTask):
 
     def _translateFromCalibId(self, field, md):
-        data = md.get("CALIB_ID")
+        data = md.getScalar("CALIB_ID")
         match = re.search(".*%s=(\S+)" % field, data)
         return match.groups()[0]
 
@@ -173,14 +173,14 @@ class SuprimecamParseTask(HscParseTask):
     DAY0 = 53005  # 2004-01-01
 
     def translate_visit(self, md):
-        expId = md.get("EXP-ID").strip()
+        expId = md.getScalar("EXP-ID").strip()
         m = re.search("^SUP[A-Z](\d{7})0$", expId)
         if not m:
             raise RuntimeError("Unable to interpret EXP-ID: %s" % expId)
         visit = int(m.group(1))
         if int(visit) == 0:
             # Don't believe it
-            frameId = md.get("FRAMEID").strip()
+            frameId = md.getScalar("FRAMEID").strip()
             m = re.search("^SUP[A-Z](\d{7})\d{1}$", frameId)
             if not m:
                 raise RuntimeError("Unable to interpret FRAMEID: %s" % frameId)
