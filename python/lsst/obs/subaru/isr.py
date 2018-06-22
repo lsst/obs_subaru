@@ -673,7 +673,7 @@ class SuprimeCamIsrTask(SubaruIsrTask):
             self.log.warn("No autoguider position in exposure metadata.")
             return
 
-        xGuider = md.get("S_AG-X")
+        xGuider = md.getScalar("S_AG-X")
         if ccdNum in [1, 2, 7]:
             maskLimit = int(60.0 * xGuider - 2300.0)  # From SDFRED
         elif ccdNum in [0, 6]:
@@ -731,7 +731,7 @@ class SuprimeCamMitIsrTask(SubaruIsrTask):
             self.log.warn("No autoguider position in exposure metadata.")
             return
 
-        xGuider = md.get("S_AG-X")
+        xGuider = md.getScalar("S_AG-X")
         if ccdNum in [1, 4, 5]:
             maskLimit = int(60.0 * xGuider - 2300.0)  # From SDFRED
         elif ccdNum in [0, 9]:

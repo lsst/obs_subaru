@@ -757,7 +757,7 @@ def plotCcdQE(butler, filter, zmin=None, zmax=None, filter2=None, relative=False
     ccdIds = [i for i in ccdIds if i < 100]
 
     md = butler.get("raw_md", visit=visit, ccd=ccdIds[0])
-    xc, yc = 0.5*md.get("NAXIS1"), 0.5*md.get("NAXIS2")
+    xc, yc = 0.5*md.getScalar("NAXIS1"), 0.5*md.getScalar("NAXIS2")
     ccdCen = afwGeom.PointD(xc, yc)
 
     norm = plt.Normalize(zmin, zmax)
@@ -820,7 +820,7 @@ def plotCcdZP(butler, visit, correctJacobian=False, zlim=(None, None), visit2=No
 
         try:
             md = butler.get("raw_md", visit=visit[0], ccd=ccdId)
-            xc, yc = 0.5*md.get("NAXIS1"), 0.5*md.get("NAXIS2")
+            xc, yc = 0.5*md.getScalar("NAXIS1"), 0.5*md.getScalar("NAXIS2")
             ccdCenMm = ccd.getPositionFromPixel(afwGeom.PointD(xc, yc)).getMm()
             xmm[i], ymm[i] = ccdCenMm
         except Exception as e:
@@ -847,7 +847,7 @@ def plotCcdZP(butler, visit, correctJacobian=False, zlim=(None, None), visit2=No
                         continue
 
                     calib = afwImage.Calib(calexp_md)
-                    exposureTime = float(calexp_md.get("EXPTIME"))  # might be a string
+                    exposureTime = float(calexp_md.getScalar("EXPTIME"))  # might be a string
                     zps.append(calib.getMagnitude(1.0) - 2.5*np.log10(exposureTime))
 
                 if zps:
@@ -873,7 +873,7 @@ def plotCcdZP(butler, visit, correctJacobian=False, zlim=(None, None), visit2=No
                     continue
 
                 calib = afwImage.Calib(calexp_md)
-                exposureTime = float(calexp_md.get("EXPTIME"))  # might be a string
+                exposureTime = float(calexp_md.getScalar("EXPTIME"))  # might be a string
                 try:
                     ZP = calib.getMagnitude(1.0) - 2.5*np.log10(exposureTime)
                 except:
@@ -948,11 +948,11 @@ def plotCcdTemperatures(butler, visit):
         ccd = afwCGUtils.findCcd(camera, afwCG.Id(ccdId))
         md = butler.get("raw_md", visit=visit, ccd=ccdId)
         if i == 0:
-            xc, yc = 0.5*md.get("NAXIS1"), 0.5*md.get("NAXIS2")
+            xc, yc = 0.5*md.getScalar("NAXIS1"), 0.5*md.getScalar("NAXIS2")
             ccdCen = afwGeom.PointD(xc, yc)
 
         xmm[i], ymm[i] = ccd.getPositionFromPixel(ccdCen).getMm()
-        temp[i] = md.get("T_CCDTV")
+        temp[i] = md.getScalar("T_CCDTV")
 
     plt.clf()
 
@@ -2700,17 +2700,17 @@ def writeObsTable(butler, mos, LaTeX=False):
         if False:
             filter = afwImage.Filter(md).getName() # why does this fail?
         else:
-            filter = md.get("FILTER01")[-1:].lower()
+            filter = md.getScalar("FILTER01")[-1:].lower()
         if filter == "z" and v in range(904672, 905068+1, 2): # z wasn't available
             filter = "i"                                      # error in header
 
         summary[v] = dict(filter=filter,
-                          exptime="%.0f" % md.get("EXPTIME"),
-                          date=md.get("DATE-OBS"),
-                          start=md.get("UT")[:8],
+                          exptime="%.0f" % md.getScalar("EXPTIME"),
+                          date=md.getScalar("DATE-OBS"),
+                          start=md.getScalar("UT")[:8],
                           )
         if v not in comments:
-            comments[v] = md.get("OBJECT")
+            comments[v] = md.getScalar("OBJECT")
 
     fields = ["visit"]
     for k in ["date", "start", "exptime", "filter"]:
@@ -3295,7 +3295,7 @@ def isrCallback(im, ccd=None, butler=None, imageSource=None, doFlatten=True, cor
         filter = "HSC-" + filter
     filter = filter.upper()
 
-    taiObs = md.get("DATE-OBS")
+    taiObs = md.getScalar("DATE-OBS")
     bias = butler.get("bias", ccd=ccdId, taiObs=taiObs, visit=0) \
         if isrTask.config.doBias else None
     flat = butler.get("flat", ccd=ccdId, filter=filter, taiObs=taiObs, visit=0) \

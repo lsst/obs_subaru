@@ -11,7 +11,9 @@ _build.*
 .sconf_temp
 .sconsign.dblite
 .cache
+.pytest_cache
 pytest_session.txt
+.coverage
 config.log
 tests/.tests
 tests/.cache/*

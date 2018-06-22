@@ -234,7 +234,7 @@ class HscMapper(CameraMapper):
         wcsMd = wcsR.getFitsMetadata()
 
         for k in wcsMd.names():
-            md.set(k, wcsMd.get(k))
+            md.set(k, wcsMd.getScalar(k))
 
         return md
 

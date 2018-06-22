@@ -165,7 +165,7 @@ class GetDataTestCase(lsst.utils.tests.TestCase):
     def testRawMetadata(self):
         """Test retrieval of raw image metadata"""
         md = self.butler.get("raw_md", visit=self.visit, ccd=self.ccdNum)
-        self.assertEqual(md.get("DET-ID"), self.ccdNum)
+        self.assertEqual(md.getScalar("DET-ID"), self.ccdNum)
 
     def testBias(self):
         """Test retrieval of bias frame"""
