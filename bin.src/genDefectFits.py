@@ -6,7 +6,7 @@ import os.path
 import re
 
 import numpy
-import pyfits
+from astropy.io import fits
 import collections
 
 from lsst.obs.hsc import HscMapper
@@ -49,11 +49,11 @@ def genDefectFits(cameraName, source, targetDir):
         columns = list()
         for colName in Defect._fields:
             colData = numpy.array([d._asdict()[colName] for d in defects[ccd]])
-            col = pyfits.Column(name=colName, format="I", array=colData)
+            col = fits.Column(name=colName, format="I", array=colData)
             columns.append(col)
 
-        cols = pyfits.ColDefs(columns)
-        table = pyfits.BinTableHDU.from_columns(cols)
+        cols = fits.ColDefs(columns)
+        table = fits.BinTableHDU.from_columns(cols)
 
         table.header['NAME'] = ccd
 

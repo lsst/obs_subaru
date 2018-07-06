@@ -24,7 +24,7 @@
 from __future__ import absolute_import, division, print_function
 from builtins import map
 from builtins import range
-import pyfits
+from astropy.io import fits
 import sys
 import re
 import os
@@ -227,7 +227,7 @@ if __name__ == '__main__':
     buffElectro = open('Electronics.paf', 'w')
 
     infile = sys.argv[1]           # full MEF file; e.g. 871034p.fits
-    ptr = pyfits.open(infile)
+    ptr = fits.open(infile)
 
     printCameraGeom(infile, buffCamera)
     printAmpDefaults(buffCamera)
