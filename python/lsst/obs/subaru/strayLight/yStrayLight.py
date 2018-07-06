@@ -21,7 +21,7 @@ __all__ = ["StrayLightTask"]
 import os
 
 import numpy
-import astropy.io.fits as pyfits
+from astropy.io import fits
 import scipy.interpolate
 
 from lsst.pex.config import Config, Field
@@ -144,7 +144,7 @@ def get_ybackground(filename, angle_start, angle_end=None):
 
     @return (numpy.array[][])
     """
-    hdulist = pyfits.open(filename)
+    hdulist = fits.open(filename)
     header = hdulist[0].header
 
     # full-size ccd height & channel width

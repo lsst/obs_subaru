@@ -22,7 +22,7 @@ __all__ = ["inrStartEnd"]
 
 import sys
 import numpy as np
-import astropy.io.fits as pyfits
+from astropy.io import fits
 
 ### fixed parameters
 ltt_d = 19.82556  # dome latitude in degree
@@ -203,7 +203,7 @@ def _gsCPposNorth(ra_t_d, de_t_d, inr_d, mjd):
 
 def _getDataArrayFromFITSFileWithHeader(pathToFITSFile):
     """return array of pixel data"""
-    fitsfile   = pyfits.open(pathToFITSFile)
+    fitsfile   = fits.open(pathToFITSFile)
     dataArray  = fitsfile[0].data
     fitsHeader = fitsfile[0].header
     fitsfile.close()
