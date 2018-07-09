@@ -40,3 +40,5 @@ def doUndeblended(config, algName, fluxList=None):
 doUndeblended(config, "base_PsfFlux")
 doUndeblended(config, "ext_photometryKron_KronFlux")
 doUndeblended(config, "base_CircularApertureFlux", [])  # No aperture correction for circular apertures
+doUndeblended(config, "ext_convolved_ConvolvedFlux",
+              config.measurement.plugins["ext_convolved_ConvolvedFlux"].getAllResultNames())
