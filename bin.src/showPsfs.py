@@ -7,6 +7,7 @@ import os
 import re
 import sys
 
+from astropy.io import fits
 import numpy as np
 from matplotlib.mlab import griddata
 import matplotlib.pyplot as plt
@@ -249,7 +250,6 @@ def main(dataDir, visit, title="", outputTxtFileName=None,
     plt.axis([-20000, 20000, -20000, 20000])
 
     def frameInfoFrom(filepath):
-        from astropy.io import fits
         with fits.open(filepath) as hdul:
             h = hdul[0].header
             'object=ABELL2163 filter=HSC-I exptime=360.0 alt=62.11143274 azm=202.32265181 hst=(23:40:08.363-23:40:48.546)'
