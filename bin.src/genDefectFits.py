@@ -27,19 +27,18 @@ def genDefectFits(cameraName, source, targetDir):
 
     defects = dict()
 
-    f = open(source, "r")
-    for line in f:
-        line = re.sub("\#.*", "", line).strip()
-        if len(line) == 0:
-            continue
-        ccd, x0, y0, width, height = re.split("\s+", line)
-        ccd = int(ccd)
-        if ccd not in ccds:
-            raise RuntimeError("Unrecognised ccd: %d" % ccd)
-        if ccd not in defects:
-            defects[ccd] = list()
-        defects[ccd].append(Defect(x0=int(x0), y0=int(y0), width=int(width), height=int(height)))
-    f.close()
+    with open(source, "r") as f:
+        for line in f:
+            line = re.sub("\#.*", "", line).strip()
+            if len(line) == 0:
+                continue
+            ccd, x0, y0, width, height = re.split("\s+", line)
+            ccd = int(ccd)
+            if ccd not in ccds:
+                raise RuntimeError("Unrecognised ccd: %d" % ccd)
+            if ccd not in defects:
+                defects[ccd] = list()
+            defects[ccd].append(Defect(x0=int(x0), y0=int(y0), width=int(width), height=int(height)))
 
     for ccd in ccds:
         # Make empty defect FITS file for CCDs with no defects
