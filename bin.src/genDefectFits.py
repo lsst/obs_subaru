@@ -6,7 +6,7 @@ import os.path
 import re
 
 import numpy
-import pyfits
+from astropy.io import fits
 import collections
 
 from lsst.obs.hsc import HscMapper
@@ -27,19 +27,18 @@ def genDefectFits(cameraName, source, targetDir):
 
     defects = dict()
 
-    f = open(source, "r")
-    for line in f:
-        line = re.sub("\#.*", "", line).strip()
-        if len(line) == 0:
-            continue
-        ccd, x0, y0, width, height = re.split("\s+", line)
-        ccd = int(ccd)
-        if ccd not in ccds:
-            raise RuntimeError("Unrecognised ccd: %d" % ccd)
-        if ccd not in defects:
-            defects[ccd] = list()
-        defects[ccd].append(Defect(x0=int(x0), y0=int(y0), width=int(width), height=int(height)))
-    f.close()
+    with open(source, "r") as f:
+        for line in f:
+            line = re.sub("\#.*", "", line).strip()
+            if len(line) == 0:
+                continue
+            ccd, x0, y0, width, height = re.split("\s+", line)
+            ccd = int(ccd)
+            if ccd not in ccds:
+                raise RuntimeError("Unrecognised ccd: %d" % ccd)
+            if ccd not in defects:
+                defects[ccd] = list()
+            defects[ccd].append(Defect(x0=int(x0), y0=int(y0), width=int(width), height=int(height)))
 
     for ccd in ccds:
         # Make empty defect FITS file for CCDs with no defects
@@ -49,11 +48,11 @@ def genDefectFits(cameraName, source, targetDir):
         columns = list()
         for colName in Defect._fields:
             colData = numpy.array([d._asdict()[colName] for d in defects[ccd]])
-            col = pyfits.Column(name=colName, format="I", array=colData)
+            col = fits.Column(name=colName, format="I", array=colData)
             columns.append(col)
 
-        cols = pyfits.ColDefs(columns)
-        table = pyfits.BinTableHDU.from_columns(cols)
+        cols = fits.ColDefs(columns)
+        table = fits.BinTableHDU.from_columns(cols)
 
         table.header['NAME'] = ccd
 
