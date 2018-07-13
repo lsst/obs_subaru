@@ -180,7 +180,7 @@ def calculateCoeffs(rats, nsigma, plot=False, fig=None, title=None):
         rMin = 2e-3
         bins = np.arange(-rMin, rMin, 0.05*rMin)
 
-        xMajorLocator = ticker.MaxNLocator(nbins=3) # steps=(-rMin/2, 0, rMin/2))
+        xMajorLocator = ticker.MaxNLocator(nbins=3)  # steps=(-rMin/2, 0, rMin/2))
 
     for ain in range(nAmp):
         for aout in range(nAmp):
@@ -197,9 +197,9 @@ def calculateCoeffs(rats, nsigma, plot=False, fig=None, title=None):
 
             coeffs[ain][aout] = tmp[len(tmp)//2]
 
-            err = 0.741*(tmp[3*len(tmp)//4] - tmp[len(tmp)//4]) # estimate s.d. from IQR
-            err /= math.sqrt(len(tmp))                          # standard error of mean
-            err *= math.sqrt(math.pi/2)                         # standard error of median
+            err = 0.741*(tmp[3*len(tmp)//4] - tmp[len(tmp)//4])  # estimate s.d. from IQR
+            err /= math.sqrt(len(tmp))                           # standard error of mean
+            err *= math.sqrt(math.pi/2)                          # standard error of median
             coeffsErr[ain][aout] = err
 
             if plot:
@@ -259,7 +259,7 @@ def subtractXTalk(mi, coeffs, minPixelToMask=45000, crosstalkStr="CROSSTALK"):
 
                 bbox = afwGeom.BoxI(afwGeom.PointI(j*(width//nAmp), 0), afwGeom.ExtentI(width//nAmp, height))
                 if (i + j)%2 == 1:
-                    ampJ = afwMath.flipImage(mi.Factory(mi, bbox), True, False) # no need for a deep copy
+                    ampJ = afwMath.flipImage(mi.Factory(mi, bbox), True, False)  # no need for a deep copy
                 else:
                     ampJ = mi.Factory(mi, bbox, afwImage.LOCAL, True)
 
@@ -284,7 +284,7 @@ def subtractXTalk(mi, coeffs, minPixelToMask=45000, crosstalkStr="CROSSTALK"):
         np_msk[mask_indicies] &= getattr(np, np_msk.dtype.name)(~crosstalk)
 
     finally:
-        msk.removeAndClearMaskPlane(tempStr, True) # added in afw #1853
+        msk.removeAndClearMaskPlane(tempStr, True)  # added in afw #1853
 
 
 def printCoeffs(coeffs, coeffsErr=None, LaTeX=False, ppm=False):
@@ -334,14 +334,14 @@ ampIn    &    \multicolumn{4}{c}{ampOut} \\
 
         print(msg)
 
-#-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
 #
 # Code to simulate crosstalk
 #
-xTalkAmplitudes = np.array([(0, -1.0e-4, -2.0e-4, -3.0e-4), # cross talk from amp0 to amp1, 2, 3
+xTalkAmplitudes = np.array([(0, -1.0e-4, -2.0e-4, -3.0e-4),  # cross talk from amp0 to amp1, 2, 3
                             (-1.5e-4, 0, -2.5e-4, -2.9e-4),
                             (-2.2e-4, -3.1e-4, 0, -0.9e-4),
-                            (-2.7e-4, -3.3e-4, -1.9e-4, 0)]) # ... from amp 3
+                            (-2.7e-4, -3.3e-4, -1.9e-4, 0)])  # ... from amp 3
 
 
 def addTrail(mi, val, x0, y0, pix, addCrosstalk=True):
@@ -449,6 +449,7 @@ def main(butler, visit=131634, ccd=None, threshold=45000, nSample=1, showCoeffs=
 
     return mi, coeffs
 
+
 try:
     import matplotlib.ticker as ticker
     import matplotlib.pyplot as pyplot
@@ -463,7 +464,7 @@ except NameError:
 def makeSubplots(figure, nx=2, ny=2):
     """Return a generator of a set of subplots"""
     for window in range(nx*ny):
-        yield figure.add_subplot(nx, ny, window + 1) # 1-indexed
+        yield figure.add_subplot(nx, ny, window + 1)  # 1-indexed
 
 
 def getMpFigure(fig=None, clear=True):
@@ -484,14 +485,14 @@ def getMpFigure(fig=None, clear=True):
             raise RuntimeError("I'm sorry, but matplotlib uses 1-indexed figures")
         if i < 0:
             try:
-                i = sorted(mpFigures.keys())[i] # simulate list's [-n] syntax
+                i = sorted(mpFigures.keys())[i]  # simulate list's [-n] syntax
             except IndexError:
                 if mpFigures:
                     print("Illegal index: %d" % i, file=sys.stderr)
                 i = 1
 
         def lift(fig):
-            fig.canvas._tkcanvas._root().lift() # == Tk's raise, but raise is a python reserved word
+            fig.canvas._tkcanvas._root().lift()  # == Tk's raise, but raise is a python reserved word
 
         if i in mpFigures:
             try:
@@ -545,6 +546,7 @@ def fixCcd(butler, visit, ccd, coeffs, display=True):
 
     if display:
         afwDisplay.getDisplay(frame=2).mtv(mi, title="corrected %d" % ccd)
+
 
 if __name__ == "__main__":
     main()

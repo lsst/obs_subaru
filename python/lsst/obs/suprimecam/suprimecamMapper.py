@@ -306,7 +306,7 @@ class SuprimecamMapper(SuprimecamMapperBase):
         if not kwargs.get('root', None):
             try:
                 kwargs['root'] = os.path.join(os.environ.get('SUPRIME_DATA_DIR'), 'SUPA')
-            except:
+            except Exception:
                 raise RuntimeError("Either $SUPRIME_DATA_DIR or root= must be specified")
         if not kwargs.get('calibRoot', None):
             kwargs['calibRoot'] = os.path.join(kwargs['root'], 'CALIB')
@@ -344,7 +344,7 @@ class SuprimecamMapperMit(SuprimecamMapperBase):
         if not kwargs.get('root', None):
             try:
                 kwargs['root'] = os.path.join(os.environ.get('SUPRIME_DATA_DIR'), 'SUPA')
-            except:
+            except Exception:
                 raise RuntimeError("Either $SUPRIME_DATA_DIR or root= must be specified")
         if not kwargs.get('calibRoot', None):
             kwargs['calibRoot'] = os.path.join(kwargs['root'], 'CALIB_MIT')

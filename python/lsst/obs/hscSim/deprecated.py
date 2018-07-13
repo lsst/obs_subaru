@@ -1,4 +1,6 @@
 from __future__ import absolute_import, division, print_function
+
+
 def deprecated(old, new):
     print("WARNING!")
     print("WARNING!")

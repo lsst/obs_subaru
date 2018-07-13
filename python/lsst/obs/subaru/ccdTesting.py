@@ -393,8 +393,6 @@ Grow BAD regions in the flat field by nGrow pixels (useful for vignetted chips)
         diff.getImage().getArray()[:] = (ima[0] - ima[1])/np.sqrt(0.5*(ima[0] + ima[1]))
         ds9.mtv(diff, frame=frame, title='diff')
 
-#-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-
 
 def dumpRaftParams(raft, nIndent=0, dIndent=4, fd=sys.stdout, nCol=15, nRow=8):
     """Write a Raft's parameters a camera.paf file"""
@@ -431,14 +429,16 @@ def dumpCcdParams(ccd, nIndent=0, dIndent=4, fd=sys.stdout, iC=0, iR=0):
 
     print("%sindex: %d %d" % (indent + dindent, iC, iR), file=fd)
     print("%soffset: %10.2f %10.2f\t%s" % (indent + dindent, x, y,
-                                                  "# offset of CCD center from raft center, (x, y)"), file=fd)
+                                           "# offset of CCD center from raft center, (x, y)"),
+          file=fd)
     print("%snQuarter: %d\t\t\t%s" % (indent + dindent, orient.getNQuarter(),
-                                             "# number of quarter turns applied to CCD when put into raft"), file=fd)
+                                      "# number of quarter turns applied to CCD when put into raft"),
+          file=fd)
     print("%sorientation: %f %f %f\t\t%s" % (indent + dindent,
-                                                    math.degrees(orient.getPitch()),
-                                                    math.degrees(orient.getRoll()),
-                                                    math.degrees(orient.getYaw()),
-                                                    "# pitch, roll, yaw; degrees"), file=fd)
+                                             math.degrees(orient.getPitch()),
+                                             math.degrees(orient.getRoll()),
+                                             math.degrees(orient.getYaw()),
+                                             "# pitch, roll, yaw; degrees"), file=fd)
     print("%s}" % (indent), file=fd)
 
 
@@ -498,8 +498,6 @@ def dumpCameraElectronicParams(camera, nIndent=0, dIndent=4, outFile=None):
     print("}", file=fd)
 
 
-#-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-
 def estimatePupilIllumination(mi, centers=((-34, 93), (131, -192), (-195, -192),
                                            (-197, 377), (-358, 92), (293, 93),),
                               R=48.8, threshold=2500, nGrow=0):
@@ -513,7 +511,7 @@ def estimatePupilIllumination(mi, centers=((-34, 93), (131, -192), (-195, -192),
 
     BAD = mi.getMask().getPlaneBitMask("BAD")
     EDGE = mi.getMask().getPlaneBitMask("EDGE")
-    afwDet.setMaskFromFootprintList(mi.getMask(), fs.getFootprints(), BAD) # we'll flip it in a moment
+    afwDet.setMaskFromFootprintList(mi.getMask(), fs.getFootprints(), BAD)  # we'll flip it in a moment
 
     x0, y0 = mi.getXY0()
     if False:
@@ -537,7 +535,7 @@ def estimatePupilIllumination(mi, centers=((-34, 93), (131, -192), (-195, -192),
                     Ipupil += stamp.get(ix, iy)[0]
                     Npupil += 1
 
-        stamp.getImage()[:] /= Ipupil/Npupil # normalise to constant surface brightness.  Ignore Jacobian
+        stamp.getImage()[:] /= Ipupil/Npupil  # normalise to constant surface brightness.  Ignore Jacobian
 
         stamp.getMask().getArray()[:] ^= BAD
         imgList.push_back(stamp)
@@ -556,8 +554,6 @@ def estimatePupilIllumination(mi, centers=((-34, 93), (131, -192), (-195, -192),
     ds9.dot('o', -out.getX0(), -out.getY0(), size=R, ctype=ds9.RED, frame=8)
 
     return out.getImage()
-
-#-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 
 def removeCRs(mi, background=None, crNGrow=1):
@@ -584,8 +580,6 @@ def removeCRs(mi, background=None, crNGrow=1):
 
     return mi.getImage()
 
-#-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-
 
 def XXXremoveCRs(mi, background, maskBit=None, crThreshold=8, crNpixMax=100, crNGrow=1):
     x0, y0 = mi.getXY0()
@@ -611,7 +605,7 @@ def XXXremoveCRs(mi, background, maskBit=None, crThreshold=8, crNpixMax=100, crN
                         xv.append(x)
                         yv.append(y)
 
-        im[yv, xv] = background + 0*im[yv, xv] # keep NaNs NaN
+        im[yv, xv] = background + 0*im[yv, xv]  # keep NaNs NaN
         if maskBit is not None:
             if hasattr(mi, "getMask"):
                 mi.getMask().getArray()[yv, xv] |= maskBit
@@ -643,7 +637,7 @@ def estimateScattering(mi, threshold=2000, nGrow=2, npixMin=35, frame=None, inve
         mi.getImage()[1599:1767, 248] = background
         mi.getImage()[1599:1771, 187] = background
 
-        mi.getImage()[1923, 968] = background # cut CRs from pupils
+        mi.getImage()[1923, 968] = background  # cut CRs from pupils
         mi.getImage()[1451, 99] = background
 
     removeCRs(mi, background)
@@ -674,8 +668,6 @@ def estimateScattering(mi, threshold=2000, nGrow=2, npixMin=35, frame=None, inve
         ds9.mtv(mi, frame=frame)
 
     return frac
-
-#-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 
 def estimateDarkCurrent(butler, visits, nSkipRows=35, frame=None):
@@ -711,7 +703,7 @@ def estimateDarkCurrent(butler, visits, nSkipRows=35, frame=None):
 
                 ystart = dataSec.getMaxY() + nSkipRows + 1
                 if ystart > raw.getHeight() - 1:
-                    ystart = dataSec.getMaxY() + 1 + 2 # +2 for CTE
+                    ystart = dataSec.getMaxY() + 1 + 2  # +2 for CTE
 
                 darkSec = afwGeom.BoxI(afwGeom.PointI(dataSec.getMinX(), ystart),
                                        afwGeom.PointI(dataSec.getMaxX(), raw.getHeight() - 1))
@@ -729,8 +721,6 @@ def estimateDarkCurrent(butler, visits, nSkipRows=35, frame=None):
         cameraDark += val
 
     print("%8.3f" % (cameraDark/len(ccds)))
-
-#-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 
 def plotCcdQE(butler, filter, zmin=None, zmax=None, filter2=None, relative=False, canonical=None, fig=None):
@@ -876,7 +866,7 @@ def plotCcdZP(butler, visit, correctJacobian=False, zlim=(None, None), visit2=No
                 exposureTime = float(calexp_md.getScalar("EXPTIME"))  # might be a string
                 try:
                     ZP = calib.getMagnitude(1.0) - 2.5*np.log10(exposureTime)
-                except:
+                except Exception:
                     ZP = np.nan
 
             if correctJacobian:
@@ -933,8 +923,6 @@ def plotCcdZP(butler, visit, correctJacobian=False, zlim=(None, None), visit2=No
 
     return fig
 
-#-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-
 
 def plotCcdTemperatures(butler, visit):
     camera = butler.get("camera")
@@ -966,8 +954,6 @@ def plotCcdTemperatures(butler, visit):
     plt.ylabel("Y/pixels")
     plt.title("CCD Temperatures ($^\circ$C), visit %d" % (visit))
 
-#-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-
 
 def makeBias(images):
     imgList = []
@@ -975,8 +961,6 @@ def makeBias(images):
         imgList.push_back(im)
 
     return afwMath.statisticsStack(imgList, afwMath.MEDIAN)
-
-#-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 
 def subtractBiasNoTrim(exp):
@@ -1002,7 +986,7 @@ def grads(exp):
     plt.clf()
     for a in ccd:
         ima = im[a.getRawDataBBox()].getArray()
-        I = np.mean(ima, 1)/np.median(ima)
+        I = np.mean(ima, 1)/np.median(ima)  # noqa E741
 
         size = 512//16
         if False:
@@ -1024,7 +1008,6 @@ def grads(exp):
 
     return ima
 
-#-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 levels902986 = {                          # Set from g-band sky 902986 (~ 65k e/pixel)
     0: 43403.91,
@@ -1854,6 +1837,7 @@ def getQE(serial, filter):
 
     return float(levels[serial])/avg
 
+
 #
 # These are the levels at the edges of the CCDs, so edges['r'][69][77] is the level (in r)
 # on CCD69 adjacent to CCD77
@@ -2557,9 +2541,9 @@ def findCanonical(serial, edges, seen=None, scale=1.0, canonical=50, verbose=Fal
         x = findCanonical(s, edges, seen, scale=scale, canonical=canonical, verbose=verbose)
         if x is not None:
             if verbose:
-                print(s, serial, scale, edges[s][serial], edges[serial][s], \
-                    x, float(edges[serial][s])/float(edges[s][serial]), \
-                    x*float(edges[serial][s])/float(edges[s][serial]))
+                print(s, serial, scale, edges[s][serial], edges[serial][s],
+                      x, float(edges[serial][s])/float(edges[s][serial]),
+                      x*float(edges[serial][s])/float(edges[s][serial]))
             return x*float(edges[serial][s])/float(edges[s][serial])
 
     return None
@@ -2573,7 +2557,7 @@ def getCameraQE(butler, visit, fd=None):
     for i, ccd in enumerate(ccdIds):
         try:
             calexp_md = butler.get("calexp_md", visit=visit, ccd=ccd, immediate=True)
-        except:
+        except Exception:
             qe[i] = np.nan
             continue
 
@@ -2594,8 +2578,6 @@ def getCameraQE(butler, visit, fd=None):
 
     return dict(zip(ccdIds, qe))
 
-
-#-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 def printLine(line, LaTeX, underline=False):
     if LaTeX:
@@ -2698,11 +2680,11 @@ def writeObsTable(butler, mos, LaTeX=False):
         md = butler.get("raw_md", visit=v, ccd=10)
 
         if False:
-            filter = afwImage.Filter(md).getName() # why does this fail?
+            filter = afwImage.Filter(md).getName()  # why does this fail?
         else:
             filter = md.getScalar("FILTER01")[-1:].lower()
-        if filter == "z" and v in range(904672, 905068+1, 2): # z wasn't available
-            filter = "i"                                      # error in header
+        if filter == "z" and v in range(904672, 905068+1, 2):  # z wasn't available
+            filter = "i"                                       # error in header
 
         summary[v] = dict(filter=filter,
                           exptime="%.0f" % md.getScalar("EXPTIME"),
@@ -2745,7 +2727,7 @@ def stackMosaics(mos, visits):
     im = mos[visits[0]]
 
     sctrl = afwMath.StatisticsControl()
-    #sctrl.setAndMask(BAD)
+    # sctrl.setAndMask(BAD)
 
     imgList = []
     for v in visits:
@@ -2761,14 +2743,12 @@ def stackMosaics(mos, visits):
 
     return out
 
-#-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-
 
 def getVignetting(X, Y):
     """Return the vignetting at the points (X, Y) (measured in focal plane mm) """
-    vig = np.array([1.00, 1.00, 0.74, 0.03]) # vignetting
-    xz = np.array([0, 0.115, 0.76, 0.90]) # distance from boresight, deg
-    xz /= 0.16865/3600                        # convert to pixels
+    vig = np.array([1.00, 1.00, 0.74, 0.03])  # vignetting
+    xz = np.array([0, 0.115, 0.76, 0.90])  # distance from boresight, deg
+    xz /= 0.16865/3600   # convert to pixels
 
     r = np.hypot(X, Y)
     vignet = np.where(r < xz[1], vig[0], vig[1] + (r - xz[1])*(vig[2] - vig[1])/(xz[2] - xz[1]))
@@ -2796,7 +2776,7 @@ def getPixelArea(camera, X, Y):
 
         return aim
 
-    br = np.linspace(0, np.max(r), 100) # enough points to allow linear interpolation in numpy
+    br = np.linspace(0, np.max(r), 100)  # enough points to allow linear interpolation in numpy
     det = np.empty_like(br)
     for i in range(len(br)):
         det[i] = dist.computeQuadrupoleTransform(afwGeom.PointD(0, br[i]), False).computeDeterminant()
@@ -2806,7 +2786,7 @@ def getPixelArea(camera, X, Y):
         plt.plot(br, det)
         plt.show()
 
-    area = np.reshape(np.interp(r.flatten(), br, det), X.shape) # better interpolation's in scipy
+    area = np.reshape(np.interp(r.flatten(), br, det), X.shape)  # better interpolation's in scipy
 
     ashape = area.shape
     aim = afwImage.ImageF(ashape[1], ashape[0])
@@ -2905,7 +2885,7 @@ def makeFlatImage(im, filter=None, modelVignetting=True, modelJacobian=True, mod
     X, Y = np.meshgrid(fxy[0][0] + (fxy[1][0] - fxy[0][0])/width * np.arange(width),
                        fxy[0][1] + (fxy[1][1] - fxy[0][1])/height*np.arange(height))
 
-    im.getMaskedImage().getImage()[:] -= im.getMaskedImage().getImage()[:] # 0 or NaN
+    im.getMaskedImage().getImage()[:] -= im.getMaskedImage().getImage()[:]  # 0 or NaN
     im.getMaskedImage().getImage()[:] += getVignetting(X, Y) if modelVignetting else 1
 
     if filterThroughput:
@@ -2927,7 +2907,7 @@ def makeFlatImage(im, filter=None, modelVignetting=True, modelJacobian=True, mod
 
             interpolator = makeEvenSplineInterpolator(filterR, filterThroughput)
 
-        fim = np.empty((height, width)) # n.b. numpy index order
+        fim = np.empty((height, width))  # n.b. numpy index order
         y0 = 0
         for frac in (0.5, 1.0):
             y1 = int(frac*height)
@@ -2937,7 +2917,7 @@ def makeFlatImage(im, filter=None, modelVignetting=True, modelJacobian=True, mod
             for x in range(width):
                 r = [np.hypot(*ccd.getPositionFromPixel(afwGeom.PointD(x, _y)).getPixels(1.0)) for _y in y]
                 throughput = interpolator(r) if scipy else \
-                    np.interp(r, filterR, filterThroughput) # linear interpolation
+                    np.interp(r, filterR, filterThroughput)  # linear interpolation
 
                 fim[y0:y1, x] = throughput[0] + fY*(throughput[1] - throughput[0])
 
@@ -2948,7 +2928,7 @@ def makeFlatImage(im, filter=None, modelVignetting=True, modelJacobian=True, mod
     if modelJacobian:
         dist = ccd.getDistortion()
 
-        jim = np.empty((height, width)) # n.b. numpy index order
+        jim = np.empty((height, width))  # n.b. numpy index order
         jY = np.arange(height)/float(height - 1)
 
         jacobian = [0, 0]
@@ -2964,11 +2944,10 @@ def makeFlatImage(im, filter=None, modelVignetting=True, modelJacobian=True, mod
     if modelQE:
         im.getMaskedImage()[:] *= getQE(ccd.getId().getSerial(), filter)
 
-#-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 filterData = dict(
 
-    g=dict(radius=np.array([0.00, 50.00, 100.00, 150.00, 200.00, 250.00, 270.00]), # mm
+    g=dict(radius=np.array([0.00, 50.00, 100.00, 150.00, 200.00, 250.00, 270.00]),  # mm
            EW=np.array([143.35, 143.00, 142.90, 142.73, 142.57, 142.33, 142.22]),
            lambda_bar=np.array([473.07, 473.04, 472.94, 472.78, 472.56, 472.10, 471.99]),
            peak=np.array([98.18, 97.95, 98.17, 98.09, 98.05, 98.00, 97.95]),
@@ -2981,7 +2960,7 @@ filterData = dict(
            Tmin=np.array([95.98, 95.83, 95.78, 95.81, 95.78, 95.60, 95.65]),
            Tmax=np.array([98.18, 97.95, 98.17, 98.09, 98.05, 98.00, 97.95]),
            Tavg=np.array([97.14, 96.92, 96.97, 96.96, 96.94, 96.89, 96.85])),
-    r=dict(radius=np.array([0.00, 50.00, 100.00, 150.00, 200.00, 250.00, 270.00]), # mm
+    r=dict(radius=np.array([0.00, 50.00, 100.00, 150.00, 200.00, 250.00, 270.00]),  # mm
            EW=np.array([144.90, 138.90, 135.08, 134.15, 134.40, 135.38, 133.72]),
            lambda_bar=np.array([620.59, 623.80, 621.14, 622.74, 623.21, 621.77, 623.72]),
            peak=np.array([96.47, 94.66, 92.39, 91.74, 92.12, 93.19, 91.75]),
@@ -2997,7 +2976,7 @@ filterData = dict(
     r1=dict(radius=np.array([0.00, 10.00, 20.00, 30.00, 40.00, 50.00, 60.00, 70.00,
                              80.00, 90.00, 100.00, 110.00, 120.00, 130.00, 140.00, 150.00,
                              160.00, 170.00, 180.00, 190.00, 200.00, 210.00, 220.00, 230.00,
-                             240.00, 250.00, 260.00, 267.00]), # mm
+                             240.00, 250.00, 260.00, 267.00]),  # mm
             peak=np.array([99.20, 99.68, 99.23, 98.71, 98.92, 98.26, 98.36, 98.23,
                            97.61, 97.33, 96.51, 96.83, 96.26, 96.18, 96.09, 95.91,
                            95.87, 95.79, 95.92, 95.73, 96.15, 96.22, 96.67, 96.59,
@@ -3047,7 +3026,7 @@ filterData = dict(
                                  621.69, 621.35, 620.94, 620.81, 620.97, 621.43, 622.17, 623.00,
                                  623.73, 624.13, 624.31, 624.50]),
             ),
-    i=dict(radius=np.array([0.00, 50.00, 100.00, 150.00, 200.00, 250.00, 270.00]), # mm
+    i=dict(radius=np.array([0.00, 50.00, 100.00, 150.00, 200.00, 250.00, 270.00]),  # mm
            EW=np.array([141.50, 142.01, 143.25, 144.59, 146.72, 148.23, 147.72]),
            lambda_bar=np.array([771.10, 771.81, 771.80, 770.18, 769.23, 773.33, 774.76]),
            peak=np.array([95.38, 95.09, 95.00, 94.81, 94.85, 94.61, 93.66]),
@@ -3060,7 +3039,7 @@ filterData = dict(
            Tmin=np.array([92.99, 92.59, 92.41, 91.99, 91.93, 92.10, 91.07]),
            Tmax=np.array([95.33, 94.91, 95.00, 94.56, 94.36, 94.57, 93.66]),
            Tavg=np.array([94.25, 94.02, 93.93, 93.68, 93.62, 93.68, 92.69])),
-    z=dict(radius=np.array([0.00, 50.00, 100.00, 150.00, 200.00, 250.00, 270.00]), # mm
+    z=dict(radius=np.array([0.00, 50.00, 100.00, 150.00, 200.00, 250.00, 270.00]),  # mm
            EW=np.array([80.01, 80.12, 80.14, 79.37, 78.82, 80.41, 80.26]),
            lambda_bar=np.array([892.63, 892.33, 892.18, 891.72, 891.99, 891.25, 891.45]),
            peak=np.array([98.53, 98.82, 99.17, 99.05, 98.59, 99.26, 99.66]),
@@ -3073,7 +3052,7 @@ filterData = dict(
            Tmin=np.array([97.07, 96.86, 96.91, 97.21, 97.00, 97.57, 97.78]),
            Tmax=np.array([98.53, 98.82, 99.17, 99.05, 98.59, 99.26, 99.66]),
            Tavg=np.array([97.97, 98.07, 98.32, 98.34, 98.03, 98.63, 98.98])),
-    y=dict(radius=np.array([0.00, 50.00, 100.00, 150.00, 200.00, 250.00, 270.00]), # mm
+    y=dict(radius=np.array([0.00, 50.00, 100.00, 150.00, 200.00, 250.00, 270.00]),  # mm
            EW=np.array([141.37, 141.34, 139.06, 141.19, 139.50, 143.70, 144.91]),
            lambda_bar=np.array([1002.77, 1002.98, 1004.36, 1003.56, 1003.99, 1003.19, 1001.92]),
            peak=np.array([97.92, 98.21, 97.74, 98.36, 97.59, 98.18, 97.86]),
@@ -3310,9 +3289,6 @@ def isrCallback(im, ccd=None, butler=None, imageSource=None, doFlatten=True, cor
 
     mi = result.exposure.getMaskedImage()
     return mi if isMI else mi.getImage()
-
-#-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-#-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 
 def foo(data, visits=(902936, 903332, 902476), ccdIds=[], fig0=1, dfig=1, savefig=False, fileNameSuffix="",
