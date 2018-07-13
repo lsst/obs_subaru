@@ -67,11 +67,12 @@ for f in glob.glob(os.path.join(args.root, "*", "defects*.fits")):
 # Defects files for a CCD are valid from the date they are registered until the next date.
 # This means that any defects file should carry ALL the defects that are present at that time.
 for ccd, rowList in rowsPerCcd.items():
-    rowList.sort(key=lambda row: row.validStart) # ISO-8601 will sort just fine without conversion from str
+    # ISO-8601 will sort just fine without conversion from str
+    rowList.sort(key=lambda row: row.validStart)
     for thisRow, nextRow in zip(rowList[:-1], rowList[1:]):
         thisRow.validEnd = (datetime.datetime.strptime(nextRow.validStart, "%Y-%m-%d") -
-                            datetime.timedelta(0, 1)).isoformat() # 1 sec before: sqlite precision is 1 sec
-    rowList[-1].validEnd = "2037-12-31" # End of UNIX time
+                            datetime.timedelta(0, 1)).isoformat()  # 1 sec before: sqlite precision is 1 sec
+    rowList[-1].validEnd = "2037-12-31"  # End of UNIX time
 
     for row in rowList:
         if args.verbose:

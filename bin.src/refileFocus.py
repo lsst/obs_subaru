@@ -52,6 +52,7 @@ remap = {112: 106,
 def globber(field="*", filename="*.fits"):
     return glob.glob(os.path.join(args.root, field, "*-*-*", "*", "*", filename))
 
+
 if not args.visits and not args.fields:
     files = globber()
 else:
@@ -113,7 +114,7 @@ for visit, ccds in visits.items():
 
         for f in glob.glob(os.path.join(tmpDir, "*.fits")):
             os.rename(f, os.path.join(os.path.split(tmpDir)[0], os.path.split(f)[1]))
-    except:
+    except Exception:
         raise
     finally:
         if tmpDir:

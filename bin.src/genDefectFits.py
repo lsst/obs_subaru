@@ -67,6 +67,7 @@ def genDefectFits(cameraName, source, targetDir):
 
         table.writeto(name)
 
+
 if __name__ == "__main__":
     import argparse
 

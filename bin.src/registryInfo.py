@@ -177,7 +177,6 @@ ORDER BY filter, calibDate
 
     conn.close()
 
-#-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="""

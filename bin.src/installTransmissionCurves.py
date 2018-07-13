@@ -52,4 +52,3 @@ if __name__ == "__main__":
     args = parser.parse_args()
     butler = Butler(outputs={'root': args.root, 'mode': 'rw', 'mapper': HscMapper})
     main(butler)
-

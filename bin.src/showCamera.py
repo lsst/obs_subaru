@@ -64,7 +64,7 @@ def main(camera, sample=20, names=False, showDistortion=True, plot=True, outputF
                 xDistort = []
                 yDistort = []
                 for x, y in zip(xList, yList):
-                    position = ccd.getPositionFromPixel(afwGeom.Point2D(x, y)) # focal plane position
+                    position = ccd.getPositionFromPixel(afwGeom.Point2D(x, y))  # focal plane position
 
                     xOriginal.append(position.getMm().getX())
                     yOriginal.append(position.getMm().getY())
@@ -112,6 +112,7 @@ def main(camera, sample=20, names=False, showDistortion=True, plot=True, outputF
         else:
             plt.show()
 
+
 if __name__ == '__main__':
     import argparse
 
@@ -125,9 +126,9 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     if args.suprimeCam:
-        from lsst.obs.suprimecam import SuprimecamMapper as mapper
+        from lsst.obs.suprimecam import SuprimecamMapper as mapper  # noqa N813
     else:
-        from lsst.obs.hsc import HscMapper as mapper
+        from lsst.obs.hsc import HscMapper as mapper  # noqa N813
 
     camera = mapper().camera
 
