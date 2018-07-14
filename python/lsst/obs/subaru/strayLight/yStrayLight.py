@@ -19,6 +19,7 @@ from __future__ import absolute_import, division, print_function
 __all__ = ["StrayLightTask"]
 
 import os
+import datetime
 
 import numpy
 from astropy.io import fits
@@ -83,13 +84,10 @@ class StrayLightTask(Task):
         if sensorRef.dataId["ccd"] in range(104, 112):
             # No correction data: assume it's zero
             return
-
-        # The LEDs that are causing the Y straylight have not been covered yet (on 2017-11-27),
-        # but they will be covered in the near future.
-        # Once the LEDs are covered, we will have to uncomment the following statement:
-        #
-        # if (ccdExposure is newer than a certain date):
-        #     return
+        if exposure.getInfo().getVisitInfo().getDate().toPython() >= datetime.datetime(2018, 1, 1):
+            # LEDs causing the stray light have been covered up.
+            # We believe there is no remaining stray light.
+            return
 
         header = sensorRef.get('raw_md')
         if self.config.doRotatorAngleCorrection:
