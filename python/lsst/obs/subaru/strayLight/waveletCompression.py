@@ -14,13 +14,15 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-# ----------------------------------------------------------------------------
-# CDF 9/7 wavelet transformation
-# See
-#   T.800: JPEG2000 image coding system: Core coding system
-#       https://www.itu.int/rec/T-REC-T.800
-#   OpenJPEG
-#       https://github.com/uclouvain/openjpeg
+"""
+CDF 9/7 wavelet transformation
+
+See
+   T.800: JPEG2000 image coding system: Core coding system
+       https://www.itu.int/rec/T-REC-T.800
+   OpenJPEG
+       https://github.com/uclouvain/openjpeg
+"""
 
 import numpy
 
