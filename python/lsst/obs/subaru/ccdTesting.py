@@ -2841,10 +2841,11 @@ corrects for vignetting/Jacobian"""
     # Estimate useful signal level even for very strongly vignetted chips
     #
     if imageSource and imageSource.verbose:
+        median = None  # This variable does not come from anywhere
         print("Correcting vignetting for %s %3d %.2f" % (ccd.getId().getName(), ccdSerial, median))
 
     if medianFilter:
-        im = medianFilterImage(im, nx, ny)
+        im = anUtils.medianFilterImage(im, nx, ny)
 
     return im
 
