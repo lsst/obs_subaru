@@ -22,8 +22,6 @@
 #   OpenJPEG
 #       https://github.com/uclouvain/openjpeg
 
-from __future__ import division, absolute_import, print_function
-
 import numpy
 
 import itertools

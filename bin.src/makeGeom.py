@@ -21,9 +21,6 @@
 # the GNU General Public License along with this program.  If not,
 # see <https://www.lsstcorp.org/LegalNotices/>.
 #
-from __future__ import absolute_import, division, print_function
-from builtins import map
-from builtins import range
 from astropy.io import fits
 import sys
 import re

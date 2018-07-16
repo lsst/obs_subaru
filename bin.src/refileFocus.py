@@ -12,8 +12,6 @@ Refile focus chips, which had incorrect DET-ID values for the Jan/Feb 2013 run
     108		110
     114		108
 """
-from __future__ import absolute_import, division, print_function
-
 import glob
 import os
 import re
