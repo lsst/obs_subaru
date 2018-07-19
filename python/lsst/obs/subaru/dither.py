@@ -1,8 +1,4 @@
-from __future__ import absolute_import, division, print_function
-from builtins import input
-from builtins import zip
 import lsst.afw.geom as afwGeom
-import lsst.afw.cameraGeom as afwCG
 
 try:
     pyplot
@@ -67,7 +63,7 @@ def ditherDES(camera, scale=4.5, names=False):
                 xOriginal = []
                 yOriginal = []
                 for x, y in zip(xList, yList):
-                    position = ccd.getPositionFromPixel(afwGeom.Point2D(x, y)) # focal plane position
+                    position = ccd.getPositionFromPixel(afwGeom.Point2D(x, y))  # focal plane position
 
                     xOriginal.append(position.getMm().getX())
                     yOriginal.append(position.getMm().getY())
@@ -81,6 +77,7 @@ def ditherDES(camera, scale=4.5, names=False):
                             fontsize="smaller")
             else:
                 pyplot.text(x, y, cid.getSerial(), ha='center', va='center')
+
 
 if __name__ == "__main__":
     ditherDES()

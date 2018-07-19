@@ -21,16 +21,13 @@
 # the GNU General Public License along with this program.  If not,
 # see <https://www.lsstcorp.org/LegalNotices/>.
 #
-from __future__ import absolute_import, division, print_function
-from builtins import map
-from builtins import range
 from astropy.io import fits
 import sys
 import re
 import os
 
 # http://www.cfht.hawaii.edu/Instruments/Imaging/Megacam/generalinformation.html
-cfhtPixelScale = 13.5 * 1.e-3 # millimeters
+cfhtPixelScale = 13.5 * 1.e-3  # millimeters
 
 detsizeX = 23219             # pixels
 detsizeY = 19354             # pixels
@@ -146,8 +143,6 @@ def printRaftCcdGeom(buff, ccdId, ccdname, xidx, yidx, xpos, ypos):
             buff.write('    serial: -1 \n')
 
     buff.write('    Ccd: { \n')
-    #buff.write('        name: "R:0,0 S:%d,%d CFHTid:%d %s" \n' % (xidx, yidx, ccdId, ccdname))
-    #buff.write('        serial: -1 \n')
     buff.write('        name: "CFHT %d" \n' % (ccdId))
     buff.write('        serial: %s \n' % (re.sub('-', '', ccdname)))
     buff.write('        index: %d %d \n' % (xidx, yidx))
@@ -169,8 +164,6 @@ def printElectronics(buff, ccdId, ccdname, xidx, yidx, infoA, infoB):
             buff.write('        serial: -1 \n')
 
     buff.write('        Ccd: { \n')
-    #buff.write('            name: "R:0,0 S:%d,%d CFHTid:%d %s" \n' % (xidx, yidx, ccdId, ccdname))
-    #buff.write('            serial: -1 \n')
     buff.write('            name: "CFHT %d" \n' % (ccdId))
     buff.write('            serial: %s \n' % (re.sub('-', '', ccdname)))
 
@@ -193,6 +186,7 @@ def printElectronics(buff, ccdId, ccdname, xidx, yidx, infoA, infoB):
     buff.write('                saturationLevel: %.3f \n' % (infoB[2]))
     buff.write('            } \n')
     buff.write('        } \n')
+
 
 if __name__ == '__main__':
 
@@ -236,7 +230,6 @@ if __name__ == '__main__':
 
     # 0th layer is pure metadata
     for ccd in range(1, len(ptr)):
-        #for ccd in [1, 28]:
         ccdId = ptr[ccd].header['EXTVER']
         ccdBoundary = ptr[ccd].header['DETSEC']
         ccdName = ptr[ccd].header['CCDNAME']

@@ -14,11 +14,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import absolute_import, division, print_function
-
 __all__ = ["StrayLightTask"]
 
-import os
 import datetime
 
 import numpy
@@ -105,7 +102,7 @@ class StrayLightTask(Task):
         model = get_ybackground(filename, angleStart, None if angleStart == angleEnd else angleEnd)
 
         # Some regions don't have useful model values because the amplifier is dead when the darks were taken
-        # 
+        #
         badAmps = {9: [0, 1, 2, 3], 33: [0, 1], 43: [0]}  # Known bad amplifiers in the data: {ccdId: [ampId]}
         detId = exposure.getDetector().getId()
         if detId in badAmps:

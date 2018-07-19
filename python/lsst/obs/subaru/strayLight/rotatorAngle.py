@@ -14,17 +14,14 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import absolute_import, division, print_function
-
 """Module to calculate instrument rotator angle at start and end of observation"""
 
 __all__ = ["inrStartEnd"]
 
-import sys
 import numpy as np
 from astropy.io import fits
 
-### fixed parameters
+# fixed parameters
 ltt_d = 19.82556  # dome latitude in degree
 lng_d = -155.47611  # dome longitude in degree
 mjd_J2000 = 51544.5  # mjd at J2000.0 (2000/01/01.5)
@@ -45,8 +42,8 @@ def _mjd2jc2000(mjd):
 
 def _precessionMatrix(jc2000):
     """create precession matrix at the given time in Julian century"""
-    zeta_A  = np.deg2rad((2306.2181*jc2000 + 0.30188*jc2000**2.0 + 0.017998*jc2000**3.0)/3600.0)
-    z_A     = np.deg2rad((2306.2181*jc2000 + 1.09468*jc2000**2.0 + 0.018203*jc2000**3.0)/3600.0)
+    zeta_A = np.deg2rad((2306.2181*jc2000 + 0.30188*jc2000**2.0 + 0.017998*jc2000**3.0)/3600.0)
+    z_A = np.deg2rad((2306.2181*jc2000 + 1.09468*jc2000**2.0 + 0.018203*jc2000**3.0)/3600.0)
     theta_A = np.deg2rad((2004.3109*jc2000 - 0.42665*jc2000**2.0 - 0.041833*jc2000**3.0)/3600.0)
     precMat = np.matrix([[+np.cos(zeta_A)*np.cos(theta_A)*np.cos(z_A) - np.sin(zeta_A)*np.sin(z_A),
                           -np.sin(zeta_A)*np.cos(theta_A)*np.cos(z_A) - np.cos(zeta_A)*np.sin(z_A),
@@ -81,9 +78,9 @@ def _sph2vec(ra_d, de_d):
     """convert spherical coordinate to the Cartesian coordinates (vector)"""
     ra_r = np.deg2rad(ra_d)
     de_r = np.deg2rad(de_d)
-    vec  = np.array([[np.cos(ra_r)*np.cos(de_r)],
-                     [np.sin(ra_r)*np.cos(de_r)],
-                     [np.sin(de_r)]])
+    vec = np.array([[np.cos(ra_r)*np.cos(de_r)],
+                    [np.sin(ra_r)*np.cos(de_r)],
+                    [np.sin(de_r)]])
     return vec
 
 
@@ -203,8 +200,8 @@ def _gsCPposNorth(ra_t_d, de_t_d, inr_d, mjd):
 
 def _getDataArrayFromFITSFileWithHeader(pathToFITSFile):
     """return array of pixel data"""
-    fitsfile   = fits.open(pathToFITSFile)
-    dataArray  = fitsfile[0].data
+    fitsfile = fits.open(pathToFITSFile)
+    dataArray = fitsfile[0].data
     fitsHeader = fitsfile[0].header
     fitsfile.close()
     return dataArray, fitsHeader
@@ -263,6 +260,6 @@ def inrStartEnd(header):
     (x, y) = _gsCPposNorth(ra_t_d, de_t_d, inr_d, mjd_str)
     x_inr_str = 90.0 - np.rad2deg(np.arctan2(y, x)) + inst_pa
     (x, y) = _gsCPposNorth(ra_t_d, de_t_d, inr_d, mjd_end)
-    x_inr_end =  90.0 - np.rad2deg(np.arctan2(y, x)) + inst_pa
+    x_inr_end = 90.0 - np.rad2deg(np.arctan2(y, x)) + inst_pa
 
     return _minorArc(x_inr_str, x_inr_end)

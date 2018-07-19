@@ -1,4 +1,3 @@
-from __future__ import absolute_import, division, print_function
 # Enable CModel mags (unsetup meas_modelfit to disable)
 # 'config' is a SourceMeasurementConfig.
 import os

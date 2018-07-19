@@ -1,5 +1,3 @@
-from __future__ import absolute_import, division, print_function
-
 import re
 import datetime
 
@@ -10,7 +8,8 @@ from lsst.pipe.tasks.ingestCalibs import CalibsParseTask
 class HscIngestArgumentParser(IngestArgumentParser):
 
     def _parseDirectories(self, namespace):
-        """Don't do any 'rerun' hacking: we want the raw data to end up in the root directory"""
+        """Don't do any 'rerun' hacking: we want the raw data to end up in the
+        root directory"""
         namespace.input = namespace.rawInput
         namespace.output = namespace.rawOutput
         namespace.calib = namespace.rawCalib
@@ -101,7 +100,7 @@ class HscParseTask(ParseTask):
         """
         try:
             return self.getTjd(md)
-        except:
+        except Exception:
             pass
 
         try:
@@ -111,7 +110,7 @@ class HscParseTask(ParseTask):
             obsday = datetime.datetime(int(year), int(month), int(day), 0, 0, 0)
             mjd = datetime2mjd(obsday)
             return int(mjd) - self.DAY0
-        except:
+        except Exception:
             pass
 
         self.log.warn("Unable to determine suitable 'pointing' value; using 0")
@@ -133,7 +132,7 @@ class HscParseTask(ParseTask):
         ccd = int(md.getScalar("DET-ID"))
         try:
             tjd = self.getTjd(md)
-        except:
+        except Exception:
             return ccd
 
         if tjd > 390 and tjd < 405:
@@ -145,7 +144,7 @@ class HscParseTask(ParseTask):
         """Want upper-case filter names"""
         try:
             return md.getScalar('FILTER01').strip().upper()
-        except:
+        except Exception:
             return "Unrecognized"
 
 

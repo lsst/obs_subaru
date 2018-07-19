@@ -1,7 +1,4 @@
 #!/usr/bin/env python
-from __future__ import absolute_import, division, print_function
-from builtins import zip
-from builtins import range
 import argparse
 import os
 import re
@@ -13,7 +10,6 @@ from matplotlib.mlab import griddata
 import matplotlib.pyplot as plt
 
 import lsst.afw.geom as afwGeom
-import lsst.afw.cameraGeom as cameraGeom
 import lsst.daf.persistence as dafPersist
 import lsst.obs.hscSim as hscSim
 
@@ -162,7 +158,8 @@ def main(dataDir, visit, title="", outputTxtFileName=None,
     if outputTxtFileName:
         f = open(outputTxtFileName, 'w')
         f.write("# %s visit %s\n" % (" ".join(title), visit))
-        for x, y, ell, fwhm, pa, a, b, e1, e2, elle1e2 in zip(xArr, yArr, ellArr, fwhmArr, paArr, aArr, bArr, e1Arr, e2Arr, elle1e2Arr):
+        for x, y, ell, fwhm, pa, a, b, e1, e2, elle1e2 \
+                in zip(xArr, yArr, ellArr, fwhmArr, paArr, aArr, bArr, e1Arr, e2Arr, elle1e2Arr):
             f.write('%f %f %f %f %f %f %f %f %f %f\n' % (x, y, ell, fwhm, pa, a, b, e1, e2, elle1e2))
 
     if showFwhm:
@@ -178,7 +175,8 @@ def main(dataDir, visit, title="", outputTxtFileName=None,
 
             f = open(outputTxtFileName+'-fwhm-grid.txt', 'w')
             f.write("# %s visit %s\n" % (" ".join(title), visit))
-            for xline, yline, fwhmline, ndataline in zip(xs.tolist(), ys.tolist(), fwhmResampled.tolist(), ndataGrids):
+            for xline, yline, fwhmline, ndataline \
+                    in zip(xs.tolist(), ys.tolist(), fwhmResampled.tolist(), ndataGrids):
                 for xx, yy, fwhm, ndata in zip(xline, yline, fwhmline, ndataline):
                     if fwhm is None:
                         fwhm = -9999
@@ -215,8 +213,9 @@ def main(dataDir, visit, title="", outputTxtFileName=None,
 
             f = open(outputTxtFileName+'-ell-grid.txt', 'w')
             f.write("# %s visit %s\n" % (" ".join(title), visit))
-            #f.write('# %f %f %f %f %f %f %f\n' % (x, y, ell, fwhm, pa, a, b))
-            for xline, yline, uline, vline, ndataline in zip(x.tolist(), y.tolist(), u.tolist(), v.tolist(), ndataGrids):
+            # f.write('# %f %f %f %f %f %f %f\n' % (x, y, ell, fwhm, pa, a, b))
+            for xline, yline, uline, vline, ndataline \
+                    in zip(x.tolist(), y.tolist(), u.tolist(), v.tolist(), ndataGrids):
                 for xx, yy, uu, vv, ndata in zip(xline, yline, uline, vline, ndataline):
                     if uu is None:
                         uu = -9999
@@ -244,22 +243,25 @@ def main(dataDir, visit, title="", outputTxtFileName=None,
         else:
             pass
 
-    #plt.plot(xArr, yArr, "r.")
-    #plt.plot(xs, ys, "b.")
+    # plt.plot(xArr, yArr, "r.")
+    # plt.plot(xs, ys, "b.")
     plt.axes().set_aspect('equal')
     plt.axis([-20000, 20000, -20000, 20000])
 
     def frameInfoFrom(filepath):
         with fits.open(filepath) as hdul:
             h = hdul[0].header
-            'object=ABELL2163 filter=HSC-I exptime=360.0 alt=62.11143274 azm=202.32265181 hst=(23:40:08.363-23:40:48.546)'
-            return 'object=%s filter=%s exptime=%.1f azm=%.2f hst=%s' % (h['OBJECT'], h['FILTER01'], h['EXPTIME'], h['AZIMUTH'], h['HST'])
+            'object=ABELL2163 filter=HSC-I exptime=360.0 alt=62.11143274 azm=202.32265181 '
+            'hst=(23:40:08.363-23:40:48.546)'
+            return 'object=%s filter=%s exptime=%.1f azm=%.2f hst=%s' % \
+                (h['OBJECT'], h['FILTER01'], h['EXPTIME'], h['AZIMUTH'], h['HST'])
 
     title.insert(0, frameInfoFrom(butler.get('raw_filename', {'visit': visit, 'ccd': 0})[0]))
     title.append(r'$\langle$FWHM$\rangle %4.2f$"' % np.median(fwhmArr))
     plt.title("%s visit=%s" % (" ".join(title), visit), fontsize=9)
 
     return plt
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Plot contours of PSF quality')
@@ -300,7 +302,8 @@ switches to that dataDir (the one on the command line is used previously)
     if not (args.dataDir or args.inputFile):
         args.dataDir = os.environ.get("SUPRIME_DATA_DIR")
         if not args.dataDir:
-            print("Please specify a dataDir (maybe in an inputFile) or set $SUPRIME_DATA_DIR", file=sys.stderr)
+            print("Please specify a dataDir (maybe in an inputFile) or set $SUPRIME_DATA_DIR",
+                  file=sys.stderr)
             sys.exit(1)
 
     if args.rerun:
@@ -356,26 +359,26 @@ switches to that dataDir (the one on the command line is used previously)
                 title += " "
             title += "(corrected)"
 
-        plt = main(dataDir, visit, title, args.outputTxtFile,
-                   gridPoints=args.gridPoints,
-                   showFwhm=args.showFwhm, minFwhm=args.minFwhm, maxFwhm=args.maxFwhm,
-                   correctDistortion=args.correctDistortion,
-                   showEllipticity=args.showEllipticity, ellipticityDirection=args.ellipticityDirection,
-                   showNdataFwhm=args.showNdataFwhm, showNdataEll=args.showNdataEll,
-                   minNdata=args.minNdata, maxNdata=args.maxNdata,
-                   verbose=args.verbose)
+        plot = main(dataDir, visit, title, args.outputTxtFile,
+                    gridPoints=args.gridPoints,
+                    showFwhm=args.showFwhm, minFwhm=args.minFwhm, maxFwhm=args.maxFwhm,
+                    correctDistortion=args.correctDistortion,
+                    showEllipticity=args.showEllipticity, ellipticityDirection=args.ellipticityDirection,
+                    showNdataFwhm=args.showNdataFwhm, showNdataEll=args.showNdataEll,
+                    minNdata=args.minNdata, maxNdata=args.maxNdata,
+                    verbose=args.verbose)
 
         if pp:
             try:
                 pp.savefig()
             except ValueError:          # thrown if we failed to actually plot anything
                 pass
-            plt.clf()
+            plot.clf()
 
     if pp:
         pp.close()
     else:
         if args.outputPlotFile:
-            plt.savefig(args.outputPlotFile)
+            plot.savefig(args.outputPlotFile)
         else:
-            plt.show()
+            plot.show()

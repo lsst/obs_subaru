@@ -14,15 +14,15 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#----------------------------------------------------------------------------
-# CDF 9/7 wavelet transformation
-# See
-#   T.800: JPEG2000 image coding system: Core coding system
-#       https://www.itu.int/rec/T-REC-T.800
-#   OpenJPEG
-#       https://github.com/uclouvain/openjpeg
+"""
+CDF 9/7 wavelet transformation
 
-from __future__ import division, absolute_import, print_function
+See
+   T.800: JPEG2000 image coding system: Core coding system
+       https://www.itu.int/rec/T-REC-T.800
+   OpenJPEG
+       https://github.com/uclouvain/openjpeg
+"""
 
 import numpy
 
@@ -31,7 +31,7 @@ import itertools
 # From Table F.4 in ITU-T Rec. T.800
 # Definition of lifting parameters for the 9-7 irreversible filter
 alpha = -1.586134342059924
-beta  = -0.052980118572961
+beta = -0.052980118572961
 gamma = 0.882911075530934
 delta = 0.443506852043971
 
@@ -146,7 +146,7 @@ def _cdf_9_7_1d_level1(data):
     scaling_size = (size + 1) // 2
     ret = numpy.empty_like(data)
     ret[:scaling_size] = (1/K) * data[0::2]
-    ret[scaling_size:] = K     * data[1::2]
+    ret[scaling_size:] = K * data[1::2]
 
     return ret
 
@@ -422,6 +422,6 @@ def scaled_size(size, level):
     @param level (int or tuple of int)
         Level of wavelet transformation
     """
-    size  = numpy.asarray(size , dtype=int)
+    size = numpy.asarray(size, dtype=int)
     level = numpy.asarray(level, dtype=int)
     return (size + (2**level - 1)) // (2**level)

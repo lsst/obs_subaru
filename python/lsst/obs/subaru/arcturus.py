@@ -1,7 +1,4 @@
 """Process the scattered light data from Arcturus"""
-from __future__ import absolute_import, division, print_function
-from builtins import range
-from builtins import object
 
 import numpy as np
 import multiprocessing
@@ -47,7 +44,7 @@ def showFrames(mos, frame0=1, R=23, subtractSky=True):
         im = mos[v]
         if subtractSky:
             im = im.clone()
-            im[2121:2230, 590:830] = np.nan # QE for this chip is bad
+            im[2121:2230, 590:830] = np.nan  # QE for this chip is bad
 
             ima = im.getArray()
             im[:] -= np.percentile(ima, 25)
@@ -55,8 +52,6 @@ def showFrames(mos, frame0=1, R=23, subtractSky=True):
         ds9.mtv(im, title=v, frame=frame)
         ds9.dot("o", xc, yc, size=R, frame=frame,
                 ctype=ds9.GREEN if yc < mos[v].getHeight() else ds9.RED)
-
-#-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 
 class MedianFilterImageWorker(object):
@@ -86,7 +81,7 @@ process every visit in the positions dict
 
     visits0 = visits[:]                 # needed to keep frame numbers aligned
     if not force:
-        visits = [v for v in visits if -v not in mos] # don't process ones we've already seen
+        visits = [v for v in visits if -v not in mos]  # don't process ones we've already seen
     if onlyVisits:
         visits = [v for v in visits if v in onlyVisits]
 
@@ -96,7 +91,7 @@ process every visit in the positions dict
     for v in visits:
         im = mos[v].clone()
         mos[-v] = im
-        im[2121:2230, 590:830] = np.nan # QE for this chip is bad
+        im[2121:2230, 590:830] = np.nan  # QE for this chip is bad
 
         ima = im.getArray()
         im[:] -= np.percentile(ima, 25)
@@ -174,7 +169,7 @@ If onlyVisits is specified, only process those chips [n.b. frame0 is still obeye
         print("Processing %d" % v)
 
         im = mos[v].clone()
-        im[2121:2230, 590:830] = np.nan # QE for this chip is bad
+        im[2121:2230, 590:830] = np.nan  # QE for this chip is bad
 
         ima = im.getArray()
         im[:] -= np.percentile(ima, 25)
@@ -258,7 +253,7 @@ def plotAnnularAverages(mos, visits, bin=16, useSmoothed=True, weightByR=True, s
         #
         # Allow for the extra phase space further away from the boresight
         if weightByR:
-            r = bin*(np.hypot(*position[v]) + 0.3*spacing) # really a geometric mean?
+            r = bin*(np.hypot(*position[v]) + 0.3*spacing)  # really a geometric mean?
             prof *= 2*np.pi*r
 
         print("%d %07.2g" % (v, np.sum(prof)))

@@ -1,4 +1,3 @@
-from __future__ import absolute_import, division, print_function
 # Enable HSM shapes (unsetup meas_extensions_shapeHSM to disable)
 # 'config' is a SourceMeasurementConfig.
 import os.path

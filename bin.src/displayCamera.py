@@ -94,7 +94,8 @@ if __name__ == "__main__":
     parser.add_argument('--showCcd', help='Show a CCD from the mosaic in ds9.  May have multiple arguments. '
                                           'Format like ccd_name e.g. \"0_17\"', type=str,
                                           nargs='+')
-    parser.add_argument('--showRaft', help='Show a raft from the mosaic in ds9.  May have multiple arguments. '
+    parser.add_argument('--showRaft', help='Show a raft from the mosaic in ds9.'
+                        ' May have multiple arguments. '
                         'May be 0 or 1', type=str)
     parser.add_argument('--showCamera', help='Show the camera mosaic in ds9.', action='store_true')
     parser.add_argument('--cameraBinSize', type=int, default=20,

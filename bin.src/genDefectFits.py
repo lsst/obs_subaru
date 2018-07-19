@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-from __future__ import absolute_import, division, print_function
 import sys
 import os.path
 import re
@@ -66,6 +65,7 @@ def genDefectFits(cameraName, source, targetDir):
                 continue
 
         table.writeto(name)
+
 
 if __name__ == "__main__":
     import argparse

@@ -12,8 +12,6 @@ Refile focus chips, which had incorrect DET-ID values for the Jan/Feb 2013 run
     108		110
     114		108
 """
-from __future__ import absolute_import, division, print_function
-
 import glob
 import os
 import re
@@ -51,6 +49,7 @@ remap = {112: 106,
 
 def globber(field="*", filename="*.fits"):
     return glob.glob(os.path.join(args.root, field, "*-*-*", "*", "*", filename))
+
 
 if not args.visits and not args.fields:
     files = globber()
@@ -113,7 +112,7 @@ for visit, ccds in visits.items():
 
         for f in glob.glob(os.path.join(tmpDir, "*.fits")):
             os.rename(f, os.path.join(os.path.split(tmpDir)[0], os.path.split(f)[1]))
-    except:
+    except Exception:
         raise
     finally:
         if tmpDir:
