@@ -33,15 +33,11 @@ namespace subaru {
 
 // Note that _crosstalk is not related to the crosstalk Python module;
 // unfortunately they do have the same name.
-PYBIND11_PLUGIN(_crosstalk) {
+PYBIND11_MODULE(_crosstalk, mod) {
     py::module::import("lsst.afw.image");
-
-    py::module mod("_crosstalk");
 
     mod.def("subtractCrosstalk", subtractCrosstalk, "mi"_a, "nAmp"_a, "coeffs1List"_a, "coeffs2List"_a,
             "gainsPreampSig"_a);
-
-    return mod.ptr();
 }
 
 }  // subaru
