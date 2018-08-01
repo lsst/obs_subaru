@@ -623,12 +623,12 @@ datasets:
     template: config/processFocusSweep.py
   apPipe_metadata:
     template: '%(pointing)05d/%(filter)s/apPipe_metadata/%(visit)07d-%(ccd)03d.yaml'
-  bfKernelNew:
-    template: calibrations/bfKernel-%(ccd)03d.pkl
-  bfGain:
-    template: calibrations/bfGain-%(ccd)03d.pkl
-  plotBfPtc:
-    template: plots/bfPtc-ccd-%(ccd)03d-amp-%(amp)s.png
+  brighterFatterKernel:  # NB this is for the new cp_pipe generated kernels
+    template: calibrations/brighterFatterKernel-%(ccd)03d.pkl
+  brighterFatterGain:
+    template: calibrations/brighterFatterGain-%(ccd)03d.pkl
+  plotBrighterFatterPtc:
+    template: plots/brighterFatterPtc-ccd-%(ccd)03d-amp-%(amp)s.png
 
   # Plots for analysis QA
   plotCoadd:
