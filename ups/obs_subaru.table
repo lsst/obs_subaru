@@ -8,6 +8,7 @@ setupRequired(pybind11)
 setupRequired(numpy)
 setupRequired(astshim)
 
+setupOptional(daf_butler)
 setupOptional(meas_modelfit)
 setupOptional(meas_extensions_psfex)
 setupOptional(meas_extensions_shapeHSM)
