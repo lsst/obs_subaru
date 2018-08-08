@@ -5,10 +5,14 @@ SuprimeCam (MIT)-specific overrides for ProcessCcdTask
 import os.path
 
 from lsst.utils import getPackageDir
+from lsst.obs.subaru.isr import SuprimeCamIsrTask
 
-suprimecamMitConfigDir = os.path.join(getPackageDir("obs_subaru"), "config", "suprimecam-mit")
-config.load(os.path.join(suprimecamMitConfigDir, 'isr.py'))
-config.calibrate.photoCal.colorterms.load(os.path.join(suprimecamMitConfigDir, 'colorterms.py'))
+ObsConfigDir = os.path.join(getPackageDir("obs_subaru"), "config", "suprimecam-mit")
+
+config.isr.retarget(SuprimeCamIsrTask)
+config.isr.load(os.path.join(ObsConfigDir, 'isr.py'))
+
+config.calibrate.photoCal.colorterms.load(os.path.join(ObsConfigDir, 'colorterms.py'))
 
 config.charImage.measurement.plugins["base_Jacobian"].pixelScale = 0.2
 config.calibrate.measurement.plugins["base_Jacobian"].pixelScale = 0.2
