@@ -181,6 +181,11 @@ after applying the nominal gain
                                                         ("N921", 25.7),
                                                         ))
     )
+    forceSingleKernel = pexConfig.Field(
+        dtype=int,
+        doc='Use -1 for False. Otherwise specify the CCD number whose kernel to use for all CCDs',
+        default=-1,
+    )
     defaultFluxMag0T1 = pexConfig.Field(dtype=float, default=pow(10.0, 0.4*28.0),
                                         doc="Default value for fluxMag0T1 (for an unrecognised filter)")
     thumbnailBinning = Field(dtype=int, default=4, doc="Binning factor for thumbnail")
@@ -324,7 +329,33 @@ class SubaruIsrTask(IsrTask):
                 self.maskAndInterpNan(ccdExposure)
                 interpolationDone = True
 
-            brighterFatterKernel = sensorRef.get('bfKernel')
+            if self.config.forceSingleKernel == -2:
+                self.log.warn('Loading OLD STYLE KERNEL for BF correction')
+                brighterFatterKernel = sensorRef.get('bfKernel')
+            elif self.config.forceSingleKernel == -1:
+                ccdNum = sensorRef.dataId['ccd']
+                brighterFatterKernel = sensorRef.get('bfKernelNew')
+                if True:  # amp/CCD level splitting here xxx TODO
+                    brighterFatterKernel = brighterFatterKernel[sensorRef.dataId['ccd']]
+                    self.log.info('Loaded new BF kernel for CCD %s at the CCD level'%ccdNum)
+                else:
+                    print('Need to break this down to per-amp here')
+                del ccdNum
+            else:
+                realCcdNum = sensorRef.dataId['ccd']
+                fakeCcdNum = self.config.forceSingleKernel
+                sensorRef.dataId['ccd'] = fakeCcdNum
+                brighterFatterKernel = sensorRef.get('bfKernelNew')
+                if True:  # amp/CCD level splitting here xxx TODO
+                    brighterFatterKernel = brighterFatterKernel[fakeCcdNum]
+                    self.log.info('Forcing CCD %s to use BF kernel from CCD %s'%(realCcdNum,
+                                                                                 fakeCcdNum))
+                else:
+                    print('Need to break this down to per-amp here')
+                sensorRef.dataId['ccd'] = realCcdNum
+                del realCcdNum
+                del fakeCcdNum
+
             self.brighterFatterCorrection(ccdExposure, brighterFatterKernel,
                                           self.config.brighterFatterMaxIter,
                                           self.config.brighterFatterThreshold,
