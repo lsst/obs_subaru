@@ -19,16 +19,14 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Gen3 Butler specializations for Hyper Suprime-Cam.
+"""Gen3 Butler registry declarations for Hyper Suprime-Cam.
 """
 
 import re
 
 from lsst.daf.butler.instrument import Instrument
-from lsst.daf.butler.gen2convert import Translator, KeyHandler, ConstantKeyHandler, CopyKeyHandler
 
 __all__ = ("HyperSuprimeCam",)
-
 
 # Regular expression that matches HSC PhysicalFilter names (the same as Gen2
 # filternames), with a group that can be lowercased to yield the
@@ -76,56 +74,3 @@ class HyperSuprimeCam(Instrument):
                     abstract_filter=m.group(1).lower() if m is not None else None
                 )
             )
-
-
-class HscAbstractFilterKeyHandler(KeyHandler):
-    """KeyHandler for HSC filter keys that should be mapped to AbstractFilters.
-    """
-
-    __slots__ = ()
-
-    def __init__(self):
-        super().__init__("abstract_filter", "AbstractFilter")
-
-    def extract(self, gen2id, skyMap, skyMapName):
-        physical = gen2id["filter"]
-        m = FILTER_REGEX.match(physical)
-        if m:
-            return m.group(1).lower()
-        return physical
-
-
-# Add camera to Gen3 data ID if Gen2 contains "visit" or "ccd".
-# (Both rules will match, so we'll actually set camera in the same dict twice).
-Translator.addRule(ConstantKeyHandler("camera", "Camera", "HSC"),
-                   camera="HSC", gen2keys=("visit",), consume=False)
-Translator.addRule(ConstantKeyHandler("camera", "Camera", "HSC"),
-                   camera="HSC", gen2keys=("ccd",), consume=False)
-
-# Copy Gen2 'visit' to Gen3 'exposure' for raw only.  Also consume filter,
-# since that's implied by 'exposure' in Gen3.
-Translator.addRule(CopyKeyHandler("exposure", "Exposure", "visit"),
-                   camera="HSC", datasetTypeName="raw", gen2keys=("visit",),
-                   consume=("visit", "filter"))
-
-# Copy Gen2 'visit' to Gen3 'visit' otherwise.  Also consume filter.
-Translator.addRule(CopyKeyHandler("visit", "Visit"), camera="HSC", gen2keys=("visit",),
-                   consume=("visit", "filter"))
-
-# Copy Gen2 'ccd' to Gen3 'sensor;
-Translator.addRule(CopyKeyHandler("sensor", "Sensor", "ccd"), camera="HSC", gen2keys=("ccd",))
-
-# Translate Gen2 `filter` to AbstractFilter if it hasn't been consumed yet and gen2keys includes tract.
-Translator.addRule(HscAbstractFilterKeyHandler(), camera="HSC", gen2keys=("filter", "tract"),
-                   consume=("filter",))
-
-# Add camera for HSC transmission curve datasets (transmission_sensor is
-# already handled by the above translators).
-Translator.addRule(ConstantKeyHandler("camera", "Camera", "HSC"),
-                   camera="HSC", datasetTypeName="transmission_optics")
-Translator.addRule(ConstantKeyHandler("camera", "Camera", "HSC"),
-                   camera="HSC", datasetTypeName="transmission_atmosphere")
-Translator.addRule(ConstantKeyHandler("camera", "Camera", "HSC"),
-                   camera="HSC", datasetTypeName="transmission_filter")
-Translator.addRule(CopyKeyHandler("physical_filter", "PhysicalFilter", "filter"),
-                   camera="HSC", datasetTypeName="transmission_filter")
