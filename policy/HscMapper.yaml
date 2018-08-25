@@ -389,7 +389,7 @@ datasets:
     tables: raw_skytile
     template: deepCoadd-diff/%(filter)s/%(tract)d/%(patch)s/diffsrc-%(filter)s-%(tract)d-%(patch)s-%(visit)d.fits
   deepDiff_metadata:
-    template: '%(pointing)05d/%(filter)s/deepDiff_metadata/deepDiff_metadata-%(visit)07d-%(ccd)03d.boost'
+    template: '%(pointing)05d/%(filter)s/deepDiff_metadata/deepDiff_metadata-%(visit)07d-%(ccd)03d.yaml'
   deepDiff_diaSrc:
     template: 'deepDiff/%(pointing)05d/%(filter)s/DIASRC-%(visit)07d-%(ccd)03d.fits'
   deepDiff_kernelSrc:
@@ -397,49 +397,49 @@ datasets:
   warppsf:
     persistable: Psf
     python: lsst.afw.detection.Psf
-    storage: BoostStorage
+    storage: YamlStorage
     tables: raw_skytile
-    template: '%(pointing)05d/%(filter)s/warp/WARPPSF-%(visit)07d-%(ccd)03d.boost'
+    template: '%(pointing)05d/%(filter)s/warp/WARPPSF-%(visit)07d-%(ccd)03d.yaml'
   processCcd_metadata:
-    template: '%(pointing)05d/%(filter)s/processCcd_metadata/%(visit)07d-%(ccd)03d.boost'
+    template: '%(pointing)05d/%(filter)s/processCcd_metadata/%(visit)07d-%(ccd)03d.yaml'
   isr_metadata:
-    template: '%(pointing)05d/%(filter)s/isr_metadata/%(visit)07d-%(ccd)03d.boost'
+    template: '%(pointing)05d/%(filter)s/isr_metadata/%(visit)07d-%(ccd)03d.yaml'
   characterizeImage_metadata:
-    template: '%(pointing)05d/%(filter)s/characterizeImage_metadata/%(visit)07d-%(ccd)03d.boost'
+    template: '%(pointing)05d/%(filter)s/characterizeImage_metadata/%(visit)07d-%(ccd)03d.yaml'
   calibrate_metadata:
-    template: '%(pointing)05d/%(filter)s/calibrate_metadata/%(visit)07d-%(ccd)03d.boost'
+    template: '%(pointing)05d/%(filter)s/calibrate_metadata/%(visit)07d-%(ccd)03d.yaml'
   transformSrcMeasurement_metadata:
     persistable: PropertySet
     python: lsst.daf.base.PropertySet
-    storage: BoostStorage
+    storage: YamlStorage
     tables:
     - raw
     - raw_visit
-    template: '%(pointing)05d/%(filter)s/transformSrcMeasurement_metadata/%(visit)07d-%(ccd)03d.boost'
+    template: '%(pointing)05d/%(filter)s/transformSrcMeasurement_metadata/%(visit)07d-%(ccd)03d.yaml'
   singleFrameDriver_metadata:
     persistable: PropertySet
     python: lsst.daf.base.PropertySet
-    storage: BoostStorage
+    storage: YamlStorage
     tables:
     - raw
     - raw_visit
-    template: '%(pointing)05d/%(filter)s/singleFrameDriver_metadata/%(visit)07d.boost'
+    template: '%(pointing)05d/%(filter)s/singleFrameDriver_metadata/%(visit)07d.yaml'
   donutDriver_metadata:
     persistable: PropertySet
     python: lsst.daf.base.PropertySet
-    storage: BoostStorage
+    storage: YamlStorage
     tables:
     - raw
     - raw_visit
-    template: '%(pointing)05d/%(filter)s/donutDriver_metadata/%(visit)07d.boost'
+    template: '%(pointing)05d/%(filter)s/donutDriver_metadata/%(visit)07d.yaml'
   processStack_metadata:
     persistable: PropertySet
     python: lsst.daf.base.PropertySet
-    storage: BoostStorage
+    storage: YamlStorage
     tables:
     - raw
     - raw_visit
-    template: stack/%(stack)05d/processStack_metadata/%(patch)08d%(filter)s.boost
+    template: stack/%(stack)05d/processStack_metadata/%(patch)08d%(filter)s.yaml
   deepCoadd_measMatch:
     template: deepCoadd-results/%(filter)s/%(tract)d/%(patch)s/srcMatch-%(filter)s-%(tract)d-%(patch)s.fits
   deepCoadd_measMatchFull:
@@ -458,7 +458,7 @@ datasets:
   forced_src:
     template: '%(pointing)05d/%(filter)s/tract%(tract)d/FORCEDSRC-%(visit)07d-%(ccd)03d.fits'
   forcedPhotCcd_metadata:
-    template: '%(pointing)05d/%(filter)s/tract%(tract)d/forcedPhotCcd_metadata/%(visit)07d-%(ccd)03d.boost'
+    template: '%(pointing)05d/%(filter)s/tract%(tract)d/forcedPhotCcd_metadata/%(visit)07d-%(ccd)03d.yaml'
   ossThumb:
     persistable: None
     python: builtins.str
@@ -602,11 +602,11 @@ datasets:
   processFocus_metadata:
     persistable: PropertySet
     python: lsst.daf.base.PropertySet
-    storage: BoostStorage
+    storage: YamlStorage
     tables:
     - raw
     - raw_visit
-    template: '%(pointing)05d/%(filter)s/processFocus_metadata/%(visit)07d.boost'
+    template: '%(pointing)05d/%(filter)s/processFocus_metadata/%(visit)07d.yaml'
   focusSweepPlot:
     persistable: None
     python: builtins.str
@@ -622,7 +622,7 @@ datasets:
     - raw_visit
     template: config/processFocusSweep.py
   apPipe_metadata:
-    template: '%(pointing)05d/%(filter)s/apPipe_metadata/%(visit)07d-%(ccd)03d.boost'
+    template: '%(pointing)05d/%(filter)s/apPipe_metadata/%(visit)07d-%(ccd)03d.yaml'
 
   # Plots for analysis QA
   plotCoadd:
