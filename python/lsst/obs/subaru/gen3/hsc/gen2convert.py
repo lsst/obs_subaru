@@ -81,3 +81,15 @@ Translator.addRule(ConstantKeyHandler("camera", "Camera", "HSC"),
                    camera="HSC", datasetTypeName="transmission_filter")
 Translator.addRule(CopyKeyHandler("physical_filter", "PhysicalFilter", "filter"),
                    camera="HSC", datasetTypeName="transmission_filter")
+
+# Add calibration mapping for filter for filter dependent types
+for calibType in ('flat', 'sky', 'fringe'):
+    Translator.addRule(CopyKeyHandler("physical_filter", "PhysicalFilter", "filter"),
+                       camera="HSC", datasetTypeName=calibType)
+
+# Add calibration mapping for date ranges for all calibration types.
+for calibType in ('flat', 'bias', 'sky', 'dark', 'fringe'):
+    Translator.addRule(CopyKeyHandler("valid_first", "ExposureRange", "valid_first"),
+                       camera="HSC", datasetTypeName=calibType)
+    Translator.addRule(CopyKeyHandler("valid_last", "ExposureRange", "valid_last"),
+                       camera="HSC", datasetTypeName=calibType)
