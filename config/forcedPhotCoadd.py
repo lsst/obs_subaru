@@ -25,12 +25,12 @@ def doUndeblended(config, algName, fluxList=None):
         Algorithm name.
     fluxList : `list` of `str`, or `None`
         List of flux columns to register for aperture correction. If `None`,
-        then this will be the `algName` appended with `_flux`.
+        then this will be the `algName` appended with `_instFlux`.
     """
     if algName not in config.measurement.plugins:
         return
     if fluxList is None:
-        fluxList = [algName + "_flux"]
+        fluxList = [algName + "_instFlux"]
     config.measurement.undeblended.names.add(algName)
     config.measurement.undeblended[algName] = config.measurement.plugins[algName]
     for flux in fluxList:
