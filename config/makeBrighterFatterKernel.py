@@ -39,3 +39,12 @@ config.isr.doUseFilterTransmission = False
 config.isr.doUseSensorTransmission = False
 config.isr.doUseAtmosphereTransmission = False
 config.isr.doAttachTransmissionCurve = False
+
+config.isrMandatorySteps = ['doAssembleCcd',  # default
+                            'doOverscan']  # additional for this obs_package
+config.isrForbiddenSteps = ['doApplyGains', 'normalizeGains',  # additional for this obs_package
+                            'doGuider', 'doStrayLight', 'doTweakFlat',  # additional for this obs_package
+                            'doApplyGains', 'normalizeGains', 'doFlat', 'doFringe',  # remainder are defaults
+                            'doAddDistortionModel', 'doBrighterFatter', 'doUseOpticsTransmission',
+                            'doUseFilterTransmission', 'doUseSensorTransmission',
+                            'doUseAtmosphereTransmission', 'doGuider', 'doStrayLight', 'doTweakFlat']
