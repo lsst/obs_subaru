@@ -1,10 +1,11 @@
-# Configuration for HSC ISR
-# Note that config should be an instance of SubaruIsrConfig
+"""
+HSC-specific overrides for IsrTask
+"""
 import os.path
 
 from lsst.utils import getPackageDir
-
 from lsst.obs.subaru.crosstalk import CrosstalkTask
+
 config.crosstalk.retarget(CrosstalkTask)
 
 config.overscanFitType = "AKIMA_SPLINE"
@@ -13,6 +14,9 @@ config.doBias = True # Overscan is fairly efficient at removing bias level, but 
 config.doDark = True # Required especially around CCD 33
 config.doFringe = True
 config.fringe.filters = ['y', 'N921', 'N926', 'N973', 'N1010']
+
+# Do not use NO_DATA pixels for fringe subtraction.
+config.fringe.stats.badMaskPlanes = ['SAT', 'NO_DATA']
 config.fringe.stats.badMaskPlanes += ["SUSPECT"]  # stray light correction unavailable
 config.doWrite = False
 config.doCrosstalk = True

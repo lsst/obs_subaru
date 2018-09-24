@@ -1,14 +1,12 @@
-# Configuration for Suprime-Cam-MIT ISR
+"""
+SuprimeCam (MIT)-specific overrides for IsrTask
+"""
+config.doBias = False
+config.doDark = False
+config.doCrosstalk = False
+config.doLinearize = False
+config.doWrite = False
+config.doDefect = True
 
-from lsst.obs.subaru.isr import SuprimeCamMitIsrTask
-config.isr.retarget(SuprimeCamMitIsrTask)
-
-config.isr.doBias = False
-config.isr.doDark = False
-config.isr.doCrosstalk = False
-config.isr.doLinearize = False
-config.isr.doWrite = False
-config.isr.doDefect = True
-
-config.isr.doFringe = True
-config.isr.fringe.filters = ["I", "i", "z"]
+config.doFringe = True
+config.fringe.filters = ["I", "i", "z"]

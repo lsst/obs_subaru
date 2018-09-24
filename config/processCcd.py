@@ -7,8 +7,9 @@ from lsst.utils import getPackageDir
 from lsst.meas.algorithms import LoadIndexedReferenceObjectsTask
 from lsst.meas.algorithms import ColorLimit
 
-configDir = os.path.join(getPackageDir("obs_subaru"), "config")
-bgFile = os.path.join(configDir, "background.py")
+ObsConfigDir = os.path.join(getPackageDir("obs_subaru"), "config")
+
+bgFile = os.path.join(ObsConfigDir, "background.py")
 
 # Cosmic rays and background estimation
 config.charImage.repair.cosmicray.nCrPixelMax = 1000000
@@ -67,18 +68,18 @@ config.charImage.detection.isotropicGrow = True
 config.calibrate.detection.isotropicGrow = True
 
 # Activate calibration of measurements: required for aperture corrections
-config.charImage.load(os.path.join(configDir, "cmodel.py"))
-config.charImage.measurement.load(os.path.join(configDir, "apertures.py"))
-config.charImage.measurement.load(os.path.join(configDir, "kron.py"))
-config.charImage.measurement.load(os.path.join(configDir, "convolvedFluxes.py"))
-config.charImage.measurement.load(os.path.join(configDir, "hsm.py"))
+config.charImage.load(os.path.join(ObsConfigDir, "cmodel.py"))
+config.charImage.measurement.load(os.path.join(ObsConfigDir, "apertures.py"))
+config.charImage.measurement.load(os.path.join(ObsConfigDir, "kron.py"))
+config.charImage.measurement.load(os.path.join(ObsConfigDir, "convolvedFluxes.py"))
+config.charImage.measurement.load(os.path.join(ObsConfigDir, "hsm.py"))
 if "ext_shapeHSM_HsmShapeRegauss" in config.charImage.measurement.plugins:
     # no deblending has been done
     config.charImage.measurement.plugins["ext_shapeHSM_HsmShapeRegauss"].deblendNChild = ""
 
-config.calibrate.measurement.load(os.path.join(configDir, "apertures.py"))
-config.calibrate.measurement.load(os.path.join(configDir, "kron.py"))
-config.calibrate.measurement.load(os.path.join(configDir, "hsm.py"))
+config.calibrate.measurement.load(os.path.join(ObsConfigDir, "apertures.py"))
+config.calibrate.measurement.load(os.path.join(ObsConfigDir, "kron.py"))
+config.calibrate.measurement.load(os.path.join(ObsConfigDir, "hsm.py"))
 
 # Deblender
 config.charImage.deblend.maskLimits["NO_DATA"] = 0.25 # Ignore sources that are in the vignetted region
