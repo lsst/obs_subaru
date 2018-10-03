@@ -39,5 +39,6 @@ config.data = {
         'N816': Colorterm(primary="i", secondary="z", c0=0.013806, c1=-0.717681, c2=0.049289),
         'N921': Colorterm(primary="z", secondary="y", c0=0.002039, c1=-0.477412, c2=-0.492151),
         'N973': Colorterm(primary="y", secondary="z", c0=-0.007775, c1=-0.050972, c2=-0.197278),
+        'N1010': Colorterm(primary="y", secondary="z", c0=0.003607, c1=0.865366, c2=1.271817),
     }),
 }
