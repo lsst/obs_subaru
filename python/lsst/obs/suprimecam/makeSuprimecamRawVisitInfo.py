@@ -1,7 +1,13 @@
-from ..hsc.makeHscRawVisitInfo import MakeHscRawVisitInfo
+
+from lsst.obs.base import MakeRawVisitInfoViaObsInfo
+from lsst.obs.metadata import SuprimeCamTranslator
+
+__all__ = ["MakeSuprimecamRawVisitInfo"]
 
 
-class MakeSuprimecamRawVisitInfo(MakeHscRawVisitInfo):
-    """Suprimecam has the same FITS metadata as HSC, at least for VisitInfo fields
+class MakeSuprimecamRawVisitInfo(MakeRawVisitInfoViaObsInfo):
+    """Make a VisitInfo from the FITS header of a Subaru SuprimeCam image
     """
-    pass
+
+    # Force HSC Translator.  Not required but being explicit does no harm.
+    metadataTranslator = SuprimeCamTranslator

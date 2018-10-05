@@ -32,4 +32,4 @@ class SuprimeCamRawFormatter(FitsRawFormatterBase):
 
     def makeVisitInfo(self, header):
         maker = MakeSuprimecamRawVisitInfo()
-        return maker(header, exposureId=0)  # TODO: read exposure ID from header, too
+        return maker(header)

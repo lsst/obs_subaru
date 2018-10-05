@@ -31,9 +31,8 @@ import lsst.afw.geom as afwGeom
 import lsst.daf.persistence as dafPersist
 import lsst.utils
 from lsst.daf.base import DateTime
-from lsst.obs.base import MakeRawVisitInfo
 from lsst.afw.image import RotType
-from lsst.afw.geom import degrees
+from lsst.afw.geom import degrees, radians
 from lsst.obs.hsc import HscMapper
 
 testDataPackage = "testdata_subaru"
@@ -96,9 +95,7 @@ class GetDataTestCase(lsst.utils.tests.TestCase):
         self.ccdSize = (2048, 4176)
         self.exptime = 30.0
         self.darktime = self.exptime  # No explicit darktime
-        dateBeg = DateTime(56598.26106374757, DateTime.MJD, DateTime.UTC)
-        dateAvgNSec = dateBeg.nsecs() + int(0.5e9*self.exptime)
-        self.dateAvg = DateTime(dateAvgNSec, DateTime.TAI)
+        self.dateAvg = DateTime(56598.261654253474, DateTime.MJD, DateTime.TAI)
         self.boresightRaDec = afwGeom.SpherePoint(320.7499250000, 0.500019444, degrees)
         self.boresightAzAlt = afwGeom.SpherePoint(226.68922661, 63.04359233, degrees)
         self.boresightAirmass = 1.121626027604189
@@ -107,12 +104,11 @@ class GetDataTestCase(lsst.utils.tests.TestCase):
         self.obs_longitude = -155.476667*degrees
         self.obs_latitude = 19.825556*degrees
         self.obs_elevation = 4139
-        self.weath_airTemperature = MakeRawVisitInfo.centigradeFromKelvin(272.35)
-        self.weath_airPressure = MakeRawVisitInfo.pascalFromMmHg(621.7)
+        self.weath_airTemperature = -0.8
+        self.weath_airPressure = 62170.
         self.weath_humidity = 33.1
         # NOTE: if we deal with DM-8053 and get UT1 implemented, ERA will change slightly.
-        lst = 340.189608333*degrees
-        self.era = lst - self.obs_longitude
+        self.era = 2.3659577248977826*radians
 
     def tearDown(self):
         del self.butler
@@ -143,7 +139,7 @@ class GetDataTestCase(lsst.utils.tests.TestCase):
         self.assertAlmostEqual(observatory.getElevation(), self.obs_elevation)
         weather = visitInfo.getWeather()
         self.assertAlmostEqual(weather.getAirTemperature(), self.weath_airTemperature)
-        self.assertAlmostEqual(weather.getAirPressure(), self.weath_airPressure)
+        self.assertAlmostEqual(weather.getAirPressure(), self.weath_airPressure, places=4)
         self.assertAlmostEqual(weather.getHumidity(), self.weath_humidity)
 
     def testPupil(self):
