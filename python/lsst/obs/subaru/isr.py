@@ -273,11 +273,11 @@ class SubaruIsrTask(IsrTask):
                 overscan.getMask().getArray()[bad] = overscan.getMask().getPlaneBitMask("SAT")
 
                 statControl = afwMath.StatisticsControl()
+                statControl.setNumSigmaClip(self.config.overscanNumSigmaClip)
                 statControl.setAndMask(ccdExposure.getMaskedImage().getMask().getPlaneBitMask("SAT"))
                 lsstIsr.overscanCorrection(ampMaskedImage=ampImage, overscanImage=overscan,
                                            fitType=self.config.overscanFitType,
                                            order=self.config.overscanOrder,
-                                           collapseRej=self.config.overscanRej,
                                            statControl=statControl,
                                            )
 
