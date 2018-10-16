@@ -59,6 +59,7 @@ class HscMapper(CameraMapper):
         afwImageUtils.defineFilter(name='r2', lambdaEff=623, alias=['HSC-R2'])
         afwImageUtils.defineFilter(name='N468', lambdaEff=468, alias=['NB0468'])
         afwImageUtils.defineFilter(name='N926', lambdaEff=926, alias=['NB0926'])
+        afwImageUtils.defineFilter(name='N400', lambdaEff=400, alias=['NB0400'])
 
     def __init__(self, **kwargs):
         policyFile = Policy.defaultPolicyFile("obs_subaru", "HscMapper.yaml", "policy")
@@ -131,6 +132,7 @@ class HscMapper(CameraMapper):
             "HSC-Y",
             "ENG-R1",
             "NB0387",
+            "NB0400",
             "NB0468",
             "NB0515",
             "NB0527",

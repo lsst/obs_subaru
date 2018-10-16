@@ -67,7 +67,9 @@ class ColortermOverrideTestCase(unittest.TestCase):
     def testPs1Colorterms(self):
         """Test that the colorterm libraries are formatted correctly"""
         ps1Bands = ["g", "r", "i", "z", "y"]
-        hscBands = ["g", "r", "r2", "i", "i2", "z", "y", "N816", "N921"]
+        hscBands = ["g", "r", "r2", "i", "i2", "z", "y", "I945", "N387", "N468", "N515", "N527", "N656",
+                    "N718", "N816", "N921", "N973", "N1010"]
+
         for band in hscBands:
             ct = self.photoCalConf.colorterms.getColorterm(band, photoCatName="ps1")  # exact match
             self.assertIn(ct.primary, ps1Bands)
