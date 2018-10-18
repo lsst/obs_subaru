@@ -7,7 +7,7 @@ setupRequired(sconsUtils)
 setupRequired(pybind11)
 setupRequired(numpy)
 setupRequired(astshim)
-setupRequired(obs_metadata)
+setupRequired(astro_metadata_translator)
 
 setupOptional(daf_butler)
 setupOptional(meas_modelfit)

@@ -21,7 +21,7 @@
 #
 
 from lsst.obs.base import MakeRawVisitInfoViaObsInfo
-from lsst.obs.metadata import HscTranslator
+from astro_metadata_translator import HscTranslator
 
 __all__ = ["MakeHscRawVisitInfo"]
 

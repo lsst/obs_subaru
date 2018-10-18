@@ -1,6 +1,6 @@
 
 from lsst.obs.base import MakeRawVisitInfoViaObsInfo
-from lsst.obs.metadata import SuprimeCamTranslator
+from astro_metadata_translator import SuprimeCamTranslator
 
 __all__ = ["MakeSuprimecamRawVisitInfo"]
 
