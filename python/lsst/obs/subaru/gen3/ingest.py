@@ -22,45 +22,12 @@
 """Gen3 Butler specializations for Hyper Suprime-Cam.
 """
 
-from abc import abstractmethod
-
-from lsst.obs.base.gen3 import VisitInfoRawIngestTask
+from lsst.obs.base.gen3 import RawIngestTask
 
 
 __all__ = ("SubaruRawIngestTask", )
 
 
-class SubaruRawIngestTask(VisitInfoRawIngestTask):
+class SubaruRawIngestTask(RawIngestTask):
     """Intermediate base class for Subaru Gen3 raw data ingest.
     """
-
-    @classmethod
-    def getTruncatedModifiedJulianDate(cls, header):
-        return int(header.getScalar('MJD')) - cls.DAY0
-
-    @staticmethod
-    def getSensorId(header):
-        return int(header.getScalar("DET-ID"))
-
-    @staticmethod
-    def getFilterName(header):
-        # Want upper-case filter names
-        try:
-            return header.getScalar('FILTER01').strip().upper()
-        except Exception:
-            return None
-
-    @staticmethod
-    @abstractmethod
-    def getExposureId(header):
-        raise NotImplementedError("Must be implemented by subclasses.")
-
-    def extractDataId(self, file, headers):
-        exposureId = self.getExposureId(headers[0])
-        return {
-            "camera": "HSC",
-            "exposure": exposureId,
-            "visit": exposureId if headers[0].getScalar("DATA-TYP") == "OBJECT" else None,
-            "sensor": self.getSensorId(headers[0]),
-            "physical_filter": self.getFilterName(headers[0]),
-        }

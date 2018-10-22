@@ -39,7 +39,7 @@ class HyperSuprimeCamRawFormatter(FitsRawFormatterBase):
 
     def makeVisitInfo(self, metadata):
         maker = MakeHscRawVisitInfo()
-        return maker(metadata, exposureId=0)  # TODO: read exposure ID from header, too
+        return maker(metadata)
 
     def makeWcs(self, metadata):
         wcs = makeSkyWcs(metadata, strip=True)
