@@ -64,7 +64,7 @@ class HscIngestTestCase(lsst.utils.tests.TestCase):
         self.config = HyperSuprimeCamRawIngestTask.ConfigClass()
         self.config.onError = "break"
         self.file = os.path.join(testDataDirectory, "hsc", "raw", "HSCA90402512.fits.gz")
-        self.dataId = dict(camera="HSC", exposure=904024, sensor=50)
+        self.dataId = dict(instrument="HSC", exposure=904024, detector=50)
 
     def tearDown(self):
         if os.path.exists(self.root):

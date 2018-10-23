@@ -43,23 +43,23 @@ class HyperSuprimeCam(Instrument):
     duplication for now.
     """
 
-    camera = "HSC"
+    instrument = "HSC"
 
     def __init__(self, mapper):
-        self.sensors = [
+        self.detectors = [
             dict(
-                sensor=sensor.getId(),
-                name=sensor.getName(),
+                detector=detector.getId(),
+                name=detector.getName(),
                 # getType() returns a pybind11-wrapped enum, which
                 # unfortunately has no way to extract the name of just
                 # the value (it's always prefixed by the enum type name).
-                purpose=str(sensor.getType()).split(".")[-1],
-                # The most useful grouping of sensors in HSC is by their
+                purpose=str(detector.getType()).split(".")[-1],
+                # The most useful grouping of detectors in HSC is by their
                 # orientation w.r.t. the focal plane, so that's what
                 # we put in the 'group' field.
-                group="NQUARTER{:d}".format(sensor.getOrientation().getNQuarter() % 4)
+                group="NQUARTER{:d}".format(detector.getOrientation().getNQuarter() % 4)
             )
-            for sensor in mapper.camera
+            for detector in mapper.camera
         ]
         self.physicalFilters = []
         for name in mapper.filters:
