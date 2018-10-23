@@ -33,7 +33,7 @@ class HyperSuprimeCamRawIngestTask(SubaruRawIngestTask):
     """
 
     def getFormatter(self, file, headers, dataId):
-        if dataId["sensor"] in (100, 101, 102, 103):
+        if dataId["detector"] in (100, 101, 102, 103):
             return HyperSuprimeCamCornerRawFormatter()
         else:
             return HyperSuprimeCamRawFormatter()

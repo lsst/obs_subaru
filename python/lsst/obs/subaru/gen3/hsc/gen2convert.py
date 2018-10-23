@@ -64,8 +64,8 @@ Translator.addRule(CopyKeyHandler("exposure", "Exposure", "visit"),
 Translator.addRule(CopyKeyHandler("visit", "Visit"), camera="HSC", gen2keys=("visit",),
                    consume=("visit", "filter"))
 
-# Copy Gen2 'ccd' to Gen3 'sensor;
-Translator.addRule(CopyKeyHandler("sensor", "Sensor", "ccd"), camera="HSC", gen2keys=("ccd",))
+# Copy Gen2 'ccd' to Gen3 'detector;
+Translator.addRule(CopyKeyHandler("detector", "Detector", "ccd"), instrument="HSC", gen2keys=("ccd",))
 
 # Translate Gen2 `filter` to AbstractFilter if it hasn't been consumed yet and gen2keys includes tract.
 Translator.addRule(HscAbstractFilterKeyHandler(), camera="HSC", gen2keys=("filter", "tract"),
