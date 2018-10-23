@@ -43,7 +43,7 @@ class HyperSuprimeCam(Instrument):
     duplication for now.
     """
 
-    camera = "HSC"
+    instrument = "HSC"
 
     def __init__(self, mapper):
         self.detectors = [
