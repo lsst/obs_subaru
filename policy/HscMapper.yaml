@@ -37,6 +37,8 @@ exposures:
     template: '%(pointing)05d/%(filter)s/corr/ICEXP-%(visit)07d-%(ccd)03d.fits'
   calexp:
     template: '%(pointing)05d/%(filter)s/corr/CORR-%(visit)07d-%(ccd)03d.fits'
+  fakes_calexp:
+    template: '%(pointing)05d/%(filter)s/corr/CORR-%(visit)07d-%(ccd)03d_fakes.fits'
   revexp:
     level: Ccd
     persistable: ExposureF
@@ -348,6 +350,9 @@ datasets:
     - raw
     - raw_visit
     template: '%(pointing)05d/%(filter)s/output/MATCH-%(visit)07d-%(ccd)03d.fits'
+  fakeSourceCat:
+    template: '%(pointing)05d/%(filter)s/corr/CORR-%(visit)07d-%(ccd)03d_fakeCat.parq'
+
   srcMatch:
     template: '%(pointing)05d/%(filter)s/output/SRCMATCH-%(visit)07d-%(ccd)03d.fits'
   srcMatchFull:
