@@ -440,10 +440,6 @@ datasets:
     - raw
     - raw_visit
     template: stack/%(stack)05d/processStack_metadata/%(patch)08d%(filter)s.yaml
-  deepCoadd_measMatch:
-    template: deepCoadd-results/%(filter)s/%(tract)d/%(patch)s/srcMatch-%(filter)s-%(tract)d-%(patch)s.fits
-  deepCoadd_measMatchFull:
-    template: deepCoadd-results/%(filter)s/%(tract)d/%(patch)s/srcMatchFull-%(filter)s-%(tract)d-%(patch)s.fits
   deepCoadd_calexp_hsc:
     level: None
     persistable: ExposureF
