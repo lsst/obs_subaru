@@ -39,6 +39,8 @@ exposures:
     template: '%(pointing)05d/%(filter)s/corr/ICEXP-%(visit)07d-%(ccd)03d.fits'
   calexp:
     template: '%(pointing)05d/%(filter)s/corr/CORR-%(visit)07d-%(ccd)03d.fits'
+  fakes_calexp:
+   template: '%(pointing)05d/%(filter)s/tract%(tract)d/fakes_calexp-%(visit)07d-%(ccd)03d.fits'
   revexp:
     level: Ccd
     persistable: ExposureF
@@ -326,6 +328,8 @@ datasets:
     template: '%(pointing)05d/%(filter)s/corr/calexp-camera-%(visit)d.fits'
   src:
     template: '%(pointing)05d/%(filter)s/output/SRC-%(visit)07d-%(ccd)03d.fits'
+  fakes_src:
+    template: '%(pointing)05d/%(filter)s/tract%(tract)d/fakes_src-%(visit)07d-%(ccd)03d.fits'
   calibrated_src:
     persistable: SourceCatalog
     python: lsst.afw.table.SourceCatalog
@@ -350,6 +354,9 @@ datasets:
     - raw
     - raw_visit
     template: '%(pointing)05d/%(filter)s/output/MATCH-%(visit)07d-%(ccd)03d.fits'
+  fakeSourceCat:
+    template: '%(pointing)05d/%(filter)s/corr/CORR-%(visit)07d-%(ccd)03d_fakeCat.parq'
+
   srcMatch:
     template: '%(pointing)05d/%(filter)s/output/SRCMATCH-%(visit)07d-%(ccd)03d.fits'
   srcMatchFull:
