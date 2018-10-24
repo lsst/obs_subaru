@@ -39,7 +39,7 @@ hack = True
 
 def getSecCenter(sec):
     sec = re.sub('\'', '', sec)
-    sec = re.sub('\[|\:|\,|\]', ' ', sec)
+    sec = re.sub(r'\[|\:|\,|\]', ' ', sec)
     fields = list(map(int, sec.split()))
     # these indices run from 1..N
     # to run from 0..N-1 subtract off 2 from each sum

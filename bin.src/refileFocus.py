@@ -102,7 +102,7 @@ for visit, ccds in visits.items():
         tmpDir = None
         for old, new in remap.items():
             oldFile = fileNames[(visit, old)]
-            newFile = re.sub("%03d\.fits" % old, "%03d.fits" % new, oldFile)
+            newFile = re.sub(r"%03d\.fits" % old, "%03d.fits" % new, oldFile)
             if not tmpDir:
                 tmpDir = os.path.join(os.path.split(oldFile)[0], "tmp")
                 if not os.path.isdir(tmpDir):

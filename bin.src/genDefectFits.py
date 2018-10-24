@@ -28,10 +28,10 @@ def genDefectFits(cameraName, source, targetDir):
 
     with open(source, "r") as f:
         for line in f:
-            line = re.sub("\#.*", "", line).strip()
+            line = re.sub(r"\#.*", "", line).strip()
             if len(line) == 0:
                 continue
-            ccd, x0, y0, width, height = re.split("\s+", line)
+            ccd, x0, y0, width, height = re.split(r"\s+", line)
             ccd = int(ccd)
             if ccd not in ccds:
                 raise RuntimeError("Unrecognised ccd: %d" % ccd)

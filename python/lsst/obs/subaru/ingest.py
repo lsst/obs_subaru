@@ -65,12 +65,12 @@ class HscParseTask(ParseTask):
 
     def translate_visit(self, md):
         expId = md.getScalar("EXP-ID").strip()
-        m = re.search("^HSCE(\d{8})$", expId)  # 2016-06-14 and new scheme
+        m = re.search(r"^HSCE(\d{8})$", expId)  # 2016-06-14 and new scheme
         if m:
             return int(m.group(1))
 
         # Fallback to old scheme
-        m = re.search("^HSC([A-Z])(\d{6})00$", expId)
+        m = re.search(r"^HSC([A-Z])(\d{6})00$", expId)
         if not m:
             raise RuntimeError("Unable to interpret EXP-ID: %s" % expId)
         letter, visit = m.groups()
@@ -78,7 +78,7 @@ class HscParseTask(ParseTask):
         if visit == 0:
             # Don't believe it
             frameId = md.getScalar("FRAMEID").strip()
-            m = re.search("^HSC([A-Z])(\d{6})\d{2}$", frameId)
+            m = re.search(r"^HSC([A-Z])(\d{6})\d{2}$", frameId)
             if not m:
                 raise RuntimeError("Unable to interpret FRAMEID: %s" % frameId)
             letter, visit = m.groups()
@@ -152,7 +152,7 @@ class HscCalibsParseTask(CalibsParseTask):
 
     def _translateFromCalibId(self, field, md):
         data = md.getScalar("CALIB_ID")
-        match = re.search(".*%s=(\S+)" % field, data)
+        match = re.search(r".*%s=(\S+)" % field, data)
         return match.groups()[0]
 
     def translate_ccd(self, md):
@@ -173,14 +173,14 @@ class SuprimecamParseTask(HscParseTask):
 
     def translate_visit(self, md):
         expId = md.getScalar("EXP-ID").strip()
-        m = re.search("^SUP[A-Z](\d{7})0$", expId)
+        m = re.search(r"^SUP[A-Z](\d{7})0$", expId)
         if not m:
             raise RuntimeError("Unable to interpret EXP-ID: %s" % expId)
         visit = int(m.group(1))
         if int(visit) == 0:
             # Don't believe it
             frameId = md.getScalar("FRAMEID").strip()
-            m = re.search("^SUP[A-Z](\d{7})\d{1}$", frameId)
+            m = re.search(r"^SUP[A-Z](\d{7})\d{1}$", frameId)
             if not m:
                 raise RuntimeError("Unable to interpret FRAMEID: %s" % frameId)
             visit = int(m.group(1))
