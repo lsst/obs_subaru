@@ -37,7 +37,7 @@ from lsst.obs.subaru.gen3.hsc import HyperSuprimeCamRawIngestTask, HyperSuprimeC
 testDataPackage = "testdata_subaru"
 try:
     testDataDirectory = lsst.utils.getPackageDir(testDataPackage)
-except lsst.pex.exceptions.NotFoundError as err:
+except lsst.pex.exceptions.NotFoundError:
     testDataDirectory = None
 
 
