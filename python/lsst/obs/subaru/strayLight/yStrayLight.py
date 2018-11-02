@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-__all__ = ["StrayLightTask"]
+__all__ = ["SubaruStrayLightTask"]
 
 import datetime
 
@@ -22,8 +22,7 @@ import numpy
 from astropy.io import fits
 import scipy.interpolate
 
-from lsst.pex.config import Config, Field
-from lsst.pipe.base import Task
+from lsst.ip.isr.straylight import StrayLightConfig, StrayLightTask
 
 from . import waveletCompression
 from .rotatorAngle import inrStartEnd
@@ -32,15 +31,8 @@ from .rotatorAngle import inrStartEnd
 BAD_THRESHOLD = 500  # Threshold for identifying bad pixels in the reconstructed dark image
 
 
-class StrayLightConfig(Config):
-    doRotatorAngleCorrection = Field(
-        dtype=bool,
-        doc="Calculate rotator start+end instead of using only the start value from the header?",
-        default=True,
-    )
-
-
-class StrayLightTask(Task):
+# TODO DM-16805: This doesn't match the rest of the obs_subaru/ISR code.
+class SubaruStrayLightTask(StrayLightTask):
     """Remove stray light in the y-band
 
     LEDs in an encoder in HSC are producing stray light on the detectors,
@@ -57,7 +49,7 @@ class StrayLightTask(Task):
     """
     ConfigClass = StrayLightConfig
 
-    def run(self, sensorRef, exposure):
+    def run(self, exposure, filename=None):
         """Subtract the y-band stray light
 
         This relies on knowing the instrument rotator angle during the
@@ -69,16 +61,18 @@ class StrayLightTask(Task):
 
         Parameters
         ----------
-        sensorRef : `lsst.daf.persistence.ButlerDataRef`
-            Data reference for CCD exposure to correct.
         exposure : `lsst.afw.image.Exposure`
             Exposure to correct.
+        filename : `str`, optional
+            filename containing the stray light model for this sensor.
         """
+        exposureMetadata = exposure.getMetadata()
+        detId = exposure.getDetector().getId()
         filterName = exposure.getFilter().getName()
         if filterName != 'y':
             # No correction to be made
             return
-        if sensorRef.dataId["ccd"] in range(104, 112):
+        if detId in range(104, 112):
             # No correction data: assume it's zero
             return
         if exposure.getInfo().getVisitInfo().getDate().toPython() >= datetime.datetime(2018, 1, 1):
@@ -86,25 +80,27 @@ class StrayLightTask(Task):
             # We believe there is no remaining stray light.
             return
 
-        header = sensorRef.get('raw_md')
         if self.config.doRotatorAngleCorrection:
-            angleStart, angleEnd = inrStartEnd(header)
+            angleStart, angleEnd = inrStartEnd(exposureMetadata)
             self.log.debug(
                 "(INR-STR, INR-END) = ({:g}, {:g}) (FITS header says ({:g}, {:g})).".format(
-                    angleStart, angleEnd, header.getDouble('INR-STR'), header.getDouble('INR-END'))
+                    angleStart, angleEnd,
+                    exposureMetadata.getDouble('INR-STR'), exposureMetadata.getDouble('INR-END'))
             )
         else:
-            angleStart = header.getDouble('INR-STR')
+            angleStart = exposureMetadata.getDouble('INR-STR')
             angleEnd = None
 
         self.log.info("Correcting y-band background")
-        filename = sensorRef.get("yBackground_filename")[0]
+
+        if filename is None:
+            filename = "/datasets/hsc/calib/20180117/STRAY_LIGHT/ybackground-%03d.fits" % (detId)
+
         model = get_ybackground(filename, angleStart, None if angleStart == angleEnd else angleEnd)
 
         # Some regions don't have useful model values because the amplifier is dead when the darks were taken
         #
         badAmps = {9: [0, 1, 2, 3], 33: [0, 1], 43: [0]}  # Known bad amplifiers in the data: {ccdId: [ampId]}
-        detId = exposure.getDetector().getId()
         if detId in badAmps:
             isBad = numpy.zeros_like(model, dtype=bool)
             for ii in badAmps[detId]:
@@ -130,14 +126,19 @@ def get_ybackground(filename, angle_start, angle_end=None):
     true, but should be a sufficient approximation for the
     relatively short exposure times typical for HSC.
 
-    @param filename (str)
+    Parameters
+    ----------
+    filename : `str`
         Filename of the background data.
-    @param angle_start (float)
-        Instrument rotation angle in degrees at the start of exposure.
-    @param angle_end (float)
-        Instrument rotation angle in degrees at the end of exposure.
+    angle_start : `float`
+        Instrument rotation angle in degrees at the start of the exposure.
+    angle_end : `float`
+        Instrument rotation angle in degrees at the end of the exposure.
 
-    @return (numpy.array[][])
+    Returns
+    -------
+    ccd_img : `numpy.ndarray`
+        Background data for this exposure.
     """
     hdulist = fits.open(filename)
     header = hdulist[0].header
