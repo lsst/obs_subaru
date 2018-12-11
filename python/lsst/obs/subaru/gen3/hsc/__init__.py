@@ -21,5 +21,4 @@
 
 from .instrument import *  # noqa
 from .gen2convert import *  # noqa
-from .ingest import *  # noqa
 from .rawFormatter import *  # noqa

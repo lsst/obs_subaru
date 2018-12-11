@@ -31,8 +31,8 @@ import lsst.utils.tests
 from lsst.afw.image import LOCAL
 from lsst.afw.geom import Box2I, Point2I
 from lsst.daf.butler import Butler
-from lsst.obs.hsc import HscMapper
-from lsst.obs.subaru.gen3.hsc import HyperSuprimeCamRawIngestTask, HyperSuprimeCam
+from lsst.obs.base.gen3 import RawIngestTask
+from lsst.obs.subaru.gen3.hsc import HyperSuprimeCam
 
 testDataPackage = "testdata_subaru"
 try:
@@ -47,10 +47,6 @@ TESTDIR = os.path.dirname(__file__)
 @unittest.skipIf(testDataDirectory is None, "testdata_subaru must be set up")
 class HscIngestTestCase(lsst.utils.tests.TestCase):
 
-    @classmethod
-    def setUpClass(cls):
-        cls.mapper = HscMapper(root=TESTDIR)  # root doesn't actually matter here
-
     def setUp(self):
         # Use a temporary working directory
         self.root = tempfile.mkdtemp(dir=TESTDIR)
@@ -59,9 +55,9 @@ class HscIngestTestCase(lsst.utils.tests.TestCase):
         # Register the instrument and its static metadata
         # Use of Gen2 HscMapper is a temporary workaround until we
         # have a Gen3-only way to make a cameraGeom.Camera.
-        HyperSuprimeCam(self.mapper).register(self.butler.registry)
+        HyperSuprimeCam().register(self.butler.registry)
         # Make a default config for test methods to play with
-        self.config = HyperSuprimeCamRawIngestTask.ConfigClass()
+        self.config = RawIngestTask.ConfigClass()
         self.config.onError = "break"
         self.file = os.path.join(testDataDirectory, "hsc", "raw", "HSCA90402512.fits.gz")
         self.dataId = dict(instrument="HSC", exposure=904024, detector=50)
@@ -73,7 +69,7 @@ class HscIngestTestCase(lsst.utils.tests.TestCase):
     def runIngest(self, files=None):
         if files is None:
             files = [self.file]
-        task = HyperSuprimeCamRawIngestTask(config=self.config, butler=self.butler)
+        task = RawIngestTask(config=self.config, butler=self.butler)
         task.log.setLevel(task.log.FATAL)  # silence logs, since we expect a lot of warnings
         task.run(files)
 

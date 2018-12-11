@@ -22,11 +22,18 @@
 """Gen3 Butler registry declarations for Hyper Suprime-Cam.
 """
 
-import re
+__all__ = ("HyperSuprimeCam",)
 
+import re
+import os
+
+from lsst.utils import getPackageDir
+from lsst.afw.cameraGeom import makeCameraFromPath, CameraConfig
 from lsst.daf.butler.instrument import Instrument
 
-__all__ = ("HyperSuprimeCam",)
+from lsst.obs.hsc.hscPupil import HscPupilFactory
+from lsst.obs.hsc.hscFilters import HSC_FILTER_NAMES
+from .rawFormatter import HyperSuprimeCamRawFormatter, HyperSuprimeCamCornerRawFormatter
 
 # Regular expression that matches HSC PhysicalFilter names (the same as Gen2
 # filternames), with a group that can be lowercased to yield the
@@ -36,18 +43,21 @@ FILTER_REGEX = re.compile(r"HSC\-([GRIZY])2?")
 
 class HyperSuprimeCam(Instrument):
     """Gen3 Butler specialization class for Subaru's Hyper Suprime-Cam.
-
-    The current implementation simply retrieves the information it needs
-    from a Gen2 HscMapper instance (the only constructor argument).  This
-    will obviously need to be changed before Gen2 is retired, but it avoids
-    duplication for now.
     """
 
-    instrument = "HSC"
+    @classmethod
+    def getName(self):
+        # Docstring inherited from Instrument.getName
+        return "HSC"
 
-    def __init__(self, mapper):
-        self.detectors = [
-            dict(
+    def register(self, registry):
+        # Docstring inherited from Instrument.register
+        camera = self.getCamera()
+        dataId = {"instrument": self.getName()}
+        registry.addDimensionEntry("Instrument", dataId)
+        for detector in camera:
+            registry.addDimensionEntry(
+                "Detector", dataId,
                 detector=detector.getId(),
                 name=detector.getName(),
                 # getType() returns a pybind11-wrapped enum, which
@@ -59,18 +69,38 @@ class HyperSuprimeCam(Instrument):
                 # we put in the 'group' field.
                 group="NQUARTER{:d}".format(detector.getOrientation().getNQuarter() % 4)
             )
-            for detector in mapper.camera
-        ]
-        self.physicalFilters = []
-        for name in mapper.filters:
+        for physical in HSC_FILTER_NAMES:
             # We use one of grizy for the abstract filter, when appropriate,
             # which we identify as when the physical filter starts with
             # "HSC-[GRIZY]".  Note that this means that e.g. "HSC-I" and
             # "HSC-I2" are both mapped to abstract filter "i".
-            m = FILTER_REGEX.match(name)
-            self.physicalFilters.append(
-                dict(
-                    physical_filter=name,
-                    abstract_filter=m.group(1).lower() if m is not None else None
-                )
+            m = FILTER_REGEX.match(physical)
+            registry.addDimensionEntry(
+                "PhysicalFilter",
+                dataId,
+                physical_filter=physical,
+                abstract_filter=m.group(1).lower() if m is not None else None
             )
+
+    def getRawFormatter(self, dataId):
+        # Docstring inherited from Instrument.getRawFormatter
+        if dataId["detector"] in (100, 101, 102, 103):
+            return HyperSuprimeCamCornerRawFormatter()
+        else:
+            return HyperSuprimeCamRawFormatter()
+
+    def getCamera(self):
+        """Retrieve the cameraGeom representation of HSC.
+
+        This is a temporary API that should go away once obs_ packages have
+        a standardized approach to writing versioned cameras to a Gen3 repo.
+        """
+        path = os.path.join(getPackageDir("obs_subaru"), "hsc", "camera")
+        config = CameraConfig()
+        config.load(os.path.join(path, "camera.py"))
+        return makeCameraFromPath(
+            cameraConfig=config,
+            ampInfoPath=path,
+            shortNameFunc=lambda name: name.replace(" ", "_"),
+            pupilFactoryClass=HscPupilFactory
+        )
