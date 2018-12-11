@@ -10,6 +10,7 @@ import lsst.afw.geom as afwGeom
 from lsst.ip.isr import LinearizeSquared
 from .makeHscRawVisitInfo import MakeHscRawVisitInfo
 from .hscPupil import HscPupilFactory
+from .hscFilters import HSC_FILTER_DEFINITIONS, HSC_FILTER_NAMES
 
 
 class HscMapper(CameraMapper):
@@ -24,42 +25,9 @@ class HscMapper(CameraMapper):
 
     @classmethod
     def addFilters(cls):
-        # SDSS g': http://www.naoj.org/Observing/Instruments/SCam/txt/g.txt
-        # SDSS r': http://www.naoj.org/Observing/Instruments/SCam/txt/r.txt
-        # SDSS i': http://www.naoj.org/Observing/Instruments/SCam/txt/i.txt
-        # SDSS z': http://www.naoj.org/Observing/Instruments/SCam/txt/z.txt
-        # y-band: Shimasaku et al., 2005, PASJ, 57, 447
-
-        # The order of these defineFilter commands matters as their IDs are used to generate at least some
-        # object IDs (e.g. on coadds) and changing the order will invalidate old objIDs
-
         afwImageUtils.resetFilters()
-        afwImageUtils.defineFilter(name="UNRECOGNISED", lambdaEff=0,
-                                   alias=["NONE", "None", "Unrecognised", "UNRECOGNISED",
-                                          "Unrecognized", "UNRECOGNIZED", "NOTSET", ])
-        afwImageUtils.defineFilter(name='g', lambdaEff=477, alias=['W-S-G+', 'HSC-G'])
-        afwImageUtils.defineFilter(name='r', lambdaEff=623, alias=['W-S-R+', 'HSC-R'])
-        afwImageUtils.defineFilter(name='r1', lambdaEff=623, alias=['109', 'ENG-R1'])
-        afwImageUtils.defineFilter(name='i', lambdaEff=775, alias=['W-S-I+', 'HSC-I'])
-        afwImageUtils.defineFilter(name='z', lambdaEff=925, alias=['W-S-Z+', 'HSC-Z'])
-        afwImageUtils.defineFilter(name='y', lambdaEff=990, alias=['W-S-ZR', 'HSC-Y'])
-        afwImageUtils.defineFilter(name='N387', lambdaEff=387, alias=['NB0387'])
-        afwImageUtils.defineFilter(name='N515', lambdaEff=515, alias=['NB0515'])
-        afwImageUtils.defineFilter(name='N656', lambdaEff=656, alias=['NB0656'])
-        afwImageUtils.defineFilter(name='N816', lambdaEff=816, alias=['NB0816'])
-        afwImageUtils.defineFilter(name='N921', lambdaEff=921, alias=['NB0921'])
-        afwImageUtils.defineFilter(name='N1010', lambdaEff=1010, alias=['NB1010'])
-        afwImageUtils.defineFilter(name='SH', lambdaEff=0, alias=['SH', ])
-        afwImageUtils.defineFilter(name='PH', lambdaEff=0, alias=['PH', ])
-        afwImageUtils.defineFilter(name='N527', lambdaEff=527, alias=['NB0527'])
-        afwImageUtils.defineFilter(name='N718', lambdaEff=718, alias=['NB0718'])
-        afwImageUtils.defineFilter(name='I945', lambdaEff=945, alias=['IB0945'])
-        afwImageUtils.defineFilter(name='N973', lambdaEff=973, alias=['NB0973'])
-        afwImageUtils.defineFilter(name='i2', lambdaEff=775, alias=['HSC-I2'])
-        afwImageUtils.defineFilter(name='r2', lambdaEff=623, alias=['HSC-R2'])
-        afwImageUtils.defineFilter(name='N468', lambdaEff=468, alias=['NB0468'])
-        afwImageUtils.defineFilter(name='N926', lambdaEff=926, alias=['NB0926'])
-        afwImageUtils.defineFilter(name='N400', lambdaEff=400, alias=['NB0400'])
+        for kwds in HSC_FILTER_DEFINITIONS:
+            afwImageUtils.defineFilter(**kwds)
 
     def __init__(self, **kwargs):
         policyFile = Policy.defaultPolicyFile("obs_subaru", "HscMapper.yaml", "policy")
@@ -122,32 +90,7 @@ class HscMapper(CameraMapper):
         # including the part that makes it possible to get all aliases
         #
         self.filters = {}
-        for f in [
-            "HSC-G",
-            "HSC-R",
-            "HSC-R2",
-            "HSC-I",
-            "HSC-I2",
-            "HSC-Z",
-            "HSC-Y",
-            "ENG-R1",
-            "NB0387",
-            "NB0400",
-            "NB0468",
-            "NB0515",
-            "NB0527",
-            "NB0656",
-            "NB0718",
-            "NB0816",
-            "NB0921",
-            "NB0926",
-            "IB0945",
-            "NB0973",
-            "NB1010",
-            "SH",
-            "PH",
-            "NONE",
-                "UNRECOGNISED"]:
+        for f in HSC_FILTER_NAMES:
             self.filters[f] = afwImage.Filter(f).getCanonicalName()
         self.defaultFilterName = "UNRECOGNISED"
 
