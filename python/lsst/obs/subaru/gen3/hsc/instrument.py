@@ -26,10 +26,12 @@ __all__ = ("HyperSuprimeCam",)
 
 import re
 import os
+from datetime import datetime
 
 from lsst.utils import getPackageDir
 from lsst.afw.cameraGeom import makeCameraFromPath, CameraConfig
 from lsst.daf.butler.instrument import Instrument
+from lsst.daf.butler import DatasetType
 
 from lsst.obs.hsc.hscPupil import HscPupilFactory
 from lsst.obs.hsc.hscFilters import HSC_FILTER_NAMES
@@ -104,3 +106,18 @@ class HyperSuprimeCam(Instrument):
             shortNameFunc=lambda name: name.replace(" ", "_"),
             pupilFactoryClass=HscPupilFactory
         )
+
+    def writeCamera(self, butler):
+        """Write a 'camera' Dataset to the given Butler with an infinite
+        validity range.
+
+        This is a temporary API that should go away once obs_ packages have
+        a standardized approach to writing versioned cameras to a Gen3 repo.
+        """
+        datasetType = DatasetType("camera", ("Instrument", "ExposureRange"), "TablePersistableCamera")
+        butler.registry.registerDatasetType(datasetType)
+        camera = self.getCamera()
+        butler.put(camera, datasetType,
+                   instrument=self.getName(),
+                   valid_first=datetime.min,
+                   valid_last=datetime.max)
