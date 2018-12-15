@@ -66,10 +66,8 @@ class HyperSuprimeCam(Instrument):
                 # unfortunately has no way to extract the name of just
                 # the value (it's always prefixed by the enum type name).
                 purpose=str(detector.getType()).split(".")[-1],
-                # The most useful grouping of detectors in HSC is by their
-                # orientation w.r.t. the focal plane, so that's what
-                # we put in the 'group' field.
-                group="NQUARTER{:d}".format(detector.getOrientation().getNQuarter() % 4)
+                # HSC doesn't have rafts
+                raft=None
             )
         for physical in HSC_FILTER_NAMES:
             # We use one of grizy for the abstract filter, when appropriate,
