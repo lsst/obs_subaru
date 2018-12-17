@@ -49,7 +49,7 @@ class HyperSuprimeCamRawFormatter(FitsRawFormatterBase):
 
     def readImage(self, fileDescriptor):
         image = ImageU(fileDescriptor.location.path)
-        return flipImage(image, self.FLIP_LR, self.FLIP_LR)
+        return flipImage(image, self.FLIP_LR, self.FLIP_TB)
 
 
 class HyperSuprimeCamCornerRawFormatter(HyperSuprimeCamRawFormatter):
