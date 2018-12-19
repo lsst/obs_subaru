@@ -48,8 +48,14 @@ class HyperSuprimeCamRawFormatter(FitsRawFormatterBase):
         return makeFlippedWcs(wcs, self.FLIP_LR, self.FLIP_TB, center)
 
     def readImage(self, fileDescriptor):
+        if fileDescriptor.parameters:
+            # It looks like the Gen2 std_raw code wouldn't have handled
+            # flipping vs. subimages correctly, so we won't bother to either.
+            # But we'll make sure no one tries to get a subimage, rather than
+            # doing something confusing.
+            raise NotImplementedError("Formatter does not support subimages.")
         image = ImageU(fileDescriptor.location.path)
-        return flipImage(image, self.FLIP_LR, self.FLIP_LR)
+        return flipImage(image, self.FLIP_LR, self.FLIP_TB)
 
 
 class HyperSuprimeCamCornerRawFormatter(HyperSuprimeCamRawFormatter):

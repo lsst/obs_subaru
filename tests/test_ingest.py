@@ -28,8 +28,6 @@ import os
 import shutil
 import lsst.utils.tests
 
-from lsst.afw.image import LOCAL
-from lsst.afw.geom import Box2I, Point2I
 from lsst.daf.butler import Butler
 from lsst.obs.base.gen3 import RawIngestTask
 from lsst.obs.subaru.gen3.hsc import HyperSuprimeCam
@@ -75,10 +73,9 @@ class HscIngestTestCase(lsst.utils.tests.TestCase):
 
     def runIngestTest(self, files=None):
         self.runIngest(files)
-        parameters = dict(origin=LOCAL, bbox=Box2I(Point2I(0, 0), Point2I(2, 2)))
-        exposure = self.butler.get("raw", self.dataId, parameters=parameters)
+        exposure = self.butler.get("raw", self.dataId)
         metadata = self.butler.get("raw.metadata", self.dataId)
-        image = self.butler.get("raw.image", self.dataId, parameters=parameters)
+        image = self.butler.get("raw.image", self.dataId)
         self.assertImagesEqual(exposure.image, image)
         self.assertEqual(metadata.toDict(), exposure.getMetadata().toDict())
 
