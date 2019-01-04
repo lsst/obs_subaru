@@ -4,9 +4,8 @@ HSC-specific overrides for RunIsrTask
 import os.path
 
 from lsst.utils import getPackageDir
-from lsst.obs.subaru.isr import SubaruIsrTask
 
 obsConfigDir = os.path.join(getPackageDir("obs_subaru"), "config", "hsc")
 
-config.isr.retarget(SubaruIsrTask)
+# Load the HSC config/isr.py configuration, but DO NOT retarget the ISR task.
 config.isr.load(os.path.join(obsConfigDir, "isr.py"))

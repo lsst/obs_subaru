@@ -369,16 +369,8 @@ datasets:
   forcedPhotCcd_metadata:
     template: '%(pointing)05d/%(filter)s/tract%(tract)d/forcedPhotCcd_metadata/%(visit)07d%(ccd)1d.yaml'
   ossThumb:
-    persistable: None
-    python: builtins.str
-    storage: TextStorage
-    tables: raw
     template: '%(pointing)05d/%(filter)s/thumbs/oss%(visit)07d%(ccd)d.png'
   flattenedThumb:
-    persistable: None
-    python: builtins.str
-    storage: TextStorage
-    tables: raw
     template: '%(pointing)05d/%(filter)s/thumbs/flattened%(visit)07d%(ccd)d.png'
   calexpThumb:
     persistable: None

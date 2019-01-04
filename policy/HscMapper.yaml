@@ -402,7 +402,7 @@ datasets:
     template: '%(pointing)05d/%(filter)s/warp/WARPPSF-%(visit)07d-%(ccd)03d.yaml'
   processCcd_metadata:
     template: '%(pointing)05d/%(filter)s/processCcd_metadata/%(visit)07d-%(ccd)03d.yaml'
-  isr_metadata:
+  runIsr_metadata:
     template: '%(pointing)05d/%(filter)s/isr_metadata/%(visit)07d-%(ccd)03d.yaml'
   characterizeImage_metadata:
     template: '%(pointing)05d/%(filter)s/characterizeImage_metadata/%(visit)07d-%(ccd)03d.yaml'
@@ -456,16 +456,8 @@ datasets:
   forcedPhotCcd_metadata:
     template: '%(pointing)05d/%(filter)s/tract%(tract)d/forcedPhotCcd_metadata/%(visit)07d-%(ccd)03d.yaml'
   ossThumb:
-    persistable: None
-    python: builtins.str
-    storage: TextStorage
-    tables: raw
     template: '%(pointing)05d/%(filter)s/thumbs/oss-%(visit)07d-%(ccd)03d.png'
   flattenedThumb:
-    persistable: None
-    python: builtins.str
-    storage: TextStorage
-    tables: raw
     template: '%(pointing)05d/%(filter)s/thumbs/flattened-%(visit)07d-%(ccd)03d.png'
   calexpThumb:
     persistable: None

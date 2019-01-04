@@ -42,10 +42,10 @@ import lsst.afw.detection as afwDetect
 import lsst.afw.geom as afwGeom
 import lsst.afw.image as afwImage
 import lsst.afw.math as afwMath
-import lsst.pipe.base as pipeBase
 import lsst.pex.config as pexConfig
 import lsst.afw.display as afwDisplay
 from functools import reduce
+from lsst.ip.isr.crosstalk import CrosstalkTask
 
 
 class CrosstalkCoeffsConfig(pexConfig.Config):
@@ -72,18 +72,18 @@ class CrosstalkCoeffsConfig(pexConfig.Config):
         return np.array(self.values).reshape(self.shape)
 
 
-class CrosstalkConfig(pexConfig.Config):
+class SubaruCrosstalkConfig(CrosstalkTask.ConfigClass):
     minPixelToMask = pexConfig.Field(dtype=float, default=45000,
                                      doc="Set crosstalk mask plane for pixels over this value")
     crosstalkMaskPlane = pexConfig.Field(dtype=str, default="CROSSTALK", doc="Name for crosstalk mask plane")
     coeffs = pexConfig.ConfigField(dtype=CrosstalkCoeffsConfig, doc="Crosstalk coefficients")
 
 
-class CrosstalkTask(pipeBase.Task):
-    ConfigClass = CrosstalkConfig
+class SubaruCrosstalkTask(CrosstalkTask):
+    ConfigClass = SubaruCrosstalkConfig
 
-    def run(self, exp):
-        self.log.info("Applying crosstalk correction")
+    def run(self, exp, **kwargs):
+        self.log.info("Applying crosstalk correction/Subaru")
         subtractXTalk(exp.getMaskedImage(), self.config.coeffs.getCoeffs(), self.config.minPixelToMask,
                       self.config.crosstalkMaskPlane)
 
