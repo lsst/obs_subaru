@@ -6,6 +6,8 @@ import os.path
 
 from lsst.utils import getPackageDir
 
+from lsst.meas.astrom import MatchOptimisticBConfig
+
 ObsConfigDir = os.path.join(getPackageDir("obs_subaru"), "config", "hsc")
 
 config.isr.load(os.path.join(ObsConfigDir, 'isr.py'))
@@ -26,10 +28,11 @@ for matcher in (config.charImage.ref_match.matcher,
                 config.calibrate.astrometry.matcher,
                 ):
     matcher.sourceSelector.active.sourceFluxType = 'Psf'
-    matcher.allowedNonperpDeg = 0.2
     matcher.maxRotationDeg = 1.145916
-    matcher.maxMatchDistArcSec = 2.0
     matcher.maxOffsetPix = 250
+    if isinstance(matcher, MatchOptimisticBConfig):
+        matcher.allowedNonperpDeg = 0.2
+        matcher.maxMatchDistArcSec = 2.0
 
 config.charImage.measurement.plugins["base_Jacobian"].pixelScale = 0.168
 config.calibrate.measurement.plugins["base_Jacobian"].pixelScale = 0.168
