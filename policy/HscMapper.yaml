@@ -362,10 +362,12 @@ datasets:
     template: jointcal-results/%(filter)s/%(tract)04d/jointcal_wcs-%(visit)07d-%(ccd)03d.fits
   jointcal_photoCalib:  # photometric calibration produced by jointcal/meas_mosaic
     template: jointcal-results/%(filter)s/%(tract)04d/jointcal_photoCalib-%(visit)07d-%(ccd)03d.fits
+  fgcm_photoCalib:  # photometric calibration produced by fgcm
+    template: fgcm-results/%(filter)s/fgcm_photoCalib-%(visit)05d-%(ccd)03d.fits
   transmission_sensor:   # wavelength-dependent throughput due to the sensor, in post-ISR CCD coordinates
     template: 'transmission/sensor-%(ccd)03d.fits'
   transmission_atmosphere_fgcm:
-    template: 'transmission/atmosphere_%(visit)07d.fits'
+    template: fgcm-results/transmission/atmosphere_%(visit)07d.fits
   log:
     persistable: None
     python: str
