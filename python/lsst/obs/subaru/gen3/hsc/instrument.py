@@ -56,7 +56,13 @@ class HyperSuprimeCam(Instrument):
         # Docstring inherited from Instrument.register
         camera = self.getCamera()
         dataId = {"instrument": self.getName()}
-        registry.addDimensionEntry("Instrument", dataId)
+        # The maximum values below make Gen3's ObservationDataIdPacker produce
+        # outputs that match Gen2's ccdExposureId.
+        obsMax = 21474800
+        registry.addDimensionEntry("Instrument", dataId,
+                                   entries={"detector_max": 200,
+                                            "visit_max": obsMax,
+                                            "exposure_max": obsMax})
         for detector in camera:
             registry.addDimensionEntry(
                 "Detector", dataId,
