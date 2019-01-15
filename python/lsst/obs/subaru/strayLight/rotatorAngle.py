@@ -20,6 +20,7 @@ __all__ = ["inrStartEnd"]
 
 import numpy as np
 from astropy.io import fits
+import lsst.geom
 
 # fixed parameters
 ltt_d = 19.82556  # dome latitude in degree
@@ -232,13 +233,13 @@ def _minorArc(angle1, angle2):
     return angle1, angle2
 
 
-def inrStartEnd(header):
+def inrStartEnd(visitInfo):
     """Calculate instrument rotator angle for start and end of exposure
 
     Parameters
     ----------
-    header : `lsst.daf.base.PropertySet`
-        FITS header for exposure to correct
+    visitInfo : `lsst.afw.image.VisitInfo`
+        Visit info for the exposure to calculate correction.
 
     Returns
     -------
@@ -248,12 +249,14 @@ def inrStartEnd(header):
         Instrument rotator angle at end of exposure, degrees.
     """
 
-    inst_pa = header.getDouble('INST-PA')
-    ra_t_d = header.getDouble('CRVAL1')
-    de_t_d = header.getDouble('CRVAL2')
+    inst_pa = 270.0 - visitInfo.getBoresightRotAngle().asAngularUnits(lsst.geom.degrees)
+    ra_t_sp, de_t_sp = visitInfo.getBoresightRaDec()
 
-    mjd_str = header.getDouble('MJD-STR')
-    mjd_end = header.getDouble('MJD-END')
+    ra_t_d = ra_t_sp.asAngularUnits(lsst.geom.degrees)
+    de_t_d = de_t_sp.asAngularUnits(lsst.geom.degrees)
+
+    mjd_str = visitInfo.getDate().get() - 0.5*visitInfo.getExposureTime()/86400.0
+    mjd_end = visitInfo.getDate().get() + 0.5*visitInfo.getExposureTime()/86400.0
 
     inr_d = 0.00
 

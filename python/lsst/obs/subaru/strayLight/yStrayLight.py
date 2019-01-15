@@ -81,7 +81,7 @@ class SubaruStrayLightTask(StrayLightTask):
             return
 
         if self.config.doRotatorAngleCorrection:
-            angleStart, angleEnd = inrStartEnd(exposureMetadata)
+            angleStart, angleEnd = inrStartEnd(exposure.getInfo().getVisitInfo())
             self.log.debug(
                 "(INR-STR, INR-END) = ({:g}, {:g}) (FITS header says ({:g}, {:g})).".format(
                     angleStart, angleEnd,
