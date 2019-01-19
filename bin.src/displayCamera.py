@@ -4,7 +4,7 @@ import re
 import sys
 import lsst.obs.hsc as obs_hsc
 import lsst.afw.cameraGeom.utils as cameraGeomUtils
-from lsst.afw.cameraGeom import Camera
+import lsst.afw.display as afwDisplay
 
 
 def checkStr(strVal, level):
@@ -33,7 +33,7 @@ def displayCamera(args):
     """Display camera element according to command-line arguments
     @param[in] args: argparse.Namespace list of command-line arguments
     """
-    mapper = obs_hsc.HscMapper()
+    mapper = obs_hsc.HscMapper(root=".")
     camera = mapper.camera
     frame = 0
 
@@ -44,7 +44,8 @@ def displayCamera(args):
                 ccd, amp = ampStr.split()
                 detector = camera[ccd]
                 amplifier = detector[amp]
-                cameraGeomUtils.showAmp(amplifier, frame=frame)
+                disp = afwDisplay.Display(frame=frame)
+                cameraGeomUtils.showAmp(amplifier, display=disp)
                 frame += 1
 
     if args.showCcd:
@@ -52,7 +53,8 @@ def displayCamera(args):
         for ccdStr in args.showCcd:
             if checkStr(ccdStr, 'ccd'):
                 detector = camera[ccdStr]
-                cameraGeomUtils.showCcd(detector, frame=frame)
+                disp = afwDisplay.Display(frame=frame)
+                cameraGeomUtils.showCcd(detector, display=disp)
                 frame += 1
 
     raftMap = {'0': [],
@@ -69,18 +71,19 @@ def displayCamera(args):
     if args.showRaft:
         frame = 0
         for raftStr in args.showRaft:
+            disp = afwDisplay.Display(frame)
             if checkStr(raftStr, 'raft'):
-                detectorList = []
+                detectorNameList = []
                 for detector in camera:
                     detName = detector.getName()
                     if detName in raftMap[raftStr.lower()]:
-                        detectorList.append(detector)
-                tmpCamera = Camera(raftStr, detectorList, camera._transformMap)
-                cameraGeomUtils.showCamera(tmpCamera, frame=frame, binSize=1)
+                        detectorNameList.append(detName)
+                cameraGeomUtils.showCamera(camera, detectorNameList=detectorNameList, display=disp, binSize=4)
                 frame += 1
 
     if args.showCamera:
-        cameraGeomUtils.showCamera(camera, frame=frame, binSize=args.cameraBinSize)
+        disp = afwDisplay.Display(frame)
+        cameraGeomUtils.showCamera(camera, display=disp, binSize=args.cameraBinSize)
 
     if args.plotFocalPlane:
         cameraGeomUtils.plotFocalPlane(camera, 2., 2.)
