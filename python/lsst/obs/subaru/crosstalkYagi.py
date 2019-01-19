@@ -37,7 +37,7 @@ import lsst.afw.detection as afwDetect
 import lsst.afw.geom as afwGeom
 import lsst.afw.image as afwImage
 import lsst.afw.math as afwMath
-import lsst.afw.display.ds9 as ds9
+import lsst.afw.display as afwDisplay
 import lsst.pipe.base as pipeBase
 import lsst.pex.config as pexConfig
 from lsst.obs.subaru import subtractCrosstalk
@@ -222,7 +222,7 @@ def subtractCrosstalkYagi(mi, coeffs1List, coeffs2List, gainsPreampSig, minPixel
         fs = afwDetect.FootprintSet(mi, afwDetect.Threshold(minPixelToMask), tempStr)
 
         mi.getMask().addMaskPlane(crosstalkStr)
-        ds9.setMaskPlaneColor(crosstalkStr, ds9.MAGENTA)
+        afwDisplay.setMaskPlaneColor(crosstalkStr, afwDisplay.MAGENTA)
         fs.setMask(mi.getMask(), crosstalkStr)  # the crosstalkStr bit will now be set
         # whenever we subtract crosstalk
         crosstalk = mi.getMask().getPlaneBitMask(crosstalkStr)
@@ -259,7 +259,7 @@ def subtractCrosstalkYagi(mi, coeffs1List, coeffs2List, gainsPreampSig, minPixel
     try:
         msk.removeAndClearMaskPlane(tempStr, True)  # added in afw #1853
     except AttributeError:
-        ds9.setMaskPlaneVisibility(tempStr, False)
+        afwDisplay.setMaskPlaneColor(tempStr, color="ignore")
 
 
 def main(visit=131634, ccd=None, threshold=45000, nSample=1, showCoeffs=True, fixXTalk=True,

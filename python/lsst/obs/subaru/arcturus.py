@@ -8,7 +8,7 @@ except NameError:
     import matplotlib.pyplot as pyplot
     pyplot.interactive(1)
 
-import lsst.afw.display.ds9 as ds9
+import lsst.afw.display as afwDisplay
 import lsst.analysis.utils as utils
 
 position = {                            # position of Arcturus on 16x16 binned "showCamera" images
@@ -49,9 +49,10 @@ def showFrames(mos, frame0=1, R=23, subtractSky=True):
             ima = im.getArray()
             im[:] -= np.percentile(ima, 25)
 
-        ds9.mtv(im, title=v, frame=frame)
-        ds9.dot("o", xc, yc, size=R, frame=frame,
-                ctype=ds9.GREEN if yc < mos[v].getHeight() else ds9.RED)
+        disp = afwDisplay.Display(frame=frame)
+        disp.mtv(im, title=v)
+        disp.dot("o", xc, yc, size=R,
+                 ctype=afwDisplay.GREEN if yc < mos[v].getHeight() else afwDisplay.RED)
 
 
 class MedianFilterImageWorker(object):
@@ -130,16 +131,17 @@ process every visit in the positions dict
 
         im = mos[-v]
 
+        disp = afwDisplay.Display(frame=frame)
         if True:
-            ds9.mtv(im, title=v, frame=frame)
+            disp.mtv(im, title=v)
         else:
-            ds9.erase(frame=frame)
+            disp.erase()
 
         xc, yc = position[v]
         xc -= im.getX0()
         yc -= im.getY0()
 
-        ds9.dot("o", xc, yc, size=R, frame=frame, ctype=ds9.GREEN if yc < im.getHeight() else ds9.RED)
+        disp.dot("o", xc, yc, size=R, ctype=afwDisplay.GREEN if yc < im.getHeight() else afwDisplay.RED)
 
 
 def OLDprepareFrames(mos, frame0=1, R=23, medianN=23, onlyVisits=[], force=False):
@@ -186,11 +188,12 @@ If onlyVisits is specified, only process those chips [n.b. frame0 is still obeye
         else:
             im = mos[-v]
 
+        disp = afwDisplay.Display(frame=frame)
         if True:
-            ds9.mtv(im, title=v, frame=frame)
+            disp.mtv(im, title=v)
         else:
-            ds9.erase(frame=frame)
-        ds9.dot("o", xc, yc, size=R, frame=frame, ctype=ds9.GREEN if yc < im.getHeight() else ds9.RED)
+            disp.erase()
+        disp.dot("o", xc, yc, size=R, ctype=afwDisplay.GREEN if yc < im.getHeight() else afwDisplay.RED)
 
 
 def annularAverage(im, nBin=100, rmin=None, rmax=None, median=False):
