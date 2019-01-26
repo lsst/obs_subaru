@@ -51,8 +51,6 @@ class HscIngestTestCase(lsst.utils.tests.TestCase):
         Butler.makeRepo(self.root)
         self.butler = Butler(self.root, run="raw")
         # Register the instrument and its static metadata
-        # Use of Gen2 HscMapper is a temporary workaround until we
-        # have a Gen3-only way to make a cameraGeom.Camera.
         HyperSuprimeCam().register(self.butler.registry)
         # Make a default config for test methods to play with
         self.config = RawIngestTask.ConfigClass()
