@@ -22,12 +22,14 @@
 """Gen3 Butler Formatters for HSC raw data.
 """
 
-from lsst.afw.image import ImageU, bboxFromMetadata
+from lsst.afw.image import ImageU, bboxFromMetadata, Filter
 from lsst.afw.geom import makeSkyWcs, Point2D, makeFlippedWcs
 from lsst.afw.math import flipImage
 from lsst.daf.butler.formatters.fitsRawFormatterBase import FitsRawFormatterBase
+from astro_metadata_translator import HscTranslator, ObservationInfo
 
 from ....hsc.makeHscRawVisitInfo import MakeHscRawVisitInfo
+from ....hsc.hscFilters import HSC_FILTER_DEFINITIONS
 
 __all__ = ("HyperSuprimeCamRawFormatter", "HyperSuprimeCamCornerRawFormatter")
 
@@ -46,6 +48,18 @@ class HyperSuprimeCamRawFormatter(FitsRawFormatterBase):
         dimensions = bboxFromMetadata(metadata).getDimensions()
         center = Point2D(dimensions/2.0)
         return makeFlippedWcs(wcs, self.FLIP_LR, self.FLIP_TB, center)
+
+    def makeFilter(self, metadata):
+        obsInfo = ObservationInfo(metadata, translator_class=HscTranslator)
+        # For historical reasons we need to return a short, lowercase filter
+        # name that is neither a physical_filter nor an abstract_filter in Gen3
+        # or a filter data ID value in Gen2.
+        # We'll suck that out of the definitions used to construct filters
+        # for HSC in Gen2.  This should all get cleaned up in RFC-541.
+        for d in HSC_FILTER_DEFINITIONS:
+            if obsInfo.physical_filter == d["name"] or obsInfo.physical_filter in d["alias"]:
+                return Filter(d["name"], force=True)
+        return Filter(obsInfo.physical_filter, force=True)
 
     def readImage(self, fileDescriptor):
         if fileDescriptor.parameters:
