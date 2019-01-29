@@ -26,6 +26,8 @@ __all__ = ("HyperSuprimeCam",)
 
 import re
 import os
+import pickle
+import sqlite3
 from datetime import datetime
 
 from lsst.utils import getPackageDir
@@ -41,6 +43,21 @@ from .rawFormatter import HyperSuprimeCamRawFormatter, HyperSuprimeCamCornerRawF
 # filternames), with a group that can be lowercased to yield the
 # associated AbstractFilter.
 FILTER_REGEX = re.compile(r"HSC\-([GRIZY])2?")
+
+
+def readDateTime(value):
+    """Read datetime strings stored either with or without a time.
+
+    Values must start with YYYY-MM-DD, which may or may not be followed
+    by THH:MM:SS.
+
+    Both formats appear in the defectRegistry.sqlite3 file.
+    """
+    try:
+        return datetime.strptime(value, "%Y-%m-%d")
+    except ValueError:
+        pass
+    return datetime.strptime(value, "%Y-%m-%dT%H:%M:%S")
 
 
 class HyperSuprimeCam(Instrument):
@@ -111,13 +128,26 @@ class HyperSuprimeCam(Instrument):
             pupilFactoryClass=HscPupilFactory
         )
 
-    def writeCamera(self, butler):
-        """Write a 'camera' Dataset to the given Butler with an infinite
-        validity range.
+    def getBrighterFatterKernel(self):
+        """Return the brighter-fatter kernel for HSC as a `numpy.ndarray`.
 
         This is a temporary API that should go away once obs_ packages have
-        a standardized approach to writing versioned cameras to a Gen3 repo.
+        a standardized approach to writing versioned kernels to a Gen3 repo.
         """
+        path = os.path.join(getPackageDir("obs_subaru"), "hsc", "brighter_fatter_kernel.pkl")
+        with open(path, "rb") as fd:
+            kernel = pickle.load(fd, encoding='latin1')  # encoding for pickle written with Python 2
+        return kernel
+
+    def writeCuratedCalibrations(self, butler):
+        """Write human-curated calibration Datasets to the given Butler with
+        the appropriate validity ranges.
+
+        This is a temporary API that should go away once obs_ packages have
+        a standardized approach to this problem.
+        """
+
+        # Write cameraGeom.Camera, with an infinite validity range.
         datasetType = DatasetType("camera", ("Instrument", "ExposureRange"), "TablePersistableCamera")
         butler.registry.registerDatasetType(datasetType)
         camera = self.getCamera()
@@ -125,3 +155,32 @@ class HyperSuprimeCam(Instrument):
                    instrument=self.getName(),
                    valid_first=datetime.min,
                    valid_last=datetime.max)
+
+        # Write brighter-fatter kernel, with an infinite validity range.
+        datasetType = DatasetType("bfKernel", ("Instrument", "ExposureRange"), "NumpyArray")
+        butler.registry.registerDatasetType(datasetType)
+        # Load and then put instead of just moving the file in part to ensure
+        # the version in-repo is written with Python 3 and does not need
+        # `encoding='latin1'` to be read.
+        bfKernel = self.getBrighterFatterKernel()
+        butler.put(bfKernel, datasetType,
+                   instrument=self.getName(),
+                   valid_first=datetime.min,
+                   valid_last=datetime.max)
+
+        # Write defects with validity ranges taken from obs_subaru/hsc/defects
+        # (along with the defects themselves).
+        datasetType = DatasetType("defects", ("Instrument", "Detector", "ExposureRange"), "Catalog")
+        butler.registry.registerDatasetType(datasetType)
+        defectPath = os.path.join(getPackageDir("obs_subaru"), "hsc", "defects")
+        dbPath = os.path.join(defectPath, "defectRegistry.sqlite3")
+        db = sqlite3.connect(dbPath)
+        db.row_factory = sqlite3.Row
+        sql = "SELECT path, ccd, validStart, validEnd FROM defect"
+        with butler.transaction():
+            for row in db.execute(sql):
+                dataId = dict(instrument="HSC", detector=row["ccd"],
+                              valid_first=readDateTime(row["validStart"]),
+                              valid_last=readDateTime(row["validEnd"]))
+                ref = butler.registry.addDataset(datasetType, dataId, run=butler.run, recursive=True)
+                butler.datastore.ingest(os.path.join(defectPath, row["path"]), ref, transfer="copy")
