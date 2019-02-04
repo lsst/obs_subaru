@@ -6,6 +6,7 @@ import os.path
 
 from lsst.utils import getPackageDir
 
+from lsst.meas.algorithms import LoadIndexedReferenceObjectsTask
 from lsst.meas.astrom import MatchOptimisticBConfig
 
 ObsConfigDir = os.path.join(getPackageDir("obs_subaru"), "config", "hsc")
