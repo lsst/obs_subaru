@@ -15,11 +15,15 @@ config.isr.load(os.path.join(ObsConfigDir, 'isr.py'))
 config.calibrate.photoCal.colorterms.load(os.path.join(ObsConfigDir, 'colorterms.py'))
 config.charImage.measurePsf.starSelector["objectSize"].widthMin = 0.9
 config.charImage.measurePsf.starSelector["objectSize"].fluxMin = 4000
+
+# Astrometry
 for refObjLoader in (config.calibrate.astromRefObjLoader,
                      config.calibrate.photoRefObjLoader,
                      config.charImage.refObjLoader,
                      ):
+    refObjLoader.retarget(LoadIndexedReferenceObjectsTask)
     refObjLoader.load(os.path.join(ObsConfigDir, "filterMap.py"))
+    refObjLoader.ref_dataset_name = "ps1_pv3_3pi_20170110"
 
 # Set to match defaults curretnly used in HSC production runs (e.g. S15B)
 config.calibrate.astrometry.wcsFitter.numRejIter = 3
