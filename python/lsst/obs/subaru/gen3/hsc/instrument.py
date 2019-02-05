@@ -65,7 +65,7 @@ class HyperSuprimeCam(Instrument):
     """
 
     @classmethod
-    def getName(self):
+    def getName(cls):
         # Docstring inherited from Instrument.getName
         return "HSC"
 
