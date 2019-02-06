@@ -5,3 +5,4 @@ from lsst.utils import getPackageDir
 config.load(os.path.join(getPackageDir("obs_subaru"), "config", "hsc", "coaddBase.py"))
 
 config.doAttachTransmissionCurve = True
+config.interpImage.transpose = True  # Saturation trails are usually oriented east-west, so along rows
