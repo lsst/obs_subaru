@@ -39,7 +39,7 @@ class HscAbstractFilterKeyHandler(KeyHandler):
     def __init__(self):
         super().__init__("abstract_filter", "AbstractFilter")
 
-    def extract(self, gen2id, skyMap, skyMapName):
+    def extract(self, gen2id, skyMap, skyMapName, datasetTypeName):
         physical = gen2id["filter"]
         m = FILTER_REGEX.match(physical)
         if m:
