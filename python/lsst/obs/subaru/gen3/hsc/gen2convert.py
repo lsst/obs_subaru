@@ -86,10 +86,3 @@ Translator.addRule(CopyKeyHandler("physical_filter", "PhysicalFilter", "filter")
 for calibType in ('flat', 'sky', 'fringe'):
     Translator.addRule(CopyKeyHandler("physical_filter", "PhysicalFilter", "filter"),
                        instrument="HSC", datasetTypeName=calibType)
-
-# Add calibration mapping for date ranges for all calibration types.
-for calibType in ('flat', 'bias', 'sky', 'dark', 'fringe'):
-    Translator.addRule(CopyKeyHandler("valid_first", "ExposureRange", "valid_first"),
-                       instrument="HSC", datasetTypeName=calibType)
-    Translator.addRule(CopyKeyHandler("valid_last", "ExposureRange", "valid_last"),
-                       instrument="HSC", datasetTypeName=calibType)
