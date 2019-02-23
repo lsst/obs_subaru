@@ -4,7 +4,6 @@ Subaru-specific overrides for ProcessCcdTask (applied before SuprimeCam- and HSC
 import os.path
 
 from lsst.utils import getPackageDir
-from lsst.meas.algorithms import LoadIndexedReferenceObjectsTask
 from lsst.meas.algorithms import ColorLimit
 
 ObsConfigDir = os.path.join(getPackageDir("obs_subaru"), "config")
@@ -37,7 +36,6 @@ for refObjLoader in (config.calibrate.astromRefObjLoader,
                      config.calibrate.photoRefObjLoader,
                      config.charImage.refObjLoader,
                      ):
-    refObjLoader.retarget(LoadIndexedReferenceObjectsTask)
     refObjLoader.load(os.path.join(getPackageDir("obs_subaru"), "config", "filterMap.py"))
     refObjLoader.ref_dataset_name = "ps1_pv3_3pi_20170110"
 
