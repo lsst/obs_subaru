@@ -39,7 +39,7 @@ class HscAbstractFilterKeyHandler(KeyHandler):
     def __init__(self):
         super().__init__("abstract_filter", "AbstractFilter")
 
-    def extract(self, gen2id, skyMap, skyMapName):
+    def extract(self, gen2id, skyMap, skyMapName, datasetTypeName):
         physical = gen2id["filter"]
         m = FILTER_REGEX.match(physical)
         if m:
@@ -85,11 +85,4 @@ Translator.addRule(CopyKeyHandler("physical_filter", "PhysicalFilter", "filter")
 # Add calibration mapping for filter for filter dependent types
 for calibType in ('flat', 'sky', 'fringe'):
     Translator.addRule(CopyKeyHandler("physical_filter", "PhysicalFilter", "filter"),
-                       instrument="HSC", datasetTypeName=calibType)
-
-# Add calibration mapping for date ranges for all calibration types.
-for calibType in ('flat', 'bias', 'sky', 'dark', 'fringe'):
-    Translator.addRule(CopyKeyHandler("valid_first", "ExposureRange", "valid_first"),
-                       instrument="HSC", datasetTypeName=calibType)
-    Translator.addRule(CopyKeyHandler("valid_last", "ExposureRange", "valid_last"),
                        instrument="HSC", datasetTypeName=calibType)

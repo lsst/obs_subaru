@@ -32,8 +32,8 @@ from datetime import datetime
 
 from lsst.utils import getPackageDir
 from lsst.afw.cameraGeom import makeCameraFromPath, CameraConfig
-from lsst.daf.butler.instrument import Instrument
-from lsst.daf.butler import DatasetType
+from lsst.daf.butler.instrument import Instrument, addUnboundedCalibrationLabel
+from lsst.daf.butler import DatasetType, DataId
 
 from lsst.obs.hsc.hscPupil import HscPupilFactory
 from lsst.obs.hsc.hscFilters import HSC_FILTER_NAMES
@@ -148,29 +148,24 @@ class HyperSuprimeCam(Instrument):
         """
 
         # Write cameraGeom.Camera, with an infinite validity range.
-        datasetType = DatasetType("camera", ("Instrument", "ExposureRange"), "TablePersistableCamera")
+        datasetType = DatasetType("camera", ("Instrument", "CalibrationLabel"), "TablePersistableCamera")
         butler.registry.registerDatasetType(datasetType)
+        unboundedDataId = addUnboundedCalibrationLabel(butler.registry, self.getName())
         camera = self.getCamera()
-        butler.put(camera, datasetType,
-                   instrument=self.getName(),
-                   valid_first=datetime.min,
-                   valid_last=datetime.max)
+        butler.put(camera, datasetType, unboundedDataId)
 
         # Write brighter-fatter kernel, with an infinite validity range.
-        datasetType = DatasetType("bfKernel", ("Instrument", "ExposureRange"), "NumpyArray")
+        datasetType = DatasetType("bfKernel", ("Instrument", "CalibrationLabel"), "NumpyArray")
         butler.registry.registerDatasetType(datasetType)
         # Load and then put instead of just moving the file in part to ensure
         # the version in-repo is written with Python 3 and does not need
         # `encoding='latin1'` to be read.
         bfKernel = self.getBrighterFatterKernel()
-        butler.put(bfKernel, datasetType,
-                   instrument=self.getName(),
-                   valid_first=datetime.min,
-                   valid_last=datetime.max)
+        butler.put(bfKernel, datasetType, unboundedDataId)
 
         # Write defects with validity ranges taken from obs_subaru/hsc/defects
         # (along with the defects themselves).
-        datasetType = DatasetType("defects", ("Instrument", "Detector", "ExposureRange"), "Catalog")
+        datasetType = DatasetType("defects", ("Instrument", "Detector", "CalibrationLabel"), "Catalog")
         butler.registry.registerDatasetType(datasetType)
         defectPath = os.path.join(getPackageDir("obs_subaru"), "hsc", "defects")
         dbPath = os.path.join(defectPath, "defectRegistry.sqlite3")
@@ -179,8 +174,12 @@ class HyperSuprimeCam(Instrument):
         sql = "SELECT path, ccd, validStart, validEnd FROM defect"
         with butler.transaction():
             for row in db.execute(sql):
-                dataId = dict(instrument="HSC", detector=row["ccd"],
-                              valid_first=readDateTime(row["validStart"]),
-                              valid_last=readDateTime(row["validEnd"]))
-                ref = butler.registry.addDataset(datasetType, dataId, run=butler.run, recursive=True)
+                dataId = DataId(universe=butler.registry.dimensions,
+                                instrument=self.getName(),
+                                calibration_label=f"defect/{row['path']}/{row['ccd']}")
+                dataId.entries["CalibrationLabel"]["valid_first"] = readDateTime(row["validStart"])
+                dataId.entries["CalibrationLabel"]["valid_last"] = readDateTime(row["validEnd"])
+                butler.registry.addDimensionEntry("CalibrationLabel", dataId)
+                ref = butler.registry.addDataset(datasetType, dataId, run=butler.run, recursive=True,
+                                                 detector=row['ccd'])
                 butler.datastore.ingest(os.path.join(defectPath, row["path"]), ref, transfer="copy")
