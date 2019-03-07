@@ -3,7 +3,7 @@ import numpy as np
 
 from lsst.pex.config import Field, ListField, ConfigField
 from lsst.pipe.drivers.constructCalibs import CalibCombineConfig, CalibCombineTask
-from lsst.obs.hsc.vignette import VignetteConfig
+from lsst.ip.isr.vignette import VignetteConfig
 import lsst.afw.image as afwImage
 import lsst.afw.geom as afwGeom
 import lsst.afw.cameraGeom as afwcg
