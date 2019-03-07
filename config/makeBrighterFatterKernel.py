@@ -1,7 +1,5 @@
 from lsst.obs.subaru.crosstalk import CrosstalkTask
-from lsst.obs.subaru.isr import SubaruIsrTask
 
-config.isr.retarget(SubaruIsrTask)
 config.isr.crosstalk.retarget(CrosstalkTask)
 
 # config = SubaruIsrTask.ConfigClass()
