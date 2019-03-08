@@ -1,8 +1,6 @@
-from lsst.obs.subaru.crosstalk import CrosstalkTask
-from lsst.obs.subaru.isr import SubaruIsrTask
+from lsst.obs.subaru.crosstalk import SubaruCrosstalkTask
 
-config.isr.retarget(SubaruIsrTask)
-config.isr.crosstalk.retarget(CrosstalkTask)
+config.isr.crosstalk.retarget(SubaruCrosstalkTask)
 
 # config = SubaruIsrTask.ConfigClass()
 # config.load(os.path.join(os.environ["OBS_SUBARU_DIR"], "config", "isr.py"))
