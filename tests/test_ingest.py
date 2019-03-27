@@ -91,7 +91,7 @@ class HscIngestTestCase(lsst.utils.tests.TestCase):
 
     def testInPlace(self):
         # hardlink into repo root manually
-        newPath = os.path.join(self.root, os.path.basename(self.file))
+        newPath = os.path.join(self.butler.datastore.root, os.path.basename(self.file))
         os.link(self.file, newPath)
         self.config.transfer = None
         self.runIngestTest([newPath])
