@@ -24,15 +24,19 @@ for refObjLoader in (config.calibrate.astromRefObjLoader,
 # Set to match defaults curretnly used in HSC production runs (e.g. S15B)
 config.calibrate.astrometry.wcsFitter.numRejIter = 3
 config.calibrate.astrometry.wcsFitter.order = 3
-for matcher in (config.charImage.ref_match.matcher,
-                config.calibrate.astrometry.matcher,
-                ):
-    matcher.sourceSelector.active.sourceFluxType = 'Psf'
-    matcher.maxRotationDeg = 1.145916
-    matcher.maxOffsetPix = 250
-    if isinstance(matcher, MatchOptimisticBConfig):
-        matcher.allowedNonperpDeg = 0.2
-        matcher.maxMatchDistArcSec = 2.0
+
+config.charImage.ref_match.sourceSelector.name = 'matcher'
+for matchConfig in (config.charImage.ref_match,
+                    config.calibrate.astrometry,
+                    ):
+    matchConfig.sourceFluxType = 'Psf'
+    matchConfig.sourceSelector.active.sourceFluxType = 'Psf'
+    matchConfig.matcher.maxRotationDeg = 1.145916
+    matchConfig.matcher.maxOffsetPix = 250
+    if isinstance(matchConfig.matcher, MatchOptimisticBConfig):
+        matchConfig.matcher.allowedNonperpDeg = 0.2
+        matchConfig.matcher.maxMatchDistArcSec = 2.0
+        matchConfig.sourceSelector.active.excludePixelFlags = False
 
 config.charImage.measurement.plugins["base_Jacobian"].pixelScale = 0.168
 config.calibrate.measurement.plugins["base_Jacobian"].pixelScale = 0.168
