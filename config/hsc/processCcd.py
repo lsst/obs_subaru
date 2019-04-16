@@ -11,6 +11,7 @@ from lsst.meas.astrom import MatchOptimisticBConfig
 ObsConfigDir = os.path.join(getPackageDir("obs_subaru"), "config", "hsc")
 
 config.isr.load(os.path.join(ObsConfigDir, 'isr.py'))
+config.isr.doWrite = False
 
 config.calibrate.photoCal.colorterms.load(os.path.join(ObsConfigDir, 'colorterms.py'))
 config.charImage.measurePsf.starSelector["objectSize"].widthMin = 0.9
