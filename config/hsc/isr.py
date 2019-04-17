@@ -132,5 +132,3 @@ config.doUseOpticsTransmission = True
 config.doUseFilterTransmission = True
 config.doUseSensorTransmission = True
 config.doUseAtmosphereTransmission = True
-
-config.doWrite = True
