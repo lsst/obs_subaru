@@ -1,0 +1,40 @@
+# -*- python -*-
+
+import lsst.utils
+import lsst.sconsUtils
+import glob
+import os
+
+# scons steals our environment away, so we have to reinstate it
+env = lsst.sconsUtils.env.Clone()
+for name in ("PYTHONPATH", "LD_LIBRARY_PATH",
+             "DYLD_LIBRARY_PATH", "PATH"):
+    if name in os.environ:
+        env.AppendENVPath(name, os.environ[name])
+
+# we may need an explicit library load path specified in the command
+libpathstr = lsst.sconsUtils.utils.libraryLoaderEnvironment()
+
+# hack: use the version from obs_lsst for now
+obsLsst = lsst.utils.getPackageDir("obs_lsst")
+
+# We always run these commands with an explicit python rather than relying on the shebang
+python = "{} python".format(libpathstr)
+
+for camera in ["hsc"]:
+    # Invoke the bin.src variant so that we do not depend on the shebang
+    # target having been run
+    commandInst = env.Command(f"{camera}.yaml", "",
+                              f"{python} {obsLsst}/bin.src/generateCamera.py --path {camera}:. $TARGET")
+
+    env.Depends(commandInst, lsst.sconsUtils.targets["python"])
+    dirList = []
+    if os.path.isdir(camera):
+        dirList.append(camera)
+
+    for d in dirList:
+        for f in glob.glob(os.path.join(d, "*.yaml")):
+            env.Depends(commandInst, f)
+
+    for f in ["cameraHeader.yaml", "cameraTransforms.yaml", "rafts.yaml", env.Glob(f"R[01].yaml")]:
+        env.Depends(commandInst, f)
