@@ -1,0 +1,519 @@
+'0' : 
+  detectorType : HAMAMATSU
+  raftSerial : R0
+
+  ccdSerials :
+    '30' : 'SER16'
+    '29' : 'SER17'
+    '28' : 'SER18'
+    '27' : 'SER22'
+    '26' : 'SER23'
+    '25' : 'SER24'
+    '24' : 'SER25'
+    '23' : 'SER30'
+    '22' : 'SER31'
+    '21' : 'SER32'
+    '20' : 'SER33'
+    '19' : 'SER38'
+    '18' : 'SER39'
+    '17' : 'SER40'
+    '16' : 'SER41'
+    '15' : 'SER46'
+    '14' : 'SER47'
+    '13' : 'SER48'
+    '12' : 'SER49'
+    '11' : 'SER54'
+    '10' : 'SER55'
+    '09' : 'SER56'
+    '08' : 'SER57'
+    '07' : 'SER62'
+    '06' : 'SER63'
+    '05' : 'SER64'
+    '04' : 'SER65'
+    '03' : 'SER70'
+    '02' : 'SER71'
+    '01' : 'SER72'
+    '00' : 'SER73'
+    '34' : 'SER78'
+    '33' : 'SER79'
+    '32' : 'SER80'
+    '41' : 'SER84'
+    '40' : 'SER85'
+    '39' : 'SER86'
+    '38' : 'SER87'
+    '37' : 'SER88'
+    '36' : 'SER89'
+    '47' : 'SER90'
+    '46' : 'SER91'
+    '45' : 'SER92'
+    '44' : 'SER93'
+    '43' : 'SER94'
+    '42' : 'SER95'
+    '56' : 'SER96'
+    '55' : 'SER97'
+    '54' : 'SER98'
+    '53' : 'SER99'
+    '31' : 'SER100'
+    '35' : 'SER102'
+    '57' : 'SER108'
+    '52' : 'SER109'
+    '51' : 'SER110'
+    '48' : 'SER111'
+
+  sensorTypes :   # this should be moved to rafts.yaml and generateCamera.py should be updated
+    '57' : FOCUS
+    '52' : FOCUS
+    '51' : FOCUS
+    '48' : FOCUS
+
+  geometryWithinRaft:
+    '30' :
+      offset : [0.0594, 0.0236]
+      yaw : -0.0179
+    '29' :
+      offset : [0.0470, 0.0291]
+      yaw : -0.0210
+    '28' :
+      offset : [0.0301, 0.0137]
+      yaw : -0.0113
+    '27' :
+      offset : [0.0139, 0.0018]
+      yaw : -0.0043
+    '26' :
+      offset : [-0.0459, -0.0192]
+      yaw : 0.0220
+    '25' :
+      offset : [-0.0507, 0.0330]
+      yaw : 0.0305
+    '24' :
+      offset : [-0.0354, -0.0314]
+      yaw : 0.0186
+    '23' :
+      offset : [0.0114, 0.0071]
+      yaw : 0.0201
+    '22' :
+      offset : [0.0442, -0.0027]
+      yaw : -0.0253
+    '21' :
+      offset : [0.0507, -0.0535]
+      yaw : 0.0080
+    '20' :
+      offset : [-0.0138, -0.0085]
+      yaw : 0.0296
+    '19' :
+      offset : [-0.0305, 0.0082]
+      yaw : -0.0003
+    '18' :
+      offset : [0.0054, -0.0392]
+      yaw : -0.0269
+    '17' :
+      offset : [-0.0267, 0.0295]
+      yaw : -0.0091
+    '16' :
+      offset : [-0.0453, -0.0409]
+      yaw : 0.0079
+    '15' :
+      offset : [0.0243, 0.0160]
+      yaw : -0.0070
+    '14' :
+      offset : [0.0447, -0.0282]
+      yaw : 0.0071
+    '13' :
+      offset : [0.0099, 0.0397]
+      yaw : -0.0035
+    '12' :
+      offset : [-0.0042, -0.0136]
+      yaw : 0.0073
+    '11' :
+      offset : [-0.0391, 0.0253]
+      yaw : -0.0202
+    '10' :
+      offset : [-0.0247, -0.0361]
+      yaw : -0.0315
+    '09' :
+      offset : [0.0401, 0.0147]
+      yaw : 0.0011
+    '08' :
+      offset : [-0.0426, 0.0019]
+      yaw : -0.0346
+    '07' :
+      offset : [-0.0229, 0.0170]
+      yaw : 0.0153
+    '06' :
+      offset : [0.0152, -0.0266]
+      yaw : -0.0008
+    '05' :
+      offset : [0.0066, 0.0054]
+      yaw : -0.0148
+    '04' :
+      offset : [-0.0110, -0.0284]
+      yaw : -0.0101
+    '03' :
+      offset : [-0.0017, -0.0055]
+      yaw : -0.0620
+    '02' :
+      offset : [-0.0505, -0.0315]
+      yaw : 0.0004
+    '01' :
+      offset : [0.0224, 0.0148]
+      yaw : 0.0023
+    '00' :
+      offset : [-0.0338, -0.0022]
+      yaw : 0.0099
+    '34' :
+      offset : [-0.0397, 0.0018]
+      yaw : 0.0401
+    '33' :
+      offset : [-0.0292, -0.0009]
+      yaw : 0.0196
+    '32' :
+      offset : [-0.0259, -0.0388]
+      yaw : -0.0063
+    '41' :
+      offset : [0.0162, -0.0363]
+      yaw : 0.0384
+    '40' :
+      offset : [0.0197, 0.0152]
+      yaw : 0.0117
+    '39' :
+      offset : [0.0351, -0.0625]
+      yaw : -0.0016
+    '38' :
+      offset : [0.0699, -0.0459]
+      yaw : -0.0365
+    '37' :
+      offset : [0.0415, -0.0219]
+      yaw : -0.0261
+    '36' :
+      offset : [0.0175, 0.0436]
+      yaw : -0.0137
+    '47' :
+      offset : [-0.0317, 0.0325]
+      yaw : 0.0045
+    '46' :
+      offset : [-0.0223, 0.0147]
+      yaw : 0.0334
+    '45' :
+      offset : [-0.0337, 0.0499]
+      yaw : 0.0010
+    '44' :
+      offset : [-0.0027, 0.0260]
+      yaw : -0.0256
+    '43' :
+      offset : [-0.0429, -0.0455]
+      yaw : -0.0058
+    '42' :
+      offset : [0.0508, 0.0361]
+      yaw : -0.0061
+    '56' :
+      offset : [0.0240, 0.0204]
+      yaw : 0.0016
+    '55' :
+      offset : [0.0259, -0.0505]
+      yaw : 0.0013
+    '54' :
+      offset : [0.0448, 0.0055]
+      yaw : -0.0423
+    '53' :
+      offset : [0.0411, -0.0592]
+      yaw : -0.0440
+    '31' :
+      offset : [-0.0239, 0.0374]
+      yaw : -0.0113
+    '35' :
+      offset : [-0.0224, -0.0469]
+      yaw : 0.0297
+    '57' :
+      offset : [0.0339, 0.5964]
+      yaw : 0.0000
+    '52' :
+      offset : [0.0339, 0.6132]
+      yaw : 0.0000
+    '51' :
+      offset : [-0.0018, 0.6038]
+      yaw : 0.0000
+    '48' :
+      offset : [-0.0018, 0.5896]
+      yaw : 0.0000
+
+  amplifiers:
+    '30' :
+        A0 : {gain : 3.7430, readNoise :  1.56, saturation : 48500 }
+        A1 : {gain : 3.6459, readNoise :  1.55, saturation : 48500 }
+        A2 : {gain : 3.5879, readNoise :  1.71, saturation : 48500 }
+        A3 : {gain : 3.5248, readNoise :  1.72, saturation : 48500 }
+    '29' :
+        A0 : {gain : 3.3771, readNoise :  1.55, saturation : 55000 }
+        A1 : {gain : 3.4122, readNoise :  1.57, saturation : 55000 }
+        A2 : {gain : 3.3818, readNoise :  1.82, saturation : 55000 }
+        A3 : {gain : 3.4246, readNoise :  1.74, saturation : 55000 }
+    '28' :
+        A0 : {gain : 3.6675, readNoise :  1.39, saturation : 49500 }
+        A1 : {gain : 3.6478, readNoise :  1.46, saturation : 49500 }
+        A2 : {gain : 3.6674, readNoise :  1.42, saturation : 49500 }
+        A3 : {gain : 4.8096, readNoise :  1.34, saturation : 39500 }
+    '27' :
+        A0 : {gain : 4.0108, readNoise :  1.48, saturation : 39000 }
+        A1 : {gain : 4.1789, readNoise :  1.47, saturation : 39000 }
+        A2 : {gain : 4.1640, readNoise :  1.58, saturation : 39000 }
+        A3 : {gain : 4.1089, readNoise :  1.57, saturation : 39000 }
+    '26' :
+        A0 : {gain : 3.4311, readNoise :  1.50, saturation : 50000 }
+        A1 : {gain : 3.4982, readNoise :  1.60, saturation : 50000 }
+        A2 : {gain : 3.6575, readNoise :  1.59, saturation : 50000 }
+        A3 : {gain : 3.6190, readNoise :  1.70, saturation : 50000 }
+    '25' :
+        A0 : {gain : 3.5397, readNoise :  1.66, saturation : 52000 }
+        A1 : {gain : 3.4463, readNoise :  1.57, saturation : 52000 }
+        A2 : {gain : 3.3666, readNoise :  1.95, saturation : 52000 }
+        A3 : {gain : 3.4027, readNoise :  1.69, saturation : 52000 }
+    '24' :
+        A0 : {gain : 3.6623, readNoise :  1.38, saturation : 51000 }
+        A1 : {gain : 3.6113, readNoise :  1.50, saturation : 51000 }
+        A2 : {gain : 3.5542, readNoise :  1.39, saturation : 51000 }
+        A3 : {gain : 3.5547, readNoise :  1.49, saturation : 51000 }
+    '23' :
+        A0 : {gain : 3.6852, readNoise :  1.52, saturation : 48000 }
+        A1 : {gain : 3.5346, readNoise :  1.69, saturation : 48000 }
+        A2 : {gain : 3.5048, readNoise :  1.86, saturation : 48000 }
+        A3 : {gain : 3.5941, readNoise :  1.65, saturation : 48000 }
+    '22' :
+        A0 : {gain : 3.4972, readNoise :  1.62, saturation : 52000 }
+        A1 : {gain : 3.4192, readNoise :  1.67, saturation : 52000 }
+        A2 : {gain : 3.4315, readNoise :  1.74, saturation : 52000 }
+        A3 : {gain : 3.5786, readNoise :  1.76, saturation : 52000 }
+    '21' :
+        A0 : {gain : 4.1764, readNoise :  1.52, saturation : 45000 }
+        A1 : {gain : 3.9905, readNoise :  1.75, saturation : 45000 }
+        A2 : {gain : 4.0414, readNoise :  1.75, saturation : 45000 }
+        A3 : {gain : 3.9232, readNoise :  1.81, saturation : 45000 }
+    '20' :
+        A0 : {gain : 3.6177, readNoise :  1.57, saturation : 49000 }
+        A1 : {gain : 3.7089, readNoise :  1.45, saturation : 49000 }
+        A2 : {gain : 3.5542, readNoise :  1.53, saturation : 49000 }
+        A3 : {gain : 3.6315, readNoise :  1.47, saturation : 49000 }
+    '19' :
+        A0 : {gain : 3.5176, readNoise :  1.49, saturation : 52000 }
+        A1 : {gain : 3.5802, readNoise :  1.54, saturation : 52000 }
+        A2 : {gain : 3.4294, readNoise :  1.82, saturation : 52000 }
+        A3 : {gain : 3.5904, readNoise :  1.94, saturation : 52000 }
+    '18' :
+        A0 : {gain : 3.3525, readNoise :  1.58, saturation : 55000 }
+        A1 : {gain : 3.3915, readNoise :  1.61, saturation : 55000 }
+        A2 : {gain : 3.3761, readNoise :  1.86, saturation : 55000 }
+        A3 : {gain : 3.4485, readNoise :  1.82, saturation : 55000 }
+    '17' :
+        A0 : {gain : 3.3695, readNoise :  1.60, saturation : 55000 }
+        A1 : {gain : 3.4810, readNoise :  1.72, saturation : 55000 }
+        A2 : {gain : 3.4087, readNoise :  1.99, saturation : 55000 }
+        A3 : {gain : 3.4190, readNoise :  1.89, saturation : 55000 }
+    '16' :
+        A0 : {gain : 3.6126, readNoise :  1.45, saturation : 48000 }
+        A1 : {gain : 3.6638, readNoise :  1.47, saturation : 48000 }
+        A2 : {gain : 3.6969, readNoise :  1.41, saturation : 48000 }
+        A3 : {gain : 3.7518, readNoise :  1.74, saturation : 48000 }
+    '15' :
+        A0 : {gain : 3.9854, readNoise :  1.53, saturation : 45500 }
+        A1 : {gain : 4.0760, readNoise :  1.51, saturation : 45500 }
+        A2 : {gain : 4.0109, readNoise :  1.71, saturation : 45500 }
+        A3 : {gain : 4.2024, readNoise :  1.76, saturation : 45500 }
+    '14' :
+        A0 : {gain : 3.3579, readNoise :  1.61, saturation : 51000 }
+        A1 : {gain : 3.5747, readNoise :  1.60, saturation : 51000 }
+        A2 : {gain : 3.6535, readNoise :  1.64, saturation : 51000 }
+        A3 : {gain : 3.5840, readNoise :  1.73, saturation : 51000 }
+    '13' :
+        A0 : {gain : 3.4362, readNoise :  1.57, saturation : 55000 }
+        A1 : {gain : 3.4420, readNoise :  1.77, saturation : 55000 }
+        A2 : {gain : 3.4081, readNoise :  1.71, saturation : 55000 }
+        A3 : {gain : 3.4557, readNoise :  1.80, saturation : 55000 }
+    '12' :
+        A0 : {gain : 3.6664, readNoise :  1.42, saturation : 48500 }
+        A1 : {gain : 3.5893, readNoise :  1.42, saturation : 48500 }
+        A2 : {gain : 3.4973, readNoise :  1.44, saturation : 48500 }
+        A3 : {gain : 3.4956, readNoise :  1.49, saturation : 48500 }
+    '11' :
+        A0 : {gain : 4.0956, readNoise :  1.50, saturation : 46000 }
+        A1 : {gain : 4.0372, readNoise :  1.53, saturation : 46000 }
+        A2 : {gain : 3.9997, readNoise :  1.62, saturation : 46000 }
+        A3 : {gain : 3.8727, readNoise :  1.67, saturation : 46000 }
+    '10' :
+        A0 : {gain : 3.3652, readNoise :  1.62, saturation : 55000 }
+        A1 : {gain : 3.2922, readNoise :  1.60, saturation : 55000 }
+        A2 : {gain : 3.3499, readNoise :  1.64, saturation : 55000 }
+        A3 : {gain : 3.4548, readNoise :  1.73, saturation : 55000 }
+    '09' :
+        A0 : {gain : 3.7129, readNoise :  1.54, saturation : 50000 }
+        A1 : {gain : 3.6167, readNoise :  1.68, saturation : 50000 }
+        A2 : {gain : 3.5726, readNoise :  1.80, saturation : 50000 }
+        A3 : {gain : 3.3898, readNoise :  1.91, saturation : 50000 }
+    '08' :
+        A0 : {gain : 3.5473, readNoise :  1.42, saturation : 51000 }
+        A1 : {gain : 3.5862, readNoise :  1.43, saturation : 51000 }
+        A2 : {gain : 3.5173, readNoise :  1.44, saturation : 51000 }
+        A3 : {gain : 3.5326, readNoise :  1.47, saturation : 51000 }
+    '07' :
+        A0 : {gain : 3.5347, readNoise :  1.56, saturation : 50000 }
+        A1 : {gain : 3.3952, readNoise :  1.57, saturation : 50000 }
+        A2 : {gain : 3.5172, readNoise :  1.72, saturation : 50000 }
+        A3 : {gain : 3.5641, readNoise :  1.84, saturation : 50000 }
+    '06' :
+        A0 : {gain : 3.9209, readNoise :  1.53, saturation : 45000 }
+        A1 : {gain : 3.9650, readNoise :  1.62, saturation : 45000 }
+        A2 : {gain : 4.0174, readNoise :  1.64, saturation : 45000 }
+        A3 : {gain : 4.0330, readNoise :  1.66, saturation : 45000 }
+    '05' :
+        A0 : {gain : 3.5861, readNoise :  1.55, saturation : 49000 }
+        A1 : {gain : 3.6431, readNoise :  1.61, saturation : 49000 }
+        A2 : {gain : 3.6012, readNoise :  1.68, saturation : 49000 }
+        A3 : {gain : 3.5822, readNoise :  1.90, saturation : 49000 }
+    '04' :
+        A0 : {gain : 4.1845, readNoise :  1.39, saturation : 43000 }
+        A1 : {gain : 4.3031, readNoise :  1.46, saturation : 43000 }
+        A2 : {gain : 4.3020, readNoise :  1.42, saturation : 43000 }
+        A3 : {gain : 4.2607, readNoise :  1.42, saturation : 43000 }
+    '03' :
+        A0 : {gain : 3.6968, readNoise :  1.54, saturation : 47000 }
+        A1 : {gain : 3.5811, readNoise :  1.50, saturation : 47000 }
+        A2 : {gain : 3.6060, readNoise :  1.58, saturation : 47000 }
+        A3 : {gain : 3.5445, readNoise :  1.62, saturation : 47000 }
+    '02' :
+        A0 : {gain : 3.5863, readNoise :  1.44, saturation : 50500 }
+        A1 : {gain : 3.4424, readNoise :  1.57, saturation : 50500 }
+        A2 : {gain : 3.3541, readNoise :  1.66, saturation : 50500 }
+        A3 : {gain : 3.3098, readNoise :  1.78, saturation : 50500 }
+    '01' :
+        A0 : {gain : 3.3832, readNoise :  1.52, saturation : 51500 }
+        A1 : {gain : 3.3351, readNoise :  1.68, saturation : 51500 }
+        A2 : {gain : 3.2788, readNoise :  1.73, saturation : 51500 }
+        A3 : {gain : 3.6075, readNoise :  1.67, saturation : 51500 }
+    '00' :
+        A0 : {gain : 4.2097, readNoise :  1.36, saturation : 44000 }
+        A1 : {gain : 4.0540, readNoise :  1.43, saturation : 44000 }
+        A2 : {gain : 3.9717, readNoise :  1.46, saturation : 44000 }
+        A3 : {gain : 3.9878, readNoise :  1.43, saturation : 44000 }
+    '34' :
+        A0 : {gain : 3.6720, readNoise :  1.59, saturation : 40000 }
+        A1 : {gain : 4.0952, readNoise :  1.56, saturation : 40000 }
+        A2 : {gain : 4.4608, readNoise :  1.60, saturation : 40000 }
+        A3 : {gain : 4.0158, readNoise :  1.64, saturation : 40000 }
+    '33' :
+        A0 : {gain : 4.0036, readNoise :  1.54, saturation : 43500 }
+        A1 : {gain : 4.1340, readNoise :  1.58, saturation : 43500 }
+        A2 : {gain : 4.2509, readNoise :  1.62, saturation : 43500 }
+        A3 : {gain : 4.1673, readNoise :  1.58, saturation : 43500 }
+    '32' :
+        A0 : {gain : 3.4687, readNoise :  1.53, saturation : 47500 }
+        A1 : {gain : 3.6662, readNoise :  1.51, saturation : 47500 }
+        A2 : {gain : 3.6074, readNoise :  1.56, saturation : 47500 }
+        A3 : {gain : 3.6418, readNoise :  1.65, saturation : 47500 }
+    '41' :
+        A0 : {gain : 3.4125, readNoise :  1.50, saturation : 52000 }
+        A1 : {gain : 3.5046, readNoise :  1.63, saturation : 52000 }
+        A2 : {gain : 3.5024, readNoise :  1.57, saturation : 52000 }
+        A3 : {gain : 3.4391, readNoise :  1.67, saturation : 52000 }
+    '40' :
+        A0 : {gain : 4.1682, readNoise :  1.38, saturation : 44000 }
+        A1 : {gain : 3.9704, readNoise :  1.46, saturation : 46500 }
+        A2 : {gain : 3.8654, readNoise :  1.44, saturation : 46500 }
+        A3 : {gain : 3.9271, readNoise :  1.45, saturation : 46500 }
+    '39' :
+        A0 : {gain : 3.5263, readNoise :  1.46, saturation : 55000 }
+        A1 : {gain : 3.4846, readNoise :  1.55, saturation : 55000 }
+        A2 : {gain : 3.3779, readNoise :  1.67, saturation : 55000 }
+        A3 : {gain : 3.3687, readNoise :  1.58, saturation : 55000 }
+    '38' :
+        A0 : {gain : 3.6285, readNoise :  1.42, saturation : 51000 }
+        A1 : {gain : 3.4686, readNoise :  1.54, saturation : 51000 }
+        A2 : {gain : 3.4998, readNoise :  1.53, saturation : 51000 }
+        A3 : {gain : 3.6743, readNoise :  1.52, saturation : 51000 }
+    '37' :
+        A0 : {gain : 3.3134, readNoise :  1.50, saturation : 49000 }
+        A1 : {gain : 3.3293, readNoise :  1.64, saturation : 49000 }
+        A2 : {gain : 3.3244, readNoise :  1.68, saturation : 49000 }
+        A3 : {gain : 3.4237, readNoise :  1.69, saturation : 49000 }
+    '36' :
+        A0 : {gain : 3.6075, readNoise :  1.39, saturation : 49500 }
+        A1 : {gain : 3.6268, readNoise :  1.50, saturation : 49500 }
+        A2 : {gain : 3.6013, readNoise :  1.46, saturation : 49500 }
+        A3 : {gain : 3.5537, readNoise :  1.76, saturation : 49500 }
+    '47' :
+        A0 : {gain : 3.6091, readNoise :  1.49, saturation : 46500 }
+        A1 : {gain : 3.6579, readNoise :  1.48, saturation : 46500 }
+        A2 : {gain : 3.6938, readNoise :  1.59, saturation : 46500 }
+        A3 : {gain : 3.7052, readNoise :  1.70, saturation : 46500 }
+    '46' :
+        A0 : {gain : 3.4250, readNoise :  1.48, saturation : 53000 }
+        A1 : {gain : 3.3902, readNoise :  1.43, saturation : 53000 }
+        A2 : {gain : 3.2615, readNoise :  1.46, saturation : 53000 }
+        A3 : {gain : 3.1804, readNoise :  1.60, saturation : 53000 }
+    '45' :
+        A0 : {gain : 3.7141, readNoise :  1.55, saturation : 48000 }
+        A1 : {gain : 3.6591, readNoise :  1.40, saturation : 48000 }
+        A2 : {gain : 3.5420, readNoise :  1.63, saturation : 48000 }
+        A3 : {gain : 3.6293, readNoise :  1.80, saturation : 48000 }
+    '44' :
+        A0 : {gain : 3.3960, readNoise :  1.44, saturation : 50000 }
+        A1 : {gain : 3.6077, readNoise :  1.51, saturation : 50000 }
+        A2 : {gain : 3.5174, readNoise :  1.61, saturation : 50000 }
+        A3 : {gain : 3.6305, readNoise :  1.67, saturation : 50000 }
+    '43' :
+        A0 : {gain : 3.4800, readNoise :  1.51, saturation : 55000 }
+        A1 : {gain : 3.3571, readNoise :  1.62, saturation : 55000 }
+        A2 : {gain : 3.4854, readNoise :  1.85, saturation : 55000 }
+        A3 : {gain : 3.3186, readNoise :  1.84, saturation : 55000 }
+    '42' :
+        A0 : {gain : 4.0050, readNoise :  1.43, saturation : 45000 }
+        A1 : {gain : 4.0688, readNoise :  1.44, saturation : 45000 }
+        A2 : {gain : 3.9911, readNoise :  1.44, saturation : 45000 }
+        A3 : {gain : 3.9804, readNoise :  1.48, saturation : 45000 }
+    '56' :
+        A0 : {gain : 3.4931, readNoise :  1.41, saturation : 50000 }
+        A1 : {gain : 3.6141, readNoise :  1.46, saturation : 50000 }
+        A2 : {gain : 3.5797, readNoise :  1.47, saturation : 50000 }
+        A3 : {gain : 3.5656, readNoise :  1.47, saturation : 50000 }
+    '55' :
+        A0 : {gain : 3.6161, readNoise :  1.48, saturation : 51000 }
+        A1 : {gain : 3.6126, readNoise :  1.46, saturation : 51000 }
+        A2 : {gain : 3.4366, readNoise :  1.57, saturation : 51000 }
+        A3 : {gain : 3.2555, readNoise :  1.60, saturation : 51000 }
+    '54' :
+        A0 : {gain : 3.4641, readNoise :  1.46, saturation : 51000 }
+        A1 : {gain : 3.3127, readNoise :  1.53, saturation : 51000 }
+        A2 : {gain : 3.2820, readNoise :  1.65, saturation : 51000 }
+        A3 : {gain : 3.2724, readNoise :  1.58, saturation : 51000 }
+    '53' :
+        A0 : {gain : 4.4115, readNoise :  1.39, saturation : 40000 }
+        A1 : {gain : 3.5293, readNoise :  1.50, saturation : 40000 }
+        A2 : {gain : 3.5722, readNoise :  1.69, saturation : 40000 }
+        A3 : {gain : 3.5893, readNoise :  1.64, saturation : 40000 }
+    '31' :
+        A0 : {gain : 3.7434, readNoise :  1.65, saturation : 47500 }
+        A1 : {gain : 3.6152, readNoise :  1.63, saturation : 47500 }
+        A2 : {gain : 3.5929, readNoise :  1.45, saturation : 47500 }
+        A3 : {gain : 3.6272, readNoise :  1.42, saturation : 47500 }
+    '35' :
+        A0 : {gain : 3.8229, readNoise :  1.72, saturation : 44000 }
+        A1 : {gain : 3.9344, readNoise :  1.61, saturation : 44000 }
+        A2 : {gain : 3.9308, readNoise :  1.53, saturation : 44000 }
+        A3 : {gain : 4.2350, readNoise :  1.44, saturation : 44000 }
+    '57' :
+        A0 : {gain : 3.3508, readNoise :  1.45, saturation : 55000 }
+        A1 : {gain : 3.3597, readNoise :  1.47, saturation : 55000 }
+        A2 : {gain : 3.3779, readNoise :  1.45, saturation : 55000 }
+        A3 : {gain : 3.5293, readNoise :  1.50, saturation : 55000 }
+    '52' :
+        A0 : {gain : 3.4689, readNoise :  1.38, saturation : 55000 }
+        A1 : {gain : 3.3610, readNoise :  1.51, saturation : 55000 }
+        A2 : {gain : 3.4321, readNoise :  1.42, saturation : 55000 }
+        A3 : {gain : 3.4181, readNoise :  1.43, saturation : 55000 }
+    '51' :
+        A0 : {gain : 3.3427, readNoise :  1.63, saturation : 55000 }
+        A1 : {gain : 3.4856, readNoise :  1.87, saturation : 55000 }
+        A2 : {gain : 3.4176, readNoise :  2.29, saturation : 55000 }
+        A3 : {gain : 3.4788, readNoise :  2.89, saturation : 55000 }
+    '48' :
+        A0 : {gain : 3.4619, readNoise :  1.53, saturation : 55000 }
+        A1 : {gain : 3.4463, readNoise :  1.49, saturation : 55000 }
+        A2 : {gain : 3.4954, readNoise :  1.48, saturation : 55000 }
+        A3 : {gain : 3.5139, readNoise :  1.50, saturation : 55000 }
