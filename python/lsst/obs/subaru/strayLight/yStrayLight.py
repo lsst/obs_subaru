@@ -49,7 +49,26 @@ class SubaruStrayLightTask(StrayLightTask):
     """
     ConfigClass = StrayLightConfig
 
-    def run(self, exposure, filename=None):
+    def readIsrData(self, dataRef, rawExposure):
+        # Docstring inherited from StrayLightTask.runIsrTask.
+        # Note that this is run only in Gen2; in Gen3 we will rely on having
+        # a proper butler-recognized dataset type with the right validity
+        # ranges (though this has not yet been implemented).
+        detId = rawExposure.getDetector().getId()
+        filterName = rawExposure.getFilter().getName()
+        if filterName != 'y':
+            # No correction to be made
+            return None
+        if detId in range(104, 112):
+            # No correction data: assume it's zero
+            return None
+        if rawExposure.getInfo().getVisitInfo().getDate().toPython() >= datetime.datetime(2018, 1, 1):
+            # LEDs causing the stray light have been covered up.
+            # We believe there is no remaining stray light.
+            return None
+        return SubaruStrayLightData(dataRef.get("yBackground_filename")[0])
+
+    def run(self, exposure, strayLightData):
         """Subtract the y-band stray light
 
         This relies on knowing the instrument rotator angle during the
@@ -63,22 +82,12 @@ class SubaruStrayLightTask(StrayLightTask):
         ----------
         exposure : `lsst.afw.image.Exposure`
             Exposure to correct.
-        filename : `str`, optional
-            filename containing the stray light model for this sensor.
+        strayLightData : `SubaruStrayLightData`
+            An opaque object that contains any calibration data used to
+            correct for stray light.
         """
         exposureMetadata = exposure.getMetadata()
         detId = exposure.getDetector().getId()
-        filterName = exposure.getFilter().getName()
-        if filterName != 'y':
-            # No correction to be made
-            return
-        if detId in range(104, 112):
-            # No correction data: assume it's zero
-            return
-        if exposure.getInfo().getVisitInfo().getDate().toPython() >= datetime.datetime(2018, 1, 1):
-            # LEDs causing the stray light have been covered up.
-            # We believe there is no remaining stray light.
-            return
 
         if self.config.doRotatorAngleCorrection:
             angleStart, angleEnd = inrStartEnd(exposure.getInfo().getVisitInfo())
@@ -93,10 +102,7 @@ class SubaruStrayLightTask(StrayLightTask):
 
         self.log.info("Correcting y-band background")
 
-        if filename is None:
-            filename = "/datasets/hsc/calib/20180117/STRAY_LIGHT/ybackground-%03d.fits" % (detId)
-
-        model = get_ybackground(filename, angleStart, None if angleStart == angleEnd else angleEnd)
+        model = strayLightData.evaluate(angleStart, None if angleStart == angleEnd else angleEnd)
 
         # Some regions don't have useful model values because the amplifier is dead when the darks were taken
         #
@@ -118,55 +124,68 @@ class SubaruStrayLightTask(StrayLightTask):
         exposure.image.array -= model
 
 
-def get_ybackground(filename, angle_start, angle_end=None):
-    """Get y-band background image
-
-    It is hypothesized that the instrument rotator rotates
-    at a constant angular velocity. This is not strictly
-    true, but should be a sufficient approximation for the
-    relatively short exposure times typical for HSC.
+class SubaruStrayLightData:
+    """Lazy-load object that reads and integrates the wavelet-compressed
+    HSC y-band stray-light model.
 
     Parameters
     ----------
     filename : `str`
-        Filename of the background data.
-    angle_start : `float`
-        Instrument rotation angle in degrees at the start of the exposure.
-    angle_end : `float`
-        Instrument rotation angle in degrees at the end of the exposure.
-
-    Returns
-    -------
-    ccd_img : `numpy.ndarray`
-        Background data for this exposure.
+        Full path to a FITS files containing the stray-light model.
     """
-    hdulist = fits.open(filename)
-    header = hdulist[0].header
 
-    # full-size ccd height & channel width
-    ccd_h, ch_w = header["F_NAXIS2"], header["F_NAXIS1"]
-    # saved data is compressed to 1/2**scale_level of the original size
-    image_scale_level = header["WTLEVEL2"], header["WTLEVEL1"]
-    angle_scale_level = header["WTLEVEL3"]
+    def __init__(self, filename):
+        self._filename = filename
 
-    ccd_w = ch_w * len(hdulist)
-    ccd_img = numpy.empty(shape=(ccd_h, ccd_w), dtype=numpy.float32)
+    def evaluate(self, angle_start, angle_end=None):
+        """Get y-band background image array for a range of angles.
 
-    for ch, hdu in enumerate(hdulist):
-        volume = _upscale_volume(hdu.data, angle_scale_level)
+        It is hypothesized that the instrument rotator rotates at a constant
+        angular velocity. This is not strictly true, but should be a
+        sufficient approximation for the relatively short exposure times
+        typical for HSC.
 
-        if angle_end is None:
-            img = volume(angle_start)
-        else:
-            img = volume.integrate(angle_start, angle_end) * (1.0 / (angle_end - angle_start))
+        Parameters
+        ----------
+        angle_start : `float`
+            Instrument rotation angle in degrees at the start of the exposure.
+        angle_end : `float`, optional
+            Instrument rotation angle in degrees at the end of the exposure.
+            If not provided, the returned array will reflect a snapshot at
+            `angle_start`.
 
-        ccd_img[:, ch_w*ch:ch_w*(ch+1)] = _upscale_image(img, (ccd_h, ch_w), image_scale_level)
+        Returns
+        -------
+        ccd_img : `numpy.ndarray`
+            Background data for this exposure.
+        """
+        hdulist = fits.open(self._filename)
+        header = hdulist[0].header
 
-    # Some regions don't have useful values because the amplifier is dead when the darks were taken
-#    is_bad = ccd_img > BAD_THRESHOLD
-#    ccd_img[is_bad] = numpy.median(ccd_img[~is_bad])
+        # full-size ccd height & channel width
+        ccd_h, ch_w = header["F_NAXIS2"], header["F_NAXIS1"]
+        # saved data is compressed to 1/2**scale_level of the original size
+        image_scale_level = header["WTLEVEL2"], header["WTLEVEL1"]
+        angle_scale_level = header["WTLEVEL3"]
 
-    return ccd_img
+        ccd_w = ch_w * len(hdulist)
+        ccd_img = numpy.empty(shape=(ccd_h, ccd_w), dtype=numpy.float32)
+
+        for ch, hdu in enumerate(hdulist):
+            volume = _upscale_volume(hdu.data, angle_scale_level)
+
+            if angle_end is None:
+                img = volume(angle_start)
+            else:
+                img = volume.integrate(angle_start, angle_end) * (1.0 / (angle_end - angle_start))
+
+            ccd_img[:, ch_w*ch:ch_w*(ch+1)] = _upscale_image(img, (ccd_h, ch_w), image_scale_level)
+
+        # Some regions don't have useful values because the amplifier is dead when the darks were taken
+        #    is_bad = ccd_img > BAD_THRESHOLD
+        #    ccd_img[is_bad] = numpy.median(ccd_img[~is_bad])
+
+        return ccd_img
 
 
 def _upscale_image(img, target_shape, level):
