@@ -165,7 +165,7 @@ class HyperSuprimeCam(Instrument):
 
         # Write defects with validity ranges taken from obs_subaru/hsc/defects
         # (along with the defects themselves).
-        datasetType = DatasetType("defects", ("Instrument", "Detector", "CalibrationLabel"), "Catalog")
+        datasetType = DatasetType("defects", ("Instrument", "Detector", "CalibrationLabel"), "DefectsList")
         butler.registry.registerDatasetType(datasetType)
         defectPath = os.path.join(getPackageDir("obs_subaru"), "hsc", "defects")
         dbPath = os.path.join(defectPath, "defectRegistry.sqlite3")
