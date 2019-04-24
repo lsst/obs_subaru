@@ -15,7 +15,6 @@ config.isr.doDefect = True
 
 config.isr.doWrite = False
 
-config.isr.doGuider = False
 config.isr.doSaturation = True
 config.isr.qa.doThumbnailOss = False
 config.isr.qa.doThumbnailFlattened = False
@@ -41,8 +40,8 @@ config.isr.doAttachTransmissionCurve = False
 config.isrMandatorySteps = ['doAssembleCcd',  # default
                             'doOverscan']  # additional for this obs_package
 config.isrForbiddenSteps = ['doApplyGains', 'normalizeGains',  # additional for this obs_package
-                            'doGuider', 'doStrayLight', 'doTweakFlat',  # additional for this obs_package
+                            'doStrayLight', 'doTweakFlat',  # additional for this obs_package
                             'doApplyGains', 'normalizeGains', 'doFlat', 'doFringe',  # remainder are defaults
                             'doAddDistortionModel', 'doBrighterFatter', 'doUseOpticsTransmission',
                             'doUseFilterTransmission', 'doUseSensorTransmission',
-                            'doUseAtmosphereTransmission', 'doGuider', 'doStrayLight', 'doTweakFlat']
+                            'doUseAtmosphereTransmission', 'doStrayLight', 'doTweakFlat']
