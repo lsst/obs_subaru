@@ -76,13 +76,13 @@ class HyperSuprimeCam(Instrument):
         # The maximum values below make Gen3's ObservationDataIdPacker produce
         # outputs that match Gen2's ccdExposureId.
         obsMax = 21474800
-        registry.addDimensionEntry("Instrument", dataId,
+        registry.addDimensionEntry("instrument", dataId,
                                    entries={"detector_max": 200,
                                             "visit_max": obsMax,
                                             "exposure_max": obsMax})
         for detector in camera:
             registry.addDimensionEntry(
-                "Detector", dataId,
+                "detector", dataId,
                 detector=detector.getId(),
                 name=detector.getName(),
                 # getType() returns a pybind11-wrapped enum, which
@@ -99,7 +99,7 @@ class HyperSuprimeCam(Instrument):
             # "HSC-I2" are both mapped to abstract filter "i".
             m = FILTER_REGEX.match(physical)
             registry.addDimensionEntry(
-                "PhysicalFilter",
+                "physical_filter",
                 dataId,
                 physical_filter=physical,
                 abstract_filter=m.group(1).lower() if m is not None else None
@@ -148,14 +148,14 @@ class HyperSuprimeCam(Instrument):
         """
 
         # Write cameraGeom.Camera, with an infinite validity range.
-        datasetType = DatasetType("camera", ("Instrument", "CalibrationLabel"), "TablePersistableCamera")
+        datasetType = DatasetType("camera", ("instrument", "calibration_label"), "TablePersistableCamera")
         butler.registry.registerDatasetType(datasetType)
         unboundedDataId = addUnboundedCalibrationLabel(butler.registry, self.getName())
         camera = self.getCamera()
         butler.put(camera, datasetType, unboundedDataId)
 
         # Write brighter-fatter kernel, with an infinite validity range.
-        datasetType = DatasetType("bfKernel", ("Instrument", "CalibrationLabel"), "NumpyArray")
+        datasetType = DatasetType("bfKernel", ("instrument", "calibration_label"), "NumpyArray")
         butler.registry.registerDatasetType(datasetType)
         # Load and then put instead of just moving the file in part to ensure
         # the version in-repo is written with Python 3 and does not need
@@ -165,7 +165,7 @@ class HyperSuprimeCam(Instrument):
 
         # Write defects with validity ranges taken from obs_subaru/hsc/defects
         # (along with the defects themselves).
-        datasetType = DatasetType("defects", ("Instrument", "Detector", "CalibrationLabel"), "DefectsList")
+        datasetType = DatasetType("defects", ("instrument", "detector", "calibration_label"), "DefectsList")
         butler.registry.registerDatasetType(datasetType)
         defectPath = os.path.join(getPackageDir("obs_subaru"), "hsc", "defects")
         dbPath = os.path.join(defectPath, "defectRegistry.sqlite3")
@@ -177,9 +177,9 @@ class HyperSuprimeCam(Instrument):
                 dataId = DataId(universe=butler.registry.dimensions,
                                 instrument=self.getName(),
                                 calibration_label=f"defect/{row['path']}/{row['ccd']}")
-                dataId.entries["CalibrationLabel"]["valid_first"] = readDateTime(row["validStart"])
-                dataId.entries["CalibrationLabel"]["valid_last"] = readDateTime(row["validEnd"])
-                butler.registry.addDimensionEntry("CalibrationLabel", dataId)
+                dataId.entries["calibration_label"]["valid_first"] = readDateTime(row["validStart"])
+                dataId.entries["calibration_label"]["valid_last"] = readDateTime(row["validEnd"])
+                butler.registry.addDimensionEntry("calibration_label", dataId)
                 ref = butler.registry.addDataset(datasetType, dataId, run=butler.run, recursive=True,
                                                  detector=row['ccd'])
                 butler.datastore.ingest(os.path.join(defectPath, row["path"]), ref, transfer="copy")
