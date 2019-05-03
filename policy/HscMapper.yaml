@@ -1,7 +1,6 @@
 needCalibRegistry: true
 
 camera: ../hsc/camera
-defects: ../hsc/defects
 
 skytiles:
   resolutionPix: 700

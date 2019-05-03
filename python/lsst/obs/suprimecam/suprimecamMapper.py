@@ -345,7 +345,6 @@ class SuprimecamMapperMit(SuprimecamMapperBase):
         if not kwargs.get('calibRoot', None):
             kwargs['calibRoot'] = os.path.join(kwargs['root'], 'CALIB_MIT')
         policy.set("camera", "../suprimecam/mit_camera")
-        policy.set("defects", "../suprimecam/mit_defects")
         super(SuprimecamMapperMit, self).__init__(policy, os.path.dirname(policyFile), **kwargs)
         self.defineFilters()
 
