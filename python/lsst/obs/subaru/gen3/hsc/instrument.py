@@ -37,6 +37,8 @@ from lsst.daf.butler import DatasetType, DataId
 
 from lsst.obs.hsc.hscPupil import HscPupilFactory
 from lsst.obs.hsc.hscFilters import HSC_FILTER_NAMES
+from lsst.obs.hsc.makeTransmissionCurves import (getSensorTransmission, getOpticsTransmission,
+                                                 getFilterTransmission, getAtmosphereTransmission)
 from .rawFormatter import HyperSuprimeCamRawFormatter, HyperSuprimeCamCornerRawFormatter
 
 # Regular expression that matches HSC PhysicalFilter names (the same as Gen2
@@ -162,6 +164,60 @@ class HyperSuprimeCam(Instrument):
         # `encoding='latin1'` to be read.
         bfKernel = self.getBrighterFatterKernel()
         butler.put(bfKernel, datasetType, unboundedDataId)
+
+        # The following iterate over the values of the dictionaries returned by the transmission functions
+        # and ignore the date that is supplied. This is due to the dates not being ranges but single dates,
+        # which do not give the proper notion of validity. As such unbounded calibration labels are used
+        # when inserting into the database. In the future these could and probably should be updated to
+        # properly account for what ranges are considered valid.
+
+        # Write optical transmissions
+        opticsTransmissions = getOpticsTransmission()
+        datasetType = DatasetType("transmission_optics",
+                                  ("instrument", "calibration_label"),
+                                  "TablePersistableTransmissionCurve")
+        butler.registry.registerDatasetType(datasetType)
+        for entry in opticsTransmissions.values():
+            if entry is None:
+                continue
+            butler.put(entry, datasetType, unboundedDataId)
+
+        # Write transmission sensor
+        sensorTransmissions = getSensorTransmission()
+        datasetType = DatasetType("transmission_sensor",
+                                  ("instrument", "detector", "calibration_label"),
+                                  "TablePersistableTransmissionCurve")
+        butler.registry.registerDatasetType(datasetType)
+        for entry in sensorTransmissions.values():
+            if entry is None:
+                continue
+            for sensor, curve in entry.items():
+                dataId = DataId(unboundedDataId, detector=sensor)
+                butler.put(curve, datasetType, dataId)
+
+        # Write filter transmissions
+        filterTransmissions = getFilterTransmission()
+        datasetType = DatasetType("transmission_filter",
+                                  ("instrument", "physical_filter", "calibration_label"),
+                                  "TablePersistableTransmissionCurve")
+        butler.registry.registerDatasetType(datasetType)
+        for entry in filterTransmissions.values():
+            if entry is None:
+                continue
+            for band, curve in entry.items():
+                dataId = DataId(unboundedDataId, physical_filter=band)
+                butler.put(curve, datasetType, dataId)
+
+        # Write atmospheric transmissions, this only as dimension of instrument as other areas will only
+        # look up along this dimension (ISR)
+        atmosphericTransmissions = getAtmosphereTransmission()
+        datasetType = DatasetType("transmission_atmosphere", ("instrument",),
+                                  "TablePersistableTransmissionCurve")
+        butler.registry.registerDatasetType(datasetType)
+        for entry in atmosphericTransmissions.values():
+            if entry is None:
+                continue
+            butler.put(entry, datasetType, {"instrument": self.getName()})
 
         # Write defects with validity ranges taken from obs_subaru/hsc/defects
         # (along with the defects themselves).
