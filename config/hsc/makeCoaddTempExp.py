@@ -5,3 +5,5 @@ from lsst.utils import getPackageDir
 config.load(os.path.join(getPackageDir("obs_subaru"), "config", "hsc", "coaddBase.py"))
 
 config.doApplySkyCorr = True
+config.warpAndPsfMatch.warp.warpingKernelName = 'lanczos5'
+config.coaddPsf.warpingKernelName = 'lanczos5'
