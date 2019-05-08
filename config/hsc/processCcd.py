@@ -12,7 +12,3 @@ for sub in ("isr", "charImage", "calibrate"):
     path = os.path.join(ObsConfigDir, sub + ".py")
     if os.path.exists(path):
         getattr(config, sub).load(path)
-
-# When run independently, ISR should write its outputs, but not when it's
-# run as part of processCcd.
-config.isr.doWrite = False
