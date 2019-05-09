@@ -245,4 +245,6 @@ class HyperSuprimeCam(Instrument):
         packageDir = getPackageDir("obs_subaru")
         roots = [os.path.join(packageDir, "config"), os.path.join(packageDir, "config", "hsc")]
         for root in roots:
-            config.load(os.path.join(root, f"{name}.py"))
+            path = os.path.join(root, f"{name}.py")
+            if os.path.exists(path):
+                config.load(path)
