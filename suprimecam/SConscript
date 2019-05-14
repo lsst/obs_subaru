@@ -16,7 +16,7 @@ libpathstr = lsst.sconsUtils.utils.libraryLoaderEnvironment()
 
 pipe_tasks_dir = getPackageDir('pipe_tasks')
 data_dir = getPackageDir('obs_subaru_data')
-command = (f"{pipe_tasks_dir}/bin/ingestDefects.py suprimecam/CALIBS/ {data_dir}/suprimecam/defects "+
-            "--calib suprimecam/CALIBS --config clobber=True")
-commandInst = env.Command('CALIBS/calibRegistry.sqlite3', [], command)
+command = (f"{pipe_tasks_dir}/bin/ingestDefects.py suprimecam/CALIB/ {data_dir}/suprimecam/defects "+
+            "--calib suprimecam/CALIB --config clobber=True")
+commandInst = env.Command('CALIB/calibRegistry.sqlite3', [], command)
 env.Depends(commandInst, lsst.sconsUtils.targets["python"])
