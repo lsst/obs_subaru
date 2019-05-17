@@ -18,7 +18,7 @@ config.log
 tests/.tests
 tests/.cache/*
 ups/*.cfgc
-*/CALIBS/defects
+*/CALIB/defects
 calibRegistry.sqlite3*
 python/lsst/obs/subaru/version.py
 bin/displayCamera.py
