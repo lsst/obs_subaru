@@ -239,3 +239,12 @@ class HyperSuprimeCam(Instrument):
                 ref = butler.registry.addDataset(datasetType, dataId, run=butler.run, recursive=True,
                                                  detector=row['ccd'])
                 butler.datastore.ingest(os.path.join(defectPath, row["path"]), ref, transfer="copy")
+
+    def applyConfigOverrides(self, name, config):
+        # Docstring inherited from Instrument.applyConfigOverrides
+        packageDir = getPackageDir("obs_subaru")
+        roots = [os.path.join(packageDir, "config"), os.path.join(packageDir, "config", "hsc")]
+        for root in roots:
+            path = os.path.join(root, f"{name}.py")
+            if os.path.exists(path):
+                config.load(path)
