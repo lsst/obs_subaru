@@ -193,7 +193,7 @@ calibrations:
     refCols:
     - visit
     reference: raw_visit
-    storage: FitsCatalogStorage
+    storage: FitsStorage
     tables: defects
     template: defects/%(calibDate)s/defects-%(calibDate)s-%(ccd)03d.fits
     validEndName: validEnd

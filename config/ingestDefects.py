@@ -10,5 +10,5 @@ config.register.columns = {'filter': 'text',
                            }
 config.register.detector = ['filter', 'ccd']
 config.register.unique = ['filter', 'ccd', 'calibDate']
-config.register.tables = ['defects']
+config.register.tables = ['defects',]
 config.register.visit = ['calibDate']
