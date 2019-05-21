@@ -95,7 +95,7 @@ class GetDataTestCase(lsst.utils.tests.TestCase):
         self.ccdSize = (2048, 4176)
         self.exptime = 30.0
         self.darktime = self.exptime  # No explicit darktime
-        self.dateAvg = DateTime(56598.261654253474, DateTime.MJD, DateTime.TAI)
+        self.dateAvg = DateTime(56598.26165414352, DateTime.MJD, DateTime.TAI)
         self.boresightRaDec = afwGeom.SpherePoint(320.7499250000, 0.500019444, degrees)
         self.boresightAzAlt = afwGeom.SpherePoint(226.68922661, 63.04359233, degrees)
         self.boresightAirmass = 1.121626027604189
@@ -108,7 +108,7 @@ class GetDataTestCase(lsst.utils.tests.TestCase):
         self.weath_airPressure = 62170.
         self.weath_humidity = 33.1
         # NOTE: if we deal with DM-8053 and get UT1 implemented, ERA will change slightly.
-        self.era = 2.3659577248977826*radians
+        self.era = 2.3659570321481826*radians
 
     def tearDown(self):
         del self.butler
