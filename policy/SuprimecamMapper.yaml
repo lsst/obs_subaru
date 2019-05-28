@@ -167,7 +167,7 @@ calibrations:
     - ccd
     - taiObs
     level: Ccd
-    persistable: BaseCatalog
+    persistable: DefectsList
     python: lsst.meas.algorithms.Defects
     refCols:
     - visit
