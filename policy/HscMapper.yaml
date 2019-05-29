@@ -33,6 +33,8 @@ exposures:
     template: '%(field)s/%(dateObs)s/%(pointing)05d/%(filter)s/HSC-%(visit)07d-%(ccd)03d.fits'
   postISRCCD:
     template: postISRCCD/v%(visit)07d-f%(filter)s/c%(ccd)03d.fits
+  postISRCCD_uninterpolated:
+    template: postISRCCD/v%(visit)07d-f%(filter)s/c%(ccd)03d-preInterp.fits
   icExp:
     template: '%(pointing)05d/%(filter)s/corr/ICEXP-%(visit)07d-%(ccd)03d.fits'
   calexp:
