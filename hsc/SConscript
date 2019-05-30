@@ -1,7 +1,6 @@
 # -*- python -*-
 
 import lsst.sconsUtils
-from lsst.utils import getPackageDir
 import os
 
 # scons steals our environment away, so we have to reinstate it
@@ -14,9 +13,12 @@ for name in ("PYTHONPATH", "LD_LIBRARY_PATH",
 # we may need an explicit library load path specified in the command
 libpathstr = lsst.sconsUtils.utils.libraryLoaderEnvironment()
 
-pipe_tasks_dir = getPackageDir('pipe_tasks')
-data_dir = getPackageDir('obs_subaru_data')
-command = (f"{pipe_tasks_dir}/bin/ingestDefects.py hsc/CALIB/ {data_dir}/hsc/defects "+
+# We always run these commands with an explicit python rather than relying on the shebang
+python = "{} python".format(libpathstr)
+
+pipe_tasks_dir = lsst.sconsUtils.env.ProductDir('pipe_tasks')
+data_dir = lsst.sconsUtils.env.ProductDir('obs_subaru_data')
+command = (f"{python} {pipe_tasks_dir}/bin/ingestDefects.py hsc/CALIB/ {data_dir}/hsc/defects "+
             "--calib hsc/CALIB --config clobber=True")
 commandInst = env.Command('CALIB/calibRegistry.sqlite3', [], command)
 env.Depends(commandInst, lsst.sconsUtils.targets["python"])
