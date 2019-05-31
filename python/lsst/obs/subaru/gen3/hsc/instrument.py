@@ -210,7 +210,7 @@ class HyperSuprimeCam(Instrument):
                 continue
             butler.put(entry, datasetType, {"instrument": self.getName()})
 
-        # Write defects with validity ranges taken from obs_subarui_data/hsc/defects
+        # Write defects with validity ranges taken from obs_subaru_data/hsc/defects
         # (along with the defects themselves).
         datasetType = DatasetType("defects", ("instrument", "detector", "calibration_label"), "DefectsList",
                                   universe=butler.registry.dimensions)
