@@ -6,6 +6,10 @@ from lsst.utils import getPackageDir
 from lsst.pipe.tasks.assembleCoadd import CompareWarpAssembleCoaddTask
 config.assembleCoadd.retarget(CompareWarpAssembleCoaddTask)
 
+# TODO DM-20074: Remove after S19A DRP complete
+from lsst.obs.hsc import SubaruMakeCoaddTempExpTask
+config.makeCoaddTempExp.retarget(SubaruMakeCoaddTempExpTask)
+
 for sub, filename in (("makeCoaddTempExp", "makeCoaddTempExp"),
                       ("backgroundReference", "backgroundReference"),
                       ("assembleCoadd", "compareWarpAssembleCoadd"),
