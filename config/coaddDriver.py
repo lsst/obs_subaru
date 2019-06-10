@@ -9,7 +9,7 @@ config.assembleCoadd.retarget(CompareWarpAssembleCoaddTask)
 for sub, filename in (("makeCoaddTempExp", "makeCoaddTempExp"),
                       ("backgroundReference", "backgroundReference"),
                       ("assembleCoadd", "compareWarpAssembleCoadd"),
-                      ("processCoadd", "processCoadd")):
+                      ("detectCoaddSources", "detectCoaddSources")):
     path = os.path.join(getPackageDir("obs_subaru"), "config", filename + ".py")
     if os.path.exists(path):
         getattr(config, sub).load(path)
