@@ -108,8 +108,20 @@ class SubaruMakeCoaddTempExpTask(MakeCoaddTempExpTask):
         mask = exposure.mask
         badPlane = mask.getPlaneBitMask('BAD')
 
-        mask[1023:1027, 0:4176] |= badPlane
-        mask[0:2048, 4154:4176] |= badPlane
+        # expand mask by a further 3 pixels
+        mask[1023:1030, 0:4176] |= badPlane
+        mask[0:2048, 4151:4176] |= badPlane
+
+        # mask another long edge
+        mask[2022:2030, 0:4176] |= badPlane
+
+        # mask around mid bottom
+        mask[1049:1057, 0:25] |= badPlane
+        mask[1025:1057, 21:29] |= badPlane
+
+        # mask around right corner
+        mask[1993:2001, 4035:4157] |= badPlane
+        mask[1993:2027, 4030:4038] |= badPlane
 
     def maskWholeCcd(self, exposure):
         """Mask entire CCD (intended for use with ccd==9)
