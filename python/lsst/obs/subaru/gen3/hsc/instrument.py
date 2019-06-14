@@ -150,14 +150,16 @@ class HyperSuprimeCam(Instrument):
         """
 
         # Write cameraGeom.Camera, with an infinite validity range.
-        datasetType = DatasetType("camera", ("instrument", "calibration_label"), "TablePersistableCamera")
+        datasetType = DatasetType("camera", ("instrument", "calibration_label"), "TablePersistableCamera",
+                                  universe=butler.registry.dimensions)
         butler.registry.registerDatasetType(datasetType)
         unboundedDataId = addUnboundedCalibrationLabel(butler.registry, self.getName())
         camera = self.getCamera()
         butler.put(camera, datasetType, unboundedDataId)
 
         # Write brighter-fatter kernel, with an infinite validity range.
-        datasetType = DatasetType("bfKernel", ("instrument", "calibration_label"), "NumpyArray")
+        datasetType = DatasetType("bfKernel", ("instrument", "calibration_label"), "NumpyArray",
+                                  universe=butler.registry.dimensions)
         butler.registry.registerDatasetType(datasetType)
         # Load and then put instead of just moving the file in part to ensure
         # the version in-repo is written with Python 3 and does not need
@@ -175,7 +177,8 @@ class HyperSuprimeCam(Instrument):
         opticsTransmissions = getOpticsTransmission()
         datasetType = DatasetType("transmission_optics",
                                   ("instrument", "calibration_label"),
-                                  "TablePersistableTransmissionCurve")
+                                  "TablePersistableTransmissionCurve",
+                                  universe=butler.registry.dimensions)
         butler.registry.registerDatasetType(datasetType)
         for entry in opticsTransmissions.values():
             if entry is None:
@@ -186,7 +189,8 @@ class HyperSuprimeCam(Instrument):
         sensorTransmissions = getSensorTransmission()
         datasetType = DatasetType("transmission_sensor",
                                   ("instrument", "detector", "calibration_label"),
-                                  "TablePersistableTransmissionCurve")
+                                  "TablePersistableTransmissionCurve",
+                                  universe=butler.registry.dimensions)
         butler.registry.registerDatasetType(datasetType)
         for entry in sensorTransmissions.values():
             if entry is None:
@@ -199,7 +203,8 @@ class HyperSuprimeCam(Instrument):
         filterTransmissions = getFilterTransmission()
         datasetType = DatasetType("transmission_filter",
                                   ("instrument", "physical_filter", "calibration_label"),
-                                  "TablePersistableTransmissionCurve")
+                                  "TablePersistableTransmissionCurve",
+                                  universe=butler.registry.dimensions)
         butler.registry.registerDatasetType(datasetType)
         for entry in filterTransmissions.values():
             if entry is None:
@@ -212,7 +217,8 @@ class HyperSuprimeCam(Instrument):
         # look up along this dimension (ISR)
         atmosphericTransmissions = getAtmosphereTransmission()
         datasetType = DatasetType("transmission_atmosphere", ("instrument",),
-                                  "TablePersistableTransmissionCurve")
+                                  "TablePersistableTransmissionCurve",
+                                  universe=butler.registry.dimensions)
         butler.registry.registerDatasetType(datasetType)
         for entry in atmosphericTransmissions.values():
             if entry is None:
@@ -221,7 +227,8 @@ class HyperSuprimeCam(Instrument):
 
         # Write defects with validity ranges taken from obs_subaru/hsc/defects
         # (along with the defects themselves).
-        datasetType = DatasetType("defects", ("instrument", "detector", "calibration_label"), "DefectsList")
+        datasetType = DatasetType("defects", ("instrument", "detector", "calibration_label"), "DefectsList",
+                                  universe=butler.registry.dimensions)
         butler.registry.registerDatasetType(datasetType)
         defectPath = os.path.join(getPackageDir("obs_subaru"), "hsc", "defects")
         dbPath = os.path.join(defectPath, "defectRegistry.sqlite3")
