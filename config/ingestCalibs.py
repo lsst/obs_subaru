@@ -14,5 +14,4 @@ config.parse.translators = {'ccd': 'translate_ccd',
                             }
 
 config.register.unique = ['filter', 'ccd', 'calibDate']
-config.register.tables = ['bias', 'dark', 'flat', 'fringe', 'sky']
 config.register.visit = ['calibDate', 'filter']

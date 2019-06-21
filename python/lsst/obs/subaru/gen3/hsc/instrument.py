@@ -27,13 +27,13 @@ __all__ = ("HyperSuprimeCam",)
 import re
 import os
 import pickle
-import sqlite3
-from datetime import datetime
+from dateutil import parser
 
 from lsst.utils import getPackageDir
 from lsst.afw.cameraGeom import makeCameraFromPath, CameraConfig
 from lsst.daf.butler.instrument import Instrument, addUnboundedCalibrationLabel
 from lsst.daf.butler import DatasetType, DataId
+from lsst.pipe.tasks.read_defects import read_all_defects
 
 from lsst.obs.hsc.hscPupil import HscPupilFactory
 from lsst.obs.hsc.hscFilters import HSC_FILTER_NAMES
@@ -45,21 +45,6 @@ from .rawFormatter import HyperSuprimeCamRawFormatter, HyperSuprimeCamCornerRawF
 # filternames), with a group that can be lowercased to yield the
 # associated AbstractFilter.
 FILTER_REGEX = re.compile(r"HSC\-([GRIZY])2?")
-
-
-def readDateTime(value):
-    """Read datetime strings stored either with or without a time.
-
-    Values must start with YYYY-MM-DD, which may or may not be followed
-    by THH:MM:SS.
-
-    Both formats appear in the defectRegistry.sqlite3 file.
-    """
-    try:
-        return datetime.strptime(value, "%Y-%m-%d")
-    except ValueError:
-        pass
-    return datetime.strptime(value, "%Y-%m-%dT%H:%M:%S")
 
 
 class HyperSuprimeCam(Instrument):
@@ -225,27 +210,30 @@ class HyperSuprimeCam(Instrument):
                 continue
             butler.put(entry, datasetType, {"instrument": self.getName()})
 
-        # Write defects with validity ranges taken from obs_subaru/hsc/defects
+        # Write defects with validity ranges taken from obs_subaru_data/hsc/defects
         # (along with the defects themselves).
         datasetType = DatasetType("defects", ("instrument", "detector", "calibration_label"), "DefectsList",
                                   universe=butler.registry.dimensions)
         butler.registry.registerDatasetType(datasetType)
-        defectPath = os.path.join(getPackageDir("obs_subaru"), "hsc", "defects")
-        dbPath = os.path.join(defectPath, "defectRegistry.sqlite3")
-        db = sqlite3.connect(dbPath)
-        db.row_factory = sqlite3.Row
-        sql = "SELECT path, ccd, validStart, validEnd FROM defect"
+        defectPath = os.path.join(getPackageDir("obs_subaru_data"), "hsc", "defects")
+        camera = self.getCamera()
+        defectsDict = read_all_defects(defectPath, camera)
+        endOfTime = '20380119T031407'
         with butler.transaction():
-            for row in db.execute(sql):
-                dataId = DataId(universe=butler.registry.dimensions,
-                                instrument=self.getName(),
-                                calibration_label=f"defect/{row['path']}/{row['ccd']}")
-                dataId.entries["calibration_label"]["valid_first"] = readDateTime(row["validStart"])
-                dataId.entries["calibration_label"]["valid_last"] = readDateTime(row["validEnd"])
-                butler.registry.addDimensionEntry("calibration_label", dataId)
-                ref = butler.registry.addDataset(datasetType, dataId, run=butler.run, recursive=True,
-                                                 detector=row['ccd'])
-                butler.datastore.ingest(os.path.join(defectPath, row["path"]), ref, transfer="copy")
+            for det in defectsDict:
+                detector = camera[det]
+                times = sorted([k for k in defectsDict[det]])
+                defects = [defectsDict[det][time] for time in times]
+                times = times + [parser.parse(endOfTime), ]
+                for defect, beginTime, endTime in zip(defects, times[:-1], times[1:]):
+                    md = defect.getMetadata()
+                    dataId = DataId(universe=butler.registry.dimensions,
+                                    instrument=self.getName(),
+                                    calibration_label=f"defect/{md['CALIBDATE']}/{md['DETECTOR']}")
+                    dataId.entries["calibration_label"]["valid_first"] = beginTime
+                    dataId.entries["calibration_label"]["valid_last"] = endTime
+                    butler.registry.addDimensionEntry("calibration_label", dataId)
+                    butler.put(defect, datasetType, dataId, detector=detector.getId())
 
     def applyConfigOverrides(self, name, config):
         # Docstring inherited from Instrument.applyConfigOverrides

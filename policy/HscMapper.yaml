@@ -1,7 +1,6 @@
 needCalibRegistry: true
 
 camera: ../hsc/camera
-defects: ../hsc/defects
 
 skytiles:
   resolutionPix: 700
@@ -184,6 +183,22 @@ exposures:
     template: 'deepDiff/%(pointing)05d/%(filter)s/MATCHEDEXP-%(visit)07d-%(ccd)03d.fits'
 
 calibrations:
+  defects:
+    columns:
+    - ccd
+    - taiObs
+    level: Ccd
+    persistable: DefectsList
+    python: lsst.meas.algorithms.Defects
+    refCols:
+    - visit
+    reference: raw_visit
+    storage: FitsStorage
+    tables: defects
+    template: defects/%(calibDate)s/defects-%(calibDate)s-%(ccd)03d.fits
+    validEndName: validEnd
+    validRange: true
+    validStartName: validStart
   bias:
     columns:
     - ccd
