@@ -1,5 +1,5 @@
 """Configuration for HSCs vignetted region
 """
-config.xCenter = -100
-config.yCenter = 100
-config.radius = 17500
+config.xCenter = -100*0.015  # in mm
+config.yCenter = 100*0.015  # in mm
+config.radius = 17500*0.015  # in mm
