@@ -121,9 +121,9 @@ config.fluxMag0T1 = {'g': 398107170553.49854, 'r': 398107170553.49854, 'i': 2754
 
 config.doVignette = True
 # Use default ISR vignette construction
-config.vignette.xCenter = -100
-config.vignette.yCenter = 100
-config.vignette.radius = 17500
+config.vignette.xCenter = -100*0.015  # in mm
+config.vignette.yCenter = 100*0.015  # in mm
+config.vignette.radius = 17500*0.015  # in mm
 config.vignette.numPolygonPoints = 100
 config.vignette.doWriteVignettePolygon = True
 
