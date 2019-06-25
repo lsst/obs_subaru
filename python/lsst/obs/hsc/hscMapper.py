@@ -9,6 +9,7 @@ import lsst.afw.math as afwMath
 import lsst.afw.geom as afwGeom
 import lsst.geom as geom
 from lsst.ip.isr import LinearizeSquared
+import lsst.pex.exceptions
 from .makeHscRawVisitInfo import MakeHscRawVisitInfo
 from .hscPupil import HscPupilFactory
 from .hscFilters import HSC_FILTER_DEFINITIONS, HSC_FILTER_NAMES
@@ -149,12 +150,12 @@ class HscMapper(CameraMapper):
         return location
 
     @staticmethod
-    def _flipChipsLR(exp, wcs, dataId, dims=None):
+    def _flipChipsLR(exp, wcs, detectorId, dims=None):
         """Flip the chip left/right or top/bottom. Process either/and the pixels and wcs
 
         Most chips are flipped L/R, but the rotated ones (100..103) are flipped T/B
         """
-        flipLR, flipTB = (False, True) if dataId['ccd'] in (100, 101, 102, 103) else (True, False)
+        flipLR, flipTB = (False, True) if detectorId in (100, 101, 102, 103) else (True, False)
         if exp:
             exp.setMaskedImage(afwMath.flipImage(exp.getMaskedImage(), flipLR, flipTB))
         if wcs:
@@ -165,13 +166,17 @@ class HscMapper(CameraMapper):
         return exp, wcs
 
     def std_raw_md(self, md, dataId):
-        if False:            # no std_raw_md in baseclass
-            md = super(HscMapper, self).std_raw_md(md, dataId)  # not present in baseclass
-        #
-        # We need to flip the WCS defined by the metadata in case anyone ever constructs a Wcs from it
-        #
+        """Flip and scale raw metadata for acurate WCS creation
+
+        This is required to ensure a proper WCS when it is created from
+        the raw metadata.
+        """
         wcs = afwGeom.makeSkyWcs(md)
-        wcs = self._flipChipsLR(None, wcs, dataId, dims=afwImage.bboxFromMetadata(md).getDimensions())[1]
+        wcs = self._flipChipsLR(None, wcs, dataId['ccd'],
+                                dims=afwImage.bboxFromMetadata(md).getDimensions())[1]
+        # NOTE: the 0.992 constant comes from an assumed nominal 0.17 arcsec
+        #       pixel scale, but commissioning data showed 0.168-0.16875 to be
+        #       more realistic.
         wcsR = afwGeom.makeSkyWcs(crpix=wcs.getPixelOrigin(),
                                   crval=wcs.getSkyOrigin(),
                                   cdMatrix=wcs.getCdMatrix()*0.992)
@@ -182,11 +187,19 @@ class HscMapper(CameraMapper):
 
         return md
 
-    def std_raw(self, item, dataId):
-        exp = super(HscMapper, self).std_raw(item, dataId)
-        exp, wcs = self._flipChipsLR(exp, exp.getWcs(), dataId)
-        exp.setWcs(wcs)
-        return exp
+    def _createSkyWcsFromMetadata(self, exposure):
+        metadata = exposure.getMetadata()
+        try:
+            wcs = afwGeom.makeSkyWcs(metadata, strip=True)
+            exposure, wcs = self._flipChipsLR(exposure, wcs, exposure.getDetector().getId())
+            exposure.setWcs(wcs)
+        except lsst.pex.exceptions.TypeError as e:
+            # See DM-14372 for why this is debug and not warn (e.g. calib files without wcs metadata).
+            self.log.debug("wcs set to None; missing information found in metadata to create a valid wcs:"
+                           " %s", e.args[0])
+
+        # ensure any WCS values stripped from the metadata are removed in the exposure
+        exposure.setMetadata(metadata)
 
     def std_dark(self, item, dataId):
         exposure = self._standardizeExposure(self.calibrations['dark'], item, dataId, trimmed=False)
