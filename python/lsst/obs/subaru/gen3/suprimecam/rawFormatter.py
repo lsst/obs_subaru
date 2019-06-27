@@ -23,7 +23,7 @@
 """
 
 from ....suprimecam.makeSuprimecamRawVisitInfo import MakeSuprimecamRawVisitInfo
-from lsst.daf.butler.formatters.fitsRawFormatterBase import FitsRawFormatterBase
+from lsst.obs.base.fitsRawFormatterBase import FitsRawFormatterBase
 
 __all__ = ("SuprimeCamRawFormatter",)
 
