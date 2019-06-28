@@ -25,7 +25,7 @@
 from lsst.afw.image import ImageU, bboxFromMetadata, Filter
 from lsst.afw.geom import makeSkyWcs, Point2D, makeFlippedWcs
 from lsst.afw.math import flipImage
-from lsst.daf.butler.formatters.fitsRawFormatterBase import FitsRawFormatterBase
+from lsst.obs.base.fitsRawFormatterBase import FitsRawFormatterBase
 from astro_metadata_translator import HscTranslator, ObservationInfo
 
 from ....hsc.makeHscRawVisitInfo import MakeHscRawVisitInfo
