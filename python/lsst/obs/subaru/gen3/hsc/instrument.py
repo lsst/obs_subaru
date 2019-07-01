@@ -39,7 +39,6 @@ from lsst.obs.hsc.hscPupil import HscPupilFactory
 from lsst.obs.hsc.hscFilters import HSC_FILTER_NAMES
 from lsst.obs.hsc.makeTransmissionCurves import (getSensorTransmission, getOpticsTransmission,
                                                  getFilterTransmission, getAtmosphereTransmission)
-from .rawFormatter import HyperSuprimeCamRawFormatter, HyperSuprimeCamCornerRawFormatter
 
 # Regular expression that matches HSC PhysicalFilter names (the same as Gen2
 # filternames), with a group that can be lowercased to yield the
@@ -94,6 +93,8 @@ class HyperSuprimeCam(Instrument):
 
     def getRawFormatter(self, dataId):
         # Docstring inherited from Instrument.getRawFormatter
+        # Import the formatter here to prevent a circular dependency.
+        from .rawFormatter import HyperSuprimeCamRawFormatter, HyperSuprimeCamCornerRawFormatter
         if dataId["detector"] in (100, 101, 102, 103):
             return HyperSuprimeCamCornerRawFormatter
         else:
