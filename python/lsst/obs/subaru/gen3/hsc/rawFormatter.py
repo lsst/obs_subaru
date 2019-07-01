@@ -30,6 +30,7 @@ from lsst.obs.base.fitsRawFormatterBase import FitsRawFormatterBase
 from astro_metadata_translator import HscTranslator
 
 from ....hsc.hscFilters import HSC_FILTER_DEFINITIONS
+from . import HyperSuprimeCam
 
 __all__ = ("HyperSuprimeCamRawFormatter", "HyperSuprimeCamCornerRawFormatter")
 
@@ -40,7 +41,10 @@ class HyperSuprimeCamRawFormatter(FitsRawFormatterBase):
     FLIP_TB = False
     translatorClass = HscTranslator
 
-    def makeWcs(self):
+    def getDetector(self, id):
+        return HyperSuprimeCam().getCamera()[id]
+
+    def _createSkyWcsFromMetadata(self):
         wcs = makeSkyWcs(self.metadata, strip=True)
         dimensions = bboxFromMetadata(self.metadata).getDimensions()
         center = Point2D(dimensions/2.0)
