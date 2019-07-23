@@ -60,7 +60,7 @@ void checkSize(std::vector<T> const& vector, std::size_t expected, std::string c
 } // anonymous namespace
 
 void lsst::obs::subaru::subtractCrosstalk(
-    image::MaskedImage<float> & mi, 
+    image::MaskedImage<float> & mi,
     std::size_t nAmp,
     std::vector<CoeffVector> const & coeffs1List,
     std::vector<CoeffVector> const & coeffs2List,
