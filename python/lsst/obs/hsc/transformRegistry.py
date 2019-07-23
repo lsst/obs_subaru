@@ -3,7 +3,8 @@ __all__ = []
 import numpy as np
 import astshim as ast
 
-from lsst.afw.geom import transformRegistry, arcseconds, TransformPoint2ToPoint2
+from lsst.geom import arcseconds
+from lsst.afw.geom import transformRegistry, TransformPoint2ToPoint2
 from lsst.pex.config import Config, Field, ListField
 
 

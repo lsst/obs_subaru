@@ -7,6 +7,7 @@ import lsst.afw.image.utils as afwImageUtils
 import lsst.afw.image as afwImage
 import lsst.afw.math as afwMath
 import lsst.afw.geom as afwGeom
+import lsst.geom as geom
 from lsst.ip.isr import LinearizeSquared
 from .makeHscRawVisitInfo import MakeHscRawVisitInfo
 from .hscPupil import HscPupilFactory
@@ -158,7 +159,7 @@ class HscMapper(CameraMapper):
             exp.setMaskedImage(afwMath.flipImage(exp.getMaskedImage(), flipLR, flipTB))
         if wcs:
             ampDimensions = exp.getDimensions() if dims is None else dims
-            ampCenter = afwGeom.Point2D(ampDimensions/2.0)
+            ampCenter = geom.Point2D(ampDimensions/2.0)
             wcs = afwGeom.makeFlippedWcs(wcs, flipLR, flipTB, ampCenter)
 
         return exp, wcs
@@ -277,7 +278,7 @@ class HscMapper(CameraMapper):
         if write:
             raise RuntimeError("Writing a psf directly is no longer permitted: write as part of a calexp")
         copyId = dataId.copy()
-        copyId['bbox'] = afwGeom.Box2I(afwGeom.Point2I(0, 0), afwGeom.Extent2I(1, 1))
+        copyId['bbox'] = geom.Box2I(geom.Point2I(0, 0), geom.Extent2I(1, 1))
         return self.map_calexp_sub(copyId)
 
     def std_psf(self, calexp, dataId):

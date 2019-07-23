@@ -24,7 +24,7 @@ import unittest
 import numpy as np
 
 import lsst.utils.tests
-from lsst.afw.geom import Point2D
+from lsst.geom import Point2D
 from lsst.obs.hsc import makeTransmissionCurves
 
 

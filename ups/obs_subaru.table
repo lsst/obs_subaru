@@ -9,6 +9,7 @@ setupRequired(numpy)
 setupRequired(astshim)
 setupRequired(astro_metadata_translator)
 setupRequired(obs_subaru_data)
+setupRequired(geom)
 
 setupOptional(daf_butler)
 setupOptional(meas_modelfit)

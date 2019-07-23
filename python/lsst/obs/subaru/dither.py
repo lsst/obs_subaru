@@ -1,4 +1,4 @@
-import lsst.afw.geom as afwGeom
+import lsst.geom as geom
 
 try:
     pyplot
@@ -63,14 +63,14 @@ def ditherDES(camera, scale=4.5, names=False):
                 xOriginal = []
                 yOriginal = []
                 for x, y in zip(xList, yList):
-                    position = ccd.getPositionFromPixel(afwGeom.Point2D(x, y))  # focal plane position
+                    position = ccd.getPositionFromPixel(geom.Point2D(x, y))  # focal plane position
 
                     xOriginal.append(position.getMm().getX())
                     yOriginal.append(position.getMm().getY())
 
                 pyplot.plot(xOriginal, yOriginal, 'k-')
 
-            x, y = ccd.getPositionFromPixel(afwGeom.Point2D(width/2, height/2)).getMm()
+            x, y = ccd.getPositionFromPixel(geom.Point2D(width/2, height/2)).getMm()
             cid = ccd.getId()
             if names:
                 pyplot.text(x, y, cid.getName(), ha='center', rotation=90 if height > width else 0,

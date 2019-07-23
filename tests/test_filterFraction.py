@@ -25,7 +25,8 @@ import unittest
 import lsst.utils.tests
 from lsst.afw.image import ExposureF, CoaddInputs
 from lsst.afw.table import ExposureCatalog, SourceCatalog, Point2DKey
-from lsst.afw.geom import degrees, Point2D, Box2I, Point2I, SpherePoint, makeCdMatrix, makeSkyWcs
+from lsst.afw.geom import makeCdMatrix, makeSkyWcs
+from lsst.geom import degrees, Point2D, Box2I, Point2I, SpherePoint
 from lsst.daf.base import PropertyList
 from lsst.meas.base import FatalAlgorithmError
 from lsst.obs.subaru.filterFraction import FilterFractionPlugin

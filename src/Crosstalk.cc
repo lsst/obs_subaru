@@ -7,7 +7,6 @@
 
 // C++ implementation of crosstalk correction with procedure by Yagi+2012
 
-//namespace geom = lsst::afw::geom;
 namespace image = lsst::afw::image;
 
 typedef std::vector<double> PixelVector;

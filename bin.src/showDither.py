@@ -8,6 +8,7 @@ import sys
 import numpy as np
 import lsst.afw.geom as afwGeom
 import lsst.afw.cameraGeom as afwCG
+import lsst.geom as geom
 import lsst.daf.persistence as dafPersist
 try:
     plt
@@ -105,7 +106,7 @@ def main(butler, visits, fields, fieldRadius, showCCDs=False, aitoff=False, alph
 
                 verts = []
                 for p in [(0, 0), (width, 0), (width, height), (0, height)]:
-                    sky = wcs.pixelToSky(afwGeom.PointD(*p))
+                    sky = wcs.pixelToSky(geom.PointD(*p))
                     verts.append([sky[0].asDegrees(), sky[1].asDegrees()])
                 verts.append((0, 0))    # dummy
 
