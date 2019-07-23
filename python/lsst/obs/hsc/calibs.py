@@ -5,8 +5,8 @@ from lsst.pex.config import Field, ListField, ConfigField
 from lsst.pipe.drivers.constructCalibs import CalibCombineConfig, CalibCombineTask
 from lsst.ip.isr.vignette import VignetteConfig
 import lsst.afw.image as afwImage
-import lsst.afw.geom as afwGeom
 import lsst.afw.cameraGeom as afwcg
+import lsst.geom as geom
 
 
 class HscFlatCombineConfig(CalibCombineConfig):
@@ -59,9 +59,9 @@ class HscFlatCombineTask(CalibCombineTask):
         w, h = bbox.getDimensions()
         numCorners = 0  # Number of corners outside radius
         pixelsToFocalPlane = detector.getTransform(afwcg.PIXELS, afwcg.FOCAL_PLANE)
-        pixelCorners = [afwGeom.Point2D(pos) for pos in bbox.getCorners()]
+        pixelCorners = [geom.Point2D(pos) for pos in bbox.getCorners()]
         fpCorners = pixelsToFocalPlane.applyForward(pixelCorners)
-        fpCenter = afwGeom.Point2D(self.config.vignette.xCenter, self.config.vignette.yCenter)
+        fpCenter = geom.Point2D(self.config.vignette.xCenter, self.config.vignette.yCenter)
         numCorners = sum(math.hypot(*(fpPos - fpCenter)) > self.config.vignette.radius for fpPos in fpCorners)
         if numCorners == 0:
             # Nothing to be masked
@@ -76,9 +76,9 @@ class HscFlatCombineTask(CalibCombineTask):
         # We have to go pixel by pixel
         numPixels = bbox.getArea()
         xx, yy = np.meshgrid(np.arange(0, w, dtype=int), np.arange(0, h, dtype=int))
-        xyDetector = [afwGeom.Point2D(x, y) for x, y in zip(xx.reshape(numPixels), yy.reshape(numPixels))]
+        xyDetector = [geom.Point2D(x, y) for x, y in zip(xx.reshape(numPixels), yy.reshape(numPixels))]
         xyFocalPlane = pixelsToFocalPlane.applyForward(xyDetector)
-        origin = afwGeom.Point2D(self.config.vignette.xCenter, self.config.vignette.yCenter)
+        origin = geom.Point2D(self.config.vignette.xCenter, self.config.vignette.yCenter)
         r2 = np.array([pp.distanceSquared(origin) for pp in xyFocalPlane])
         isBad = (r2 > self.config.vignette.radius**2).reshape((h, w))
         self.log.info("Detector %d has %f%% pixels vignetted" %

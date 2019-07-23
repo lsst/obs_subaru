@@ -1,7 +1,7 @@
 import os
 
-import lsst.afw.geom as afwGeom
 import lsst.afw.image.utils as afwImageUtils
+import lsst.geom as geom
 
 from lsst.daf.persistence import ButlerLocation, Policy
 from lsst.obs.base import CameraMapper
@@ -280,7 +280,7 @@ class SuprimecamMapperBase(CameraMapper):
         if write:
             raise RuntimeError("Writing a psf directly is no longer permitted: write as part of a calexp")
         copyId = dataId.copy()
-        copyId['bbox'] = afwGeom.Box2I(afwGeom.Point2I(0, 0), afwGeom.Extent2I(1, 1))
+        copyId['bbox'] = geom.Box2I(geom.Point2I(0, 0), geom.Extent2I(1, 1))
         return self.map_calexp_sub(copyId)
 
     def std_psf(self, calexp, dataId):

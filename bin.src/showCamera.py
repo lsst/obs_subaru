@@ -25,7 +25,7 @@ import numpy
 import matplotlib.pyplot as plt
 
 import lsst.afw.cameraGeom as cameraGeom
-import lsst.afw.geom as afwGeom
+import lsst.geom as geom
 
 
 def main(camera, sample=20, names=False, showDistortion=True, plot=True, outputFile=None):
@@ -61,7 +61,7 @@ def main(camera, sample=20, names=False, showDistortion=True, plot=True, outputF
                 xDistort = []
                 yDistort = []
                 for x, y in zip(xList, yList):
-                    position = ccd.getPositionFromPixel(afwGeom.Point2D(x, y))  # focal plane position
+                    position = ccd.getPositionFromPixel(geom.Point2D(x, y))  # focal plane position
 
                     xOriginal.append(position.getMm().getX())
                     yOriginal.append(position.getMm().getY())
@@ -69,7 +69,7 @@ def main(camera, sample=20, names=False, showDistortion=True, plot=True, outputF
                     if not showDistortion:
                         continue
                     # Calculate offset (in CCD pixels) due to distortion
-                    distortion = dist.distort(afwGeom.Point2D(x, y), ccd) - afwGeom.Extent2D(x, y)
+                    distortion = dist.distort(geom.Point2D(x, y), ccd) - geom.Extent2D(x, y)
 
                     # Calculate the distorted position
                     distorted = position + cameraGeom.FpPoint(distortion)*ccd.getPixelSize()
@@ -82,7 +82,7 @@ def main(camera, sample=20, names=False, showDistortion=True, plot=True, outputF
                     ax.plot(xDistort, yDistort, 'r-')
 
             if fig:
-                x, y = ccd.getPositionFromPixel(afwGeom.Point2D(width/2, height/2)).getMm()
+                x, y = ccd.getPositionFromPixel(geom.Point2D(width/2, height/2)).getMm()
                 cid = ccd.getId()
                 if names:
                     ax.text(x, y, cid.getName(), ha='center', rotation=90 if height > width else 0,

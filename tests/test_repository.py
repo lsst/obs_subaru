@@ -27,12 +27,12 @@ from shutil import rmtree
 from subprocess import check_call
 from tempfile import mkdtemp
 
-import lsst.afw.geom as afwGeom
+import lsst.geom as geom
 import lsst.daf.persistence as dafPersist
 import lsst.utils
 from lsst.daf.base import DateTime
 from lsst.afw.image import RotType
-from lsst.afw.geom import degrees, radians
+from lsst.geom import degrees, radians
 from lsst.obs.hsc import HscMapper
 
 testDataPackage = "testdata_subaru"
@@ -96,8 +96,8 @@ class GetDataTestCase(lsst.utils.tests.TestCase):
         self.exptime = 30.0
         self.darktime = self.exptime  # No explicit darktime
         self.dateAvg = DateTime(56598.26165414352, DateTime.MJD, DateTime.TAI)
-        self.boresightRaDec = afwGeom.SpherePoint(320.7499250000, 0.500019444, degrees)
-        self.boresightAzAlt = afwGeom.SpherePoint(226.68922661, 63.04359233, degrees)
+        self.boresightRaDec = geom.SpherePoint(320.7499250000, 0.500019444, degrees)
+        self.boresightAzAlt = geom.SpherePoint(226.68922661, 63.04359233, degrees)
         self.boresightAirmass = 1.121626027604189
         self.boresightRotAngle = 270.0*degrees
         self.rotType = RotType.SKY
@@ -118,10 +118,10 @@ class GetDataTestCase(lsst.utils.tests.TestCase):
         """Test retrieval of raw image"""
         raw = self.butler.get("raw", visit=self.visit, ccd=self.ccdNum)
         ccd = raw.getDetector()
-        self.assertEqual(raw.getDimensions(), afwGeom.Extent2I(*self.rawSize))
+        self.assertEqual(raw.getDimensions(), geom.Extent2I(*self.rawSize))
         self.assertEqual(raw.getFilter().getFilterProperty().getName(), self.filter)
         self.assertEqual(ccd.getId(), self.ccdNum)
-        self.assertEqual(ccd.getBBox().getDimensions(), afwGeom.Extent2I(*self.ccdSize))
+        self.assertEqual(ccd.getBBox().getDimensions(), geom.Extent2I(*self.ccdSize))
 
         visitInfo = raw.getInfo().getVisitInfo()
         self.assertAlmostEqual(visitInfo.getDate().get(), self.dateAvg.get())
@@ -153,7 +153,7 @@ class GetDataTestCase(lsst.utils.tests.TestCase):
         pupilFactory = camera.getPupilFactory(visitInfo, size, npix)
         self.assertIsInstance(pupilFactory, lsst.obs.hsc.hscPupil.HscPupilFactory)
 
-        pupil = pupilFactory.getPupil(afwGeom.Point2D(0.0, 0.0))
+        pupil = pupilFactory.getPupil(geom.Point2D(0.0, 0.0))
         self.assertEqual(pupil.size, size)
         self.assertEqual(pupil.scale, size/npix)
         self.assertEqual(pupil.illuminated.shape, (npix, npix))
@@ -166,20 +166,20 @@ class GetDataTestCase(lsst.utils.tests.TestCase):
     def testBias(self):
         """Test retrieval of bias frame"""
         bias = self.butler.get("bias", visit=self.visit, ccd=self.ccdNum)
-        self.assertEqual(bias.getDimensions(), afwGeom.Extent2I(*self.ccdSize))
+        self.assertEqual(bias.getDimensions(), geom.Extent2I(*self.ccdSize))
         self.assertEqual(bias.getDetector().getId(), self.ccdNum)
 
     def testDark(self):
         """Test retrieval of dark frame"""
         dark = self.butler.get("dark", visit=self.visit, ccd=self.ccdNum)
-        self.assertEqual(dark.getDimensions(), afwGeom.Extent2I(*self.ccdSize))
+        self.assertEqual(dark.getDimensions(), geom.Extent2I(*self.ccdSize))
         self.assertEqual(dark.getDetector().getId(), self.ccdNum)
         self.assertEqual(dark.getInfo().getVisitInfo().getExposureTime(), 1.0)
 
     def testFlat(self):
         """Test retrieval of flat"""
         flat = self.butler.get("flat", visit=self.visit, ccd=self.ccdNum)
-        self.assertEqual(flat.getDimensions(), afwGeom.Extent2I(*self.ccdSize))
+        self.assertEqual(flat.getDimensions(), geom.Extent2I(*self.ccdSize))
         self.assertEqual(flat.getDetector().getId(), self.ccdNum)
 
     def testLinearizer(self):

@@ -21,7 +21,7 @@
 #
 
 from lsst.afw.cameraGeom import PupilFactory
-from lsst.afw.geom import Angle, degrees
+from lsst.geom import Angle, degrees
 import numpy as np
 
 

@@ -98,7 +98,7 @@ class HscDistortionTestCase(lsst.utils.tests.TestCase):
         - serial: detector.getSerial
         - cornerDict: a dict of pixPosKey, cornerData, where:
             - pixPosKey: self.asKey(pixPos) where pixPos is pixel position
-            - cornerData is Struct contains these fields (all of type lsst.afw.geom.Point2D):
+            - cornerData is Struct contains these fields (all of type lsst.geom.Point2D):
                 - pixPos: pixel position
                 - focalPlane: focal plane position computed from pixPos
                 - fieldAngle: fieldAngle position computed from focalPlane

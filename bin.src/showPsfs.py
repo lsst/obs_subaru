@@ -10,6 +10,7 @@ from matplotlib.mlab import griddata
 import matplotlib.pyplot as plt
 
 import lsst.afw.geom as afwGeom
+import lsst.geom as geom
 import lsst.daf.persistence as dafPersist
 import lsst.obs.hscSim as hscSim
 
@@ -96,7 +97,7 @@ def main(dataDir, visit, title="", outputTxtFileName=None,
                     ccd = ccds[int(fields[0])]
 
                 x, y, fwhm, ell, pa, a, b = fields[1:8]
-                x, y = ccd.getPositionFromPixel(afwGeom.PointD(x, y)).getMm()
+                x, y = ccd.getPositionFromPixel(geom.PointD(x, y)).getMm()
                 xArr.append(x)
                 yArr.append(y)
                 ellArr.append(ell)
@@ -137,7 +138,7 @@ def main(dataDir, visit, title="", outputTxtFileName=None,
             if False:                                                       # testing only!
                 axes = afwEllipses.Axes(1.0, 1.0, np.arctan2(yArr[i], xArr[i]))
             quad = afwGeom.Quadrupole(axes)
-            quad = quad.transform(dist.computeQuadrupoleTransform(afwGeom.PointD(xArr[i], yArr[i]), False))
+            quad = quad.transform(dist.computeQuadrupoleTransform(geom.PointD(xArr[i], yArr[i]), False))
             axes = afwEllipses.Axes(quad)
             aArr[i], bArr[i], paArr[i] = axes.getA(), axes.getB(), axes.getTheta()
 

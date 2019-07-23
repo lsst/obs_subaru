@@ -23,8 +23,9 @@
 """
 
 from lsst.afw.image import ImageU, bboxFromMetadata, Filter
-from lsst.afw.geom import makeSkyWcs, Point2D, makeFlippedWcs
+from lsst.afw.geom import makeSkyWcs, makeFlippedWcs
 from lsst.afw.math import flipImage
+from lsst.geom import Point2D
 from lsst.obs.base.fitsRawFormatterBase import FitsRawFormatterBase
 from astro_metadata_translator import HscTranslator, ObservationInfo
 

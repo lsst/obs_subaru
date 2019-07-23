@@ -34,10 +34,10 @@ crosstalk.fixCcd(131634, 0, coeffs)
 """
 import numpy as np
 import lsst.afw.detection as afwDetect
-import lsst.afw.geom as afwGeom
 import lsst.afw.image as afwImage
 import lsst.afw.math as afwMath
 import lsst.afw.display as afwDisplay
+import lsst.geom as geom
 import lsst.pipe.base as pipeBase
 import lsst.pex.config as pexConfig
 from lsst.obs.subaru import subtractCrosstalk
@@ -195,12 +195,12 @@ def getAmplifier(image, amp, ampReference=None, offset=2):
     @return amplifier image, offset amplifier image
     """
     height = image.getHeight()
-    ampBox = afwGeom.Box2I(afwGeom.Point2I(amp*512, 0), afwGeom.Extent2I(512, height))
+    ampBox = geom.Box2I(geom.Point2I(amp*512, 0), geom.Extent2I(512, height))
     ampImage = image.Factory(image, ampBox, afwImage.LOCAL)
     if ampReference is not None and amp % 2 != ampReference % 2:
         ampImage = afwMath.flipImage(ampImage, True, False)
-    offBox = afwGeom.Box2I(afwGeom.Point2I(offset if amp == ampReference else 0, 0),
-                           afwGeom.Extent2I(510, height))
+    offBox = geom.Box2I(geom.Point2I(offset if amp == ampReference else 0, 0),
+                        geom.Extent2I(510, height))
     offsetImage = ampImage.Factory(ampImage, offBox, afwImage.LOCAL)
     return ampImage, offsetImage
 

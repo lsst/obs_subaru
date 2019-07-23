@@ -20,8 +20,8 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 # import os
 
-import lsst.afw.geom as afwGeom
 import lsst.afw.image as afwImage
+import lsst.geom as geom
 import lsst.pex.config as pexConfig
 
 from lsst.ip.isr.masking import MaskingTask, MaskingConfig
@@ -84,8 +84,8 @@ class SuprimeCamMaskingTask(MaskingTask):
             # XXX This mask plane isn't respected by background subtraction or source detection or measurement
             self.log.info("Masking autoguider shadow at y > %d" % maskLimit)
             mask = mi.getMask()
-            bbox = afwGeom.Box2I(afwGeom.Point2I(0, maskLimit - 1),
-                                 afwGeom.Point2I(mask.getWidth() - 1, height - 1))
+            bbox = geom.Box2I(geom.Point2I(0, maskLimit - 1),
+                              geom.Point2I(mask.getWidth() - 1, height - 1))
             badMask = mask.Factory(mask, bbox, afwImage.LOCAL)
 
             mask.addMaskPlane("GUIDER")
@@ -95,6 +95,6 @@ class SuprimeCamMaskingTask(MaskingTask):
         else:
             # XXX Temporary solution until a mask plane is respected by downstream processes
             self.log.info("Removing pixels affected by autoguider shadow at y > %d" % maskLimit)
-            bbox = afwGeom.Box2I(afwGeom.Point2I(0, 0), afwGeom.Extent2I(mi.getWidth(), maskLimit))
+            bbox = geom.Box2I(geom.Point2I(0, 0), geom.Extent2I(mi.getWidth(), maskLimit))
             good = mi.Factory(mi, bbox, afwImage.LOCAL)
             exposure.setMaskedImage(good)
