@@ -50,6 +50,12 @@ class HyperSuprimeCam(Instrument):
     """Gen3 Butler specialization class for Subaru's Hyper Suprime-Cam.
     """
 
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        packageDir = getPackageDir("obs_subaru")
+        self.configPaths = [os.path.join(packageDir, "config"),
+                            os.path.join(packageDir, "config", "hsc")]
+
     @classmethod
     def getName(cls):
         # Docstring inherited from Instrument.getName
@@ -235,12 +241,3 @@ class HyperSuprimeCam(Instrument):
                     dataId.entries["calibration_label"]["valid_last"] = endTime
                     butler.registry.addDimensionEntry("calibration_label", dataId)
                     butler.put(defect, datasetType, dataId, detector=detector.getId())
-
-    def applyConfigOverrides(self, name, config):
-        # Docstring inherited from Instrument.applyConfigOverrides
-        packageDir = getPackageDir("obs_subaru")
-        roots = [os.path.join(packageDir, "config"), os.path.join(packageDir, "config", "hsc")]
-        for root in roots:
-            path = os.path.join(root, f"{name}.py")
-            if os.path.exists(path):
-                config.load(path)
