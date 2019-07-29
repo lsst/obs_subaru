@@ -135,7 +135,7 @@ class HyperSuprimeCam(Instrument):
         """
 
         # Write cameraGeom.Camera, with an infinite validity range.
-        datasetType = DatasetType("camera", ("instrument", "calibration_label"), "TablePersistableCamera",
+        datasetType = DatasetType("camera", ("instrument", "calibration_label"), "Camera",
                                   universe=butler.registry.dimensions)
         butler.registry.registerDatasetType(datasetType)
         unboundedDataId = addUnboundedCalibrationLabel(butler.registry, self.getName())
@@ -162,7 +162,7 @@ class HyperSuprimeCam(Instrument):
         opticsTransmissions = getOpticsTransmission()
         datasetType = DatasetType("transmission_optics",
                                   ("instrument", "calibration_label"),
-                                  "TablePersistableTransmissionCurve",
+                                  "TransmissionCurve",
                                   universe=butler.registry.dimensions)
         butler.registry.registerDatasetType(datasetType)
         for entry in opticsTransmissions.values():
@@ -174,7 +174,7 @@ class HyperSuprimeCam(Instrument):
         sensorTransmissions = getSensorTransmission()
         datasetType = DatasetType("transmission_sensor",
                                   ("instrument", "detector", "calibration_label"),
-                                  "TablePersistableTransmissionCurve",
+                                  "TransmissionCurve",
                                   universe=butler.registry.dimensions)
         butler.registry.registerDatasetType(datasetType)
         for entry in sensorTransmissions.values():
@@ -188,7 +188,7 @@ class HyperSuprimeCam(Instrument):
         filterTransmissions = getFilterTransmission()
         datasetType = DatasetType("transmission_filter",
                                   ("instrument", "physical_filter", "calibration_label"),
-                                  "TablePersistableTransmissionCurve",
+                                  "TransmissionCurve",
                                   universe=butler.registry.dimensions)
         butler.registry.registerDatasetType(datasetType)
         for entry in filterTransmissions.values():
@@ -202,7 +202,7 @@ class HyperSuprimeCam(Instrument):
         # look up along this dimension (ISR)
         atmosphericTransmissions = getAtmosphereTransmission()
         datasetType = DatasetType("transmission_atmosphere", ("instrument",),
-                                  "TablePersistableTransmissionCurve",
+                                  "TransmissionCurve",
                                   universe=butler.registry.dimensions)
         butler.registry.registerDatasetType(datasetType)
         for entry in atmosphericTransmissions.values():
