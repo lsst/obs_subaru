@@ -27,9 +27,8 @@ from lsst.afw.geom import makeSkyWcs, makeFlippedWcs
 from lsst.afw.math import flipImage
 from lsst.geom import Point2D
 from lsst.obs.base.fitsRawFormatterBase import FitsRawFormatterBase
-from astro_metadata_translator import HscTranslator, ObservationInfo
+from astro_metadata_translator import HscTranslator
 
-from ....hsc.makeHscRawVisitInfo import MakeHscRawVisitInfo
 from ....hsc.hscFilters import HSC_FILTER_DEFINITIONS
 
 __all__ = ("HyperSuprimeCamRawFormatter", "HyperSuprimeCamCornerRawFormatter")
@@ -40,36 +39,36 @@ class HyperSuprimeCamRawFormatter(FitsRawFormatterBase):
     FLIP_LR = True
     FLIP_TB = False
 
-    def makeVisitInfo(self, metadata):
-        maker = MakeHscRawVisitInfo()
-        return maker(metadata)
+    @property
+    def translatorClass(self):
+        return HscTranslator
 
-    def makeWcs(self, metadata):
-        wcs = makeSkyWcs(metadata, strip=True)
-        dimensions = bboxFromMetadata(metadata).getDimensions()
+    def makeWcs(self):
+        wcs = makeSkyWcs(self.metadata, strip=True)
+        dimensions = bboxFromMetadata(self.metadata).getDimensions()
         center = Point2D(dimensions/2.0)
         return makeFlippedWcs(wcs, self.FLIP_LR, self.FLIP_TB, center)
 
-    def makeFilter(self, metadata):
-        obsInfo = ObservationInfo(metadata, translator_class=HscTranslator)
+    def makeFilter(self):
         # For historical reasons we need to return a short, lowercase filter
         # name that is neither a physical_filter nor an abstract_filter in Gen3
         # or a filter data ID value in Gen2.
         # We'll suck that out of the definitions used to construct filters
         # for HSC in Gen2.  This should all get cleaned up in RFC-541.
         for d in HSC_FILTER_DEFINITIONS:
-            if obsInfo.physical_filter == d["name"] or obsInfo.physical_filter in d["alias"]:
+            if (self.observationInfo.physical_filter == d["name"] or
+                    self.observationInfo.physical_filter in d["alias"]):
                 return Filter(d["name"], force=True)
-        return Filter(obsInfo.physical_filter, force=True)
+        return Filter(self.observationInfo.physical_filter, force=True)
 
-    def readImage(self, fileDescriptor):
-        if fileDescriptor.parameters:
+    def readImage(self):
+        if self.fileDescriptor.parameters:
             # It looks like the Gen2 std_raw code wouldn't have handled
             # flipping vs. subimages correctly, so we won't bother to either.
             # But we'll make sure no one tries to get a subimage, rather than
             # doing something confusing.
             raise NotImplementedError("Formatter does not support subimages.")
-        image = ImageU(fileDescriptor.location.path)
+        image = ImageU(self.fileDescriptor.location.path)
         return flipImage(image, self.FLIP_LR, self.FLIP_TB)
 
 
