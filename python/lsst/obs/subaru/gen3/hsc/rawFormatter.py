@@ -38,10 +38,7 @@ class HyperSuprimeCamRawFormatter(FitsRawFormatterBase):
 
     FLIP_LR = True
     FLIP_TB = False
-
-    @property
-    def translatorClass(self):
-        return HscTranslator
+    translatorClass = HscTranslator
 
     def makeWcs(self):
         wcs = makeSkyWcs(self.metadata, strip=True)
