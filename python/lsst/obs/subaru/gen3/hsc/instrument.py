@@ -95,9 +95,9 @@ class HyperSuprimeCam(Instrument):
     def getRawFormatter(self, dataId):
         # Docstring inherited from Instrument.getRawFormatter
         if dataId["detector"] in (100, 101, 102, 103):
-            return HyperSuprimeCamCornerRawFormatter()
+            return HyperSuprimeCamCornerRawFormatter
         else:
-            return HyperSuprimeCamRawFormatter()
+            return HyperSuprimeCamRawFormatter
 
     def getCamera(self):
         """Retrieve the cameraGeom representation of HSC.
