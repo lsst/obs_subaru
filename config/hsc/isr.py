@@ -4,7 +4,6 @@ HSC-specific overrides for IsrTask
 import os.path
 
 from lsst.utils import getPackageDir
-from lsst.obs.subaru.crosstalk import SubaruCrosstalkTask
 from lsst.obs.subaru.strayLight import SubaruStrayLightTask
 
 config.datasetType = "raw"
@@ -57,14 +56,19 @@ config.doLinearize = True
 
 config.doCrosstalk = True
 config.doCrosstalkBeforeAssemble = False
-config.crosstalk.retarget(SubaruCrosstalkTask)
-# These values from RHL's report on "HSC July Commissioning Data" (2013-08-23)
-config.crosstalk.coeffs.values = [
-    0.0e-6, -125.0e-6, -149.0e-6, -156.0e-6,
-    -124.0e-6, 0.0e-6, -132.0e-6, -157.0e-6,
-    -171.0e-6, -134.0e-6, 0.0e-6, -153.0e-6,
-    -157.0e-6, -151.0e-6, -137.0e-6, 0.0e-6,
+config.crosstalk.crosstalkBackgroundMethod = "DETECTOR"
+config.crosstalk.useConfigCoefficients = True
+# These values from RHL's report on "HSC July Commissioning Data" (2013-08-23).
+# This is the transpose of the original matrix used by the SubaruCrosstalkTask,
+# as the ISR implementation uses a different indexing.
+config.crosstalk.crosstalkValues = [
+    0.0e-6, -124.0e-6, -171.0e-6, -157.0e-6,
+    -125.0e-6, 0.0e-6, -134.0e-6, -151.0e-6,
+    -149.0e-6, -132.0e-6, 0.0e-6, -137.0e-6,
+    -156.0e-6, -157.0e-6, -153.0e-6, 0.0e-6,
 ]
+config.crosstalk.crosstalkShape = [4, 4]
+
 
 config.doWidenSaturationTrails = True
 
