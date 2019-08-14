@@ -3,7 +3,6 @@ import os
 import lsst.log
 from lsst.obs.base import CameraMapper
 from lsst.daf.persistence import ButlerLocation, Policy
-import lsst.afw.image.utils as afwImageUtils
 import lsst.afw.image as afwImage
 import lsst.afw.math as afwMath
 import lsst.afw.geom as afwGeom
@@ -12,7 +11,7 @@ from lsst.ip.isr import LinearizeSquared
 import lsst.pex.exceptions
 from .makeHscRawVisitInfo import MakeHscRawVisitInfo
 from .hscPupil import HscPupilFactory
-from .hscFilters import HSC_FILTER_DEFINITIONS, HSC_FILTER_NAMES
+from .hscFilters import HSC_FILTER_DEFINITIONS
 
 
 class HscMapper(CameraMapper):
@@ -27,9 +26,7 @@ class HscMapper(CameraMapper):
 
     @classmethod
     def addFilters(cls):
-        afwImageUtils.resetFilters()
-        for kwds in HSC_FILTER_DEFINITIONS:
-            afwImageUtils.defineFilter(**kwds)
+        HSC_FILTER_DEFINITIONS.defineFilters()
 
     def __init__(self, **kwargs):
         policyFile = Policy.defaultPolicyFile("obs_subaru", "HscMapper.yaml", "policy")
@@ -85,15 +82,9 @@ class HscMapper(CameraMapper):
 
         self.addFilters()
 
-        #
-        # self.filters is used elsewhere, and for now we'll set it
-        #
-        # It's a bit hard to initialise self.filters properly until #2113 is resolved,
-        # including the part that makes it possible to get all aliases
-        #
         self.filters = {}
-        for f in HSC_FILTER_NAMES:
-            self.filters[f] = afwImage.Filter(f).getCanonicalName()
+        for filt in HSC_FILTER_DEFINITIONS:
+            self.filters[filt.physical_filter] = afwImage.Filter(filt.physical_filter).getCanonicalName()
         self.defaultFilterName = "UNRECOGNISED"
 
         #
