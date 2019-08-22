@@ -14,7 +14,12 @@ class HscDistortionConfig(Config):
     All values here are as used in the original distortion calculation library
     used for HSC, distEst.
 
-    The coefficients come from a polynomial fit to the distortion using real HSC data.
+    The coefficients come from a polynomial fit to the distortion using real
+    HSC data.  They were computed in units of Focal Plane "pixels", which
+    effectively assumes a scaling of 1 mm per Focal Plane pixel.  LSST prefers
+    to use the proper (actual physical) scaling units, so the function
+    makeHscDistortion() scales the coeffs from the original FP in "pixels"
+    to their equivalent in the actual focal plane scale of HSC in mm.
 
     According to Yuki Okura, a 9th order polynomial is required to model the rapid changes
     to the distortion at the edges of the field.
@@ -23,7 +28,8 @@ class HscDistortionConfig(Config):
                           doc="Polynomial order for conversion from focal plane position to field angle",
                           default=9)
     xCcdToSky = ListField(dtype=float,
-                          doc="Coefficients for converting x,y focal plane position to x field angle",
+                          doc=("Coefficients for converting x,y focal plane position to x field angle "
+                               "(computed assuming a focal plane scale of 1 mm/pixel)"),
                           default=[-0.00047203560468,
                                    -1.5427988883e-05,
                                    -5.95865625284e-10,
@@ -81,7 +87,8 @@ class HscDistortionConfig(Config):
                                    -8.6880691822e-38,
                                    ])
     yCcdToSky = ListField(dtype=float,
-                          doc="Coefficients for converting x,y focal plane position to y field angle",
+                          doc=("Coefficients for converting x,y focal plane position to y field angle "
+                               "(computed assuming a focal plane scale of 1 mm/pixel)"),
                           default=[-2.27525408678e-05,
                                    -0.000149438556393 + 1.0,
                                    1.47288649136e-09,
@@ -140,7 +147,8 @@ class HscDistortionConfig(Config):
                                    ])
     tolerance = Field(dtype=float, default=5.0e-3, doc="Tolerance for inversion (pixels)")  # Much less than 1
     maxIter = Field(dtype=int, default=10, doc="Maximum iterations for inversion")  # Usually sufficient
-    plateScale = Field(dtype=float, default=1.0, doc="Plate scale (arcsec/mm)")
+    plateScale = Field(dtype=float, default=11.2, doc="Plate scale (arcsec/mm)")
+    pixelSize = Field(dtype=float, default=0.015, doc="Pixel scale (mm/pixel)")
 
 
 def makeAstPolyMapCoeffs(order, xCoeffs, yCoeffs):
@@ -199,12 +207,16 @@ def makeHscDistortion(config):
     """
     forwardCoeffs = makeAstPolyMapCoeffs(config.ccdToSkyOrder, config.xCcdToSky, config.yCcdToSky)
 
+    # Convert coefficients from assumed 1 mm plateScale to actual 11.2 plateScale
+    pixelScale = config.plateScale*config.pixelSize*arcseconds  # in arcsec/pixel
+    for coeff in forwardCoeffs:
+        coeff[0] = coeff[0]/(config.pixelSize**(coeff[2] + coeff[3]))
+
     # Note that the actual error can be somewhat larger than TolInverse;
     # the max error I have seen is less than 2, so I scale conservatively
     ccdToSky = ast.PolyMap(forwardCoeffs, 2, "IterInverse=1, TolInverse=%s, NIterInverse=%s" %
                            (config.tolerance / 2.0, config.maxIter))
-    plateScaleAngle = config.plateScale * arcseconds
-    fullMapping = ccdToSky.then(ast.ZoomMap(2, plateScaleAngle.asRadians()))
+    fullMapping = ccdToSky.then(ast.ZoomMap(2, pixelScale.asRadians()))
     return TransformPoint2ToPoint2(fullMapping)
 
 
