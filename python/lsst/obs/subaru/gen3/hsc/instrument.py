@@ -36,7 +36,7 @@ from lsst.daf.butler import DatasetType, DataId
 from lsst.pipe.tasks.read_defects import read_all_defects
 
 from lsst.obs.hsc.hscPupil import HscPupilFactory
-from lsst.obs.hsc.hscFilters import HSC_FILTER_NAMES
+from lsst.obs.hsc.hscFilters import HSC_FILTER_DEFINITIONS
 from lsst.obs.hsc.makeTransmissionCurves import (getSensorTransmission, getOpticsTransmission,
                                                  getFilterTransmission, getAtmosphereTransmission)
 
@@ -49,6 +49,14 @@ FILTER_REGEX = re.compile(r"HSC\-([GRIZY])2?")
 class HyperSuprimeCam(Instrument):
     """Gen3 Butler specialization class for Subaru's Hyper Suprime-Cam.
     """
+
+    filterDefinitions = HSC_FILTER_DEFINITIONS
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        packageDir = getPackageDir("obs_subaru")
+        self.configPaths = [os.path.join(packageDir, "config"),
+                            os.path.join(packageDir, "config", "hsc")]
 
     @classmethod
     def getName(cls):
@@ -78,18 +86,8 @@ class HyperSuprimeCam(Instrument):
                 # HSC doesn't have rafts
                 raft=None
             )
-        for physical in HSC_FILTER_NAMES:
-            # We use one of grizy for the abstract filter, when appropriate,
-            # which we identify as when the physical filter starts with
-            # "HSC-[GRIZY]".  Note that this means that e.g. "HSC-I" and
-            # "HSC-I2" are both mapped to abstract filter "i".
-            m = FILTER_REGEX.match(physical)
-            registry.addDimensionEntry(
-                "physical_filter",
-                dataId,
-                physical_filter=physical,
-                abstract_filter=m.group(1).lower() if m is not None else None
-            )
+
+        self._registerFilters(registry)
 
     def getRawFormatter(self, dataId):
         # Docstring inherited from Instrument.getRawFormatter
@@ -235,12 +233,3 @@ class HyperSuprimeCam(Instrument):
                     dataId.entries["calibration_label"]["valid_last"] = endTime
                     butler.registry.addDimensionEntry("calibration_label", dataId)
                     butler.put(defect, datasetType, dataId, detector=detector.getId())
-
-    def applyConfigOverrides(self, name, config):
-        # Docstring inherited from Instrument.applyConfigOverrides
-        packageDir = getPackageDir("obs_subaru")
-        roots = [os.path.join(packageDir, "config"), os.path.join(packageDir, "config", "hsc")]
-        for root in roots:
-            path = os.path.join(root, f"{name}.py")
-            if os.path.exists(path):
-                config.load(path)

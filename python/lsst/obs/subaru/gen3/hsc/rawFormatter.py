@@ -19,10 +19,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Gen3 Butler Formatters for HSC raw data.
-"""
-
-from lsst.afw.image import ImageU, bboxFromMetadata, Filter
+from lsst.afw.image import ImageU, bboxFromMetadata
 from lsst.afw.geom import makeSkyWcs, makeFlippedWcs
 from lsst.afw.math import flipImage
 from lsst.geom import Point2D
@@ -36,10 +33,13 @@ __all__ = ("HyperSuprimeCamRawFormatter", "HyperSuprimeCamCornerRawFormatter")
 
 
 class HyperSuprimeCamRawFormatter(FitsRawFormatterBase):
+    """Gen3 Butler Formatters for HSC raw data.
+    """
 
     FLIP_LR = True
     FLIP_TB = False
     translatorClass = HscTranslator
+    filterDefinitions = HSC_FILTER_DEFINITIONS
 
     def getDetector(self, id):
         return HyperSuprimeCam().getCamera()[id]
@@ -51,18 +51,6 @@ class HyperSuprimeCamRawFormatter(FitsRawFormatterBase):
         dimensions = bboxFromMetadata(self.metadata).getDimensions()
         center = Point2D(dimensions/2.0)
         return makeFlippedWcs(wcs, self.FLIP_LR, self.FLIP_TB, center)
-
-    def makeFilter(self):
-        # For historical reasons we need to return a short, lowercase filter
-        # name that is neither a physical_filter nor an abstract_filter in Gen3
-        # or a filter data ID value in Gen2.
-        # We'll suck that out of the definitions used to construct filters
-        # for HSC in Gen2.  This should all get cleaned up in RFC-541.
-        for d in HSC_FILTER_DEFINITIONS:
-            if (self.observationInfo.physical_filter == d["name"] or
-                    self.observationInfo.physical_filter in d["alias"]):
-                return Filter(d["name"], force=True)
-        return Filter(self.observationInfo.physical_filter, force=True)
 
     def readImage(self):
         if self.fileDescriptor.parameters:
