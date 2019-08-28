@@ -66,27 +66,35 @@ class HyperSuprimeCam(Instrument):
     def register(self, registry):
         # Docstring inherited from Instrument.register
         camera = self.getCamera()
-        dataId = {"instrument": self.getName()}
         # The maximum values below make Gen3's ObservationDataIdPacker produce
         # outputs that match Gen2's ccdExposureId.
         obsMax = 21474800
-        registry.addDimensionEntry("instrument", dataId,
-                                   entries={"detector_max": 200,
-                                            "visit_max": obsMax,
-                                            "exposure_max": obsMax})
-        for detector in camera:
-            registry.addDimensionEntry(
-                "detector", dataId,
-                detector=detector.getId(),
-                name=detector.getName(),
-                # getType() returns a pybind11-wrapped enum, which
-                # unfortunately has no way to extract the name of just
-                # the value (it's always prefixed by the enum type name).
-                purpose=str(detector.getType()).split(".")[-1],
-                # HSC doesn't have rafts
-                raft=None
-            )
-
+        registry.insertDimensionData(
+            "instrument",
+            {
+                "name": self.getName(),
+                "detector_max": 200,
+                "visit_max": obsMax,
+                "exposure_max": obsMax
+            }
+        )
+        registry.insertDimensionData(
+            "detector",
+            *[
+                {
+                    "instrument": self.getName(),
+                    "id": detector.getId(),
+                    "full_name": detector.getName(),
+                    # TODO: make sure these definitions are consistent with those
+                    # extracted by astro_metadata_translator, and test that they
+                    # remain consistent somehow.
+                    "name_in_raft": detector.getName().split("_")[1],
+                    "raft": detector.getName().split("_")[0],
+                    "purpose": str(detector.getType()).split(".")[-1],
+                }
+                for detector in camera
+            ]
+        )
         self._registerFilters(registry)
 
     def getRawFormatter(self, dataId):
