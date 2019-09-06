@@ -26,7 +26,7 @@ import unittest
 import os
 import lsst.utils.tests
 
-from lsst.obs.base.gen3.ingest_tests import IngestTestBase
+from lsst.obs.base.ingest_tests import IngestTestBase
 from lsst.obs.subaru.gen3.hsc import HyperSuprimeCam
 
 testDataPackage = "testdata_subaru"

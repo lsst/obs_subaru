@@ -22,7 +22,7 @@
 """Gen2->Gen3 Data repo conversion specializations for Hyper Suprime-Cam
 """
 
-from lsst.daf.butler.gen2convert import Translator, KeyHandler, ConstantKeyHandler, CopyKeyHandler
+from lsst.obs.base.gen2to3 import Translator, KeyHandler, ConstantKeyHandler, CopyKeyHandler
 
 from .instrument import FILTER_REGEX
 

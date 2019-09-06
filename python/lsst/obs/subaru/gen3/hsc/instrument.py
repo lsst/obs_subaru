@@ -32,7 +32,7 @@ from dateutil import parser
 from lsst.utils import getPackageDir
 from lsst.afw.cameraGeom import makeCameraFromPath, CameraConfig
 from lsst.daf.butler.instrument import Instrument, addUnboundedCalibrationLabel
-from lsst.daf.butler import DatasetType, DataId
+from lsst.daf.butler import DatasetType, DataCoordinate
 from lsst.pipe.tasks.read_defects import read_all_defects
 
 from lsst.obs.hsc.hscPupil import HscPupilFactory
@@ -188,7 +188,7 @@ class HyperSuprimeCam(Instrument):
             if entry is None:
                 continue
             for sensor, curve in entry.items():
-                dataId = DataId(unboundedDataId, detector=sensor)
+                dataId = DataCoordinate.standardize(unboundedDataId, detector=sensor)
                 butler.put(curve, datasetType, dataId)
 
         # Write filter transmissions
@@ -202,7 +202,7 @@ class HyperSuprimeCam(Instrument):
             if entry is None:
                 continue
             for band, curve in entry.items():
-                dataId = DataId(unboundedDataId, physical_filter=band)
+                dataId = DataCoordinate.standardize(unboundedDataId, physical_filter=band)
                 butler.put(curve, datasetType, dataId)
 
         # Write atmospheric transmissions, this only as dimension of instrument as other areas will only
@@ -226,18 +226,35 @@ class HyperSuprimeCam(Instrument):
         camera = self.getCamera()
         defectsDict = read_all_defects(defectPath, camera)
         endOfTime = '20380119T031407'
+        dimensionRecords = []
+        datasetRecords = []
+        # First loop just gathers up the things we want to insert, so we
+        # can do some bulk inserts and minimize the time spent in transaction.
+        for det in defectsDict:
+            detector = camera[det]
+            times = sorted([k for k in defectsDict[det]])
+            defects = [defectsDict[det][time] for time in times]
+            times = times + [parser.parse(endOfTime), ]
+            for defect, beginTime, endTime in zip(defects, times[:-1], times[1:]):
+                md = defect.getMetadata()
+                calibrationLabel = f"defect/{md['CALIBDATE']}/{md['DETECTOR']}"
+                dataId = DataCoordinate.standardize(
+                    universe=butler.registry.dimensions,
+                    instrument=self.getName(),
+                    calibration_label=calibrationLabel,
+                    detector=detector.getId(),
+                )
+                datasetRecords.append((defect, dataId))
+                dimensionRecords.append({
+                    "instrument": self.getName(),
+                    "name": calibrationLabel,
+                    "datetime_begin": beginTime,
+                    "datetime_end": endTime,
+                })
+        # Second loop actually does the inserts and filesystem writes.
         with butler.transaction():
-            for det in defectsDict:
-                detector = camera[det]
-                times = sorted([k for k in defectsDict[det]])
-                defects = [defectsDict[det][time] for time in times]
-                times = times + [parser.parse(endOfTime), ]
-                for defect, beginTime, endTime in zip(defects, times[:-1], times[1:]):
-                    md = defect.getMetadata()
-                    dataId = DataId(universe=butler.registry.dimensions,
-                                    instrument=self.getName(),
-                                    calibration_label=f"defect/{md['CALIBDATE']}/{md['DETECTOR']}")
-                    dataId.entries["calibration_label"]["valid_first"] = beginTime
-                    dataId.entries["calibration_label"]["valid_last"] = endTime
-                    butler.registry.addDimensionEntry("calibration_label", dataId)
-                    butler.put(defect, datasetType, dataId, detector=detector.getId())
+            butler.registry.insertDimensionData("calibration_label", *dimensionRecords)
+            # TODO: vectorize these puts, once butler APIs for that become
+            # available.
+            for defect, dataId in datasetRecords:
+                butler.put(defect, datasetType, dataId)

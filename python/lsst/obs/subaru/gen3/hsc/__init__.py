@@ -20,5 +20,5 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from .instrument import *  # noqa
-from .gen2convert import *  # noqa
+from .gen2to3 import *  # noqa
 from .rawFormatter import *  # noqa
