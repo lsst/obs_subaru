@@ -15,6 +15,7 @@ config.skyMaps["hsc_rings_v1"].load(os.path.join(getPackageDir("obs_subaru"), "c
                                                  "makeSkyMap.py"))
 config.raws.load(os.path.join(getPackageDir("obs_subaru"), "config", "hsc", "ingest-gen3.py"))
 config.refCats.append("ps1_pv3_3pi_20170110")
+config.collections["ps1_pv3_3pi_20170110"] = "ref_cats"
 
 # ForcedPhotCoadd writes its configs to a filename that doesn't include a
 # coaddName prefix, which means the conversion tools can't infer the right
