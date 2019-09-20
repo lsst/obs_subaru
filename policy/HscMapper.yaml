@@ -683,3 +683,8 @@ datasets:
   # QA tables
   qaTableVisit:
     template: plots/%(filter)s/tract-%(tract)d/visit-%(visit)d/%(description)s.parq
+
+  # Verify metrics datasets
+  colorAnalysis_verify_job:
+    persistable: ignore  # Is not persistable yet
+    template: verify/color/tract-%(tract)d/colorAnalysis_verify_job.json
