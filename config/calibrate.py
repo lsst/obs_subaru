@@ -10,12 +10,17 @@ bgFile = os.path.join(ObsConfigDir, "background.py")
 # Cosmic rays and background estimation
 config.detection.background.load(bgFile)
 
-# Astrometry
+# Reference catalogs
 for refObjLoader in (config.astromRefObjLoader,
                      config.photoRefObjLoader,
                      ):
     refObjLoader.load(os.path.join(getPackageDir("obs_subaru"), "config", "filterMap.py"))
+    # This is the Gen2 configuration option.
     refObjLoader.ref_dataset_name = "ps1_pv3_3pi_20170110"
+
+# These are the Gen3 configuration options for reference catalog name.
+config.connections.photoRefCat = "ps1_pv3_3pi_20170110"
+config.connections.astromRefCat = "ps1_pv3_3pi_20170110"
 
 # Better astrometry matching
 config.astrometry.matcher.numBrightStars = 150

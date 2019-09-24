@@ -32,7 +32,7 @@ from dateutil import parser
 from lsst.utils import getPackageDir
 from lsst.afw.cameraGeom import makeCameraFromPath, CameraConfig
 from lsst.daf.butler.instrument import Instrument, addUnboundedCalibrationLabel
-from lsst.daf.butler import DatasetType, DataId
+from lsst.daf.butler import DatasetType, DataCoordinate
 from lsst.pipe.tasks.read_defects import read_all_defects
 
 from lsst.obs.hsc.hscPupil import HscPupilFactory
@@ -66,27 +66,35 @@ class HyperSuprimeCam(Instrument):
     def register(self, registry):
         # Docstring inherited from Instrument.register
         camera = self.getCamera()
-        dataId = {"instrument": self.getName()}
         # The maximum values below make Gen3's ObservationDataIdPacker produce
         # outputs that match Gen2's ccdExposureId.
         obsMax = 21474800
-        registry.addDimensionEntry("instrument", dataId,
-                                   entries={"detector_max": 200,
-                                            "visit_max": obsMax,
-                                            "exposure_max": obsMax})
-        for detector in camera:
-            registry.addDimensionEntry(
-                "detector", dataId,
-                detector=detector.getId(),
-                name=detector.getName(),
-                # getType() returns a pybind11-wrapped enum, which
-                # unfortunately has no way to extract the name of just
-                # the value (it's always prefixed by the enum type name).
-                purpose=str(detector.getType()).split(".")[-1],
-                # HSC doesn't have rafts
-                raft=None
-            )
-
+        registry.insertDimensionData(
+            "instrument",
+            {
+                "name": self.getName(),
+                "detector_max": 200,
+                "visit_max": obsMax,
+                "exposure_max": obsMax
+            }
+        )
+        registry.insertDimensionData(
+            "detector",
+            *[
+                {
+                    "instrument": self.getName(),
+                    "id": detector.getId(),
+                    "full_name": detector.getName(),
+                    # TODO: make sure these definitions are consistent with those
+                    # extracted by astro_metadata_translator, and test that they
+                    # remain consistent somehow.
+                    "name_in_raft": detector.getName().split("_")[1],
+                    "raft": detector.getName().split("_")[0],
+                    "purpose": str(detector.getType()).split(".")[-1],
+                }
+                for detector in camera
+            ]
+        )
         self._registerFilters(registry)
 
     def getRawFormatter(self, dataId):
@@ -180,7 +188,7 @@ class HyperSuprimeCam(Instrument):
             if entry is None:
                 continue
             for sensor, curve in entry.items():
-                dataId = DataId(unboundedDataId, detector=sensor)
+                dataId = DataCoordinate.standardize(unboundedDataId, detector=sensor)
                 butler.put(curve, datasetType, dataId)
 
         # Write filter transmissions
@@ -194,7 +202,7 @@ class HyperSuprimeCam(Instrument):
             if entry is None:
                 continue
             for band, curve in entry.items():
-                dataId = DataId(unboundedDataId, physical_filter=band)
+                dataId = DataCoordinate.standardize(unboundedDataId, physical_filter=band)
                 butler.put(curve, datasetType, dataId)
 
         # Write atmospheric transmissions, this only as dimension of instrument as other areas will only
@@ -218,18 +226,35 @@ class HyperSuprimeCam(Instrument):
         camera = self.getCamera()
         defectsDict = read_all_defects(defectPath, camera)
         endOfTime = '20380119T031407'
+        dimensionRecords = []
+        datasetRecords = []
+        # First loop just gathers up the things we want to insert, so we
+        # can do some bulk inserts and minimize the time spent in transaction.
+        for det in defectsDict:
+            detector = camera[det]
+            times = sorted([k for k in defectsDict[det]])
+            defects = [defectsDict[det][time] for time in times]
+            times = times + [parser.parse(endOfTime), ]
+            for defect, beginTime, endTime in zip(defects, times[:-1], times[1:]):
+                md = defect.getMetadata()
+                calibrationLabel = f"defect/{md['CALIBDATE']}/{md['DETECTOR']}"
+                dataId = DataCoordinate.standardize(
+                    universe=butler.registry.dimensions,
+                    instrument=self.getName(),
+                    calibration_label=calibrationLabel,
+                    detector=detector.getId(),
+                )
+                datasetRecords.append((defect, dataId))
+                dimensionRecords.append({
+                    "instrument": self.getName(),
+                    "name": calibrationLabel,
+                    "datetime_begin": beginTime,
+                    "datetime_end": endTime,
+                })
+        # Second loop actually does the inserts and filesystem writes.
         with butler.transaction():
-            for det in defectsDict:
-                detector = camera[det]
-                times = sorted([k for k in defectsDict[det]])
-                defects = [defectsDict[det][time] for time in times]
-                times = times + [parser.parse(endOfTime), ]
-                for defect, beginTime, endTime in zip(defects, times[:-1], times[1:]):
-                    md = defect.getMetadata()
-                    dataId = DataId(universe=butler.registry.dimensions,
-                                    instrument=self.getName(),
-                                    calibration_label=f"defect/{md['CALIBDATE']}/{md['DETECTOR']}")
-                    dataId.entries["calibration_label"]["valid_first"] = beginTime
-                    dataId.entries["calibration_label"]["valid_last"] = endTime
-                    butler.registry.addDimensionEntry("calibration_label", dataId)
-                    butler.put(defect, datasetType, dataId, detector=detector.getId())
+            butler.registry.insertDimensionData("calibration_label", *dimensionRecords)
+            # TODO: vectorize these puts, once butler APIs for that become
+            # available.
+            for defect, dataId in datasetRecords:
+                butler.put(defect, datasetType, dataId)

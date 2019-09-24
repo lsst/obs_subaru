@@ -26,20 +26,20 @@ import unittest
 import os
 import lsst.utils.tests
 
-from lsst.obs.base.gen3.ingest_tests import IngestTestBase
+from lsst.obs.base.ingest_tests import IngestTestBase
 from lsst.obs.subaru.gen3.hsc import HyperSuprimeCam
 
 testDataPackage = "testdata_subaru"
 try:
     testDataDirectory = lsst.utils.getPackageDir(testDataPackage)
-except lsst.pex.exceptions.NotFoundError:
+except LookupError:
     testDataDirectory = None
 
 
 @unittest.skipIf(testDataDirectory is None, "testdata_subaru must be set up")
 class HscIngestTestCase(IngestTestBase, lsst.utils.tests.TestCase):
     def setUp(self):
-        self.ingestdir = os.path.dirname(__file__)
+        self.ingestDir = os.path.dirname(__file__)
         self.instrument = HyperSuprimeCam()
         self.file = os.path.join(testDataDirectory, "hsc", "raw", "HSCA90402512.fits.gz")
         self.dataId = dict(instrument="HSC", exposure=904024, detector=50)
