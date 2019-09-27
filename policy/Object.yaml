@@ -255,10 +255,10 @@ funcs:
         dataset: ref
     # blendedness: 'base_Blendedness_abs_flux'
     Fwhm:
-        functor: Seeing
+        functor: HsmFwhm
         dataset: meas
     refFwhm:
-        functor: Seeing
+        functor: HsmFwhm
     CModelFlux:
         functor: NanoJansky
         dataset: meas
