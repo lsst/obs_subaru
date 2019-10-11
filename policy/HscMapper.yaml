@@ -669,6 +669,13 @@ datasets:
     python: builtins.str
     storage: TextStorage
     template: plots/%(filter)s/tract-%(tract)d/visit-%(visit)d/plot-v%(visit)d-%(description)s-%(style)s.png
+  plotFakes:
+    description: "QA plots using fakes, made by fakesAnalysis as part of visitAnalysis."
+    python: None
+    storage: MatplotlibStorage
+    tables: raw
+    persistable: None
+    template: plots/%(filter)s/tract-%(tract)d/visit-%(visit)d/fakesPlots/plot-v%(visit)d-%(description)s.png
   plotCompareCoadd:
     persistable: None
     python: builtins.str
