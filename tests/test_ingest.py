@@ -46,6 +46,13 @@ class HscIngestTestCase(IngestTestBase, lsst.utils.tests.TestCase):
 
         super().setUp()
 
+    def checkRepo(self, files=None):
+        # We ignore `files` because there's only one raw file in
+        # testdata_subaru, and we know it's a science frame.
+        # If we ever add more, this test will need to change.
+        expanded = self.butler.registry.expandDataId(self.dataId)
+        self.assertEqual(expanded.records["exposure"].observation_type, "science")
+
 
 def setup_module(module):
     lsst.utils.tests.init()
