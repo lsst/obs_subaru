@@ -56,18 +56,26 @@ class SubaruStrayLightTask(StrayLightTask):
         # Note that this is run only in Gen2; in Gen3 we will rely on having
         # a proper butler-recognized dataset type with the right validity
         # ranges (though this has not yet been implemented).
-        detId = rawExposure.getDetector().getId()
-        if not self.checkFilter(rawExposure):
-            # No correction to be made
+        if not self.check(rawExposure):
             return None
+
+        return SubaruStrayLightData(dataRef.get("yBackground_filename")[0])
+
+    def check(self, exposure):
+        # Docstring inherited from StrayLightTask.check.
+        detId = exposure.getDetector().getId()
+        if not self.checkFilter(exposure):
+            # No correction to be made
+            return False
         if detId in range(104, 112):
             # No correction data: assume it's zero
-            return None
-        if rawExposure.getInfo().getVisitInfo().getDate().toPython() >= datetime.datetime(2018, 1, 1):
+            return False
+        if exposure.getInfo().getVisitInfo().getDate().toPython >= datetime.datetime(2018, 1, 1):
             # LEDs causing the stray light have been covered up.
             # We believe there is no remaining stray light.
-            return None
-        return SubaruStrayLightData(dataRef.get("yBackground_filename")[0])
+            return False
+
+        return True
 
     def run(self, exposure, strayLightData):
         """Subtract the y-band stray light
@@ -87,9 +95,14 @@ class SubaruStrayLightTask(StrayLightTask):
             An opaque object that contains any calibration data used to
             correct for stray light.
         """
+        if not self.check(exposure):
+            return None
+
+        if strayLightData is None:
+            raise RuntimeError("No strayLightData supplied for correction.")
+
         exposureMetadata = exposure.getMetadata()
         detId = exposure.getDetector().getId()
-
         if self.config.doRotatorAngleCorrection:
             angleStart, angleEnd = inrStartEnd(exposure.getInfo().getVisitInfo())
             self.log.debug(
@@ -101,7 +114,7 @@ class SubaruStrayLightTask(StrayLightTask):
             angleStart = exposureMetadata.getDouble('INR-STR')
             angleEnd = None
 
-        self.log.info("Correcting y-band background")
+        self.log.info("Correcting y-band background.")
 
         model = strayLightData.evaluate(angleStart*degrees,
                                         None if angleStart == angleEnd else angleEnd*degrees)
