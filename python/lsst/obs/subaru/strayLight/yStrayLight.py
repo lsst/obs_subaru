@@ -57,8 +57,7 @@ class SubaruStrayLightTask(StrayLightTask):
         # a proper butler-recognized dataset type with the right validity
         # ranges (though this has not yet been implemented).
         detId = rawExposure.getDetector().getId()
-        filterName = rawExposure.getFilter().getName()
-        if filterName != 'y':
+        if not self.checkFilter(rawExposure):
             # No correction to be made
             return None
         if detId in range(104, 112):
