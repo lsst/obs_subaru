@@ -27,18 +27,23 @@ __all__ = ("HyperSuprimeCam",)
 import re
 import os
 import pickle
+import logging
+import datetime
 from dateutil import parser
 
 from lsst.utils import getPackageDir
 from lsst.afw.cameraGeom import makeCameraFromPath, CameraConfig
 from lsst.daf.butler.instrument import Instrument, addUnboundedCalibrationLabel
-from lsst.daf.butler import DatasetType, DataCoordinate
+from lsst.daf.butler import DatasetType, DataCoordinate, FileDataset, DatasetRef
 from lsst.pipe.tasks.read_defects import read_all_defects
 
 from lsst.obs.hsc.hscPupil import HscPupilFactory
 from lsst.obs.hsc.hscFilters import HSC_FILTER_DEFINITIONS
 from lsst.obs.hsc.makeTransmissionCurves import (getSensorTransmission, getOpticsTransmission,
                                                  getFilterTransmission, getAtmosphereTransmission)
+from lsst.obs.subaru.strayLight.formatter import SubaruStrayLightDataFormatter
+
+log = logging.getLogger(__name__)
 
 # Regular expression that matches HSC PhysicalFilter names (the same as Gen2
 # filternames), with a group that can be lowercased to yield the
@@ -258,3 +263,48 @@ class HyperSuprimeCam(Instrument):
             # available.
             for defect, dataId in datasetRecords:
                 butler.put(defect, datasetType, dataId)
+
+    def ingestStrayLightData(self, butler, directory, *, transfer=None):
+        """Ingest externally-produced y-band stray light data files into
+        a data repository.
+
+        Parameters
+        ----------
+        butler : `lsst.daf.butler.Butler`
+            Butler initialized with the collection to ingest into.
+        directory : `str`
+            Directory containing yBackground-*.fits files.
+        transfer : `str`, optional
+            If not `None`, must be one of 'move', 'copy', 'hardlink', or
+            'symlink', indicating how to transfer the files.
+        """
+        calibrationLabel = "y-LED-encoder-on"
+        # LEDs covered up around 2018-01-01, no need for correctin after that
+        # date.
+        datetime_end = datetime.datetime(2018, 1, 1)
+        datasets = []
+        # TODO: should we use a more generic name for the dataset type?
+        # This is just the (rather HSC-specific) name used in Gen2, and while
+        # the instances of this dataset are camera-specific, the datasetType
+        # (which is used in the generic IsrTask) should not be.
+        datasetType = DatasetType("yBackground",
+                                  dimensions=("physical_filter", "detector", "calibration_label"),
+                                  storageClass="StrayLightData",
+                                  universe=butler.registry.dimensions)
+        for detector in self.getCamera():
+            path = os.path.join(directory, f"yBackground-{detector.getId():03d}.fits")
+            if not os.path.exists(path):
+                log.warn(f"No stray light data found for detector {detector.getId()}.")
+                continue
+            ref = DatasetRef(datasetType, dataId={"instrument": self.getName(),
+                                                  "detector": detector.getId(),
+                                                  "physical_filter": "HSC-Y",
+                                                  "calibration_label": calibrationLabel})
+            datasets.append(FileDataset(ref=ref, path=path, formatter=SubaruStrayLightDataFormatter))
+        with butler.transaction():
+            butler.registry.registerDatasetType(datasetType)
+            butler.registry.insertDimensionData("calibration_label", {"instrument": self.getName(),
+                                                                      "name": calibrationLabel,
+                                                                      "datetime_begin": datetime.min,
+                                                                      "datetime_end": datetime_end})
+            butler.ingest(datasets, transfer=transfer)
