@@ -17,12 +17,14 @@
 __all__ = ["SubaruStrayLightTask"]
 
 import datetime
+from typing import Optional
 
 import numpy
 from astropy.io import fits
 import scipy.interpolate
 
-from lsst.ip.isr.straylight import StrayLightConfig, StrayLightTask
+from lsst.geom import Angle, degrees
+from lsst.ip.isr.straylight import StrayLightConfig, StrayLightTask, StrayLightData
 
 from . import waveletCompression
 from .rotatorAngle import inrStartEnd
@@ -102,7 +104,8 @@ class SubaruStrayLightTask(StrayLightTask):
 
         self.log.info("Correcting y-band background")
 
-        model = strayLightData.evaluate(angleStart, None if angleStart == angleEnd else angleEnd)
+        model = strayLightData.evaluate(angleStart*degrees,
+                                        None if angleStart == angleEnd else angleEnd*degrees)
 
         # Some regions don't have useful model values because the amplifier is dead when the darks were taken
         #
@@ -124,7 +127,7 @@ class SubaruStrayLightTask(StrayLightTask):
         exposure.image.array -= model
 
 
-class SubaruStrayLightData:
+class SubaruStrayLightData(StrayLightData):
     """Lazy-load object that reads and integrates the wavelet-compressed
     HSC y-band stray-light model.
 
@@ -137,7 +140,7 @@ class SubaruStrayLightData:
     def __init__(self, filename):
         self._filename = filename
 
-    def evaluate(self, angle_start, angle_end=None):
+    def evaluate(self, angle_start: Angle, angle_end: Optional[Angle] = None):
         """Get y-band background image array for a range of angles.
 
         It is hypothesized that the instrument rotator rotates at a constant
@@ -175,9 +178,10 @@ class SubaruStrayLightData:
             volume = _upscale_volume(hdu.data, angle_scale_level)
 
             if angle_end is None:
-                img = volume(angle_start)
+                img = volume(angle_start.asDegrees())
             else:
-                img = volume.integrate(angle_start, angle_end) * (1.0 / (angle_end - angle_start))
+                img = (volume.integrate(angle_start.asDegrees(), angle_end.asDegrees()) *
+                       (1.0 / (angle_end.asDegrees() - angle_start.asDegrees())))
 
             ccd_img[:, ch_w*ch:ch_w*(ch+1)] = _upscale_image(img, (ccd_h, ch_w), image_scale_level)
 
