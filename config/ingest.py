@@ -15,6 +15,7 @@ config.parse.translation = {'proposal': 'PROP-ID',
                             'taiObs': 'DATE-OBS',
                             }
 config.parse.defaults = {'ccdTemp': "0", # Added in commissioning run 3
+                         'autoguider': "0",
                          }
 config.parse.translators = {'field': 'translate_field',
                             'visit': 'translate_visit',
