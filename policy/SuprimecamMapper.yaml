@@ -510,3 +510,5 @@ datasets:
     template: config/multiband.py
   apPipe_metadata:
     template: '%(pointing)05d/%(filter)s/apPipe_metadata/%(visit)07d%(ccd)1d.yaml'
+  apdb_marker:
+    template: '%(pointing)05d/%(filter)s/apdb/apdb_marker-%(visit)07d%(ccd)1d.py'

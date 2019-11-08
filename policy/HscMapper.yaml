@@ -641,6 +641,8 @@ datasets:
     template: config/processFocusSweep.py
   apPipe_metadata:
     template: '%(pointing)05d/%(filter)s/apPipe_metadata/%(visit)07d-%(ccd)03d.yaml'
+  apdb_marker:
+    template: '%(pointing)05d/%(filter)s/apdb/apdb_marker-%(visit)07d-%(ccd)03d.py'
   brighterFatterKernel:  # NB this is for the new cp_pipe generated kernels
     template: calibrations/brighterFatterKernel-%(ccd)03d.pkl
   brighterFatterGain:
