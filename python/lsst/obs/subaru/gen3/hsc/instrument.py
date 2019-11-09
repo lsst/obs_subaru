@@ -33,8 +33,8 @@ from dateutil import parser
 
 from lsst.utils import getPackageDir
 from lsst.afw.cameraGeom import makeCameraFromPath, CameraConfig
-from lsst.daf.butler.instrument import Instrument, addUnboundedCalibrationLabel
 from lsst.daf.butler import DatasetType, DataCoordinate, FileDataset, DatasetRef
+from lsst.obs.base import Instrument, addUnboundedCalibrationLabel
 from lsst.pipe.tasks.read_defects import read_all_defects
 
 from lsst.obs.hsc.hscPupil import HscPupilFactory

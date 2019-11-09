@@ -26,7 +26,7 @@ import unittest
 
 import lsst.utils.tests
 import lsst.obs.subaru.gen3.hsc
-from lsst.daf.butler.instrument_tests import InstrumentTests, InstrumentTestData
+from lsst.obs.base.instrument_tests import InstrumentTests, InstrumentTestData
 
 
 class TestHyperSuprimeCam(InstrumentTests, lsst.utils.tests.TestCase):
