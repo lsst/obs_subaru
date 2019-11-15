@@ -1,0 +1,4 @@
+description: obs_subaru/HSC dark calibration construction
+instrument: lsst.obs.subaru.gen3.hsc.instrument.HyperSuprimeCam
+inherits:
+  location: $CP_PIPE_DIR/pipelines/cpDark.yaml
