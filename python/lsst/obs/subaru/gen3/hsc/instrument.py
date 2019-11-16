@@ -29,7 +29,6 @@ import os
 import pickle
 import logging
 import datetime
-from dateutil import parser
 
 from lsst.utils import getPackageDir
 from lsst.afw.cameraGeom import makeCameraFromPath, CameraConfig
@@ -145,24 +144,15 @@ class HyperSuprimeCam(Instrument):
         This is a temporary API that should go away once obs_ packages have
         a standardized approach to this problem.
         """
-
-        # Write cameraGeom.Camera, with an infinite validity range.
-        datasetType = DatasetType("camera", ("instrument", "calibration_label"), "Camera",
-                                  universe=butler.registry.dimensions)
-        butler.registry.registerDatasetType(datasetType)
         unboundedDataId = addUnboundedCalibrationLabel(butler.registry, self.getName())
-        camera = self.getCamera()
-        butler.put(camera, datasetType, unboundedDataId)
 
-        # Write brighter-fatter kernel, with an infinite validity range.
-        datasetType = DatasetType("bfKernel", ("instrument", "calibration_label"), "NumpyArray",
-                                  universe=butler.registry.dimensions)
-        butler.registry.registerDatasetType(datasetType)
+        self._writeCamera(butler, unboundedDataId)
+
         # Load and then put instead of just moving the file in part to ensure
         # the version in-repo is written with Python 3 and does not need
         # `encoding='latin1'` to be read.
         bfKernel = self.getBrighterFatterKernel()
-        butler.put(bfKernel, datasetType, unboundedDataId)
+        self._writeBrighterFatterKernel(bfKernel, butler, unboundedDataId)
 
         # The following iterate over the values of the dictionaries returned by the transmission functions
         # and ignore the date that is supplied. This is due to the dates not being ranges but single dates,
@@ -224,45 +214,10 @@ class HyperSuprimeCam(Instrument):
 
         # Write defects with validity ranges taken from obs_subaru_data/hsc/defects
         # (along with the defects themselves).
-        datasetType = DatasetType("defects", ("instrument", "detector", "calibration_label"), "DefectsList",
-                                  universe=butler.registry.dimensions)
-        butler.registry.registerDatasetType(datasetType)
         defectPath = os.path.join(getPackageDir("obs_subaru_data"), "hsc", "defects")
         camera = self.getCamera()
-        defectsDict = read_all(defectPath, camera)[0]  # This method returns a dict plus the calib type
-        endOfTime = '20380119T031407'
-        dimensionRecords = []
-        datasetRecords = []
-        # First loop just gathers up the things we want to insert, so we
-        # can do some bulk inserts and minimize the time spent in transaction.
-        for det in defectsDict:
-            detector = camera[det]
-            times = sorted([k for k in defectsDict[det]])
-            defects = [defectsDict[det][time] for time in times]
-            times = times + [parser.parse(endOfTime), ]
-            for defect, beginTime, endTime in zip(defects, times[:-1], times[1:]):
-                md = defect.getMetadata()
-                calibrationLabel = f"defect/{md['CALIBDATE']}/{md['DETECTOR']}"
-                dataId = DataCoordinate.standardize(
-                    universe=butler.registry.dimensions,
-                    instrument=self.getName(),
-                    calibration_label=calibrationLabel,
-                    detector=detector.getId(),
-                )
-                datasetRecords.append((defect, dataId))
-                dimensionRecords.append({
-                    "instrument": self.getName(),
-                    "name": calibrationLabel,
-                    "datetime_begin": beginTime,
-                    "datetime_end": endTime,
-                })
-        # Second loop actually does the inserts and filesystem writes.
-        with butler.transaction():
-            butler.registry.insertDimensionData("calibration_label", *dimensionRecords)
-            # TODO: vectorize these puts, once butler APIs for that become
-            # available.
-            for defect, dataId in datasetRecords:
-                butler.put(defect, datasetType, dataId)
+        defectsDict = read_all_defects(defectPath, camera)
+        self._writeDefects(defectsDict, butler)
 
     def ingestStrayLightData(self, butler, directory, *, transfer=None):
         """Ingest externally-produced y-band stray light data files into
