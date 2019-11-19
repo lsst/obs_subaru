@@ -52,7 +52,7 @@ funcs:
     # CModel fluxes have alias slot_ModelFlux
     # bdRadec: # Same as SdssCentroid
     BdE1:
-        functor: e1
+        functor: E1
         dataset: meas
         args:
             - modelfit_CModel_ellipse_xx
@@ -60,7 +60,7 @@ funcs:
             - modelfit_CModel_ellipse_yy
     # rBdE1Err:  Not computed
     BdE2:
-        functor: e2
+        functor: E2
         dataset: meas
         args:
             - modelfit_CModel_ellipse_xx
@@ -255,10 +255,10 @@ funcs:
         dataset: ref
     # blendedness: 'base_Blendedness_abs_flux'
     Fwhm:
-        functor: Seeing
+        functor: HsmFwhm
         dataset: meas
     refFwhm:
-        functor: Seeing
+        functor: HsmFwhm
     CModelFlux:
         functor: NanoJansky
         dataset: meas
