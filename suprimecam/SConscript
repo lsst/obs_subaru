@@ -18,7 +18,7 @@ python = "{} python".format(libpathstr)
 
 pipe_tasks_dir = lsst.sconsUtils.env.ProductDir('pipe_tasks')
 data_dir = lsst.sconsUtils.env.ProductDir('obs_subaru_data')
-command = (f"{python} {pipe_tasks_dir}/bin/ingestDefects.py suprimecam/CALIB/ {data_dir}/suprimecam/defects "+
+command = (f"{python} {pipe_tasks_dir}/bin/ingestStdTextCalibs.py suprimecam/CALIB/ {data_dir}/suprimecam/defects "+
             "--calib suprimecam/CALIB --config clobber=True")
 commandInst = env.Command('CALIB/calibRegistry.sqlite3', [], command)
 env.Depends(commandInst, lsst.sconsUtils.targets["python"])
