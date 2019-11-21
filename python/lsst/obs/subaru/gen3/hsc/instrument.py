@@ -229,7 +229,7 @@ class HyperSuprimeCam(Instrument):
         butler.registry.registerDatasetType(datasetType)
         defectPath = os.path.join(getPackageDir("obs_subaru_data"), "hsc", "defects")
         camera = self.getCamera()
-        defectsDict = read_all(defectPath, camera)
+        defectsDict = read_all(defectPath, camera)[0]  # This method returns a dict plus the calib type
         endOfTime = '20380119T031407'
         dimensionRecords = []
         datasetRecords = []
