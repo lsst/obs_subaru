@@ -35,7 +35,7 @@ from lsst.utils import getPackageDir
 from lsst.afw.cameraGeom import makeCameraFromPath, CameraConfig
 from lsst.daf.butler import DatasetType, DataCoordinate, FileDataset, DatasetRef
 from lsst.obs.base import Instrument, addUnboundedCalibrationLabel
-from lsst.pipe.tasks.read_defects import read_all_defects
+from lsst.pipe.tasks.read_curated_calibs import read_all
 
 from lsst.obs.hsc.hscPupil import HscPupilFactory
 from lsst.obs.hsc.hscFilters import HSC_FILTER_DEFINITIONS
@@ -229,7 +229,7 @@ class HyperSuprimeCam(Instrument):
         butler.registry.registerDatasetType(datasetType)
         defectPath = os.path.join(getPackageDir("obs_subaru_data"), "hsc", "defects")
         camera = self.getCamera()
-        defectsDict = read_all_defects(defectPath, camera)
+        defectsDict = read_all(defectPath, camera)[0]  # This method returns a dict plus the calib type
         endOfTime = '20380119T031407'
         dimensionRecords = []
         datasetRecords = []
