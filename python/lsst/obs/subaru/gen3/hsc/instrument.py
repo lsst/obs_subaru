@@ -33,13 +33,11 @@ import datetime
 from lsst.utils import getPackageDir
 from lsst.afw.cameraGeom import makeCameraFromPath, CameraConfig
 from lsst.daf.butler import DatasetType, DataCoordinate, FileDataset, DatasetRef
-from lsst.obs.base import Instrument, addUnboundedCalibrationLabel
-from lsst.pipe.tasks.read_curated_calibs import read_all
+from lsst.obs.base import Instrument
 
 from lsst.obs.hsc.hscPupil import HscPupilFactory
 from lsst.obs.hsc.hscFilters import HSC_FILTER_DEFINITIONS
-from lsst.obs.hsc.makeTransmissionCurves import (getSensorTransmission, getOpticsTransmission,
-                                                 getFilterTransmission, getAtmosphereTransmission)
+import lsst.obs.hsc.makeTransmissionCurves
 from lsst.obs.subaru.strayLight.formatter import SubaruStrayLightDataFormatter
 
 log = logging.getLogger(__name__)
@@ -49,26 +47,26 @@ log = logging.getLogger(__name__)
 # associated AbstractFilter.
 FILTER_REGEX = re.compile(r"HSC\-([GRIZY])2?")
 
+packageDir = getPackageDir("obs_subaru")
+
 
 class HyperSuprimeCam(Instrument):
     """Gen3 Butler specialization class for Subaru's Hyper Suprime-Cam.
     """
 
     filterDefinitions = HSC_FILTER_DEFINITIONS
+    configPaths = [os.path.join(packageDir, "config"),
+                   os.path.join(packageDir, "config", "hsc")]
+    dataPath = os.path.join(getPackageDir("obs_subaru_data"), "hsc")
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        packageDir = getPackageDir("obs_subaru")
-        self.configPaths = [os.path.join(packageDir, "config"),
-                            os.path.join(packageDir, "config", "hsc")]
 
     @classmethod
     def getName(cls):
-        # Docstring inherited from Instrument.getName
         return "HSC"
 
     def register(self, registry):
-        # Docstring inherited from Instrument.register
         camera = self.getCamera()
         # The maximum values below make Gen3's ObservationDataIdPacker produce
         # outputs that match Gen2's ccdExposureId.
@@ -102,7 +100,6 @@ class HyperSuprimeCam(Instrument):
         self._registerFilters(registry)
 
     def getRawFormatter(self, dataId):
-        # Docstring inherited from Instrument.getRawFormatter
         # Import the formatter here to prevent a circular dependency.
         from .rawFormatter import HyperSuprimeCamRawFormatter, HyperSuprimeCamCornerRawFormatter
         if dataId["detector"] in (100, 101, 102, 103):
@@ -126,98 +123,51 @@ class HyperSuprimeCam(Instrument):
             pupilFactoryClass=HscPupilFactory
         )
 
-    def getBrighterFatterKernel(self):
+    def _getBrighterFatterKernel(self):
         """Return the brighter-fatter kernel for HSC as a `numpy.ndarray`.
-
-        This is a temporary API that should go away once obs_ packages have
-        a standardized approach to writing versioned kernels to a Gen3 repo.
         """
         path = os.path.join(getPackageDir("obs_subaru"), "hsc", "brighter_fatter_kernel.pkl")
         with open(path, "rb") as fd:
             kernel = pickle.load(fd, encoding='latin1')  # encoding for pickle written with Python 2
         return kernel
 
-    def writeCuratedCalibrations(self, butler):
-        """Write human-curated calibration Datasets to the given Butler with
-        the appropriate validity ranges.
+    def _getDetectorTransmission(self, unboundedDataId):
+        detectorTransmissions = lsst.obs.hsc.makeTransmissionCurves.getSensorTransmission()
+        result = {}
+        for entry in detectorTransmissions.values():
+            for detector, transmissionCurve in entry.items():
+                dataId = DataCoordinate.standardize(unboundedDataId, detector=detector)
+                result[dataId] = transmissionCurve
+        return result
 
-        This is a temporary API that should go away once obs_ packages have
-        a standardized approach to this problem.
-        """
-        unboundedDataId = addUnboundedCalibrationLabel(butler.registry, self.getName())
-
-        self._writeCamera(butler, unboundedDataId)
-
-        # Load and then put instead of just moving the file in part to ensure
-        # the version in-repo is written with Python 3 and does not need
-        # `encoding='latin1'` to be read.
-        bfKernel = self.getBrighterFatterKernel()
-        self._writeBrighterFatterKernel(bfKernel, butler, unboundedDataId)
-
-        # The following iterate over the values of the dictionaries returned by the transmission functions
-        # and ignore the date that is supplied. This is due to the dates not being ranges but single dates,
-        # which do not give the proper notion of validity. As such unbounded calibration labels are used
-        # when inserting into the database. In the future these could and probably should be updated to
-        # properly account for what ranges are considered valid.
-
-        # Write optical transmissions
-        opticsTransmissions = getOpticsTransmission()
-        datasetType = DatasetType("transmission_optics",
-                                  ("instrument", "calibration_label"),
-                                  "TransmissionCurve",
-                                  universe=butler.registry.dimensions)
-        butler.registry.registerDatasetType(datasetType)
+    def _getOpticsTransmission(self, unboundedDataId):
+        opticsTransmissions = lsst.obs.hsc.makeTransmissionCurves.getOpticsTransmission()
+        result = {}
         for entry in opticsTransmissions.values():
+            # The files can include dates with undefined transmissions: ignore them.
             if entry is None:
                 continue
-            butler.put(entry, datasetType, unboundedDataId)
+            result[unboundedDataId] = entry
+        return result
 
-        # Write transmission sensor
-        sensorTransmissions = getSensorTransmission()
-        datasetType = DatasetType("transmission_sensor",
-                                  ("instrument", "detector", "calibration_label"),
-                                  "TransmissionCurve",
-                                  universe=butler.registry.dimensions)
-        butler.registry.registerDatasetType(datasetType)
-        for entry in sensorTransmissions.values():
-            if entry is None:
-                continue
-            for sensor, curve in entry.items():
-                dataId = DataCoordinate.standardize(unboundedDataId, detector=sensor)
-                butler.put(curve, datasetType, dataId)
-
-        # Write filter transmissions
-        filterTransmissions = getFilterTransmission()
-        datasetType = DatasetType("transmission_filter",
-                                  ("instrument", "physical_filter", "calibration_label"),
-                                  "TransmissionCurve",
-                                  universe=butler.registry.dimensions)
-        butler.registry.registerDatasetType(datasetType)
+    def _getFilterTransmission(self, unboundedDataId):
+        filterTransmissions = lsst.obs.hsc.makeTransmissionCurves.getFilterTransmission()
+        result = {}
         for entry in filterTransmissions.values():
+            for filter, transmissionCurve in entry.items():
+                dataId = DataCoordinate.standardize(unboundedDataId, physical_filter=filter)
+                result[dataId] = transmissionCurve
+        return result
+
+    def _getAtmosphereTransmission(self, unboundedDataId):
+        opticsTransmissions = lsst.obs.hsc.makeTransmissionCurves.getOpticsTransmission()
+        result = {}
+        for entry in opticsTransmissions.values():
+            # # The files can include dates with undefined transmissions: ignore them.
             if entry is None:
                 continue
-            for band, curve in entry.items():
-                dataId = DataCoordinate.standardize(unboundedDataId, physical_filter=band)
-                butler.put(curve, datasetType, dataId)
-
-        # Write atmospheric transmissions, this only as dimension of instrument as other areas will only
-        # look up along this dimension (ISR)
-        atmosphericTransmissions = getAtmosphereTransmission()
-        datasetType = DatasetType("transmission_atmosphere", ("instrument",),
-                                  "TransmissionCurve",
-                                  universe=butler.registry.dimensions)
-        butler.registry.registerDatasetType(datasetType)
-        for entry in atmosphericTransmissions.values():
-            if entry is None:
-                continue
-            butler.put(entry, datasetType, {"instrument": self.getName()})
-
-        # Write defects with validity ranges taken from obs_subaru_data/hsc/defects
-        # (along with the defects themselves).
-        defectPath = os.path.join(getPackageDir("obs_subaru_data"), "hsc", "defects")
-        camera = self.getCamera()
-        defectsDict = read_all_defects(defectPath, camera)
-        self._writeDefects(defectsDict, butler)
+            result[unboundedDataId] = entry
+        return result
 
     def ingestStrayLightData(self, butler, directory, *, transfer=None):
         """Ingest externally-produced y-band stray light data files into

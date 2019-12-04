@@ -26,7 +26,7 @@ import unittest
 import os
 import lsst.utils.tests
 
-from lsst.obs.base.ingest_tests import IngestTestBase, CalibrationDataIds
+from lsst.obs.base.ingest_tests import IngestTestBase, InstrumentSignatureDataIds
 from lsst.obs.subaru.gen3.hsc import HyperSuprimeCam
 
 testDataPackage = "testdata_subaru"
@@ -39,18 +39,18 @@ except LookupError:
 @unittest.skipIf(testDataDirectory is None, "testdata_subaru must be set up")
 class HscIngestTestCase(IngestTestBase, lsst.utils.tests.TestCase):
     def setUp(self):
-        self.ingestDir = os.path.dirname(__file__)
         self.instrument = HyperSuprimeCam()
         self.file = os.path.join(testDataDirectory, "hsc", "raw", "HSCA90402512.fits.gz")
         self.dataId = dict(instrument="HSC", exposure=904024, detector=50)
 
-        self.calibrationDataIds = CalibrationDataIds(
+        self.instrumentSignatureDataIds = InstrumentSignatureDataIds(
             camera={'calibration_label': 'unbounded'},
             bfKernel={'detector': 8, 'calibration_label': 'unbounded'},
             defects={'detector': 8, 'calibration_label': 'defect/1970-01-01T00:00:00/8'},
             transmission_filter={'calibration_label': 'unbounded', 'physical_filter': 'HSC-R'},
             transmission_optics={'calibration_label': 'unbounded'},
-            transmission_sensor={'calibration_label': 'unbounded', 'detector': 8},
+            transmission_detector={'calibration_label': 'unbounded', 'detector': 8},
+            transmission_atmosphere={'calibration_label': 'unbounded'},
             instrument=self.instrument.getName()
         )
 
