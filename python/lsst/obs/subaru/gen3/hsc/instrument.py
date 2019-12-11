@@ -292,9 +292,9 @@ class HyperSuprimeCam(Instrument):
                                   storageClass="StrayLightData",
                                   universe=butler.registry.dimensions)
         for detector in self.getCamera():
-            path = os.path.join(directory, f"yBackground-{detector.getId():03d}.fits")
+            path = os.path.join(directory, f"ybackground-{detector.getId():03d}.fits")
             if not os.path.exists(path):
-                log.warn(f"No stray light data found for detector {detector.getId()}.")
+                log.warn(f"No stray light data found for detector {detector.getId()} @ {path}.")
                 continue
             ref = DatasetRef(datasetType, dataId={"instrument": self.getName(),
                                                   "detector": detector.getId(),
@@ -305,6 +305,6 @@ class HyperSuprimeCam(Instrument):
             butler.registry.registerDatasetType(datasetType)
             butler.registry.insertDimensionData("calibration_label", {"instrument": self.getName(),
                                                                       "name": calibrationLabel,
-                                                                      "datetime_begin": datetime.min,
+                                                                      "datetime_begin": datetime.date.min,
                                                                       "datetime_end": datetime_end})
-            butler.ingest(datasets, transfer=transfer)
+            butler.ingest(*datasets, transfer=transfer)

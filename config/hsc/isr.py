@@ -87,6 +87,7 @@ config.darkDataProductName = "dark"
 config.doStrayLight = True
 config.strayLight.retarget(SubaruStrayLightTask)
 config.strayLight.doRotatorAngleCorrection=True
+config.strayLight.filters = ['y', 'HSC-Y']
 
 config.doFlat = True
 config.flatDataProductName = "flat"
