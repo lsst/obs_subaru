@@ -94,7 +94,6 @@ config.crosstalk.coeffs.relativeGainsPreampAndSigboard = [
 config.doWidenSaturationTrails = True
 
 config.doBrighterFatter = True
-config.brighterFatterKernelFile = ""
 config.brighterFatterMaxIter = 10
 config.brighterFatterThreshold = 1000.0
 config.brighterFatterApplyGain = True
