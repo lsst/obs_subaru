@@ -24,7 +24,6 @@
 
 __all__ = ("HyperSuprimeCam",)
 
-import re
 import os
 import pickle
 import logging
@@ -44,11 +43,6 @@ from lsst.obs.hsc.makeTransmissionCurves import (getSensorTransmission, getOptic
 from lsst.obs.subaru.strayLight.formatter import SubaruStrayLightDataFormatter
 
 log = logging.getLogger(__name__)
-
-# Regular expression that matches HSC PhysicalFilter names (the same as Gen2
-# filternames), with a group that can be lowercased to yield the
-# associated AbstractFilter.
-FILTER_REGEX = re.compile(r"HSC\-([GRIZY])2?")
 
 
 class HyperSuprimeCam(Instrument):

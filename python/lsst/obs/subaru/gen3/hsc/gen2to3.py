@@ -24,7 +24,7 @@
 
 from lsst.obs.base.gen2to3 import Translator, KeyHandler, ConstantKeyHandler, CopyKeyHandler
 
-from .instrument import FILTER_REGEX
+from ....hsc.hscFilters import HSC_FILTER_DEFINITIONS
 
 
 __all__ = ()
@@ -34,17 +34,16 @@ class HscAbstractFilterKeyHandler(KeyHandler):
     """KeyHandler for HSC filter keys that should be mapped to AbstractFilters.
     """
 
-    __slots__ = ()
+    __slots__ = ("_map",)
 
     def __init__(self):
         super().__init__("abstract_filter")
+        self._map = {d.physical_filter: d.abstract_filter for d in HSC_FILTER_DEFINITIONS
+                     if d.physical_filter is not None}
 
     def extract(self, gen2id, skyMap, skyMapName, datasetTypeName):
         physical = gen2id["filter"]
-        m = FILTER_REGEX.match(physical)
-        if m:
-            return m.group(1).lower()
-        return physical
+        return self._map.get(physical, physical)
 
 
 # Add instrument to Gen3 data ID if Gen2 contains "visit" or "ccd".
