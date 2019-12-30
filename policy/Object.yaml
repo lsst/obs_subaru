@@ -24,16 +24,19 @@ funcs:
         dataset: meas
     # raErr:  not available yet DM-15180
     # decErr: not available yet DM-15180
-    refBand: # reference band is same for all measurements
+    # Reference band is same for all measurements
+    refBand:
         functor: ReferenceBand
         dataset: ref
+    # TODO DM-22241: Evaluate moving point source model
+    #  - current plan requires matching to Source Table
     # psRadecTai: No moving point source model yet
     # psRadec: No moving point source model yet
     # psPm: No moving point source model yet
     # psParallax: No moving point source model yet
     PsFlux:
         functor: NanoJansky
-        dataset: forced_src  # recommend meas too
+        dataset: forced_src  # recommend including meas too
         args: slot_PsfFlux_instFlux
     PsFluxErr:
         functor: NanoJanskyErr
@@ -45,6 +48,9 @@ funcs:
     # psCov:
     #     Flux should be somewhere in the name?
     #     How best to store cov matrix?
+
+    # Replace multifit-predicted parameters with other goodness-of-fit parameters
+    # e.g. number of iterations, chi2/dof, derivative of objective function
     # psLnL:  No moving point source model yet
     # psChi2:  No moving point source model yet
     # psNdata: No moving point source model yet
@@ -83,12 +89,16 @@ funcs:
             - modelfit_CModel_exp_ellipse_xx
             - modelfit_CModel_exp_ellipse_xy
             - modelfit_CModel_exp_ellipse_yy
-    #bdCov: Not computed
+    # bdCov: Not computed
+    # DM-22251: We need a total galaxy model (BD) flux column:
+    # with either a total and fraction in Bulge or Disk
+    # We should change the name BD, it assumes algorithm choice
     BdChi2:
         functor: Column
         dataset: meas
         args: modelfit_CModel_objective
-    #bdSamples: Not computed
+    # bdSamples: DM-22242 Remove from the DPDD and
+    # replace with other shear estimation parameters. e.g. How e1 and e2 respond to shear.
     BdFluxB:
         functor: NanoJansky
         dataset: meas
@@ -109,11 +119,14 @@ funcs:
         args:
             - modelfit_CModel_exp_instFlux
             - modelfit_CModel_exp_instFluxErr
-    grStd:
-        # HSC users still debating
+    # DM-22243: Replace these with g, r, i, z, y and the blessed fluxes to use for colors
+    # Need a new name like "gModelColorFlux", "gMatchedApertureGalaxyFlux", or
+    # "gMatchedApertureFlux"
+        # HSC users still debating between
         #  1) PSF convolved undeblended aperture fluxes?
         #  2) Scarlet outputs?
-        # In the meantime: forced CModel
+        # In the meantime use forced CModel
+    grStd:
         functor: Color
         dataset: forced_src
         args: slot_ModelFlux
@@ -137,18 +150,6 @@ funcs:
         args: slot_ModelFlux
         filt1: HSC-Z
         filt2: HSC-Y
-    refIxx:
-        functor: Column
-        args: slot_Shape_xx
-        dataset: ref
-    refIyy:
-        functor: Column
-        args: slot_Shape_yy
-        dataset: ref
-    refIxy:
-        functor: Column
-        args: slot_Shape_xy
-        dataset: ref
     # Taking Shape from meas
     Ixx:
         functor: Column
@@ -163,19 +164,7 @@ funcs:
         args: slot_Shape_xy
         dataset: meas
     # Icov: # need to compute
-    # DPDD should include Psf Shape
-    refIxxPsf:
-        functor: Column
-        args: slot_PsfShape_xx
-        dataset: ref
-    refIyyPsf:
-        functor: Column
-        args: slot_PsfShape_yy
-        dataset: ref
-    refIxyPsf:
-        functor: Column
-        args: slot_PsfShape_xy
-        dataset: ref
+    # DM-22249 Evaluate whether we want to replace IxxPSF/IyyPSF/IxyPSF w/ FWHM
     IxxPsf:
         functor: Column
         args: slot_PsfShape_xx
@@ -188,8 +177,9 @@ funcs:
         functor: Column
         args: slot_PsfShape_xy
         dataset: meas
-    # m4: Request removal from DPDD
+    # m4: Request removal from DPDD (DM-22250)
     # Petrosian magnitudes not yet implemented. Planning pacakge DMBP-116
+    # Redefine Kron (DM-22245) and Petrosian (DM-22244) columns to report in DPDD
     # petroRad:
     # petroRadErr:
     # petroBand:
@@ -218,7 +208,7 @@ funcs:
             - ext_photometryKron_KronFlux_instFluxErr
     # kronRad50: Need to compute DM-16313
     # kronRad50Err: Need to compute DM-16313
-    #  kronRad90: Need to compute DM-16313
+    # kronRad90: Need to compute DM-16313
     # kronRad90Err: Need to compute DM-16313
     ApFlux:
         functor: NanoJansky
@@ -241,6 +231,9 @@ funcs:
         args:
             - base_CircularApertureFlux_25_0_instFlux
             - base_CircularApertureFlux_25_0_instFluxErr
+    # DM-22246: Change Ap surface brightness to fluxes in DPDD
+    # i.e. remove apNann, apMeanSb, apMeanSbSigma
+    # DM-22247: Replace Extendedness with a view or paragraph in docs on how to compute
     refExtendedness:
         functor: Column
         args: base_ClassificationExtendedness_value
@@ -279,6 +272,8 @@ funcs:
         functor: Column
         args: base_Blendedness_abs_flux
         dataset: meas
+    # DM-22249: Make FWHM a view of IxxPsf IxyPsf IyyPsf
+    # Or remove ixxPsf, IxyPsf, IyyPsf.
     Fwhm:
         functor: HsmFwhm
         dataset: meas
@@ -294,6 +289,8 @@ funcs:
         args:
             - modelfit_CModel_instFlux
             - modelfit_CModel_instFluxErr
+    # exp, dev, total, fracdev
+    # We need different ellipticities for shear measurement:
     HsmShapeRegauss_e1:
         functor: Column
         args: ext_shapeHSM_HsmShapeRegauss_e1
@@ -310,8 +307,12 @@ funcs:
         functor: Column
         args: base_InputCount_value
         dataset: meas
+    # DM-22247: Add Star/Galaxy sep olumns
+    #     - Morphological Star Galaxy Classifier (Names? float 0-1)]
+    #     - Morphological + Color (SED-based) Star Galaxy Classifier (Names? float 0-1)]
+    # DM-22248: Need to add per object Galactic extinction to post-processing
 refFlags:
-   # "refFlags" are just columns taken without translation from the ref table
+    # refFlags are columns taken without translation from the ref table
     - tractId
     - patchId
     - detect_isPatchInner
@@ -319,6 +320,7 @@ refFlags:
     - detect_isTractInner
     - calib_psf_used
 flags:
+    # flags are columns taken and exploded per-band from the meas tables
     - deblend_nChild
     - base_Blendedness_flag
     - base_PixelFlags_flag
@@ -399,7 +401,7 @@ flags:
     - slot_Shape_flag_no_pixels
     - slot_Shape_flag_not_contained
     - slot_Shape_flag_parent_source
-# Need to add per object Galactic extinction to post-processing
+
 flag_rename_rules:
     # Taken from db-meas-forced
     - ['ext_photometryKron_', '']
