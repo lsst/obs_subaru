@@ -8,8 +8,7 @@ constant), downloaded from https://www.naoj.org/Observing/Telescope/Parameter
 s/Reflectivity/M1-2010s.txt.
 
 filterTraces.py: spatially-varying traces of the broadband filters, obtained
-by private communication from Satoshi Kawanomoto -> Robert Lupton -> Eli
-Rykoff.
+by private communication from Satoshi Kawanomoto -> Eli Rykoff.
 
 qe_ccd_HSC.txt: sensor response (assumed spatially constant and common to all
 sensors; we believe these assumptions are incorrect at a significant level,
