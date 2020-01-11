@@ -87,7 +87,7 @@ class MakeTransmissionCurvesTest(lsst.utils.tests.TestCase):
             check(curves["HSC-Y"], 10030, 500, 1500)
 
     def testRadialDependence(self):
-        wavelengths = np.linspace(5000, 9000, 500)
+        wavelengths = np.linspace(3000, 11000, 500)
         radii = np.linspace(0, 20000, 50)
 
         def computeMeanWavelengths(curve):
@@ -109,6 +109,19 @@ class MakeTransmissionCurvesTest(lsst.utils.tests.TestCase):
             # neverthess be close (within 100 angstroms)
             self.assertLess(np.abs(r2.mean() - r.mean()), 100)
             self.assertLess(np.abs(i2.mean() - i.mean()), 100)
+            # Ensure that the nb vary but not too much
+            n387 = computeMeanWavelengths(curves['NB0387'])
+            self.assertLess(np.abs(n387.mean() - 3870.0), 20.0)
+            self.assertGreater(n387.std(), 0.0)
+            n816 = computeMeanWavelengths(curves['NB0816'])
+            self.assertLess(np.abs(n816.mean() - 8160.0), 20.0)
+            self.assertGreater(n816.std(), 0.0)
+            n921 = computeMeanWavelengths(curves['NB0921'])
+            self.assertLess(np.abs(n921.mean() - 9210.0), 20.0)
+            self.assertGreater(n921.std(), 0.0)
+            n1010 = computeMeanWavelengths(curves['NB1010'])
+            self.assertLess(np.abs(n1010.mean() - 10100.0), 20.0)
+            self.assertGreater(n1010.std(), 0.0)
 
 
 def setup_module(module):
