@@ -300,7 +300,7 @@ class HyperSuprimeCam(Instrument):
                                                   "detector": detector.getId(),
                                                   "physical_filter": "HSC-Y",
                                                   "calibration_label": calibrationLabel})
-            datasets.append(FileDataset(ref=ref, path=path, formatter=SubaruStrayLightDataFormatter))
+            datasets.append(FileDataset(refs=ref, path=path, formatter=SubaruStrayLightDataFormatter))
         with butler.transaction():
             butler.registry.registerDatasetType(datasetType)
             butler.registry.insertDimensionData("calibration_label", {"instrument": self.getName(),
