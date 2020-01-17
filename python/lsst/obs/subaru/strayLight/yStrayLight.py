@@ -70,7 +70,7 @@ class SubaruStrayLightTask(StrayLightTask):
         if detId in range(104, 112):
             # No correction data: assume it's zero
             return False
-        if exposure.getInfo().getVisitInfo().getDate().toPython >= datetime.datetime(2018, 1, 1):
+        if exposure.getInfo().getVisitInfo().getDate().toPython() >= datetime.datetime(2018, 1, 1):
             # LEDs causing the stray light have been covered up.
             # We believe there is no remaining stray light.
             return False
