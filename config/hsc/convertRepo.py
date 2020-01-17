@@ -31,3 +31,8 @@ config.collections["ps1_pv3_3pi_20170110"] = "ref_cats"
 config.datasetIgnorePatterns.extend(["dcrCoadd_forced_config",
                                      "goodSeeingCoadd_forced_config",
                                      "psfMatchedCoadd_forced_config"])
+# Same problem, with assembleCoadd variant metadata; we assume
+# "deep_compareWarpAssembleCoadd_metadata" is the one we want.
+config.datasetIgnorePatterns.extend(["deep_assembleCoadd_metadata",
+                                     "deep_safeClipAssembleCoadd_metadata",
+                                     "deep_dcrAssembleCoadd_metadata",])
