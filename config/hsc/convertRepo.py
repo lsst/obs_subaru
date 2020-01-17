@@ -13,6 +13,11 @@ config.skyMaps["hsc_rings_v1"].load(os.path.join(getPackageDir("obs_subaru"), "c
                                                  "makeSkyMap.py"))
 config.skyMaps["hsc_rings_v1"].load(os.path.join(getPackageDir("obs_subaru"), "config", "hsc",
                                                  "makeSkyMap.py"))
+# If there's no skymap in the root repo, but some dataset defined on
+# tracts/patches is present there (i.e. brightObjectMask), assume this
+# skymap.
+config.rootSkyMapName = "hsc_rings_v1"
+
 config.raws.load(os.path.join(getPackageDir("obs_subaru"), "config", "hsc", "ingest-gen3.py"))
 config.refCats.append("ps1_pv3_3pi_20170110")
 config.collections["ps1_pv3_3pi_20170110"] = "ref_cats"
