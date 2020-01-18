@@ -462,14 +462,6 @@ datasets:
     - raw
     - raw_visit
     template: '%(pointing)05d/%(filter)s/donutDriver_metadata/%(visit)07d.yaml'
-  processStack_metadata:
-    persistable: PropertySet
-    python: lsst.daf.base.PropertySet
-    storage: YamlStorage
-    tables:
-    - raw
-    - raw_visit
-    template: stack/%(stack)05d/processStack_metadata/%(patch)08d%(filter)s.yaml
   deepCoadd_calexp_hsc:
     level: None
     persistable: ExposureF
