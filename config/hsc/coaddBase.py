@@ -1,1 +1,2 @@
-config.doApplyUberCal = True
+config.doApplyExternalPhotoCalib = True
+config.doApplyExternalSkyWcs = True
