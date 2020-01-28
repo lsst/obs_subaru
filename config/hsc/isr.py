@@ -76,6 +76,7 @@ config.doBrighterFatter = True
 config.brighterFatterMaxIter = 10
 config.brighterFatterThreshold = 1000.0
 config.brighterFatterApplyGain = True
+config.brighterFatterMaskGrowSize = 1
 
 config.doDefect = True
 config.doSaturationInterpolation = True
