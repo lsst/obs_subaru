@@ -42,7 +42,7 @@ class HscIngestTestCase(IngestTestBase, lsst.utils.tests.TestCase):
         self.ingestDir = os.path.dirname(__file__)
         self.instrument = HyperSuprimeCam()
         self.file = os.path.join(testDataDirectory, "hsc", "raw", "HSCA90402512.fits.gz")
-        self.dataId = dict(instrument="HSC", exposure=904024, detector=50)
+        self.dataIds = [dict(instrument="HSC", exposure=904024, detector=50)]
 
         super().setUp()
 
@@ -50,7 +50,7 @@ class HscIngestTestCase(IngestTestBase, lsst.utils.tests.TestCase):
         # We ignore `files` because there's only one raw file in
         # testdata_subaru, and we know it's a science frame.
         # If we ever add more, this test will need to change.
-        expanded = self.butler.registry.expandDataId(self.dataId)
+        expanded = self.butler.registry.expandDataId(self.dataIds[0])
         self.assertEqual(expanded.records["exposure"].observation_type, "science")
 
 
