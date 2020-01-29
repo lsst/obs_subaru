@@ -121,7 +121,7 @@ exposures:
     tables:
     - raw
     - raw_visit
-    template: '%(pointing)05d/%(filter)s/corr/%(tract)04d/CALEXP-%(visit)07d-%(ccd)03d.fits'
+    template: 'calibrated/%(tract)04d/%(pointing)05d/%(filter)s/CALEXP-%(visit)07d-%(ccd)03d.fits'
   deepCoadd_directWarp:
     template: deepCoadd/%(filter)s/%(tract)d/%(patch)s/warp-%(filter)s-%(tract)d-%(patch)s-%(visit)d.fits
   deepCoadd_psfMatchedWarp:
@@ -352,7 +352,7 @@ datasets:
     tables:
     - raw
     - raw_visit
-    template: '%(pointing)05d/%(filter)s/output/%(tract)04d/CALSRC-%(visit)07d-%(ccd)03d.fits'
+    template: 'calibrated/%(tract)04d/%(pointing)05d/%(filter)s/CALSRC-%(visit)07d-%(ccd)03d.fits'
   transformed_src:
     persistable: SourceCatalog
     python: lsst.afw.table.BaseCatalog
