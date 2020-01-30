@@ -663,23 +663,27 @@ datasets:
   # Plots for analysis QA
   plotCoadd:
     persistable: None
-    python: builtins.str
-    storage: TextStorage
+    python: None
+    storage: MatplotlibStorage
+    tables: raw
     template: plots/%(filter)s/tract-%(tract)d/plot-t%(tract)d-%(filter)s-%(description)s-%(style)s.png
   plotSky:
     persistable: None
-    python: builtins.str
-    storage: TextStorage
+    python: None
+    storage: MatplotlibStorage
+    table: raw
     template: plots/%(filter)s/sky/plot-%(filter)s-%(description)s-%(style)s.png
   plotColor:
     persistable: None
-    python: builtins.str
-    storage: TextStorage
+    python: None
+    storage: MatplotlibStorage
+    table: raw
     template: plots/color/tract-%(tract)d/plot-t%(tract)d-%(description)s-%(style)s.png
   plotVisit:
     persistable: None
-    python: builtins.str
-    storage: TextStorage
+    python: None
+    storage: MatplotlibStorage
+    tables: raw
     template: plots/%(filter)s/tract-%(tract)d/visit-%(visit)d/plot-v%(visit)d-%(description)s-%(style)s.png
   plotFakes:
     description: "QA plots using fakes, made by fakesAnalysis as part of visitAnalysis."
@@ -690,13 +694,15 @@ datasets:
     template: plots/%(filter)s/tract-%(tract)d/visit-%(visit)d/fakesPlots/plot-v%(visit)d-%(description)s.png
   plotCompareCoadd:
     persistable: None
-    python: builtins.str
-    storage: TextStorage
+    python: None
+    storage: MatplotlibStorage
+    tables: raw
     template: plots/%(filter)s/tract-%(tract)d/compare-t%(tract)d-%(filter)s-%(description)s-%(style)s.png
   plotCompareVisit:
     persistable: None
-    python: builtins.str
-    storage: TextStorage
+    python: None
+    storage: MatplotlibStorage
+    tables: raw
     template: plots/%(filter)s/tract-%(tract)d/visit-%(visit)d/compareVisit-v%(visit)d-%(description)s-%(style)s.png
 
   # QA tables
