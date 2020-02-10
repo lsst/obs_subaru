@@ -5,7 +5,7 @@ import lsst.geom as geom
 
 from lsst.daf.persistence import ButlerLocation, Policy
 from lsst.obs.base import CameraMapper
-from lsst.ip.isr import LinearizeSquared
+from lsst.ip.isr import Linearizer
 from .makeSuprimecamRawVisitInfo import MakeSuprimecamRawVisitInfo
 
 
@@ -17,7 +17,7 @@ class SuprimecamMapperBase(CameraMapper):
     def __init__(self, *args, **kwargs):
         super(SuprimecamMapperBase, self).__init__(*args, **kwargs)
 
-        self._linearize = LinearizeSquared()
+        self._linearize = Linearizer()
 
         # Ensure each dataset type of interest knows about the full range of keys available from the registry
         keys = {'field': str,
