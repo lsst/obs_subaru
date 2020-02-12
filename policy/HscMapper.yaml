@@ -475,8 +475,12 @@ datasets:
     template: deepCoadd-results/%(filter)s/%(tract)d/%(patch)s/det_bkgd-%(filter)s-%(tract)d-%(patch)s.fits
   forced_src:
     template: '%(pointing)05d/%(filter)s/tract%(tract)d/FORCEDSRC-%(visit)07d-%(ccd)03d.fits'
+  forced_diaSrc:
+    template: '%(pointing)05d/%(filter)s/tract%(tract)d/FORCEDDIASRC-%(visit)07d-%(ccd)03d.fits'
   forcedPhotCcd_metadata:
     template: '%(pointing)05d/%(filter)s/tract%(tract)d/forcedPhotCcd_metadata/%(visit)07d-%(ccd)03d.yaml'
+  forcedPhotDiffIm_metadata:
+    template: '%(pointing)05d/%(filter)s/tract%(tract)d/forcedPhotDiffIm_metadata/%(visit)07d-%(ccd)03d.yaml'
   ossThumb:
     template: '%(pointing)05d/%(filter)s/thumbs/oss-%(visit)07d-%(ccd)03d.png'
   flattenedThumb:
