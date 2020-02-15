@@ -15,10 +15,12 @@ funcs:
         functor: DecColumn
         dataset: ref
     Ra:
-        functor: RAColumn
+        functor: CoordColumn
+        args: coord_ra
         dataset: meas
     Decl:
-        functor: DecColumn
+        functor: CoordColumn
+        args: coord_dec
         dataset: meas
     # raErr:  not available yet DM-15180
     # decErr: not available yet DM-15180
@@ -218,8 +220,27 @@ funcs:
     # kronRad50Err: Need to compute DM-16313
     #  kronRad90: Need to compute DM-16313
     # kronRad90Err: Need to compute DM-16313
-    # apMeanSb: Need to compute DM-16313
-    # apMeanSbSigma: Need to compute DM-16313
+    ApFlux:
+        functor: NanoJansky
+        dataset: meas
+        args: slot_CalibFlux_instFlux
+    ApFluxErr:
+        functor: NanoJanskyErr
+        dataset: meas
+        args:
+            - slot_CalibFlux_instFlux
+            - slot_CalibFlux_instFluxErr
+    # Not in DPDD. Used for QA
+    Ap25Flux:
+        functor: NanoJansky
+        dataset: forced
+        args: base_CircularApertureFlux_25_0_instFlux
+    Ap25FluxErr:
+        functor: NanoJanskyErr
+        dataset: forced
+        args:
+            - base_CircularApertureFlux_25_0_instFlux
+            - base_CircularApertureFlux_25_0_instFluxErr
     refExtendedness:
         functor: Column
         args: base_ClassificationExtendedness_value
@@ -253,7 +274,11 @@ funcs:
         functor: Column
         args: slot_Centroid_flag
         dataset: ref
-    # blendedness: 'base_Blendedness_abs_flux'
+    # Not in DPDD
+    Blendedness:
+        functor: Column
+        args: base_Blendedness_abs_flux
+        dataset: meas
     Fwhm:
         functor: HsmFwhm
         dataset: meas
@@ -285,13 +310,16 @@ funcs:
         functor: Column
         args: base_InputCount_value
         dataset: meas
-flags:
-   # "Flags" are just columns taken without translation from the ref table
+refFlags:
+   # "refFlags" are just columns taken without translation from the ref table
     - tractId
     - patchId
     - detect_isPatchInner
     - detect_isPrimary
     - detect_isTractInner
+flags:
+    - deblend_nChild
+    - base_Blendedness_flag
     - base_PixelFlags_flag
     - base_PixelFlags_flag_bad
     - base_PixelFlags_flag_bright_object
@@ -324,13 +352,9 @@ flags:
     - slot_ApFlux_flag
     - slot_ApFlux_flag_apertureTruncated
     - slot_ApFlux_flag_sincCoeffsTruncated
-    - slot_ApFlux_instFlux
-    - slot_ApFlux_instFluxErr
     - slot_CalibFlux_flag
     - slot_CalibFlux_flag_apertureTruncated
     - slot_CalibFlux_flag_sincCoeffsTruncated
-    - slot_CalibFlux_instFlux
-    - slot_CalibFlux_instFluxErr
     - slot_Centroid_flag_almostNoSecondDerivative
     - slot_Centroid_flag_edge
     - slot_Centroid_flag_noSecondDerivative
@@ -388,5 +412,9 @@ flag_rename_rules:
     - ['ext_convolved_', '']
     - ['undeblended_base', 'undeblended']
     - ['undeblended_ext_photometryKron', 'undeblended']
+    - ['ext_photometryKron_', '']
     - ['base_', '']
     - ['slot_', '']
+    - ['calib_', 'Calib_']
+    - ['deblend_', 'Deblend_']
+    - ['blendedness', 'Blendedness']
