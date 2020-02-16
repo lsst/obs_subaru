@@ -13,5 +13,5 @@ config.stdFilterNames = ('g', 'r2', 'r2', 'i2', 'i2', 'z', 'y',
                          'N387', 'N816', 'N921')
 
 # FGCM name or filename of precomputed atmospheres
-config.atmosphereTableName = 'fgcm_atm_subaru2'
+config.atmosphereTableName = 'fgcm_atm_subaru3'
 
