@@ -11,18 +11,19 @@ config.requiredFlag = (0, 0, 0, 0, 0, 0, 0, 0)
 config.filterMap = {'g': 'g', 'r': 'r', 'r2': 'r', 'i': 'i', 'i2': 'i',
                     'z': 'z', 'y': 'y',
                     'N387': 'N387', 'N816': 'N816', 'N921': 'N921'}
-config.maxIterBeforeFinalCycle = 30
+config.maxIterBeforeFinalCycle = 75
 config.nCore = 4
 config.cycleNumber = 0
 config.utBoundary = 0.0
-config.washMjds = (56700.0, 57500.0, 57700.0, 58050.0)
-config.epochMjds = (56700., 57420., 57606., 59000.)
-config.coatingMjds = (56700.0, 58050.0)
+config.washMjds = (56650.0, 57500.0, 57700.0, 58050.0)
+config.epochMjds = (56650., 57420., 57606., 59000.)
+config.coatingMjds = (56650.0, 58050.0)
 config.latitude = 19.8256
 config.expGrayPhotometricCut = (-0.05, -0.05, -0.05, -0.05, -0.05, -0.05, -0.05, -0.05)
 config.expGrayHighCut = (0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2)
 config.aperCorrFitNBins = 10
-config.aperCorrInputSlopes = (-1.0150, -0.9694, -1.7229, -1.4549, -1.1998, -1.0, -1.0, -1.0)
+config.aperCorrInputSlopes = (-1.0, -1.1579, -1.3908, -1.1436, -1.8149,
+                              -1.6974, -1.3310, -1.2057)
 config.starColorCuts = ('g,r,-0.25,2.25',
                         'r,i,-0.50,2.25',
                         'i,z,-0.50,1.00',
