@@ -6,8 +6,8 @@ from lsst.obs.base.gen2to3 import ConvertRepoSkyMapConfig
 # probably won't survive persisting the config.
 import lsst.obs.subaru.gen3.hsc.gen2to3
 
-config.collections["raw"] = "raw/hsc"
-config.collections["brightObjectMask"] = "masks/hsc"
+config.runs["raw"] = "raw/hsc"
+config.runs["brightObjectMask"] = "masks/hsc"
 config.skyMaps["hsc_rings_v1"] = ConvertRepoSkyMapConfig()
 config.skyMaps["hsc_rings_v1"].load(os.path.join(getPackageDir("obs_subaru"), "config",
                                                  "makeSkyMap.py"))
@@ -20,6 +20,7 @@ config.rootSkyMapName = "hsc_rings_v1"
 
 config.raws.load(os.path.join(getPackageDir("obs_subaru"), "config", "hsc", "ingest-gen3.py"))
 config.refCats.append("ps1_pv3_3pi_20170110")
+config.runs["ps1_pv3_3pi_20170110"] = "refcats"
 
 # ForcedPhotCoadd writes its configs to a filename that doesn't include a
 # coaddName prefix, which means the conversion tools can't infer the right
