@@ -7,7 +7,7 @@ import lsst.afw.image as afwImage
 import lsst.afw.math as afwMath
 import lsst.afw.geom as afwGeom
 import lsst.geom as geom
-from lsst.ip.isr import LinearizeSquared
+from lsst.ip.isr import Linearizer
 import lsst.pex.exceptions
 from .makeHscRawVisitInfo import MakeHscRawVisitInfo
 from .hscPupil import HscPupilFactory
@@ -51,7 +51,7 @@ class HscMapper(CameraMapper):
 
         super(HscMapper, self).__init__(policy, os.path.dirname(policyFile), **kwargs)
 
-        self._linearize = LinearizeSquared()
+        self._linearize = Linearizer()
 
         # Ensure each dataset type of interest knows about the full range of keys available from the registry
         keys = {'field': str,
