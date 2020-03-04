@@ -10,6 +10,7 @@ config.doMaskBrightObjects = True
 config.removeMaskPlanes.append("CROSSTALK")
 config.doNImage = True
 config.badMaskPlanes += ["SUSPECT"]
+config.statistic = 'MEAN'
 
 from lsst.pipe.tasks.selectImages import PsfWcsSelectImagesTask
 config.select.retarget(PsfWcsSelectImagesTask)

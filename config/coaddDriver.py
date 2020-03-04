@@ -3,12 +3,15 @@ import os.path
 
 from lsst.utils import getPackageDir
 
-from lsst.pipe.tasks.assembleCoadd import CompareWarpAssembleCoaddTask
-config.assembleCoadd.retarget(CompareWarpAssembleCoaddTask)
+from lsst.pipe.tasks.assembleCoadd import AssembleCoaddTask
+config.assembleCoadd.retarget(AssembleCoaddTask)
+
+from lsst.obs.hsc import PureNoiseMakeCoaddTempExpTask
+config.makeCoaddTempExp.retarget(PureNoiseMakeCoaddTempExpTask)
 
 for sub, filename in (("makeCoaddTempExp", "makeCoaddTempExp"),
                       ("backgroundReference", "backgroundReference"),
-                      ("assembleCoadd", "compareWarpAssembleCoadd"),
+                      ("assembleCoadd", "assembleCoadd"),
                       ("detectCoaddSources", "detectCoaddSources")):
     path = os.path.join(getPackageDir("obs_subaru"), "config", filename + ".py")
     if os.path.exists(path):

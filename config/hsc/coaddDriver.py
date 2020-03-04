@@ -5,7 +5,7 @@ from lsst.utils import getPackageDir
 
 for sub, filename in (("makeCoaddTempExp", "makeCoaddTempExp"),
                       ("backgroundReference", "backgroundReference"),
-                      ("assembleCoadd", "compareWarpAssembleCoadd"),
+                      ("assembleCoadd", "assembleCoadd"),
                       ("detectCoaddSources", "detectCoaddSources")):
     path = os.path.join(getPackageDir("obs_subaru"), "config", "hsc", filename + ".py")
     if os.path.exists(path):
