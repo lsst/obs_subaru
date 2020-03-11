@@ -20,7 +20,6 @@ config.rootSkyMapName = "hsc_rings_v1"
 
 config.raws.load(os.path.join(getPackageDir("obs_subaru"), "config", "hsc", "ingest-gen3.py"))
 config.refCats.append("ps1_pv3_3pi_20170110")
-config.collections["ps1_pv3_3pi_20170110"] = "ref_cats"
 
 # ForcedPhotCoadd writes its configs to a filename that doesn't include a
 # coaddName prefix, which means the conversion tools can't infer the right
@@ -36,3 +35,6 @@ config.datasetIgnorePatterns.extend(["dcrCoadd_forced_config",
 config.datasetIgnorePatterns.extend(["deep_assembleCoadd_metadata",
                                      "deep_safeClipAssembleCoadd_metadata",
                                      "deep_dcrAssembleCoadd_metadata",])
+
+# HSC automatically writes defects via `writeCuratedCalibrations()`
+config.curatedCalibrations.append("defects")

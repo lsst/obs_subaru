@@ -46,26 +46,6 @@ class HscAbstractFilterKeyHandler(KeyHandler):
         return self._map.get(physical, physical)
 
 
-# Add instrument to Gen3 data ID if Gen2 contains "visit" or "ccd".
-# (Both rules will match, so we'll actually set instrument in the same dict twice).
-Translator.addRule(ConstantKeyHandler("instrument", "HSC"),
-                   instrument="HSC", gen2keys=("visit",), consume=False)
-Translator.addRule(ConstantKeyHandler("instrument", "HSC"),
-                   instrument="HSC", gen2keys=("ccd",), consume=False)
-
-# Copy Gen2 'visit' to Gen3 'exposure' for raw only.  Also consume filter,
-# since that's implied by 'exposure' in Gen3.
-Translator.addRule(CopyKeyHandler("exposure", "visit"),
-                   instrument="HSC", datasetTypeName="raw", gen2keys=("visit",),
-                   consume=("visit", "filter"))
-
-# Copy Gen2 'visit' to Gen3 'visit' otherwise.  Also consume filter.
-Translator.addRule(CopyKeyHandler("visit"), instrument="HSC", gen2keys=("visit",),
-                   consume=("visit", "filter"))
-
-# Copy Gen2 'ccd' to Gen3 'detector;
-Translator.addRule(CopyKeyHandler("detector", "ccd"), instrument="HSC", gen2keys=("ccd",))
-
 # Translate Gen2 `filter` to AbstractFilter if it hasn't been consumed yet and gen2keys includes tract.
 Translator.addRule(HscAbstractFilterKeyHandler(), instrument="HSC", gen2keys=("filter", "tract"),
                    consume=("filter",))
@@ -80,8 +60,3 @@ Translator.addRule(ConstantKeyHandler("instrument", "HSC"),
                    instrument="HSC", datasetTypeName="transmission_filter")
 Translator.addRule(CopyKeyHandler("physical_filter", "filter"),
                    instrument="HSC", datasetTypeName="transmission_filter")
-
-# Add calibration mapping for filter for filter dependent types
-for calibType in ('flat', 'sky', 'fringe'):
-    Translator.addRule(CopyKeyHandler("physical_filter", "filter"),
-                       instrument="HSC", datasetTypeName=calibType)
