@@ -58,7 +58,7 @@ def createGen2Repo(inputPath):
     """
     repoPath = tempfile.mkdtemp()
     with open(os.path.join(repoPath, "_mapper"), "w") as _mapper:
-        _mapper.write("lsst.obs.hsc.HscMapper")
+        print("lsst.obs.hsc.HscMapper", file=_mapper)
     ingest_cmd = "hscIngestImages.py"
     files = glob.glob(os.path.join(inputPath, "*.fits.gz"))
     cmd = [ingest_cmd, repoPath, *files]
