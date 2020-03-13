@@ -41,7 +41,7 @@ except LookupError:
     testDataDirectory = None
 
 
-def createGen2Repo(inputPath, calibPath):
+def createGen2Repo(inputPath):
     """
     Construct a gen2 repository for `HscMapper` containing a given set
     of input data and return its path.
@@ -50,8 +50,6 @@ def createGen2Repo(inputPath, calibPath):
     ----------
     inputPath : `str`
         Location of data files to ingest.
-    calibPath : `str`
-        Location of calibs to ingest.
 
     Returns
     -------
@@ -75,9 +73,8 @@ class ConvertGen2To3TestCase(convertTests.ConvertGen2To3TestCase,
 
     def setUp(self):
         rawpath = os.path.join(testDataDirectory, 'hsc/raw')
-        calibpath = os.path.join(testDataDirectory, 'hsc/calib')
         self.gen2calib = os.path.join(testDataDirectory, 'hsc/calib')
-        self.gen2root = createGen2Repo(rawpath, calibpath)
+        self.gen2root = createGen2Repo(rawpath)
         self.instrumentName = "HSC"
         self.collections = {"calib/HSC"}
         self.instrumentClass = "lsst.obs.subaru.gen3.hsc.HyperSuprimeCam"
