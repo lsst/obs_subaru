@@ -25,7 +25,6 @@
 import unittest
 
 import lsst.utils.tests
-import lsst.obs.subaru.gen3.hsc
 from lsst.obs.base.instrument_tests import InstrumentTests, InstrumentTestData
 
 
@@ -60,7 +59,7 @@ class TestHyperSuprimeCam(InstrumentTests, lsst.utils.tests.TestCase):
                                        firstDetectorName="1_53",
                                        physical_filters=physical_filters)
 
-        self.instrument = lsst.obs.subaru.gen3.hsc.HyperSuprimeCam()
+        self.instrument = lsst.obs.subaru.HyperSuprimeCam()
 
 
 class MemoryTester(lsst.utils.tests.MemoryTestCase):

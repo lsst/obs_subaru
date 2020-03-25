@@ -27,7 +27,7 @@ import os
 import lsst.utils.tests
 
 from lsst.obs.base.ingest_tests import IngestTestBase
-from lsst.obs.subaru.gen3.hsc import HyperSuprimeCam
+from lsst.obs.subaru import HyperSuprimeCam
 
 testDataPackage = "testdata_subaru"
 try:
