@@ -41,7 +41,7 @@ except LookupError:
     testDataDirectory = None
 
 
-def createGen2Repo(inputPath, calibPath):
+def createGen2Repo(inputPath):
     """
     Construct a gen2 repository for `HscMapper` containing a given set
     of input data and return its path.
@@ -50,8 +50,6 @@ def createGen2Repo(inputPath, calibPath):
     ----------
     inputPath : `str`
         Location of data files to ingest.
-    calibPath : `str`
-        Location of calibs to ingest.
 
     Returns
     -------
@@ -60,7 +58,7 @@ def createGen2Repo(inputPath, calibPath):
     """
     repoPath = tempfile.mkdtemp()
     with open(os.path.join(repoPath, "_mapper"), "w") as _mapper:
-        _mapper.write("lsst.obs.hsc.HscMapper")
+        print("lsst.obs.hsc.HscMapper", file=_mapper)
     ingest_cmd = "hscIngestImages.py"
     files = glob.glob(os.path.join(inputPath, "*.fits.gz"))
     cmd = [ingest_cmd, repoPath, *files]
@@ -75,9 +73,8 @@ class ConvertGen2To3TestCase(convertTests.ConvertGen2To3TestCase,
 
     def setUp(self):
         rawpath = os.path.join(testDataDirectory, 'hsc/raw')
-        calibpath = os.path.join(testDataDirectory, 'hsc/calib')
         self.gen2calib = os.path.join(testDataDirectory, 'hsc/calib')
-        self.gen2root = createGen2Repo(rawpath, calibpath)
+        self.gen2root = createGen2Repo(rawpath)
         self.instrumentName = "HSC"
         self.instrumentClass = "lsst.obs.subaru.gen3.hsc.HyperSuprimeCam"
         self.config = os.path.join(os.path.abspath(os.path.dirname(__file__)),
@@ -90,6 +87,7 @@ class ConvertGen2To3TestCase(convertTests.ConvertGen2To3TestCase,
         self.darks = [{"detector": 50, "calibration_label": "gen2/dark_2013-11-03_050",
                        "instrument": "HSC"}]
         super().setUp()
+        self.collections.add("calib/HSC")
 
 
 def setup_module(module):
