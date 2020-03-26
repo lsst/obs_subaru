@@ -27,12 +27,12 @@ __all__ = ("HyperSuprimeCam",)
 import os
 import pickle
 import logging
-import datetime
-from dateutil import parser
 
+import astropy.time
 from lsst.utils import getPackageDir
 from lsst.afw.cameraGeom import makeCameraFromPath, CameraConfig
-from lsst.daf.butler import DatasetType, DataCoordinate, FileDataset, DatasetRef
+from lsst.daf.butler import (DatasetType, DataCoordinate, FileDataset, DatasetRef,
+                             TIMESPAN_MIN, TIMESPAN_MAX)
 from lsst.obs.base import Instrument, addUnboundedCalibrationLabel
 from lsst.pipe.tasks.read_curated_calibs import read_all
 
@@ -224,7 +224,7 @@ class HyperSuprimeCam(Instrument):
         defectPath = os.path.join(getPackageDir("obs_subaru_data"), "hsc", "defects")
         camera = self.getCamera()
         defectsDict = read_all(defectPath, camera)[0]  # This method returns a dict plus the calib type
-        endOfTime = '20380119T031407'
+        endOfTime = TIMESPAN_MAX
         dimensionRecords = []
         datasetRecords = []
         # First loop just gathers up the things we want to insert, so we
@@ -233,7 +233,8 @@ class HyperSuprimeCam(Instrument):
             detector = camera[det]
             times = sorted([k for k in defectsDict[det]])
             defects = [defectsDict[det][time] for time in times]
-            times = times + [parser.parse(endOfTime), ]
+            times = [astropy.time.Time(t, format="datetime", scale="utc") for t in times]
+            times += [endOfTime]
             for defect, beginTime, endTime in zip(defects, times[:-1], times[1:]):
                 md = defect.getMetadata()
                 calibrationLabel = f"defect/{md['CALIBDATE']}/{md['DETECTOR']}"
@@ -275,7 +276,8 @@ class HyperSuprimeCam(Instrument):
         calibrationLabel = "y-LED-encoder-on"
         # LEDs covered up around 2018-01-01, no need for correctin after that
         # date.
-        datetime_end = datetime.datetime(2018, 1, 1)
+        datetime_begin = TIMESPAN_MIN
+        datetime_end = astropy.time.Time("2018-01-01", format="iso", scale="tai")
         datasets = []
         # TODO: should we use a more generic name for the dataset type?
         # This is just the (rather HSC-specific) name used in Gen2, and while
@@ -299,6 +301,6 @@ class HyperSuprimeCam(Instrument):
             butler.registry.registerDatasetType(datasetType)
             butler.registry.insertDimensionData("calibration_label", {"instrument": self.getName(),
                                                                       "name": calibrationLabel,
-                                                                      "datetime_begin": datetime.date.min,
+                                                                      "datetime_begin": datetime_begin,
                                                                       "datetime_end": datetime_end})
             butler.ingest(*datasets, transfer=transfer)
