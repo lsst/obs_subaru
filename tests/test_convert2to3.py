@@ -30,7 +30,7 @@ import unittest
 
 import lsst.utils.tests
 from lsst.obs.base.gen2to3 import convertTests
-import lsst.obs.subaru.gen3
+import lsst.obs.subaru
 import lsst.obs.hsc
 
 
@@ -76,7 +76,7 @@ class ConvertGen2To3TestCase(convertTests.ConvertGen2To3TestCase,
         self.gen2calib = os.path.join(testDataDirectory, 'hsc/calib')
         self.gen2root = createGen2Repo(rawpath)
         self.instrumentName = "HSC"
-        self.instrumentClass = "lsst.obs.subaru.gen3.hsc.HyperSuprimeCam"
+        self.instrumentClass = "lsst.obs.subaru.HyperSuprimeCam"
         self.config = os.path.join(os.path.abspath(os.path.dirname(__file__)),
                                    "config", "convert2to3Config.py")
 

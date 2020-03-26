@@ -24,7 +24,7 @@
 
 from lsst.obs.base.gen2to3 import Translator, KeyHandler, ConstantKeyHandler, CopyKeyHandler
 
-from ....hsc.hscFilters import HSC_FILTER_DEFINITIONS
+from ..hsc.hscFilters import HSC_FILTER_DEFINITIONS
 
 
 __all__ = ()

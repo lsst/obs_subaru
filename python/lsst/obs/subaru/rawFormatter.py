@@ -26,10 +26,13 @@ from lsst.geom import Point2D
 from lsst.obs.base.fitsRawFormatterBase import FitsRawFormatterBase
 from astro_metadata_translator import HscTranslator
 
-from ....hsc.hscFilters import HSC_FILTER_DEFINITIONS
+from ..hsc.hscFilters import HSC_FILTER_DEFINITIONS
 from . import HyperSuprimeCam
 
-__all__ = ("HyperSuprimeCamRawFormatter", "HyperSuprimeCamCornerRawFormatter")
+from ..suprimecam.makeSuprimecamRawVisitInfo import MakeSuprimecamRawVisitInfo
+
+__all__ = ("HyperSuprimeCamRawFormatter", "HyperSuprimeCamCornerRawFormatter",
+           "SuprimeCamRawFormatter")
 
 
 class HyperSuprimeCamRawFormatter(FitsRawFormatterBase):
@@ -67,3 +70,10 @@ class HyperSuprimeCamCornerRawFormatter(HyperSuprimeCamRawFormatter):
 
     FLIP_LR = False
     FLIP_TB = True
+
+
+class SuprimeCamRawFormatter(FitsRawFormatterBase):
+
+    def makeVisitInfo(self, header):
+        maker = MakeSuprimecamRawVisitInfo()
+        return maker(header)

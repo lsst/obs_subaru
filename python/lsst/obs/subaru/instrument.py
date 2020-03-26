@@ -36,11 +36,11 @@ from lsst.daf.butler import DatasetType, DataCoordinate, FileDataset, DatasetRef
 from lsst.obs.base import Instrument, addUnboundedCalibrationLabel
 from lsst.pipe.tasks.read_curated_calibs import read_all
 
-from lsst.obs.hsc.hscPupil import HscPupilFactory
-from lsst.obs.hsc.hscFilters import HSC_FILTER_DEFINITIONS
-from lsst.obs.hsc.makeTransmissionCurves import (getSensorTransmission, getOpticsTransmission,
-                                                 getFilterTransmission, getAtmosphereTransmission)
-from lsst.obs.subaru.strayLight.formatter import SubaruStrayLightDataFormatter
+from ..hsc.hscPupil import HscPupilFactory
+from ..hsc.hscFilters import HSC_FILTER_DEFINITIONS
+from ..hsc.makeTransmissionCurves import (getSensorTransmission, getOpticsTransmission,
+                                          getFilterTransmission, getAtmosphereTransmission)
+from .strayLight.formatter import SubaruStrayLightDataFormatter
 
 log = logging.getLogger(__name__)
 
