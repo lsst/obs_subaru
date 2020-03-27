@@ -141,13 +141,11 @@ class HyperSuprimeCam(Instrument):
         a standardized approach to this problem.
         """
 
-        # Write cameraGeom.Camera, with an infinite validity range.
-        datasetType = DatasetType("camera", ("instrument", "calibration_label"), "Camera",
-                                  universe=butler.registry.dimensions)
-        butler.registry.registerDatasetType(datasetType)
+        # Write cameraGeom.Camera
+        self.writeCameraGeom(butler)
+
+        # Get an unbounded calibration label
         unboundedDataId = addUnboundedCalibrationLabel(butler.registry, self.getName())
-        camera = self.getCamera()
-        butler.put(camera, datasetType, unboundedDataId)
 
         # Write brighter-fatter kernel, with an infinite validity range.
         datasetType = DatasetType("bfKernel", ("instrument", "calibration_label"), "NumpyArray",
