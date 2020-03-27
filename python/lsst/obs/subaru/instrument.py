@@ -32,9 +32,8 @@ import astropy.time
 from lsst.utils import getPackageDir
 from lsst.afw.cameraGeom import makeCameraFromPath, CameraConfig
 from lsst.daf.butler import (DatasetType, DataCoordinate, FileDataset, DatasetRef,
-                             TIMESPAN_MIN, TIMESPAN_MAX)
+                             TIMESPAN_MIN)
 from lsst.obs.base import Instrument, addUnboundedCalibrationLabel
-from lsst.pipe.tasks.read_curated_calibs import read_all
 
 from ..hsc.hscPupil import HscPupilFactory
 from ..hsc.hscFilters import HSC_FILTER_DEFINITIONS
@@ -49,13 +48,15 @@ class HyperSuprimeCam(Instrument):
     """Gen3 Butler specialization class for Subaru's Hyper Suprime-Cam.
     """
 
+    policyName = "hsc"
+    obsDataPackage = "obs_subaru_data"
     filterDefinitions = HSC_FILTER_DEFINITIONS
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         packageDir = getPackageDir("obs_subaru")
         self.configPaths = [os.path.join(packageDir, "config"),
-                            os.path.join(packageDir, "config", "hsc")]
+                            os.path.join(packageDir, "config", self.policyName)]
 
     @classmethod
     def getName(cls):
@@ -111,7 +112,7 @@ class HyperSuprimeCam(Instrument):
         This is a temporary API that should go away once obs_ packages have
         a standardized approach to writing versioned cameras to a Gen3 repo.
         """
-        path = os.path.join(getPackageDir("obs_subaru"), "hsc", "camera")
+        path = os.path.join(getPackageDir("obs_subaru"), self.policyName, "camera")
         config = CameraConfig()
         config.load(os.path.join(path, "camera.py"))
         return makeCameraFromPath(
@@ -127,7 +128,7 @@ class HyperSuprimeCam(Instrument):
         This is a temporary API that should go away once obs_ packages have
         a standardized approach to writing versioned kernels to a Gen3 repo.
         """
-        path = os.path.join(getPackageDir("obs_subaru"), "hsc", "brighter_fatter_kernel.pkl")
+        path = os.path.join(getPackageDir("obs_subaru"), self.policyName, "brighter_fatter_kernel.pkl")
         with open(path, "rb") as fd:
             kernel = pickle.load(fd, encoding='latin1')  # encoding for pickle written with Python 2
         return kernel
@@ -216,48 +217,8 @@ class HyperSuprimeCam(Instrument):
                 continue
             butler.put(entry, datasetType, {"instrument": self.getName()})
 
-        # Write defects with validity ranges taken from obs_subaru_data/hsc/defects
-        # (along with the defects themselves).
-        datasetType = DatasetType("defects", ("instrument", "detector", "calibration_label"), "Defects",
-                                  universe=butler.registry.dimensions)
-        butler.registry.registerDatasetType(datasetType)
-        defectPath = os.path.join(getPackageDir("obs_subaru_data"), "hsc", "defects")
-        camera = self.getCamera()
-        defectsDict = read_all(defectPath, camera)[0]  # This method returns a dict plus the calib type
-        endOfTime = TIMESPAN_MAX
-        dimensionRecords = []
-        datasetRecords = []
-        # First loop just gathers up the things we want to insert, so we
-        # can do some bulk inserts and minimize the time spent in transaction.
-        for det in defectsDict:
-            detector = camera[det]
-            times = sorted([k for k in defectsDict[det]])
-            defects = [defectsDict[det][time] for time in times]
-            times = [astropy.time.Time(t, format="datetime", scale="utc") for t in times]
-            times += [endOfTime]
-            for defect, beginTime, endTime in zip(defects, times[:-1], times[1:]):
-                md = defect.getMetadata()
-                calibrationLabel = f"defect/{md['CALIBDATE']}/{md['DETECTOR']}"
-                dataId = DataCoordinate.standardize(
-                    universe=butler.registry.dimensions,
-                    instrument=self.getName(),
-                    calibration_label=calibrationLabel,
-                    detector=detector.getId(),
-                )
-                datasetRecords.append((defect, dataId))
-                dimensionRecords.append({
-                    "instrument": self.getName(),
-                    "name": calibrationLabel,
-                    "datetime_begin": beginTime,
-                    "datetime_end": endTime,
-                })
-        # Second loop actually does the inserts and filesystem writes.
-        with butler.transaction():
-            butler.registry.insertDimensionData("calibration_label", *dimensionRecords)
-            # TODO: vectorize these puts, once butler APIs for that become
-            # available.
-            for defect, dataId in datasetRecords:
-                butler.put(defect, datasetType, dataId)
+        # Write defects
+        self.writeStandardTextCuratedCalibrations(butler)
 
     def ingestStrayLightData(self, butler, directory, *, transfer=None):
         """Ingest externally-produced y-band stray light data files into
