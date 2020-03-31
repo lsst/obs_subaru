@@ -38,6 +38,10 @@ except LookupError:
 
 @unittest.skipIf(testDataDirectory is None, "testdata_subaru must be set up")
 class HscIngestTestCase(IngestTestBase, lsst.utils.tests.TestCase):
+
+    curatedCalibrationDatasetTypes = ("defects", "camera", "bfKernel", "transmission_optics",
+                                      "transmission_sensor", "transmission_filter", "transmission_atmosphere")
+
     def setUp(self):
         self.ingestDir = os.path.dirname(__file__)
         self.instrument = HyperSuprimeCam()
