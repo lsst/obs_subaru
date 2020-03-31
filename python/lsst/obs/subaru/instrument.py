@@ -141,8 +141,8 @@ class HyperSuprimeCam(Instrument):
         a standardized approach to this problem.
         """
 
-        # Write cameraGeom.Camera
-        self.writeCameraGeom(butler)
+        # Write the generic calibrations supported by all instruments
+        super().writeCuratedCalibrations(butler)
 
         # Get an unbounded calibration label
         unboundedDataId = addUnboundedCalibrationLabel(butler.registry, self.getName())
@@ -214,9 +214,6 @@ class HyperSuprimeCam(Instrument):
             if entry is None:
                 continue
             butler.put(entry, datasetType, {"instrument": self.getName()})
-
-        # Write defects
-        self.writeStandardTextCuratedCalibrations(butler)
 
     def ingestStrayLightData(self, butler, directory, *, transfer=None):
         """Ingest externally-produced y-band stray light data files into
