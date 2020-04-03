@@ -198,9 +198,6 @@ class SuprimecamMapperBase(CameraMapper):
 
 ###############################################################################
 
-    def _extractAmpId(self, dataId):
-        return (self._extractDetectorName(dataId), 0, 0)
-
     def _computeCcdExposureId(self, dataId):
         """Compute the 64-bit (long) identifier for a CCD exposure.
 
