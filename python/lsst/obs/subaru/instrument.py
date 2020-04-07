@@ -33,6 +33,7 @@ from lsst.utils import getPackageDir
 from lsst.afw.cameraGeom import makeCameraFromPath, CameraConfig
 from lsst.daf.butler import (DatasetType, DataCoordinate, FileDataset, DatasetRef,
                              TIMESPAN_MIN)
+from lsst.daf.butler.core.utils import getFullTypeName
 from lsst.obs.base import Instrument, addUnboundedCalibrationLabel
 
 from ..hsc.hscPupil import HscPupilFactory
@@ -75,7 +76,8 @@ class HyperSuprimeCam(Instrument):
                 "name": self.getName(),
                 "detector_max": 200,
                 "visit_max": obsMax,
-                "exposure_max": obsMax
+                "exposure_max": obsMax,
+                "class_name": getFullTypeName(self),
             }
         )
         registry.insertDimensionData(
