@@ -25,6 +25,7 @@
 import unittest
 
 import lsst.utils.tests
+import lsst.obs.subaru
 from lsst.obs.base.instrument_tests import InstrumentTests, InstrumentTestData
 
 
