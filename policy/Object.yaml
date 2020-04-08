@@ -317,6 +317,7 @@ refFlags:
     - detect_isPatchInner
     - detect_isPrimary
     - detect_isTractInner
+    - calib_psf_used
 flags:
     - deblend_nChild
     - base_Blendedness_flag

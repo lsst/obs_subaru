@@ -343,6 +343,12 @@ datasets:
     template: '%(pointing)05d/%(filter)s/corr/calexp-camera-%(visit)d.fits'
   src:
     template: '%(pointing)05d/%(filter)s/output/SRC-%(visit)07d-%(ccd)03d.fits'
+  source:
+    template: '%(pointing)05d/%(filter)s/output/SRC-%(visit)07d-%(ccd)03d.parq'
+  sourceTable:
+    template: '%(pointing)05d/%(filter)s/output/sourceTable-%(visit)07d-%(ccd)03d.parq'
+  sourceTable_visit:
+    template: '%(pointing)05d/%(filter)s/output/sourceTable-%(visit)07d.parq'
   fakes_src:
     template: '%(pointing)05d/%(filter)s/tract%(tract)d/fakes_src-%(visit)07d-%(ccd)03d.fits'
   calibrated_src:
