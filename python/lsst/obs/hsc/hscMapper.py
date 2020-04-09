@@ -195,9 +195,6 @@ class HscMapper(CameraMapper):
         exposure.getInfo().setVisitInfo(visitInfo)
         return exposure
 
-    def _extractAmpId(self, dataId):
-        return (self._extractDetectorName(dataId), 0, 0)
-
     def _extractDetectorName(self, dataId):
         return int("%(ccd)d" % dataId)
 
