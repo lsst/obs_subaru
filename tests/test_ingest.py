@@ -26,6 +26,7 @@ import unittest
 import os
 import lsst.utils.tests
 
+from lsst.daf.butler import DataCoordinate
 from lsst.obs.base.ingest_tests import IngestTestBase
 from lsst.obs.subaru import HyperSuprimeCam
 
@@ -49,6 +50,19 @@ class HscIngestTestCase(IngestTestBase, lsst.utils.tests.TestCase):
         self.dataIds = [dict(instrument="HSC", exposure=904024, detector=50)]
 
         super().setUp()
+        self.visits = {
+            DataCoordinate.standardize(
+                instrument="HSC",
+                visit=904024,
+                universe=self.butler.registry.dimensions
+            ): [
+                DataCoordinate.standardize(
+                    instrument="HSC",
+                    exposure=904024,
+                    universe=self.butler.registry.dimensions
+                )
+            ]
+        }
 
     def checkRepo(self, files=None):
         # We ignore `files` because there's only one raw file in
