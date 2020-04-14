@@ -30,7 +30,6 @@ config.isr.crosstalk.value.coeffs.values = [0.0e-6, -125.0e-6, -149.0e-6, -156.0
                                             -157.0e-6, -151.0e-6, -137.0e-6, 0.0e-6]
 
 # Added by Merlin:
-config.isr.doAddDistortionModel = False
 config.isr.doUseOpticsTransmission = False
 config.isr.doUseFilterTransmission = False
 config.isr.doUseSensorTransmission = False
@@ -42,6 +41,6 @@ config.isrMandatorySteps = ['doAssembleCcd',  # default
 config.isrForbiddenSteps = ['doApplyGains', 'normalizeGains',  # additional for this obs_package
                             'doStrayLight', 'doTweakFlat',  # additional for this obs_package
                             'doApplyGains', 'normalizeGains', 'doFlat', 'doFringe',  # remainder are defaults
-                            'doAddDistortionModel', 'doBrighterFatter', 'doUseOpticsTransmission',
+                            'doBrighterFatter', 'doUseOpticsTransmission',
                             'doUseFilterTransmission', 'doUseSensorTransmission',
                             'doUseAtmosphereTransmission', 'doStrayLight', 'doTweakFlat']
