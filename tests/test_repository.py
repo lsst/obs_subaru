@@ -183,7 +183,11 @@ class GetDataTestCase(lsst.utils.tests.TestCase):
         self.assertEqual(flat.getDetector().getId(), self.ccdNum)
 
     def testLinearizer(self):
-        self.assertTrue(self.butler.get('linearizer', ccdnum=1))
+        lin1 = self.butler.get('linearizer', ccdnum=1)
+        lin2 = self.butler.get('linearizer', ccdnum=2)
+        self.assertTrue(lin1)
+        self.assertTrue(lin2)
+        self.assertNotEqual(lin1, lin2)
 
 
 class TestMemory(lsst.utils.tests.MemoryTestCase):
