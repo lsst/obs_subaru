@@ -4,9 +4,8 @@ HSC-specific overrides for ProcessCcdTask
 """
 import os.path
 
-from lsst.utils import getPackageDir
 
-ObsConfigDir = os.path.join(getPackageDir("obs_subaru"), "config", "hsc")
+ObsConfigDir = os.path.dirname(__file__)
 
 for sub in ("isr", "charImage", "calibrate"):
     path = os.path.join(ObsConfigDir, sub + ".py")

@@ -4,11 +4,10 @@ HSC-specific overrides for ProcessCcdTask
 """
 import os.path
 
-from lsst.utils import getPackageDir
 
 from lsst.meas.astrom import MatchOptimisticBConfig
 
-ObsConfigDir = os.path.join(getPackageDir("obs_subaru"), "config", "hsc")
+ObsConfigDir = os.path.dirname(__file__)
 
 config.photoCal.colorterms.load(os.path.join(ObsConfigDir, 'colorterms.py'))
 for refObjLoader in (config.astromRefObjLoader,

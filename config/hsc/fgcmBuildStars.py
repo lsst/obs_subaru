@@ -4,7 +4,6 @@ HSC-specific overrides for FgcmBuildStars
 
 import os.path
 
-from lsst.utils import getPackageDir
 
 config.minPerBand = 2
 config.densityCutMaxPerPixel = 2000
@@ -21,7 +20,7 @@ config.fgcmLoadReferenceCatalog.refFilterMap = {'g': 'g', 'r': 'r', 'r2': 'r',
                                                 'N387': 'g', 'N816': 'i', 'N921': 'z',
                                                 'N1010': 'y'}
 config.fgcmLoadReferenceCatalog.applyColorTerms = True
-hscConfigDir = os.path.join(getPackageDir("obs_subaru"), "config", "hsc")
+hscConfigDir = os.path.join(os.path.dirname(__file__))
 config.fgcmLoadReferenceCatalog.colorterms.load(os.path.join(hscConfigDir, 'colorterms.py'))
 config.fgcmLoadReferenceCatalog.referenceSelector.doSignalToNoise = True
 config.fgcmLoadReferenceCatalog.referenceSelector.signalToNoise.fluxField = 'i_flux'

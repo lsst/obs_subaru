@@ -1,18 +1,10 @@
 import os.path
 
-from lsst.utils import getPackageDir
-
-config.fgcmBuildStars.load(os.path.join(getPackageDir('obs_subaru'),
-                                        'config',
-                                        'hsc',
+config.fgcmBuildStars.load(os.path.join(os.path.dirname(__file__),
                                         'fgcmBuildStars.py'))
-config.fgcmFitCycle.load(os.path.join(getPackageDir('obs_subaru'),
-                                      'config',
-                                      'hsc',
+config.fgcmFitCycle.load(os.path.join(os.path.dirname(__file__),
                                       'fgcmFitCycle.py'))
-config.fgcmOutputProducts.load(os.path.join(getPackageDir('obs_subaru'),
-                                            'config',
-                                            'hsc',
+config.fgcmOutputProducts.load(os.path.join(os.path.dirname(__file__),
                                             'fgcmOutputProducts.py'))
 config.fgcmFitCycle.aperCorrFitNBins = 0
 config.fgcmFitCycle.useRepeatabilityForExpGrayCutsDict = {'N387': True,

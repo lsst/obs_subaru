@@ -1,7 +1,6 @@
 import os
-from lsst.utils import getPackageDir
 
-config.match.refObjLoader.load(os.path.join(getPackageDir("obs_subaru"), "config", "hsc",
+config.match.refObjLoader.load(os.path.join(os.path.dirname(__file__),
                                             "filterMap.py"))
 
 import lsst.obs.subaru.filterFraction

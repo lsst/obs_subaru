@@ -3,7 +3,6 @@ HSC-specific overrides for IsrTask
 """
 import os.path
 
-from lsst.utils import getPackageDir
 from lsst.obs.subaru.strayLight import SubaruStrayLightTask
 
 config.datasetType = "raw"

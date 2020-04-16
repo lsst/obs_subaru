@@ -4,9 +4,8 @@ SuprimeCam (MIT)-specific overrides for ProcessCcdTask
 """
 import os.path
 
-from lsst.utils import getPackageDir
 
-ObsConfigDir = os.path.join(getPackageDir("obs_subaru"), "config", "suprimecam-mit")
+ObsConfigDir = os.path.dirname(__file__)
 
 config.isr.load(os.path.join(ObsConfigDir, 'isr.py'))
 

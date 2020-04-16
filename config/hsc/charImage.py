@@ -4,11 +4,10 @@ HSC-specific overrides for ProcessCcdTask
 """
 import os.path
 
-from lsst.utils import getPackageDir
 
 from lsst.meas.astrom import MatchOptimisticBConfig
 
-ObsConfigDir = os.path.join(getPackageDir("obs_subaru"), "config", "hsc")
+ObsConfigDir = os.path.join(os.path.dirname(__file__))
 
 config.measurePsf.starSelector["objectSize"].widthMin = 0.9
 config.measurePsf.starSelector["objectSize"].fluxMin = 4000

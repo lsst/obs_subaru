@@ -1,9 +1,8 @@
 import os.path
 
-from lsst.utils import getPackageDir
 from lsst.meas.algorithms import ColorLimit
 
-ObsConfigDir = os.path.join(getPackageDir("obs_subaru"), "config")
+ObsConfigDir = os.path.dirname(__file__)
 
 bgFile = os.path.join(ObsConfigDir, "background.py")
 
@@ -28,7 +27,7 @@ except ImportError as e:
     config.measurePsf.psfDeterminer.name = "pca"
 
 # Astrometry
-config.refObjLoader.load(os.path.join(getPackageDir("obs_subaru"), "config", "filterMap.py"))
+config.refObjLoader.load(os.path.join(ObsConfigDir, "filterMap.py"))
 config.refObjLoader.ref_dataset_name = "ps1_pv3_3pi_20170110"
 
 # Set to match defaults curretnly used in HSC production runs (e.g. S15B)
