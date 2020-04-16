@@ -226,7 +226,9 @@ class HscMapper(CameraMapper):
             storage=self.rootStorage)
 
     def bypass_linearizer(self, datasetType, pythonType, butlerLocation, dataId):
-        """Return the linearizer.
+        """Return a Linearizer() for a particular detector. Linearizer() applies to
+        one detector only (i.e., it is detector-specific). When processing multiple
+        detectors, a new instance of Lineaizer() will be created each time.
         """
         return Linearizer()
 
