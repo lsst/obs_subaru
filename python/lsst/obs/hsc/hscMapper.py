@@ -226,9 +226,35 @@ class HscMapper(CameraMapper):
             storage=self.rootStorage)
 
     def bypass_linearizer(self, datasetType, pythonType, butlerLocation, dataId):
-        """Return a Linearizer() for a particular detector. Linearizer() applies to
-        one detector only (i.e., it is detector-specific). When processing multiple
-        detectors, a new instance of Lineaizer() will be created each time.
+        """Return a linearizer for the given detector.
+
+        On each call, a fresh instance of `Linearizer` is returned; the caller is responsible for
+        initializing it appropriately for the detector.
+
+        Parameters
+        ----------
+        datasetType : `str``
+            The dataset type.
+        pythonType : `str` or `type`
+            Type of python object.
+        butlerLocation : `lsst.daf.persistence.ButlerLocation`
+            Struct-like class that holds information needed to persist and retrieve an object using
+            the LSST Persistence Framework.
+        dataId : `dict`
+            dataId passed to map location.
+
+        Returns
+        -------
+        Linearizer : `lsst.ip.isr.Linearizer`
+            Linearizer object for the given detector.
+
+        Notes
+        -----
+        Linearizers are not saved to persistent storage; rather, they are managed entirely in memory.
+        On each call, this function will return a new instance of `Linearizer`, which must be managed
+        (including setting it up for use with a particular detector) by the caller. Calling
+        `bypass_linearizer` twice for the same detector will return _different_ instances of `Linearizer`,
+        which share no state.
         """
         return Linearizer()
 
