@@ -3,9 +3,8 @@ Subaru-specific overrides for ProcessCcdTask (applied before SuprimeCam- and HSC
 """
 import os.path
 
-from lsst.utils import getPackageDir
 
 for sub in ("isr", "charImage", "calibrate"):
-    path = os.path.join(getPackageDir("obs_subaru"), "config", sub + ".py")
+    path = os.path.join(os.path.dirname(__file__), sub + ".py")
     if os.path.exists(path):
         getattr(config, sub).load(path)

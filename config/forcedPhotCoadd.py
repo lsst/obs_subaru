@@ -1,12 +1,11 @@
 import os.path
 
-from lsst.utils import getPackageDir
 from lsst.meas.base import CircularApertureFluxAlgorithm
 
-config.measurement.load(os.path.join(getPackageDir("obs_subaru"), "config", "apertures.py"))
-config.measurement.load(os.path.join(getPackageDir("obs_subaru"), "config", "kron.py"))
-config.measurement.load(os.path.join(getPackageDir("obs_subaru"), "config", "convolvedFluxes.py"))
-config.load(os.path.join(getPackageDir("obs_subaru"), "config", "cmodel.py"))
+config.measurement.load(os.path.join(os.path.dirname(__file__), "apertures.py"))
+config.measurement.load(os.path.join(os.path.dirname(__file__), "kron.py"))
+config.measurement.load(os.path.join(os.path.dirname(__file__), "convolvedFluxes.py"))
+config.load(os.path.join(os.path.dirname(__file__), "cmodel.py"))
 
 config.measurement.slots.gaussianFlux = None
 

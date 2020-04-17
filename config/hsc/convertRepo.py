@@ -1,5 +1,4 @@
 import os.path
-from lsst.utils import getPackageDir
 from lsst.obs.base.gen2to3 import ConvertRepoSkyMapConfig
 
 # Register translators for data IDs.  This is unfortunately a bit fragile; it
@@ -9,16 +8,14 @@ import lsst.obs.subaru.gen2to3
 config.runs["raw"] = "raw/hsc"
 config.runs["brightObjectMask"] = "masks/hsc"
 config.skyMaps["hsc_rings_v1"] = ConvertRepoSkyMapConfig()
-config.skyMaps["hsc_rings_v1"].load(os.path.join(getPackageDir("obs_subaru"), "config",
-                                                 "makeSkyMap.py"))
-config.skyMaps["hsc_rings_v1"].load(os.path.join(getPackageDir("obs_subaru"), "config", "hsc",
-                                                 "makeSkyMap.py"))
+config.skyMaps["hsc_rings_v1"].load(os.path.join(os.path.dirname(__file__), "..", "makeSkyMap.py"))
+config.skyMaps["hsc_rings_v1"].load(os.path.join(os.path.dirname(__file__), "makeSkyMap.py"))
 # If there's no skymap in the root repo, but some dataset defined on
 # tracts/patches is present there (i.e. brightObjectMask), assume this
 # skymap.
 config.rootSkyMapName = "hsc_rings_v1"
 
-config.raws.load(os.path.join(getPackageDir("obs_subaru"), "config", "hsc", "ingest-gen3.py"))
+config.raws.load(os.path.join(os.path.dirname(__file__), "ingest-gen3.py"))
 config.refCats.append("ps1_pv3_3pi_20170110")
 config.runs["ps1_pv3_3pi_20170110"] = "refcats"
 

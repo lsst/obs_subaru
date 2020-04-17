@@ -3,7 +3,6 @@ Suprimecam (MIT)-specific overrides for IsrTask
 """
 import os.path
 
-from lsst.utils import getPackageDir
 from lsst.obs.subaru.crosstalkYagi import YagiCrosstalkTask
 from lsst.obs.subaru.masking import SubaruMaskingTask, SubaruMaskingConfig
 

@@ -1,9 +1,8 @@
 import os.path
 
-from lsst.utils import getPackageDir
 from lsst.meas.algorithms import ColorLimit
 
-ObsConfigDir = os.path.join(getPackageDir("obs_subaru"), "config")
+ObsConfigDir = os.path.dirname(__file__)
 
 bgFile = os.path.join(ObsConfigDir, "background.py")
 
@@ -14,7 +13,7 @@ config.detection.background.load(bgFile)
 for refObjLoader in (config.astromRefObjLoader,
                      config.photoRefObjLoader,
                      ):
-    refObjLoader.load(os.path.join(getPackageDir("obs_subaru"), "config", "filterMap.py"))
+    refObjLoader.load(os.path.join(ObsConfigDir, "filterMap.py"))
     # This is the Gen2 configuration option.
     refObjLoader.ref_dataset_name = "ps1_pv3_3pi_20170110"
 

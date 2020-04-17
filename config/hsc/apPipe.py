@@ -1,7 +1,6 @@
 # Config override for lsst.ap.pipe.ApPipeTask
 import os.path
-from lsst.utils import getPackageDir
 
-hscConfigDir = os.path.join(getPackageDir('obs_subaru'), 'config', 'hsc')
+hscConfigDir = os.path.dirname(__file__)
 
 config.ccdProcessor.load(os.path.join(hscConfigDir, "processCcd.py"))
