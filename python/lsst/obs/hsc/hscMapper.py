@@ -51,8 +51,6 @@ class HscMapper(CameraMapper):
 
         super(HscMapper, self).__init__(policy, os.path.dirname(policyFile), **kwargs)
 
-        self._linearize = Linearizer()
-
         # Ensure each dataset type of interest knows about the full range of keys available from the registry
         keys = {'field': str,
                 'visit': int,
@@ -217,8 +215,6 @@ class HscMapper(CameraMapper):
 
     def map_linearizer(self, dataId, write=False):
         """Map a linearizer."""
-        if self._linearize is None:
-            raise RuntimeError("No linearizer available.")
         actualId = self._transformId(dataId)
         return ButlerLocation(
             pythonType="lsst.ip.isr.LinearizeSquared",
@@ -230,11 +226,37 @@ class HscMapper(CameraMapper):
             storage=self.rootStorage)
 
     def bypass_linearizer(self, datasetType, pythonType, butlerLocation, dataId):
-        """Return the linearizer.
+        """Return a linearizer for the given detector.
+
+        On each call, a fresh instance of `Linearizer` is returned; the caller is responsible for
+        initializing it appropriately for the detector.
+
+        Parameters
+        ----------
+        datasetType : `str``
+            The dataset type.
+        pythonType : `str` or `type`
+            Type of python object.
+        butlerLocation : `lsst.daf.persistence.ButlerLocation`
+            Struct-like class that holds information needed to persist and retrieve an object using
+            the LSST Persistence Framework.
+        dataId : `dict`
+            dataId passed to map location.
+
+        Returns
+        -------
+        Linearizer : `lsst.ip.isr.Linearizer`
+            Linearizer object for the given detector.
+
+        Notes
+        -----
+        Linearizers are not saved to persistent storage; rather, they are managed entirely in memory.
+        On each call, this function will return a new instance of `Linearizer`, which must be managed
+        (including setting it up for use with a particular detector) by the caller. Calling
+        `bypass_linearizer` twice for the same detector will return _different_ instances of `Linearizer`,
+        which share no state.
         """
-        if self._linearize is None:
-            raise RuntimeError("No linearizer available.")
-        return self._linearize
+        return Linearizer()
 
     def _computeCoaddExposureId(self, dataId, singleFilter):
         """Compute the 64-bit (long) identifier for a coadd.
