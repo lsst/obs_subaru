@@ -185,8 +185,8 @@ class GetDataTestCase(lsst.utils.tests.TestCase):
     def testLinearizer(self):
         lin1 = self.butler.get('linearizer', ccdnum=1)
         lin2 = self.butler.get('linearizer', ccdnum=2)
-        self.assertTrue(lin1)
-        self.assertTrue(lin2)
+        self.assertIsNotNone(lin1)
+        self.assertIsNotNone(lin2)
         self.assertNotEqual(lin1, lin2)
 
 
