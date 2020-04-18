@@ -5,6 +5,7 @@ from lsst.obs.base.gen2to3 import ConvertRepoSkyMapConfig
 # probably won't survive persisting the config.
 import lsst.obs.subaru.gen2to3
 
+config.instrument = "lsst.obs.subaru.HyperSuprimeCam"
 config.runs["raw"] = "raw/hsc"
 config.runs["brightObjectMask"] = "masks/hsc"
 config.skyMaps["hsc_rings_v1"] = ConvertRepoSkyMapConfig()
@@ -15,7 +16,8 @@ config.skyMaps["hsc_rings_v1"].load(os.path.join(os.path.dirname(__file__), "mak
 # skymap.
 config.rootSkyMapName = "hsc_rings_v1"
 
-config.raws.load(os.path.join(os.path.dirname(__file__), "ingest-gen3.py"))
+config.defineVisits.load(os.path.join(os.path.join(os.path.dirname(__file__), "defineVisits.py")))
+
 config.refCats.append("ps1_pv3_3pi_20170110")
 config.runs["ps1_pv3_3pi_20170110"] = "refcats"
 
