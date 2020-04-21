@@ -115,8 +115,6 @@ config.fringe.stats.stat = 32
 
 config.doNanInterpAfterFlat = False
 
-config.doAddDistortionModel = True
-
 config.doMeasureBackground = True
 
 config.doCameraSpecificMasking = False
