@@ -26,9 +26,9 @@ config.doSetBadRegions = True
 config.badStatistic = "MEANCLIP"
 
 config.doOverscan = True
-config.overscanFitType = "AKIMA_SPLINE"
-config.overscanOrder = 30
-config.overscanNumSigmaClip = 3.0
+config.overscan.fitType = "AKIMA_SPLINE"
+config.overscan.order = 30
+config.overscan.numSigmaClip = 3.0
 config.overscanNumLeadingColumnsToSkip = 0
 config.overscanNumTrailingColumnsToSkip = 0
 config.overscanMaxDev = 1000.0
