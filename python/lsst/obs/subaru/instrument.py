@@ -35,6 +35,7 @@ from lsst.daf.butler import (DatasetType, DataCoordinate, FileDataset, DatasetRe
                              TIMESPAN_MIN)
 from lsst.daf.butler.core.utils import getFullTypeName
 from lsst.obs.base import Instrument, addUnboundedCalibrationLabel
+from lsst.obs.base.gen2to3 import TranslatorFactory, KeyHandler
 
 from ..hsc.hscPupil import HscPupilFactory
 from ..hsc.hscFilters import HSC_FILTER_DEFINITIONS
@@ -43,6 +44,22 @@ from ..hsc.makeTransmissionCurves import (getSensorTransmission, getOpticsTransm
 from .strayLight.formatter import SubaruStrayLightDataFormatter
 
 log = logging.getLogger(__name__)
+
+
+class _HscAbstractFilterKeyHandler(KeyHandler):
+    """KeyHandler for HSC filter keys that should be mapped to AbstractFilters.
+    """
+
+    __slots__ = ("_map",)
+
+    def __init__(self):
+        super().__init__("abstract_filter")
+        self._map = {d.physical_filter: d.abstract_filter for d in HSC_FILTER_DEFINITIONS
+                     if d.physical_filter is not None}
+
+    def extract(self, gen2id, skyMap, skyMapName, datasetTypeName):
+        physical = gen2id["filter"]
+        return self._map.get(physical, physical)
 
 
 class HyperSuprimeCam(Instrument):
@@ -262,3 +279,13 @@ class HyperSuprimeCam(Instrument):
                                                                       "datetime_begin": datetime_begin,
                                                                       "datetime_end": datetime_end})
             butler.ingest(*datasets, transfer=transfer)
+
+    def makeDataIdTranslatorFactory(self) -> TranslatorFactory:
+        # Docstring inherited from lsst.obs.base.Instrument.
+        factory = TranslatorFactory()
+        factory.addGenericInstrumentRules(self.getName())
+        # Translate Gen2 `filter` to abstract_filter if it hasn't been consumed
+        # yet and gen2keys includes tract.
+        factory.addRule(_HscAbstractFilterKeyHandler(), instrument="HSC", gen2keys=("filter", "tract"),
+                        consume=("filter",))
+        return factory
