@@ -1,10 +1,6 @@
 import os.path
 from lsst.obs.base.gen2to3 import ConvertRepoSkyMapConfig
 
-# Register translators for data IDs.  This is unfortunately a bit fragile; it
-# probably won't survive persisting the config.
-import lsst.obs.subaru.gen2to3
-
 config.instrument = "lsst.obs.subaru.HyperSuprimeCam"
 config.runs["raw"] = "raw/hsc"
 config.runs["brightObjectMask"] = "masks/hsc"

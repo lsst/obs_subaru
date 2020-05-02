@@ -35,6 +35,7 @@ from lsst.daf.butler import (DatasetType, DataCoordinate, FileDataset, DatasetRe
                              TIMESPAN_MIN)
 from lsst.daf.butler.core.utils import getFullTypeName
 from lsst.obs.base import Instrument, addUnboundedCalibrationLabel
+from lsst.obs.base.gen2to3 import TranslatorFactory, PhysicalToAbstractFilterKeyHandler
 
 from ..hsc.hscPupil import HscPupilFactory
 from ..hsc.hscFilters import HSC_FILTER_DEFINITIONS
@@ -255,10 +256,20 @@ class HyperSuprimeCam(Instrument):
                                                   "physical_filter": "HSC-Y",
                                                   "calibration_label": calibrationLabel})
             datasets.append(FileDataset(refs=ref, path=path, formatter=SubaruStrayLightDataFormatter))
+        butler.registry.registerDatasetType(datasetType)
         with butler.transaction():
-            butler.registry.registerDatasetType(datasetType)
             butler.registry.insertDimensionData("calibration_label", {"instrument": self.getName(),
                                                                       "name": calibrationLabel,
                                                                       "datetime_begin": datetime_begin,
                                                                       "datetime_end": datetime_end})
             butler.ingest(*datasets, transfer=transfer)
+
+    def makeDataIdTranslatorFactory(self) -> TranslatorFactory:
+        # Docstring inherited from lsst.obs.base.Instrument.
+        factory = TranslatorFactory()
+        factory.addGenericInstrumentRules(self.getName())
+        # Translate Gen2 `filter` to abstract_filter if it hasn't been consumed
+        # yet and gen2keys includes tract.
+        factory.addRule(PhysicalToAbstractFilterKeyHandler(self.filterDefinitions),
+                        instrument=self.getName(), gen2keys=("filter", "tract"), consume=("filter",))
+        return factory
