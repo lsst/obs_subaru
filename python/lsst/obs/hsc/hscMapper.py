@@ -225,6 +225,11 @@ class HscMapper(CameraMapper):
             mapper=self,
             storage=self.rootStorage)
 
+    def map_crosstalk(self, dataId, write=False):
+        """Construct this on-the-fly in Gen2.
+        """
+        return None
+
     def bypass_linearizer(self, datasetType, pythonType, butlerLocation, dataId):
         """Return a linearizer for the given detector.
 
