@@ -345,6 +345,8 @@ datasets:
     template: '%(pointing)05d/%(filter)s/output/SRC-%(visit)07d-%(ccd)03d.fits'
   source:
     template: '%(pointing)05d/%(filter)s/output/SRC-%(visit)07d-%(ccd)03d.parq'
+  fakes_source:
+    template: '%(pointing)05d/%(filter)s/output/fakes_SRC-%(visit)07d-%(ccd)03d.parq'
   sourceTable:
     template: '%(pointing)05d/%(filter)s/output/sourceTable-%(visit)07d-%(ccd)03d.parq'
   sourceTable_visit:
@@ -452,6 +454,14 @@ datasets:
     - raw
     - raw_visit
     template: '%(pointing)05d/%(filter)s/transformSrcMeasurement_metadata/%(visit)07d-%(ccd)03d.yaml'
+  processCcdWithFakesDriver_metadata:
+    persistable: PropertySet
+    python: lsst.daf.base.PropertySet
+    storage: YamlStorage
+    tables:
+    - raw
+    - raw_visit
+    template: '%(pointing)05d/%(filter)s/processCcdWithFakesDriver_metadata/%(visit)07d.yaml'
   singleFrameDriver_metadata:
     persistable: PropertySet
     python: lsst.daf.base.PropertySet
