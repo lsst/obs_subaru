@@ -28,9 +28,14 @@ from lsst.obs.base.cli.butler_cmd_test import ButlerCmdTestBase
 
 
 class TestButlerCmd(ButlerCmdTestBase, lsst.utils.tests.TestCase):
-    def setUp(self):
-        self.instrument_class = "lsst.obs.subaru.HyperSuprimeCam"
-        self.instrument_name = "HSC"
+
+    @staticmethod
+    def instrumentClass():
+        return "lsst.obs.subaru.HyperSuprimeCam"
+
+    @staticmethod
+    def instrumentName():
+        return "HSC"
 
 
 if __name__ == '__main__':

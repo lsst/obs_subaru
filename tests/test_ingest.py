@@ -26,9 +26,8 @@ import unittest
 import os
 import lsst.utils.tests
 
-from lsst.daf.butler import DataCoordinate
+from lsst.daf.butler import Butler, DataCoordinate
 from lsst.obs.base.ingest_tests import IngestTestBase
-from lsst.obs.subaru import HyperSuprimeCam
 
 testDataPackage = "testdata_subaru"
 try:
@@ -45,11 +44,13 @@ class HscIngestTestCase(IngestTestBase, lsst.utils.tests.TestCase):
 
     def setUp(self):
         self.ingestDir = os.path.dirname(__file__)
-        self.instrument = HyperSuprimeCam()
+        self.instrument = "lsst.obs.subaru.HyperSuprimeCam"
+        self.instrumentName = "HSC"
         self.file = os.path.join(testDataDirectory, "hsc", "raw", "HSCA90402512.fits.gz")
         self.dataIds = [dict(instrument="HSC", exposure=904024, detector=50)]
 
         super().setUp()
+        self.butler = Butler(self.root, run=self.outputRun)
         self.visits = {
             DataCoordinate.standardize(
                 instrument="HSC",
