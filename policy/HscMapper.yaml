@@ -661,6 +661,8 @@ datasets:
     template: plots/brighterFatterPtc-ccd-%(ccd)03d-amp-%(amp)s.png
   photonTransferCurveDataset:
     template: calibrations/ptc/ptcDataset-ccd%(ccd)03d.pkl
+  brightStarStamps:
+    template: '%(pointing)05d/%(filter)s/brightStarStamps/brightStarStamps-%(filter)s-%(visit)07d-%(ccd)03d.fits'
 
   # Plots for analysis QA
   plotCoadd:
