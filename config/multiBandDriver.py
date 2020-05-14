@@ -3,7 +3,7 @@
 import os.path
 
 
-for sub in ("mergeCoaddDetections", "measureCoaddSources", "mergeCoaddMeasurements", "forcedPhotCoadd"):
+for sub in ("detectCoaddSources", "mergeCoaddDetections", "measureCoaddSources", "mergeCoaddMeasurements", "forcedPhotCoadd"):
     path = os.path.join(os.path.dirname(__file__), sub + ".py")
     if os.path.exists(path):
         getattr(config, sub).load(path)
