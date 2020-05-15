@@ -48,7 +48,7 @@ class HscIngestTestCase(IngestTestBase, lsst.utils.tests.TestCase):
 
     @property
     def visits(self):
-        butler = Butler(self.root, run=self.outputRun)
+        butler = Butler(self.root, collections=[self.outputRun])
         return {
             DataCoordinate.standardize(
                 instrument="HSC",
@@ -67,7 +67,7 @@ class HscIngestTestCase(IngestTestBase, lsst.utils.tests.TestCase):
         # We ignore `files` because there's only one raw file in
         # testdata_subaru, and we know it's a science frame.
         # If we ever add more, this test will need to change.
-        butler = Butler(self.root, run=self.outputRun)
+        butler = Butler(self.root, collections=[self.outputRun])
         expanded = butler.registry.expandDataId(self.dataIds[0])
         self.assertEqual(expanded.records["exposure"].observation_type, "science")
 
