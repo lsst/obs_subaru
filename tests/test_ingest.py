@@ -41,26 +41,24 @@ class HscIngestTestCase(IngestTestBase, lsst.utils.tests.TestCase):
 
     curatedCalibrationDatasetTypes = ("defects", "camera", "bfKernel", "transmission_optics",
                                       "transmission_sensor", "transmission_filter", "transmission_atmosphere")
+    ingestDir = os.path.dirname(__file__)
+    instrumentClassName = "lsst.obs.subaru.HyperSuprimeCam"
+    file = os.path.join(testDataDirectory, "hsc", "raw", "HSCA90402512.fits.gz")
+    dataIds = [dict(instrument="HSC", exposure=904024, detector=50)]
 
-    def setUp(self):
-        self.ingestDir = os.path.dirname(__file__)
-        self.instrument = "lsst.obs.subaru.HyperSuprimeCam"
-        self.instrumentName = "HSC"
-        self.file = os.path.join(testDataDirectory, "hsc", "raw", "HSCA90402512.fits.gz")
-        self.dataIds = [dict(instrument="HSC", exposure=904024, detector=50)]
-
-        super().setUp()
-        self.butler = Butler(self.root, run=self.outputRun)
-        self.visits = {
+    @property
+    def visits(self):
+        butler = Butler(self.root, collections=[self.outputRun])
+        return {
             DataCoordinate.standardize(
                 instrument="HSC",
                 visit=904024,
-                universe=self.butler.registry.dimensions
+                universe=butler.registry.dimensions
             ): [
                 DataCoordinate.standardize(
                     instrument="HSC",
                     exposure=904024,
-                    universe=self.butler.registry.dimensions
+                    universe=butler.registry.dimensions
                 )
             ]
         }
@@ -69,7 +67,8 @@ class HscIngestTestCase(IngestTestBase, lsst.utils.tests.TestCase):
         # We ignore `files` because there's only one raw file in
         # testdata_subaru, and we know it's a science frame.
         # If we ever add more, this test will need to change.
-        expanded = self.butler.registry.expandDataId(self.dataIds[0])
+        butler = Butler(self.root, collections=[self.outputRun])
+        expanded = butler.registry.expandDataId(self.dataIds[0])
         self.assertEqual(expanded.records["exposure"].observation_type, "science")
 
 
