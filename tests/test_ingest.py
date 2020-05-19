@@ -43,7 +43,11 @@ class HscIngestTestCase(IngestTestBase, lsst.utils.tests.TestCase):
                                       "transmission_sensor", "transmission_filter", "transmission_atmosphere")
     ingestDir = os.path.dirname(__file__)
     instrumentClassName = "lsst.obs.subaru.HyperSuprimeCam"
-    file = os.path.join(testDataDirectory, "hsc", "raw", "HSCA90402512.fits.gz")
+
+    @property
+    def file(self):
+        return os.path.join(testDataDirectory, "hsc", "raw", "HSCA90402512.fits.gz")
+
     dataIds = [dict(instrument="HSC", exposure=904024, detector=50)]
 
     @property
