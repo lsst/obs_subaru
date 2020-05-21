@@ -53,6 +53,9 @@ funcs:
             - slot_CalibFlux_instFluxErr
             - base_LocalPhotoCalib
             - base_LocalPhotoCalibErr
+    # TODO: When DM-25019 is complete, these should be
+    # changed to use the local value of the background
+    # model, rather than the residual of the background
     sky:
         functor: LocalNanojansky
         args:
@@ -188,6 +191,8 @@ flags:
    - base_FootprintArea_value
    - base_Jacobian_flag
    - base_Jacobian_value
+   - base_LocalBackground_instFlux
+   - base_LocalBackground_instFluxErr
    - base_LocalBackground_flag
    - base_LocalBackground_flag_noGoodPixels
    - base_LocalBackground_flag_noPsf
