@@ -71,12 +71,12 @@ def createGen2Repo(inputPath):
 class ConvertGen2To3TestCase(convertTests.ConvertGen2To3TestCase,
                              lsst.utils.tests.TestCase):
 
+    instrumentClassName = "lsst.obs.subaru.HyperSuprimeCam"
+
     def setUp(self):
         rawpath = os.path.join(testDataDirectory, 'hsc/raw')
         self.gen2calib = os.path.join(testDataDirectory, 'hsc/calib')
         self.gen2root = createGen2Repo(rawpath)
-        self.instrumentName = "HSC"
-        self.instrumentClass = "lsst.obs.subaru.HyperSuprimeCam"
         self.config = os.path.join(os.path.abspath(os.path.dirname(__file__)),
                                    "config", "convert2to3Config.py")
 
