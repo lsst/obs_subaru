@@ -29,4 +29,4 @@ from . import filterFraction
 # This module is distinct from the crosstalk Python module
 from ._crosstalk import *
 
-from .instrument import *
+from ._instrument import *
