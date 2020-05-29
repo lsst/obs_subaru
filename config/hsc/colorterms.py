@@ -88,8 +88,8 @@ config.data = {
         # Names used by data IDs in both Gen2 and Gen3, and
         # Exposure.getFilter() in Gen3 (data is the same).
         'HSC-G': Colorterm(primary="g", secondary="r", c0=0.005728, c1=0.061749, c2=-0.001125),
-        'HSC-I': Colorterm(primary="r", secondary="i", c0=-0.000144, c1=0.001369, c2=-0.008380),
-        'HSC-I2': Colorterm(primary="r", secondary="i", c0=-0.000032, c1=-0.002866, c2=-0.012638),
+        'HSC-R': Colorterm(primary="r", secondary="i", c0=-0.000144, c1=0.001369, c2=-0.008380),
+        'HSC-R2': Colorterm(primary="r", secondary="i", c0=-0.000032, c1=-0.002866, c2=-0.012638),
         'HSC-I': Colorterm(primary="i", secondary="z", c0=0.000643, c1=-0.130078, c2=-0.006855),
         'HSC-I2': Colorterm(primary="i", secondary="z", c0=0.001625, c1=-0.200406, c2=-0.013666),
         'HSC-Z': Colorterm(primary="z", secondary="y", c0=-0.005362, c1=-0.221551, c2=-0.308279),
