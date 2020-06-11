@@ -225,6 +225,16 @@ class HscMapper(CameraMapper):
             mapper=self,
             storage=self.rootStorage)
 
+    def map_crosstalk(self, dataId, write=False):
+        """Fake the mapping for crosstalk.
+
+        Crosstalk is constructed from config parameters, but we need
+        Gen2 butlers to be able to respond to requests for it.
+        Returning None provides a response that can be used with the
+        config parameters to generate the appropriate calibration.
+        """
+        return None
+
     def bypass_linearizer(self, datasetType, pythonType, butlerLocation, dataId):
         """Return a linearizer for the given detector.
 
