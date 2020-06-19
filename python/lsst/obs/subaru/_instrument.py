@@ -32,7 +32,7 @@ import astropy.time
 from lsst.utils import getPackageDir
 from lsst.afw.cameraGeom import makeCameraFromPath, CameraConfig
 from lsst.daf.butler import (DatasetType, DataCoordinate, FileDataset, DatasetRef,
-                             TIMESPAN_MIN)
+                             TIMESPAN_MIN, CollectionType)
 from lsst.daf.butler.core.utils import getFullTypeName
 from lsst.obs.base import Instrument, addUnboundedCalibrationLabel
 from lsst.obs.base.gen2to3 import TranslatorFactory, PhysicalToAbstractFilterKeyHandler
@@ -136,17 +136,7 @@ class HyperSuprimeCam(Instrument):
             kernel = pickle.load(fd, encoding='latin1')  # encoding for pickle written with Python 2
         return kernel
 
-    def writeCuratedCalibrations(self, butler):
-        """Write human-curated calibration Datasets to the given Butler with
-        the appropriate validity ranges.
-
-        This is a temporary API that should go away once obs_ packages have
-        a standardized approach to this problem.
-        """
-
-        # Write the generic calibrations supported by all instruments
-        super().writeCuratedCalibrations(butler)
-
+    def writeAdditionalCuratedCalibrations(self, butler, run=None):
         # Get an unbounded calibration label
         unboundedDataId = addUnboundedCalibrationLabel(butler.registry, self.getName())
 
@@ -158,7 +148,7 @@ class HyperSuprimeCam(Instrument):
         # the version in-repo is written with Python 3 and does not need
         # `encoding='latin1'` to be read.
         bfKernel = self.getBrighterFatterKernel()
-        butler.put(bfKernel, datasetType, unboundedDataId)
+        butler.put(bfKernel, datasetType, unboundedDataId, run=run)
 
         # The following iterate over the values of the dictionaries returned by the transmission functions
         # and ignore the date that is supplied. This is due to the dates not being ranges but single dates,
@@ -176,7 +166,7 @@ class HyperSuprimeCam(Instrument):
         for entry in opticsTransmissions.values():
             if entry is None:
                 continue
-            butler.put(entry, datasetType, unboundedDataId)
+            butler.put(entry, datasetType, unboundedDataId, run=run)
 
         # Write transmission sensor
         sensorTransmissions = getSensorTransmission()
@@ -190,7 +180,7 @@ class HyperSuprimeCam(Instrument):
                 continue
             for sensor, curve in entry.items():
                 dataId = DataCoordinate.standardize(unboundedDataId, detector=sensor)
-                butler.put(curve, datasetType, dataId)
+                butler.put(curve, datasetType, dataId, run=run)
 
         # Write filter transmissions
         filterTransmissions = getFilterTransmission()
@@ -204,7 +194,7 @@ class HyperSuprimeCam(Instrument):
                 continue
             for band, curve in entry.items():
                 dataId = DataCoordinate.standardize(unboundedDataId, physical_filter=band)
-                butler.put(curve, datasetType, dataId)
+                butler.put(curve, datasetType, dataId, run=run)
 
         # Write atmospheric transmissions, this only as dimension of instrument as other areas will only
         # look up along this dimension (ISR)
@@ -216,9 +206,9 @@ class HyperSuprimeCam(Instrument):
         for entry in atmosphericTransmissions.values():
             if entry is None:
                 continue
-            butler.put(entry, datasetType, {"instrument": self.getName()})
+            butler.put(entry, datasetType, {"instrument": self.getName()}, run=run)
 
-    def ingestStrayLightData(self, butler, directory, *, transfer=None):
+    def ingestStrayLightData(self, butler, directory, *, transfer=None, run=None):
         """Ingest externally-produced y-band stray light data files into
         a data repository.
 
@@ -231,7 +221,16 @@ class HyperSuprimeCam(Instrument):
         transfer : `str`, optional
             If not `None`, must be one of 'move', 'copy', 'hardlink', or
             'symlink', indicating how to transfer the files.
+        run : `str`
+            Run to use for this collection of calibrations. If `None` the
+            collection name is worked out automatically from the instrument
+            name and other metadata.
         """
+        if run is None:
+            run = self.makeCollectionName("calib")
+        butler.registry.registerCollection(run, type=CollectionType.RUN)
+        self.writeCameraGeom(butler, run=run)
+
         calibrationLabel = "y-LED-encoder-on"
         # LEDs covered up around 2018-01-01, no need for correctin after that
         # date.
@@ -262,7 +261,7 @@ class HyperSuprimeCam(Instrument):
                                                                       "name": calibrationLabel,
                                                                       "datetime_begin": datetime_begin,
                                                                       "datetime_end": datetime_end})
-            butler.ingest(*datasets, transfer=transfer)
+            butler.ingest(*datasets, transfer=transfer, run=run)
 
     def makeDataIdTranslatorFactory(self) -> TranslatorFactory:
         # Docstring inherited from lsst.obs.base.Instrument.
