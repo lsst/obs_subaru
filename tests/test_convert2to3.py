@@ -87,7 +87,6 @@ class ConvertGen2To3TestCase(convertTests.ConvertGen2To3TestCase,
         self.darks = [{"detector": 50, "calibration_label": "gen2/dark_2013-11-03_050",
                        "instrument": "HSC"}]
         super().setUp()
-        self.collections.add("calib/HSC")
 
 
 def setup_module(module):
