@@ -247,7 +247,7 @@ class HyperSuprimeCam(Instrument):
         for detector in self.getCamera():
             path = os.path.join(directory, f"ybackground-{detector.getId():03d}.fits")
             if not os.path.exists(path):
-                log.warn(f"No stray light data found for detector {detector.getId()} @ {path}.")
+                log.warning(f"No stray light data found for detector {detector.getId()} @ {path}.")
                 continue
             ref = DatasetRef(datasetType, dataId={"instrument": self.getName(),
                                                   "detector": detector.getId(),
