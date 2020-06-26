@@ -29,6 +29,7 @@ __all__ = ("SubaruStrayLightDataFormatter",)
 class SubaruStrayLightDataFormatter(FileFormatter):
     """Gen3 Butler Formatters for HSC y-band stray light correction data.
     """
+    extension = ".fits"
 
     extension = ".fits"
 
