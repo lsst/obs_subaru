@@ -229,7 +229,6 @@ class HyperSuprimeCam(Instrument):
         if run is None:
             run = self.makeCollectionName("calib")
         butler.registry.registerCollection(run, type=CollectionType.RUN)
-        self.writeCameraGeom(butler, run=run)
 
         calibrationLabel = "y-LED-encoder-on"
         # LEDs covered up around 2018-01-01, no need for correctin after that
