@@ -30,6 +30,8 @@ class SubaruStrayLightDataFormatter(FileFormatter):
     """Gen3 Butler Formatters for HSC y-band stray light correction data.
     """
 
+    extension = ".fits"
+
     def _readFile(self, path, pytype=None):
         # Docstring inherited from FileFormatter._readFile.
         return SubaruStrayLightData(path)
