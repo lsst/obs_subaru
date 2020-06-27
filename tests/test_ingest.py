@@ -28,6 +28,7 @@ import lsst.utils.tests
 
 from lsst.daf.butler import Butler, DataCoordinate
 from lsst.obs.base.ingest_tests import IngestTestBase
+from lsst.obs.subaru.strayLight.yStrayLight import SubaruStrayLightData
 
 testDataPackage = "testdata_subaru"
 try:
@@ -66,6 +67,30 @@ class HscIngestTestCase(IngestTestBase, lsst.utils.tests.TestCase):
                 )
             ]
         }
+
+    def testStrayLightIngest(self):
+        """Ingested stray light files."""
+
+        butler = Butler(self.root, run=self.outputRun)
+
+        straylightDir = os.path.join(testDataDirectory, "hsc", "straylight")
+
+        instrument = self.instrumentClass()
+
+        # This will warn about lots of missing files
+        with self.assertLogs(level="WARNING") as cm:
+            instrument.ingestStrayLightData(butler, straylightDir, transfer="auto")
+
+        dataId = {"instrument": self.instrumentName}
+        datasets = list(butler.registry.queryDatasets("yBackground", collections=...,
+                                                      dataId=dataId))
+        # Should have at least one dataset and dataset+warnings = 112
+        self.assertGreaterEqual(len(datasets), 1)
+        self.assertEqual(len(datasets) + len(cm.output), len(instrument.getCamera()))
+
+        # Ensure that we can read the first stray light file
+        strayLight = butler.getDirect(datasets[0])
+        self.assertIsInstance(strayLight, SubaruStrayLightData)
 
     def checkRepo(self, files=None):
         # We ignore `files` because there's only one raw file in

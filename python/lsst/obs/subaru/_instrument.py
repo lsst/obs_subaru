@@ -229,7 +229,6 @@ class HyperSuprimeCam(Instrument):
         if run is None:
             run = self.makeCollectionName("calib")
         butler.registry.registerCollection(run, type=CollectionType.RUN)
-        self.writeCameraGeom(butler, run=run)
 
         calibrationLabel = "y-LED-encoder-on"
         # LEDs covered up around 2018-01-01, no need for correctin after that
@@ -248,7 +247,7 @@ class HyperSuprimeCam(Instrument):
         for detector in self.getCamera():
             path = os.path.join(directory, f"ybackground-{detector.getId():03d}.fits")
             if not os.path.exists(path):
-                log.warn(f"No stray light data found for detector {detector.getId()} @ {path}.")
+                log.warning(f"No stray light data found for detector {detector.getId()} @ {path}.")
                 continue
             ref = DatasetRef(datasetType, dataId={"instrument": self.getName(),
                                                   "detector": detector.getId(),
