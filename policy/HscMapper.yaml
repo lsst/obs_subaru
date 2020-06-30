@@ -179,6 +179,8 @@ exposures:
     template: '%(pointing)05d/%(filter)s/thumbs/flattened-%(visit)07d-%(ccd)03d.fits'
   deepDiff_differenceExp:
     template: 'deepDiff/%(pointing)05d/%(filter)s/DIFFEXP-%(visit)07d-%(ccd)03d.fits'
+  deepDiff_warpedExp:
+    template: 'deepDiff/%(pointing)05d/%(filter)s/WARPEDEXP-%(visit)07d-%(ccd)03d.fits'
   deepDiff_matchedExp:
     template: 'deepDiff/%(pointing)05d/%(filter)s/MATCHEDEXP-%(visit)07d-%(ccd)03d.fits'
 
