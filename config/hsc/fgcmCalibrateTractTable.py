@@ -1,7 +1,7 @@
 import os.path
 
 config.fgcmBuildStars.load(os.path.join(os.path.dirname(__file__),
-                                        'fgcmBuildStars.py'))
+                                        'fgcmBuildStarsTable.py'))
 config.fgcmFitCycle.load(os.path.join(os.path.dirname(__file__),
                                       'fgcmFitCycle.py'))
 config.fgcmOutputProducts.load(os.path.join(os.path.dirname(__file__),

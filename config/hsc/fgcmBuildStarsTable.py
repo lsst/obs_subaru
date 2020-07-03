@@ -1,5 +1,5 @@
 """
-HSC-specific overrides for FgcmBuildStars
+HSC-specific overrides for FgcmBuildStarsTable
 """
 
 import os.path
