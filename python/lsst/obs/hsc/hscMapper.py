@@ -22,6 +22,9 @@ class HscMapper(CameraMapper):
 
     PupilFactoryClass = HscPupilFactory
 
+    # Use the full instrument class name to prevent import errors
+    # between hsc/ and subaru/ packages.
+    _gen3instrument = "lsst.obs.subaru.HyperSuprimeCam"
     _cameraCache = None  # Camera object, cached to speed up instantiation time
 
     @classmethod
