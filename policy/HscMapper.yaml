@@ -670,7 +670,7 @@ datasets:
     python: None
     storage: MatplotlibStorage
     tables: raw
-    template: plots/%(filter)s/tract-%(tract)d/plot-t%(tract)d-%(filter)s-%(description)s-%(style)s.png
+    template: plots/%(filter)s/tract-%(tract)d%(subdir)s/plot-t%(tract)d-%(filter)s-%(description)s-%(style)s.png
   plotSky:
     persistable: None
     python: None
@@ -682,13 +682,13 @@ datasets:
     python: None
     storage: MatplotlibStorage
     table: raw
-    template: plots/color/tract-%(tract)d/plot-t%(tract)d-%(description)s-%(style)s.png
+    template: plots/color/tract-%(tract)d%(subdir)s/plot-t%(tract)d-%(description)s-%(style)s.png
   plotVisit:
     persistable: None
     python: None
     storage: MatplotlibStorage
     tables: raw
-    template: plots/%(filter)s/tract-%(tract)d/visit-%(visit)d/plot-v%(visit)d-%(description)s-%(style)s.png
+    template: plots/%(filter)s/tract-%(tract)d/visit-%(visit)d%(subdir)s/plot-v%(visit)d-%(description)s-%(style)s.png
   plotFakes:
     description: "QA plots using fakes, made by fakesAnalysis as part of visitAnalysis."
     python: None
@@ -701,13 +701,13 @@ datasets:
     python: None
     storage: MatplotlibStorage
     tables: raw
-    template: plots/%(filter)s/tract-%(tract)d/compare-t%(tract)d-%(filter)s-%(description)s-%(style)s.png
+    template: plots/%(filter)s/tract-%(tract)d%(subdir)s/compare-t%(tract)d-%(filter)s-%(description)s-%(style)s.png
   plotCompareVisit:
     persistable: None
     python: None
     storage: MatplotlibStorage
     tables: raw
-    template: plots/%(filter)s/tract-%(tract)d/visit-%(visit)d/compareVisit-v%(visit)d-%(description)s-%(style)s.png
+    template: plots/%(filter)s/tract-%(tract)d/visit-%(visit)d%(subdir)s/compareVisit-v%(visit)d-%(description)s-%(style)s.png
 
   # QA tables
   qaTableVisit:
@@ -716,7 +716,7 @@ datasets:
   # Verify metrics datasets
   colorAnalysis_verify_job:
     persistable: ignore  # Is not persistable yet
-    template: verify/color/tract-%(tract)d/colorAnalysis_verify_job.json
+    template: verify/color/tract-%(tract)d%(subdir)s/colorAnalysis_verify_job.json
   visitAnalysis_verify_job:
     persistable: ignore  # Is not persistable yet
-    template: verify/visit/tract-%(tract)d/visitAnalysis_verify_job.json
+    template: verify/visit/tract-%(tract)d%(subdir)s/visitAnalysis_verify_job.json
