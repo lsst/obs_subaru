@@ -709,10 +709,6 @@ datasets:
     tables: raw
     template: plots/%(filter)s/tract-%(tract)d/visit-%(visit)d%(subdir)s/compareVisit-v%(visit)d-%(description)s-%(style)s.png
 
-  # QA tables
-  qaTableVisit:
-    template: plots/%(filter)s/tract-%(tract)d/visit-%(visit)d/%(description)s.parq
-
   # Verify metrics datasets
   colorAnalysis_verify_job:
     persistable: ignore  # Is not persistable yet
