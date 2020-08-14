@@ -28,6 +28,8 @@ import os
 import pickle
 import logging
 
+from functools import lru_cache
+
 import astropy.time
 from lsst.utils import getPackageDir
 from lsst.afw.cameraGeom import makeCameraFromPath, CameraConfig
@@ -116,6 +118,13 @@ class HyperSuprimeCam(Instrument):
         a standardized approach to writing versioned cameras to a Gen3 repo.
         """
         path = os.path.join(getPackageDir("obs_subaru"), self.policyName, "camera")
+        return self._getCameraFromPath(path)
+
+    @staticmethod
+    @lru_cache()
+    def _getCameraFromPath(path):
+        """Return the camera geometry given solely the path to the location
+        of that definition."""
         config = CameraConfig()
         config.load(os.path.join(path, "camera.py"))
         return makeCameraFromPath(
