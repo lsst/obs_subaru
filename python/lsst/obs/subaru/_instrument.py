@@ -55,6 +55,8 @@ class HyperSuprimeCam(Instrument):
     policyName = "hsc"
     obsDataPackage = "obs_subaru_data"
     filterDefinitions = HSC_FILTER_DEFINITIONS
+    additionalCuratedDatasetTypes = ("bfKernel", "transmission_optics", "transmission_sensor",
+                                     "transmission_filter", "transmission_atmosphere", "yBackground")
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
