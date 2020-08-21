@@ -34,7 +34,7 @@ import astropy.time
 from lsst.utils import getPackageDir
 from lsst.afw.cameraGeom import makeCameraFromPath, CameraConfig
 from lsst.daf.butler import (DatasetType, DataCoordinate, FileDataset, DatasetRef,
-                             TIMESPAN_MIN, CollectionType)
+                             CollectionType, Timespan)
 from lsst.daf.butler.core.utils import getFullTypeName
 from lsst.obs.base import Instrument, addUnboundedCalibrationLabel
 from lsst.obs.base.gen2to3 import TranslatorFactory, PhysicalToAbstractFilterKeyHandler
@@ -242,8 +242,7 @@ class HyperSuprimeCam(Instrument):
         calibrationLabel = "y-LED-encoder-on"
         # LEDs covered up around 2018-01-01, no need for correctin after that
         # date.
-        datetime_begin = TIMESPAN_MIN
-        datetime_end = astropy.time.Time("2018-01-01", format="iso", scale="tai")
+        timespan = Timespan(begin=None, end=astropy.time.Time("2018-01-01", format="iso", scale="tai"))
         datasets = []
         # TODO: should we use a more generic name for the dataset type?
         # This is just the (rather HSC-specific) name used in Gen2, and while
@@ -267,8 +266,7 @@ class HyperSuprimeCam(Instrument):
         with butler.transaction():
             butler.registry.insertDimensionData("calibration_label", {"instrument": self.getName(),
                                                                       "name": calibrationLabel,
-                                                                      "datetime_begin": datetime_begin,
-                                                                      "datetime_end": datetime_end})
+                                                                      "timespan": timespan})
             butler.ingest(*datasets, transfer=transfer, run=run)
 
     def makeDataIdTranslatorFactory(self) -> TranslatorFactory:
