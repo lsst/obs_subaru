@@ -30,6 +30,3 @@ config.datasetIgnorePatterns.extend(["dcrCoadd_forced_config",
 config.datasetIgnorePatterns.extend(["deep_assembleCoadd_metadata",
                                      "deep_safeClipAssembleCoadd_metadata",
                                      "deep_dcrAssembleCoadd_metadata",])
-
-# HSC automatically writes defects via `writeCuratedCalibrations()`
-config.curatedCalibrations.append("defects")
