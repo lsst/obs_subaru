@@ -251,6 +251,7 @@ flags:
    - ext_shapeHSM_HsmShapeRegauss_flag_not_contained
    - ext_shapeHSM_HsmShapeRegauss_flag_parent_source
    - sky_source
+   - detect_isPrimary
 
 flag_rename_rules:
     # Taken from db-meas-forced
