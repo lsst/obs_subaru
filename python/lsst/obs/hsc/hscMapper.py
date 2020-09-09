@@ -269,7 +269,7 @@ class HscMapper(CameraMapper):
         `bypass_linearizer` twice for the same detector will return _different_ instances of `Linearizer`,
         which share no state.
         """
-        return Linearizer()
+        return Linearizer(detectorId=dataId.get('ccd', None))
 
     def _computeCoaddExposureId(self, dataId, singleFilter):
         """Compute the 64-bit (long) identifier for a coadd.
