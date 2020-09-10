@@ -36,7 +36,7 @@ from lsst.afw.cameraGeom import makeCameraFromPath, CameraConfig
 from lsst.daf.butler import (DatasetType, DataCoordinate, FileDataset, DatasetRef,
                              CollectionType, Timespan)
 from lsst.daf.butler.core.utils import getFullTypeName
-from lsst.obs.base import Instrument, addUnboundedCalibrationLabel
+from lsst.obs.base import Instrument
 from lsst.obs.base.gen2to3 import TranslatorFactory, PhysicalFilterToBandKeyHandler
 
 from ..hsc.hscPupil import HscPupilFactory
@@ -147,19 +147,32 @@ class HyperSuprimeCam(Instrument):
             kernel = pickle.load(fd, encoding='latin1')  # encoding for pickle written with Python 2
         return kernel
 
-    def writeAdditionalCuratedCalibrations(self, butler, run=None):
-        # Get an unbounded calibration label
-        unboundedDataId = addUnboundedCalibrationLabel(butler.registry, self.getName())
+    def writeAdditionalCuratedCalibrations(self, butler, collection=None, suffixes=()):
+        # Register the CALIBRATION collection that adds validity ranges.
+        # This does nothing if it is already registered.
+        if collection is None:
+            collection = self.makeCalibrationCollectionName(*suffixes)
+        butler.registry.registerCollection(collection, type=CollectionType.CALIBRATION)
+
+        # Register the RUN collection that holds these datasets directly.  We
+        # only need one because all of these datasets have the same (unbounded)
+        # validity range right now.
+        run = self.makeUnboundedCalibrationRunName(*suffixes)
+        butler.registry.registerRun(run)
+        baseDataId = butler.registry.expandDataId(instrument=self.getName())
+        refs = []
 
         # Write brighter-fatter kernel, with an infinite validity range.
-        datasetType = DatasetType("bfKernel", ("instrument", "calibration_label"), "NumpyArray",
-                                  universe=butler.registry.dimensions)
+        datasetType = DatasetType("bfKernel", ("instrument",), "NumpyArray",
+                                  universe=butler.registry.dimensions,
+                                  isCalibration=True)
         butler.registry.registerDatasetType(datasetType)
+
         # Load and then put instead of just moving the file in part to ensure
         # the version in-repo is written with Python 3 and does not need
         # `encoding='latin1'` to be read.
         bfKernel = self.getBrighterFatterKernel()
-        butler.put(bfKernel, datasetType, unboundedDataId, run=run)
+        refs.append(butler.put(bfKernel, datasetType, baseDataId, run=run))
 
         # The following iterate over the values of the dictionaries returned by the transmission functions
         # and ignore the date that is supplied. This is due to the dates not being ranges but single dates,
@@ -170,56 +183,62 @@ class HyperSuprimeCam(Instrument):
         # Write optical transmissions
         opticsTransmissions = getOpticsTransmission()
         datasetType = DatasetType("transmission_optics",
-                                  ("instrument", "calibration_label"),
+                                  ("instrument",),
                                   "TransmissionCurve",
-                                  universe=butler.registry.dimensions)
+                                  universe=butler.registry.dimensions,
+                                  isCalibration=True)
         butler.registry.registerDatasetType(datasetType)
         for entry in opticsTransmissions.values():
             if entry is None:
                 continue
-            butler.put(entry, datasetType, unboundedDataId, run=run)
+            refs.append(butler.put(entry, datasetType, baseDataId, run=run))
 
         # Write transmission sensor
         sensorTransmissions = getSensorTransmission()
         datasetType = DatasetType("transmission_sensor",
-                                  ("instrument", "detector", "calibration_label"),
+                                  ("instrument", "detector",),
                                   "TransmissionCurve",
-                                  universe=butler.registry.dimensions)
+                                  universe=butler.registry.dimensions,
+                                  isCalibration=True)
         butler.registry.registerDatasetType(datasetType)
         for entry in sensorTransmissions.values():
             if entry is None:
                 continue
             for sensor, curve in entry.items():
-                dataId = DataCoordinate.standardize(unboundedDataId, detector=sensor)
-                butler.put(curve, datasetType, dataId, run=run)
+                dataId = DataCoordinate.standardize(baseDataId, detector=sensor)
+                refs.append(butler.put(curve, datasetType, dataId, run=run))
 
         # Write filter transmissions
         filterTransmissions = getFilterTransmission()
         datasetType = DatasetType("transmission_filter",
-                                  ("instrument", "physical_filter", "calibration_label"),
+                                  ("instrument", "physical_filter",),
                                   "TransmissionCurve",
-                                  universe=butler.registry.dimensions)
+                                  universe=butler.registry.dimensions,
+                                  isCalibration=True)
         butler.registry.registerDatasetType(datasetType)
         for entry in filterTransmissions.values():
             if entry is None:
                 continue
             for band, curve in entry.items():
-                dataId = DataCoordinate.standardize(unboundedDataId, physical_filter=band)
-                butler.put(curve, datasetType, dataId, run=run)
+                dataId = DataCoordinate.standardize(baseDataId, physical_filter=band)
+                refs.append(butler.put(curve, datasetType, dataId, run=run))
 
-        # Write atmospheric transmissions, this only as dimension of instrument as other areas will only
-        # look up along this dimension (ISR)
+        # Write atmospheric transmissions
         atmosphericTransmissions = getAtmosphereTransmission()
         datasetType = DatasetType("transmission_atmosphere", ("instrument",),
                                   "TransmissionCurve",
-                                  universe=butler.registry.dimensions)
+                                  universe=butler.registry.dimensions,
+                                  isCalibration=True)
         butler.registry.registerDatasetType(datasetType)
         for entry in atmosphericTransmissions.values():
             if entry is None:
                 continue
-            butler.put(entry, datasetType, {"instrument": self.getName()}, run=run)
+            refs.append(butler.put(entry, datasetType, {"instrument": self.getName()}, run=run))
 
-    def ingestStrayLightData(self, butler, directory, *, transfer=None, run=None):
+        # Associate all datasets with the unbounded validity range.
+        butler.registry.certify(collection, refs, Timespan(begin=None, end=None))
+
+    def ingestStrayLightData(self, butler, directory, *, transfer=None, collection=None, suffixes=()):
         """Ingest externally-produced y-band stray light data files into
         a data repository.
 
@@ -232,16 +251,37 @@ class HyperSuprimeCam(Instrument):
         transfer : `str`, optional
             If not `None`, must be one of 'move', 'copy', 'hardlink', or
             'symlink', indicating how to transfer the files.
-        run : `str`
-            Run to use for this collection of calibrations. If `None` the
-            collection name is worked out automatically from the instrument
-            name and other metadata.
+        collection : `str`, optional
+            Name to use for the calibration collection that associates all
+            datasets with a validity range.  If this collection already exists,
+            it must be a `~CollectionType.CALIBRATION` collection, and it must
+            not have any datasets that would conflict with those inserted by
+            this method.  If `None`, a collection name is worked out
+            automatically from the instrument name and other metadata by
+            calling ``makeCuratedCalibrationCollectionName``, but this
+            default name may not work well for long-lived repositories unless
+            one or more ``suffixes`` are also provided (and changed every time
+            curated calibrations are ingested).
+        suffixes : `Sequence` [ `str` ], optional
+            Name suffixes to append to collection names, after concatenating
+            them with the standard collection name delimeter.  If provided,
+            these are appended to the names of the `~CollectionType.RUN`
+            collections that datasets are inserted directly into, as well the
+            `~CollectionType.CALIBRATION` collection if it is generated
+            automatically (i.e. if ``collection is None``).
         """
-        if run is None:
-            run = self.makeCollectionName("calib")
-        butler.registry.registerCollection(run, type=CollectionType.RUN)
+        # Register the CALIBRATION collection that adds validity ranges.
+        # This does nothing if it is already registered.
+        if collection is None:
+            collection = self.makeCalibrationCollectionName(*suffixes)
+        butler.registry.registerCollection(collection, type=CollectionType.CALIBRATION)
 
-        calibrationLabel = "y-LED-encoder-on"
+        # Register the RUN collection that holds these datasets directly.  We
+        # only need one because there is only one validity range and hence no
+        # data ID conflicts even when there are no validity ranges.
+        run = self.makeUnboundedCalibrationRunName(*suffixes)
+        butler.registry.registerRun(run)
+
         # LEDs covered up around 2018-01-01, no need for correctin after that
         # date.
         timespan = Timespan(begin=None, end=astropy.time.Time("2018-01-01", format="iso", scale="tai"))
@@ -251,9 +291,10 @@ class HyperSuprimeCam(Instrument):
         # the instances of this dataset are camera-specific, the datasetType
         # (which is used in the generic IsrTask) should not be.
         datasetType = DatasetType("yBackground",
-                                  dimensions=("physical_filter", "detector", "calibration_label"),
+                                  dimensions=("physical_filter", "detector",),
                                   storageClass="StrayLightData",
-                                  universe=butler.registry.dimensions)
+                                  universe=butler.registry.dimensions,
+                                  isCalibration=True)
         for detector in self.getCamera():
             path = os.path.join(directory, f"ybackground-{detector.getId():03d}.fits")
             if not os.path.exists(path):
@@ -261,15 +302,15 @@ class HyperSuprimeCam(Instrument):
                 continue
             ref = DatasetRef(datasetType, dataId={"instrument": self.getName(),
                                                   "detector": detector.getId(),
-                                                  "physical_filter": "HSC-Y",
-                                                  "calibration_label": calibrationLabel})
+                                                  "physical_filter": "HSC-Y"})
             datasets.append(FileDataset(refs=ref, path=path, formatter=SubaruStrayLightDataFormatter))
         butler.registry.registerDatasetType(datasetType)
         with butler.transaction():
-            butler.registry.insertDimensionData("calibration_label", {"instrument": self.getName(),
-                                                                      "name": calibrationLabel,
-                                                                      "timespan": timespan})
             butler.ingest(*datasets, transfer=transfer, run=run)
+            refs = []
+            for dataset in datasets:
+                refs.extend(dataset.refs)
+            butler.registry.certify(collection, refs, timespan)
 
     def makeDataIdTranslatorFactory(self) -> TranslatorFactory:
         # Docstring inherited from lsst.obs.base.Instrument.
