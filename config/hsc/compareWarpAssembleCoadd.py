@@ -4,4 +4,5 @@ import os.path
 config.load(os.path.join(os.path.dirname(__file__), "assembleCoadd.py"))
 
 config.assembleStaticSkyModel.doApplyExternalPhotoCalib = True
+config.assembleStaticSkyModel.externalPhotoCalibName = 'fgcm'
 config.assembleStaticSkyModel.doApplyExternalSkyWcs = True
