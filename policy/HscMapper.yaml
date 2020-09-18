@@ -715,4 +715,7 @@ datasets:
     template: verify/color/tract-%(tract)d%(subdir)s/colorAnalysis_verify_job.json
   visitAnalysis_verify_job:
     persistable: ignore  # Is not persistable yet
-    template: verify/visit/tract-%(tract)d%(subdir)s/visitAnalysis_verify_job.json
+    template: verify/%(filter)s/tract-%(tract)d/visit-%(visit)d%(subdir)s/visitAnalysis_verify_job.json
+  coaddAnalysis_verify_job:
+    persistable: ignore  # Is not persistable yet
+    template: verify/%(filter)s/tract-%(tract)d%(subdir)s/coaddAnalysis_verify_job.json
