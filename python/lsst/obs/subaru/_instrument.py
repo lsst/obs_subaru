@@ -37,7 +37,7 @@ from lsst.daf.butler import (DatasetType, DataCoordinate, FileDataset, DatasetRe
                              CollectionType, Timespan)
 from lsst.daf.butler.core.utils import getFullTypeName
 from lsst.obs.base import Instrument, addUnboundedCalibrationLabel
-from lsst.obs.base.gen2to3 import TranslatorFactory, PhysicalToAbstractFilterKeyHandler
+from lsst.obs.base.gen2to3 import TranslatorFactory, PhysicalFilterToBandKeyHandler
 
 from ..hsc.hscPupil import HscPupilFactory
 from ..hsc.hscFilters import HSC_FILTER_DEFINITIONS
@@ -275,8 +275,8 @@ class HyperSuprimeCam(Instrument):
         # Docstring inherited from lsst.obs.base.Instrument.
         factory = TranslatorFactory()
         factory.addGenericInstrumentRules(self.getName())
-        # Translate Gen2 `filter` to abstract_filter if it hasn't been consumed
+        # Translate Gen2 `filter` to band if it hasn't been consumed
         # yet and gen2keys includes tract.
-        factory.addRule(PhysicalToAbstractFilterKeyHandler(self.filterDefinitions),
+        factory.addRule(PhysicalFilterToBandKeyHandler(self.filterDefinitions),
                         instrument=self.getName(), gen2keys=("filter", "tract"), consume=("filter",))
         return factory
