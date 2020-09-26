@@ -80,12 +80,9 @@ class ConvertGen2To3TestCase(convertTests.ConvertGen2To3TestCase,
         self.config = os.path.join(os.path.abspath(os.path.dirname(__file__)),
                                    "config", "convert2to3Config.py")
 
-        self.biases = [{"detector": 50, "calibration_label": "gen2/bias_2013-11-03_050",
-                        "instrument": "HSC"}]
-        self.flats = [{"detector": 50, "calibration_label": "gen2/flat_2013-11-03_050_HSC-I",
-                       "instrument": "HSC", "physical_filter": "HSC-I"}]
-        self.darks = [{"detector": 50, "calibration_label": "gen2/dark_2013-11-03_050",
-                       "instrument": "HSC"}]
+        self.biases = [{"detector": 50, "instrument": "HSC"}]
+        self.flats = [{"detector": 50, "instrument": "HSC", "physical_filter": "HSC-I"}]
+        self.darks = [{"detector": 50, "instrument": "HSC"}]
         super().setUp()
 
 

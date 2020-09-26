@@ -81,15 +81,14 @@ class HscIngestTestCase(IngestTestBase, lsst.utils.tests.TestCase):
         with self.assertLogs(level="WARNING") as cm:
             instrument.ingestStrayLightData(butler, straylightDir, transfer="auto")
 
-        dataId = {"instrument": self.instrumentName}
-        datasets = list(butler.registry.queryDatasets("yBackground", collections=...,
-                                                      dataId=dataId))
+        collection = self.instrumentClass.makeCalibrationCollectionName()
+        datasets = list(butler.registry.queryDatasetAssociations("yBackground", collections=collection))
         # Should have at least one dataset and dataset+warnings = 112
         self.assertGreaterEqual(len(datasets), 1)
         self.assertEqual(len(datasets) + len(cm.output), len(instrument.getCamera()))
 
         # Ensure that we can read the first stray light file
-        strayLight = butler.getDirect(datasets[0])
+        strayLight = butler.getDirect(datasets[0].ref)
         self.assertIsInstance(strayLight, SubaruStrayLightData)
 
     def checkRepo(self, files=None):
