@@ -54,6 +54,9 @@ config.starColorCuts = ['g,r,-0.25,2.25',
 config.colorSplitBands = ['g', 'i']
 config.freezeStdAtmosphere = True
 config.precomputeSuperStarInitialCycle = True
+# The shallow narrow-band filters (N387, N1010) do not get
+# reliable fits for the super-star flat (illumination correction)
+# on a per-ccd level.
 config.superStarSubCcdDict = {'N387': False,
                               'g': True,
                               'r': True,
@@ -64,6 +67,8 @@ config.superStarSubCcdDict = {'N387': False,
                               'y': True,
                               'N1010': False}
 config.superStarSubCcdChebyshevOrder = 2
+# The shallow narrow-band filters (N387, N1010) do not get
+# reliable fits for the per-ccd gray correction.
 config.ccdGraySubCcdDict = {'N387': False,
                             'g': True,
                             'r': True,
@@ -73,6 +78,21 @@ config.ccdGraySubCcdDict = {'N387': False,
                             'N921': True,
                             'y': True,
                             'N1010': False}
+# All the filters, including the shallow narrow-band filters,
+# can be fit per-visit for the full focal plane, improving
+# ccd-to-ccd continuity.
+config.ccdGrayFocalPlaneDict = {'N387': True,
+                                'g': True,
+                                'r': True,
+                                'i': True,
+                                'N816': True,
+                                'z': True,
+                                'N921': True,
+                                'y': True,
+                                'N1010': True}
+# Only do the full focal plane fitting if over 50% of the focal plane
+# is covered on a given visit
+config.ccdGrayFocalPlaneFitMinCcd = 50
 config.instrumentParsPerBand = True
 config.minStarPerExp = 100
 config.expVarGrayPhotometricCutDict = {'N387': 0.05,
