@@ -353,6 +353,8 @@ datasets:
     template: '%(pointing)05d/%(filter)s/output/sourceTable-%(visit)07d-%(ccd)03d.parq'
   sourceTable_visit:
     template: '%(pointing)05d/%(filter)s/output/sourceTable-%(visit)07d.parq'
+  visitSummary:
+    template: '%(pointing)05d/%(filter)s/output/visitSummary-%(visit)07d.fits'
   fakes_src:
     template: '%(pointing)05d/%(filter)s/tract%(tract)d/fakes_src-%(visit)07d-%(ccd)03d.fits'
   calibrated_src:
