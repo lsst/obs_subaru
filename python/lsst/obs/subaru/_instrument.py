@@ -75,34 +75,33 @@ class HyperSuprimeCam(Instrument):
         # The maximum values below make Gen3's ObservationDataIdPacker produce
         # outputs that match Gen2's ccdExposureId.
         obsMax = 21474800
-        registry.insertDimensionData(
-            "instrument",
-            {
-                "name": self.getName(),
-                "detector_max": 200,
-                "visit_max": obsMax,
-                "exposure_max": obsMax,
-                "class_name": getFullTypeName(self),
-            }
-        )
-        registry.insertDimensionData(
-            "detector",
-            *[
+        with registry.transaction():
+            registry.syncDimensionData(
+                "instrument",
                 {
-                    "instrument": self.getName(),
-                    "id": detector.getId(),
-                    "full_name": detector.getName(),
-                    # TODO: make sure these definitions are consistent with
-                    # those extracted by astro_metadata_translator, and test
-                    # that they remain consistent somehow.
-                    "name_in_raft": detector.getName().split("_")[1],
-                    "raft": detector.getName().split("_")[0],
-                    "purpose": str(detector.getType()).split(".")[-1],
+                    "name": self.getName(),
+                    "detector_max": 200,
+                    "visit_max": obsMax,
+                    "exposure_max": obsMax,
+                    "class_name": getFullTypeName(self),
                 }
-                for detector in camera
-            ]
-        )
-        self._registerFilters(registry)
+            )
+            for detector in camera:
+                registry.syncDimensionData(
+                    "detector",
+                    {
+                        "instrument": self.getName(),
+                        "id": detector.getId(),
+                        "full_name": detector.getName(),
+                        # TODO: make sure these definitions are consistent with
+                        # those extracted by astro_metadata_translator, and
+                        # test that they remain consistent somehow.
+                        "name_in_raft": detector.getName().split("_")[1],
+                        "raft": detector.getName().split("_")[0],
+                        "purpose": str(detector.getType()).split(".")[-1],
+                    }
+                )
+            self._registerFilters(registry)
 
     def getRawFormatter(self, dataId):
         # Docstring inherited from Instrument.getRawFormatter
