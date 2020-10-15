@@ -1,5 +1,5 @@
 """
-Subaru-specific overrides for SingleFrameDriverTask (applied before SuprimeCam- and HSC-specific overrides).
+Subaru-specific overrides for SingleFrameDriverTask (applied before HSC-specific overrides).
 """
 import os.path
 

@@ -1,6 +1,6 @@
 # obs_subaru
 
-Subaru-specific (hsc, suprimecam) configuration and tasks for the LSST Data Management Stack
+Subaru-specific (hsc) configuration and tasks for the LSST Data Management Stack
 
 ## Hyper Suprime-Cam
 

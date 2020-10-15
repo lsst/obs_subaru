@@ -1,6 +1,6 @@
 """
 Subaru-specific overrides for ProcessCcdWithFakesDriverTask
-(applied before SuprimeCam- and HSC-specific overrides).
+(applied before HSC-specific overrides).
 """
 import os.path
 

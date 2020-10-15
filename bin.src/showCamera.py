@@ -29,6 +29,8 @@ import lsst.afw.cameraGeom as cameraGeom
 import lsst.afw.geom as afwGeom
 import lsst.geom as geom
 
+from lsst.obs.hsc import HscMapper as mapper
+
 debug = False
 
 
@@ -157,17 +159,11 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description='Plot contours of PSF quality')
 
-    parser.add_argument('--suprimeCam', action="store_true", help="Show SuprimeCam", default=False)
     parser.add_argument('--outputFile', type=str, help="File to write plot to", default=None)
     parser.add_argument('--noDistortion', action="store_true", help="Include distortion")
     parser.add_argument('--names', action="store_true", help="Use CCD's names, not serials")
 
     args = parser.parse_args()
-
-    if args.suprimeCam:
-        from lsst.obs.suprimecam import SuprimecamMapper as mapper  # noqa N813
-    else:
-        from lsst.obs.hsc import HscMapper as mapper  # noqa N813
 
     camera = mapper(root="/datasets/hsc/repo").camera
 
