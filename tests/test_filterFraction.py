@@ -35,8 +35,8 @@ from lsst.obs.subaru.filterFraction import FilterFractionPlugin
 class FilterFractionTest(lsst.utils.tests.TestCase):
 
     def setUp(self):
-        # Set up a Coadd with CoaddInputs tables that have blank filter columns to be filled
-        # in by later test code.
+        # Set up a Coadd with CoaddInputs tables that have blank filter
+        # columns to be filled in by later test code.
         self.coadd = ExposureF(30, 90)
         # WCS is arbitrary, since it'll be the same for all images
         wcs = makeSkyWcs(crpix=Point2D(0, 0), crval=SpherePoint(45.0, 45.0, degrees),
@@ -45,8 +45,8 @@ class FilterFractionTest(lsst.utils.tests.TestCase):
         schema = ExposureCatalog.Table.makeMinimalSchema()
         self.filterKey = schema.addField("filter", type=str, doc="", size=16)
         weightKey = schema.addField("weight", type=float, doc="")
-        # First input image covers the first 2/3, second covers the last 2/3, so they
-        # overlap in the middle 1/3.
+        # First input image covers the first 2/3, second covers the last 2/3,
+        # so they overlap in the middle 1/3.
         inputs = ExposureCatalog(schema)
         self.input1 = inputs.addNew()
         self.input1.setId(1)
@@ -58,12 +58,13 @@ class FilterFractionTest(lsst.utils.tests.TestCase):
         self.input2.setBBox(Box2I(Point2I(0, 30), Point2I(29, 89)))
         self.input2.setWcs(wcs)
         self.input2.set(weightKey, 3.0)
-        # Use the same catalog for visits and CCDs since the algorithm we're testing only cares
-        # about CCDs.
+        # Use the same catalog for visits and CCDs since the algorithm we're
+        # testing only cares about CCDs.
         self.coadd.getInfo().setCoaddInputs(CoaddInputs(inputs, inputs))
 
         # Set up a catalog with centroids and a FilterFraction plugin.
-        # We have one record in each region (first input only, both inputs, second input only)
+        # We have one record in each region (first input only, both inputs,
+        # second input only)
         schema = SourceCatalog.Table.makeMinimalSchema()
         centroidKey = Point2DKey.addFields(schema, "centroid", doc="position", unit="pixel")
         schema.getAliasMap().set("slot_Centroid", "centroid")
@@ -88,7 +89,8 @@ class FilterFractionTest(lsst.utils.tests.TestCase):
         del self.plugin
 
     def testSingleFilter(self):
-        """Test that we get FilterFraction=1 for filters with only one version."""
+        """Test that we get FilterFraction=1 for filters with only one version.
+        """
         self.input1.set(self.filterKey, "g")
         self.input2.set(self.filterKey, "g")
         self.plugin.measure(self.record1, self.coadd)
@@ -130,7 +132,9 @@ class FilterFractionTest(lsst.utils.tests.TestCase):
         self.assertEqual(self.record2.get("subaru_FilterFraction_weighted"), 1.0)
 
     def testInvalidCombination(self):
-        """Test that we get a fatal exception for weird combinations of filters."""
+        """Test that we get a fatal exception for weird combinations of
+        filters.
+        """
         self.input1.set(self.filterKey, "i")
         self.input2.set(self.filterKey, "r")
         with self.assertRaises(FatalAlgorithmError):

@@ -92,9 +92,9 @@ class HyperSuprimeCam(Instrument):
                     "instrument": self.getName(),
                     "id": detector.getId(),
                     "full_name": detector.getName(),
-                    # TODO: make sure these definitions are consistent with those
-                    # extracted by astro_metadata_translator, and test that they
-                    # remain consistent somehow.
+                    # TODO: make sure these definitions are consistent with
+                    # those extracted by astro_metadata_translator, and test
+                    # that they remain consistent somehow.
                     "name_in_raft": detector.getName().split("_")[1],
                     "raft": detector.getName().split("_")[0],
                     "purpose": str(detector.getType()).split(".")[-1],
@@ -174,10 +174,12 @@ class HyperSuprimeCam(Instrument):
         bfKernel = self.getBrighterFatterKernel()
         refs.append(butler.put(bfKernel, datasetType, baseDataId, run=run))
 
-        # The following iterate over the values of the dictionaries returned by the transmission functions
-        # and ignore the date that is supplied. This is due to the dates not being ranges but single dates,
-        # which do not give the proper notion of validity. As such unbounded calibration labels are used
-        # when inserting into the database. In the future these could and probably should be updated to
+        # The following iterate over the values of the dictionaries returned
+        # by the transmission functions and ignore the date that is supplied.
+        # This is due to the dates not being ranges but single dates,
+        # which do not give the proper notion of validity. As such unbounded
+        # calibration labels are used when inserting into the database.
+        # In the future these could and probably should be updated to
         # properly account for what ranges are considered valid.
 
         # Write optical transmissions

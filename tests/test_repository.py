@@ -107,7 +107,8 @@ class GetDataTestCase(lsst.utils.tests.TestCase):
         self.weath_airTemperature = -0.8
         self.weath_airPressure = 62170.
         self.weath_humidity = 33.1
-        # NOTE: if we deal with DM-8053 and get UT1 implemented, ERA will change slightly.
+        # NOTE: if we deal with DM-8053 and get UT1 implemented, ERA will
+        # change slightly.
         self.era = 2.3659570321481826*radians
 
     def tearDown(self):

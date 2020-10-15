@@ -36,8 +36,8 @@ class HscFlatCombineTask(CalibCombineTask):
         mi.getMask().set(0)
 
         # Retrieve the detector
-        # XXX It's unfortunate that we have to read an entire image to get the detector, but there's no
-        # public API in the butler to get the same.
+        # XXX It's unfortunate that we have to read an entire image to get the
+        # detector, but there's no public API in the butler to get the same.
         image = sensorRefList[0].get("postISRCCD")
         detector = image.getDetector()
         del image
@@ -69,7 +69,8 @@ class HscFlatCombineTask(CalibCombineTask):
             return
         if numCorners == 4:
             # Everything to be masked
-            # We ignore the question of how we're getting any data from a CCD that's totally vignetted...
+            # We ignore the question of how we're getting any data from a CCD
+            # that's totally vignetted...
             self.log.warn("Detector %d is completely vignetted" % detector.getId())
             mask |= bitMask
             return

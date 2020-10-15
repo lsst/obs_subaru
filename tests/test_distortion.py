@@ -45,10 +45,12 @@ class HscDistortionTestCase(lsst.utils.tests.TestCase):
     test that it produces the same results.
     """
     def testDistortion(self):
-        """Test that the distortion data matches the saved data or create new data
+        """Test that the distortion data matches the saved data or create new
+        data
 
-        If SAVE_DATA is true then save newly created data and then fail the test
-        in order to prevent anyone from committing the test with SAVE_DATA true!
+        If SAVE_DATA is true then save newly created data and then fail the
+        test in order to prevent anyone from committing the test with SAVE_DATA
+        true!
 
         Otherwise create new data and compare to the saved data
         """
@@ -98,11 +100,13 @@ class HscDistortionTestCase(lsst.utils.tests.TestCase):
         - serial: detector.getSerial
         - cornerDict: a dict of pixPosKey, cornerData, where:
             - pixPosKey: self.asKey(pixPos) where pixPos is pixel position
-            - cornerData is Struct contains these fields (all of type lsst.geom.Point2D):
+            - cornerData is Struct contains these fields (all of
+              type lsst.geom.Point2D):
                 - pixPos: pixel position
                 - focalPlane: focal plane position computed from pixPos
                 - fieldAngle: fieldAngle position computed from focalPlane
-                - focalPlaneRoundTrip: focal plane position computed from fieldAngle
+                - focalPlaneRoundTrip: focal plane position computed from
+                  fieldAngle
                 - pixPosRoundTrip: pixel position computed from focalPlane
         """
         camera = HscMapper(root=".", calibRoot=".").camera
@@ -111,11 +115,15 @@ class HscDistortionTestCase(lsst.utils.tests.TestCase):
         for detector in camera:
             # for each corner of each CCD:
             # - get pixel position
-            # - convert to focal plane coordinates using the detector and record it
-            # - convert to field angle (this is the conversion that uses HscDistortion) and record it
-            # - convert back to focal plane (testing inverse direction of HscDistortion) and record it
-            # - convert back to pixel position and record it; pixel <-> focal plane is affine
-            #   so there is no reason to doubt the inverse transform, but there is no harm
+            # - convert to focal plane coordinates using the detector and
+            #   record it
+            # - convert to field angle (this is the conversion that uses
+            #   HscDistortion) and record it
+            # - convert back to focal plane (testing inverse direction of
+            #   HscDistortion) and record it
+            # - convert back to pixel position and record it; pixel <-> focal
+            #   plane is affine so there is no reason to doubt the inverse
+            #   transform, but there is no harm
             pixelsToFocalPlane = detector.getTransform(PIXELS, FOCAL_PLANE)
             cornerDict = {}
             for pixPos in detector.getCorners(PIXELS):

@@ -38,7 +38,8 @@ delta = 0.443506852043971
 # "K" determines the normalization of biorthogonal filters.
 # JPEG2000 uses the normalization:
 #    H(0) = \sum_i h[i] = 1, \tilde{H}(0) = \sum_i \tilde{h}[i] = 2
-# where h is the analysis low-pass filter, and \tilde{h} is the synthesis low-pass filter.
+# where h is the analysis low-pass filter, and \tilde{h} is the synthesis
+# low-pass filter.
 # The value K = 1.230174104914001 is for this normalization.
 #
 # We use the normalization:

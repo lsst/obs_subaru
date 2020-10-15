@@ -119,7 +119,8 @@ class SubaruStrayLightTask(StrayLightTask):
         model = strayLightData.evaluate(angleStart*degrees,
                                         None if angleStart == angleEnd else angleEnd*degrees)
 
-        # Some regions don't have useful model values because the amplifier is dead when the darks were taken
+        # Some regions don't have useful model values because the amplifier is
+        # dead when the darks were taken
         #
         badAmps = {9: [0, 1, 2, 3], 33: [0, 1], 43: [0]}  # Known bad amplifiers in the data: {ccdId: [ampId]}
         if detId in badAmps:
@@ -197,7 +198,8 @@ class SubaruStrayLightData(StrayLightData):
 
             ccd_img[:, ch_w*ch:ch_w*(ch+1)] = _upscale_image(img, (ccd_h, ch_w), image_scale_level)
 
-        # Some regions don't have useful values because the amplifier is dead when the darks were taken
+        # Some regions don't have useful values because the amplifier is dead
+        # when the darks were taken
         #    is_bad = ccd_img > BAD_THRESHOLD
         #    ccd_img[is_bad] = numpy.median(ccd_img[~is_bad])
 

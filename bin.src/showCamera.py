@@ -95,13 +95,15 @@ def main(camera, sample=20, names=False, showDistortion=True, plot=True, outputF
                         focalPlaneToFieldAngle=focalPlaneToFieldAngle)
                     # Compute distorted pixel position
                     distortedPixelPosition = pixelToDistortedPixel.applyForward(geom.Point2D(x, y))
-                    # Comput distorted focal plane position from distorted pixel position
+                    # Comput distorted focal plane position from distorted
+                    # pixel position
                     distortedFpPosition = pixelToFocalPlane.applyForward(
                         geom.Point2D(distortedPixelPosition))
                     xFpDistort.append(distortedFpPosition.getX())
                     yFpDistort.append(distortedFpPosition.getY())
                     if debug:
-                        # The following is just for recording and comparing with old values
+                        # The following is just for recording and comparing
+                        # with old values
                         pixPosition = pixelToFocalPlane.applyInverse(fpPosition)
                         fieldAngle = focalPlaneToFieldAngle.applyForward(fpPosition)
                         if fieldAngle not in fieldAngles:
