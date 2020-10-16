@@ -22,15 +22,19 @@
 """
 Determine and apply crosstalk corrections
 
-N.b. This code was written and tested for the 4-amplifier Hamamatsu chips used in (Hyper)?SuprimeCam,
-and will need to be generalised to handle other amplifier layouts.  I don't want to do this until we
-have an example.
+N.b. This code was written and tested for the 4-amplifier Hamamatsu chips used
+in (Hyper)?SuprimeCam, and will need to be generalised to handle other
+amplifier layouts.  I don't want to do this until we have an example.
 
 N.b. To estimate crosstalk from the SuprimeCam data, the commands are e.g.:
-import crosstalk
-coeffs = crosstalk.estimateCoeffs(range(131634, 131642), range(10), threshold=1e5,
-                                  plot=True, title="CCD0..9", fig=1)
-crosstalk.fixCcd(131634, 0, coeffs)
+
+.. code-block:: python
+
+   import crosstalk
+   coeffs = crosstalk.estimateCoeffs(range(131634, 131642), range(10),
+                                     threshold=1e5, plot=True, title="CCD0..9",
+                                     fig=1)
+   crosstalk.fixCcd(131634, 0, coeffs)
 """
 import numpy as np
 import lsst.afw.detection as afwDetect
@@ -128,19 +132,23 @@ class CrosstalkYagiCoeffsConfig(pexConfig.Config):
     )
 
     def getCoeffs1(self):
-        """Return a 2-D numpy array of crosstalk coefficients of the proper shape"""
+        """Return a 2-D numpy array of crosstalk coefficients of the proper
+        shape"""
         return np.array(self.crossTalkCoeffs1).reshape(self.shapeCoeffsArray).tolist()
 
     def getCoeffs2(self):
-        """Return a 2-D numpy array of crosstalk coefficients of the proper shape"""
+        """Return a 2-D numpy array of crosstalk coefficients of the proper
+        shape"""
         return np.array(self.crossTalkCoeffs2).reshape(self.shapeCoeffsArray).tolist()
 
     def getGainsPreampSigboard(self):
-        """Return a 2-D numpy array of effective gain for preamp+SIG of the proper shape"""
+        """Return a 2-D numpy array of effective gain for preamp+SIG of the
+        proper shape"""
         return np.array(self.relativeGainsPreampAndSigboard).reshape(self.shapeGainsArray).tolist()
 
     def getGainsTotal(self, dateobs='2008-08-01'):
-        """Return a 2-D numpy array of effective total gain of the proper shape"""
+        """Return a 2-D numpy array of effective total gain of the proper
+        shape"""
         if dateobs < '2010-10':  # may need rewritten to a more reliable way
             return np.array(self.relativeGainsTotalBeforeOct2010).reshape(self.shapeGainsArray).tolist()
         else:
@@ -152,9 +160,15 @@ nAmp = 4
 
 def getCrosstalkX1(x, xmax=512):
     """
-    Return the primary X positions in CCD which affect the count of input x pixel
-    x    :  xpos in Ccd, affected by the returned pixels
-    xmax :  nx per amp
+    Return the primary X positions in CCD which affect the count of input
+    x pixel
+
+    Parameters
+    ----------
+    x :
+        xpos in Ccd, affected by the returned pixels
+    xmax :
+        nx per amp
     """
     ctx1List = [x,
                 2 * xmax - x - 1,
@@ -166,10 +180,17 @@ def getCrosstalkX1(x, xmax=512):
 
 def getCrosstalkX2(x, xmax=512):
     """
-    Return the 2ndary X positions (dX=2) in CCD which affect the count of input x pixel
-           Those X pixels are read by 2-pixel ealier than the primary pixels.
-    x    :  xpos in Ccd, affected by the returned pixels
-    xmax :  nx per amp
+    Return the 2ndary X positions (dX=2) in CCD which affect the count of
+    input x pixel
+
+    Those X pixels are read by 2-pixel ealier than the primary pixels.
+
+    Parameters
+    ----------
+    x :
+        xpos in Ccd, affected by the returned pixels
+    xmax :
+        nx per amp
     """
     # ch0,ch2: ctx2 = ctx1 - 2,  ch1,ch3: ctx2 = ctx1 + 2
     ctx2List = [x - 2,
@@ -181,18 +202,29 @@ def getCrosstalkX2(x, xmax=512):
 
 
 def getAmplifier(image, amp, ampReference=None, offset=2):
-    """Extract an image of the amplifier from the CCD, along with an offset version
+    """Extract an image of the amplifier from the CCD, along with an offset
+    version
 
     The amplifier image will be flipped (if required) to match the
     orientation of a nominated reference amplifier.
 
     An additional image, with the nominated offset applied, is also produced.
 
-    @param image           Image of CCD
-    @param amp             Index of amplifier
-    @param ampReference    Index of reference amplifier
-    @param offset          Offset to apply
-    @return amplifier image, offset amplifier image
+    Parameters
+    ----------
+    image :
+        Image of CCD
+    amp :
+        Index of amplifier
+    ampReference :
+        Index of reference amplifier
+    offset :
+        Offset to apply
+
+    Returns
+    -------
+    amp_image :
+        amplifier image, offset amplifier image
     """
     height = image.getHeight()
     ampBox = geom.Box2I(geom.Point2I(amp*512, 0), geom.Extent2I(512, height))
@@ -208,13 +240,16 @@ def getAmplifier(image, amp, ampReference=None, offset=2):
 def subtractCrosstalkYagi(mi, coeffs1List, coeffs2List, gainsPreampSig, minPixelToMask=45000,
                           crosstalkStr="CROSSTALK"):
     """Subtract the crosstalk from MaskedImage mi given a set of coefficients
-       based on procedure presented in Yagi et al. 2012, PASP in publication; arXiv:1210.8212
-       The pixels affected by signal over minPixelToMask have the crosstalkStr bit set
+
+    Based on procedure presented in Yagi et al. 2012, PASP in publication;
+    arXiv:1210.8212 The pixels affected by signal over minPixelToMask have
+    the crosstalkStr bit set
     """
 
     #
-    # These are the pixels that are bright enough to cause crosstalk (more precisely,
-    # the ones that we label as causing crosstalk; in reality all pixels cause crosstalk)
+    # These are the pixels that are bright enough to cause crosstalk (more
+    # precisely, the ones that we label as causing crosstalk; in reality all
+    # pixels cause crosstalk)
     #
     if True:
         tempStr = "TEMP"                    # mask plane used to record the bright pixels that we need to mask
@@ -248,7 +283,8 @@ def subtractCrosstalkYagi(mi, coeffs1List, coeffs2List, gainsPreampSig, minPixel
         subtractCrosstalk(mi, nAmp, coeffs1List, coeffs2List, gainsPreampSig)
 
     #
-    # Clear the crosstalkStr bit in the original bright pixels, where tempStr is set
+    # Clear the crosstalkStr bit in the original bright pixels, where tempStr
+    # is set
     #
     msk = mi.getMask()
     temp = msk.getPlaneBitMask(tempStr)

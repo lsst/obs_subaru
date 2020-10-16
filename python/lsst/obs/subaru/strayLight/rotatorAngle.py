@@ -14,7 +14,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Module to calculate instrument rotator angle at start and end of observation"""
+"""Module to calculate instrument rotator angle at start and end of observation
+"""
 
 __all__ = ["inrStartEnd"]
 
@@ -141,7 +142,8 @@ def _mal2aal(mal_d):
 
 
 def _pos2adt(al_t_d, al_s_d, delta_az_d):
-    """convert altitudes of telescope and star and relative azimuth to angular distance and position angle"""
+    """convert altitudes of telescope and star and relative azimuth to angular
+    distance and position angle"""
     zd_t_r = np.deg2rad(90.0-al_t_d)
     zd_s_r = np.deg2rad(90.0-al_s_d)
     daz_r = np.deg2rad(delta_az_d)
@@ -161,7 +163,8 @@ def _pos2adt(al_t_d, al_s_d, delta_az_d):
 
 
 def _addpad2xy(ang_dist_d, p_ang_d, inr_d):
-    """convert angular distance, position angle, and instrument rotator angle to position on the cold plate"""
+    """convert angular distance, position angle, and instrument rotator angle
+    to position on the cold plate"""
     t = 90.0-(p_ang_d-inr_d)
     x = np.cos(np.deg2rad(t))
     y = np.sin(np.deg2rad(t))

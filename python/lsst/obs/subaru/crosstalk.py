@@ -22,15 +22,20 @@
 """
 Determine and apply crosstalk corrections
 
-N.b. This code was written and tested for the 4-amplifier Hamamatsu chips used in (Hyper)?SuprimeCam,
-and will need to be generalised to handle other amplifier layouts.  I don't want to do this until we
-have an example.
+N.b. This code was written and tested for the 4-amplifier Hamamatsu chips used
+in (Hyper)?SuprimeCam, and will need to be generalised to handle other
+amplifier layouts.  I don't want to do this until we have an example.
 
 N.b. To estimate crosstalk from the SuprimeCam data, the commands are e.g.:
-import crosstalk
-coeffs, coeffsErr = crosstalk.estimateCoeffs(butler, range(131634, 131642), range(10), threshold=1e5,
-                                             plot=True, title="CCD0..9", fig=1)
-crosstalk.fixCcd(butler, 131634, 0, coeffs)
+
+.. code-block:: python
+
+   import crosstalk
+   coeffs, coeffsErr = crosstalk.estimateCoeffs(butler, range(131634, 131642),
+                                                range(10), threshold=1e5,
+                                                plot=True, title="CCD0..9",
+                                                fig=1)
+   crosstalk.fixCcd(butler, 131634, 0, coeffs)
 """
 import sys
 import math
@@ -68,7 +73,8 @@ class CrosstalkCoeffsConfig(pexConfig.Config):
     )
 
     def getCoeffs(self):
-        """Return a 2-D numpy array of crosstalk coefficients of the proper shape"""
+        """Return a 2-D numpy array of crosstalk coefficients of the proper
+        shape"""
         return np.array(self.values).reshape(self.shape)
 
 
@@ -92,7 +98,8 @@ nAmp = 4
 
 
 def getXPos(width, hwidth, x):
-    """Return the amp that x is in, and the positions of its image in each amplifier"""
+    """Return the amp that x is in, and the positions of its image in each
+    amplifier"""
     amp = x//(hwidth//2)                # which amp am I in?  Assumes nAmp == 4
     assert nAmp == 4
     assert amp in range(nAmp)
@@ -225,14 +232,16 @@ def calculateCoeffs(rats, nsigma, plot=False, fig=None, title=None):
 def subtractXTalk(mi, coeffs, minPixelToMask=45000, crosstalkStr="CROSSTALK"):
     """Subtract the crosstalk from MaskedImage mi given a set of coefficients
 
-    The pixels affected by signal over minPixelToMask have the crosstalkStr bit set
+    The pixels affected by signal over minPixelToMask have the crosstalkStr
+    bit set
     """
     sctrl = afwMath.StatisticsControl()
     sctrl.setAndMask(mi.getMask().getPlaneBitMask("BAD"))
     bkgd = afwMath.makeStatistics(mi, afwMath.MEDIAN, sctrl).getValue()
     #
-    # These are the pixels that are bright enough to cause crosstalk (more precisely,
-    # the ones that we label as causing crosstalk; in reality all pixels cause crosstalk)
+    # These are the pixels that are bright enough to cause crosstalk (more
+    # precisely, the ones that we label as causing crosstalk; in reality all
+    # pixels cause crosstalk)
     #
     tempStr = "TEMP"                    # mask plane used to record the bright pixels that we need to mask
     msk = mi.getMask()
@@ -262,7 +271,8 @@ def subtractXTalk(mi, coeffs, minPixelToMask=45000, crosstalkStr="CROSSTALK"):
 
                 msk = ampJ.getMask()
                 if np.all(msk.getArray() & msk.getPlaneBitMask("BAD")):
-                    # Bad amplifier; ignore it completely --- its effect will come out in the bias
+                    # Bad amplifier; ignore it completely --- its effect will
+                    # come out in the bias
                     continue
                 msk &= crosstalk
 
@@ -271,7 +281,8 @@ def subtractXTalk(mi, coeffs, minPixelToMask=45000, crosstalkStr="CROSSTALK"):
 
                 ampI -= ampJ
         #
-        # Clear the crosstalkStr bit in the original bright pixels, where tempStr is set
+        # Clear the crosstalkStr bit in the original bright pixels, where
+        # tempStr is set
         #
         msk = mi.getMask()
         temp = msk.getPlaneBitMask(tempStr)
@@ -465,8 +476,10 @@ def makeSubplots(figure, nx=2, ny=2):
 
 
 def getMpFigure(fig=None, clear=True):
-    """Return a pyplot figure(); if fig is supplied save it and make it the default
-    fig may also be a bool (make a new figure) or an int (return or make a figure (1-indexed;
+    """Return a pyplot figure()
+
+    If fig is supplied save it and make it the default fig may also be a bool
+    (make a new figure) or an int (return or make a figure (1-indexed;
     python-list style -n supported)
     """
 
@@ -534,7 +547,8 @@ def getMpFigure(fig=None, clear=True):
 
 
 def fixCcd(butler, visit, ccd, coeffs, display=True):
-    """Apply cross-talk correction to a CCD, given the cross-talk coefficients"""
+    """Apply cross-talk correction to a CCD, given the cross-talk coefficients
+    """
     mi = readImage(butler, visit=visit, ccd=ccd)
     if display:
         afwDisplay.getDisplay(frame=1).mtv(mi.getImage(), title="CCD %d" % ccd)

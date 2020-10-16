@@ -21,8 +21,8 @@ class HscDistortionConfig(Config):
     makeHscDistortion() scales the coeffs from the original FP in "pixels"
     to their equivalent in the actual focal plane scale of HSC in mm.
 
-    According to Yuki Okura, a 9th order polynomial is required to model the rapid changes
-    to the distortion at the edges of the field.
+    According to Yuki Okura, a 9th order polynomial is required to model the
+    rapid changes to the distortion at the edges of the field.
     """
     ccdToSkyOrder = Field(dtype=int,
                           doc="Polynomial order for conversion from focal plane position to field angle",
@@ -207,7 +207,8 @@ def makeHscDistortion(config):
     """
     forwardCoeffs = makeAstPolyMapCoeffs(config.ccdToSkyOrder, config.xCcdToSky, config.yCcdToSky)
 
-    # Convert coefficients from assumed 1 mm plateScale to actual 11.2 plateScale
+    # Convert coefficients from assumed 1 mm plateScale to actual 11.2
+    # plateScale
     pixelScale = config.plateScale*config.pixelSize*arcseconds  # in arcsec/pixel
     for coeff in forwardCoeffs:
         coeff[0] = coeff[0]/(config.pixelSize**(coeff[2] + coeff[3]))

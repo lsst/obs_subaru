@@ -54,7 +54,8 @@ class HscMapper(CameraMapper):
 
         super(HscMapper, self).__init__(policy, os.path.dirname(policyFile), **kwargs)
 
-        # Ensure each dataset type of interest knows about the full range of keys available from the registry
+        # Ensure each dataset type of interest knows about the full range of
+        # keys available from the registry
         keys = {'field': str,
                 'visit': int,
                 'filter': str,
@@ -89,8 +90,8 @@ class HscMapper(CameraMapper):
         self.defaultFilterName = "UNRECOGNISED"
 
         #
-        # The number of bits allocated for fields in object IDs, appropriate for
-        # the default-configured Rings skymap.
+        # The number of bits allocated for fields in object IDs, appropriate
+        # for the default-configured Rings skymap.
         #
         # This shouldn't be the mapper's job at all; see #2797.
 
@@ -143,9 +144,11 @@ class HscMapper(CameraMapper):
 
     @staticmethod
     def _flipChipsLR(exp, wcs, detectorId, dims=None):
-        """Flip the chip left/right or top/bottom. Process either/and the pixels and wcs
+        """Flip the chip left/right or top/bottom. Process either/and the
+        pixels and wcs
 
-        Most chips are flipped L/R, but the rotated ones (100..103) are flipped T/B
+        Most chips are flipped L/R, but the rotated ones (100..103) are
+        flipped T/B.
         """
         flipLR, flipTB = (False, True) if detectorId in (100, 101, 102, 103) else (True, False)
         if exp:
@@ -164,7 +167,8 @@ class HscMapper(CameraMapper):
         wcs = afwGeom.makeSkyWcs(md)
         wcs = self._flipChipsLR(None, wcs, dataId['ccd'],
                                 dims=afwImage.bboxFromMetadata(md).getDimensions())[1]
-        # NOTE: we don't know where the 0.992 magic constant came from. It was copied over from hscSimMapper.
+        # NOTE: we don't know where the 0.992 magic constant came from.
+        # It was copied over from hscSimMapper.
         wcsR = afwGeom.makeSkyWcs(crpix=wcs.getPixelOrigin(),
                                   crval=wcs.getSkyOrigin(),
                                   cdMatrix=wcs.getCdMatrix()*0.992)
@@ -183,11 +187,13 @@ class HscMapper(CameraMapper):
             exposure, wcs = self._flipChipsLR(exposure, wcs, exposure.getDetector().getId())
             exposure.setWcs(wcs)
         except lsst.pex.exceptions.TypeError as e:
-            # See DM-14372 for why this is debug and not warn (e.g. calib files without wcs metadata).
+            # See DM-14372 for why this is debug and not warn (e.g. calib
+            # files without wcs metadata).
             self.log.debug("wcs set to None; missing information found in metadata to create a valid wcs:"
                            " %s", e.args[0])
 
-        # ensure any WCS values stripped from the metadata are removed in the exposure
+        # ensure any WCS values stripped from the metadata are removed in
+        # the exposure
         exposure.setMetadata(metadata)
 
     def std_dark(self, item, dataId):
@@ -241,8 +247,8 @@ class HscMapper(CameraMapper):
     def bypass_linearizer(self, datasetType, pythonType, butlerLocation, dataId):
         """Return a linearizer for the given detector.
 
-        On each call, a fresh instance of `Linearizer` is returned; the caller is responsible for
-        initializing it appropriately for the detector.
+        On each call, a fresh instance of `Linearizer` is returned; the caller
+        is responsible for initializing it appropriately for the detector.
 
         Parameters
         ----------
@@ -251,8 +257,8 @@ class HscMapper(CameraMapper):
         pythonType : `str` or `type`
             Type of python object.
         butlerLocation : `lsst.daf.persistence.ButlerLocation`
-            Struct-like class that holds information needed to persist and retrieve an object using
-            the LSST Persistence Framework.
+            Struct-like class that holds information needed to persist and
+            retrieve an object using the LSST Persistence Framework.
         dataId : `dict`
             dataId passed to map location.
 
@@ -263,11 +269,12 @@ class HscMapper(CameraMapper):
 
         Notes
         -----
-        Linearizers are not saved to persistent storage; rather, they are managed entirely in memory.
-        On each call, this function will return a new instance of `Linearizer`, which must be managed
-        (including setting it up for use with a particular detector) by the caller. Calling
-        `bypass_linearizer` twice for the same detector will return _different_ instances of `Linearizer`,
-        which share no state.
+        Linearizers are not saved to persistent storage; rather, they are
+        managed entirely in memory. On each call, this function will return a
+        new instance of `Linearizer`, which must be managed (including setting
+        it up for use with a particular detector) by the caller. Calling
+        `bypass_linearizer` twice for the same detector will return
+        _different_ instances of `Linearizer`, which share no state.
         """
         return Linearizer(detectorId=dataId.get('ccd', None))
 
@@ -306,7 +313,8 @@ class HscMapper(CameraMapper):
     def bypass_deepMergedCoaddId(self, datasetType, pythonType, location, dataId):
         return self._computeCoaddExposureId(dataId, False)
 
-    # The following allow grabbing a 'psf' from the butler directly, without having to get it from a calexp
+    # The following allow grabbing a 'psf' from the butler directly, without
+    # having to get it from a calexp
     def map_psf(self, dataId, write=False):
         if write:
             raise RuntimeError("Writing a psf directly is no longer permitted: write as part of a calexp")

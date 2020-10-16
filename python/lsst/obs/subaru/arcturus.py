@@ -75,8 +75,8 @@ Median filter with a medianN x medianN filter
 
 The results are set as mos[-visit]
 
-If onlyVisits is specified, only process those chips [n.b. frame0 is still obeyed]; otherwise
-process every visit in the positions dict
+If onlyVisits is specified, only process those chips [n.b. frame0 is still
+obeyed]; otherwise process every visit in the positions dict
     """
     visits = sorted(position.keys())
 
@@ -109,8 +109,9 @@ process every visit in the positions dict
     if nJob > 1:
         pool = multiprocessing.Pool(max([len(visits), nJob]))
 
-        # We use map_async(...).get(9999) instead of map(...) to workaround a python bug
-        # in handling ^C in subprocesses (http://bugs.python.org/issue8296)
+        # We use map_async(...).get(9999) instead of map(...) to workaround
+        # a python but in handling ^C in subprocesses
+        # (http://bugs.python.org/issue8296)
         for v, im in pool.map_async(worker, visits).get(9999):
             mos[-v] = im
 
@@ -146,14 +147,16 @@ process every visit in the positions dict
 
 def OLDprepareFrames(mos, frame0=1, R=23, medianN=23, onlyVisits=[], force=False):
     """Prepare frames to have their radial profiles measured.
-Subtract the first quartile
-Set a radius R circle about the centre of Arcturus to NaN
-Set a chip with a bad QE value to NaN
-Median filter with a medianN x medianN filter
 
-The result is set as mos[-visit]
+    #. Subtract the first quartile
+    #. Set a radius R circle about the centre of Arcturus to NaN
+    #. Set a chip with a bad QE value to NaN
+    #. Median filter with a medianN x medianN filter
 
-If onlyVisits is specified, only process those chips [n.b. frame0 is still obeyed]
+    The result is set as mos[-visit]
+
+    If onlyVisits is specified, only process those chips [n.b. frame0 is still
+    obeyed]
     """
 
     visits = sorted(position.keys())
@@ -197,11 +200,12 @@ If onlyVisits is specified, only process those chips [n.b. frame0 is still obeye
 
 
 def annularAverage(im, nBin=100, rmin=None, rmax=None, median=False):
-    """Return image im's radial profile (more accurately the tuple (rbar, prof), binned into nBin bins
+    """Return image im's radial profile (more accurately the tuple
+    (rbar, prof), binned into nBin bins.
 
-r is measured from (0, 0) in the image, accounting properly for XY0
+    r is measured from (0, 0) in the image, accounting properly for XY0
 
-If rmax is provided it's the maximum value of r to consider
+    If rmax is provided it's the maximum value of r to consider
     """
 
     width, height = im.getDimensions()

@@ -29,6 +29,8 @@ import lsst.afw.cameraGeom as cameraGeom
 import lsst.afw.geom as afwGeom
 import lsst.geom as geom
 
+from lsst.obs.hsc import HscMapper as mapper
+
 debug = False
 
 
@@ -93,13 +95,15 @@ def main(camera, sample=20, names=False, showDistortion=True, plot=True, outputF
                         focalPlaneToFieldAngle=focalPlaneToFieldAngle)
                     # Compute distorted pixel position
                     distortedPixelPosition = pixelToDistortedPixel.applyForward(geom.Point2D(x, y))
-                    # Comput distorted focal plane position from distorted pixel position
+                    # Comput distorted focal plane position from distorted
+                    # pixel position
                     distortedFpPosition = pixelToFocalPlane.applyForward(
                         geom.Point2D(distortedPixelPosition))
                     xFpDistort.append(distortedFpPosition.getX())
                     yFpDistort.append(distortedFpPosition.getY())
                     if debug:
-                        # The following is just for recording and comparing with old values
+                        # The following is just for recording and comparing
+                        # with old values
                         pixPosition = pixelToFocalPlane.applyInverse(fpPosition)
                         fieldAngle = focalPlaneToFieldAngle.applyForward(fpPosition)
                         if fieldAngle not in fieldAngles:
@@ -157,17 +161,11 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description='Plot contours of PSF quality')
 
-    parser.add_argument('--suprimeCam', action="store_true", help="Show SuprimeCam", default=False)
     parser.add_argument('--outputFile', type=str, help="File to write plot to", default=None)
     parser.add_argument('--noDistortion', action="store_true", help="Include distortion")
     parser.add_argument('--names', action="store_true", help="Use CCD's names, not serials")
 
     args = parser.parse_args()
-
-    if args.suprimeCam:
-        from lsst.obs.suprimecam import SuprimecamMapper as mapper  # noqa N813
-    else:
-        from lsst.obs.hsc import HscMapper as mapper  # noqa N813
 
     camera = mapper(root="/datasets/hsc/repo").camera
 
