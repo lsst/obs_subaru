@@ -6,6 +6,7 @@ config.measurement.load(os.path.join(os.path.dirname(__file__), "apertures.py"))
 config.measurement.load(os.path.join(os.path.dirname(__file__), "kron.py"))
 config.measurement.load(os.path.join(os.path.dirname(__file__), "convolvedFluxes.py"))
 config.measurement.load(os.path.join(os.path.dirname(__file__), "hsm.py"))
+config.measurement.load(os.path.join(os.path.dirname(__file__), "gaapFlux.py"))
 config.load(os.path.join(os.path.dirname(__file__), "cmodel.py"))
 
 # Set reference catalog for Gen2.
