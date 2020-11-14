@@ -246,7 +246,8 @@ class HyperSuprimeCam(Instrument):
         Parameters
         ----------
         butler : `lsst.daf.butler.Butler`
-            Butler initialized with the collection to ingest into.
+            Butler to write with.  Any collections associated with it are
+            ignored in favor of ``collection`` and/or ``labels``.
         directory : `str`
             Directory containing yBackground-*.fits files.
         transfer : `str`, optional
