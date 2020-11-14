@@ -5,3 +5,4 @@
 config.skyMaps = {}
 config.rootSkyMapName = None
 config.refCats = []
+config.extraUmbrellaChildren = []

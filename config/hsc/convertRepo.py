@@ -2,7 +2,9 @@ import os.path
 from lsst.obs.base.gen2to3 import ConvertRepoSkyMapConfig
 from lsst.obs.subaru import HyperSuprimeCam
 
-config.runsForced["brightObjectMask"] = HyperSuprimeCam.makeCollectionName("masks")
+maskCollection = HyperSuprimeCam.makeCollectionName("masks")
+config.runsForced["brightObjectMask"] = maskCollection
+config.extraUmbrellaChildren.append(maskCollection)
 config.skyMaps["hsc_rings_v1"] = ConvertRepoSkyMapConfig()
 config.skyMaps["hsc_rings_v1"].load(os.path.join(os.path.dirname(__file__), "..", "makeSkyMap.py"))
 config.skyMaps["hsc_rings_v1"].load(os.path.join(os.path.dirname(__file__), "makeSkyMap.py"))
