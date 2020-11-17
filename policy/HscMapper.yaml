@@ -710,6 +710,29 @@ datasets:
     storage: MatplotlibStorage
     tables: raw
     template: plots/%(filter)s/tract-%(tract)d/visit-%(visit)d%(subdir)s/compareVisit-v%(visit)d-%(description)s-%(style)s.png
+  # WCS assessment plot and table
+  plotWcsOutlines:
+    persistable: None
+    python: None
+    storage: MatplotlibStorage
+    tables: raw
+    template: plots/%(filter)s/tract-%(tract)d/visit-%(visit)d%(subdir)s/plot-v%(visit)d-%(description)s-%(style)s.png
+  wcsAnalysisVisitTable:
+     description: >
+         Table including entries relevant for comparing the various visit-level WCS solutions.
+     persistable: ignored
+     storage: ParquetStorage
+     python: lsst.pipe.tasks.parquetTable.ParquetTable
+     template: plots/%(filter)s/tract-%(tract)d/visit-%(visit)d%(subdir)s/%(tract)d_%(visit)d_wcsAnalysis.parq
+  wcsAnalysisAllVisitsPerFilterTable:
+     description: >
+         Table including entries relevant for comparing the various visit-level WCS solutions.
+         This one is a concatenation of all tracts/visits for a given filter in the butler
+         repo under consideration.
+     persistable: ignored
+     storage: ParquetStorage
+     python: lsst.pipe.tasks.parquetTable.ParquetTable
+     template: plots/%(filter)s/%(filter)s_allTractVisits_wcsAnalysis.parq
 
   # Verify metrics datasets
   colorAnalysis_verify_job:
