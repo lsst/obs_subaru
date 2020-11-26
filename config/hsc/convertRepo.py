@@ -2,7 +2,9 @@ import os.path
 from lsst.obs.base.gen2to3 import ConvertRepoSkyMapConfig
 from lsst.obs.subaru import HyperSuprimeCam
 
-config.runsForced["brightObjectMask"] = HyperSuprimeCam.makeCollectionName("masks")
+maskCollection = HyperSuprimeCam.makeCollectionName("masks")
+config.runsForced["brightObjectMask"] = maskCollection
+config.extraUmbrellaChildren.append(maskCollection)
 config.skyMaps["hsc_rings_v1"] = ConvertRepoSkyMapConfig()
 config.skyMaps["hsc_rings_v1"].load(os.path.join(os.path.dirname(__file__), "..", "makeSkyMap.py"))
 config.skyMaps["hsc_rings_v1"].load(os.path.join(os.path.dirname(__file__), "makeSkyMap.py"))
@@ -14,7 +16,6 @@ config.rootSkyMapName = "hsc_rings_v1"
 config.defineVisits.load(os.path.join(os.path.join(os.path.dirname(__file__), "defineVisits.py")))
 
 config.refCats.append("ps1_pv3_3pi_20170110")
-config.runs["ps1_pv3_3pi_20170110"] = "refcats"
 
 # ForcedPhotCoadd writes its configs to a filename that doesn't include a
 # coaddName prefix, which means the conversion tools can't infer the right

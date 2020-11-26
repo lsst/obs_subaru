@@ -146,17 +146,17 @@ class HyperSuprimeCam(Instrument):
             kernel = pickle.load(fd, encoding='latin1')  # encoding for pickle written with Python 2
         return kernel
 
-    def writeAdditionalCuratedCalibrations(self, butler, collection=None, suffixes=()):
+    def writeAdditionalCuratedCalibrations(self, butler, collection=None, labels=()):
         # Register the CALIBRATION collection that adds validity ranges.
         # This does nothing if it is already registered.
         if collection is None:
-            collection = self.makeCalibrationCollectionName(*suffixes)
+            collection = self.makeCalibrationCollectionName(*labels)
         butler.registry.registerCollection(collection, type=CollectionType.CALIBRATION)
 
         # Register the RUN collection that holds these datasets directly.  We
         # only need one because all of these datasets have the same (unbounded)
         # validity range right now.
-        run = self.makeUnboundedCalibrationRunName(*suffixes)
+        run = self.makeUnboundedCalibrationRunName(*labels)
         butler.registry.registerRun(run)
         baseDataId = butler.registry.expandDataId(instrument=self.getName())
         refs = []
@@ -239,14 +239,15 @@ class HyperSuprimeCam(Instrument):
         # Associate all datasets with the unbounded validity range.
         butler.registry.certify(collection, refs, Timespan(begin=None, end=None))
 
-    def ingestStrayLightData(self, butler, directory, *, transfer=None, collection=None, suffixes=()):
+    def ingestStrayLightData(self, butler, directory, *, transfer=None, collection=None, labels=()):
         """Ingest externally-produced y-band stray light data files into
         a data repository.
 
         Parameters
         ----------
         butler : `lsst.daf.butler.Butler`
-            Butler initialized with the collection to ingest into.
+            Butler to write with.  Any collections associated with it are
+            ignored in favor of ``collection`` and/or ``labels``.
         directory : `str`
             Directory containing yBackground-*.fits files.
         transfer : `str`, optional
@@ -261,26 +262,28 @@ class HyperSuprimeCam(Instrument):
             automatically from the instrument name and other metadata by
             calling ``makeCuratedCalibrationCollectionName``, but this
             default name may not work well for long-lived repositories unless
-            one or more ``suffixes`` are also provided (and changed every time
-            curated calibrations are ingested).
-        suffixes : `Sequence` [ `str` ], optional
-            Name suffixes to append to collection names, after concatenating
+            ``labels`` is also provided (and changed every time curated
+            calibrations are ingested).
+        labels : `Sequence` [ `str` ], optional
+            Extra strings to include in collection names, after concatenating
             them with the standard collection name delimeter.  If provided,
-            these are appended to the names of the `~CollectionType.RUN`
+            these are inserted into to the names of the `~CollectionType.RUN`
             collections that datasets are inserted directly into, as well the
             `~CollectionType.CALIBRATION` collection if it is generated
-            automatically (i.e. if ``collection is None``).
+            automatically (i.e. if ``collection is None``).  Usually this is
+            just the name of the ticket on which the calibration collection is
+            being created.
         """
         # Register the CALIBRATION collection that adds validity ranges.
         # This does nothing if it is already registered.
         if collection is None:
-            collection = self.makeCalibrationCollectionName(*suffixes)
+            collection = self.makeCalibrationCollectionName(*labels)
         butler.registry.registerCollection(collection, type=CollectionType.CALIBRATION)
 
         # Register the RUN collection that holds these datasets directly.  We
         # only need one because there is only one validity range and hence no
         # data ID conflicts even when there are no validity ranges.
-        run = self.makeUnboundedCalibrationRunName(*suffixes)
+        run = self.makeUnboundedCalibrationRunName(*labels)
         butler.registry.registerRun(run)
 
         # LEDs covered up around 2018-01-01, no need for correctin after that
