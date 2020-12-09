@@ -1,6 +1,6 @@
 description: The DRP pipeline specialized for the HSC instrument
 instrument: lsst.obs.subaru.HyperSuprimeCam
-inherits:
+imports:
   - $PIPE_TASKS_DIR/pipelines/DRP.yaml
 tasks:
   makeWarp:
