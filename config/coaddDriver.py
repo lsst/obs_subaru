@@ -1,7 +1,6 @@
 # Load from sub-configurations
 import os.path
 
-
 from lsst.pipe.tasks.assembleCoadd import CompareWarpAssembleCoaddTask
 config.assembleCoadd.retarget(CompareWarpAssembleCoaddTask)
 
