@@ -1,1 +1,1 @@
-config.computeVisitRegions["single-raw-wcs"].padding = 4000
+config.computeVisitRegions["single-raw-wcs"].padding = 250
