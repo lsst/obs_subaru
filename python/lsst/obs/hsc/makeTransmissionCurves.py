@@ -25,9 +25,9 @@ import os
 import glob
 import numpy as np
 
-from lsst.afw.image import TransmissionCurve, Filter
+from lsst.afw.image import TransmissionCurve
 from lsst.utils import getPackageDir
-from .hscMapper import HscMapper
+from . import hscFilters
 
 __all__ = ("getOpticsTransmission", "getSensorTransmission", "getAtmosphereTransmission",
            "getFilterTransmission",)
@@ -41,16 +41,14 @@ def getLongFilterName(short):
     """Return a long HSC filter name (e.g. 'HSC-R') that's usable as a data ID
     value from the short one (e.g. 'r') declared canonical in afw.image.Filter.
     """
-    HscMapper.addFilters()
     if short.startswith("HSC"):
         return short
     if short.startswith("NB") or short.startswith("IB"):
         num = int(short[2:].lstrip("0"))
         return "%s%04d" % (short[:2], num)
-    f = Filter(short)
-    for a in f.getAliases():
-        if a.startswith("HSC") or a.startswith("NB") or a.startswith("IB"):
-            return a
+    for filter in hscFilters.HSC_FILTER_DEFINITIONS:
+        if short == filter.afw_name or short == filter.band:
+            return filter.physical_filter
     return short
 
 
