@@ -40,7 +40,7 @@ def main(butler, visits, fields, fieldRadius, showCCDs=False, aitoff=False, alph
         visits.append(v)
         ra.append(sky[0].asDegrees())
         dec.append(sky[1].asDegrees())
-        filters[v] = exp.getFilter().getName()
+        filters[v] = exp.getFilterLabel().bandLabel
 
     plt.clf()
     if aitoff:
@@ -60,7 +60,7 @@ def main(butler, visits, fields, fieldRadius, showCCDs=False, aitoff=False, alph
                             i="magenta",
                             z="brown",
                             y="black",
-                            nb0921='darkgray',
+                            N0921='darkgray',
                             )
     else:
         ctypeKeys = {}

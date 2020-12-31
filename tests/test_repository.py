@@ -120,7 +120,7 @@ class GetDataTestCase(lsst.utils.tests.TestCase):
         raw = self.butler.get("raw", visit=self.visit, ccd=self.ccdNum)
         ccd = raw.getDetector()
         self.assertEqual(raw.getDimensions(), geom.Extent2I(*self.rawSize))
-        self.assertEqual(raw.getFilter().getCanonicalName(), self.filter)
+        self.assertEqual(raw.getFilterLabel().bandLabel, self.filter)
         self.assertEqual(ccd.getId(), self.ccdNum)
         self.assertEqual(ccd.getBBox().getDimensions(), geom.Extent2I(*self.ccdSize))
 
