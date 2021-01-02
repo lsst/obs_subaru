@@ -26,6 +26,7 @@ import unittest
 import os
 import lsst.utils.tests
 
+import lsst.afw.image
 from lsst.daf.butler import Butler, DataCoordinate
 from lsst.obs.base.ingest_tests import IngestTestBase
 from lsst.obs.subaru.strayLight.yStrayLight import SubaruStrayLightData
@@ -44,6 +45,7 @@ class HscIngestTestCase(IngestTestBase, lsst.utils.tests.TestCase):
                                       "transmission_sensor", "transmission_filter", "transmission_atmosphere")
     ingestDir = os.path.dirname(__file__)
     instrumentClassName = "lsst.obs.subaru.HyperSuprimeCam"
+    filterLabel = lsst.afw.image.FilterLabel(physical="HSC-I", band="i")
 
     @property
     def file(self):
