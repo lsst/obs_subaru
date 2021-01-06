@@ -18,7 +18,7 @@ config.isr.doWrite = False
 config.isr.doSaturation = True
 config.isr.qa.doThumbnailOss = False
 config.isr.qa.doThumbnailFlattened = False
-config.isr.fringe.filters = ['y', ]
+config.isr.fringe.filters = ['HSC-Y', ]
 config.isr.overscanFitType = "AKIMA_SPLINE"
 config.isr.overscanOrder = 30
 # Overscan is fairly efficient at removing bias level, but leaves a line in the middle

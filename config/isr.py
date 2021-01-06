@@ -83,7 +83,7 @@ config.darkDataProductName = "dark"
 config.doStrayLight = True
 config.strayLight.retarget(SubaruStrayLightTask)
 config.strayLight.doRotatorAngleCorrection=True
-config.strayLight.filters = ['y', 'HSC-Y']
+config.strayLight.filters = ['HSC-Y', ]
 
 config.doFlat = True
 config.flatDataProductName = "flat"
@@ -97,7 +97,7 @@ config.normalizeGains = False
 config.doFringe = True
 config.fringeAfterFlat = True
 # Use default ISR fringe correction
-config.fringe.filters = ['y', 'N921', 'N926', 'N973', 'N1010']
+config.fringe.filters = ['HSC-Y', 'NB0921', 'NB0926', 'NB0973', 'NB1010']
 config.fringe.clip = 3.0
 config.fringe.iterations = 20
 config.fringe.small = 3
@@ -116,14 +116,16 @@ config.doMeasureBackground = True
 
 config.doCameraSpecificMasking = False
 
-config.fluxMag0T1 = {'g': 398107170553.49854,
-                     'r': 398107170553.49854,
-                     'i': 275422870333.81744,
-                     'z': 120226443461.74132,
-                     'y': 91201083935.59116,
-                     'N515': 20892961308.54041,
-                     'N816': 15848931924.611174,
-                     'N921': 19054607179.632523,
+config.fluxMag0T1 = {'HSC-G': 398107170553.49854,
+                     'HSC-R': 398107170553.49854,
+                     'HSC-R2': 398107170553.49854,
+                     'HSC-I': 275422870333.81744,
+                     'HSC-I2': 275422870333.81744,
+                     'HSC-Z': 120226443461.74132,
+                     'HSC-Y': 91201083935.59116,
+                     'NB0515': 20892961308.54041,
+                     'NB0816': 15848931924.611174,
+                     'NB0921': 19054607179.632523,
                      }
 
 config.doVignette = True
