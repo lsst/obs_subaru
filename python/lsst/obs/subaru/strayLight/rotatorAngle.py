@@ -63,9 +63,9 @@ def _mjd2gmst(mjd):
     """convert mjd to GMST(Greenwich mean sidereal time)"""
     mjd_f = mjd % 1
     jc2000 = _mjd2jc2000(mjd)
-    gmst_s = ((6.0*3600.0 + 41.0*60.0 + 50.54841) +
-              8640184.812866*jc2000 + 0.093104*jc2000**2.0 - 0.0000062*jc2000**3.0 +
-              mjd_f*86400.0)
+    gmst_s = ((6.0*3600.0 + 41.0*60.0 + 50.54841)
+              + 8640184.812866*jc2000 + 0.093104*jc2000**2.0 - 0.0000062*jc2000**3.0
+              + mjd_f*86400.0)
     gmst_d = (gmst_s % 86400)/240.0
     return gmst_d
 
