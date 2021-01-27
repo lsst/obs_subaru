@@ -744,3 +744,8 @@ datasets:
   coaddAnalysis_verify_job:
     persistable: ignore  # Is not persistable yet
     template: verify/%(filter)s/tract-%(tract)d%(subdir)s/coaddAnalysis_verify_job.json
+
+  # ProcessBrightStarsTask metadata
+  processBrightStars_metadata:
+    template: '%(pointing)05d/%(filter)s/processBrightStars_metadata/%(visit)07d-%(ccd)03d.yaml'
+
