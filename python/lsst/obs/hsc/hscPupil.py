@@ -84,8 +84,8 @@ class HscPupilFactory(PupilFactory):
         alt = self.visitInfo.getBoresightAzAlt().getLatitude()
 
         # parallactic angle
-        sinParAng = (np.cos(lat.asRadians()) * np.sin(ha.asRadians()) /
-                     np.cos(alt.asRadians()))
+        sinParAng = (np.cos(lat.asRadians()) * np.sin(ha.asRadians())
+                     / np.cos(alt.asRadians()))
         cosParAng = np.sqrt(1 - sinParAng*sinParAng)
         if dec > lat:
             cosParAng = -cosParAng

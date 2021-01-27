@@ -193,8 +193,8 @@ class SubaruStrayLightData(StrayLightData):
             if angle_end is None:
                 img = volume(angle_start.asDegrees())
             else:
-                img = (volume.integrate(angle_start.asDegrees(), angle_end.asDegrees()) *
-                       (1.0 / (angle_end.asDegrees() - angle_start.asDegrees())))
+                img = (volume.integrate(angle_start.asDegrees(), angle_end.asDegrees())
+                       * (1.0 / (angle_end.asDegrees() - angle_start.asDegrees())))
 
             ccd_img[:, ch_w*ch:ch_w*(ch+1)] = _upscale_image(img, (ccd_h, ch_w), image_scale_level)
 
