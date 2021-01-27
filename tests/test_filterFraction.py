@@ -91,8 +91,8 @@ class FilterFractionTest(lsst.utils.tests.TestCase):
     def testSingleFilter(self):
         """Test that we get FilterFraction=1 for filters with only one version.
         """
-        self.input1.set(self.filterKey, "g")
-        self.input2.set(self.filterKey, "g")
+        self.input1.set(self.filterKey, "HSC-G")
+        self.input2.set(self.filterKey, "HSC-G")
         self.plugin.measure(self.record1, self.coadd)
         self.plugin.measure(self.record12, self.coadd)
         self.plugin.measure(self.record2, self.coadd)
@@ -105,8 +105,8 @@ class FilterFractionTest(lsst.utils.tests.TestCase):
 
     def testTwoFiltersI(self):
         """Test that we get the right answers for a mix of i and i2."""
-        self.input1.set(self.filterKey, "i")
-        self.input2.set(self.filterKey, "i2")
+        self.input1.set(self.filterKey, "HSC-I")
+        self.input2.set(self.filterKey, "HSC-I2")
         self.plugin.measure(self.record1, self.coadd)
         self.plugin.measure(self.record12, self.coadd)
         self.plugin.measure(self.record2, self.coadd)
@@ -119,8 +119,8 @@ class FilterFractionTest(lsst.utils.tests.TestCase):
 
     def testTwoFiltersR(self):
         """Test that we get the right answers for a mix of r and r2."""
-        self.input1.set(self.filterKey, "r")
-        self.input2.set(self.filterKey, "r2")
+        self.input1.set(self.filterKey, "HSC-R")
+        self.input2.set(self.filterKey, "HSC-R2")
         self.plugin.measure(self.record1, self.coadd)
         self.plugin.measure(self.record12, self.coadd)
         self.plugin.measure(self.record2, self.coadd)
@@ -135,8 +135,8 @@ class FilterFractionTest(lsst.utils.tests.TestCase):
         """Test that we get a fatal exception for weird combinations of
         filters.
         """
-        self.input1.set(self.filterKey, "i")
-        self.input2.set(self.filterKey, "r")
+        self.input1.set(self.filterKey, "HSC-I")
+        self.input2.set(self.filterKey, "HSC-R")
         with self.assertRaises(FatalAlgorithmError):
             self.plugin.measure(self.record12, self.coadd)
 
