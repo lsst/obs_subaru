@@ -2,7 +2,8 @@ import os.path
 
 from lsst.utils import getPackageDir
 
-for filt, filtShort in [("HSC-G", "g"), ("HSC-R", "r"), ("HSC-I", "i"),
-                        ("HSC-Z", "z"), ("HSC-Y", "y")]:
-    config.filterMap[filt] = filtShort
+# Always produce these output bands in the Parquet coadd tables, no matter
+# what bands are in the input.
+config.outputBands = ["g", "r", "i", "z", "y"]
+
 config.functorFile = os.path.join(getPackageDir("obs_subaru"), 'policy', 'Object.yaml')

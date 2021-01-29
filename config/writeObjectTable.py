@@ -1,1 +1,1 @@
-config.priorityList = ["HSC-I", "HSC-R", "HSC-Z", "HSC-Y", "HSC-G", ]
+config.priorityList = ["i", "r", "z", "y", "g"]
