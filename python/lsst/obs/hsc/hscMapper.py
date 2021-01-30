@@ -1,4 +1,5 @@
 import os
+import warnings
 
 import lsst.log
 from lsst.obs.base import CameraMapper
@@ -85,8 +86,11 @@ class HscMapper(CameraMapper):
         self.addFilters()
 
         self.filters = {}
-        for filt in HSC_FILTER_DEFINITIONS:
-            self.filters[filt.physical_filter] = afwImage.Filter(filt.physical_filter).getCanonicalName()
+        with warnings.catch_warnings():
+            # surpress Filter warnings; we already know this is deprecated
+            warnings.simplefilter('ignore', category=FutureWarning)
+            for filt in HSC_FILTER_DEFINITIONS:
+                self.filters[filt.physical_filter] = afwImage.Filter(filt.physical_filter).getCanonicalName()
         self.defaultFilterName = "UNRECOGNISED"
 
         #
@@ -101,9 +105,12 @@ class HscMapper(CameraMapper):
 
         HscMapper._nbit_id = 64 - (HscMapper._nbit_tract + 2*HscMapper._nbit_patch + HscMapper._nbit_filter)
 
-        if len(afwImage.Filter.getNames()) >= 2**HscMapper._nbit_filter:
-            raise RuntimeError("You have more filters defined than fit into the %d bits allocated" %
-                               HscMapper._nbit_filter)
+        with warnings.catch_warnings():
+            # surpress Filter warnings; we already know this is deprecated
+            warnings.simplefilter('ignore', category=FutureWarning)
+            if len(afwImage.Filter.getNames()) >= 2**HscMapper._nbit_filter:
+                raise RuntimeError("You have more filters defined than fit into the %d bits allocated" %
+                                   HscMapper._nbit_filter)
 
     def _makeCamera(self, *args, **kwargs):
         """Make the camera object
