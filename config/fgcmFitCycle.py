@@ -3,10 +3,8 @@ from lsst.fgcmcal import Sedterm, Sedboundaryterm
 config.outfileBase = 'fgcmHscCalibrations'
 config.bands = ['N387', 'g', 'r', 'i', 'N816', 'z', 'N921', 'y', 'N1010']
 config.fitBands = ['N387', 'g', 'r', 'i', 'N816', 'z', 'N921', 'y', 'N1010']
-config.filterMap = {'g': 'g', 'r': 'r', 'r2': 'r', 'i': 'i', 'i2': 'i',
-                    'z': 'z', 'y': 'y',
-                    'N387': 'N387', 'N816': 'N816', 'N921': 'N921',
-                    'N1010': 'N1010'}
+from lsst.obs.hsc.hscFilters import HSC_FILTER_DEFINITIONS
+config.physicalFilterMap = HSC_FILTER_DEFINITIONS.physical_to_band
 config.maxIterBeforeFinalCycle = 75
 config.nCore = 4
 config.cycleNumber = 0
