@@ -31,9 +31,11 @@ from lsst.obs.base import FilterDefinition, FilterDefinitionCollection
 # least some object IDs (e.g. on coadds) and changing the order will
 # invalidate old objIDs
 HSC_FILTER_DEFINITIONS = FilterDefinitionCollection(
-    FilterDefinition(band="UNRECOGNISED", physical_filter="NONE", lambdaEff=0,
-                     alias=["NONE", "None", "Unrecognised", "UNRECOGNISED",
+    FilterDefinition(band="unknown", physical_filter="unknown", lambdaEff=0,
+                     alias=["UNKNOWN", "Unrecognised", "UNRECOGNISED",
                             "Unrecognized", "UNRECOGNIZED", "NOTSET"]),
+    FilterDefinition(band="white", physical_filter="empty", lambdaEff=0,
+                     alias=["NONE"]),
     FilterDefinition(physical_filter="HSC-G",
                      band="g",
                      lambdaEff=477, alias={'W-S-G+'}),
@@ -42,7 +44,7 @@ HSC_FILTER_DEFINITIONS = FilterDefinitionCollection(
                      doc="Original r-band filter, replaced in July 2016 with HSC-R2.",
                      lambdaEff=623, alias={'W-S-R+'}),
     FilterDefinition(physical_filter="ENG-R1",
-                     band="r1",
+                     band="r",
                      doc="A filter used during early camera construction;"
                          "very little data was taken with this filter.",
                      lambdaEff=623, alias={'109'}),

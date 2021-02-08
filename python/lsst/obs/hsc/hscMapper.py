@@ -91,7 +91,7 @@ class HscMapper(CameraMapper):
             warnings.simplefilter('ignore', category=FutureWarning)
             for filt in HSC_FILTER_DEFINITIONS:
                 self.filters[filt.physical_filter] = afwImage.Filter(filt.physical_filter).getCanonicalName()
-        self.defaultFilterName = "UNRECOGNISED"
+        self.defaultFilterName = "unknown"
 
         #
         # The number of bits allocated for fields in object IDs, appropriate

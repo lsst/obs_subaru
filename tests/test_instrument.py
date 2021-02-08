@@ -54,7 +54,7 @@ class TestHyperSuprimeCam(InstrumentTests, lsst.utils.tests.TestCase):
                             "NB1010",
                             "SH",
                             "PH",
-                            "NONE"}
+                            "empty"}
         self.data = InstrumentTestData(name="HSC",
                                        nDetectors=112,
                                        firstDetectorName="1_53",
