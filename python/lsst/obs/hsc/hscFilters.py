@@ -31,9 +31,11 @@ from lsst.obs.base import FilterDefinition, FilterDefinitionCollection
 # least some object IDs (e.g. on coadds) and changing the order will
 # invalidate old objIDs
 HSC_FILTER_DEFINITIONS = FilterDefinitionCollection(
-    FilterDefinition(band="UNRECOGNISED", physical_filter="NONE", lambdaEff=0,
-                     alias=["NONE", "None", "Unrecognised", "UNRECOGNISED",
+    FilterDefinition(band="unknown", physical_filter="unknown", lambdaEff=0,
+                     alias=["UNKNOWN", "Unrecognised", "UNRECOGNISED",
                             "Unrecognized", "UNRECOGNIZED", "NOTSET"]),
+    FilterDefinition(band="white", physical_filter="empty", lambdaEff=0,
+                     alias=["NONE"]),
     FilterDefinition(physical_filter="HSC-G",
                      band="g",
                      lambdaEff=477, alias={'W-S-G+'}),

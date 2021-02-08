@@ -61,7 +61,7 @@ class CameraTestCase(lsst.utils.tests.TestCase):
             FilterName(alias="HSC-I", canonical="i"),
             FilterName(alias="HSC-Z", canonical="z"),
             FilterName(alias="HSC-Y", canonical="y"),
-            FilterName(alias="NONE", canonical="UNRECOGNISED")
+            FilterName(alias="unknown", canonical="unknown")
         )
 
         for filterName in filterNames:
