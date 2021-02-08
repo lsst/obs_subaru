@@ -42,7 +42,7 @@ HSC_FILTER_DEFINITIONS = FilterDefinitionCollection(
                      doc="Original r-band filter, replaced in July 2016 with HSC-R2.",
                      lambdaEff=623, alias={'W-S-R+'}),
     FilterDefinition(physical_filter="ENG-R1",
-                     band="r1",
+                     band="r",
                      doc="A filter used during early camera construction;"
                          "very little data was taken with this filter.",
                      lambdaEff=623, alias={'109'}),
