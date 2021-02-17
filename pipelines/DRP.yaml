@@ -6,23 +6,11 @@ tasks:
   makeWarp:
     class: lsst.pipe.tasks.makeCoaddTempExp.MakeWarpTask
     config:
-      matchingKernelSize: 29
-      makePsfMatched: true
-      modelPsf.defaultFwhm: 7.7
+      # These are in obs_subaru because only obs_subaru/config overrides these to True
       # The application of external calibrations doesn't work with Gen3 now (DM-17062)
       doApplyExternalPhotoCalib: false
       doApplyExternalSkyWcs: false
       doApplySkyCorr: false
-      doWriteEmptyWarps: true
-      python: config.warpAndPsfMatch.psfMatch.kernel['AL'].alardSigGauss = [1.0, 2.0, 4.5]
-  mergeDetections:
-    class: lsst.pipe.tasks.mergeDetections.MergeDetectionsTask
-    config:
-      priorityList: ["i", "r", "z", "y", "g", "N921", "N816", "N1010", "N387", "N515"]
-  mergeMeasurements:
-    class: lsst.pipe.tasks.mergeMeasurements.MergeMeasurementsTask
-    config:
-      priorityList: ["i", "r", "z", "y", "g", "N921", "N816", "N1010", "N387", "N515"]
   forcedPhotCcd:
     class: lsst.meas.base.forcedPhotCcd.ForcedPhotCcdTask
     config:
