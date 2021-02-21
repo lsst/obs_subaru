@@ -11,6 +11,9 @@ tasks:
       doApplyExternalPhotoCalib: false
       doApplyExternalSkyWcs: false
       doApplySkyCorr: false
+      python: >
+        from lsst.pipe.tasks.selectImages import PsfWcsSelectImagesTask;
+        config.select.retarget(PsfWcsSelectImagesTask)
   forcedPhotCcd:
     class: lsst.meas.base.forcedPhotCcd.ForcedPhotCcdTask
     config:
