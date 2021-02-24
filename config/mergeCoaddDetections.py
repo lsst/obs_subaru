@@ -1,1 +1,4 @@
-config.priorityList = ["i", "r", "z", "y", "g", "N921", "N816", "N1010", "N387", "N515"]
+import os.path
+# Gen3 mergeDetections will supersede mergeCoaddDetections
+# Keep in sync in the meantime
+config.load(os.path.join(os.path.dirname(__file__), "mergeDetections.py"))
