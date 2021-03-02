@@ -206,8 +206,8 @@ calibrations:
     - ccd
     - taiObs
     level: Ccd
-    persistable: ImageF
-    python: lsst.afw.image.ImageF
+    persistable: MaskedImageF
+    python: lsst.afw.image.MaskedImageF
     refCols:
     - visit
     - filter
@@ -223,8 +223,8 @@ calibrations:
     - ccd
     - taiObs
     level: Ccd
-    persistable: ImageF
-    python: lsst.afw.image.ImageF
+    persistable: MaskedImageF
+    python: lsst.afw.image.MaskedImageF
     refCols:
     - visit
     - filter
