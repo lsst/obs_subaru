@@ -33,7 +33,7 @@ def setup_module(module):
 
 
 class ColortermOverrideTestCase(unittest.TestCase):
-
+    """Test that the HSC colorterms have been set consistently."""
     def setUp(self):
         """Test that colorterms specific to HSC override correctly"""
         colortermsFile = os.path.join(os.path.dirname(__file__), "../config", "colorterms.py")
@@ -42,38 +42,39 @@ class ColortermOverrideTestCase(unittest.TestCase):
 
     def testHscColorterms(self):
         """Test that the colorterm libraries are formatted correctly"""
-        refBands = ["g", "r", "i", "z", "y"]
-        hscBands = ["g", "r", "i", "z", "y"]
-        for band in hscBands:
-            ct = self.photoCalConf.colorterms.getColorterm(band, photoCatName="hsc")  # exact match
-            self.assertIn(ct.primary, refBands)
-            self.assertIn(ct.secondary, refBands)
+        hscReferenceFilters = ["g", "r", "i", "z", "y"]
+        hscPhysicalFilters = ["HSC-G", "HSC-R", "HSC-I", "HSC-Z", "HSC-Y"]
+        for filter in hscPhysicalFilters:
+            ct = self.photoCalConf.colorterms.getColorterm(filter, photoCatName="hsc")  # exact match
+            self.assertIn(ct.primary, hscReferenceFilters)
+            self.assertIn(ct.secondary, hscReferenceFilters)
             self.assertIsInstance(ct.c0, numbers.Number)
             self.assertIsInstance(ct.c1, numbers.Number)
             self.assertIsInstance(ct.c2, numbers.Number)
 
     def testSdssColorterms(self):
         """Test that the colorterm libraries are formatted correctly"""
-        sdssBands = ["g", "r", "i", "z", "y"]
-        hscBands = ["g", "r", "i", "i2", "z", "y", "N816", "N921"]
-        for band in hscBands:
-            ct = self.photoCalConf.colorterms.getColorterm(band, photoCatName="sdss")  # exact match
-            self.assertIn(ct.primary, sdssBands)
-            self.assertIn(ct.secondary, sdssBands)
+        sdssReferenceFilters = ["g", "r", "i", "z", "y"]
+        hscPhysicalFilters = ["HSC-G", "HSC-R", "HSC-I", "HSC-I2", "HSC-Z", "HSC-Y", "NB0816", "NB0921"]
+        for filter in hscPhysicalFilters:
+            ct = self.photoCalConf.colorterms.getColorterm(filter, photoCatName="sdss")  # exact match
+            self.assertIn(ct.primary, sdssReferenceFilters)
+            self.assertIn(ct.secondary, sdssReferenceFilters)
             self.assertIsInstance(ct.c0, numbers.Number)
             self.assertIsInstance(ct.c1, numbers.Number)
             self.assertIsInstance(ct.c2, numbers.Number)
 
     def testPs1Colorterms(self):
         """Test that the colorterm libraries are formatted correctly"""
-        ps1Bands = ["g", "r", "i", "z", "y"]
-        hscBands = ["g", "r", "r2", "i", "i2", "z", "y", "I945", "N387", "N468", "N515", "N527", "N656",
-                    "N718", "N816", "N921", "N973", "N1010"]
+        ps1ReferenceFilters = ["g", "r", "i", "z", "y"]
+        hscPhysicalFilters = ["HSC-G", "HSC-R", "HSC-R2", "HSC-I", "HSC-I2", "HSC-Z", "HSC-Y",
+                              "IB0945", "NB0387", "NB0468", "NB0515", "NB0527", "NB0656",
+                              "NB0718", "NB0816", "NB0921", "NB0973", "NB01010"]
 
-        for band in hscBands:
-            ct = self.photoCalConf.colorterms.getColorterm(band, photoCatName="ps1")  # exact match
-            self.assertIn(ct.primary, ps1Bands)
-            self.assertIn(ct.secondary, ps1Bands)
+        for filter in hscPhysicalFilters:
+            ct = self.photoCalConf.colorterms.getColorterm(filter, photoCatName="ps1")  # exact match
+            self.assertIn(ct.primary, ps1ReferenceFilters)
+            self.assertIn(ct.secondary, ps1ReferenceFilters)
             self.assertIsInstance(ct.c0, numbers.Number)
             self.assertIsInstance(ct.c1, numbers.Number)
             self.assertIsInstance(ct.c2, numbers.Number)
