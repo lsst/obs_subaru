@@ -6,10 +6,7 @@ tasks:
   makeWarp:
     class: lsst.pipe.tasks.makeCoaddTempExp.MakeWarpTask
     config:
-      # These are in obs_subaru because only obs_subaru/config overrides these to True
-      # The application of external calibrations doesn't work with Gen3 now (DM-17062)
-      doApplyExternalPhotoCalib: false
-      doApplyExternalSkyWcs: false
+      # This is in obs_subaru because only obs_subaru/config overrides this to True
       doApplySkyCorr: false
       python: >
         from lsst.pipe.tasks.selectImages import PsfWcsSelectImagesTask;
