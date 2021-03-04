@@ -18,3 +18,15 @@ tasks:
       doApplyExternalPhotoCalib: false
       doApplyExternalSkyWcs: false
       doApplySkyCorr: false
+subsets:
+  multiVisit:
+    subset:
+      - makeWarp
+      - assembleCoadd
+      - detection
+      - mergeDetections
+      - deblend
+      - measure
+      - mergeMeasurements
+      - forcedPhotCcd
+      - forcedPhotCoadd
