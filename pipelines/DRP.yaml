@@ -3,11 +3,11 @@ instrument: lsst.obs.subaru.HyperSuprimeCam
 imports:
   - $PIPE_TASKS_DIR/pipelines/DRP.yaml
 tasks:
+  skyCorr:
+    class: lsst.pipe.drivers.skyCorrection.SkyCorrectionTask
   makeWarp:
     class: lsst.pipe.tasks.makeCoaddTempExp.MakeWarpTask
     config:
-      # This is in obs_subaru because only obs_subaru/config overrides this to True
-      doApplySkyCorr: false
       python: >
         from lsst.pipe.tasks.selectImages import PsfWcsSelectImagesTask;
         config.select.retarget(PsfWcsSelectImagesTask)
@@ -18,3 +18,15 @@ tasks:
       doApplyExternalPhotoCalib: false
       doApplyExternalSkyWcs: false
       doApplySkyCorr: false
+subsets:
+  multiVisit:
+    subset:
+      - makeWarp
+      - assembleCoadd
+      - detection
+      - mergeDetections
+      - deblend
+      - measure
+      - mergeMeasurements
+      - forcedPhotCcd
+      - forcedPhotCoadd
