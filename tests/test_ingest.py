@@ -83,7 +83,7 @@ class HscIngestTestCase(IngestTestBase, lsst.utils.tests.TestCase):
         with self.assertLogs(level="WARNING") as cm:
             instrument.ingestStrayLightData(butler, straylightDir, transfer="auto")
 
-        collection = self.instrumentClass.makeCalibrationCollectionName()
+        collection = instrument.makeCalibrationCollectionName()
         datasets = list(butler.registry.queryDatasetAssociations("yBackground", collections=collection))
         # Should have at least one dataset and dataset+warnings = 112
         self.assertGreaterEqual(len(datasets), 1)
