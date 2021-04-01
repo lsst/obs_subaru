@@ -130,26 +130,26 @@ funcs:
         functor: Color
         dataset: forced_src
         args: slot_ModelFlux
-        filt1: HSC-G
-        filt2: HSC-R
+        filt1: g
+        filt2: r
     riStd:
         functor: Color
         dataset: forced_src
         args: slot_ModelFlux
-        filt1: HSC-R
-        filt2: HSC-I
+        filt1: r
+        filt2: i
     izStd:
         functor: Color
         dataset: forced_src
         args: slot_ModelFlux
-        filt1: HSC-I
-        filt2: HSC-Z
+        filt1: i
+        filt2: z
     zyStd:
         functor: Color
         dataset: forced_src
         args: slot_ModelFlux
-        filt1: HSC-Z
-        filt2: HSC-Y
+        filt1: z
+        filt2: y
     # Taking Shape from meas
     Ixx:
         functor: Column
