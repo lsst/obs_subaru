@@ -24,3 +24,5 @@ config.fgcmLoadReferenceCatalog.referenceSelector.signalToNoise.fluxField = 'i_f
 config.fgcmLoadReferenceCatalog.referenceSelector.signalToNoise.errField = 'i_fluxErr'
 # Minimum signal-to-noise cut for a reference star to be considered a match.
 config.fgcmLoadReferenceCatalog.referenceSelector.signalToNoise.minimum = 10.0
+
+config.connections.refCat = 'ps1_pv3_3pi_20170110'
