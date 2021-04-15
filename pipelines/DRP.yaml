@@ -5,6 +5,17 @@ imports:
 tasks:
   skyCorr:
     class: lsst.pipe.drivers.skyCorrection.SkyCorrectionTask
+  jointcal:
+    # The jointcal package depends on obs_subaru, not the other way around, so
+    # it's not great to have this here, but it's the least-bad temporary spot
+    # for this information (which is specific to both Gen3 and HSC) until we
+    # RFC-approve a better home for it.
+    class: lsst.jointcal.JointcalTask
+    config:
+      python: |
+        # This override is temporary until DM-29008.
+        from lsst.utils import getPackageDir
+        config.load(os.path.join(getPackageDir("jointcal"), "tests", "config", "config-gen3.py"))
   makeWarp:
     class: lsst.pipe.tasks.makeCoaddTempExp.MakeWarpTask
     config:
@@ -21,6 +32,7 @@ tasks:
 subsets:
   multiVisit:
     subset:
+      - jointcal
       - makeWarp
       - assembleCoadd
       - detection
