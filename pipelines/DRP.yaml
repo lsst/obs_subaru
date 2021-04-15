@@ -16,6 +16,72 @@ tasks:
         # This override is temporary until DM-29008.
         from lsst.utils import getPackageDir
         config.load(os.path.join(getPackageDir("jointcal"), "tests", "config", "config-gen3.py"))
+  # The FGCM configurations below are appropriate specifically for RC2; like
+  # the jointcal information above, this is the least-bad place for it, because
+  # Gen3 HSC is unlikely to mean anything other than RC2 until we have a new
+  # home for these that lets us separate generic HSC from RC2 (and ci_hsc has
+  # its own customization).
+  fgcmBuildStarsTable:
+    class: lsst.fgcmcal.fgcmBuildStarsTable.FgcmBuildStarsTableTask
+    config:
+      minPerBand: 1
+      densityCutMaxPerPixel: 1500
+      primaryBands: ['i', 'r', 'g', 'z', 'y', 'N921']
+      doReferenceMatches: True
+  fgcmFitCycle:
+    class: lsst.fgcmcal.fgcmFitCycle.FgcmFitCycleTask
+    config:
+      doMultipleCycles: true
+      multipleCyclesFinalCycleNumber: 4
+      randomSeed: 89234
+      outfileBase: 'fgcmFitCycleRC2'
+      bands: ['g', 'r', 'i', 'z', 'N921', 'y']
+      fitBands: ['g', 'r', 'i', 'z', 'N921', 'y']
+      maxIterBeforeFinalCycle: 50
+      expGrayPhotometricCutDict:
+        g: -0.05
+        r: -0.05
+        i: -0.05
+        z: -0.05
+        N921: -0.05
+        y: -0.05
+      expGrayHighCutDict:
+        g: 0.10
+        r: 0.10
+        i: 0.10
+        z: 0.10
+        N921: 0.10
+        y: 0.10
+      aperCorrFitNBins: 0
+      minStarPerExp: 100
+      expVarGrayPhotometricCutDict:
+        g: 0.0025
+        r: 0.0025
+        i: 0.0025
+        z: 0.0025
+        N921: 0.005
+        y: 0.0025
+      minExpPerNight: 3
+      python: |
+        from lsst.fgcmcal import Sedterm, Sedboundaryterm
+        config.sedboundaryterms.data = {'gr': Sedboundaryterm(primary='g', secondary='r'),
+                                        'ri': Sedboundaryterm(primary='r', secondary='i'),
+                                        'iz': Sedboundaryterm(primary='i', secondary='z'),
+                                        'zy': Sedboundaryterm(primary='z', secondary='y'),
+                                        'N921z': Sedboundaryterm(primary='N921', secondary='z')}
+        config.sedterms.data = {'g': Sedterm(primaryTerm='gr', secondaryTerm='ri', constant=1.6),
+                                'r': Sedterm(primaryTerm='gr', secondaryTerm='ri', constant=0.9),
+                                'i': Sedterm(primaryTerm='ri', secondaryTerm='iz', constant=1.0),
+                                'z': Sedterm(primaryTerm='iz', secondaryTerm='zy', constant=1.0),
+                                'y': Sedterm(primaryTerm='zy', secondaryTerm='iz', constant=0.25,
+                                             extrapolated=True, primaryBand='y', secondaryBand='z',
+                                             tertiaryBand='i'),
+                                'N921': Sedterm(primaryTerm='N921z', constant=0.5)}
+  fgcmOutputProducts:
+    class: lsst.fgcmcal.fgcmOutputProducts.FgcmOutputProductsTask
+    config:
+      doRefcatOutput: false
+      cycleNumber: 4
   makeWarp:
     class: lsst.pipe.tasks.makeCoaddTempExp.MakeWarpTask
     config:
@@ -30,8 +96,18 @@ tasks:
       doApplyExternalSkyWcs: false
       doApplySkyCorr: false
 subsets:
+  fgcm:
+    subset:
+      - fgcmBuildStarsTable
+      - fgcmFitCycle
+      - fgcmOutputProducts
+    description: >
+      Subset that includes all FGCM tasks.
   multiVisit:
     subset:
+      - fgcmBuildStarsTable
+      - fgcmFitCycle
+      - fgcmOutputProducts
       - jointcal
       - makeWarp
       - assembleCoadd
@@ -42,3 +118,12 @@ subsets:
       - mergeMeasurements
       - forcedPhotCcd
       - forcedPhotCoadd
+      - transformObjectTable
+      - writeObjectTable
+      - consolidateObjectTable
+    description: >
+      All tasks that process multiple visits together.
+      This subset plus singleFrame should generally be equivalent to the full
+      pipeline.  At present this is not true, because diffimDRP would benefit
+      from more testing before we start running it with everything else by
+      default.
