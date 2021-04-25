@@ -12,6 +12,14 @@ tasks:
     # RFC-approve a better home for it.
     class: lsst.jointcal.JointcalTask
     config:
+      # Disable photometry because we don't need it (FGCM takes care of that)
+      # and it's broken in Gen3 (DM-29884).  Also disable color terms because
+      # jointcal warns if that's true but doPhotometry=False.  It would be
+      # better to disable this via config (DM-29885), but it's hard to make
+      # that compatible with the jointcal tests because jointcal depends on
+      # obs_subaru.
+      doPhotometry: false
+      applyColorTerms: false
       python: |
         # This override is temporary until DM-29008.
         from lsst.utils import getPackageDir
