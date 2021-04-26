@@ -111,6 +111,19 @@ subsets:
       - fgcmOutputProducts
     description: >
       Subset that includes all FGCM tasks.
+  singleFrame:
+    subset:
+      - isr
+      - characterizeImage
+      - calibrate
+      - writeSourceTable
+      - transformSourceTable
+      - consolidateSourceTable
+      - consolidateVisitSummary
+      - skyCorr
+    description: >
+      Set of tasks for complete single frame processing. Analogous to
+      SingleFrameDriver.
   multiVisit:
     subset:
       - fgcmBuildStarsTable
