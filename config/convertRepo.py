@@ -13,8 +13,6 @@ config.skyMaps["hsc_rings_v1"].load(os.path.join(os.path.dirname(__file__), "mak
 # skymap.
 config.rootSkyMapName = "hsc_rings_v1"
 
-config.defineVisits.load(os.path.join(os.path.join(os.path.dirname(__file__), "defineVisits.py")))
-
 config.refCats.append("ps1_pv3_3pi_20170110")
 
 # ForcedPhotCoadd writes its configs to a filename that doesn't include a
