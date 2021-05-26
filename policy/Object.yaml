@@ -318,6 +318,11 @@ refFlags:
     - detect_isPatchInner
     - detect_isPrimary
     - detect_isTractInner
+    - detect_isIsolated
+    - detect_fromBlend
+    - detect_isDeblendedSource
+    - detect_isDeblendedModelSource
+    - merge_peak_sky
     - calib_psf_used
 flags:
     # flags are columns taken and exploded per-band from the meas tables
