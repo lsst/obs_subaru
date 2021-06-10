@@ -8,3 +8,4 @@ config.assembleStaticSkyModel.subregionSize = (10000, 200)
 config.assembleStaticSkyModel.doApplyExternalPhotoCalib = True
 config.assembleStaticSkyModel.externalPhotoCalibName = 'fgcm'
 config.assembleStaticSkyModel.doApplyExternalSkyWcs = True
+config.doFilterMorphological = True
