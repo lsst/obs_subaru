@@ -150,6 +150,50 @@ funcs:
         args: slot_ModelFlux
         filt1: z
         filt2: y
+    #  PSF GAaP flux
+    GaapFlux_Psf:
+        functor: NanoJansky
+        dataset: forced_src
+        args: ext_gaap_GaapFlux_1_15x_PsfFlux_instFlux
+    GaapFluxErr_Psf:
+        functor: NanoJanskyErr
+        dataset: forced_src
+        args:
+            - ext_gaap_GaapFlux_1_15x_PsfFlux_instFlux
+            - ext_gaap_GaapFlux_1_15x_PsfFlux_instFluxErr
+    # 0.7 arcsec sigma GAaP flux
+    GaapFlux_0_7:
+        functor: NanoJansky
+        dataset: forced_src
+        args: ext_gaap_GaapFlux_1_15x_0_7_instFlux
+    GaapFluxErr_0_7:
+        functor: NanoJanskyErr
+        dataset: forced_src
+        args:
+            - ext_gaap_GaapFlux_1_15x_0_7_instFlux
+            - ext_gaap_GaapFlux_1_15x_0_7_instFluxErr
+    # 1.0 arcsec sigma GAaP flux
+    GaapFlux_1_0:
+        functor: NanoJansky
+        dataset: forced_src
+        args: ext_gaap_GaapFlux_1_15x_1_0_instFlux
+    GaapFluxErr_1_0:
+        functor: NanoJanskyErr
+        dataset: forced_src
+        args:
+            - ext_gaap_GaapFlux_1_15x_1_0_instFlux
+            - ext_gaap_GaapFlux_1_15x_1_0_instFluxErr
+    #  Optimal GAaP flux
+    GaapFlux_Optimal:
+        functor: NanoJansky
+        dataset: forced_src
+        args: ext_gaap_GaapFlux_1_15x_Optimal_instFlux
+    GaapFluxErr_Optimal:
+        functor: NanoJanskyErr
+        dataset: forced_src
+        args:
+            - ext_gaap_GaapFlux_1_15x_Optimal_instFlux
+            - ext_gaap_GaapFlux_1_15x_Optimal_instFluxErr
     # Taking Shape from meas
     Ixx:
         functor: Column
@@ -385,6 +429,20 @@ flags:
     - slot_PsfFlux_flag_apCorr
     - slot_PsfFlux_flag_edge
     - slot_PsfFlux_flag_noGoodPixels
+    - ext_gaap_GaapFlux_1_15x_Psf_apCorr
+    - ext_gaap_GaapFlux_1_15x_Psf_apCorrErr
+    - ext_gaap_GaapFlux_1_15x_Optimal_apCorr
+    - ext_gaap_GaapFlux_1_15x_Optimal_apCorrErr
+    - ext_gaap_GaapFlux_1_15x_0_7_apCorr
+    - ext_gaap_GaapFlux_1_15x_0_7_apCorrErr
+    - ext_gaap_GaapFlux_1_15x_1_0_apCorr
+    - ext_gaap_GaapFlux_1_15x_1_0_apCorrErr
+    - ext_gaap_GaapFlux_flag
+    - ext_gaap_GaapFlux_flag_edge
+    - ext_gaap_GaapFlux_1_15x_flag_gaussianization
+    - ext_gaap_GaapFlux_1_15x_Optimal_flag_bigPsf
+    - ext_gaap_GaapFlux_1_15x_0_7_flag_bigPsf
+    - ext_gaap_GaapFlux_1_15x_1_0_flag_bigPsf
     - ext_photometryKron_KronFlux_apCorr
     - ext_photometryKron_KronFlux_apCorrErr
     - ext_photometryKron_KronFlux_flag
@@ -418,6 +476,8 @@ flag_rename_rules:
     - ['base_CircularApertureFlux', 'ApFlux']
     - ['ext_shapeHSM_', '']
     - ['ext_convolved_', '']
+    - ['ext_gaap_GaapFlux_1_15x', 'GaapFlux']
+    - ['ext_gaap_GaapFlux', 'GaapFlux']
     - ['undeblended_base', 'undeblended']
     - ['undeblended_ext_photometryKron', 'undeblended']
     - ['ext_photometryKron_', '']
