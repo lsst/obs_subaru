@@ -1,5 +1,5 @@
 import os.path
 
-from lsst.utils import getPackageDir
-
-config.functorFile = os.path.join(getPackageDir("obs_subaru"), 'policy', 'Source.yaml')
+# Use the environment variable to prevent hardcoding of paths
+# into quantum graphs.
+config.functorFile = os.path.join('$OBS_SUBARU_DIR', 'policy', 'Source.yaml')
