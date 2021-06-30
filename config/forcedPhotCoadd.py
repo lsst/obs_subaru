@@ -5,6 +5,7 @@ from lsst.meas.base import CircularApertureFluxAlgorithm
 config.measurement.load(os.path.join(os.path.dirname(__file__), "apertures.py"))
 config.measurement.load(os.path.join(os.path.dirname(__file__), "kron.py"))
 config.measurement.load(os.path.join(os.path.dirname(__file__), "convolvedFluxes.py"))
+config.measurement.load(os.path.join(os.path.dirname(__file__), "gaap.py"))
 config.load(os.path.join(os.path.dirname(__file__), "cmodel.py"))
 
 config.measurement.slots.gaussianFlux = None
@@ -41,5 +42,8 @@ doUndeblended(config, "ext_photometryKron_KronFlux")
 doUndeblended(config, "base_CircularApertureFlux", [])  # No aperture correction for circular apertures
 doUndeblended(config, "ext_convolved_ConvolvedFlux",
               config.measurement.plugins["ext_convolved_ConvolvedFlux"].getAllResultNames())
+doUndeblended(config, "ext_gaap_GaapFlux",
+              config.measurement.plugins["ext_gaap_GaapFlux"].getAllGaapResultNames())
 # Disable registration for apCorr of undeblended convolved; apCorr will be done through the deblended proxy
 config.measurement.undeblended["ext_convolved_ConvolvedFlux"].registerForApCorr = False
+config.measurement.undeblended["ext_gaap_GaapFlux"].registerForApCorr = False
