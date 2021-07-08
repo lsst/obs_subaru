@@ -137,19 +137,27 @@ subsets:
       - calibrate
       - writeSourceTable
       - transformSourceTable
+    description: >
+      Per-detector tasks that can be run together to start the DRP pipeline.
+
+      These should never be run with 'tract' or 'patch' as part of the data ID
+      expression if any later steps will also be run, because downstream steps
+      require full visits and 'tract' and 'patch' constraints will always
+      select partial visits that overlap that region.
+  step2:
+    subset:
       - consolidateSourceTable
       - consolidateVisitSummary
       - skyCorr
       - fgcmBuildStarsTable
       - fgcmFitCycle
       - fgcmOutputProducts
-    description: |
-      Tasks that can be run together to start the DRP pipeline.
+    description: >
+      Per-visit tasks that can be run together, but only after the 'step1'.
 
       These should never be run with 'tract' or 'patch' as part of the data ID
-      expression if any later steps will also be run, because downstream steps
-      require full visits and 'tract' and 'patch' constraints will always
-      select partial visits that overlap that region.
+      expression. skyCorr and FGCM require full visits and 'tract' and 'patch'
+      constraints will always select partial visits that overlap that region.
 
       This includes FGCM because it's configured here to run in "global" mode,
       which means one should not use 'tract' expression to constrain it, and if
@@ -159,28 +167,11 @@ subsets:
 
       This subset is considered a workaround for missing middleware and task
       functionality.  It may be removed in the future.
-  step2:
+  step3:
     subset:
       - jointcal
       - makeWarp
       - assembleCoadd
-    description: >
-      Tasks that can be run together, but only after the 'step1'.
-
-      These should be run with explicit 'tract' constraints essentially all the
-      time, because otherwise quanta will be created for jobs with only partial
-      visit coverage.
-
-      This subset cannot be run at the same time as the tasks in the 'step3'
-      at present because assembleCoadd has no good way to communicate to
-      downstream tasks that there is no coadd for a particular patch+band
-      combination because there no input data.  Creating a new QuantumGraph
-      after all possible coadds have been built works around this.
-
-      This subset is considered a workaround for missing middleware and task
-      functionality.  It may be removed in the future.
-  step3:
-    subset:
       - detection
       - mergeDetections
       - deblend
@@ -196,9 +187,9 @@ subsets:
       Tasks that can be run together, but only after the 'step1' and 'step2'
       subsets.
 
-      Adding a 'tract' constraint to the data ID expression when running this
-      subset should have no effect on the result, if 'step2' was run with a
-      tract constraint.
+      These should be run with explicit 'tract' constraints essentially all the
+      time, because otherwise quanta will be created for jobs with only partial
+      visit coverage.
 
       It is expected that many forcedPhotCcd quanta will "normally" fail when
       running this subset, but this isn't a problem right now because there
