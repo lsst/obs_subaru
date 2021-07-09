@@ -57,7 +57,7 @@ if "ext_convolved_ConvolvedFlux" in config.measurement.plugins:
     config.measureApCorr.allowFailure += names
 
 if "ext_gaap_GaapFlux" in config.measurement.plugins:
-    names = config.measurement.plugins["ext_gaap_GaapFlux"].getAllGaapResultNames()
+    names = config.measurement.plugins["ext_gaap_GaapFlux"].getAllGaapResultNames("ext_gaap_GaapFlux")
     config.measureApCorr.allowFailure += names
 
 # For aperture correction modeling, only use objects that were used in the
