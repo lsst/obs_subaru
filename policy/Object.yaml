@@ -267,11 +267,11 @@ funcs:
     # Not in DPDD. Used for QA
     Ap25Flux:
         functor: NanoJansky
-        dataset: forced
+        dataset: forced_src
         args: base_CircularApertureFlux_25_0_instFlux
     Ap25FluxErr:
         functor: NanoJanskyErr
-        dataset: forced
+        dataset: forced_src
         args:
             - base_CircularApertureFlux_25_0_instFlux
             - base_CircularApertureFlux_25_0_instFluxErr
@@ -314,7 +314,7 @@ funcs:
     # Not in DPDD
     Blendedness:
         functor: Column
-        args: base_Blendedness_abs_flux
+        args: base_Blendedness_abs
         dataset: meas
     # DM-22249: Make FWHM a view of IxxPsf IxyPsf IyyPsf
     # Or remove ixxPsf, IxyPsf, IyyPsf.
