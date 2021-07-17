@@ -275,6 +275,16 @@ funcs:
         args:
             - base_CircularApertureFlux_25_0_instFlux
             - base_CircularApertureFlux_25_0_instFluxErr
+    Ap9Flux:
+        functor: NanoJansky
+        dataset: forced_src
+        args: base_CircularApertureFlux_9_0_instFlux
+    Ap9FluxErr:
+        functor: NanoJanskyErr
+        dataset: forced_src
+        args:
+            - base_CircularApertureFlux_9_0_instFlux
+            - base_CircularApertureFlux_9_0_instFluxErr
     # DM-22246: Change Ap surface brightness to fluxes in DPDD
     # i.e. remove apNann, apMeanSb, apMeanSbSigma
     # DM-22247: Replace Extendedness with a view or paragraph in docs on how to compute
