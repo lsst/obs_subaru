@@ -267,14 +267,24 @@ funcs:
     # Not in DPDD. Used for QA
     Ap25Flux:
         functor: NanoJansky
-        dataset: forced
+        dataset: forced_src
         args: base_CircularApertureFlux_25_0_instFlux
     Ap25FluxErr:
         functor: NanoJanskyErr
-        dataset: forced
+        dataset: forced_src
         args:
             - base_CircularApertureFlux_25_0_instFlux
             - base_CircularApertureFlux_25_0_instFluxErr
+    Ap9Flux:
+        functor: NanoJansky
+        dataset: forced_src
+        args: base_CircularApertureFlux_9_0_instFlux
+    Ap9FluxErr:
+        functor: NanoJanskyErr
+        dataset: forced_src
+        args:
+            - base_CircularApertureFlux_9_0_instFlux
+            - base_CircularApertureFlux_9_0_instFluxErr
     # DM-22246: Change Ap surface brightness to fluxes in DPDD
     # i.e. remove apNann, apMeanSb, apMeanSbSigma
     # DM-22247: Replace Extendedness with a view or paragraph in docs on how to compute
@@ -314,7 +324,7 @@ funcs:
     # Not in DPDD
     Blendedness:
         functor: Column
-        args: base_Blendedness_abs_flux
+        args: base_Blendedness_abs
         dataset: meas
     # DM-22249: Make FWHM a view of IxxPsf IxyPsf IyyPsf
     # Or remove ixxPsf, IxyPsf, IyyPsf.
