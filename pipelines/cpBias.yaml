@@ -1,4 +1,0 @@
-description: obs_subaru/HSC bias calibration construction
-instrument: lsst.obs.subaru.HyperSuprimeCam
-imports:
-  location: $CP_PIPE_DIR/pipelines/cpBias.yaml
