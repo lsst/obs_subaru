@@ -47,3 +47,5 @@ doUndeblended(config, "ext_gaap_GaapFlux",
 # Disable registration for apCorr of undeblended convolved; apCorr will be done through the deblended proxy
 config.measurement.undeblended["ext_convolved_ConvolvedFlux"].registerForApCorr = False
 config.measurement.undeblended["ext_gaap_GaapFlux"].registerForApCorr = False
+# Enable PSF photometry after PSF-Gaussianization in the `ext_gaap_GaapFlux` plugin
+config.measurement.plugins["ext_gaap_GaapFlux"].doPsfPhotometry = True
