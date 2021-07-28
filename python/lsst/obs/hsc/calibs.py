@@ -65,13 +65,13 @@ class HscFlatCombineTask(CalibCombineTask):
         numCorners = sum(math.hypot(*(fpPos - fpCenter)) > self.config.vignette.radius for fpPos in fpCorners)
         if numCorners == 0:
             # Nothing to be masked
-            self.log.info("Detector %d is unvignetted" % detector.getId())
+            self.log.info("Detector %d is unvignetted", detector.getId())
             return
         if numCorners == 4:
             # Everything to be masked
             # We ignore the question of how we're getting any data from a CCD
             # that's totally vignetted...
-            self.log.warn("Detector %d is completely vignetted" % detector.getId())
+            self.log.warning("Detector %d is completely vignetted", detector.getId())
             mask |= bitMask
             return
         # We have to go pixel by pixel
@@ -82,8 +82,8 @@ class HscFlatCombineTask(CalibCombineTask):
         origin = geom.Point2D(self.config.vignette.xCenter, self.config.vignette.yCenter)
         r2 = np.array([pp.distanceSquared(origin) for pp in xyFocalPlane])
         isBad = (r2 > self.config.vignette.radius**2).reshape((h, w))
-        self.log.info("Detector %d has %f%% pixels vignetted" %
-                      (detector.getId(), isBad.sum()/float(isBad.size)*100.0))
+        self.log.info("Detector %d has %f%% pixels vignetted",
+                      detector.getId(), isBad.sum()/float(isBad.size)*100.0)
         maskArray = mask.getArray()
         maskArray[yy[isBad], xx[isBad]] |= bitMask
 
@@ -114,4 +114,4 @@ class HscFlatCombineTask(CalibCombineTask):
                 subMask |= bitMask
                 break
             if not found:
-                self.log.warn("Unable to find amp=%s in ccd=%s" % (ampNum, ccdNum))
+                self.log.warning("Unable to find amp=%s in ccd=%s", ampNum, ccdNum)
