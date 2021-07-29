@@ -113,7 +113,7 @@ class HscParseTask(ParseTask):
         except Exception:
             pass
 
-        self.log.warn("Unable to determine suitable 'pointing' value; using 0")
+        self.log.warning("Unable to determine suitable 'pointing' value; using 0")
         return 0
 
     # CCD index mapping for commissioning run 2

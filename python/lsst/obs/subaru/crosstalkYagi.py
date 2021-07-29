@@ -344,12 +344,12 @@ class YagiCrosstalkTask(pipeBase.Task):
         coeffs2List = self.config.coeffs.getCoeffs2()  # secondary crosstalk
         gainsPreampSig = self.config.coeffs.getGainsPreampSigboard()
         if not np.any(coeffs1List):
-            self.log.info("No crosstalk info available. Skipping crosstalk corrections to CCD %s" %
-                          (exposure.getDetector().getId()))
+            self.log.info("No crosstalk info available. Skipping crosstalk corrections to CCD %s",
+                          exposure.getDetector().getId())
             return
 
-        self.log.info("Applying crosstalk corrections to CCD %s based on Yagi+2012" %
-                      (exposure.getDetector().getId()))
+        self.log.info("Applying crosstalk corrections to CCD %s based on Yagi+2012",
+                      exposure.getDetector().getId())
 
         ccdId = int(exposure.getDetector().getId().getSerial())
         gainsPreampSigCcd = gainsPreampSig[ccdId]
