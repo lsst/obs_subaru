@@ -432,6 +432,15 @@ flags:
     - slot_ShapeRound_xy
     - slot_ShapeRound_y
     - slot_ShapeRound_yy
+    - slot_PsfShape_flag
+    - slot_PsfShape_flag_no_pixels
+    - slot_PsfShape_flag_not_contained
+    - slot_PsfShape_flag_parent_source
+    - slot_Shape_flag
+    - slot_Shape_flag_no_pixels
+    - slot_Shape_flag_not_contained
+    - slot_Shape_flag_parent_source
+forcedFlags:
     # - forced source
     - slot_PsfFlux_apCorr
     - slot_PsfFlux_apCorrErr
@@ -466,15 +475,6 @@ flags:
     - ext_photometryKron_KronFlux_flag_small_radius
     - ext_photometryKron_KronFlux_flag_used_minimum_radius
     - ext_photometryKron_KronFlux_flag_used_psf_radius
-    - slot_PsfShape_flag
-    - slot_PsfShape_flag_no_pixels
-    - slot_PsfShape_flag_not_contained
-    - slot_PsfShape_flag_parent_source
-    - slot_Shape_flag
-    - slot_Shape_flag_no_pixels
-    - slot_Shape_flag_not_contained
-    - slot_Shape_flag_parent_source
-
 flag_rename_rules:
     # Taken from db-meas-forced
     - ['ext_photometryKron_', '']
