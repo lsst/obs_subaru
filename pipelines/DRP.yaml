@@ -148,6 +148,8 @@ subsets:
     subset:
       - consolidateSourceTable
       - consolidateVisitSummary
+      - makeCcdVisitTable
+      - makeVisitTable
       - skyCorr
       - fgcmBuildStarsTable
       - fgcmFitCycle
