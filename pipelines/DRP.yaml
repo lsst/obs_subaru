@@ -36,6 +36,7 @@ tasks:
       densityCutMaxPerPixel: 1500
       primaryBands: ['i', 'r', 'g', 'z', 'y', 'N921']
       doReferenceMatches: True
+      randomSeed: 23456
   fgcmFitCycle:
     class: lsst.fgcmcal.fgcmFitCycle.FgcmFitCycleTask
     config:
