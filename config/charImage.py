@@ -57,6 +57,7 @@ if "ext_convolved_ConvolvedFlux" in config.measurement.plugins:
     config.measureApCorr.allowFailure += names
 
 if "ext_gaap_GaapFlux" in config.measurement.plugins:
+    config.measurement.plugins["ext_gaap_GaapFlux"].doPsfPhotometry = True
     names = config.measurement.plugins["ext_gaap_GaapFlux"].getAllGaapResultNames()
     config.measureApCorr.allowFailure += names
 
