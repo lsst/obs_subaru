@@ -440,6 +440,7 @@ flags:
     - slot_Shape_flag_no_pixels
     - slot_Shape_flag_not_contained
     - slot_Shape_flag_parent_source
+    - modelfit_CModel_flag
 forcedFlags:
     # - forced source
     - slot_PsfFlux_apCorr
