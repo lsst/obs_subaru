@@ -59,7 +59,7 @@ class SubaruStrayLightTask(StrayLightTask):
         if not self.check(rawExposure):
             return None
 
-        return SubaruStrayLightData(dataRef.get("yBackground_filename")[0])
+        return SubaruStrayLightData.readFits(dataRef.get("yBackground_filename")[0])
 
     def check(self, exposure):
         # Docstring inherited from StrayLightTask.check.
@@ -150,8 +150,20 @@ class SubaruStrayLightData(StrayLightData):
         Full path to a FITS files containing the stray-light model.
     """
 
-    def __init__(self, filename):
-        self._filename = filename
+    @classmethod
+    def readFits(cls, filename, **kwargs):
+        calib = cls()
+        hdulist = fits.open(filename)
+
+        calib.ampData = []
+        for extension in (0, 1, 2, 3):
+            calib.ampData.append(hdulist[extension].data)
+
+        calib.setMetadata(hdulist[0].header)
+
+        hdulist.close()
+
+        return calib
 
     def evaluate(self, angle_start: Angle, angle_end: Optional[Angle] = None):
         """Get y-band background image array for a range of angles.
@@ -175,8 +187,7 @@ class SubaruStrayLightData(StrayLightData):
         ccd_img : `numpy.ndarray`
             Background data for this exposure.
         """
-        hdulist = fits.open(self._filename)
-        header = hdulist[0].header
+        header = self.getMetadata().toDict()
 
         # full-size ccd height & channel width
         ccd_h, ch_w = header["F_NAXIS2"], header["F_NAXIS1"]
@@ -184,11 +195,11 @@ class SubaruStrayLightData(StrayLightData):
         image_scale_level = header["WTLEVEL2"], header["WTLEVEL1"]
         angle_scale_level = header["WTLEVEL3"]
 
-        ccd_w = ch_w * len(hdulist)
+        ccd_w = ch_w * len(self.ampData)
         ccd_img = numpy.empty(shape=(ccd_h, ccd_w), dtype=numpy.float32)
 
-        for ch, hdu in enumerate(hdulist):
-            volume = _upscale_volume(hdu.data, angle_scale_level)
+        for ch, hdu in enumerate(self.ampData):
+            volume = _upscale_volume(hdu, angle_scale_level)
 
             if angle_end is None:
                 img = volume(angle_start.asDegrees())
