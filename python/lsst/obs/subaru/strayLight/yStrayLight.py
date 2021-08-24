@@ -158,15 +158,11 @@ class SubaruStrayLightData(StrayLightData):
     @classmethod
     def readFits(cls, filename, **kwargs):
         calib = cls()
-        hdulist = fits.open(filename)
 
-        calib.ampData = []
-        for extension in (0, 1, 2, 3):
-            calib.ampData.append(hdulist[extension].data)
+        with fits.open(filename) as hdulist:
+            calib.ampData = [hdu.data for hdu in hdulist]
+            calib.setMetadata(hdulist[0].header)
 
-        calib.setMetadata(hdulist[0].header)
-
-        hdulist.close()
         calib.log.info("Finished reading straylightData.")
         return calib
 
