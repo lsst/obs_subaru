@@ -24,6 +24,7 @@ from astropy.io import fits
 import scipy.interpolate
 
 from lsst.geom import Angle, degrees
+from lsst.daf.butler import DeferredDatasetHandle
 from lsst.ip.isr.straylight import StrayLightConfig, StrayLightTask, StrayLightData
 
 from . import waveletCompression
@@ -101,6 +102,10 @@ class SubaruStrayLightTask(StrayLightTask):
         if strayLightData is None:
             raise RuntimeError("No strayLightData supplied for correction.")
 
+        if isinstance(strayLightData, DeferredDatasetHandle):
+            # Get the deferred object.
+            strayLightData = strayLightData.get()
+
         exposureMetadata = exposure.getMetadata()
         detId = exposure.getDetector().getId()
         if self.config.doRotatorAngleCorrection:
@@ -162,7 +167,7 @@ class SubaruStrayLightData(StrayLightData):
         calib.setMetadata(hdulist[0].header)
 
         hdulist.close()
-
+        calib.log.info("Finished reading straylightData.")
         return calib
 
     def evaluate(self, angle_start: Angle, angle_end: Optional[Angle] = None):
