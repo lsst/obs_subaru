@@ -92,7 +92,8 @@ class SubaruStrayLightTask(StrayLightTask):
         ----------
         exposure : `lsst.afw.image.Exposure`
             Exposure to correct.
-        strayLightData : `SubaruStrayLightData`
+        strayLightData : `SubaruStrayLightData` or
+                         `~lsst.daf.butler.DeferredDatasetHandle`
             An opaque object that contains any calibration data used to
             correct for stray light.
         """
@@ -188,7 +189,7 @@ class SubaruStrayLightData(StrayLightData):
         ccd_img : `numpy.ndarray`
             Background data for this exposure.
         """
-        header = self.getMetadata().toDict()
+        header = self.getMetadata()
 
         # full-size ccd height & channel width
         ccd_h, ch_w = header["F_NAXIS2"], header["F_NAXIS1"]
