@@ -24,6 +24,7 @@ from astropy.io import fits
 import scipy.interpolate
 
 from lsst.geom import Angle, degrees
+from lsst.daf.butler import DeferredDatasetHandle
 from lsst.ip.isr.straylight import StrayLightConfig, StrayLightTask, StrayLightData
 
 from . import waveletCompression
@@ -33,7 +34,6 @@ from .rotatorAngle import inrStartEnd
 BAD_THRESHOLD = 500  # Threshold for identifying bad pixels in the reconstructed dark image
 
 
-# TODO DM-16805: This doesn't match the rest of the obs_subaru/ISR code.
 class SubaruStrayLightTask(StrayLightTask):
     """Remove stray light in the y-band
 
@@ -49,6 +49,7 @@ class SubaruStrayLightTask(StrayLightTask):
     This Task retrieves the appropriate dark, uncompresses it and
     uses it to remove the stray light from an exposure.
     """
+
     ConfigClass = StrayLightConfig
 
     def readIsrData(self, dataRef, rawExposure):
@@ -59,7 +60,7 @@ class SubaruStrayLightTask(StrayLightTask):
         if not self.check(rawExposure):
             return None
 
-        return SubaruStrayLightData(dataRef.get("yBackground_filename")[0])
+        return SubaruStrayLightData.readFits(dataRef.get("yBackground_filename")[0])
 
     def check(self, exposure):
         # Docstring inherited from StrayLightTask.check.
@@ -91,7 +92,8 @@ class SubaruStrayLightTask(StrayLightTask):
         ----------
         exposure : `lsst.afw.image.Exposure`
             Exposure to correct.
-        strayLightData : `SubaruStrayLightData`
+        strayLightData : `SubaruStrayLightData` or
+                         `~lsst.daf.butler.DeferredDatasetHandle`
             An opaque object that contains any calibration data used to
             correct for stray light.
         """
@@ -100,6 +102,10 @@ class SubaruStrayLightTask(StrayLightTask):
 
         if strayLightData is None:
             raise RuntimeError("No strayLightData supplied for correction.")
+
+        if isinstance(strayLightData, DeferredDatasetHandle):
+            # Get the deferred object.
+            strayLightData = strayLightData.get()
 
         exposureMetadata = exposure.getMetadata()
         detId = exposure.getDetector().getId()
@@ -141,7 +147,7 @@ class SubaruStrayLightTask(StrayLightTask):
 
 
 class SubaruStrayLightData(StrayLightData):
-    """Lazy-load object that reads and integrates the wavelet-compressed
+    """Object that reads and integrates the wavelet-compressed
     HSC y-band stray-light model.
 
     Parameters
@@ -150,8 +156,16 @@ class SubaruStrayLightData(StrayLightData):
         Full path to a FITS files containing the stray-light model.
     """
 
-    def __init__(self, filename):
-        self._filename = filename
+    @classmethod
+    def readFits(cls, filename, **kwargs):
+        calib = cls()
+
+        with fits.open(filename) as hdulist:
+            calib.ampData = [hdu.data for hdu in hdulist]
+            calib.setMetadata(hdulist[0].header)
+
+        calib.log.info("Finished reading straylightData.")
+        return calib
 
     def evaluate(self, angle_start: Angle, angle_end: Optional[Angle] = None):
         """Get y-band background image array for a range of angles.
@@ -175,8 +189,7 @@ class SubaruStrayLightData(StrayLightData):
         ccd_img : `numpy.ndarray`
             Background data for this exposure.
         """
-        hdulist = fits.open(self._filename)
-        header = hdulist[0].header
+        header = self.getMetadata()
 
         # full-size ccd height & channel width
         ccd_h, ch_w = header["F_NAXIS2"], header["F_NAXIS1"]
@@ -184,11 +197,11 @@ class SubaruStrayLightData(StrayLightData):
         image_scale_level = header["WTLEVEL2"], header["WTLEVEL1"]
         angle_scale_level = header["WTLEVEL3"]
 
-        ccd_w = ch_w * len(hdulist)
+        ccd_w = ch_w * len(self.ampData)
         ccd_img = numpy.empty(shape=(ccd_h, ccd_w), dtype=numpy.float32)
 
-        for ch, hdu in enumerate(hdulist):
-            volume = _upscale_volume(hdu.data, angle_scale_level)
+        for ch, hdu in enumerate(self.ampData):
+            volume = _upscale_volume(hdu, angle_scale_level)
 
             if angle_end is None:
                 img = volume(angle_start.asDegrees())
@@ -207,18 +220,22 @@ class SubaruStrayLightData(StrayLightData):
 
 
 def _upscale_image(img, target_shape, level):
-    """
-    Upscale the given image to `target_shape` .
+    """Upscale the given image to `target_shape` .
 
-    @param img (numpy.array[][])
-        Compressed image. `img.shape` must agree
+    Parameters
+    ----------
+    img : `numpy.array`, (Nx, Ny)
+        Compressed image. ``img.shape`` must agree
         with waveletCompression.scaled_size(target_shape, level)
-    @param target_shape ((int, int))
+    target_shape : `tuple` [`int`, `int`]
         The shape of upscaled image, which is to be returned.
-    @param level (int or tuple of int)
+    level : `int` or `tuple` [`int`]
         Level of multiresolution analysis (or synthesis)
 
-    @return (numpy.array[][])
+    Returns
+    -------
+    resized : `numpy.array`, (Nu, Nv)
+        Upscaled image with the ``target_shape``.
     """
     h, w = waveletCompression.scaled_size(target_shape, level)
 
@@ -229,19 +246,23 @@ def _upscale_image(img, target_shape, level):
 
 
 def _upscale_volume(volume, level):
-    """
-    Upscale the given volume (= sequence of images) along the 0-th axis,
-    and return an instance of a interpolation object that interpolates
-    the 0-th axis. The 0-th axis is the instrument rotation.
+    """Upscale the given volume (= sequence of images) along the 0-th
+    axis, and return an instance of a interpolation object that
+    interpolates the 0-th axis. The 0-th axis is the instrument
+    rotation.
 
-    @param volume (numpy.array[][][])
+    Parameters
+    ----------
+    volume : `numpy.array`, (Nx, Ny, Nz)
         Sequence of images.
-    @param level (int)
+    level : `int`
         Level of multiresolution analysis along the 0-th axis.
 
-    @return (scipy.interpolate.CubicSpline)
-        You get a slice of the volume at a specific angle (in degrees)
-        by calling the returned value as `ret_value(angle)` .
+    interpolator : callable
+        An object that returns a slice of the volume at a specific
+        angle (in degrees), with one positional argument:
+
+        - ``angle``: The angle in degrees.
     """
     angles = 720
     _, h, w = volume.shape
