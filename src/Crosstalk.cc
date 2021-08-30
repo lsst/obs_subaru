@@ -85,7 +85,7 @@ void lsst::obs::subaru::subtractCrosstalk(
     }
 
     Image img0 = Image(*(mi.getImage()), true); // create a copy of image before correction
-    PTR(Image) img = mi.getImage();
+    std::shared_ptr<Image> img = mi.getImage();
 
     for (std::size_t j = 0; j < ny; ++j) {
 
