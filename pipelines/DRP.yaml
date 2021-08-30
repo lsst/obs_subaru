@@ -219,23 +219,25 @@ subsets:
       detector-level quanta are desired.
   step5:
     subset:
-    - consolidateDiaSourceTable
     - drpAssociation
     - drpDiaCalculation
     description: >
         Tasks that can be run together, but only after the 'step1', 'step2',
         'step3', and 'step4' subsets
 
-        These DIA aggregation steps include both a visit-level aggregation
-        step consolidateDiaSourceTable and tract-level aggregation steps
-        drpAssociation and drpDiaCalculation.
+        This step includes tract-level aggregation Tasks. These should be
+        run with explicit 'tract' constraints in the data query, otherwise
+        quanta will be created for jobs with only partial visit coverage.
+  step6:
+    subset:
+    - consolidateDiaSourceTable
+    description: >
+        Tasks that can be run together, but only after the 'step1', 'step2',
+        'step3', and 'step4' subsets
 
-        While processing DC2 test-med-1, running without tract or patch in
-        the data query is recommended. If processing many contiguous tracts
-        running with tract in the dataId will be unavoidable.
-        If run with tract or patch in the data query, drpAssociation and
-        drpDiaCalculation will be complete, but the outputs of
-        consolidateDiaSourceTable will not contain complete visits.
+        This step includes visit-level aggregation tasks. Running without
+        tract or patch in the data query is recommended, otherwise the
+        outputs of consolidateDiaSourceTable will not contain complete visits.
 
         This subset is separate from step4 to signal to operators to pause
         to assess unexpected image differencing failures before these
