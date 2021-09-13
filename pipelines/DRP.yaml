@@ -222,6 +222,8 @@ subsets:
     subset:
     - drpAssociation
     - drpDiaCalculation
+    - forcedPhotCcdOnDiaObjects
+    - forcedPhotDiffOnDiaObjects
     description: >
         Tasks that can be run together, but only after the 'step1', 'step2',
         'step3', and 'step4' subsets
