@@ -210,6 +210,7 @@ subsets:
     - getTemplate
     - imageDifference
     - transformDiaSourceCat
+    - writeForcedSourceTable
     description: >
       Tasks that can be run together, but only after the 'step1', 'step2'
       and 'step3' subsets
@@ -224,13 +225,17 @@ subsets:
     - drpDiaCalculation
     - forcedPhotCcdOnDiaObjects
     - forcedPhotDiffOnDiaObjects
+    - transformForcedSourceTable
+    - consolidateForcedSourceTable
     description: >
         Tasks that can be run together, but only after the 'step1', 'step2',
         'step3', and 'step4' subsets
 
-        This step includes tract-level aggregation Tasks. These should be
+        This step includes patch-level aggregation Tasks. These should be
         run with explicit 'tract' constraints in the data query, otherwise
         quanta will be created for jobs with only partial visit coverage.
+        'consolidateForcedSourceTable' is a tract-level task that aggregates
+        patches and should be rerun if any of the patches fail.
   step6:
     subset:
     - consolidateDiaSourceTable

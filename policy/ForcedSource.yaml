@@ -1,0 +1,101 @@
+funcs:
+    objectId:
+        functor: Column
+        args: objectId
+        dataset: calexp
+    parentObjectId:
+        functor: Column
+        args: parent
+        dataset: calexp
+    coord_ra:
+        # reference position required by database. Not in DPDD
+        functor: CoordColumn
+        dataset: calexp
+        args: coord_ra
+    coord_dec:
+        # reference position required by database. Not in DPDD
+        functor: CoordColumn
+        dataset: calexp
+        args: coord_dec
+    ccdVisitId:
+        functor: Column
+        dataset: calexp
+        args: ccdVisitId
+    band:
+        functor: Column
+        dataset: calexp
+        args: band
+    PsFlux:
+        functor: LocalNanojansky
+        dataset: calexp
+        args:
+            - base_PsfFlux_instFlux
+            - base_PsfFlux_instFluxErr
+            - base_LocalPhotoCalib
+            - base_LocalPhotoCalibErr
+    PsFluxErr:
+        functor: LocalNanojanskyErr
+        dataset: calexp
+        args:
+            - base_PsfFlux_instFlux
+            - base_PsfFlux_instFluxErr
+            - base_LocalPhotoCalib
+            - base_LocalPhotoCalibErr
+    PsFluxFlag:
+        functor: Column
+        dataset: calexp
+        args: base_PsfFlux_flag
+    psFluxApCorr:
+        functor: Column
+        dataset: calexp
+        args: base_PsfFlux_apCorr
+    psFluxApCorrErr:
+        functor: Column
+        dataset: calexp
+        args: base_PsfFlux_apCorrErr
+    PsDiffFlux:
+        functor: LocalNanojansky
+        dataset: diff
+        args:
+            - base_PsfFlux_instFlux
+            - base_PsfFlux_instFluxErr
+            - base_LocalPhotoCalib
+            - base_LocalPhotoCalibErr
+    PsDiffFluxErr:
+        functor: LocalNanojanskyErr
+        dataset: diff
+        args:
+            - base_PsfFlux_instFlux
+            - base_PsfFlux_instFluxErr
+            - base_LocalPhotoCalib
+            - base_LocalPhotoCalibErr
+    PsDiffFluxFlag:
+        functor: Column
+        dataset: diff
+        args: base_PsfFlux_flag
+    psDiffFluxApCorr:
+        functor: Column
+        dataset: diff
+        args: base_PsfFlux_apCorr
+    psDiffFluxApCorrErr:
+        functor: Column
+        dataset: diff
+        args: base_PsfFlux_apCorrErr
+# PixelFlags exist in the forced_src and the forced_diff dataset, but they're all False
+calexpFlags:
+    - base_LocalBackground_instFlux
+    - base_LocalBackground_instFluxErr
+    - base_PixelFlags_flag
+    - base_PixelFlags_flag_edge
+    - base_PixelFlags_flag_interpolated
+    - base_PixelFlags_flag_saturated
+    - base_PixelFlags_flag_cr
+    - base_PixelFlags_flag_bad
+    - base_PixelFlags_flag_suspect
+    - base_PixelFlags_flag_interpolatedCenter
+    - base_PixelFlags_flag_saturatedCenter
+    - base_PixelFlags_flag_crCenter
+    - base_PixelFlags_flag_suspectCenter
+flag_rename_rules:
+    - ['base_PixelFlags_flag', 'pixelFlags']
+    - ['base_LocalBackground', 'localBackground']
