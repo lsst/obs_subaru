@@ -256,6 +256,9 @@ subsets:
     - forcedPhotDiffOnDiaObjects
     - transformForcedSourceTable
     - consolidateForcedSourceTable
+    - writeForcedSourceOnDiaObjectTable
+    - transformForcedSourceOnDiaObjectTable
+    - consolidateForcedSourceOnDiaObjectTable
     description: >
         Tasks that can be run together, but only after the 'step1', 'step2',
         'step3', and 'step4' subsets
