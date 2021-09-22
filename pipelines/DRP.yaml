@@ -21,6 +21,13 @@ tasks:
       doPhotometry: false
       applyColorTerms: false
       python: |
+        # These overrides were copied from the tests/config/config-gen3.yaml file
+        # on 22 Sept 2021.  This is necessary for processing in containers to succeed
+        # because the build system strips out the test directories for space concerns.
+        #
+        # TODO DM-29008: When that ticket is merged these overrides will no longer
+        # be needed at all since that will fix higher level issues with how config
+        # overrides are imported in general.
         config.sourceSelector['science'].flags.bad = ['PixelFlags_edge',
                                                       'PixelFlags_saturated',
                                                       'PixelFlags_interpolatedCenter',
