@@ -21,9 +21,31 @@ tasks:
       doPhotometry: false
       applyColorTerms: false
       python: |
-        # This override is temporary until DM-29008.
-        from lsst.utils import getPackageDir
-        config.load(os.path.join(getPackageDir("jointcal"), "tests", "config", "config-gen3.py"))
+        config.sourceSelector['science'].flags.bad = ['PixelFlags_edge',
+                                                      'PixelFlags_saturated',
+                                                      'PixelFlags_interpolatedCenter',
+                                                      'PixelFlags_interpolated',
+                                                      'PixelFlags_crCenter',
+                                                      'PixelFlags_bad',
+                                                      'HsmPsfMoments_flag',
+                                                      'ApFlux_12_0_flag',
+                                                     ]
+        config.sourceSelector['science'].doUnresolved = False
+        config.sourceSelector['science'].signalToNoise.fluxField = 'ApFlux_12_0_instFlux'
+        config.sourceSelector['science'].signalToNoise.errField = 'ApFlux_12_0_instFluxErr'
+        config.sourceSelector['science'].isolated.parentName = 'parentSourceId'
+        config.sourceSelector['science'].isolated.nChildName = 'Deblend_nChild'
+        config.sourceFluxType = "ApFlux_12_0"
+
+        # TODO DM-27843: workaround for gen3 not supporting anyFilterMapsToThis
+        config.astrometryRefObjLoader.filterMap = {'g': 'phot_g_mean',
+                                                   'r': 'phot_g_mean',
+                                                   'i': 'phot_g_mean',
+                                                   'z': 'phot_g_mean',
+                                                   'y': 'phot_g_mean',
+                                                   'N921': 'phot_g_mean',
+                                                  }
+        config.astrometryRefObjLoader.anyFilterMapsToThis = None
   # The FGCM configurations below are appropriate specifically for RC2; like
   # the jointcal information above, this is the least-bad place for it, because
   # Gen3 HSC is unlikely to mean anything other than RC2 until we have a new
