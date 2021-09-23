@@ -1,4 +1,8 @@
 funcs:
+    forcedSourceId:
+        functor: Column
+        args: id
+        dataset: calexp
     parentObjectId:
         functor: Column
         args: parent
@@ -21,7 +25,7 @@ funcs:
         functor: Column
         dataset: calexp
         args: band
-    PsFlux:
+    psfFlux:
         functor: LocalNanojansky
         dataset: calexp
         args:
@@ -29,7 +33,7 @@ funcs:
             - base_PsfFlux_instFluxErr
             - base_LocalPhotoCalib
             - base_LocalPhotoCalibErr
-    PsFluxErr:
+    psfFluxErr:
         functor: LocalNanojanskyErr
         dataset: calexp
         args:
@@ -37,19 +41,11 @@ funcs:
             - base_PsfFlux_instFluxErr
             - base_LocalPhotoCalib
             - base_LocalPhotoCalibErr
-    PsFluxFlag:
+    psfFlux_flag:
         functor: Column
         dataset: calexp
         args: base_PsfFlux_flag
-    psFluxApCorr:
-        functor: Column
-        dataset: calexp
-        args: base_PsfFlux_apCorr
-    psFluxApCorrErr:
-        functor: Column
-        dataset: calexp
-        args: base_PsfFlux_apCorrErr
-    PsDiffFlux:
+    psfDiffFlux:
         functor: LocalNanojansky
         dataset: diff
         args:
@@ -57,7 +53,7 @@ funcs:
             - base_PsfFlux_instFluxErr
             - base_LocalPhotoCalib
             - base_LocalPhotoCalibErr
-    PsDiffFluxErr:
+    psfDiffFluxErr:
         functor: LocalNanojanskyErr
         dataset: diff
         args:
@@ -65,23 +61,22 @@ funcs:
             - base_PsfFlux_instFluxErr
             - base_LocalPhotoCalib
             - base_LocalPhotoCalibErr
-    PsDiffFluxFlag:
+    psfDiffFlux_flag:
         functor: Column
         dataset: diff
         args: base_PsfFlux_flag
-    psDiffFluxApCorr:
-        functor: Column
-        dataset: diff
-        args: base_PsfFlux_apCorr
-    psDiffFluxApCorrErr:
-        functor: Column
-        dataset: diff
-        args: base_PsfFlux_apCorrErr
-# PixelFlags exist in the forced_src and the forced_diff dataset, but they're all False
+# PixelFlags exist in forced_src and forced_diff dataset, but they're all False
 calexpFlags:
+    - base_LocalPhotoCalib
+    - base_LocalPhotoCalib_flag
+    - base_LocalPhotoCalibErr
+    - base_LocalWcs_flag
+    - base_LocalWcs_CDMatrix_2_1
+    - base_LocalWcs_CDMatrix_1_1
+    - base_LocalWcs_CDMatrix_1_2
+    - base_LocalWcs_CDMatrix_2_2
     - base_LocalBackground_instFlux
     - base_LocalBackground_instFluxErr
-    - base_PixelFlags_flag
     - base_PixelFlags_flag_edge
     - base_PixelFlags_flag_interpolated
     - base_PixelFlags_flag_saturated
@@ -94,4 +89,4 @@ calexpFlags:
     - base_PixelFlags_flag_suspectCenter
 flag_rename_rules:
     - ['base_PixelFlags_flag', 'pixelFlags']
-    - ['base_LocalBackground', 'localBackground']
+    - ['base_Local', 'local']
