@@ -28,21 +28,21 @@ tasks:
         # TODO DM-29008: When that ticket is merged these overrides will no longer
         # be needed at all since that will fix higher level issues with how config
         # overrides are imported in general.
-        config.sourceSelector['science'].flags.bad = ['PixelFlags_edge',
-                                                      'PixelFlags_saturated',
-                                                      'PixelFlags_interpolatedCenter',
-                                                      'PixelFlags_interpolated',
-                                                      'PixelFlags_crCenter',
-                                                      'PixelFlags_bad',
-                                                      'HsmPsfMoments_flag',
-                                                      'ApFlux_12_0_flag',
+        config.sourceSelector['science'].flags.bad = ['pixelFlags_edge',
+                                                      'pixelFlags_saturated',
+                                                      'pixelFlags_interpolatedCenter',
+                                                      'pixelFlags_interpolated',
+                                                      'pixelFlags_crCenter',
+                                                      'pixelFlags_bad',
+                                                      'hsmPsfMoments_flag',
+                                                      'apFlux_12_0_flag',
                                                      ]
         config.sourceSelector['science'].doUnresolved = False
-        config.sourceSelector['science'].signalToNoise.fluxField = 'ApFlux_12_0_instFlux'
-        config.sourceSelector['science'].signalToNoise.errField = 'ApFlux_12_0_instFluxErr'
+        config.sourceSelector['science'].signalToNoise.fluxField = 'apFlux_12_0_instFlux'
+        config.sourceSelector['science'].signalToNoise.errField = 'apFlux_12_0_instFluxErr'
         config.sourceSelector['science'].isolated.parentName = 'parentSourceId'
-        config.sourceSelector['science'].isolated.nChildName = 'Deblend_nChild'
-        config.sourceFluxType = "ApFlux_12_0"
+        config.sourceSelector['science'].isolated.nChildName = 'deblend_nChild'
+        config.sourceFluxType = 'apFlux_12_0'
 
         # TODO DM-27843: workaround for gen3 not supporting anyFilterMapsToThis
         config.astrometryRefObjLoader.filterMap = {'g': 'phot_g_mean',
