@@ -69,7 +69,7 @@ class HyperSuprimeCam(Instrument):
         # Docstring inherited from Instrument.getName
         return "HSC"
 
-    def register(self, registry):
+    def register(self, registry, update=False):
         # Docstring inherited from Instrument.register
         camera = self.getCamera()
         # The maximum values below make Gen3's ObservationDataIdPacker produce
@@ -84,7 +84,8 @@ class HyperSuprimeCam(Instrument):
                     "visit_max": obsMax,
                     "exposure_max": obsMax,
                     "class_name": getFullTypeName(self),
-                }
+                },
+                update=update
             )
             for detector in camera:
                 registry.syncDimensionData(
@@ -99,9 +100,10 @@ class HyperSuprimeCam(Instrument):
                         "name_in_raft": detector.getName().split("_")[1],
                         "raft": detector.getName().split("_")[0],
                         "purpose": str(detector.getType()).split(".")[-1],
-                    }
+                    },
+                    update=update
                 )
-            self._registerFilters(registry)
+            self._registerFilters(registry, update=update)
 
     def getRawFormatter(self, dataId):
         # Docstring inherited from Instrument.getRawFormatter
