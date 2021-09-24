@@ -178,8 +178,6 @@ subsets:
     subset:
       - consolidateSourceTable
       - consolidateVisitSummary
-      - makeCcdVisitTable
-      - makeVisitTable
       - skyCorr
       - fgcmBuildStarsTable
       - fgcmFitCycle
@@ -284,3 +282,15 @@ subsets:
         aggregation steps. Otherwise, if run in the same quantum graph,
         aggregated data products (e.g. diaObjects) would not be created if
         one or more of the expected inputs is missing.
+  step7:
+    subset:
+      - makeCcdVisitTable
+      - makeVisitTable
+      - consolidateHealSparsePropertyMaps
+    description: >
+      Tasks that should be run as the final step that require global
+      inputs, and can be run after the 'step3' subset.
+
+      This step has global aggregation tasks to run over all visits,
+      detectors, tracts, etc.  This step should be run only with
+      the instrument constraint in the data query.
