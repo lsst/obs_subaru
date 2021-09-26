@@ -1,8 +1,4 @@
 funcs:
-    objectId:
-        functor: Column
-        args: objectId
-        dataset: calexp
     parentObjectId:
         functor: Column
         args: parent
