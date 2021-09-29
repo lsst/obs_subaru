@@ -306,6 +306,12 @@ class HscMapper(CameraMapper):
             return (oid << HscMapper._nbit_filter) + afwImage.Filter(dataId['filter']).getId()
         return oid
 
+    def bypass_deepCoadd_band(self, datasetType, pythonType, location, dataId):
+        """Return the canonical/generic band name associated with the filter in
+        the dataId.
+        """
+        return(self.filters[dataId["filter"]])
+
     def bypass_deepCoaddId_bits(self, *args, **kwargs):
         """The number of bits used up for patch ID bits"""
         return 64 - HscMapper._nbit_id
