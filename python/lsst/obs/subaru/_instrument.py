@@ -35,7 +35,7 @@ from lsst.utils import getPackageDir
 from lsst.afw.cameraGeom import makeCameraFromPath, CameraConfig
 from lsst.daf.butler import (DatasetType, DataCoordinate, FileDataset, DatasetRef,
                              CollectionType, Timespan)
-from lsst.daf.butler.core.utils import getFullTypeName
+from lsst.utils.introspection import get_full_type_name
 from lsst.obs.base import Instrument
 from lsst.obs.base.gen2to3 import TranslatorFactory, PhysicalFilterToBandKeyHandler
 
@@ -83,7 +83,7 @@ class HyperSuprimeCam(Instrument):
                     "detector_max": 200,
                     "visit_max": obsMax,
                     "exposure_max": obsMax,
-                    "class_name": getFullTypeName(self),
+                    "class_name": get_full_type_name(self),
                 },
                 update=update
             )
