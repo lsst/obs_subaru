@@ -2,6 +2,7 @@ description: The DRP pipeline specialized for the HSC instrument
 instrument: lsst.obs.subaru.HyperSuprimeCam
 imports:
   - $PIPE_TASKS_DIR/pipelines/DRP.yaml
+  - $FARO_DIR/pipelines/metrics_pipeline_jointcal_fgcm.yaml
 tasks:
   skyCorr:
     class: lsst.pipe.drivers.skyCorrection.SkyCorrectionTask
@@ -182,6 +183,9 @@ subsets:
       - fgcmBuildStarsTable
       - fgcmFitCycle
       - fgcmOutputProducts
+      - nsrcMeasVisit
+      - TE3
+      - TE4
     description: >
       Per-visit tasks that can be run together, but only after the 'step1'.
 
@@ -214,6 +218,33 @@ subsets:
       - healSparsePropertyMaps
       - selectGoodSeeingVisits
       - templateGen
+      - matchCatalogsTract
+      - matchCatalogsPatch
+      - matchCatalogsPatchMultiBand
+      - PA1
+      - PF1_design
+      - AM1
+      - AM2
+      - AM3
+      - AD1_design
+      - AD2_design
+      - AD3_design
+      - AF1_design
+      - AF2_design
+      - AF3_design
+      - AB1
+      - modelPhotRepGal1
+      - modelPhotRepGal2
+      - modelPhotRepGal3
+      - modelPhotRepGal4
+      - modelPhotRepStar1
+      - modelPhotRepStar2
+      - modelPhotRepStar3
+      - modelPhotRepStar4
+      - psfPhotRepStar1
+      - psfPhotRepStar2
+      - psfPhotRepStar3
+      - psfPhotRepStar4
     description: >
       Tasks that can be run together, but only after the 'step1' and 'step2'
       subsets.
@@ -259,6 +290,9 @@ subsets:
     - writeForcedSourceOnDiaObjectTable
     - transformForcedSourceOnDiaObjectTable
     - consolidateForcedSourceOnDiaObjectTable
+    - TE1
+    - TE2
+    - wPerp
     description: >
         Tasks that can be run together, but only after the 'step1', 'step2',
         'step3', and 'step4' subsets
