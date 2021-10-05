@@ -161,6 +161,45 @@ subsets:
       The multiVisit subset defined in pipe_tasks' DRP.yaml is not safe to
       use on HSC for various reasons; use 'step1', 'step2', and 'step3' subsets
       instead.  It may be re-enabled in the future.
+  faro:
+    subset:
+      - nsrcMeasVisit
+      - TE3
+      - TE4
+      - matchCatalogsTract
+      - matchCatalogsPatch
+      - matchCatalogsPatchMultiBand
+      - PA1
+      - PF1_design
+      - AM1
+      - AM2
+      - AM3
+      - AD1_design
+      - AD2_design
+      - AD3_design
+      - AF1_design
+      - AF2_design
+      - AF3_design
+      - AB1
+      - modelPhotRepGal1
+      - modelPhotRepGal2
+      - modelPhotRepGal3
+      - modelPhotRepGal4
+      - modelPhotRepStar1
+      - modelPhotRepStar2
+      - modelPhotRepStar3
+      - modelPhotRepStar4
+      - psfPhotRepStar1
+      - psfPhotRepStar2
+      - psfPhotRepStar3
+      - psfPhotRepStar4
+      - TE1
+      - TE2
+      - wPerp
+    description: >
+      Set of tasks for calculation of metrics via faro. This includes tasks
+      that operate on single visits, matched visits, and coadds (and thus appear
+      in step2, step3, and step5 subsets below.
   step1:
     subset:
       - isr
