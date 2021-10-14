@@ -16,9 +16,6 @@ config.measurement.plugins['base_PixelFlags'].masksFpAnywhere.append('BRIGHT_OBJ
 config.catalogCalculation.plugins.names = ["base_ClassificationExtendedness"]
 config.measurement.slots.psfFlux = "base_PsfFlux"
 
-# Enable PSF photometry after PSF-Gaussianization in the `ext_gaap_GaapFlux` plugin
-config.measurement.plugins["ext_gaap_GaapFlux"].doPsfPhotometry = True
-
 def doUndeblended(config, algName, fluxList=None):
     """Activate undeblended measurements of algorithm
 
