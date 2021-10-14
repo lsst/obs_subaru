@@ -2,6 +2,7 @@ description: The DRP pipeline specialized for the HSC instrument
 instrument: lsst.obs.subaru.HyperSuprimeCam
 imports:
   - $PIPE_TASKS_DIR/pipelines/DRP.yaml
+  - $FARO_DIR/pipelines/metrics_pipeline_jointcal_fgcm.yaml
 tasks:
   skyCorr:
     class: lsst.pipe.drivers.skyCorrection.SkyCorrectionTask
@@ -160,6 +161,54 @@ subsets:
       The multiVisit subset defined in pipe_tasks' DRP.yaml is not safe to
       use on HSC for various reasons; use 'step1', 'step2', and 'step3' subsets
       instead.  It may be re-enabled in the future.
+  faro_step2:
+    subset:
+      - nsrcMeasVisit
+      - TE3
+      - TE4
+    description: >
+      Set of tasks for calculation of metrics via faro. This includes tasks
+      that operate on single visits, and thus appear in step2 below.
+  faro_step3:
+    subset:
+      - matchCatalogsTract
+      - matchCatalogsPatch
+      - matchCatalogsPatchMultiBand
+      - PA1
+      - PF1_design
+      - AM1
+      - AM2
+      - AM3
+      - AD1_design
+      - AD2_design
+      - AD3_design
+      - AF1_design
+      - AF2_design
+      - AF3_design
+      - AB1
+      - modelPhotRepGal1
+      - modelPhotRepGal2
+      - modelPhotRepGal3
+      - modelPhotRepGal4
+      - modelPhotRepStar1
+      - modelPhotRepStar2
+      - modelPhotRepStar3
+      - modelPhotRepStar4
+      - psfPhotRepStar1
+      - psfPhotRepStar2
+      - psfPhotRepStar3
+      - psfPhotRepStar4
+    description: >
+      Set of tasks for calculation of metrics via faro. This includes tasks
+      that operate on matched visits, and thus appear in step3 below.
+  faro_step5:
+    subset:
+      - TE1
+      - TE2
+      - wPerp
+    description: >
+      Set of tasks for calculation of metrics via faro. This includes tasks
+      that operate on coadds, and thus appear in step5 below.
   step1:
     subset:
       - isr
@@ -182,6 +231,9 @@ subsets:
       - fgcmBuildStarsTable
       - fgcmFitCycle
       - fgcmOutputProducts
+      - nsrcMeasVisit
+      - TE3
+      - TE4
     description: >
       Per-visit tasks that can be run together, but only after the 'step1'.
 
@@ -214,6 +266,33 @@ subsets:
       - healSparsePropertyMaps
       - selectGoodSeeingVisits
       - templateGen
+      - matchCatalogsTract
+      - matchCatalogsPatch
+      - matchCatalogsPatchMultiBand
+      - PA1
+      - PF1_design
+      - AM1
+      - AM2
+      - AM3
+      - AD1_design
+      - AD2_design
+      - AD3_design
+      - AF1_design
+      - AF2_design
+      - AF3_design
+      - AB1
+      - modelPhotRepGal1
+      - modelPhotRepGal2
+      - modelPhotRepGal3
+      - modelPhotRepGal4
+      - modelPhotRepStar1
+      - modelPhotRepStar2
+      - modelPhotRepStar3
+      - modelPhotRepStar4
+      - psfPhotRepStar1
+      - psfPhotRepStar2
+      - psfPhotRepStar3
+      - psfPhotRepStar4
     description: >
       Tasks that can be run together, but only after the 'step1' and 'step2'
       subsets.
@@ -259,6 +338,9 @@ subsets:
     - writeForcedSourceOnDiaObjectTable
     - transformForcedSourceOnDiaObjectTable
     - consolidateForcedSourceOnDiaObjectTable
+    - TE1
+    - TE2
+    - wPerp
     description: >
         Tasks that can be run together, but only after the 'step1', 'step2',
         'step3', and 'step4' subsets
