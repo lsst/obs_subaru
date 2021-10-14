@@ -19,9 +19,6 @@ imports:
     - drpAssociation
     - drpDiaCalculation
     - forcedPhotDiffim
-    - faro_step2
-    - faro_step3
-    - faro_step5
 tasks:
   processCcdWithFakes:
     class: lsst.pipe.tasks.processCcdWithFakes.ProcessCcdWithFakesTask
