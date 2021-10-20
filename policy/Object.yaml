@@ -148,97 +148,93 @@ funcs:
     # izStd:
     # zyStd:
     #  PSF GAaP flux
-    gaapFlux_psf:
+    gaapPsfFlux:
         functor: NanoJansky
         dataset: forced_src
         args: ext_gaap_GaapFlux_1_15x_PsfFlux_instFlux
-    gaapFluxErr_psf:
+    gaapPsfFluxErr:
         functor: NanoJanskyErr
         dataset: forced_src
         args:
             - ext_gaap_GaapFlux_1_15x_PsfFlux_instFlux
             - ext_gaap_GaapFlux_1_15x_PsfFlux_instFluxErr
     # 0.5 arcsec sigma GAaP flux
-    gaapFlux_0_5:
+    gaap0p5Flux:
         functor: NanoJansky
         dataset: forced_src
         args: ext_gaap_GaapFlux_1_15x_0_5_instFlux
-    gaapFluxErr_0_5:
+    gaap0p5FluxErr:
         functor: NanoJanskyErr
         dataset: forced_src
         args:
             - ext_gaap_GaapFlux_1_15x_0_5_instFlux
             - ext_gaap_GaapFlux_1_15x_0_5_instFluxErr
     # 0.7 arcsec sigma GAaP flux
-    gaapFlux_0_7:
+    gaap0p7Flux:
         functor: NanoJansky
         dataset: forced_src
         args: ext_gaap_GaapFlux_1_15x_0_7_instFlux
-    gaapFluxErr_0_7:
+    gaap0p7FluxErr:
         functor: NanoJanskyErr
         dataset: forced_src
         args:
             - ext_gaap_GaapFlux_1_15x_0_7_instFlux
             - ext_gaap_GaapFlux_1_15x_0_7_instFluxErr
     # 1.0 arcsec sigma GAaP flux
-    gaapFlux_1_0:
+    gaap1p0Flux:
         functor: NanoJansky
         dataset: forced_src
         args: ext_gaap_GaapFlux_1_15x_1_0_instFlux
-    gaapFluxErr_1_0:
+    gaap1p0FluxErr:
         functor: NanoJanskyErr
         dataset: forced_src
         args:
             - ext_gaap_GaapFlux_1_15x_1_0_instFlux
             - ext_gaap_GaapFlux_1_15x_1_0_instFluxErr
     # 1.5 arcsec sigma GAaP flux
-    gaapFlux_1_5:
+    gaap1p5Flux:
         functor: NanoJansky
         dataset: forced_src
         args: ext_gaap_GaapFlux_1_15x_1_5_instFlux
-    gaapFluxErr_1_5:
+    gaap1p5FluxErr:
         functor: NanoJanskyErr
         dataset: forced_src
         args:
             - ext_gaap_GaapFlux_1_15x_1_5_instFlux
             - ext_gaap_GaapFlux_1_15x_1_5_instFluxErr
     # 2.5 arcsec sigma GAaP flux
-    gaapFlux_2_5:
+    gaap2p5Flux:
         functor: NanoJansky
         dataset: forced_src
         args: ext_gaap_GaapFlux_1_15x_2_5_instFlux
-    gaapFluxErr_2_5:
+    gaap2p5FluxErr:
         functor: NanoJanskyErr
         dataset: forced_src
         args:
             - ext_gaap_GaapFlux_1_15x_2_5_instFlux
             - ext_gaap_GaapFlux_1_15x_2_5_instFluxErr
     # 3.0 arcsec sigma GAaP flux
-    gaapFlux_3_0:
+    gaap3p0Flux:
         functor: NanoJansky
         dataset: forced_src
         args: ext_gaap_GaapFlux_1_15x_3_0_instFlux
-    gaapFluxErr_3_0:
+    gaap3p0FluxErr:
         functor: NanoJanskyErr
         dataset: forced_src
         args:
             - ext_gaap_GaapFlux_1_15x_3_0_instFlux
             - ext_gaap_GaapFlux_1_15x_3_0_instFluxErr
     #  Optimal GAaP flux
-    gaapFlux_optimal:
+    gaapOptimalFlux:
         functor: NanoJansky
         dataset: forced_src
         args: ext_gaap_GaapFlux_1_15x_Optimal_instFlux
-    gaapFluxErr_optimal:
+    gaapOptimalFluxErr:
         functor: NanoJanskyErr
         dataset: forced_src
         args:
             - ext_gaap_GaapFlux_1_15x_Optimal_instFlux
             - ext_gaap_GaapFlux_1_15x_Optimal_instFluxErr
-    gaapFlux_optimal_flag_bigPsf:
-        functor: Column
-        dataset: forced_src
-        args: ext_gaap_GaapFlux_1_15x_Optimal_flag_bigPsf
     # Taking Shape from meas
     ixx:
         functor: Column
@@ -675,6 +671,7 @@ forcedFlags:
     - ext_gaap_GaapFlux_flag
     - ext_gaap_GaapFlux_flag_edge
     - ext_gaap_GaapFlux_1_15x_flag_gaussianization
+    - ext_gaap_GaapFlux_1_15x_Optimal_flag_bigPsf
     - ext_gaap_GaapFlux_1_15x_0_5_flag_bigPsf
     - ext_gaap_GaapFlux_1_15x_0_7_flag_bigPsf
     - ext_gaap_GaapFlux_1_15x_1_0_flag_bigPsf
@@ -687,6 +684,13 @@ flag_rename_rules:
     - ['base_PixelFlags_flag', 'pixelFlags']
     - ['base_CircularApertureFlux', 'apFlux']
     - ['ext_convolved_', '']
+    - ['ext_gaap_GaapFlux_1_15x_0_5', 'gaap0p5Flux']
+    - ['ext_gaap_GaapFlux_1_15x_0_7', 'gaap0p7Flux']
+    - ['ext_gaap_GaapFlux_1_15x_1_0', 'gaap1p0Flux']
+    - ['ext_gaap_GaapFlux_1_15x_1_5', 'gaap1p5Flux']
+    - ['ext_gaap_GaapFlux_1_15x_2_5', 'gaap2p5Flux']
+    - ['ext_gaap_GaapFlux_1_15x_3_0', 'gaap3p0Flux']
+    - ['ext_gaap_GaapFlux_1_15x_Optimal', 'gaapOptimalFlux']
     - ['ext_gaap_GaapFlux_1_15x', 'gaapFlux']
     - ['ext_gaap_GaapFlux', 'gaapFlux']
     - ['undeblended_base', 'undeblended']
