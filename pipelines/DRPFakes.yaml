@@ -3,8 +3,9 @@ instrument: lsst.obs.subaru.HyperSuprimeCam
 imports:
   location: "${OBS_SUBARU_DIR}/pipelines/DRP.yaml"
   exclude:
-    - skycorr
+    - skyCorr
     - jointcal
+    - fgcm
     - fgcmBuildStarsTable
     - fgcmFitCycle
     - fgcmOutputProducts
@@ -19,14 +20,28 @@ imports:
     - drpAssociation
     - drpDiaCalculation
     - forcedPhotDiffim
+    - forcedPhotCcdOnDiaObjects
+    - forcedPhotDiffOnDiaObjects
+    - transformForcedSourceTable
+    - consolidateForcedSourceTable
+    - getTemplate
+    - writeForcedSourceTable
+    - consolidateAssocDiaSourceTable
+    - consolidateFullDiaObjectTable
+    - writeForcedSourceOnDiaObjectTable
+    - transformForcedSourceOnDiaObjectTable
+    - consolidateForcedSourceOnDiaObjectTable
+    - TE1
+    - TE2
+    - wPerp
 tasks:
   processCcdWithFakes:
     class: lsst.pipe.tasks.processCcdWithFakes.ProcessCcdWithFakesTask
     config:
       insertFakes.doProcessAllDataIds: True
       connections.photoCalibName: "fgcm"
-      doApplyExternalPhotoCalib: True
-      doApplyExternalSkyWcs: True
+      doApplyExternalGlobalPhotoCalib: True
+      doApplyExternalTractSkyWcs: True
   writeSourceTable:
     class: lsst.pipe.tasks.postprocess.WriteSourceTableTask
     config:
@@ -110,3 +125,7 @@ tasks:
     config:
       connections.coaddName: "fakes_deep"
       connections.calexpType: "fakes_"
+  consolidateHealSparsePropertyMaps:
+    class: lsst.pipe.tasks.healSparseMapping.ConsolidateHealSparsePropertyMapTask
+    config:
+      connections.coaddName: "fakes_deep"
