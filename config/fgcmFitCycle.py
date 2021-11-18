@@ -13,6 +13,7 @@ config.washMjds = [56650.0, 57500.0, 57700.0, 58050.0]
 config.epochMjds = [56650., 57420., 57606., 59000.]
 config.coatingMjds = [56650.0, 58050.0]
 config.latitude = 19.8256
+config.defaultCameraOrientation = 270.0
 config.expGrayPhotometricCutDict = {'N387': -0.05,
                                     'g': -0.05,
                                     'r': -0.05,
