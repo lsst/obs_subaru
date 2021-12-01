@@ -132,13 +132,10 @@ config.fluxMag0T1 = {'HSC-G': 398107170553.49854,
                      'NB0921': 19054607179.632523,
                      }
 
-config.doVignette = True
 # Use default ISR vignette construction
-config.vignette.xCenter = -100*0.015  # in mm
-config.vignette.yCenter = 100*0.015  # in mm
-config.vignette.radius = 17500*0.015  # in mm
-config.vignette.numPolygonPoints = 100
-config.vignette.doWriteVignettePolygon = True
+config.doVignette = True
+config.doMaskVignettePolygon = True
+config.vignette.load(os.path.join(os.path.dirname(__file__), "vignette.py"))
 
 config.doAttachTransmissionCurve = True
 config.doUseOpticsTransmission = True
