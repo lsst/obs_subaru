@@ -35,7 +35,7 @@ imports:
     - TE2
     - wPerp
 tasks:
-  processCcdWithFakes:
+  singleFrameWithFakes:
     class: lsst.pipe.tasks.processCcdWithFakes.ProcessCcdWithFakesTask
     config:
       insertFakes.doProcessAllDataIds: True
