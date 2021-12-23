@@ -1,13 +1,4 @@
-# TODO: remove this pipeline once DM-28475 lands (as filterMap config will no longer be necessary)
-description: Make collated tract-level QA tables for use in plotting pipelines
-parameters:
-  filterMap: {"g": "HSC-G", "r": "HSC-R", "i": "HSC-I", "z": "HSC-Z", "y": "HSC-Y", "N921": "NB0921"}
-tasks:
-  makeForcedQaTractTables:
-     class: lsst.analysis.drp.makeQaTractTables.MakeForcedQaTractTablesTask
-     config:
-       filterMap: parameters.filterMap
-  makeUnforcedQaTractTables:
-     class: lsst.analysis.drp.makeQaTractTables.MakeUnforcedQaTractTablesTask
-     config:
-       filterMap: parameters.filterMap
+description: >
+  This pipeline is a backwards-compatibility stub.
+imports:
+  location: $DRP_PIPE_DIR/pipelines/HSC/QaTractTables.yaml
