@@ -10,17 +10,8 @@ bgFile = os.path.join(ObsConfigDir, "background.py")
 # Cosmic rays and background estimation
 config.detection.background.load(bgFile)
 
-# Reference catalogs
-for refObjLoader in (config.astromRefObjLoader,
-                     config.photoRefObjLoader,
-                     ):
-    refObjLoader.load(os.path.join(ObsConfigDir, "filterMap.py"))
-    # This is the Gen2 configuration option.
-    refObjLoader.ref_dataset_name = "ps1_pv3_3pi_20170110"
-
-# These are the Gen3 configuration options for reference catalog name.
-config.connections.photoRefCat = "ps1_pv3_3pi_20170110"
-config.connections.astromRefCat = "ps1_pv3_3pi_20170110"
+# Reference catalog filter maps
+config.photoRefObjLoader.load(os.path.join(ObsConfigDir, "filterMap.py"))
 
 # Better astrometry matching
 config.astrometry.matcher.numBrightStars = 150
@@ -44,7 +35,6 @@ for matchConfig in (config.astrometry,
 config.catalogCalculation.plugins['base_ClassificationExtendedness'].fluxRatio = 0.95
 
 config.photoCal.applyColorTerms = True
-config.photoCal.photoCatName = "ps1_pv3_3pi_20170110"
 colors = config.photoCal.match.referenceSelection.colorLimits
 colors["g-r"] = ColorLimit(primary="g_flux", secondary="r_flux", minimum=0.0)
 colors["r-i"] = ColorLimit(primary="r_flux", secondary="i_flux", maximum=0.5)
