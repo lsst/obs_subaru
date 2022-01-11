@@ -24,7 +24,6 @@ import unittest
 from collections import namedtuple
 
 import lsst.utils.tests
-from lsst.afw.image import Filter
 from lsst.obs.hsc import HscMapper
 
 
@@ -66,7 +65,6 @@ class CameraTestCase(lsst.utils.tests.TestCase):
 
         for filterName in filterNames:
             self.assertIn(filterName.alias, self.mapper.filters)
-            self.assertEqual(Filter(filterName.alias).getCanonicalName(), filterName.canonical)
 
 
 class TestMemory(lsst.utils.tests.MemoryTestCase):

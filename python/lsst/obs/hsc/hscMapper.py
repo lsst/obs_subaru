@@ -1,5 +1,4 @@
 import os
-import warnings
 
 import lsst.log
 from lsst.obs.base import CameraMapper
@@ -22,6 +21,7 @@ class HscMapper(CameraMapper):
     MakeRawVisitInfoClass = MakeHscRawVisitInfo
 
     PupilFactoryClass = HscPupilFactory
+    filterDefinitions = HSC_FILTER_DEFINITIONS
 
     # Use the full instrument class name to prevent import errors
     # between hsc/ and subaru/ packages.
@@ -83,34 +83,30 @@ class HscMapper(CameraMapper):
                      ):
             self.mappings[name].keyDict.update(keys)
 
-        self.addFilters()
-
         self.filters = {}
-        with warnings.catch_warnings():
-            # surpress Filter warnings; we already know this is deprecated
-            warnings.simplefilter('ignore', category=FutureWarning)
-            for filt in HSC_FILTER_DEFINITIONS:
-                self.filters[filt.physical_filter] = afwImage.Filter(filt.physical_filter).getCanonicalName()
-        self.defaultFilterName = "unknown"
-
+        self.bandToIdNumDict = {}  # this is to get rid of afwFilter.getId calls
+        filterNum = -1
+        for filterDef in self.filterDefinitions:
+            physical_filter = filterDef.physical_filter
+            band = filterDef.band
+            self.filters[physical_filter] = band
+            if band not in self.bandToIdNumDict:
+                filterNum += 1
+                self.bandToIdNumDict[band] = filterNum
         #
         # The number of bits allocated for fields in object IDs, appropriate
         # for the default-configured Rings skymap.
         #
         # This shouldn't be the mapper's job at all; see #2797.
 
-        HscMapper._nbit_tract = 16
-        HscMapper._nbit_patch = 5
-        HscMapper._nbit_filter = 6
+        HscMapper._nbit_tract = 17  # Changes to mimic effective Gen3 behavior
+        HscMapper._nbit_patch = 8
+        HscMapper._nbit_filter = 5
 
         HscMapper._nbit_id = 64 - (HscMapper._nbit_tract + 2*HscMapper._nbit_patch + HscMapper._nbit_filter)
-
-        with warnings.catch_warnings():
-            # surpress Filter warnings; we already know this is deprecated
-            warnings.simplefilter('ignore', category=FutureWarning)
-            if len(afwImage.Filter.getNames()) >= 2**HscMapper._nbit_filter:
-                raise RuntimeError("You have more filters defined than fit into the %d bits allocated" %
-                                   HscMapper._nbit_filter)
+        if len(self.bandToIdNumDict) >= 2**HscMapper._nbit_filter:
+            raise RuntimeError("You have more filters defined than fit into the %d bits allocated" %
+                               HscMapper._nbit_filter)
 
     def _makeCamera(self, *args, **kwargs):
         """Make the camera object
@@ -303,19 +299,25 @@ class HscMapper(CameraMapper):
                 raise RuntimeError('patch component not in range [0, %d)' % 2**HscMapper._nbit_patch)
         oid = (((tract << HscMapper._nbit_patch) + patchX) << HscMapper._nbit_patch) + patchY
         if singleFilter:
-            return (oid << HscMapper._nbit_filter) + afwImage.Filter(dataId['filter']).getId()
+            return (oid << HscMapper._nbit_filter) + self.bandToIdNumDict[self.filters[dataId['filter']]]
         return oid
+
+    def bypass_deepCoadd_band(self, datasetType, pythonType, location, dataId):
+        """Return the canonical/generic band name associated with the filter in
+        the dataId.
+        """
+        return(self.filters[dataId["filter"]])
 
     def bypass_deepCoaddId_bits(self, *args, **kwargs):
         """The number of bits used up for patch ID bits"""
-        return 64 - HscMapper._nbit_id
+        return HscMapper._nbit_id
 
     def bypass_deepCoaddId(self, datasetType, pythonType, location, dataId):
         return self._computeCoaddExposureId(dataId, True)
 
     def bypass_deepMergedCoaddId_bits(self, *args, **kwargs):
         """The number of bits used up for patch ID bits"""
-        return 64 - HscMapper._nbit_id
+        return HscMapper._nbit_id - HscMapper._nbit_filter
 
     def bypass_deepMergedCoaddId(self, datasetType, pythonType, location, dataId):
         return self._computeCoaddExposureId(dataId, False)
