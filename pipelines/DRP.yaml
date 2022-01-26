@@ -120,12 +120,6 @@ tasks:
     config:
       doRefcatOutput: false
       cycleNumber: 4
-  makeWarp:
-    class: lsst.pipe.tasks.makeCoaddTempExp.MakeWarpTask
-    config:
-      python: >
-        from lsst.pipe.tasks.selectImages import PsfWcsSelectImagesTask;
-        config.select.retarget(PsfWcsSelectImagesTask)
   forcedPhotCcd:
     class: lsst.meas.base.forcedPhotCcd.ForcedPhotCcdTask
     config:
