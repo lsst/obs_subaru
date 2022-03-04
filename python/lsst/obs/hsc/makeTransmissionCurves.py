@@ -27,7 +27,6 @@ import numpy as np
 
 from lsst.afw.image import TransmissionCurve
 from lsst.utils import getPackageDir
-from . import hscFilters
 
 __all__ = ("getOpticsTransmission", "getSensorTransmission", "getAtmosphereTransmission",
            "getFilterTransmission",)
@@ -36,20 +35,30 @@ DATA_DIR = os.path.join(getPackageDir("obs_subaru"), "hsc", "transmission")
 
 HSC_BEGIN = "2012-12-18"  # initial date for curves valid for entire lifetime of HSC
 
+# This maps the old names used in afw.image.Filter and various NAOJ-side things
+# to the physical_filter names we've now standardized on.  It includes only
+# broad-band filters; the narrow-band filters are easier to transform without
+# an explicit mapping (see getPhysicalFilterName).
+OLD_FILTER_NAME_MAP = {b: f"HSC-{b.upper()}" for b in "grizy"}
+OLD_FILTER_NAME_MAP.update(r2="HSC-R2", i2="HSC-I2")
 
-def getLongFilterName(short):
-    """Return a long HSC filter name (e.g. 'HSC-R') that's usable as a data ID
-    value from the short one (e.g. 'r') declared canonical in afw.image.Filter.
+
+def getPhysicalFilterName(short):
+    """Return an HSC physical_filter name (e.g. 'HSC-R') that's usable as a
+    data ID value from various names used in the transmission data files.
     """
     if short.startswith("HSC"):
         return short
+    # Sometimes narrow-band and intermediate-band filters start with NB or IB,
+    # and we don't want to try to enumerate all of those if we can avoid it.
     if short.startswith("NB") or short.startswith("IB"):
         num = int(short[2:].lstrip("0"))
         return "%s%04d" % (short[:2], num)
-    for filter in hscFilters.HSC_FILTER_DEFINITIONS:
-        if short == filter.afw_name or short == filter.band:
-            return filter.physical_filter
-    return short
+    # Sometimes the narrow-band filters start with just N instead.
+    if short.startswith("N"):
+        num = int(short[1:].lstrip("0"))
+        return "NB%04d" % (num,)
+    return OLD_FILTER_NAME_MAP.get(short, short)
 
 
 def readTransmissionCurveFromFile(filename, unit="angstrom", atMin=None, atMax=None):
@@ -156,13 +165,13 @@ def getFilterTransmission():
         exec(compile(file.read(), filename, mode='exec'), module)
     result = {}
     for band, data in module["FILTER_DATA"].items():
-        result[getLongFilterName(band)] = TransmissionCurve.makeRadial(
+        result[getPhysicalFilterName(band)] = TransmissionCurve.makeRadial(
             throughput=data["T"], wavelengths=data["lam"]*10,
             radii=data['radius']/module["PIXEL_SIZE"],
             throughputAtMin=0.0, throughputAtMax=0.0
         )
     for filename in glob.glob(os.path.join(DATA_DIR, "wHSC-*.txt")):
-        band = getLongFilterName(os.path.split(filename)[1][len("wHSC-"): -len(".txt")])
+        band = getPhysicalFilterName(os.path.split(filename)[1][len("wHSC-"): -len(".txt")])
         if band not in result:
             result[band] = readTransmissionCurveFromFile(filename, atMin=0.0, atMax=0.0)
     return {HSC_BEGIN: result}
