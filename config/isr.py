@@ -113,7 +113,7 @@ config.fringe.stats.stat = 32
 
 config.doNanInterpAfterFlat = False
 
-config.doAmpOffset = False
+config.doAmpOffset = True
 config.ampOffset.retarget(SubaruAmpOffsetTask)
 
 config.doMeasureBackground = True
