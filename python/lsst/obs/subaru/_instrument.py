@@ -36,7 +36,7 @@ from lsst.afw.cameraGeom import makeCameraFromPath, CameraConfig
 from lsst.daf.butler import (DatasetType, DataCoordinate, FileDataset, DatasetRef,
                              CollectionType, Timespan)
 from lsst.utils.introspection import get_full_type_name
-from lsst.obs.base import Instrument
+from lsst.obs.base import Instrument, VisitSystem
 from lsst.obs.base.gen2to3 import TranslatorFactory, PhysicalFilterToBandKeyHandler
 
 from ..hsc.hscPupil import HscPupilFactory
@@ -84,6 +84,8 @@ class HyperSuprimeCam(Instrument):
                     "visit_max": obsMax,
                     "exposure_max": obsMax,
                     "class_name": get_full_type_name(self),
+                    # Some schemas support default visit_system
+                    "visit_system": VisitSystem.ONE_TO_ONE.value,
                 },
                 update=update
             )
