@@ -21,21 +21,19 @@
 # see <https://www.lsstcorp.org/LegalNotices/>.
 #
 import unittest
-from collections import namedtuple
 
 import lsst.utils.tests
-from lsst.obs.hsc import HscMapper
+from lsst.obs.subaru import HyperSuprimeCam
 
 
 class CameraTestCase(lsst.utils.tests.TestCase):
 
     def setUp(self):
-        self.mapper = HscMapper(root=".", calibRoot=".")
-        self.camera = self.mapper.camera
+        hsc = HyperSuprimeCam()
+        self.camera = hsc.getCamera()
 
     def tearDown(self):
         del self.camera
-        del self.mapper
 
     def testName(self):
         self.assertEqual(self.camera.getName(), "HSC")
@@ -48,28 +46,9 @@ class CameraTestCase(lsst.utils.tests.TestCase):
             self.assertEqual(ccd.getBBox().getWidth(), 2048)
             self.assertEqual(ccd.getBBox().getHeight(), 4176)
 
-    def testFilters(self):
-        # Check that the mapper has defined some standard filters.
-        # Note that this list is not intended to be comprehensive -- we
-        # anticipate that more filters can be added without causing the test
-        # to break -- but captures the standard HSC broad-band filters.
-        FilterName = namedtuple("FilterName", ["alias", "canonical"])
-        filterNames = (
-            FilterName(alias="HSC-G", canonical="g"),
-            FilterName(alias="HSC-R", canonical="r"),
-            FilterName(alias="HSC-I", canonical="i"),
-            FilterName(alias="HSC-Z", canonical="z"),
-            FilterName(alias="HSC-Y", canonical="y"),
-            FilterName(alias="unknown", canonical="unknown")
-        )
-
-        for filterName in filterNames:
-            self.assertIn(filterName.alias, self.mapper.filters)
-
 
 class TestMemory(lsst.utils.tests.MemoryTestCase):
     def setUp(self):
-        HscMapper.clearCache()
         lsst.utils.tests.MemoryTestCase.setUp(self)
 
 
