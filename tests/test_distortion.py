@@ -26,11 +26,10 @@ import unittest
 import pickle
 
 import lsst.utils.tests
-from lsst.obs.hsc import HscMapper
 from lsst.pipe.base import Struct
 from lsst.afw.geom import transformRegistry
 from lsst.afw.cameraGeom import FOCAL_PLANE, FIELD_ANGLE, PIXELS
-
+from lsst.obs.subaru import HyperSuprimeCam
 # Set SAVE_DATA True to save new distortion data; this will make the test fail,
 # to remind you to set it False before committing the code.
 SAVE_DATA = False
@@ -109,7 +108,8 @@ class HscDistortionTestCase(lsst.utils.tests.TestCase):
                   fieldAngle
                 - pixPosRoundTrip: pixel position computed from focalPlane
         """
-        camera = HscMapper(root=".", calibRoot=".").camera
+        hsc = HyperSuprimeCam()
+        camera = hsc.getCamera()
         focalPlaneToFieldAngle = camera.getTransformMap().getTransform(FOCAL_PLANE, FIELD_ANGLE)
         data = {}  # dict of detector name: CcdData
         for detector in camera:
@@ -150,7 +150,6 @@ class HscDistortionTestCase(lsst.utils.tests.TestCase):
 
 class TestMemory(lsst.utils.tests.MemoryTestCase):
     def setUp(self):
-        HscMapper.clearCache()
         lsst.utils.tests.MemoryTestCase.setUp(self)
 
 

@@ -29,7 +29,8 @@ import lsst.afw.cameraGeom as cameraGeom
 import lsst.afw.geom as afwGeom
 import lsst.geom as geom
 
-from lsst.obs.hsc import HscMapper as mapper
+from lsst.obs.subaru import HyperSuprimeCam
+
 
 debug = False
 
@@ -62,7 +63,7 @@ def main(camera, sample=20, names=False, showDistortion=True, plot=True, outputF
         ccdIds = []
 
     for ccd in camera:
-        if ccd.getType() == cameraGeom.SCIENCE:
+        if ccd.getType() == cameraGeom.DetectorType.SCIENCE:
             pixelToFocalPlane = ccd.getTransform(cameraGeom.PIXELS, cameraGeom.FOCAL_PLANE)
 
             width, height = ccd.getBBox().getWidth(), ccd.getBBox().getHeight()
@@ -167,7 +168,8 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    camera = mapper(root="/datasets/hsc/repo").camera
+    hsc = HyperSuprimeCam()
+    camera = hsc.getCamera()
 
     main(camera, names=args.names, sample=2, outputFile=args.outputFile, showDistortion=not args.noDistortion)
     if not args.outputFile:

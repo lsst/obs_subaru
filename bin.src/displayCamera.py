@@ -24,7 +24,7 @@
 import argparse
 import re
 import sys
-import lsst.obs.hsc as obs_hsc
+from lsst.obs.subaru import HyperSuprimeCam
 import lsst.afw.cameraGeom.utils as cameraGeomUtils
 import lsst.afw.display as afwDisplay
 
@@ -73,8 +73,9 @@ def displayCamera(args):
     args : `argparse.Namespace`
        Command-line arguments to parse.
     """
-    mapper = obs_hsc.HscMapper(root=".")
-    camera = mapper.camera
+    hsc = HyperSuprimeCam()
+    camera = hsc.getCamera()
+
     frame = 0
 
     if args.showAmp:

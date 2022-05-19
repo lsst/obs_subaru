@@ -1,4 +1,3 @@
-setupRequired(daf_persistence)
 setupRequired(obs_base)
 setupRequired(pipe_tasks)
 setupRequired(meas_astrom)
