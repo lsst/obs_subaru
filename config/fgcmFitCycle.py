@@ -48,6 +48,10 @@ config.starColorCuts = ['g,r,-0.25,2.25',
                         'r,i,-0.50,2.25',
                         'i,z,-0.50,1.00',
                         'g,i,0.0,3.5']
+# The PS1->HSC color terms were originally designed to only
+# apply to bluer stars.  This cut therefor improves the consistency
+# of calibrated stars and reference stars for RC2 and S20a test runs.
+config.refStarColorCuts = ['g,i,0.0,1.5']
 config.colorSplitBands = ['g', 'i']
 config.freezeStdAtmosphere = True
 config.precomputeSuperStarInitialCycle = True
