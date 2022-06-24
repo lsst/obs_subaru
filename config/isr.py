@@ -26,13 +26,6 @@ config.doOverscan = True
 config.overscan.fitType = "AKIMA_SPLINE"
 config.overscan.order = 30
 config.overscan.numSigmaClip = 3.0
-config.overscanNumLeadingColumnsToSkip = 0
-config.overscanNumTrailingColumnsToSkip = 0
-config.overscanMaxDev = 1000.0
-config.overscanBiasJump = False
-config.overscanBiasJumpKeyword = "NO_SUCH_KEY"
-config.overscanBiasJumpDevices = "NO_SUCH_KEY"
-config.overscanBiasJumpLocation = -1
 
 config.doAssembleCcd = True
 # Use default ISR assembleCcdTask
