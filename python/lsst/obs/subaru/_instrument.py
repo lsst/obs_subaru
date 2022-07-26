@@ -37,7 +37,6 @@ from lsst.daf.butler import (DatasetType, DataCoordinate, FileDataset, DatasetRe
                              CollectionType, Timespan)
 from lsst.utils.introspection import get_full_type_name
 from lsst.obs.base import Instrument, VisitSystem
-from lsst.obs.base.gen2to3 import TranslatorFactory, PhysicalFilterToBandKeyHandler
 
 from ..hsc.hscPupil import HscPupilFactory
 from ..hsc.hscFilters import HSC_FILTER_DEFINITIONS
@@ -319,13 +318,3 @@ class HyperSuprimeCam(Instrument):
             for dataset in datasets:
                 refs.extend(dataset.refs)
             butler.registry.certify(collection, refs, timespan)
-
-    def makeDataIdTranslatorFactory(self) -> TranslatorFactory:
-        # Docstring inherited from lsst.obs.base.Instrument.
-        factory = TranslatorFactory()
-        factory.addGenericInstrumentRules(self.getName())
-        # Translate Gen2 `filter` to band if it hasn't been consumed
-        # yet and gen2keys includes tract.
-        factory.addRule(PhysicalFilterToBandKeyHandler(self.filterDefinitions),
-                        instrument=self.getName(), gen2keys=("filter", "tract"), consume=("filter",))
-        return factory
