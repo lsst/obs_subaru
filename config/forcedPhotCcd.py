@@ -5,6 +5,5 @@ config.measurement.load(os.path.join(os.path.dirname(__file__), "kron.py"))
 
 config.measurement.slots.gaussianFlux = None
 config.doApplyExternalPhotoCalib = True
-config.externalPhotoCalibName = 'fgcm'
 config.doApplyExternalSkyWcs = True
 config.doApplySkyCorr = True
