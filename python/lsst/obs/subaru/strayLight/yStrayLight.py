@@ -52,16 +52,6 @@ class SubaruStrayLightTask(StrayLightTask):
 
     ConfigClass = StrayLightConfig
 
-    def readIsrData(self, dataRef, rawExposure):
-        # Docstring inherited from StrayLightTask.runIsrTask.
-        # Note that this is run only in Gen2; in Gen3 we will rely on having
-        # a proper butler-recognized dataset type with the right validity
-        # ranges (though this has not yet been implemented).
-        if not self.check(rawExposure):
-            return None
-
-        return SubaruStrayLightData.readFits(dataRef.get("yBackground_filename")[0])
-
     def check(self, exposure):
         # Docstring inherited from StrayLightTask.check.
         detId = exposure.getDetector().getId()
