@@ -10,19 +10,14 @@ bgFile = os.path.join(ObsConfigDir, "background.py")
 # Cosmic rays and background estimation
 config.detection.background.load(bgFile)
 
-# Reference catalogs
-for refObjLoader in (config.astromRefObjLoader,
-                     config.photoRefObjLoader,
-                     ):
-    refObjLoader.load(os.path.join(ObsConfigDir, "filterMap.py"))
-    # This is the Gen2 configuration option.
-    refObjLoader.ref_dataset_name = "ps1_pv3_3pi_20170110"
-    # Use the filterMap instead of the "any" filter.
-    refObjLoader.anyFilterMapsToThis = None
-
-# These are the Gen3 configuration options for reference catalog name.
-config.connections.photoRefCat = "ps1_pv3_3pi_20170110"
+# Use PS1 for both astrometry and photometry.
 config.connections.astromRefCat = "ps1_pv3_3pi_20170110"
+config.astromRefObjLoader.load(os.path.join(ObsConfigDir, "filterMap.py"))
+# Use the filterMap instead of the "any" filter (as is used for Gaia.
+config.astromRefObjLoader.anyFilterMapsToThis = None
+
+config.connections.photoRefCat = "ps1_pv3_3pi_20170110"
+config.photoRefObjLoader.load(os.path.join(ObsConfigDir, "filterMap.py"))
 
 # Better astrometry matching
 config.astrometry.matcher.numBrightStars = 150
