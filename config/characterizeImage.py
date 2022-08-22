@@ -21,11 +21,6 @@ config.measurePsf.starSelector["objectSize"].fluxMin = 4000
 
 # Astrometry
 config.refObjLoader.load(os.path.join(ObsConfigDir, "filterMap.py"))
-config.refObjLoader.ref_dataset_name = "ps1_pv3_3pi_20170110"
-
-for refObjLoader in (config.refObjLoader,
-                     ):
-    refObjLoader.load(os.path.join(ObsConfigDir, "filterMap.py"))
 
 # Set to match defaults curretnly used in HSC production runs (e.g. S15B)
 config.catalogCalculation.plugins['base_ClassificationExtendedness'].fluxRatio = 0.95
