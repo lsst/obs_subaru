@@ -90,7 +90,7 @@ class HscIngestTestCase(IngestTestBase, lsst.utils.tests.TestCase):
         self.assertEqual(len(datasets) + len(cm.output), len(instrument.getCamera()))
 
         # Ensure that we can read the first stray light file
-        strayLight = butler.getDirect(datasets[0].ref)
+        strayLight = butler.get(datasets[0].ref)
         self.assertIsInstance(strayLight, SubaruStrayLightData)
 
     def checkRepo(self, files=None):
