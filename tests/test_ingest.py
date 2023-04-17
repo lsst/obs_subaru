@@ -80,7 +80,7 @@ class HscIngestTestCase(IngestTestBase, lsst.utils.tests.TestCase):
         instrument = self.instrumentClass()
 
         # This will warn about lots of missing files
-        with self.assertLogs(level="WARNING") as cm:
+        with self.assertLogs("lsst.obs.subaru", level="WARNING") as cm:
             instrument.ingestStrayLightData(butler, straylightDir, transfer="auto")
 
         collection = instrument.makeCalibrationCollectionName()
