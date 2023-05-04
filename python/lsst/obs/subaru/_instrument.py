@@ -309,11 +309,12 @@ class HyperSuprimeCam(Instrument):
                 continue
             ref = DatasetRef(datasetType, dataId={"instrument": self.getName(),
                                                   "detector": detector.getId(),
-                                                  "physical_filter": "HSC-Y"})
+                                                  "physical_filter": "HSC-Y"},
+                             run=run)
             datasets.append(FileDataset(refs=ref, path=path, formatter=SubaruStrayLightDataFormatter))
         butler.registry.registerDatasetType(datasetType)
         with butler.transaction():
-            butler.ingest(*datasets, transfer=transfer, run=run)
+            butler.ingest(*datasets, transfer=transfer)
             refs = []
             for dataset in datasets:
                 refs.extend(dataset.refs)
