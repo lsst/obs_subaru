@@ -147,4 +147,4 @@ class SubaruAmpOffsetTask(AmpOffsetTask):
                 metadata.set(f"PEDESTAL{ii + 1}",
                              float(pedestal),
                              f"Pedestal level subtracted from amp {ii + 1}")
-            self.log.info(f"amp pedestal values: {', '.join([f'{x:.2f}' for x in pedestals])}")
+            self.log.info(f"amp pedestal values: {', '.join([f'{x:.4f}' for x in pedestals])}")
