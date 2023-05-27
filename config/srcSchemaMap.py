@@ -168,6 +168,8 @@ config.srcSchemaMap = {
     "base_Jacobian_flag": "no_equivalent",
     "base_ClassificationExtendedness_value": "classification_extendedness",
     "base_ClassificationExtendedness_flag": "no_equivalent",
+    "base_ClassificationSizeExtendedness_value": "classification_sizeExtendedness",
+    "base_ClassificationSizeExtendedness_flag": "no_equivalent",
     "base_PsfFlux_apCorr": "flux_psf_apcorr",
     "base_PsfFlux_apCorrErr": "flux_psf_apcorr_err",
     "base_PsfFlux_flag_apCorr": "flux_psf_flag_apcorr",
