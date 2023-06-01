@@ -11,7 +11,7 @@ config.densityCutMaxPerPixel = 2000
 from lsst.obs.hsc.hscFilters import HSC_FILTER_DEFINITIONS
 config.physicalFilterMap = HSC_FILTER_DEFINITIONS.physical_to_band
 config.primaryBands = ('i', 'r', 'g', 'z', 'y', 'N387', 'N816', 'N921', 'N1010')
-config.doSubtractLocalBackground = True
+config.doSubtractLocalBackground = False
 
 hscConfigDir = os.path.join(os.path.dirname(__file__))
 config.fgcmLoadReferenceCatalog.load(os.path.join(hscConfigDir, 'filterMap.py'))
