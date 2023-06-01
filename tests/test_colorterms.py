@@ -69,7 +69,7 @@ class ColortermOverrideTestCase(unittest.TestCase):
         ps1ReferenceFilters = ["g", "r", "i", "z", "y"]
         hscPhysicalFilters = ["HSC-G", "HSC-R", "HSC-R2", "HSC-I", "HSC-I2", "HSC-Z", "HSC-Y",
                               "IB0945", "NB0387", "NB0468", "NB0515", "NB0527", "NB0656",
-                              "NB0718", "NB0816", "NB0921", "NB0973", "NB01010"]
+                              "NB0718", "NB0816", "NB0921", "NB0973", "NB1010"]
 
         for filter in hscPhysicalFilters:
             ct = self.photoCalConf.colorterms.getColorterm(filter, photoCatName="ps1")  # exact match
