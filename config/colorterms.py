@@ -28,7 +28,7 @@ config.data = {
         'NB0921': Colorterm(primary="z", secondary="i", c0=0.004619, c1=0.093019, c2=-0.126377),
         'NB0926': Colorterm(primary="z", secondary="i", c0=0.009369, c1=0.130261, c2=-0.119282),
         'NB0973': Colorterm(primary="z", secondary="i", c0=-0.005805, c1=0.220412, c2=-0.249072),
-        'NB01010': Colorterm(primary="z", secondary="i", c0=0.015296, c1=0.794152, c2=0.465309),
+        'NB1010': Colorterm(primary="z", secondary="i", c0=0.015296, c1=0.794152, c2=0.465309),
     }),
     "ps1*": ColortermDict(data={
         'HSC-G': Colorterm(primary="g", secondary="r", c0=0.005728, c1=0.061749, c2=-0.001125),
@@ -50,6 +50,6 @@ config.data = {
         'NB0921': Colorterm(primary="z", secondary="y", c0=0.002039, c1=-0.477412, c2=-0.492151),
         'NB0926': Colorterm(primary="z", secondary="y", c0=0.005230, c1=-0.574448, c2=-0.330899),
         'NB0973': Colorterm(primary="y", secondary="z", c0=-0.007775, c1=-0.050972, c2=-0.197278),
-        'NB01010': Colorterm(primary="y", secondary="z", c0=0.003607, c1=0.865366, c2=1.271817),
+        'NB1010': Colorterm(primary="y", secondary="z", c0=0.003607, c1=0.865366, c2=1.271817),
     }),
 }
