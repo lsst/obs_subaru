@@ -60,12 +60,12 @@ class HscIngestTestCase(IngestTestBase, lsst.utils.tests.TestCase):
             DataCoordinate.standardize(
                 instrument="HSC",
                 visit=904024,
-                universe=butler.registry.dimensions
+                universe=butler.dimensions
             ): [
                 DataCoordinate.standardize(
                     instrument="HSC",
                     exposure=904024,
-                    universe=butler.registry.dimensions
+                    universe=butler.dimensions
                 )
             ]
         }
