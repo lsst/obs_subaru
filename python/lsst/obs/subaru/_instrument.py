@@ -166,7 +166,7 @@ class HyperSuprimeCam(Instrument):
 
         # Write brighter-fatter kernel, with an infinite validity range.
         datasetType = DatasetType("bfKernel", ("instrument",), "NumpyArray",
-                                  universe=butler.registry.dimensions,
+                                  universe=butler.dimensions,
                                   isCalibration=True)
         butler.registry.registerDatasetType(datasetType)
 
@@ -189,7 +189,7 @@ class HyperSuprimeCam(Instrument):
         datasetType = DatasetType("transmission_optics",
                                   ("instrument",),
                                   "TransmissionCurve",
-                                  universe=butler.registry.dimensions,
+                                  universe=butler.dimensions,
                                   isCalibration=True)
         butler.registry.registerDatasetType(datasetType)
         for entry in opticsTransmissions.values():
@@ -202,7 +202,7 @@ class HyperSuprimeCam(Instrument):
         datasetType = DatasetType("transmission_sensor",
                                   ("instrument", "detector",),
                                   "TransmissionCurve",
-                                  universe=butler.registry.dimensions,
+                                  universe=butler.dimensions,
                                   isCalibration=True)
         butler.registry.registerDatasetType(datasetType)
         for entry in sensorTransmissions.values():
@@ -217,7 +217,7 @@ class HyperSuprimeCam(Instrument):
         datasetType = DatasetType("transmission_filter",
                                   ("instrument", "physical_filter",),
                                   "TransmissionCurve",
-                                  universe=butler.registry.dimensions,
+                                  universe=butler.dimensions,
                                   isCalibration=True)
         butler.registry.registerDatasetType(datasetType)
         for entry in filterTransmissions.values():
@@ -231,7 +231,7 @@ class HyperSuprimeCam(Instrument):
         atmosphericTransmissions = getAtmosphereTransmission()
         datasetType = DatasetType("transmission_atmosphere", ("instrument",),
                                   "TransmissionCurve",
-                                  universe=butler.registry.dimensions,
+                                  universe=butler.dimensions,
                                   isCalibration=True)
         butler.registry.registerDatasetType(datasetType)
         for entry in atmosphericTransmissions.values():
@@ -300,7 +300,7 @@ class HyperSuprimeCam(Instrument):
         datasetType = DatasetType("yBackground",
                                   dimensions=("physical_filter", "detector",),
                                   storageClass="StrayLightData",
-                                  universe=butler.registry.dimensions,
+                                  universe=butler.dimensions,
                                   isCalibration=True)
         for detector in self.getCamera():
             path = os.path.join(directory, f"ybackground-{detector.getId():03d}.fits")
