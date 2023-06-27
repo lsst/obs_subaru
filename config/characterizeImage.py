@@ -5,13 +5,9 @@ from lsst.meas.astrom import MatchOptimisticBConfig
 
 ObsConfigDir = os.path.dirname(__file__)
 
-bgFile = os.path.join(ObsConfigDir, "background.py")
-
 # Cosmic rays and background estimation
 config.repair.cosmicray.nCrPixelMax = 1000000
 config.repair.cosmicray.cond3_fac2 = 0.4
-config.background.load(bgFile)
-config.detection.background.load(bgFile)
 
 # PSF determination
 config.measurePsf.reserve.fraction = 0.2

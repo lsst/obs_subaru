@@ -5,11 +5,6 @@ from lsst.meas.astrom import MatchOptimisticBConfig
 
 ObsConfigDir = os.path.dirname(__file__)
 
-bgFile = os.path.join(ObsConfigDir, "background.py")
-
-# Cosmic rays and background estimation
-config.detection.background.load(bgFile)
-
 # Use PS1 for both astrometry and photometry.
 config.connections.astromRefCat = "ps1_pv3_3pi_20170110"
 config.astromRefObjLoader.load(os.path.join(ObsConfigDir, "filterMap.py"))
