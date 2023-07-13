@@ -306,7 +306,7 @@ def _periodic_cdf_9_7_1d_level1(data):
     if size <= 1:
         return data
 
-    assert(size % 2 == 0)
+    assert size % 2 == 0
 
     # From equations (F-11) in ITU-T Rec. T.800
 
@@ -384,7 +384,7 @@ def _periodic_icdf_9_7_1d_level1(data):
     if size <= 1:
         return data
 
-    assert(size % 2 == 0)
+    assert size % 2 == 0
 
     # interleave
     scaling_size = (size + 1) // 2
