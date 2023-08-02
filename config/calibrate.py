@@ -45,10 +45,6 @@ config.photoCal.match.referenceSelection.magLimit.fluxField = "i_flux"
 config.photoCal.match.referenceSelection.magLimit.maximum = 22.0
 config.photoCal.colorterms.load(os.path.join(ObsConfigDir, 'colorterms.py'))
 
-# Demand astrometry and photoCal succeed
-config.requireAstrometry = True
-config.requirePhotoCal = True
-
 config.doWriteMatchesDenormalized = True
 
 # Detection
