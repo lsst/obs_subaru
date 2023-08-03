@@ -86,7 +86,7 @@ class SubaruAmpOffsetTask(AmpOffsetTask):
 
         # safety check: do any pixels remain for amp offset estimation?
         if (exp.mask.array & bitMask).all():
-            warnings.warn("All pixels masked: cannot calculate any amp offset corrections.")
+            self.log.warning("All pixels masked: cannot calculate any amp offset corrections.")
         else:
             # set up amp offset inputs
             im = exp.image
