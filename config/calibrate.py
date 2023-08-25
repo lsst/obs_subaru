@@ -5,6 +5,11 @@ from lsst.meas.astrom import MatchOptimisticBConfig
 
 ObsConfigDir = os.path.dirname(__file__)
 
+# Detection overrides to keep results the same post DM-39796
+config.detection.thresholdType = "stdev"
+config.detection.doTempLocalBackground = False
+config.astrometry.doMagnitudeOutlierRejection = False
+
 # Use PS1 for both astrometry and photometry.
 config.connections.astromRefCat = "ps1_pv3_3pi_20170110"
 config.astromRefObjLoader.load(os.path.join(ObsConfigDir, "filterMap.py"))

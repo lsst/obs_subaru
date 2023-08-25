@@ -8,6 +8,13 @@ ObsConfigDir = os.path.dirname(__file__)
 # PSF determination
 config.measurePsf.reserve.fraction = 0.2
 
+# Detection overrides to keep results the same post DM-39796
+config.detection.doTempLocalBackground = False
+config.detection.thresholdType = "stdev"
+config.measurePsf.starSelector['objectSize'].doFluxLimit = True
+config.measurePsf.starSelector['objectSize'].fluxMin = 4000.0
+config.measurePsf.starSelector['objectSize'].doSignalToNoiseLimit = False
+
 # Astrometry
 config.refObjLoader.load(os.path.join(ObsConfigDir, "filterMap.py"))
 
