@@ -5,28 +5,18 @@ from lsst.meas.astrom import MatchOptimisticBConfig
 
 ObsConfigDir = os.path.dirname(__file__)
 
-bgFile = os.path.join(ObsConfigDir, "background.py")
-
-# Cosmic rays and background estimation
-config.repair.cosmicray.nCrPixelMax = 1000000
-config.repair.cosmicray.cond3_fac2 = 0.4
-config.background.load(bgFile)
-config.detection.background.load(bgFile)
-
 # PSF determination
 config.measurePsf.reserve.fraction = 0.2
-config.measurePsf.starSelector["objectSize"].sourceFluxField = "base_PsfFlux_instFlux"
-config.measurePsf.starSelector["objectSize"].widthMin = 0.9
-config.measurePsf.starSelector["objectSize"].fluxMin = 4000
+
+# Detection overrides to keep results the same post DM-39796
+config.detection.doTempLocalBackground = False
+config.detection.thresholdType = "stdev"
+config.measurePsf.starSelector['objectSize'].doFluxLimit = True
+config.measurePsf.starSelector['objectSize'].fluxMin = 4000.0
+config.measurePsf.starSelector['objectSize'].doSignalToNoiseLimit = False
 
 # Astrometry
 config.refObjLoader.load(os.path.join(ObsConfigDir, "filterMap.py"))
-
-# Set to match defaults curretnly used in HSC production runs (e.g. S15B)
-config.catalogCalculation.plugins['base_ClassificationExtendedness'].fluxRatio = 0.95
-
-# Detection
-config.detection.isotropicGrow = True
 
 # Activate calibration of measurements: required for aperture corrections
 config.load(os.path.join(ObsConfigDir, "cmodel.py"))
@@ -38,10 +28,6 @@ config.measurement.load(os.path.join(ObsConfigDir, "hsm.py"))
 if "ext_shapeHSM_HsmShapeRegauss" in config.measurement.plugins:
     # no deblending has been done
     config.measurement.plugins["ext_shapeHSM_HsmShapeRegauss"].deblendNChild = ""
-
-# Deblender
-config.deblend.maskLimits["NO_DATA"] = 0.25 # Ignore sources that are in the vignetted region
-config.deblend.maxFootprintArea = 10000
 
 config.measurement.plugins.names |= ["base_Jacobian", "base_FPPosition"]
 config.measurement.plugins["base_Jacobian"].pixelScale = 0.168

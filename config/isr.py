@@ -107,6 +107,10 @@ config.doNanInterpAfterFlat = False
 
 config.doAmpOffset = True
 
+# Detection overrides to keep results the same post DM-39796
+config.ampOffset.detection.thresholdType = "stdev"
+config.ampOffset.detection.isotropicGrow = False
+
 config.doMeasureBackground = True
 
 config.doCameraSpecificMasking = False
