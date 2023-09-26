@@ -5,7 +5,7 @@ config.bands = ['N387', 'g', 'r', 'i', 'N816', 'z', 'N921', 'y', 'N1010']
 config.fitBands = ['N387', 'g', 'r', 'i', 'N816', 'z', 'N921', 'y', 'N1010']
 from lsst.obs.hsc.hscFilters import HSC_FILTER_DEFINITIONS
 config.physicalFilterMap = HSC_FILTER_DEFINITIONS.physical_to_band
-config.maxIterBeforeFinalCycle = 75
+config.maxIterBeforeFinalCycle = 150
 config.nCore = 4
 config.cycleNumber = 0
 config.deltaAperInnerRadiusArcsec = 2.04
