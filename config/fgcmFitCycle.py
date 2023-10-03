@@ -153,3 +153,7 @@ config.sedterms.data = {'g': Sedterm(primaryTerm='gr', secondaryTerm='ri', const
                         'N816': Sedterm(primaryTerm='N816i', constant=0.7),
                         'N921': Sedterm(primaryTerm='N921z', constant=0.5),
                         'N1010': Sedterm(primaryTerm='N1010y', constant=1.0)}
+
+# Fit the g band chromaticity term to get first-order correction
+# on the per-detector QE curve in the g band.
+config.fitCcdChromaticityDict = {'g': True}
