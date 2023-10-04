@@ -5,7 +5,7 @@ config.bands = ['N387', 'g', 'r', 'i', 'N816', 'z', 'N921', 'y', 'N1010']
 config.fitBands = ['N387', 'g', 'r', 'i', 'N816', 'z', 'N921', 'y', 'N1010']
 from lsst.obs.hsc.hscFilters import HSC_FILTER_DEFINITIONS
 config.physicalFilterMap = HSC_FILTER_DEFINITIONS.physical_to_band
-config.maxIterBeforeFinalCycle = 75
+config.maxIterBeforeFinalCycle = 150
 config.nCore = 4
 config.cycleNumber = 0
 config.deltaAperInnerRadiusArcsec = 2.04
@@ -153,3 +153,7 @@ config.sedterms.data = {'g': Sedterm(primaryTerm='gr', secondaryTerm='ri', const
                         'N816': Sedterm(primaryTerm='N816i', constant=0.7),
                         'N921': Sedterm(primaryTerm='N921z', constant=0.5),
                         'N1010': Sedterm(primaryTerm='N1010y', constant=1.0)}
+
+# Fit the g band chromaticity term to get first-order correction
+# on the per-detector QE curve in the g band.
+config.fitCcdChromaticityDict = {'g': True}
