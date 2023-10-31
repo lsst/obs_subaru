@@ -5,12 +5,12 @@ config.load(os.path.join(os.path.dirname(__file__), "coaddBase.py"))
 
 config.doSigmaClip = False
 # 200 rows (since patch width is typically < 10k pixels)
-config.subregionSize = (10000, 200)
-config.doMaskBrightObjects = True
-config.removeMaskPlanes.append("CROSSTALK")
-config.doNImage = True
-config.badMaskPlanes += ["SUSPECT"]
-config.doAttachTransmissionCurve = True
+config.assembleCoadd.subregionSize = (10000, 200)
+config.assembleCoadd.doMaskBrightObjects = True
+config.assembleCoadd.removeMaskPlanes.append("CROSSTALK")
+config.assembleCoadd.doNImage = True
+config.assembleCoadd.badMaskPlanes += ["SUSPECT"]
+config.assembleCoadd.doAttachTransmissionCurve = True
 # Saturation trails are usually oriented east-west, so along rows
 config.interpImage.transpose = True
 config.coaddPsf.warpingKernelName = 'lanczos5'
