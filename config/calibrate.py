@@ -24,8 +24,6 @@ config.astrometry.wcsFitter.numRejIter = 3
 config.astrometry.wcsFitter.order = 3
 
 config.astrometry.matcher.maxRotationDeg = 1.145916
-if isinstance(config.astrometry.matcher, MatchOptimisticBConfig):
-    config.astrometry.sourceSelector.active.excludePixelFlags = False
 
 config.photoCal.applyColorTerms = True
 config.photoCal.photoCatName = "ps1_pv3_3pi_20170110"
