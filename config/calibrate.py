@@ -23,11 +23,9 @@ config.photoRefObjLoader.load(os.path.join(ObsConfigDir, "filterMap.py"))
 config.astrometry.wcsFitter.numRejIter = 3
 config.astrometry.wcsFitter.order = 3
 
-for matchConfig in (config.astrometry,
-                    ):
-    matchConfig.matcher.maxRotationDeg = 1.145916
-    if isinstance(matchConfig.matcher, MatchOptimisticBConfig):
-        matchConfig.sourceSelector.active.excludePixelFlags = False
+config.astrometry.matcher.maxRotationDeg = 1.145916
+if isinstance(config.astrometry.matcher, MatchOptimisticBConfig):
+    config.astrometry.sourceSelector.active.excludePixelFlags = False
 
 config.photoCal.applyColorTerms = True
 config.photoCal.photoCatName = "ps1_pv3_3pi_20170110"
