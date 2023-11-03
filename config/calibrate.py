@@ -25,12 +25,8 @@ config.astrometry.wcsFitter.order = 3
 
 for matchConfig in (config.astrometry,
                     ):
-    matchConfig.sourceFluxType = 'Psf'
-    matchConfig.sourceSelector.active.sourceFluxType = 'Psf'
     matchConfig.matcher.maxRotationDeg = 1.145916
     if isinstance(matchConfig.matcher, MatchOptimisticBConfig):
-        matchConfig.matcher.allowedNonperpDeg = 0.2
-        matchConfig.matcher.maxMatchDistArcSec = 2.0
         matchConfig.sourceSelector.active.excludePixelFlags = False
 
 config.photoCal.applyColorTerms = True
