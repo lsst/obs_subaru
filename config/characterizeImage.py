@@ -15,9 +15,6 @@ config.measurePsf.starSelector['objectSize'].doFluxLimit = True
 config.measurePsf.starSelector['objectSize'].fluxMin = 4000.0
 config.measurePsf.starSelector['objectSize'].doSignalToNoiseLimit = False
 
-# Astrometry
-config.refObjLoader.load(os.path.join(ObsConfigDir, "filterMap.py"))
-
 # Activate calibration of measurements: required for aperture corrections
 config.load(os.path.join(ObsConfigDir, "cmodel.py"))
 config.measurement.load(os.path.join(ObsConfigDir, "apertures.py"))
@@ -40,15 +37,3 @@ if "ext_convolved_ConvolvedFlux" in config.measurement.plugins:
 if "ext_gaap_GaapFlux" in config.measurement.plugins:
     names = config.measurement.plugins["ext_gaap_GaapFlux"].getAllGaapResultNames()
     config.measureApCorr.allowFailure += names
-
-config.ref_match.sourceSelector.name = 'matcher'
-for matchConfig in (config.ref_match,
-                    ):
-    matchConfig.sourceFluxType = 'Psf'
-    matchConfig.sourceSelector.active.sourceFluxType = 'Psf'
-    matchConfig.matcher.maxRotationDeg = 1.145916
-    matchConfig.matcher.maxOffsetPix = 250
-    if isinstance(matchConfig.matcher, MatchOptimisticBConfig):
-        matchConfig.matcher.allowedNonperpDeg = 0.2
-        matchConfig.matcher.maxMatchDistArcSec = 2.0
-        matchConfig.sourceSelector.active.excludePixelFlags = False
