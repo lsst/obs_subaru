@@ -1,5 +1,6 @@
 import os.path
 
+print("-----HELLO WORLD-----")
 config_dir = os.path.dirname(__file__)
 
 # Derived from HSC PDR2 reprocessing v24.1.0 (DM-39132)
@@ -38,3 +39,4 @@ config.fiducialZeroPoint = {
     'N816': 23.94,
     'N921': 24.09,
 }
+
