@@ -19,3 +19,6 @@ colors = config.photometry.match.referenceSelection.colorLimits
 colors["g-r"] = ColorLimit(primary="g_flux", secondary="r_flux", minimum=0.0)
 colors["r-i"] = ColorLimit(primary="r_flux", secondary="i_flux", maximum=0.5)
 config.photometry.colorterms.load(os.path.join(config_dir, 'colorterms.py'))
+
+# Exposure summary stats
+config.compute_summary_stats.load(os.path.join(config_dir, "computeExposureSummaryStats.py"))
