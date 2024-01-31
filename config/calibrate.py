@@ -41,3 +41,6 @@ config.measurement.load(os.path.join(ObsConfigDir, "hsm.py"))
 
 config.measurement.plugins.names |= ["base_Jacobian", "base_FPPosition"]
 config.measurement.plugins["base_Jacobian"].pixelScale = 0.168
+
+# Exposure summary stats
+config.computeSummaryStats.load(os.path.join(ObsConfigDir, "computeExposureSummaryStats.py"))
