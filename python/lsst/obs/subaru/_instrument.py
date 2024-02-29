@@ -30,6 +30,7 @@ import logging
 
 from functools import lru_cache
 
+from astro_metadata_translator import HscTranslator
 import astropy.time
 from lsst.utils import getPackageDir
 from lsst.afw.cameraGeom import makeCameraFromPath, CameraConfig
@@ -56,6 +57,7 @@ class HyperSuprimeCam(Instrument):
     filterDefinitions = HSC_FILTER_DEFINITIONS
     additionalCuratedDatasetTypes = ("bfKernel", "transmission_optics", "transmission_sensor",
                                      "transmission_filter", "transmission_atmosphere", "yBackground")
+    translatorClass = HscTranslator
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
