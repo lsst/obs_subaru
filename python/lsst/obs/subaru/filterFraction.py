@@ -79,7 +79,9 @@ class FilterFractionPlugin(lsst.meas.base.SingleFramePlugin):
         overlapping = ccds.subsetContaining(measRecord.getCentroid(), exposure.getWcs(),
                                             includeValidPolygon=True)
         if not overlapping:
-            measRecord.set(self.key, float("NaN"))  # no inputs in any filter
+            # set both keys to nan if there are no inputs in any filter
+            measRecord.set(self.unweightedKey, float("NaN"))
+            measRecord.set(self.weightedKey, float("NaN"))
             return
         counts = {}
         weights = {}
