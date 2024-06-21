@@ -1,12 +1,5 @@
 config.skyMap = "rings"
 
-# Configuration for HealpixSkyMap
-config.skyMap["healpix"].log2NSide = 5
-config.skyMap["healpix"].pixelScale = 0.18
-config.skyMap["healpix"].patchBorder = 333  # pixels
-config.skyMap["healpix"].tractOverlap = 2.0/60  # degrees
-config.skyMap["healpix"].projection = "TAN"
-
 # Configuration for DiscreteSkyMap
 # 0: ACTJ0022M0036
 # 1: M31
