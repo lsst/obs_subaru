@@ -30,17 +30,25 @@ for source, target in [
         ("HSC-Y", "y"),
         # Narrow bands
         ('NB0387', 'g'),
+        ('NB0391', 'g'),
+        ('NB0395', 'g'),
+        ('NB0430', 'g'),
         ('NB0468', 'g'),
+        ('NB0497', 'g'),
+        ('NB0506', 'g'),
         ('NB0515', 'g'),
         ('NB0527', 'g'),
         ('NB0656', 'r'),
         ('NB0718', 'i'),
         ('NB0816', 'i'),
+        ('NB0871', 'i'),
         ('NB0921', 'z'),
         ('NB0926', 'z'),
         ('NB0973', 'y'),
         ('NB1010', 'y'),
         # Intermediate bands
         ('IB0945', 'z'),
+        # Extended bands
+        ('EB-GRI', 'r'),
     ]:
     config.filterMap[source] = target

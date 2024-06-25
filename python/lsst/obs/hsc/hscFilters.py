@@ -97,4 +97,11 @@ HSC_FILTER_DEFINITIONS = FilterDefinitionCollection(
                      band='N926'),
     FilterDefinition(physical_filter="NB0400",
                      band='N400'),
+    FilterDefinition(physical_filter="NB0391", band="N391"),
+    FilterDefinition(physical_filter="NB0395", band="N395"),
+    FilterDefinition(physical_filter="NB0430", band="N430"),
+    FilterDefinition(physical_filter="NB0497", band="N497"),
+    FilterDefinition(physical_filter="NB0506", band="N506"),
+    FilterDefinition(physical_filter="NB0872", band="N872"),
+    FilterDefinition(physical_filter="EB-GRI", band="gri"),
 )
