@@ -19,23 +19,28 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from lsst.obs.base.formatters.fitsGeneric import FitsGenericFormatter
+from typing import Any
+from lsst.resources import ResourcePath
+from lsst.daf.butler import FormatterV2, FormatterNotImplementedError
 
 from .yStrayLight import SubaruStrayLightData
 
 __all__ = ("SubaruStrayLightDataFormatter",)
 
 
-class SubaruStrayLightDataFormatter(FitsGenericFormatter):
+class SubaruStrayLightDataFormatter(FormatterV2):
     """Gen3 Butler Formatters for HSC y-band stray light correction data.
     """
 
-    extension = ".fits"
+    can_read_from_local_file = True
+    default_extension = ".fits"
 
-    def _readFile(self, path, pytype=None):
+    def read_from_local_file(
+        self, path: str, component: str | None = None, expected_size: int = -1
+    ) -> Any:
         # Docstring inherited from FitsGenericFormatter._readFile.
         return SubaruStrayLightData.readFits(path)
 
-    def _writeFile(self, inMemoryDataset):
+    def write_local_file(self, in_memory_dataset: Any, uri: ResourcePath) -> None:
         # Docstring inherited from FitsGenericFormatter._writeFile.
-        raise NotImplementedError("SubaruStrayLightData cannot be written directly.")
+        raise FormatterNotImplementedError("SubaruStrayLightData cannot be written directly.")
