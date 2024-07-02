@@ -1,4 +1,5 @@
 import os.path
+
 OBS_CONFIG_DIR = os.path.dirname(__file__)
 
 # Don't do photometry by default for HSC (we use fgcmcal instead).
@@ -17,5 +18,6 @@ config.astrometryVisitOrder = 7
 
 # For the HSC deep fields with hundreds of visits, outlier rejection takes ~two
 # weeks of runtime. By stopping outlier rejection when it ceases to have a
-# significant effect on the model, we can bring compute time down to a few days.
+# significant effect on the model, we can bring compute time down to a few
+# days.
 config.astrometryOutlierRelativeTolerance = 0.002

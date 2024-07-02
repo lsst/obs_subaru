@@ -1,4 +1,5 @@
 import os.path
+from lsst.pipe.tasks.selectImages import PsfWcsSelectImagesTask
 
 # Load configs shared between assembleCoadd and makeCoaddTempExp
 config.load(os.path.join(os.path.dirname(__file__), "coaddBase.py"))
@@ -12,7 +13,6 @@ config.badMaskPlanes += ["SUSPECT"]
 config.doAttachTransmissionCurve = True
 # Saturation trails are usually oriented east-west, so along rows
 config.interpImage.transpose = True
-config.coaddPsf.warpingKernelName = 'lanczos5'
+config.coaddPsf.warpingKernelName = "lanczos5"
 
-from lsst.pipe.tasks.selectImages import PsfWcsSelectImagesTask
 config.select.retarget(PsfWcsSelectImagesTask)

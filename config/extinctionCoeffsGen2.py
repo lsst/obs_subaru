@@ -1,4 +1,5 @@
-# Extinction coefficients for HSC filters for conversion from E(B-V) to extinction, A_filter.
+# Extinction coefficients for HSC filters for conversion from E(B-V) to
+# extinction, A_filter.
 # Numbers provided by Masayuki Tanaka (NAOJ).
 #
 # Band, A_filter/E(B-V)

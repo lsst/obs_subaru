@@ -58,7 +58,7 @@ def checkStr(strVal, level):
         if not re.match(matchStr, strVal):
             raise ValueError("Specify the ccd name: e.g. 1_16: %s"%(strVal))
     elif level == 'raft':
-        if not strVal.lower() in ('0', '1'):
+        if strVal.lower() not in ('0', '1'):
             raise ValueError("Specify the raft name as '0' or '1': %s"%(strVal))
     else:
         raise ValueError("level must be one of: ('amp', 'ccd', 'raft')")

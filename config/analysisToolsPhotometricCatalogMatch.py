@@ -1,4 +1,5 @@
 import os.path
+
 OBS_CONFIG_DIR = os.path.dirname(__file__)
 
 

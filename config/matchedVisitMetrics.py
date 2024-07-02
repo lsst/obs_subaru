@@ -1,1 +1,1 @@
-config.externalPhotoCalibName = 'fgcm'
+config.externalPhotoCalibName = "fgcm"

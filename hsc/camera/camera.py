@@ -1,6 +1,8 @@
 import lsst.afw.cameraGeom.cameraConfig
-assert type(config) == lsst.afw.cameraGeom.cameraConfig.CameraConfig, 'config is of type %s.%s instead of lsst.afw.cameraGeom.cameraConfig.CameraConfig' % (
-    type(config).__module__, type(config).__name__)
+assert type(config) is lsst.afw.cameraGeom.cameraConfig.CameraConfig, (
+    f"config is of type {type(config).__module__}.{type(config).__name__} "
+    "instead of lsst.afw.cameraGeom.cameraConfig.CameraConfig"
+)
 
 config.plateScale = 11.2  # plate scale, in arcseconds on sky/mm
 

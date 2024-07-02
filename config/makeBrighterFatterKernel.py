@@ -2,10 +2,6 @@ from lsst.obs.subaru.crosstalk import SubaruCrosstalkTask
 
 config.isr.crosstalk.retarget(SubaruCrosstalkTask)
 
-# config = SubaruIsrTask.ConfigClass()
-# config.load(os.path.join(os.environ["OBS_SUBARU_DIR"], "config", "isr.py"))
-# config.load(os.path.join(os.environ["OBS_SUBARU_DIR"], "config", "hsc", "isr.py"))
-
 config.isr.doBias = True
 config.isr.doDark = True  # Required especially around CCD 33
 config.isr.doFlat = False
@@ -18,10 +14,11 @@ config.isr.doWrite = False
 config.isr.doSaturation = True
 config.isr.qa.doThumbnailOss = False
 config.isr.qa.doThumbnailFlattened = False
-config.isr.fringe.filters = ['HSC-Y', ]
+config.isr.fringe.filters = ["HSC-Y", ]
 config.isr.overscan.fitType = "AKIMA_SPLINE"
 config.isr.overscan.order = 30
-# Overscan is fairly efficient at removing bias level, but leaves a line in the middle
+# Overscan is fairly efficient at removing bias level, but leaves a line in
+# the middle.
 
 config.isr.doStrayLight = False  # added to work around the missing INST-PA throw in some visits
 config.isr.crosstalk.value.coeffs.values = [0.0e-6, -125.0e-6, -149.0e-6, -156.0e-6,

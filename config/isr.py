@@ -9,12 +9,12 @@ config.fwhm = 1.0
 
 config.doConvertIntToFloat = True
 
-config.doSaturation=True
+config.doSaturation = True
 config.saturatedMaskName = "SAT"
 config.saturation = float("NaN")
 config.growSaturationFootprintSize = 1
 
-config.doSuspect=True
+config.doSuspect = True
 config.suspectMaskName = "SUSPECT"
 config.numEdgeSuspect = 0
 
@@ -75,8 +75,8 @@ config.darkDataProductName = "dark"
 
 config.doStrayLight = True
 config.strayLight.retarget(SubaruStrayLightTask)
-config.strayLight.doRotatorAngleCorrection=True
-config.strayLight.filters = ['HSC-Y', ]
+config.strayLight.doRotatorAngleCorrection = True
+config.strayLight.filters = ["HSC-Y", ]
 
 config.doFlat = True
 config.flatDataProductName = "flat"
@@ -90,14 +90,14 @@ config.normalizeGains = False
 config.doFringe = True
 config.fringeAfterFlat = True
 # Use default ISR fringe correction
-config.fringe.filters = ['HSC-Y', 'NB0921', 'NB0926', 'NB0973', 'NB1010']
+config.fringe.filters = ["HSC-Y", "NB0921", "NB0926", "NB0973", "NB1010"]
 config.fringe.clip = 3.0
 config.fringe.iterations = 20
 config.fringe.small = 3
 config.fringe.large = 30
 config.fringe.num = 30000
 config.fringe.pedestal = False
-config.fringe.stats.badMaskPlanes = ['SAT', 'NO_DATA', 'SUSPECT', 'BAD']
+config.fringe.stats.badMaskPlanes = ["SAT", "NO_DATA", "SUSPECT", "BAD"]
 config.fringe.stats.clip = 3.0
 config.fringe.stats.iterations = 3
 config.fringe.stats.rngSeedOffset = 0
