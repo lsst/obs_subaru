@@ -1,0 +1,3 @@
+extend = "../pyproject.toml"
+# Ignore undefined "config", as config files are loaded with `eval`.
+builtins = ["config"]
