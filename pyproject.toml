@@ -1,0 +1,35 @@
+[tool.ruff]
+line-length = 110
+target-version = "py311"
+exclude = [
+    "__init__.py",
+    "tests/config",
+]
+
+[tool.ruff.lint]
+ignore = [
+    "N802",
+    "N803",
+    "N806",
+    "N812",
+    "N813",
+    "N815",
+    "N816",
+    "N999",
+]
+select = [
+    "E",  # pycodestyle
+    "F",  # pyflakes
+    "N",  # pep8-naming
+    "W",  # pycodestyle
+]
+extend-select = [
+    "RUF100", # Warn about unused noqa
+]
+
+[tool.ruff.lint.pycodestyle]
+max-doc-length = 79
+
+[tool.ruff.lint.pydocstyle]
+convention = "numpy"
+

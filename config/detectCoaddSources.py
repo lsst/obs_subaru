@@ -1,4 +1,4 @@
-config.detection.doTempWideBackground =   True
+config.detection.doTempWideBackground = True
 config.detection.tempWideBackground.binSize = 128
 config.detection.tempWideBackground.useApprox = False
 config.detection.reEstimateBackground = True

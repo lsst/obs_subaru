@@ -1,7 +1,6 @@
 import os.path
 
 from lsst.meas.algorithms import ColorLimit
-from lsst.meas.astrom import MatchOptimisticBConfig
 
 ObsConfigDir = os.path.dirname(__file__)
 
@@ -33,7 +32,7 @@ colors["r-i"] = ColorLimit(primary="r_flux", secondary="i_flux", maximum=0.5)
 config.photoCal.match.referenceSelection.doMagLimit = True
 config.photoCal.match.referenceSelection.magLimit.fluxField = "i_flux"
 config.photoCal.match.referenceSelection.magLimit.maximum = 22.0
-config.photoCal.colorterms.load(os.path.join(ObsConfigDir, 'colorterms.py'))
+config.photoCal.colorterms.load(os.path.join(ObsConfigDir, "colorterms.py"))
 
 config.measurement.load(os.path.join(ObsConfigDir, "apertures.py"))
 config.measurement.load(os.path.join(ObsConfigDir, "kron.py"))

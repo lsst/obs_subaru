@@ -1,11 +1,13 @@
-# Extinction coefficients for HSC filters for conversion from E(B-V) to extinction, A_filter.
+# Extinction coefficients for HSC filters for conversion from E(B-V) to
+# extinction, A_filter.
 # Numbers provided by Masayuki Tanaka (NAOJ).
 #
 # Band, A_filter/E(B-V)
 
-# These default extinction coefficients are not optimal for the FGCM standard bandpasses.
-# TODO DM-34061: Dynamically compute extinction coeffs from the FGCM lookup tables
-# which store the standard bandpasses in a calib-like object
+# These default extinction coefficients are not optimal for the FGCM standard
+# bandpasses.
+# TODO DM-34061: Dynamically compute extinction coeffs from the FGCM lookup
+# tables which store the standard bandpasses in a calib-like object.
 config.extinctionCoeffs = {
     "g": 3.240,
     "r": 2.276,
