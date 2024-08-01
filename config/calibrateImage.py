@@ -10,6 +10,10 @@ config_dir = os.path.dirname(__file__)
 config.install_simple_psf.fwhm = 1.5*2.0*math.sqrt(2.0*math.log(2.0))
 config.psf_detection.thresholdType = "stdev"
 
+# Overrides to improved astrometry matching.
+config.astrometry.doFiducialZeroPointCull = True
+config.astrometry.load(os.path.join(config_dir, "fiducialZeroPoint.py"))
+
 # Use PS1 for both astrometry and photometry.
 config.connections.astrometry_ref_cat = "ps1_pv3_3pi_20170110"
 config.astrometry_ref_loader.load(os.path.join(config_dir, "filterMap.py"))
