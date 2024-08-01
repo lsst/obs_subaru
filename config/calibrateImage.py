@@ -4,6 +4,10 @@ from lsst.meas.algorithms import ColorLimit
 
 config_dir = os.path.dirname(__file__)
 
+# Overrides to improved astrometry matching.
+config.astrometry.doFiducialZeroPointCull = True
+config.astrometry.load(os.path.join(config_dir, "fiducialZeroPoint.py"))
+
 # Use PS1 for both astrometry and photometry.
 config.connections.astrometry_ref_cat = "ps1_pv3_3pi_20170110"
 config.astrometry_ref_loader.load(os.path.join(config_dir, "filterMap.py"))

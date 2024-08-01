@@ -7,7 +7,10 @@ ObsConfigDir = os.path.dirname(__file__)
 # Detection overrides to keep results the same post DM-39796
 config.detection.thresholdType = "stdev"
 config.detection.doTempLocalBackground = False
-config.astrometry.doMagnitudeOutlierRejection = False
+
+# Overrides to improved astrometry matching.
+config.astrometry.doFiducialZeroPointCull = True
+config.astrometry.load(os.path.join(ObsConfigDir, "fiducialZeroPoint.py"))
 
 # Use PS1 for both astrometry and photometry.
 config.connections.astromRefCat = "ps1_pv3_3pi_20170110"
