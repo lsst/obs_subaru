@@ -105,7 +105,9 @@ config.fringe.stats.stat = 32
 
 config.doNanInterpAfterFlat = False
 
+# Calculate and apply amp offset corrections.
 config.doAmpOffset = True
+config.ampOffset.doApplyAmpOffset = True
 
 # Detection overrides to keep results the same post DM-39796
 config.ampOffset.detection.thresholdType = "stdev"
