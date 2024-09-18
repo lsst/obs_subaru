@@ -1,8 +1,14 @@
+import math
 import os.path
 
 from lsst.meas.algorithms import ColorLimit
 
 config_dir = os.path.dirname(__file__)
+
+# Maintain characterizeImage defaults while we work to understand differences
+# between this new Task and older runs.
+config.install_simple_psf.fwhm = 1.5*2.0*math.sqrt(2.0*math.log(2.0))
+config.psf_detection.thresholdType = "stdev"
 
 # Use PS1 for both astrometry and photometry.
 config.connections.astrometry_ref_cat = "ps1_pv3_3pi_20170110"
