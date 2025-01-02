@@ -40,3 +40,5 @@ bin/showDither.py
 bin/showPsfs.py
 bin/hscIsr.py
 .vscode/
+python/*.dist-info/
+.coverage*
