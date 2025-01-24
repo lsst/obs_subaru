@@ -62,8 +62,7 @@ class HyperSuprimeCam(Instrument):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         packageDir = getPackageDir("obs_subaru")
-        self.configPaths = [os.path.join(packageDir, "config"),
-                            os.path.join(packageDir, "config", self.policyName)]
+        self.configPaths = [os.path.join(packageDir, "config")]
 
     @classmethod
     def getName(cls):
