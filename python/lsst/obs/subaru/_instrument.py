@@ -38,6 +38,7 @@ from lsst.daf.butler import (DatasetType, DataCoordinate, FileDataset, DatasetRe
                              CollectionType, Timespan)
 from lsst.utils.introspection import get_full_type_name
 from lsst.obs.base import Instrument, VisitSystem
+from lsst.obs.base.instrument_ref_cat_data import ColortermModel, InstrumentRefCatLibrary
 
 from ..hsc.hscPupil import HscPupilFactory
 from ..hsc.hscFilters import HSC_FILTER_DEFINITIONS
@@ -63,6 +64,7 @@ class HyperSuprimeCam(Instrument):
         super().__init__(**kwargs)
         packageDir = getPackageDir("obs_subaru")
         self.configPaths = [os.path.join(packageDir, "config")]
+        self._ref_cat_library = None  # loaded on first use
 
     @classmethod
     def getName(cls):
@@ -320,3 +322,18 @@ class HyperSuprimeCam(Instrument):
             for dataset in datasets:
                 refs.extend(dataset.refs)
             butler.registry.certify(collection, refs, timespan)
+
+    def get_ref_cat_filter_map(self, ref_cat: str) -> str | dict[str, str]:
+        # Docstring inherited.
+        return self._get_ref_cat_library().find(ref_cat).filter_map
+
+    def get_ref_cat_colorterm(self, ref_cat: str, physical_filter: str) -> ColortermModel:
+        # Docstring inherited.
+        return self._get_ref_cat_library().find(ref_cat).colorterms[physical_filter]
+
+    def _get_ref_cat_library(self) -> InstrumentRefCatLibrary:
+        if self._ref_cat_library is None:
+            filename = os.path.join(getPackageDir("obs_subaru"), self.policyName, "refcats.json")
+            with open(filename, "r") as f:
+                self._ref_cat_library = InstrumentRefCatLibrary.model_validate_json(f.read())
+        return self._ref_cat_library
