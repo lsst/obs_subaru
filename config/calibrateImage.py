@@ -10,6 +10,11 @@ config_dir = os.path.dirname(__file__)
 config.install_simple_psf.fwhm = 1.5*2.0*math.sqrt(2.0*math.log(2.0))
 config.psf_detection.thresholdType = "stdev"
 
+# Loosen minMatchDistanceArcSec, the maximum match distance (in arcsec)
+# below which further iteration is pointless since we can only do as well
+# as the camera model in SFM using the affine WCS fit.
+config.astrometry.minMatchDistanceArcSec = 0.025
+
 # Overrides to improved astrometry matching.
 config.astrometry.doFiducialZeroPointCull = True
 config.astrometry.load(os.path.join(config_dir, "fiducialZeroPoint.py"))
