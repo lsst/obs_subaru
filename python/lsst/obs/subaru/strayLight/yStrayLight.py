@@ -16,13 +16,13 @@
 
 __all__ = ["SubaruStrayLightTask"]
 
-import datetime
 from typing import Optional
 
 import numpy
 from astropy.io import fits
 import scipy.interpolate
 
+from lsst.daf.base import DateTime
 from lsst.geom import Angle, degrees
 from lsst.daf.butler import DeferredDatasetHandle
 from lsst.ip.isr.straylight import StrayLightConfig, StrayLightTask, StrayLightData
@@ -32,6 +32,10 @@ from .rotatorAngle import inrStartEnd
 
 
 BAD_THRESHOLD = 500  # Threshold for identifying bad pixels in the reconstructed dark image
+
+# LEDs causing the stray light were been covered up by his date.
+# We believe there is no remaining stray light.
+_STRAY_LIGHT_FIXED_DATE = DateTime("2018-01-01T00:00:00Z", DateTime.UTC)
 
 
 class SubaruStrayLightTask(StrayLightTask):
@@ -61,9 +65,7 @@ class SubaruStrayLightTask(StrayLightTask):
         if detId in range(104, 112):
             # No correction data: assume it's zero
             return False
-        if exposure.getInfo().getVisitInfo().getDate().toPython() >= datetime.datetime(2018, 1, 1):
-            # LEDs causing the stray light have been covered up.
-            # We believe there is no remaining stray light.
+        if exposure.visitInfo.date >= _STRAY_LIGHT_FIXED_DATE:
             return False
 
         return True
