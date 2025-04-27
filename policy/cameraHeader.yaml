@@ -1,0 +1,324 @@
+# This file is part of obs_subaru.
+#
+# Developed for the LSST Data Management System.
+# This product includes software developed by the LSST Project
+# (http://www.lsst.org).
+# See the COPYRIGHT file at the top-level directory of this distribution
+# for details of code ownership.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the LSST License Statement and
+# the GNU General Public License along with this program.  If not,
+# see <http://www.lsstcorp.org/LegalNotices/>.
+#
+#
+--- # hsc
+#
+
+name : "hsc"
+
+#
+# A single amplifier
+#
+AMP : &AMP
+    perAmpData : False
+    # trimmed
+    dataExtent : [512, 4176]
+    readCorner : LL
+    #                         [[x0,   y0], [xsize, ysize]]
+    rawBBox                 : [[0,     0], [536,    4241]]  # total size of one amp's raw data
+
+    rawDataBBox             : [[8,    49], [512,    4176]]  # data region in raw data
+    rawSerialPrescanBBox    : [[0,    49], [8,      4176]]  # serial prescan (often == extended)
+    rawSerialOverscanBBox   : [[520,  49], [16,     4176]]  # serial overscan
+    rawParallelPrescanBBox  : [[0,     0], [536,      49]]  # pixels before first usable parallel transfer
+    rawParallelOverscanBBox : [[8,  4225], [512,      16]]  # parallel overscan
+
+    saturation : 43000                  # saturation level, DN XXX Should this be in electrons?
+
+    # Linearity correction is still under discussion, so this is a placeholder.
+    linearityType : SQUARED
+    linearityThreshold : 0
+    linearityMax : 43000                # == saturation
+    linearityCoeffs : [0, 43000]        # == [linearityThreshold, linearityMax]
+
+#
+# A single CCD
+#
+CCD_HAMAMATSU : &CCD
+    detectorType : 0
+    refpos : [1023.5, 2087.5]
+    offset : [.nan, .nan]
+    # This is the orientation we need to put the serial direction along the x-axis
+    bbox : [[0, 0], [2047, 4175]]       # [llc, urc] -- sorry; different convention from e.g. rawDataBBox
+    pixelSize : [0.015, 0.015]          # in mm
+    transformDict : {nativeSys : 'Pixels', transforms : None}
+    transposeDetector : False
+    pitch : 0.0                         # (degrees)
+    yaw : 0.0                           # rotation in plane of camera (degrees)
+    roll : 0.0                          # (degrees)
+
+    amplifiers:
+      A0: &A0_HAMAMATSU
+        <<: *AMP
+        hdu : 0                         # used to sort the amps
+        flipXY : [False, False]
+        controllerFlipXY : [False, False]
+        readCorner : LL
+        ixy : [0, 0]
+      A1: &A1_HAMAMATSU
+        <<: *A0_HAMAMATSU
+        hdu : 1
+        #flipXY : [True, False]
+        controllerFlipXY : [True, False]
+        readCorner : LR
+        ixy : [1, 0]
+      A2: &A2_HAMAMATSU
+        <<: *A0_HAMAMATSU
+        hdu : 2
+        ixy : [2, 0]
+      A3: &A3_HAMAMATSU
+        <<: *A1_HAMAMATSU
+        hdu : 3
+        ixy : [3, 0]
+
+#
+# Layout of CCDs within a raft
+#
+RAFT_HAMAMATSU:
+  ccds :
+    '00' : &00_HAMAMATSU
+      << : *CCD
+      offset : [-95.6, -31.9]
+
+    '01' : &01_HAMAMATSU
+      << : *CCD
+      offset : [-95.5, -99.0]
+
+    '02' : &02_HAMAMATSU
+      << : *CCD
+      offset : [-95.6, -166.2]
+
+    '03' : &03_HAMAMATSU
+      << : *CCD
+      offset : [-95.6, -233.3]
+
+    '04' : &04_HAMAMATSU
+      << : *CCD
+      offset : [-63.7, -31.9]
+
+    '05' : &05_HAMAMATSU
+      << : *CCD
+      offset : [-63.7, -99.0]
+
+    '06' : &06_HAMAMATSU
+      << : *CCD
+      offset : [-63.7, -166.2]
+
+    '07' : &07_HAMAMATSU
+      << : *CCD
+      offset : [-63.7, -233.3]
+
+    '08' : &08_HAMAMATSU
+      << : *CCD
+      offset : [-31.9, -31.9]
+
+    '09' : &09_HAMAMATSU
+      << : *CCD
+      offset : [-31.8, -99.0]
+
+    '10' : &10_HAMAMATSU
+      << : *CCD
+      offset : [-31.9, -166.2]
+
+    '11' : &11_HAMAMATSU
+      << : *CCD
+      offset : [-31.9, -233.3]
+
+    '12' : &12_HAMAMATSU
+      << : *CCD
+      offset : [-0.0, -31.9]
+
+    '13' : &13_HAMAMATSU
+      << : *CCD
+      offset : [-0.0, -99.0]
+
+    '14' : &14_HAMAMATSU
+      << : *CCD
+      offset : [-0.0, -166.2]
+
+    '15' : &15_HAMAMATSU
+      << : *CCD
+      offset : [-0.0, -233.3]
+
+    '16' : &16_HAMAMATSU
+      << : *CCD
+      offset : [31.8, -31.9]
+
+    '17' : &17_HAMAMATSU
+      << : *CCD
+      offset : [31.8, -99.0]
+
+    '18' : &18_HAMAMATSU
+      << : *CCD
+      offset : [31.8, -166.2]
+
+    '19' : &19_HAMAMATSU
+      << : *CCD
+      offset : [31.8, -233.3]
+
+    '20' : &20_HAMAMATSU
+      << : *CCD
+      offset : [63.7, -31.9]
+
+    '21' : &21_HAMAMATSU
+      << : *CCD
+      offset : [63.7, -99.1]
+
+    '22' : &22_HAMAMATSU
+      << : *CCD
+      offset : [63.7, -166.2]
+
+    '23' : &23_HAMAMATSU
+      << : *CCD
+      offset : [63.7, -233.3]
+
+    '24' : &24_HAMAMATSU
+      << : *CCD
+      offset : [95.5, -31.9]
+
+    '25' : &25_HAMAMATSU
+      << : *CCD
+      offset : [95.5, -99.0]
+
+    '26' : &26_HAMAMATSU
+      << : *CCD
+      offset : [95.5, -166.2]
+
+    '27' : &27_HAMAMATSU
+      << : *CCD
+      offset : [95.5, -233.3]
+
+    '28' : &28_HAMAMATSU
+      << : *CCD
+      offset : [127.4, -31.9]
+
+    '29' : &29_HAMAMATSU
+      << : *CCD
+      offset : [127.4, -99.0]
+
+    '30' : &30_HAMAMATSU
+      << : *CCD
+      offset : [127.4, -166.2]
+
+    '31' : &31_HAMAMATSU
+      << : *CCD
+      offset : [143.8, -217.3]
+      yaw : 270
+
+    '32' : &32_HAMAMATSU
+      << : *CCD
+      offset : [-127.4, -31.9]
+
+    '33' : &33_HAMAMATSU
+      << : *CCD
+      offset : [-127.4, -99.0]
+
+    '34' : &34_HAMAMATSU
+      << : *CCD
+      offset : [-127.4, -166.2]
+
+    '35' : &35_HAMAMATSU
+      << : *CCD
+      offset : [-143.9, -217.4]
+      yaw : 90
+
+    '36' : &36_HAMAMATSU
+      << : *CCD
+      offset : [-159.2, 169.6]
+
+    '37' : &37_HAMAMATSU
+      << : *CCD
+      offset : [-159.2, 102.4]
+
+    '38' : &38_HAMAMATSU
+      << : *CCD
+      offset : [-159.2, 35.2]
+
+    '39' : &39_HAMAMATSU
+      << : *CCD
+      offset : [-159.2, -31.9]
+
+    '40' : &40_HAMAMATSU
+      << : *CCD
+      offset : [-159.2, -99.0]
+
+    '41' : &41_HAMAMATSU
+      << : *CCD
+      offset : [-159.2, -166.2]
+
+    '42' : &42_HAMAMATSU
+      << : *CCD
+      offset : [-191.0, 169.6]
+
+    '43' : &43_HAMAMATSU
+      << : *CCD
+      offset : [-191.1, 102.4]
+
+    '44' : &44_HAMAMATSU
+      << : *CCD
+      offset : [-191.1, 35.3]
+
+    '45' : &45_HAMAMATSU
+      << : *CCD
+      offset : [-191.1, -31.8]
+
+    '46' : &46_HAMAMATSU
+      << : *CCD
+      offset : [-191.1, -99.0]
+
+    '47' : &47_HAMAMATSU
+      << : *CCD
+      offset : [-191.1, -166.1]
+
+    '48' : &48_HAMAMATSU
+      << : *CCD
+      offset : [-254.8, 99.7]
+
+    '51' : &51_HAMAMATSU
+      << : *CCD
+      offset : [-254.8, -99.7]
+
+    '52' : &52_HAMAMATSU
+      << : *CCD
+      offset : [-222.9, 166.7]
+
+    '53' : &53_HAMAMATSU
+      << : *CCD
+      offset : [-222.9, 102.4]
+
+    '54' : &54_HAMAMATSU
+      << : *CCD
+      offset : [-222.9, 35.3]
+
+    '55' : &55_HAMAMATSU
+      << : *CCD
+      offset : [-222.9, -31.9]
+
+    '56' : &56_HAMAMATSU
+      << : *CCD
+      offset : [-222.9, -99.0]
+
+    '57' : &57_HAMAMATSU
+      << : *CCD
+      offset : [-222.9, -166.7]
+
