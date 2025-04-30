@@ -25,3 +25,6 @@ config.stdPhysicalFilterOverrideMap = {'HSC-R': 'HSC-R2',
 
 # FGCM name or filename of precomputed atmospheres
 config.atmosphereTableName = "fgcm_atm_subaru3"
+
+# Create a LUT for all detectors (for backwards compatibility).
+config.useScienceDetectors = False
