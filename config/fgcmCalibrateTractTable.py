@@ -8,7 +8,9 @@ config.fgcmFitCycle.aperCorrFitNBins = 0
 # In tract mode, we use "repeatability" metric for cuts for all filters.
 config.fgcmFitCycle.useRepeatabilityForExpGrayCutsDict = {
     "N387": True,
+    "N395": True,
     "g": True,
+    "N515": True,
     "r": True,
     "i": True,
     "N816": True,

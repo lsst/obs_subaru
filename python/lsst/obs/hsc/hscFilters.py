@@ -97,4 +97,6 @@ HSC_FILTER_DEFINITIONS = FilterDefinitionCollection(
                      band='N926'),
     FilterDefinition(physical_filter="NB0400",
                      band='N400'),
+    FilterDefinition(physical_filter="NB0395",
+                     band='N395'),
 )

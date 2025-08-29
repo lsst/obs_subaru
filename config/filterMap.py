@@ -5,6 +5,7 @@ for source, target in [
         ("i2", "i"),
         # Narrow bands
         ('N387', 'g'),
+        ('N395', 'g'),
         ('N468', 'g'),
         ('N515', 'g'),
         ('N527', 'g'),
@@ -30,6 +31,7 @@ for source, target in [
         ("HSC-Y", "y"),
         # Narrow bands
         ('NB0387', 'g'),
+        ('NB0395', 'g'),
         ('NB0468', 'g'),
         ('NB0515', 'g'),
         ('NB0527', 'g'),

@@ -2,8 +2,8 @@ from lsst.fgcmcal import Sedterm, Sedboundaryterm
 from lsst.obs.hsc.hscFilters import HSC_FILTER_DEFINITIONS
 
 config.outfileBase = "fgcmHscCalibrations"
-config.bands = ["N387", "g", "r", "i", "N816", "z", "N921", "y", "N1010"]
-config.fitBands = ["N387", "g", "r", "i", "N816", "z", "N921", "y", "N1010"]
+config.bands = ["N387", "N395", "g", "N515", "r", "i", "N816", "z", "N921", "y", "N1010"]
+config.fitBands = ["N387", "N395", "g", "N515", "r", "i", "N816", "z", "N921", "y", "N1010"]
 config.physicalFilterMap = HSC_FILTER_DEFINITIONS.physical_to_band
 config.maxIterBeforeFinalCycle = 150
 config.cycleNumber = 0
@@ -17,7 +17,9 @@ config.latitude = 19.8256
 config.defaultCameraOrientation = 270.0
 config.expGrayPhotometricCutDict = {
     "N387": -0.05,
+    "N395": -0.05,
     "g": -0.05,
+    "N515": -0.05,
     "r": -0.05,
     "i": -0.05,
     "N816": -0.05,
@@ -28,7 +30,9 @@ config.expGrayPhotometricCutDict = {
 }
 config.expGrayHighCutDict = {
     "N387": 0.2,
+    "N395": 0.2,
     "g": 0.2,
+    "N515": 0.2,
     "r": 0.2,
     "i": 0.2,
     "N816": 0.2,
@@ -40,7 +44,9 @@ config.expGrayHighCutDict = {
 config.aperCorrFitNBins = 10
 config.aperCorrInputSlopeDict = {
     "N387": -1.0,
+    "N395": -1.0,
     "g": -1.1579,
+    "N515": -1.0,
     "r": -1.3908,
     "i": -1.1436,
     "N816": -1.8149,
@@ -62,7 +68,9 @@ config.precomputeSuperStarInitialCycle = True
 # on a per-ccd level.
 config.superStarSubCcdDict = {
     "N387": False,
+    "N395": False,
     "g": True,
+    "N515": False,
     "r": True,
     "i": True,
     "N816": True,
@@ -76,7 +84,9 @@ config.superStarSubCcdChebyshevOrder = 2
 # reliable fits for the per-ccd gray correction.
 config.ccdGraySubCcdDict = {
     "N387": False,
+    "N395": False,
     "g": True,
+    "N515": False,
     "r": True,
     "i": True,
     "N816": True,
@@ -90,7 +100,9 @@ config.ccdGraySubCcdDict = {
 # ccd-to-ccd continuity.
 config.ccdGrayFocalPlaneDict = {
     "N387": True,
+    "N395": True,
     "g": True,
+    "N515": True,
     "r": True,
     "i": True,
     "N816": True,
@@ -106,7 +118,9 @@ config.instrumentParsPerBand = True
 config.minStarPerExp = 100
 config.expVarGrayPhotometricCutDict = {
     "N387": 0.05,
+    "N395": 0.05,
     "g": 0.0025,
+    "N515": 0.05,
     "r": 0.0025,
     "i": 0.0025,
     "N816": 0.05,
@@ -118,7 +132,9 @@ config.expVarGrayPhotometricCutDict = {
 config.minExpPerNight = 3
 config.useRepeatabilityForExpGrayCutsDict = {
     "N387": True,
+    "N395": True,
     "g": False,
+    "N515": True,
     "r": False,
     "i": False,
     "N816": True,
@@ -129,7 +145,9 @@ config.useRepeatabilityForExpGrayCutsDict = {
 }
 config.sigFgcmMaxEGrayDict = {
     "N387": 0.15,
+    "N395": 0.15,
     "g": 0.05,
+    "N515": 0.15,
     "r": 0.05,
     "i": 0.05,
     "N816": 0.15,
@@ -140,7 +158,9 @@ config.sigFgcmMaxEGrayDict = {
 }
 config.approxThroughputDict = {
     "N387": 1.0,
+    "N395": 1.0,
     "g": 1.0,
+    "N515": 1.0,
     "r": 1.0,
     "i": 1.0,
     "N816": 1.0,
@@ -156,6 +176,8 @@ config.sedboundaryterms.data = {
     "iz": Sedboundaryterm(primary="i", secondary="z"),
     "zy": Sedboundaryterm(primary="z", secondary="y"),
     "N387g": Sedboundaryterm(primary="N387", secondary="g"),
+    "N395g": Sedboundaryterm(primary="N395", secondary="g"),
+    "N515g": Sedboundaryterm(primary="N515", secondary="g"),
     "N816i": Sedboundaryterm(primary="N816", secondary="i"),
     "N921z": Sedboundaryterm(primary="N921", secondary="z"),
     "N1010y": Sedboundaryterm(primary="N1010", secondary="y"),
@@ -175,6 +197,8 @@ config.sedterms.data = {
         tertiaryBand="i",
     ),
     "N387": Sedterm(primaryTerm="N387g", constant=1.0),
+    "N395": Sedterm(primaryTerm="N395g", constant=1.0),
+    "N515": Sedterm(primaryTerm="N515g", constant=1.0),
     "N816": Sedterm(primaryTerm="N816i", constant=0.7),
     "N921": Sedterm(primaryTerm="N921z", constant=0.5),
     "N1010": Sedterm(primaryTerm="N1010y", constant=1.0),
