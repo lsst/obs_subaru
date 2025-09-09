@@ -8,6 +8,8 @@ config.physicalFilters = [
     "HSC-Z",
     "HSC-Y",
     "NB0387",
+    "NB0395",
+    "NB0515",
     "NB0816",
     "NB0921",
     "NB1010",
