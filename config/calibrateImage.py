@@ -5,6 +5,11 @@ from lsst.meas.algorithms import ColorLimit
 
 config_dir = os.path.dirname(__file__)
 
+# Set the cosmic ray detection parameters
+config.psf_repair.cosmicray.cond3_fac = 2.5
+config.psf_repair.cosmicray.cond3_fac2 = 0.4
+config.psf_repair.cosmicray.niteration = 3
+
 # Maintain characterizeImage defaults while we work to understand differences
 # between this new Task and older runs.
 config.install_simple_psf.fwhm = 1.5*2.0*math.sqrt(2.0*math.log(2.0))
