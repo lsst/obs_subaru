@@ -33,6 +33,7 @@ from functools import lru_cache
 from astro_metadata_translator import HscTranslator
 import astropy.time
 from lsst.utils import getPackageDir
+from lsst.resources import ResourcePath
 from lsst.afw.cameraGeom import makeCameraFromPath, CameraConfig
 from lsst.daf.butler import (DatasetType, DataCoordinate, FileDataset, DatasetRef,
                              CollectionType, Timespan)
@@ -61,9 +62,8 @@ class HyperSuprimeCam(Instrument):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        packageDir = getPackageDir("obs_subaru")
-        self.configPaths = [os.path.join(packageDir, "config"),
-                            os.path.join(packageDir, "config", self.policyName)]
+        self.configPaths = ["eups://obs_subaru/config",
+                            f"eups://obs_subaru/config/{self.policyName}"]
 
     @classmethod
     def getName(cls):
@@ -146,8 +146,8 @@ class HyperSuprimeCam(Instrument):
         This is a temporary API that should go away once obs_ packages have
         a standardized approach to writing versioned kernels to a Gen3 repo.
         """
-        path = os.path.join(getPackageDir("obs_subaru"), self.policyName, "brighter_fatter_kernel.pkl")
-        with open(path, "rb") as fd:
+        uri = ResourcePath(f"eups://obs_subaru/{self.policyName}/brighter_fatter_kernel.pkl")
+        with uri.open("rb") as fd:
             kernel = pickle.load(fd, encoding='latin1')  # encoding for pickle written with Python 2
         return kernel
 

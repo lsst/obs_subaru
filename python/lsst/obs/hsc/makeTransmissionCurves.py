@@ -21,17 +21,15 @@
 # the GNU General Public License along with this program.  If not,
 # see <https://www.lsstcorp.org/LegalNotices/>.
 #
-import os
-import glob
 import numpy as np
 
 from lsst.afw.image import TransmissionCurve
-from lsst.utils import getPackageDir
+from lsst.resources import ResourcePath
 
 __all__ = ("getOpticsTransmission", "getSensorTransmission", "getAtmosphereTransmission",
            "getFilterTransmission",)
 
-DATA_DIR = os.path.join(getPackageDir("obs_subaru"), "hsc", "transmission")
+DATA_DIR = ResourcePath("eups://obs_subaru/hsc/transmission/", forceDirectory=True)
 
 HSC_BEGIN = "2012-12-18"  # initial date for curves valid for entire lifetime of HSC
 
@@ -78,7 +76,8 @@ def readTransmissionCurveFromFile(filename, unit="angstrom", atMin=None, atMax=N
         Throughput to use at wavelengths above the tabulated maximum.  If
         ``None``, the tabulated throughput at the maximum will be used.
     """
-    wavelengths, throughput = np.loadtxt(os.path.join(DATA_DIR, filename), usecols=[0, 1], unpack=True)
+    with DATA_DIR.join(filename).as_local() as local:
+        wavelengths, throughput = np.loadtxt(local.ospath, usecols=[0, 1], unpack=True)
     i = np.argsort(wavelengths)
     wavelengths = wavelengths[i]
     throughput = throughput[i]
@@ -160,9 +159,8 @@ def getFilterTransmission():
     is valid after the date provided in the key.
     """
     module = {}
-    filename = os.path.join(DATA_DIR, "filterTraces.py")
-    with open(filename) as file:
-        exec(compile(file.read(), filename, mode='exec'), module)
+    filterTraces = DATA_DIR.join("filterTraces.py")
+    exec(compile(filterTraces.read().decode(), str(filterTraces), mode='exec'), module)
     result = {}
     for band, data in module["FILTER_DATA"].items():
         result[getPhysicalFilterName(band)] = TransmissionCurve.makeRadial(
@@ -170,8 +168,9 @@ def getFilterTransmission():
             radii=data['radius']/module["PIXEL_SIZE"],
             throughputAtMin=0.0, throughputAtMax=0.0
         )
-    for filename in glob.glob(os.path.join(DATA_DIR, "wHSC-*.txt")):
-        band = getPhysicalFilterName(os.path.split(filename)[1][len("wHSC-"): -len(".txt")])
+    for uri in ResourcePath.findFileResources([DATA_DIR], file_filter=r"wHSC-.*\.txt$"):
+        fname = uri.basename()
+        band = getPhysicalFilterName(fname[len("wHSC-"): -len(".txt")])
         if band not in result:
-            result[band] = readTransmissionCurveFromFile(filename, atMin=0.0, atMax=0.0)
+            result[band] = readTransmissionCurveFromFile(fname, atMin=0.0, atMax=0.0)
     return {HSC_BEGIN: result}
