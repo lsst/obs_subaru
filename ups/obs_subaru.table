@@ -6,6 +6,7 @@ setupRequired(astshim)
 setupRequired(astro_metadata_translator)
 setupRequired(obs_subaru_data)
 setupRequired(geom)
+setupRequired(resources)
 
 setupOptional(daf_butler)
 setupOptional(meas_modelfit)

@@ -29,7 +29,7 @@ from lsst.resources import ResourcePath
 __all__ = ("getOpticsTransmission", "getSensorTransmission", "getAtmosphereTransmission",
            "getFilterTransmission",)
 
-DATA_DIR = ResourcePath("eups://obs_subaru/hsc/transmission/", forceDirectory=True)
+DATA_DIR = ResourcePath("resource://lsst.obs.subaru/resources/hsc/transmission/", forceDirectory=True)
 
 HSC_BEGIN = "2012-12-18"  # initial date for curves valid for entire lifetime of HSC
 

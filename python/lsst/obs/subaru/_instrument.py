@@ -62,8 +62,8 @@ class HyperSuprimeCam(Instrument):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.configPaths = ["eups://obs_subaru/config",
-                            f"eups://obs_subaru/config/{self.policyName}"]
+        self.configPaths = ["resource://lsst.obs.subaru/resources/config",
+                            f"resource://lsst.obs.subaru/resources/config/{self.policyName}"]
 
     @classmethod
     def getName(cls):
@@ -146,7 +146,7 @@ class HyperSuprimeCam(Instrument):
         This is a temporary API that should go away once obs_ packages have
         a standardized approach to writing versioned kernels to a Gen3 repo.
         """
-        uri = ResourcePath(f"eups://obs_subaru/{self.policyName}/brighter_fatter_kernel.pkl")
+        uri = ResourcePath(f"resource://lsst.obs.subaru/resources/{self.policyName}/brighter_fatter_kernel.pkl")
         with uri.open("rb") as fd:
             kernel = pickle.load(fd, encoding='latin1')  # encoding for pickle written with Python 2
         return kernel
