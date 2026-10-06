@@ -1,4 +1,3 @@
-import os.path
 from lsst.obs.hsc.hscFilters import HSC_FILTER_DEFINITIONS
 
 # Demand at least 2 observations of a star to be considered for calibration
@@ -13,10 +12,9 @@ config.physicalFilterMap = HSC_FILTER_DEFINITIONS.physical_to_band
 config.primaryBands = ("i", "r", "g", "z", "y", "N387", "N395", "N515", "N816", "N921", "N1010")
 config.doSubtractLocalBackground = True
 
-hscConfigDir = os.path.join(os.path.dirname(__file__))
-config.fgcmLoadReferenceCatalog.load(os.path.join(hscConfigDir, "filterMap.py"))
+config.fgcmLoadReferenceCatalog.load("filterMap.py")
 config.fgcmLoadReferenceCatalog.applyColorTerms = True
-config.fgcmLoadReferenceCatalog.colorterms.load(os.path.join(hscConfigDir, "colorterms.py"))
+config.fgcmLoadReferenceCatalog.colorterms.load("colorterms.py")
 config.fgcmLoadReferenceCatalog.referenceSelector.doSignalToNoise = True
 # Choose reference catalog signal-to-noise based on the PS1 i-band.
 config.fgcmLoadReferenceCatalog.referenceSelector.signalToNoise.fluxField = "i_flux"

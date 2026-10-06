@@ -1,8 +1,6 @@
-import os.path
-
-config.fgcmBuildStars.load(os.path.join(os.path.dirname(__file__), "fgcmBuildStarsTable.py"))
-config.fgcmFitCycle.load(os.path.join(os.path.dirname(__file__), "fgcmFitCycle.py"))
-config.fgcmOutputProducts.load(os.path.join(os.path.dirname(__file__), "fgcmOutputProducts.py"))
+config.fgcmBuildStars.load("fgcmBuildStarsTable.py")
+config.fgcmFitCycle.load("fgcmFitCycle.py")
+config.fgcmOutputProducts.load("fgcmOutputProducts.py")
 # In tract mode, Do not fit aperture correction terms.
 config.fgcmFitCycle.aperCorrFitNBins = 0
 # In tract mode, we use "repeatability" metric for cuts for all filters.

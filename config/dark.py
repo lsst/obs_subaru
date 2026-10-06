@@ -1,6 +1,4 @@
-import os.path
-
-config.isr.load(os.path.join(os.path.dirname(__file__), "isr.py"))
+config.isr.load("isr.py")
 
 config.isr.doBias = True
 config.repair.cosmicray.nCrPixelMax = 1000000

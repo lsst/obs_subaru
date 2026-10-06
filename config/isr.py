@@ -1,5 +1,3 @@
-import os.path
-
 from lsst.obs.subaru.strayLight import SubaruStrayLightTask
 
 config.datasetType = "raw"
@@ -132,7 +130,7 @@ config.fluxMag0T1 = {'HSC-G': 398107170553.49854,
 # Use default ISR vignette construction
 config.doVignette = True
 config.doMaskVignettePolygon = True
-config.vignette.load(os.path.join(os.path.dirname(__file__), "vignette.py"))
+config.vignette.load("vignette.py")
 
 config.doAttachTransmissionCurve = True
 config.doUseOpticsTransmission = True

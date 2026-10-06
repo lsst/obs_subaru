@@ -1,7 +1,3 @@
-import os.path
-
-ObsConfigDir = os.path.dirname(__file__)
-
 # PSF determination
 config.measurePsf.reserve.fraction = 0.2
 
@@ -13,12 +9,12 @@ config.measurePsf.starSelector["objectSize"].fluxMin = 4000.0
 config.measurePsf.starSelector["objectSize"].doSignalToNoiseLimit = False
 
 # Activate calibration of measurements: required for aperture corrections
-config.load(os.path.join(ObsConfigDir, "cmodel.py"))
-config.measurement.load(os.path.join(ObsConfigDir, "apertures.py"))
-config.measurement.load(os.path.join(ObsConfigDir, "kron.py"))
-config.measurement.load(os.path.join(ObsConfigDir, "convolvedFluxes.py"))
-config.measurement.load(os.path.join(ObsConfigDir, "gaap.py"))
-config.measurement.load(os.path.join(ObsConfigDir, "hsm.py"))
+config.load("cmodel.py")
+config.measurement.load("apertures.py")
+config.measurement.load("kron.py")
+config.measurement.load("convolvedFluxes.py")
+config.measurement.load("gaap.py")
+config.measurement.load("hsm.py")
 if "ext_shapeHSM_HsmShapeRegauss" in config.measurement.plugins:
     # no deblending has been done
     config.measurement.plugins["ext_shapeHSM_HsmShapeRegauss"].deblendNChild = ""
