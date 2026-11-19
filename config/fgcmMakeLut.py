@@ -13,6 +13,7 @@ config.physicalFilters = [
     "NB0816",
     "NB0921",
     "NB1010",
+    "EB-GRI",
 ]
 
 # Override mapping from physical filter labels to 'standard' physical

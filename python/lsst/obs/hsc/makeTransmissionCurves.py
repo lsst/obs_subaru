@@ -38,7 +38,7 @@ HSC_BEGIN = "2012-12-18"  # initial date for curves valid for entire lifetime of
 # broad-band filters; the narrow-band filters are easier to transform without
 # an explicit mapping (see getPhysicalFilterName).
 OLD_FILTER_NAME_MAP = {b: f"HSC-{b.upper()}" for b in "grizy"}
-OLD_FILTER_NAME_MAP.update(r2="HSC-R2", i2="HSC-I2")
+OLD_FILTER_NAME_MAP.update(r2="HSC-R2", i2="HSC-I2", gri="EB-GRI", w="EB-GRI")
 
 
 def getPhysicalFilterName(short):
