@@ -9,7 +9,7 @@ config.densityCutMaxPerPixel = 2000
 # ensures that stars observed in HSC-R + HSC-R2 can be matched, and
 # HSC-I + HSC-I2 can be matched.
 config.physicalFilterMap = HSC_FILTER_DEFINITIONS.physical_to_band
-config.primaryBands = ("i", "r", "g", "z", "y", "N387", "N395", "N515", "N816", "N921", "N1010")
+config.primaryBands = ("i", "r", "g", "z", "y", "N387", "N395", "N515", "N816", "N921", "N1010", "gri")
 
 config.fgcmLoadReferenceCatalog.load("filterMap.py")
 config.fgcmLoadReferenceCatalog.applyColorTerms = True

@@ -53,5 +53,7 @@ config.data = {
         'NB0926': Colorterm(primary="z", secondary="y", c0=0.005230, c1=-0.574448, c2=-0.330899),
         'NB0973': Colorterm(primary="y", secondary="z", c0=-0.007775, c1=-0.050972, c2=-0.197278),
         'NB1010': Colorterm(primary="y", secondary="z", c0=0.003607, c1=0.865366, c2=1.271817),
+        # From S. Gwyn email July 12 2024
+        'EB-GRI': Colorterm(primary="r", secondary="i", c0=-0.021, c1=-0.401, c2=0.588),
     }),
 }

@@ -117,6 +117,7 @@ config.doCameraSpecificMasking = False
 
 config.fluxMag0T1 = {'HSC-G': 398107170553.49854,
                      'HSC-R': 398107170553.49854,
+                     'EB-GRI': 398107170553.49854,
                      'HSC-R2': 398107170553.49854,
                      'HSC-I': 275422870333.81744,
                      'HSC-I2': 275422870333.81744,
