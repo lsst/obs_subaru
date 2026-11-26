@@ -1,0 +1,12 @@
+prefix=${pcfiledir}/../..
+includedir=${prefix}/include
+libdir=${prefix}/lib
+doxygen_tag=${prefix}/doc/obs_subaru.tag
+lsst_build_requires=pybind11 python3
+
+Name: lsst_obs_subaru
+Description: LSST Science Pipelines Subaru camera support
+Version: @VERSION@
+Requires: lsst_cpputils lsst_afw
+Cflags: -I${includedir}
+Libs: -L${libdir} -lobs_subaru
