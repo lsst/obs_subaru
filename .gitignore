@@ -42,3 +42,4 @@ bin/hscIsr.py
 .vscode/
 python/*.dist-info/
 .coverage*
+*.DS_Store
